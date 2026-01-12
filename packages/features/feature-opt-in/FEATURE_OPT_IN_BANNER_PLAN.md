@@ -19,11 +19,10 @@ This procedure will:
 - Use the existing `resolveFeatureStatesAcrossTeams` function from `FeatureOptInService`
 - Return one of three response types:
   1. **Already Enabled**: User effectively has the feature enabled - no banner needed
-  2. **Can Opt-In**: User can opt-in - return feature info (title, description) plus user's role context
+  2. **Can Opt-In**: User can opt-in - return user's role context (feature metadata like title/description comes from `getOptInFeatureConfig()` in `config.ts`)
   3. **Cannot Opt-In**: User is blocked by org/team (strict policy) - return blocking reason
 
 The response should include:
-- Feature metadata (title i18n key, description i18n key)
 - User's role context for the confirmation dialog:
   - Is org owner/admin?
   - Which teams is user owner/admin of?
@@ -39,16 +38,19 @@ The response should include:
 **Hook:** `useFeatureOptInBanner(featureId: string)`
 
 This hook will:
-1. **Check localStorage first** for dismissal key (e.g., `feature-opt-in-dismissed-{featureId}`)
-   - If dismissed, skip the TRPC call entirely and return `{ shouldShow: false }`
+1. **Check localStorage first** for dismissal state in a single consolidated key `feature-opt-in-dismissed`
+   - The key stores an object mapping feature IDs to dismissal status: `{ "bookings-v3": true, "insights-v2": true }`
+   - If the feature is dismissed, skip the TRPC call entirely and return `{ shouldShow: false }`
+   - Using a single key avoids localStorage bloat from multiple per-feature keys
 2. **Call the TRPC procedure** if not dismissed
-3. **Return state** for the banner:
+3. **Get feature metadata** from `getOptInFeatureConfig(featureId)` in `config.ts` for title/description i18n keys
+4. **Return state** for the banner:
    - `shouldShow: boolean`
-   - `featureInfo: { title, description }` (if applicable)
+   - `featureConfig: OptInFeatureConfig` (from config.ts, includes titleI18nKey, descriptionI18nKey)
    - `canOptIn: boolean`
    - `blockingReason: string | null`
    - `userRoleContext: { isOrgAdmin, adminTeamIds, orgId }`
-   - `dismiss(): void` - saves to localStorage
+   - `dismiss(): void` - updates the consolidated localStorage key
    - `openDialog(): void` - triggers confirmation dialog
 
 ---
@@ -89,20 +91,26 @@ Complex dialog with role-based options:
 
 **CTA Button:** "Enable Feature" - calls appropriate mutation(s) based on selection
 
-### 3c. Success Dialog
+### 3c. Success State (within Confirmation Dialog)
 
-**Location:** `packages/features/feature-opt-in/components/FeatureOptInSuccessDialog.tsx`
+Instead of a separate success dialog (which would cause UI flashing), the confirmation dialog handles the success state internally:
 
-Simple success confirmation:
-- "Successfully enabled!" message
-- Two buttons:
-  1. "Dismiss" - closes dialog
-  2. "View Settings" - redirects to appropriate settings page
+**Flow:**
+1. User clicks "Enable Feature" button
+2. Button shows a loading spinner while the mutation runs
+3. On success, the dialog content transitions to show success state
+4. Success state displays:
+   - "Successfully enabled!" message
+   - Two buttons:
+     1. "Dismiss" - closes dialog
+     2. "View Settings" - redirects to appropriate settings page
 
 **Redirect Logic:**
 - If user opted in for org: `/settings/organizations/features`
 - If user opted in for team(s): `/settings/teams/[first-team-id]/features`
 - If user opted in for self only: `/settings/my-account/features`
+
+This approach provides a smoother UX by avoiding the jarring close-and-reopen of separate dialogs.
 
 ---
 
@@ -164,7 +172,7 @@ FeatureOptInConfirmDialog
 Existing mutations: setUserState / setTeamState / setOrganizationState
     |
     v
-FeatureOptInSuccessDialog
+[Dialog transitions to success state]
 ```
 
 ---
@@ -184,8 +192,7 @@ This plan relies on these existing pieces from the underlying PR:
 
 ### New Files:
 - `packages/features/feature-opt-in/components/FeatureOptInBanner.tsx`
-- `packages/features/feature-opt-in/components/FeatureOptInConfirmDialog.tsx`
-- `packages/features/feature-opt-in/components/FeatureOptInSuccessDialog.tsx`
+- `packages/features/feature-opt-in/components/FeatureOptInConfirmDialog.tsx` (includes success state handling)
 - `apps/web/modules/feature-opt-in/hooks/useFeatureOptInBanner.ts`
 
 ### Modified Files:
