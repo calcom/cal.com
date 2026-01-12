@@ -4,7 +4,10 @@ import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/app-store/delegationCredential";
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import {
+  OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
+} from "@calcom/app-store/locations";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
@@ -32,7 +35,10 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
+import type {
+  EventTypeMetadata,
+  PlatformClientParams,
+} from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
@@ -58,7 +64,9 @@ export const roundRobinReassignment = async ({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
 
-  roundRobinReassignLogger.info(`User ${reassignedById} initiating round robin reassignment`);
+  roundRobinReassignLogger.info(
+    `User ${reassignedById} initiating round robin reassignment`
+  );
 
   let booking = await prisma.booking.findUnique({
     where: {
@@ -91,12 +99,7 @@ export const roundRobinReassignment = async ({
     throw new Error("Event type not found");
   }
 
-  if (eventType.hostGroups && eventType.hostGroups.length > 1) {
-    logger.error(
-      `Event type ${eventTypeId} has more than one round robin group, reassignment is not allowed`
-    );
-    throw new Error("Reassignment not allowed with more than one round robin group");
-  }
+  // Multi-group reassignment is now supported. Backend validation handles permission checks (admin vs non-admin)
 
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
@@ -118,7 +121,9 @@ export const roundRobinReassignment = async ({
 
   const originalOrganizer = booking.user;
 
-  const attendeeEmailsSet = new Set(booking.attendees.map((attendee) => attendee.email));
+  const attendeeEmailsSet = new Set(
+    booking.attendees.map((attendee) => attendee.email)
+  );
 
   // Find the current round robin host assigned
   const previousRRHost = (() => {
@@ -132,19 +137,32 @@ export const roundRobinReassignment = async ({
     }
   })();
 
-  const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
+  const previousRRHostT = await getTranslation(
+    previousRRHost?.locale || "en",
+    "common"
+  );
 
   const eventTypeHosts = await enrichHostsWithDelegationCredentials({
     orgId,
     hosts: eventType.hosts,
   });
   // Filter out the current attendees of the booking from the event type
-  const availableEventTypeUsers = eventTypeHosts.reduce((availableUsers, host) => {
-    if (!attendeeEmailsSet.has(host.user.email) && host.user.email !== originalOrganizer.email) {
-      availableUsers.push({ ...host.user, isFixed: host.isFixed, priority: host?.priority ?? 2 });
-    }
-    return availableUsers;
-  }, [] as IsFixedAwareUser[]);
+  const availableEventTypeUsers = eventTypeHosts.reduce(
+    (availableUsers, host) => {
+      if (
+        !attendeeEmailsSet.has(host.user.email) &&
+        host.user.email !== originalOrganizer.email
+      ) {
+        availableUsers.push({
+          ...host.user,
+          isFixed: host.isFixed,
+          priority: host?.priority ?? 2,
+        });
+      }
+      return availableUsers;
+    },
+    [] as IsFixedAwareUser[]
+  );
 
   const availableUsers = await ensureAvailableUsers(
     { ...eventType, users: availableEventTypeUsers },
@@ -163,14 +181,18 @@ export const roundRobinReassignment = async ({
     routingFormResponse: null,
   });
 
-  const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
+  const hasOrganizerChanged =
+    !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
 
   const currentBookingTitle = booking.title;
   let newBookingTitle = currentBookingTitle;
 
-  const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
+  const reassignedRRHostT = await getTranslation(
+    reassignedRRHost.locale || "en",
+    "common"
+  );
 
   const teamMembers = await getTeamMembers({
     eventTypeHosts: eventType.hosts,
@@ -212,12 +234,22 @@ export const roundRobinReassignment = async ({
       view: "reschedule",
     });
 
-    const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
+    const responseSafeParse = await responseSchema.safeParseAsync(
+      bookingResponses
+    );
 
-    const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
+    const responses = responseSafeParse.success
+      ? responseSafeParse.data
+      : undefined;
 
-    if (eventType.locations.some((location) => location.type === OrganizerDefaultConferencingAppType)) {
-      const organizerMetadataSafeParse = userMetadataSchema.safeParse(reassignedRRHost.metadata);
+    if (
+      eventType.locations.some(
+        (location) => location.type === OrganizerDefaultConferencingAppType
+      )
+    ) {
+      const organizerMetadataSafeParse = userMetadataSchema.safeParse(
+        reassignedRRHost.metadata
+      );
 
       const defaultLocationUrl = organizerMetadataSafeParse.success
         ? organizerMetadataSafeParse?.data?.defaultConferencingApp?.appLink
@@ -227,7 +259,8 @@ export const roundRobinReassignment = async ({
 
       bookingLocation =
         defaultLocationUrl ||
-        getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
+        getLocationValueForDB(currentBookingLocation, eventType.locations)
+          .bookingLocation;
     }
 
     const eventNameObject = {
@@ -281,7 +314,9 @@ export const roundRobinReassignment = async ({
     });
   }
 
-  roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);
+  roundRobinReassignLogger.info(
+    `Successfully reassigned to user ${reassignedRRHost.id}`
+  );
 
   await AssignmentReasonRecorder.roundRobinReassignment({
     bookingId,
@@ -362,24 +397,31 @@ export const roundRobinReassignment = async ({
     },
   });
 
-  const organizerWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
-    user: { ...organizer, credentials },
-  });
+  const organizerWithCredentials =
+    await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+      user: { ...organizer, credentials },
+    });
 
-  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(
+    eventType?.metadata?.apps
+  );
 
   // remove the event and meeting using the old host's credentials
   if (hasOrganizerChanged && originalOrganizer.id !== reassignedRRHost.id) {
-    const previousHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
-      originalOrganizer,
-      eventType
-    );
+    const previousHostCredentials =
+      await getAllCredentialsIncludeServiceAccountKey(
+        originalOrganizer,
+        eventType
+      );
     const originalHostEventManager = new EventManager(
       { ...originalOrganizer, credentials: previousHostCredentials },
       apps
     );
 
-    const originalOrganizerT = await getTranslation(originalOrganizer.locale || "en", "common");
+    const originalOrganizerT = await getTranslation(
+      originalOrganizer.locale || "en",
+      "common"
+    );
 
     const deletionEvent: CalendarEvent = {
       ...evt,
@@ -389,10 +431,17 @@ export const roundRobinReassignment = async ({
         email: originalOrganizer.email,
         username: originalOrganizer.username || undefined,
         timeZone: originalOrganizer.timeZone,
-        language: { translate: originalOrganizerT, locale: originalOrganizer.locale ?? "en" },
-        timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
+        language: {
+          translate: originalOrganizerT,
+          locale: originalOrganizer.locale ?? "en",
+        },
+        timeFormat: getTimeFormatStringFromUserTimeFormat(
+          originalOrganizer.timeFormat
+        ),
       },
-      destinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+      destinationCalendar: previousHostDestinationCalendar
+        ? [previousHostDestinationCalendar]
+        : [],
       title: booking.title,
     };
 
@@ -407,7 +456,9 @@ export const roundRobinReassignment = async ({
     rescheduleUid: booking.uid,
     newBookingId: undefined,
     changedOrganizer: hasOrganizerChanged,
-    previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+    previousHostDestinationCalendar: previousHostDestinationCalendar
+      ? [previousHostDestinationCalendar]
+      : [],
     initParams: {
       user: organizerWithCredentials,
       eventType,
@@ -418,7 +469,10 @@ export const roundRobinReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const {
+    cancellationReason: _cancellationReason,
+    ...evtWithoutCancellationReason
+  } = evtWithAdditionalInfo;
 
   // Send to new RR host
   if (emailsEnabled) {
@@ -429,8 +483,13 @@ export const roundRobinReassignment = async ({
           ...reassignedRRHost,
           name: reassignedRRHost.name || "",
           username: reassignedRRHost.username || "",
-          timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
-          language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
+          timeFormat: getTimeFormatStringFromUserTimeFormat(
+            reassignedRRHost.timeFormat
+          ),
+          language: {
+            translate: reassignedRRHostT,
+            locale: reassignedRRHost.locale || "en",
+          },
         },
       ],
       reassigned: {
@@ -455,7 +514,9 @@ export const roundRobinReassignment = async ({
           translate: previousRRHostT,
         },
         timeZone: previousRRHost.timeZone,
-        timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+        timeFormat: getTimeFormatStringFromUserTimeFormat(
+          previousRRHost.timeFormat
+        ),
       };
     } else if (cancelledRRHostEvt.team) {
       // Filter out the new RR host from attendees and add the old RR host
@@ -468,7 +529,10 @@ export const roundRobinReassignment = async ({
         email: previousRRHost.email,
         name: previousRRHost.name || "",
         timeZone: previousRRHost.timeZone,
-        language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+        language: {
+          translate: previousRRHostT,
+          locale: previousRRHost.locale || "en",
+        },
       });
     }
 
@@ -480,11 +544,19 @@ export const roundRobinReassignment = async ({
             ...previousRRHost,
             name: previousRRHost.name || "",
             username: previousRRHost.username || "",
-            timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-            language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+            timeFormat: getTimeFormatStringFromUserTimeFormat(
+              previousRRHost.timeFormat
+            ),
+            language: {
+              translate: previousRRHostT,
+              locale: previousRRHost.locale || "en",
+            },
           },
         ],
-        reassignedTo: { name: reassignedRRHost.name, email: reassignedRRHost.email },
+        reassignedTo: {
+          name: reassignedRRHost.name,
+          email: reassignedRRHost.email,
+        },
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
