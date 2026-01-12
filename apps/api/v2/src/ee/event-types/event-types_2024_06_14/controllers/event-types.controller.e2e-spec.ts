@@ -43,6 +43,7 @@ import {
   type NotesDefaultFieldInput_2024_06_14,
   type SplitNameDefaultFieldOutput_2024_06_14,
   type UpdateEventTypeInput_2024_06_14,
+  type PhoneDefaultFieldInput_2024_06_14,
 } from "@calcom/platform-types";
 import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
@@ -2852,6 +2853,114 @@ describe("Event types Endpoints", () => {
 
             await eventTypesRepositoryFixture.delete(createdEventType.id);
           });
+      });
+    });
+
+    describe("phone booking field", () => {
+      it("should create event type with default phone field without label", async () => {
+        const phoneBookingField: PhoneDefaultFieldInput_2024_06_14 = {
+          type: "phone",
+          slug: "attendeePhoneNumber",
+          required: true,
+          hidden: false,
+          isDefault: true,
+        }
+
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "Event with default phone field",
+          slug: "event-with-default-phone",
+          description: "Testing phone field without label",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          bookingFields: [phoneBookingField],
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201);
+        
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const createdEventType = responseBody.data;
+
+        const attendeePhoneNumberFieldResponse = createdEventType.bookingFields.find((field) => field.type === "phone")
+        expect(attendeePhoneNumberFieldResponse).toMatchObject(phoneBookingField)
+        
+        await eventTypesRepositoryFixture.delete(createdEventType.id);
+      });
+      it("should create event type with default phone field with custom label", async () => {
+        const phoneBookingField: PhoneDefaultFieldInput_2024_06_14 = {
+          type: "phone",
+          slug: "attendeePhoneNumber",
+          required: true,
+          hidden: false,
+          isDefault: true,
+          label: "Contact Number"
+        }
+
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "Event with default phone field",
+          slug: "event-with-default-phone",
+          description: "Testing phone field without label",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          bookingFields: [phoneBookingField],
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201);
+        
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const createdEventType = responseBody.data;
+
+        const attendeePhoneNumberFieldResponse = createdEventType.bookingFields.find((field) => field.type === "phone")
+        expect(attendeePhoneNumberFieldResponse).toMatchObject(phoneBookingField)
+        
+        await eventTypesRepositoryFixture.delete(createdEventType.id);
+      });
+      it("should reject with 400 if creating event type with phone field without label", async () => {
+        const phoneBookingField = {
+          type: "phone",
+          slug: "customPhoneField",
+          required: true,
+          hidden: false,
+        }
+
+        const body = {
+          title: "Event with default phone field",
+          slug: "event-with-default-phone",
+          description: "Testing phone field without label",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          bookingFields: [phoneBookingField],
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(400);
+
+        expect(response.body.error.message).toBe('Validation failed for phone booking field: label must be a string');
       });
     });
 
