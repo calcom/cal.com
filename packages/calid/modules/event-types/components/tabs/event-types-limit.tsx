@@ -642,7 +642,8 @@ const MaxActiveBookingsPerBookerController = memo(
               description={t("booker_booking_limit_description")}
               checked={isToggleOn}
               disabled={
-                isRecurringEvent || fieldPermissions.getFieldState("maxActiveBookingsPerBooker").isDisabled
+                (!isToggleOn && isRecurringEvent) ||
+                fieldPermissions.getFieldState("maxActiveBookingsPerBooker").isDisabled
               }
               tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
               LockedIcon={

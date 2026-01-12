@@ -1,5 +1,4 @@
 import ImportLayout from "@calid/features/modules/calendly_import/components/ImportLayout";
-
 import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ pages: string[] }> }) => {

@@ -105,6 +105,7 @@ export class PaymentService implements IAbstractPaymentService {
               amount: paymentLinkRes.amount,
               account_id: paymentLinkRes.user_id,
               paymentLink: paymentLinkRes.short_url,
+              expireBy: paymentLinkRes.expire_by,
             }
           ) as unknown as Prisma.InputJsonValue,
           fee: 0,

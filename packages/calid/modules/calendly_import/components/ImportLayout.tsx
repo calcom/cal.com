@@ -4,11 +4,12 @@ import { Button } from "@calid/features/ui/components/button";
 import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useCalendlyImport from "@calcom/web/lib/hooks/useCalendlyImport";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return <div />;
@@ -20,7 +21,7 @@ const ImportFromCalendlyButton = ({
   importing,
 }: {
   importFromCalendly: () => Promise<void>;
-  importing: boolean | undefined;
+  importing: boolean;
 }) => {
   const { t } = useLocale();
   return (
@@ -36,6 +37,7 @@ const ImportLayout = () => {
   const session = useSession();
   const searchParams = useSearchParams();
   const code = searchParams.get("code") || undefined;
+  const redirected = searchParams.get("redirected") || undefined;
 
   // Checks if the user has already authorized Calendly on first load
   useEffect(() => {
@@ -43,21 +45,22 @@ const ImportLayout = () => {
     session.data.user.id && setUserId(session.data.user.id);
   }, [session]);
 
-  return <> {userId ? <CalendlyImportComponent userId={userId} code={code} /> : <></>}</>;
+  return <>{userId ? <CalendlyImportComponent userId={userId} redirected={redirected} /> : <></>}</>;
 };
 
-const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: string }) => {
+const CalendlyImportComponent = ({ userId, redirected }: { userId: number; redirected?: string }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-  const [importing, setImporting] = useState<boolean>(false);
-  const [sendCampaignEmails, setSendCampaignEmails] = useState<boolean>(false);
   const { t } = useLocale();
   const router = useRouter();
+  const hasImportedRef = useRef(false);
+
+  const { importFromCalendly, importing, sendCampaignEmails, handleChangeNotifyUsers } =
+    useCalendlyImport(userId);
 
   useEffect(() => {
-    if (code) importFromCalendly().then(() => router.replace("/event-types"));
-    else checkIfAuthorized(userId);
-  }, [userId, code, isAuthorized]);
+    if (!isAuthorized) checkIfAuthorized(userId);
+  }, [userId, isAuthorized]);
 
   // Checks if the user has already authorized Calendly
   const checkIfAuthorized = async (userId: number) => {
@@ -77,55 +80,16 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
       }
       const data = await res.json();
       setIsAuthorized(data.authorized);
+      if (redirected && data.authorized && !hasImportedRef.current) {
+        hasImportedRef.current = true;
+        await importFromCalendly();
+        // Remove the query param after importing but stay on the same page
+        router.replace(`/settings/others/import`);
+      }
     } catch (e) {
       console.error("Authorization check failed:", e);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Handle OAuth callback
-  const handleOAuthCallback = async (code: string) => {
-    try {
-      const res = await fetch(`/api/import/calendly/callback?code=${code}&userId=${userId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (res.ok) {
-        setIsAuthorized(true);
-        router.replace(`/settings/others/import?code=${code}`);
-      }
-    } catch (e) {
-      console.error("OAuth callback failed:", e);
-    }
-  };
-
-  // Import from Calendly
-  const importFromCalendly = async () => {
-    try {
-      setImporting(true);
-      const res = await fetch(
-        `/api/import/calendly?userId=${userId}&sendCampaignEmails=${sendCampaignEmails}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const data = await res.json();
-        console.error("Import failed:", data);
-        return;
-      }
-    } catch (e) {
-      console.error("Import failed:", e);
-    } finally {
-      setImporting(false);
     }
   };
 
@@ -141,12 +105,6 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
     )}`;
     window.location.href = location;
   };
-
-  useEffect(() => {
-    if (code && userId && !isAuthorized) {
-      handleOAuthCallback(code);
-    }
-  }, [code, userId]);
 
   if (loading) {
     return <SkeletonLoader title={t("calendly_import")} description="" />;
@@ -165,7 +123,7 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
             <div className="flex items-center gap-2">
               <Checkbox
                 checked={sendCampaignEmails}
-                onCheckedChange={(checked) => setSendCampaignEmails(!!checked)}
+                onCheckedChange={(checked) => handleChangeNotifyUsers(!!checked)}
               />
               <span className="text-sm">{t("notify_calendly_import")}</span>
             </div>
@@ -174,7 +132,7 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
           {isAuthorized ? (
             <div className="flex flex-col gap-2">
               <ImportFromCalendlyButton
-                importFromCalendly={() => importFromCalendly().then(() => router.replace("/event-types"))}
+                importFromCalendly={() => importFromCalendly()}
                 importing={importing}
               />
             </div>

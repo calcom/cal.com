@@ -2,6 +2,8 @@ import type { AppCategories, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import prisma from "@calcom/prisma";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -20,6 +22,14 @@ const isPaymentApp = (x: unknown): x is PaymentApp =>
 
 const isKeyOf = <T extends object>(obj: T, key: unknown): key is keyof T =>
   typeof key === "string" && key in obj;
+
+export type PaymentBookingInfo = {
+  user: { email: string | null; name: string | null; timeZone: string; username: string | null } | null;
+  id: number;
+  userId: number | null;
+  startTime: { toISOString: () => string };
+  uid: string;
+};
 
 const handlePayment = async ({
   evt,
@@ -43,13 +53,7 @@ const handlePayment = async ({
       categories: AppCategories[];
     } | null;
   };
-  booking: {
-    user: { email: string | null; name: string | null; timeZone: string; username: string | null } | null;
-    id: number;
-    userId: number | null;
-    startTime: { toISOString: () => string };
-    uid: string;
-  };
+  booking: PaymentBookingInfo;
   bookerName: string;
   bookerEmail: string;
   bookerPhoneNumber?: string | null;
@@ -76,40 +80,66 @@ const handlePayment = async ({
   const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
   const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
 
-  let paymentData;
-  if (paymentOption === "HOLD") {
-    paymentData = await paymentInstance.collectCard(
-      {
-        amount: apps?.[paymentAppCredentials.appId].price,
-        currency: apps?.[paymentAppCredentials.appId].currency,
-      },
-      booking.id,
-      paymentOption,
-      bookerEmail,
-      bookerPhoneNumber
-    );
-  } else {
-    paymentData = await paymentInstance.create(
-      {
-        amount: apps?.[paymentAppCredentials.appId].price,
-        currency: apps?.[paymentAppCredentials.appId].currency,
-      },
-      booking.id,
-      booking.userId,
-      booking.user?.username ?? null,
-      bookerName,
-      paymentOption,
-      bookerEmail,
-      booking.uid,
-      bookingSeat?.id,
-      bookerPhoneNumber,
-      selectedEventType.title,
-      evt.title,
-      booking.responses ?? responses
-    );
+  const existingPayment = await prisma.payment.findFirst({
+    where: { bookingId: booking.id, ...(bookingSeat ? { bookingSeatId: bookingSeat.id } : {}) },
+  });
+
+  let paymentInfo;
+
+  const paymentData = isPrismaObjOrUndefined(existingPayment?.data);
+
+  if (paymentData?.expireBy) {
+    if (typeof paymentData.expireBy === "number" || typeof paymentData.expireBy === "bigint") {
+      const expireBy = paymentData.expireBy * 1000;
+      const now = Date.now();
+
+      if (now < expireBy) {
+        paymentInfo = existingPayment;
+      }
+    }
   }
 
-  if (!paymentData) {
+  if (!paymentInfo && existingPayment) {
+    await prisma.payment.delete({
+      where: { id: existingPayment?.id },
+    });
+  }
+
+  if (!paymentInfo) {
+    if (paymentOption === "HOLD") {
+      paymentInfo = await paymentInstance.collectCard(
+        {
+          amount: apps?.[paymentAppCredentials.appId].price,
+          currency: apps?.[paymentAppCredentials.appId].currency,
+        },
+        booking.id,
+        paymentOption,
+        bookerEmail,
+        bookerPhoneNumber
+      );
+    } else {
+      paymentInfo = await paymentInstance.create(
+        {
+          amount: apps?.[paymentAppCredentials.appId].price,
+          currency: apps?.[paymentAppCredentials.appId].currency,
+        },
+        booking.id,
+        booking.userId,
+        booking.user?.username ?? null,
+        bookerName,
+        paymentOption,
+        bookerEmail,
+        booking.uid,
+        bookingSeat?.id,
+        bookerPhoneNumber,
+        selectedEventType.title,
+        evt.title,
+        booking.responses ?? responses
+      );
+    }
+  }
+
+  if (!paymentInfo) {
     console.error("Payment data is null");
     throw new Error("Payment data is null");
   }
@@ -142,7 +172,7 @@ const handlePayment = async ({
           startTime: booking.startTime,
           uid: booking.uid,
         },
-        paymentData,
+        paymentData: paymentInfo,
         eventTypeMetadata: selectedEventType?.metadata,
         bookingSeatId: bookingSeat?.id,
         // Include payment app credentials for afterPayment execution
@@ -156,7 +186,7 @@ const handlePayment = async ({
   } catch (e) {
     console.error(e);
   }
-  return paymentData;
+  return paymentInfo;
 };
 
 export { handlePayment };

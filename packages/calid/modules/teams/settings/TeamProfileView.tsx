@@ -32,7 +32,7 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import SkeletonLoader from "../components/SkeletonLoader";
 
-const regex = new RegExp("^[a-zA-Z0-9-]*$");
+const regex = new RegExp("^[a-zA-Z0-9.-]*$");
 
 const teamProfileSchema = z.object({
   id: z.number(),
@@ -89,7 +89,7 @@ function TeamProfileForm({
   });
 
   const teamId = team.id;
-  const isDisabled = form.formState.isSubmitting;
+  const isDisabled = form.formState.isSubmitting || !form.formState.isDirty;
 
   const bioValue = form.watch("bio") || "";
   const getText = React.useCallback(() => md.render(bioValue), [bioValue]);
