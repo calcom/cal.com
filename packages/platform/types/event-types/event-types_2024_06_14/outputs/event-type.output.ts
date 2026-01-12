@@ -57,6 +57,7 @@ import {
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
   UrlFieldOutput_2024_06_14,
+  DateFieldOutput_2024_06_14,
 } from "../outputs/booking-fields.output";
 import { BookerActiveBookingsLimitOutput_2024_06_14 } from "./booker-active-bookings-limit.output";
 import { DisableCancellingOutput_2024_06_14 } from "./disable-cancelling.output";
@@ -174,6 +175,7 @@ class EventTypeTeam {
   MultiEmailFieldOutput_2024_06_14,
   MultiSelectFieldOutput_2024_06_14,
   UrlFieldOutput_2024_06_14,
+  DateFieldOutput_2024_06_14,
   NumberFieldOutput_2024_06_14,
   PhoneFieldOutput_2024_06_14,
   RadioGroupFieldOutput_2024_06_14,
@@ -264,6 +266,7 @@ class BaseEventTypeOutput_2024_06_14 {
       { $ref: getSchemaPath(RadioGroupFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(BooleanFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(UrlFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(DateFieldOutput_2024_06_14) },
     ],
     type: "array",
   })
