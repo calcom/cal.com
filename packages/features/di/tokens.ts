@@ -4,6 +4,7 @@ import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
 import { OAUTH_DI_TOKENS } from "@calcom/features/oauth/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
+import { WEBHOOK_TOKENS } from "./webhooks/Webhooks.tokens";
 
 export const DI_TOKENS = {
   PRISMA_CLIENT: Symbol("PrismaClient"),
@@ -75,4 +76,5 @@ export const DI_TOKENS = {
   ...OAUTH_DI_TOKENS,
   ...WATCHLIST_DI_TOKENS,
   ...ORGANIZATION_DI_TOKENS,
+  ...WEBHOOK_TOKENS,
 };

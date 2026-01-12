@@ -10,13 +10,16 @@ import { WebhookNotificationHandler } from "@calcom/features/webhooks/lib/servic
 import { WebhookNotifier } from "@calcom/features/webhooks/lib/service/WebhookNotifier";
 import { WebhookService } from "@calcom/features/webhooks/lib/service/WebhookService";
 
+import { DI_TOKENS } from "../../tokens";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 export const webhookModule = createModule();
 
-// Bind repository
-webhookModule.bind(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY).toClass(WebhookRepository);
+// Bind repository with Prisma dependency
+webhookModule
+  .bind(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY)
+  .toClass(WebhookRepository, [DI_TOKENS.PRISMA_CLIENT]);
 
 // Bind services
 webhookModule
