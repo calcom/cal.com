@@ -1,4 +1,6 @@
 {
+  "configure_your_webhook": "Use the following callback and verification token to subscribe your webhook in WhatsApp App configuration.",
+  "select_whatsapp_template": "Select whatsapp template",
   "workflow_status":"Workflow status",
   "workflow_reminders":"Workflow automations",
   "pw_check_least_char": "At least 7 characters",

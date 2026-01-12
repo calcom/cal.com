@@ -216,7 +216,6 @@ const executeCancellationProcess = async (): Promise<void> => {
       await prisma.calIdWorkflowReminder.update({
         where: { id: messageToCancel.id },
         data: {
-          referenceId: "CANCELLED",
           scheduled: false,
         },
       });

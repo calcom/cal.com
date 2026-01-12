@@ -2796,13 +2796,16 @@ model WhatsAppBusinessPhone {
   templates Json?
 
   wabaId        String
-  phoneNumberId String @unique
-  phoneNumber   String @unique
+  phoneNumberId String  @unique
+  displayName   String?
+  phoneNumber   String  @unique
 
   verificationPin String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  metadata Json?
 
   user       User?      @relation(fields: [userId], references: [id])
   calIdTeam  CalIdTeam? @relation(fields: [calIdTeamId], references: [id])
