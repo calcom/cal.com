@@ -1,5 +1,4 @@
-import * as cache from "memory-cache";
-
+import process from "node:process";
 import {
   getDeploymentKey,
   getDeploymentSignatureToken,
@@ -7,8 +6,8 @@ import {
 import type { IDeploymentRepository } from "@calcom/features/ee/deployment/repositories/IDeploymentRepository";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-
-import { generateNonce, createSignature } from "./private-api-utils";
+import * as cache from "memory-cache";
+import { createSignature, generateNonce } from "./private-api-utils";
 
 export enum UsageEvent {
   BOOKING = "booking",
@@ -114,8 +113,8 @@ class LicenseKeyService implements ILicenseKeyService {
     try {
       const response = await this.fetcher({ url, licenseKey: this.licenseKey, options: { mode: "cors" } });
       const data = await response.json();
-      cache.put(url, data.status, this.CACHING_TIME);
-      return data.status;
+      cache.put(url, data.valid, this.CACHING_TIME);
+      return data.valid;
     } catch (error) {
       console.error("Check license failed:", error);
       return false;
