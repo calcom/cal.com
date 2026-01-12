@@ -41,12 +41,7 @@ import {
   transformRequiresConfirmationInternalToApi,
   transformSeatsInternalToApi,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
-
-type UserProfile = {
-  username: string | null;
-  organizationId: number | null;
-  organization: { id: number; slug: string | null; name: string; isPlatform: boolean } | null;
-};
+import { ProfileMinimal, UsersService } from "@/modules/users/services/users.service";
 
 type EventTypeUser = {
   id: number;
@@ -59,8 +54,8 @@ type EventTypeUser = {
   metadata: Prisma.JsonValue;
   organizationId: number | null;
   organization?: { slug: string | null } | null;
-  movedToProfile?: UserProfile | null;
-  profiles?: UserProfile[];
+  movedToProfile?: ProfileMinimal | null;
+  profiles?: ProfileMinimal[];
 };
 
 type EventTypeRelations = {
@@ -135,7 +130,10 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService
+  ) {}
 
   getResponseEventType(
     ownerId: number,
@@ -443,7 +441,7 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
-    const profile = this.getUserMainProfile(user);
+    const profile = this.usersService.getUserMainProfile(user);
     const username = profile?.username ?? user.username;
 
     if (!username) {
@@ -456,14 +454,6 @@ export class OutputEventTypesService_2024_06_14 {
     const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
 
     return `${normalizedBaseUrl}/${username}/${slug}`;
-  }
-
-  private getUserMainProfile(user: EventTypeUser): UserProfile | undefined {
-    return (
-      user.movedToProfile ||
-      user.profiles?.find((p) => p.organizationId === user.organizationId) ||
-      user.profiles?.[0]
-    );
   }
 
   getResponseEventTypesWithoutHiddenFields(

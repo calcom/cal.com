@@ -1,6 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
+import { UsersService, UserWithProfileMinimal, ProfileMinimal } from "@/modules/users/services/users.service";
 
 jest.mock("@calcom/platform-libraries/organizations", () => ({
   getBookerBaseUrlSync: jest.fn((slug: string | null) => {
@@ -12,6 +13,7 @@ jest.mock("@calcom/platform-libraries/organizations", () => ({
 describe("OutputEventTypesService_2024_06_14", () => {
   let service: OutputEventTypesService_2024_06_14;
   let configService: jest.Mocked<ConfigService>;
+  let usersService: UsersService;
 
   beforeEach(() => {
     configService = {
@@ -21,7 +23,18 @@ describe("OutputEventTypesService_2024_06_14", () => {
       }),
     } as any;
 
-    service = new OutputEventTypesService_2024_06_14(configService);
+    // Create a real UsersService mock that uses the actual getUserMainProfile logic
+    usersService = {
+      getUserMainProfile: (user: UserWithProfileMinimal): ProfileMinimal | undefined => {
+        return (
+          user?.movedToProfile ||
+          user.profiles?.find((p) => p.organizationId === user.organizationId) ||
+          user.profiles?.[0]
+        );
+      },
+    } as UsersService;
+
+    service = new OutputEventTypesService_2024_06_14(configService, usersService);
   });
 
   describe("buildBookingUrl", () => {
@@ -62,9 +75,10 @@ describe("OutputEventTypesService_2024_06_14", () => {
         movedToProfile: null,
         profiles: [
           {
+            id: 100,
             username: "owner1",
             organizationId: 1,
-            organization: { id: 1, slug: "acme", name: "Acme", isPlatform: false },
+            organization: { id: 1, slug: "acme", isPlatform: false },
           },
         ],
       };
@@ -90,9 +104,10 @@ describe("OutputEventTypesService_2024_06_14", () => {
         movedToProfile: null,
         profiles: [
           {
+            id: 200,
             username: null,
             organizationId: 2,
-            organization: { id: 2, slug: "i", name: "I", isPlatform: false },
+            organization: { id: 2, slug: "i", isPlatform: false },
           },
         ],
       };
@@ -127,9 +142,10 @@ describe("OutputEventTypesService_2024_06_14", () => {
         movedToProfile: null,
         profiles: [
           {
+            id: 300,
             username: "user",
             organizationId: 3,
-            organization: { id: 3, slug: null, name: "Org", isPlatform: false },
+            organization: { id: 3, slug: null, isPlatform: false },
           },
         ],
       };
@@ -158,9 +174,10 @@ describe("OutputEventTypesService_2024_06_14", () => {
         movedToProfile: null,
         profiles: [
           {
+            id: 400,
             username: "john",
             organizationId: 1,
-            organization: { id: 1, slug: "acme", name: "Acme", isPlatform: false },
+            organization: { id: 1, slug: "acme", isPlatform: false },
           },
         ],
       };
@@ -217,3 +234,4 @@ describe("OutputEventTypesService_2024_06_14", () => {
     });
   });
 });
+
