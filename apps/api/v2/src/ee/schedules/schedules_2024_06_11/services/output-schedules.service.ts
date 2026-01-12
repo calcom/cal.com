@@ -4,18 +4,34 @@ import { Injectable } from "@nestjs/common";
 import type { WeekDay } from "@calcom/platform-types";
 import type { Availability, Schedule } from "@calcom/prisma/client";
 
+type DatabaseSchedule = Schedule & { availability: Availability[] };
+
 @Injectable()
 export class OutputSchedulesService_2024_06_11 {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getResponseSchedule(databaseSchedule: Schedule & { availability: Availability[] }) {
-    if (!databaseSchedule.timeZone) {
-      databaseSchedule.timeZone = "Europe/London";
-    }
+  async getResponseSchedules(databaseSchedules: DatabaseSchedule[]) {
+    if (databaseSchedules.length === 0) return [];
+    const userIds = [...new Set(databaseSchedules.map((schedule) => schedule.userId))];
+    const defaultScheduleIds = await this.usersRepository.getUsersScheduleDefaultIds(userIds);
 
+    return databaseSchedules.map((schedule) =>
+      this.transformScheduleToOutput(schedule, defaultScheduleIds.get(schedule.userId) ?? null)
+    );
+  }
+
+  async getResponseSchedule(databaseSchedule: DatabaseSchedule) {
     const ownerDefaultScheduleId = await this.usersRepository.getUserScheduleDefaultId(
       databaseSchedule.userId
     );
+    return this.transformScheduleToOutput(databaseSchedule, ownerDefaultScheduleId);
+  }
+
+  private transformScheduleToOutput(
+    databaseSchedule: DatabaseSchedule,
+    ownerDefaultScheduleId: number | null
+  ) {
+    const timeZone = databaseSchedule.timeZone || "Europe/London";
 
     const createdScheduleAvailabilities = databaseSchedule.availability.filter(
       (availability) => !!availability.days.length
@@ -26,7 +42,7 @@ export class OutputSchedulesService_2024_06_11 {
       id: databaseSchedule.id,
       ownerId: databaseSchedule.userId,
       name: databaseSchedule.name,
-      timeZone: databaseSchedule.timeZone,
+      timeZone,
       availability: createdScheduleAvailabilities.map((availability) => ({
         days: availability.days.map(transformNumberToDay),
         startTime: this.padHoursMinutesWithZeros(
@@ -54,13 +70,9 @@ export class OutputSchedulesService_2024_06_11 {
     };
   }
 
-  padHoursMinutesWithZeros(hhMM: string) {
+  private padHoursMinutesWithZeros(hhMM: string) {
     const [hours, minutes] = hhMM.split(":");
-
-    const formattedHours = hours.padStart(2, "0");
-    const formattedMinutes = minutes.padStart(2, "0");
-
-    return `${formattedHours}:${formattedMinutes}`;
+    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
   }
 }
 
