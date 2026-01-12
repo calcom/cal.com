@@ -129,4 +129,38 @@ export class SelectedCalendarsRepository {
       },
     });
   }
+
+  getByEventTypeId(eventTypeId: number) {
+    return this.dbRead.prisma.selectedCalendar.findMany({
+      where: {
+        eventTypeId,
+      },
+    });
+  }
+
+  async createForEventType(
+    eventTypeId: number,
+    userId: number,
+    integration: string,
+    externalId: string,
+    credentialId: number | null
+  ) {
+    return this.dbWrite.prisma.selectedCalendar.create({
+      data: {
+        eventTypeId,
+        userId,
+        integration,
+        externalId,
+        credentialId,
+      },
+    });
+  }
+
+  async deleteByEventTypeId(eventTypeId: number) {
+    return this.dbWrite.prisma.selectedCalendar.deleteMany({
+      where: {
+        eventTypeId,
+      },
+    });
+  }
 }

@@ -22,7 +22,11 @@ import {
   getEventTypesPublic,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
+import type {
+  GetEventTypesQuery_2024_06_14,
+  SortOrderType,
+  SelectedCalendar_2024_06_14,
+} from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -384,5 +388,59 @@ export class EventTypesService_2024_06_14 {
     if (!schedule) {
       throw new NotFoundException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
     }
+  }
+
+  async updateEventTypeSelectedCalendars(
+    eventTypeId: number,
+    userId: number,
+    useEventLevelSelectedCalendars: boolean | undefined,
+    selectedCalendars: SelectedCalendar_2024_06_14[] | undefined
+  ) {
+    if (useEventLevelSelectedCalendars === undefined && selectedCalendars === undefined) {
+      return;
+    }
+
+    const hasSelectedCalendars = selectedCalendars && selectedCalendars.length > 0;
+    const shouldUseEventLevelCalendars = useEventLevelSelectedCalendars ?? hasSelectedCalendars ?? false;
+
+    await this.eventTypesRepository.updateUseEventLevelSelectedCalendars(
+      eventTypeId,
+      shouldUseEventLevelCalendars
+    );
+
+    if (selectedCalendars !== undefined) {
+      await this.selectedCalendarsRepository.deleteByEventTypeId(eventTypeId);
+
+      if (hasSelectedCalendars) {
+        const userSelectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(userId);
+
+        for (const calendar of selectedCalendars) {
+          const matchingUserCalendar = userSelectedCalendars.find(
+            (uc) => uc.integration === calendar.integration && uc.externalId === calendar.externalId
+          );
+
+          await this.selectedCalendarsRepository.createForEventType(
+            eventTypeId,
+            userId,
+            calendar.integration,
+            calendar.externalId,
+            matchingUserCalendar?.credentialId ?? null
+          );
+        }
+      }
+    }
+  }
+
+  async getEventTypeWithSelectedCalendars(eventTypeId: number, userId: number) {
+    const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeId);
+
+    if (!eventType) {
+      return null;
+    }
+
+    return {
+      ownerId: userId,
+      ...eventType,
+    };
   }
 }

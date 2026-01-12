@@ -87,6 +87,7 @@ import {
 import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
+import { SelectedCalendar_2024_06_14 } from "./selected-calendars.input";
 import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
@@ -584,6 +585,7 @@ export class BaseCreateEventTypeInput {
   })
   showOptimizedSlots?: boolean;
 }
+@ApiExtraModels(SelectedCalendar_2024_06_14)
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
   @ValidateLocations_2024_06_14()
@@ -603,6 +605,26 @@ export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   })
   @Type(() => Object)
   locations?: InputLocation_2024_06_14[];
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "If true, the event type will use its own selected calendars for conflict checking instead of the user's selected calendars.",
+    default: false,
+  })
+  useEventLevelSelectedCalendars?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SelectedCalendar_2024_06_14)
+  @DocsPropertyOptional({
+    description:
+      "An array of calendars to be used for conflict checking for this event type. Only used when useEventLevelSelectedCalendars is true. Refer to the /api/v2/calendars endpoint to retrieve the integration type and external IDs of your connected calendars.",
+    type: [SelectedCalendar_2024_06_14],
+  })
+  selectedCalendars?: SelectedCalendar_2024_06_14[];
 }
 
 export enum HostPriority {

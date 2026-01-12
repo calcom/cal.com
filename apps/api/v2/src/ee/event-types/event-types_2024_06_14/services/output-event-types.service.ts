@@ -32,7 +32,14 @@ import type {
   OutputUnknownBookingField_2024_06_14,
   OutputBookingField_2024_06_14,
 } from "@calcom/platform-types";
-import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
+import type {
+  EventType,
+  User,
+  Schedule,
+  DestinationCalendar,
+  CalVideoSettings,
+  SelectedCalendar,
+} from "@calcom/prisma/client";
 
 type EventTypeRelations = {
   users: User[];
@@ -412,17 +419,27 @@ export class OutputEventTypesService_2024_06_14 {
   }
 
   getResponseEventTypeWithoutHiddenFields(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
-    if (!Array.isArray(eventType?.bookingFields) || eventType.bookingFields.length === 0) return eventType;
+    const {
+      selectedCalendars: _selectedCalendars,
+      useEventLevelSelectedCalendars: _useEventLevelSelectedCalendars,
+      ...eventTypeWithoutSelectedCalendars
+    } = eventType;
+
+    if (
+      !Array.isArray(eventTypeWithoutSelectedCalendars?.bookingFields) ||
+      eventTypeWithoutSelectedCalendars.bookingFields.length === 0
+    )
+      return eventTypeWithoutSelectedCalendars;
 
     const visibleBookingFields: OutputBookingField_2024_06_14[] = [];
-    for (const bookingField of eventType.bookingFields) {
+    for (const bookingField of eventTypeWithoutSelectedCalendars.bookingFields) {
       if ("hidden" in bookingField && bookingField.hidden === true) {
         continue;
       }
       visibleBookingFields.push(bookingField);
     }
     return {
-      ...eventType,
+      ...eventTypeWithoutSelectedCalendars,
       bookingFields: visibleBookingFields,
     };
   }
@@ -461,5 +478,16 @@ export class OutputEventTypesService_2024_06_14 {
       ...calVideoSettings,
       sendTranscriptionEmails: canSendCalVideoTranscriptionEmails ?? true,
     };
+  }
+
+  transformSelectedCalendars(selectedCalendars: SelectedCalendar[] | undefined) {
+    if (!selectedCalendars || selectedCalendars.length === 0) {
+      return undefined;
+    }
+
+    return selectedCalendars.map((calendar) => ({
+      integration: calendar.integration,
+      externalId: calendar.externalId,
+    }));
   }
 }

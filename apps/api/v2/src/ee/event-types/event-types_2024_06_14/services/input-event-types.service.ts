@@ -134,6 +134,8 @@ export class InputEventTypesService_2024_06_14 {
       disableRescheduling,
       disableCancelling,
       calVideoSettings,
+      useEventLevelSelectedCalendars: _useEventLevelSelectedCalendars,
+      selectedCalendars: _selectedCalendars,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -228,6 +230,8 @@ export class InputEventTypesService_2024_06_14 {
       disableRescheduling,
       disableCancelling,
       calVideoSettings,
+      useEventLevelSelectedCalendars: _useEventLevelSelectedCalendars,
+      selectedCalendars: _selectedCalendars,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);

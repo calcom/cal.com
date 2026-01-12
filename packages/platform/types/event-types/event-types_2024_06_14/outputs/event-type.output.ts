@@ -61,6 +61,7 @@ import {
 import { BookerActiveBookingsLimitOutput_2024_06_14 } from "./booker-active-bookings-limit.output";
 import { DisableCancellingOutput_2024_06_14 } from "./disable-cancelling.output";
 import { DisableReschedulingOutput_2024_06_14 } from "./disable-rescheduling.output";
+import { SelectedCalendarOutput_2024_06_14 } from "./selected-calendars.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
@@ -537,6 +538,7 @@ export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   avatarUrl?: string | null;
 }
 
+@ApiExtraModels(SelectedCalendarOutput_2024_06_14)
 export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsInt()
   @DocsProperty({ example: 10 })
@@ -546,6 +548,26 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsArray()
   @DocsProperty()
   users!: User_2024_06_14[];
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description:
+      "If true, the event type uses its own selected calendars for conflict checking instead of the user's selected calendars.",
+    default: false,
+  })
+  useEventLevelSelectedCalendars?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SelectedCalendarOutput_2024_06_14)
+  @ApiPropertyOptional({
+    description:
+      "An array of calendars used for conflict checking for this event type. Only populated when useEventLevelSelectedCalendars is true.",
+    type: [SelectedCalendarOutput_2024_06_14],
+  })
+  selectedCalendars?: SelectedCalendarOutput_2024_06_14[];
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
