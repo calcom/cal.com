@@ -50,7 +50,11 @@ export { handleCreatePhoneCall };
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 
-export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
+export { getBusyCalendarTimes, updateEvent } from "@calcom/features/calendars/lib/CalendarManager";
+
+export { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+
+export { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 
