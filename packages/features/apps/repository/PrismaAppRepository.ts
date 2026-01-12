@@ -31,4 +31,18 @@ export class PrismaAppRepository {
       throw error;
     }
   }
+
+  static async upsertBySlug({
+    slug,
+    keys,
+  }: {
+    slug: string;
+    keys: Prisma.InputJsonValue;
+  }) {
+    return await prisma.app.upsert({
+      where: { slug },
+      update: { keys },
+      create: { slug, keys },
+    });
+  }
 }

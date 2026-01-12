@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -126,16 +127,11 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   // If we are in an organization & they don't have org-level eventType.create permission & they are not creating an event on a teamID
   // Check if evenTypes are locked.
   if (ctx.user.organizationId && !hasOrgEventTypeCreatePermission && !teamId) {
-    const orgSettings = await ctx.prisma.organizationSettings.findUnique({
-      where: {
-        organizationId: ctx.user.organizationId,
-      },
-      select: {
-        lockEventTypeCreationForUsers: true,
-      },
-    });
+    const orgSettingsRepo = new OrganizationSettingsRepository(ctx.prisma);
+    const orgHasLockedEventTypes = await orgSettingsRepo.getLockEventTypeCreationForUsers(
+      ctx.user.organizationId
+    );
 
-    const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
     if (orgHasLockedEventTypes) {
       console.warn(
         `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`

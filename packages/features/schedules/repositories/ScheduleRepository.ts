@@ -258,4 +258,13 @@ export class ScheduleRepository {
       },
     });
   }
+
+  async findFirstByUserIdAndScheduleId({ userId, scheduleId }: { userId: number; scheduleId: number }) {
+    return await this.prismaClient.schedule.findFirst({
+      where: {
+        userId,
+        id: scheduleId,
+      },
+    });
+  }
 }

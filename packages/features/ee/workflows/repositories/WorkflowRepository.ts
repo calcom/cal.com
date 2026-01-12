@@ -858,6 +858,32 @@ export class WorkflowRepository {
     });
   }
 
+  static async findWorkflowsActiveOnEventTypeWithSteps({
+    eventTypeId,
+    trigger,
+  }: {
+    eventTypeId: number;
+    trigger: import("@calcom/prisma/enums").WorkflowTriggerEvents;
+  }) {
+    return await prisma.workflow.findMany({
+      where: {
+        activeOn: {
+          some: {
+            eventTypeId,
+          },
+        },
+        trigger,
+      },
+      include: {
+        steps: {
+          select: {
+            action: true,
+          },
+        },
+      },
+    });
+  }
+
   static bookingSelectForReminders = {
     userPrimaryEmail: true,
     startTime: true,

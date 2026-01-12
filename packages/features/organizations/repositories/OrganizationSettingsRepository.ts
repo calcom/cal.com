@@ -37,4 +37,14 @@ export class OrganizationSettingsRepository {
     const domain = settings.orgAutoAcceptEmail;
     return domain ? [domain.toLowerCase()] : [];
   }
+
+  async getLockEventTypeCreationForUsers(organizationId: number) {
+    const settings = await this.prismaClient.organizationSettings.findUnique({
+      where: { organizationId },
+      select: {
+        lockEventTypeCreationForUsers: true,
+      },
+    });
+    return settings?.lockEventTypeCreationForUsers ?? false;
+  }
 }
