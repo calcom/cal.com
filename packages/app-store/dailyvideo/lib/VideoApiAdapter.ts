@@ -412,6 +412,15 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
+    deleteRecording: async (recordingId: string): Promise<boolean> => {
+      try {
+        await fetcher(`/recordings/${recordingId}`, { method: "DELETE" });
+        return true;
+      } catch (err) {
+        console.error("Error deleting recording:", err instanceof Error ? err.message : "Unknown error");
+        throw new Error("Something went wrong! Unable to delete recording");
+      }
+    },
     createInstantCalVideoRoom: (endTime: string) => createInstantMeeting(endTime, region),
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {

@@ -29,6 +29,8 @@ export type VideoApiAdapter =
 
       getRecordings?(roomName: string): Promise<GetRecordingsResponseSchema>;
 
+      deleteRecording?(recordingId: string): Promise<boolean>;
+
       getRecordingDownloadLink?(recordingId: string): Promise<GetAccessLinkResponseSchema>;
 
       createInstantCalVideoRoom?(endTime: string): Promise<VideoCallData>;
