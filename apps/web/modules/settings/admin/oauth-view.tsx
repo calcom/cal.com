@@ -10,6 +10,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
@@ -18,6 +19,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type FormValues = {
   name: string;
+  purpose: string;
   redirectUri: string;
   logo: string;
   enablePkce: boolean;
@@ -26,6 +28,7 @@ type FormValues = {
 export default function OAuthView() {
   const oAuthForm = useForm<FormValues>({
     defaultValues: {
+      purpose: "",
       logo: "",
       enablePkce: false,
     },
@@ -54,6 +57,7 @@ export default function OAuthView() {
           handleSubmit={(values) => {
             mutation.mutate({
               name: values.name,
+              purpose: values.purpose,
               redirectUri: values.redirectUri,
               logo: values.logo,
               enablePkce: values.enablePkce,
@@ -69,6 +73,13 @@ export default function OAuthView() {
               className="mb-3"
               required
             />
+
+            <div className="mb-3">
+              <Label htmlFor="purpose" className="text-emphasis mb-2 block text-sm font-medium">
+                Purpose
+              </Label>
+              <TextArea {...oAuthForm.register("purpose")} id="purpose" placeholder="" required />
+            </div>
             <TextField
               {...oAuthForm.register("redirectUri")}
               label="Redirect URI"

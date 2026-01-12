@@ -88,20 +88,7 @@ export const OAuthClientCreateDialog = ({
       <DialogContent
         enableOverflow
         type="creation"
-        title={
-          resultClient ? (
-            <>
-              {resultClient.approvalStatus === "PENDING" ? (
-                <span className="mb-2 flex items-center justify-start">
-                  <Badge variant="orange">{t("pending")}</Badge>
-                </span>
-              ) : null}
-              <span>{resultTitle}</span>
-            </>
-          ) : (
-            title
-          )
-        }
+        title={resultClient ? resultTitle : title}
         description={resultClient ? resultDescription : description}>
         {!resultClient ? (
           <Form
@@ -129,6 +116,11 @@ export const OAuthClientCreateDialog = ({
         ) : (
           <>
             <div className="space-y-4">
+              {resultClient.approvalStatus === "PENDING" ? (
+                <div className="flex items-center justify-start">
+                  <Badge variant="orange">{t("pending")}</Badge>
+                </div>
+              ) : null}
               <div>
                 <div className="text-subtle mb-1 text-sm">{t("client_name")}</div>
                 <div className="text-emphasis font-medium">{resultClient.name}</div>
