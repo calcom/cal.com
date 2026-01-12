@@ -76,13 +76,13 @@ export class EventTypesRepository_2024_06_14 {
       },
       movedToProfile: {
         select: {
+          id: true,
           username: true,
           organizationId: true,
           organization: {
             select: {
               id: true,
               slug: true,
-              name: true,
               isPlatform: true,
             },
           },
@@ -90,13 +90,13 @@ export class EventTypesRepository_2024_06_14 {
       },
       profiles: {
         select: {
+          id: true,
           username: true,
           organizationId: true,
           organization: {
             select: {
               id: true,
               slug: true,
-              name: true,
               isPlatform: true,
             },
           },

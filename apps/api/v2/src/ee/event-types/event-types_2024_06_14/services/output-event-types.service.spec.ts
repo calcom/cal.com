@@ -1,7 +1,8 @@
 import { ConfigService } from "@nestjs/config";
 
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
-import { UsersService, UserWithProfileMinimal, ProfileMinimal } from "@/modules/users/services/users.service";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 
 jest.mock("@calcom/platform-libraries/organizations", () => ({
   getBookerBaseUrlSync: jest.fn((slug: string | null) => {
@@ -23,16 +24,8 @@ describe("OutputEventTypesService_2024_06_14", () => {
       }),
     } as any;
 
-    // Create a real UsersService mock that uses the actual getUserMainProfile logic
-    usersService = {
-      getUserMainProfile: (user: UserWithProfileMinimal): ProfileMinimal | undefined => {
-        return (
-          user?.movedToProfile ||
-          user.profiles?.find((p) => p.organizationId === user.organizationId) ||
-          user.profiles?.[0]
-        );
-      },
-    } as UsersService;
+    const usersRepository = {} as UsersRepository;
+    usersService = new UsersService(usersRepository);
 
     service = new OutputEventTypesService_2024_06_14(configService, usersService);
   });
@@ -185,7 +178,6 @@ describe("OutputEventTypesService_2024_06_14", () => {
 
       const result = service.buildBookingUrl(user, slug);
 
-      // Trailing slash should be stripped to avoid double slashes
       expect(result).toBe("https://acme.cal.com/john/30min");
     });
 
