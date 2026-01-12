@@ -8,7 +8,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
+import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/web/modules/embed/components/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -95,7 +95,7 @@ function NewFormDialog({
     <Dialog open={newFormDialogState !== null} onOpenChange={(open) => !open && setNewFormDialogState(null)}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-1">
-          <h3 className="text-emphasis !font-cal text-semibold text-xl font-medium" id="modal-title">
+          <h3 className="text-emphasis font-heading! text-xl" id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
