@@ -138,7 +138,7 @@ export const OAuthClientFormFields = ({
         <div className="space-y-3">
           <div className="flex items-center gap-4">
             <Avatar
-              alt={t("client_logo")}
+              alt={t("logo")}
               fallback={<Icon name="key" className="text-subtle h-6 w-6" />}
               imageSrc={logo}
               size="lg"

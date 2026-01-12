@@ -128,7 +128,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "developer", page: "api_keys" },
         },
         {
-          name: "oauth_clients",
+          name: "oAuth",
           href: "/settings/developer/oauth",
           trackingMetadata: { section: "developer", page: "oauth_clients" }
         },
@@ -269,7 +269,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     },
   ];
 
-  tabs.find((tab) => {
+  for (const tab of tabs) {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
       tab.children?.push({
         name: "sso_configuration",
@@ -279,21 +279,21 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
+
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({
         name: "create_org",
         href: "/settings/organizations/new",
         trackingMetadata: { section: "admin", page: "create_org" },
       });
-    }
-    if (tab.name === "admin" && IS_CALCOM) {
+
       tab.children?.push({
         name: "create_license_key",
         href: "/settings/license-key/new",
         trackingMetadata: { section: "admin", page: "create_license_key" },
       });
     }
-  });
+  }
 
   return tabs;
 };
@@ -309,7 +309,7 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-export interface SettingsPermissions {
+interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
@@ -994,14 +994,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export type SettingsLayoutProps = {
+type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
   teamFeatures?: Record<number, TeamFeatures>;
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({
+function SettingsLayoutAppDirClient({
   children,
   teamFeatures,
   permissions,
@@ -1090,3 +1090,6 @@ const SidebarContainerElement = ({
     </>
   );
 };
+
+export type { SettingsLayoutProps, SettingsPermissions };
+export default SettingsLayoutAppDirClient;
