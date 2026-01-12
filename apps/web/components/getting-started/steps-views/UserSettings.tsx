@@ -68,7 +68,7 @@ const UserSettings = (props: IUserSettingsProps) => {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="space-y-6">
+      <div className="stack-y-6">
         {/* Username textfield: when not coming from signup */}
         {!props.hideUsername && <UsernameAvailabilityField />}
 
@@ -117,6 +117,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         type="submit"
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
+        data-testid="connect-calendar-button"
         disabled={mutation.isPending}>
         {t("connect_your_calendar")}
       </Button>

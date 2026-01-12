@@ -5,16 +5,19 @@ import prisma from "@calcom/prisma";
 
 import { outOfOfficeCreateOrUpdate } from "./outOfOfficeCreateOrUpdate.handler";
 
-// Mock the module first with a default export object (empty for now)
-vi.mock("@calcom/prisma", () => ({
-  default: {
+vi.mock("@calcom/prisma", () => {
+  const mockObj = {
     outOfOfficeEntry: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
-  },
-}));
+  };
+  return {
+    default: mockObj,
+    prisma: mockObj,
+  };
+});
 
 // Setup mocks to control the implementations
 const prismaMock = {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import type { FilterType } from "@calcom/types/data-table";
 import {
   isMultiSelectFilterValue,
   isTextFilterValue,
@@ -49,7 +49,7 @@ export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServic
 export type InsightsRoutingServiceFilterOptions = {
   startDate: string;
   endDate: string;
-  columnFilters?: TypedColumnFilter<ColumnFilterType>[];
+  columnFilters?: TypedColumnFilter<FilterType>[];
 };
 
 export type InsightsRoutingTableItem = {
@@ -508,7 +508,7 @@ export class InsightsRoutingBaseService {
         END) <= date_trunc(${dayjsPeriod}, ${endDate}::timestamp)
       ),
       all_users AS (
-        SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]) as user_id
+        SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]::integer[]) as user_id
       ),
        paginated_periods AS (
          SELECT date as period_start
@@ -705,7 +705,7 @@ export class InsightsRoutingBaseService {
       columnFilters.reduce((acc, filter) => {
         acc[filter.id] = filter;
         return acc;
-      }, {} as Record<string, TypedColumnFilter<ColumnFilterType>>) || {};
+      }, {} as Record<string, TypedColumnFilter<FilterType>>) || {};
 
     // Extract booking status order filter
     const bookingStatusOrder = filtersMap["bookingStatusOrder"];

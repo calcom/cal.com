@@ -1,6 +1,4 @@
 import { dir } from "i18next";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import React from "react";
 
@@ -15,14 +13,7 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
-const calFont = localFont({
-  src: "../fonts/CalSans-SemiBold.woff2",
-  variable: "--font-cal",
-  preload: true,
-  display: "block",
-  weight: "600",
-});
+import { fontHeading, fontSans } from "@coss/ui/fonts";
 
 export const viewport = {
   width: "device-width",
@@ -44,7 +35,7 @@ export const viewport = {
 
 export const metadata = {
   icons: {
-    icon: "/favicon.ico",
+    icon: "/api/logo?type=favicon-32",
     apple: "/api/logo?type=apple-touch-icon",
     other: [
       {
@@ -98,6 +89,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
 
+  const country = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "Unknown";
+
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
   const ns = "common";
@@ -112,32 +105,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       suppressHydrationWarning
       data-nextjs-router="app">
-      <head nonce={nonce}>
-        <style>{`
-          :root {
-            --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
-          }
-        `}</style>
-      </head>
       <body
-        className="dark:bg-default bg-subtle antialiased"
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans dark:bg-default bg-subtle antialiased`}
         style={
           isEmbed
             ? {
-              background: "transparent",
-              // Keep the embed hidden till parent initializes and
-              // - gives it the appropriate styles if UI instruction is there.
-              // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
-              // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
-              visibility: "hidden",
-              // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
-              opacity: 0,
-            }
+                background: "transparent",
+                // Keep the embed hidden till parent initializes and
+                // - gives it the appropriate styles if UI instruction is there.
+                // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
+                // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
+                visibility: "hidden",
+                // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
+                opacity: 0,
+              }
             : {
-              visibility: "visible",
-              opacity: 1,
-            }
+                visibility: "visible",
+                opacity: 1,
+              }
         }>
         <IconSprites />
         <SpeculationRules
@@ -154,7 +139,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers isEmbed={isEmbed} nonce={nonce}>
+        <Providers isEmbed={isEmbed} nonce={nonce} country={country}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>
