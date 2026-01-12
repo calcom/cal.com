@@ -19,7 +19,8 @@ export default async function getAttributesForTeamHandler({
 }: GetAttributesForTeamHandlerOptions) {
   const { teamId } = input;
   const { user } = ctx;
-  const isMemberOfTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId: user.id, teamId });
+  const membershipRepository = new MembershipRepository();
+  const isMemberOfTeam = await membershipRepository.findUniqueByUserIdAndTeamId({ userId: user.id, teamId });
 
   if (!isMemberOfTeam) {
     throw new TRPCError({

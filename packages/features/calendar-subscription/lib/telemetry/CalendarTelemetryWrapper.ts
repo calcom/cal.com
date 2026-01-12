@@ -5,9 +5,9 @@ import type {
   CalendarEvent,
   CalendarServiceEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
-  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["CalendarTelemetryWrapper"] });
@@ -53,19 +53,8 @@ export class CalendarTelemetryWrapper implements Calendar {
     return this.deps.originalCalendar.deleteEvent(uid, event, externalCalendarId);
   }
 
-  /**
-   * Retrieves availability with telemetry tracking when cache is disabled.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Array of busy date ranges
-   */
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
       {
         name: "CalendarTelemetryWrapper.getAvailability",
@@ -90,7 +79,13 @@ export class CalendarTelemetryWrapper implements Calendar {
         if (!selectedCalendars?.length) return [];
 
         const startTime = performance.now();
-        const results = await this.deps.originalCalendar.getAvailability(dateFrom, dateTo, selectedCalendars);
+        const results = await this.deps.originalCalendar.getAvailability({
+          dateFrom,
+          dateTo,
+          selectedCalendars,
+          mode: params.mode,
+          fallbackToPrimary: params.fallbackToPrimary,
+        });
         const totalFetchDurationMs = performance.now() - startTime;
 
         span.setAttribute("totalFetchDurationMs", totalFetchDurationMs);
@@ -109,19 +104,8 @@ export class CalendarTelemetryWrapper implements Calendar {
     );
   }
 
-  /**
-   * Retrieves availability with time zones and telemetry tracking when cache is disabled.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Array of time-zone-aware availability ranges
-   */
-  async getAvailabilityWithTimeZones(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     // Check if the original calendar supports this method
     if (!this.deps.originalCalendar.getAvailabilityWithTimeZones) {
       return [];
@@ -151,11 +135,13 @@ export class CalendarTelemetryWrapper implements Calendar {
         if (!selectedCalendars?.length) return [];
 
         const startTime = performance.now();
-        const results = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.(
+        const results = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.({
           dateFrom,
           dateTo,
-          selectedCalendars
-        );
+          selectedCalendars,
+          mode: params.mode,
+          fallbackToPrimary: params.fallbackToPrimary,
+        });
         const totalFetchDurationMs = performance.now() - startTime;
 
         span.setAttribute("totalFetchDurationMs", totalFetchDurationMs);
@@ -184,19 +170,5 @@ export class CalendarTelemetryWrapper implements Calendar {
 
   testDelegationCredentialSetup?(): Promise<boolean> {
     return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
-  }
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown> {
-    return this.deps.originalCalendar.watchCalendar?.(options) || Promise.resolve();
-  }
-
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void> {
-    return this.deps.originalCalendar.unwatchCalendar?.(options) || Promise.resolve();
   }
 }

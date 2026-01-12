@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
@@ -140,12 +140,12 @@ describe("OAuth2 Controller Endpoints", () => {
           .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
           .expect(200);
 
-                expect(response.body.status).toBe("success");
-                expect(response.body.data.id).toBe(testClientId);
-                expect(response.body.data.name).toBe("Test OAuth Client");
-                expect(response.body.data.redirectUri).toBe(testRedirectUri);
-                expect(response.body.data.type).toBe(OAuthClientType.CONFIDENTIAL);
-                expect(response.body.data.clientSecret).toBeUndefined();
+        expect(response.body.status).toBe("success");
+        expect(response.body.data.id).toBe(testClientId);
+        expect(response.body.data.name).toBe("Test OAuth Client");
+        expect(response.body.data.redirectUri).toBe(testRedirectUri);
+        expect(response.body.data.type).toBe(OAuthClientType.CONFIDENTIAL);
+        expect(response.body.data.clientSecret).toBeUndefined();
       });
 
       it("should return 404 for non-existent client ID", async () => {

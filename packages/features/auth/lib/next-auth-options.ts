@@ -1075,6 +1075,11 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            // Prevent account pre-hijacking: block OAuth linking for unverified accounts
+            if (!existingUserWithEmail.emailVerified) {
+              return "/auth/error?error=unverified-email";
+            }
+
             // Verify SAML IdP is authoritative before converting account
             if (idP === IdentityProvider.SAML) {
               const samlTenant = getSamlTenant();
@@ -1086,7 +1091,6 @@ export const getOptions = ({
 
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
-              // also update email to the IdP email
               data: {
                 email: user.email.toLowerCase(),
                 identityProvider: idP,

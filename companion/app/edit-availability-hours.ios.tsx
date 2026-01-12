@@ -2,10 +2,11 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import EditAvailabilityHoursScreenComponent from "@/components/screens/EditAvailabilityHoursScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
 const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
@@ -30,13 +31,13 @@ export default function EditAvailabilityHoursIOS() {
       CalComAPIService.getScheduleById(Number(id))
         .then(setSchedule)
         .catch(() => {
-          Alert.alert("Error", "Failed to load schedule details");
+          showErrorAlert("Error", "Failed to load schedule details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Schedule ID is missing");
+      showErrorAlert("Error", "Schedule ID is missing");
       router.back();
     }
   }, [id, router]);
