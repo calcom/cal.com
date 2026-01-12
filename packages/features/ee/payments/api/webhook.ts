@@ -241,7 +241,6 @@ export default async function handler(
     } catch (err) {
       log.error("Stripe webhook signature verification failed", {
         stripeEventId,
-        signatureHeader: sig,
         error: err instanceof Error ? err.message : "Unknown error",
       });
       throw err;
