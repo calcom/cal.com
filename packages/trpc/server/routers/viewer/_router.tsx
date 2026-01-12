@@ -10,6 +10,7 @@ import { aiVoiceAgentRouter } from "./aiVoiceAgent/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
 import { attributesRouter } from "./attributes/_router";
+import { attributeSyncRouter } from "./attribute-sync/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
@@ -83,6 +84,7 @@ export const viewerRouter = router({
   googleWorkspace: googleWorkspaceRouter,
   admin: adminRouter,
   attributes: attributesRouter,
+  attributeSync: attributeSyncRouter,
   routingForms: routingFormsRouter,
   credits: creditsRouter,
   ooo: oooRouter,
