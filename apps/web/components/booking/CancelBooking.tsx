@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { useCallback, useState } from "react";
 
@@ -9,7 +10,6 @@ import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Button } from "@calcom/ui/components/button";
 import { Label, Select, Switch, TextArea } from "@calcom/ui/components/form";
 
 interface InternalNotePresetsSelectProps {
@@ -182,7 +182,7 @@ export default function CancelBooking(props: Props) {
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
-            className="mb-4 mt-2 w-full "
+            className="border-default mb-4 mt-2 w-full rounded-md border"
             rows={3}
           />
           {props.isHost && props.booking.isPaid && (

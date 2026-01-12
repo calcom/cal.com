@@ -1074,42 +1074,42 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, eventTypeId, memberUserId: userId, selectedTeamId: teamId, type } = input;
+
       const stats: {
         sentCount: number;
         readCount: number;
         failedCount: number;
+        queuedCount: number;
+        cancelledCount: number;
         total: number;
       } = {
         sentCount: 0,
         readCount: 0,
         failedCount: 0,
+        queuedCount: 0,
+        cancelledCount: 0,
         total: 0,
       };
 
-      const whereConditions = [
+      // Build date range conditions
+      const dateConditions = [
         startDate
           ? {
               createdAt: {
-                gte: dayjs.utc(startDate).startOf("day"),
+                gte: dayjs.utc(startDate).startOf("day").toDate(),
               },
             }
           : null,
-
         endDate
           ? {
               createdAt: {
-                lte: dayjs.utc(endDate).endOf("day"),
+                lte: dayjs.utc(endDate).endOf("day").toDate(),
               },
             }
           : null,
-        eventTypeId ? { eventTypeId } : null,
+      ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[];
 
-        type ? { type } : null,
-      ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[]; // Type assertion
-
-      const whereQuery: Prisma.CalIdWorkflowInsightsWhereInput = whereConditions.length
-        ? { AND: whereConditions }
-        : {};
+      // Get eventTypeIds based on user or team
       const eventTypeIds: number[] = [];
       if (userId) {
         const _eventTypeIds = (
@@ -1120,7 +1120,6 @@ export const insightsRouter = router({
         ).map(({ id }) => id);
         eventTypeIds.push(..._eventTypeIds);
       }
-
       if (teamId) {
         const _eventTypeIds = (
           await ctx.insightsDb.eventType.findMany({
@@ -1131,29 +1130,131 @@ export const insightsRouter = router({
         eventTypeIds.push(..._eventTypeIds);
       }
 
-      if (!eventTypeId)
-        (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
-          eventTypeId: { in: eventTypeIds },
-        });
+      // Build where conditions for insights
+      const insightsWhereConditions = [
+        ...dateConditions,
+        eventTypeId ? { eventTypeId } : { eventTypeId: { in: eventTypeIds } },
+        type ? { type } : null,
+        { workflowStepId: { not: null } }, // Mandatory condition
+      ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[];
 
-      console.log("Workflow insights: ", JSON.stringify(whereQuery, null, 2));
+      const insightsWhereQuery: Prisma.CalIdWorkflowInsightsWhereInput = insightsWhereConditions.length
+        ? { AND: insightsWhereConditions }
+        : {};
 
+      // Fetch workflow insights
       const workflowInsights = await ctx.insightsDb.calIdWorkflowInsights.findMany({
-        where: whereQuery,
+        where: insightsWhereQuery,
+        select: {
+          msgId: true,
+          status: true,
+          type: true,
+          eventTypeId: true,
+          workflowStepId: true,
+          bookingUid: true,
+          bookingSeatReferenceUid: true,
+        },
       });
 
-      stats.total = workflowInsights.length;
+      // Build where conditions for reminders
+      const reminderDateConditions = [
+        startDate
+          ? {
+              scheduledDate: {
+                gte: dayjs.utc(startDate).startOf("day").toDate(),
+              },
+            }
+          : null,
+        endDate
+          ? {
+              scheduledDate: {
+                lte: dayjs.utc(endDate).endOf("day").toDate(),
+              },
+            }
+          : null,
+      ].filter(Boolean) as Prisma.CalIdWorkflowReminderWhereInput[];
+
+      // Fetch workflow reminders
+      const workflowReminders = await ctx.insightsDb.calIdWorkflowReminder.findMany({
+        where: {
+          AND: [
+            ...reminderDateConditions,
+            type ? { method: type } : {},
+            {
+              booking: eventTypeId ? { eventTypeId } : { eventTypeId: { in: eventTypeIds } },
+            },
+            { workflowStepId: { not: null } }, // Mandatory condition
+          ].filter((condition) => Object.keys(condition).length > 0),
+        },
+        select: {
+          id: true,
+          method: true,
+          scheduled: true,
+          cancelled: true,
+          workflowStepId: true,
+          bookingUid: true,
+          seatReferenceId: true,
+          booking: {
+            select: {
+              eventTypeId: true,
+            },
+          },
+        },
+      });
+
+      // Create a set of reminder identifiers that have corresponding insights
+      const processedReminderKeys = new Set<string>();
+
       workflowInsights.forEach((insight) => {
-        if (insight.status === WorkflowStatus.DELIVERED) {
+        // Create a key to match reminders with insights
+        const reminderKey = `${insight.bookingUid}-${insight.workflowStepId}-${
+          insight.bookingSeatReferenceUid || "booking"
+        }`;
+        processedReminderKeys.add(reminderKey);
+
+        // Count insight statuses
+        if (insight.status === WorkflowStatus.DELIVERED || insight.status === WorkflowStatus.SENT) {
           stats.sentCount += 1;
-        }
-        if (insight.status === WorkflowStatus.READ) {
+        } else if (insight.status === WorkflowStatus.READ) {
           stats.readCount += 1;
-        }
-        if (insight.status === WorkflowStatus.FAILED) {
+        } else if (insight.status === WorkflowStatus.FAILED) {
           stats.failedCount += 1;
+        } else if (insight.status === WorkflowStatus.QUEUED) {
+          stats.queuedCount += 1;
+        } else if (insight.status === WorkflowStatus.CANCELLED) {
+          stats.cancelledCount += 1;
         }
       });
+
+      // Process reminders that don't have corresponding insights (these are QUEUED)
+      workflowReminders.forEach((reminder) => {
+        const reminderKey = `${reminder.bookingUid}-${reminder.workflowStepId}-${
+          reminder.seatReferenceId || "booking"
+        }`;
+
+        // Skip if this reminder already has a corresponding insight
+        if (processedReminderKeys.has(reminderKey)) {
+          return;
+        }
+
+        // Count reminder statuses
+        if (reminder.cancelled) {
+          stats.cancelledCount += 1;
+        } else if (reminder.scheduled) {
+          // Scheduled reminders without insights are considered QUEUED
+          stats.queuedCount += 1;
+        }
+      });
+
+      // Total includes both insights and unprocessed reminders
+      stats.total =
+        workflowInsights.length +
+        workflowReminders.filter((reminder) => {
+          const reminderKey = `${reminder.bookingUid}-${reminder.workflowStepId}-${
+            reminder.seatReferenceId || "booking"
+          }`;
+          return !processedReminderKeys.has(reminderKey);
+        }).length;
 
       return stats;
     }),
@@ -1162,17 +1263,27 @@ export const insightsRouter = router({
     .input(workflowRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { userId, teamId, eventTypeId, type, startDate, endDate, timeZone } = input;
-      // Build where conditions dynamically
-      const whereConditions = [
+
+      // Build where conditions for insights
+      const insightsWhereConditions = [
         { createdAt: { gte: startDate } },
         { createdAt: { lte: endDate } },
         eventTypeId ? { eventTypeId } : null,
         type ? { type } : null,
+        { workflowStepId: { not: null } }, // Mandatory condition to filter out default booking reminders
       ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[];
 
-      const whereQuery: Prisma.CalIdWorkflowInsightsWhereInput = whereConditions.length
-        ? { AND: whereConditions }
+      const insightsWhereQuery: Prisma.CalIdWorkflowInsightsWhereInput = insightsWhereConditions.length
+        ? { AND: insightsWhereConditions }
         : { AND: [] };
+
+      // Build where conditions for reminders
+      const remindersWhereConditions = [
+        { scheduledDate: { gte: startDate } },
+        { scheduledDate: { lte: endDate } },
+        type ? { method: type } : null,
+        { workflowStepId: { not: null } }, // Mandatory condition
+      ].filter(Boolean) as Prisma.CalIdWorkflowReminderWhereInput[];
 
       const eventTypeIds: number[] = [];
       if (userId) {
@@ -1195,10 +1306,11 @@ export const insightsRouter = router({
         eventTypeIds.push(..._eventTypeIds);
       }
 
-      if (!eventTypeId)
-        (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
+      if (!eventTypeId) {
+        (insightsWhereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
           eventTypeId: { in: eventTypeIds },
         });
+      }
 
       const timeView = getTimeView(input.startDate, input.endDate);
       const dateRanges = getDateRanges({
@@ -1209,16 +1321,26 @@ export const insightsRouter = router({
         weekStart: ctx.user.weekStart,
       });
 
-      // Fetch aggregated counts
+      // Fetch aggregated counts from both insights and reminders
       const countsByStatus = await CalIdWorkflowEventsInsights.countGroupedWorkflowByStatusForRanges(
-        whereQuery,
+        insightsWhereQuery,
+        remindersWhereConditions,
         dateRanges,
-        timeZone
+        timeZone,
+        eventTypeId,
+        eventTypeIds
       );
 
       const ranges = dateRanges.map(({ startDate, endDate, formattedDate }) => {
         const key = `${startDate}_${endDate}`;
-        const stats = countsByStatus[key] || { DELIVERED: 0, READ: 0, FAILED: 0, _all: 0 };
+        const stats = countsByStatus[key] || {
+          DELIVERED: 0,
+          READ: 0,
+          FAILED: 0,
+          QUEUED: 0,
+          CANCELLED: 0,
+          _all: 0,
+        };
 
         return {
           startDate,
@@ -1227,6 +1349,8 @@ export const insightsRouter = router({
           Sent: stats.DELIVERED,
           Read: stats.READ,
           Failed: stats.FAILED,
+          Queued: stats.QUEUED,
+          Cancelled: stats.CANCELLED,
           Total: stats._all,
         };
       });

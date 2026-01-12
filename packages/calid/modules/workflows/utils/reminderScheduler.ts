@@ -58,7 +58,6 @@ const executeStepLogic = async (
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
-  console.log("reminderScheduler");
   const requiresRateLimiting = isSMSOrWhatsappAction(stepConfig.action);
 
   if (requiresRateLimiting) {
@@ -95,6 +94,7 @@ const executeStepLogic = async (
       calIdTeamId: workflowConfig.calIdTeamId,
       isVerificationPending: stepConfig.numberVerificationPending,
       seatReferenceUid,
+      workflowId: workflowConfig.id,
     });
 
     return;
@@ -156,9 +156,7 @@ const executeStepLogic = async (
           seatReferenceUid,
           includeCalendarEvent: stepConfig.includeCalendarEvent,
           attendeeId: participantId,
-          // verifiedAt: stepConfig.verifiedAt,
-          // userId: workflowConfig.userId,
-          // teamId: workflowConfig.teamId,
+          workflowId: workflowConfig.id,
         });
       });
 
@@ -181,6 +179,7 @@ const executeStepLogic = async (
         hideBranding,
         seatReferenceUid,
         includeCalendarEvent: stepConfig.includeCalendarEvent,
+        workflowId: workflowConfig.id,
         // verifiedAt: stepConfig.verifiedAt,
         // userId: workflowConfig.userId,
         // teamId: workflowConfig.teamId,
@@ -293,10 +292,11 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
+  seatReferenceUid?: string;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { smsReminderNumber, evt: eventData, workflows, hideBranding } = args;
+  const { smsReminderNumber, evt: eventData, workflows, hideBranding, seatReferenceUid } = args;
 
   const hasWorkflows = workflows.length > 0;
 
@@ -323,6 +323,7 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         calendarEvent: eventData,
+        seatReferenceUid,
       });
 
       stepIndex++;

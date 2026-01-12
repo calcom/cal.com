@@ -312,6 +312,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             template: step.template,
             sender: step.sender,
             workflowStepId: step.id,
+            workflowId: workflowId,
           });
         } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
           await scheduleSMSReminder({

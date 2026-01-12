@@ -3,8 +3,8 @@ import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
 } from "@calid/features/modules/workflows/utils/notificationDisableCheck";
+import { scheduleMandatoryReminder } from "@calid/features/modules/workflows/utils/scheduleMandatoryReminder";
 import { cloneDeep } from "lodash";
-import { uuid } from "short-uuid";
 
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -74,8 +74,6 @@ const createNewSeat = async (
     };
   }
 
-  const attendeeUniqueId = uuid();
-
   const inviteeToAdd = invitee[0];
 
   await prisma.booking.update({
@@ -95,7 +93,7 @@ const createNewSeat = async (
           locale: inviteeToAdd.language.locale,
           bookingSeat: {
             create: {
-              referenceUid: attendeeUniqueId,
+              referenceUid: evt.attendeeSeatId,
               data: {
                 description: additionalNotes,
                 responses,
@@ -114,7 +112,32 @@ const createNewSeat = async (
     },
   });
 
-  evt.attendeeSeatId = attendeeUniqueId;
+  // evt.uid = seatedBooking.uid;
+  // Schedule mandatory reminder for the new seat
+  if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
+    const evtWithMetadata = {
+      ...evt,
+      metadata: {
+        ...(typeof seatedBooking.metadata === "object" && seatedBooking.metadata),
+        ...metadata,
+      },
+      eventType: {
+        id: eventType.id,
+        slug: eventType.slug,
+        schedulingType: eventType.schedulingType,
+        hosts: eventType.hosts,
+      },
+    };
+
+    await scheduleMandatoryReminder(
+      evtWithMetadata,
+      workflows,
+      false, // isNotConfirmed - for seats it's always confirmed
+      !!eventType.owner?.hideBranding,
+      evt.attendeeSeatId,
+      noEmail && Boolean(rescheduleSeatedBookingObject.platformClientId)
+    );
+  }
 
   const newSeat = seatedBooking.attendees.length !== 0;
 
@@ -193,11 +216,9 @@ const createNewSeat = async (
       throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
     }
 
-    console.log("reference Id: ", attendeeUniqueId);
-
     const bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
-        referenceUid: attendeeUniqueId,
+        referenceUid: evt.attendeeSeatId,
       },
       select: {
         id: true,
