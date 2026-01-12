@@ -17,4 +17,15 @@ export class UsersRepository implements IUsersRepository {
       throw err;
     }
   }
+
+  async delete(userId: number) {
+    try {
+      await db.user.delete({
+        where: { id: userId },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }
