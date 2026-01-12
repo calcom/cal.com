@@ -8,6 +8,7 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
 import { attributeRepositoryModule } from "di/modules/Attribute";
 
@@ -35,6 +36,20 @@ export class AttributeSyncFieldMappingService {
     syncFieldMappings: IFieldMapping[];
     integrationFields: Record<string, string>;
   }): Promise<void> {
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      userId,
+      teamId: organizationId,
+    });
+
+    if (!membership) {
+      log.warn(
+        `No membership found for user ${userId} in org ${organizationId}`
+      );
+      return;
+    }
+
+    const memberId = membership.id;
+
     const enabledSyncFieldMappings = syncFieldMappings.filter(
       (mapping) =>
         mapping.enabled &&
