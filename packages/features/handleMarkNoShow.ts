@@ -197,7 +197,6 @@ const handleMarkNoShow = async ({
               timeZone: true,
               locale: true,
               phoneNumber: true,
-              noShow: true,
             },
           },
           user: {
@@ -317,13 +316,7 @@ const handleMarkNoShow = async ({
       responsePayload.setAttendees(payload.attendees);
       responsePayload.setMessage(payload.message);
 
-      if (booking?.attendees) {
-        const allAttendeesWithNoShowStatus = booking.attendees.map((attendee) => ({
-          email: attendee.email,
-          noShow: attendee.noShow ?? false,
-        }));
-        await handleSendingAttendeeNoShowDataToApps(bookingUid, allAttendeesWithNoShowStatus);
-      }
+      await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
     }
 
     if (noShowHost) {
