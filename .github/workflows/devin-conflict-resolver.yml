@@ -86,6 +86,8 @@ jobs:
             const conflictingPRs = [];
             const unknownPRs = [];
 
+            const forksNeedingMaintainerAccess = [];
+
             function processPR(pr, mergeableStatus) {
               const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
               const isFork = pr.headRepository?.owner?.login !== owner;
@@ -96,8 +98,22 @@ jobs:
               }
 
               if (!isTargetPR && isFork) {
-                console.log(`PR #${pr.number} is from a fork, skipping`);
-                return { skip: true };
+                if (!pr.maintainerCanModify) {
+                  const hasRequestedLabel = pr.labels.nodes.some(label => label.name === 'maintainer-access-requested');
+                  if (!hasRequestedLabel) {
+                    console.log(`PR #${pr.number} is from a fork without maintainer access, will request access`);
+                    forksNeedingMaintainerAccess.push({
+                      number: pr.number,
+                      title: pr.title,
+                      author: pr.headRepository?.owner?.login,
+                      html_url: pr.url
+                    });
+                  } else {
+                    console.log(`PR #${pr.number} already has maintainer-access-requested label, skipping`);
+                  }
+                  return { skip: true };
+                }
+                console.log(`PR #${pr.number} is from a fork with maintainer access enabled`);
               }
 
               if (!isTargetPR) {
@@ -199,12 +215,15 @@ jobs:
             }
 
             console.log(`Found ${conflictingPRs.length} PRs with conflicts that need Devin sessions`);
+            console.log(`Found ${forksNeedingMaintainerAccess.length} fork PRs needing maintainer access`);
 
             const fs = require('fs');
             fs.writeFileSync('/tmp/conflicting-prs.json', JSON.stringify(conflictingPRs));
+            fs.writeFileSync('/tmp/forks-needing-access.json', JSON.stringify(forksNeedingMaintainerAccess));
 
             core.setOutput('has-conflicts', conflictingPRs.length > 0 ? 'true' : 'false');
             core.setOutput('conflict-count', conflictingPRs.length.toString());
+            core.setOutput('has-forks-needing-access', forksNeedingMaintainerAccess.length > 0 ? 'true' : 'false');
 
       - name: Handle Devin sessions for conflicting PRs
         if: steps.check-prs.outputs.has-conflicts == 'true'
@@ -440,6 +459,60 @@ jobs:
                 }
               } catch (error) {
                 console.error(`Error handling Devin session for PR #${pr.number}: ${error.message}`);
+              }
+
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+      - name: Request maintainer access for fork PRs
+        if: steps.check-prs.outputs.has-forks-needing-access == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const forksNeedingAccess = JSON.parse(fs.readFileSync('/tmp/forks-needing-access.json', 'utf8'));
+            const { owner, repo } = context.repo;
+
+            for (const pr of forksNeedingAccess) {
+              console.log(`Requesting maintainer access for PR #${pr.number}: ${pr.title}`);
+
+              try {
+                const commentBody = [
+                  '### Maintainer Access Needed',
+                  '',
+                  `Hi @${pr.author}! Thanks for your contribution to Cal.com.`,
+                  '',
+                  'We noticed that this PR doesn\'t have "Allow edits from maintainers" enabled. We\'d love to help keep your PR up to date by resolving merge conflicts and making small fixes when needed.',
+                  '',
+                  '**Could you please enable this setting?** Here\'s how:',
+                  '1. Scroll down to the bottom of this PR page',
+                  '2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**',
+                  '',
+                  'This allows us to push commits directly to your PR branch, which helps us:',
+                  '- Resolve merge conflicts automatically',
+                  '- Make small adjustments to help get your PR merged faster',
+                  '',
+                  'If you have any concerns about enabling this setting, feel free to let us know!'
+                ].join('\n');
+
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: pr.number,
+                  body: commentBody
+                });
+
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number: pr.number,
+                  labels: ['maintainer-access-requested']
+                });
+
+                console.log(`Posted comment and added label to PR #${pr.number}`);
+              } catch (error) {
+                console.error(`Error requesting maintainer access for PR #${pr.number}: ${error.message}`);
               }
 
               await new Promise(resolve => setTimeout(resolve, 1000));
