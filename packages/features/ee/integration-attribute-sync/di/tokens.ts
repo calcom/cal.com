@@ -7,4 +7,10 @@ export const INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS = {
   ATTRIBUTE_SYNC_RULE_SERVICE_MODULE: Symbol("AttributeSyncRuleServiceModule"),
   ATTRIBUTE_TO_USER_REPOSITORY: Symbol("AttributeToUserRepository"),
   ATTRIBUTE_TO_USER_REPOSITORY_MODULE: Symbol("AttributeToUserRepositoryModule"),
+  ATTRIBUTE_SYNC_FIELD_MAPPING_SERVICE: Symbol("AttributeSyncFieldMappingService"),
+  ATTRIBUTE_SYNC_FIELD_MAPPING_SERVICE_MODULE: Symbol("AttributeSyncFieldMappingServiceModule"),
+  ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
+  ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  ATTRIBUTE_OPTION_REPOSITORY: Symbol("AttributeOptionRepository"),
+  ATTRIBUTE_OPTION_REPOSITORY_MODULE: Symbol("AttributeOptionRepositoryModule"),
 };
