@@ -27,7 +27,9 @@ import { AppController } from "./app.controller";
   imports: [
     SentryModule.forRoot(),
     ConfigModule.forRoot({
-      ignoreEnvFile: true,
+      ...(process.env.NODE_ENV === "production"
+        ? { envFilePath: ".env.production" }
+        : { ignoreEnvFile: true }),
       isGlobal: true,
       load: [appConfig],
     }),
