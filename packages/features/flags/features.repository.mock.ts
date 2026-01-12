@@ -1,29 +1,30 @@
+import type { Feature } from "@calcom/prisma/client";
+
 import type { FeatureId, FeatureState } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 export class MockFeaturesRepository implements IFeaturesRepository {
-  async checkIfUserHasFeature(_userId: number, slug: string) {
+  async getAllFeatures(): Promise<Feature[]> {
+    return [];
+  }
+
+  async checkIfUserHasFeature(_userId: number, slug: string): Promise<boolean> {
     return slug === "mock-feature";
   }
 
-  async getUserFeaturesStatus(
-    _userId: number,
-    slugs: string[]
-  ): Promise<Record<string, boolean>> {
-    return Object.fromEntries(
-      slugs.map((slug) => [slug, slug === "mock-feature"])
-    );
+  async getUserFeaturesStatus(_userId: number, slugs: string[]): Promise<Record<string, boolean>> {
+    return Object.fromEntries(slugs.map((slug) => [slug, slug === "mock-feature"]));
   }
 
-  async checkIfUserHasFeatureNonHierarchical(_userId: number, slug: string) {
+  async checkIfUserHasFeatureNonHierarchical(_userId: number, slug: string): Promise<boolean> {
     return slug === "mock-feature";
   }
 
-  async checkIfTeamHasFeature(_teamId: number, slug: FeatureId) {
-    return slug === "mock-feature";
+  async checkIfTeamHasFeature(_teamId: number, slug: FeatureId): Promise<boolean> {
+    return slug === ("mock-feature" as FeatureId);
   }
 
-  async checkIfFeatureIsEnabledGlobally(_slug: FeatureId) {
+  async checkIfFeatureIsEnabledGlobally(_slug: FeatureId): Promise<boolean> {
     return true;
   }
 
@@ -72,7 +73,7 @@ export class MockFeaturesRepository implements IFeaturesRepository {
   async getTeamsFeatureStates(_input: {
     teamIds: number[];
     featureIds: FeatureId[];
-  }): Promise<Record<string, Record<number, FeatureState>>> {
+  }): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>> {
     // Mock implementation - return empty (all teams inherit)
     return {};
   }
@@ -82,9 +83,7 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return false;
   }
 
-  async getTeamsAutoOptIn(
-    _teamIds: number[]
-  ): Promise<Record<number, boolean>> {
+  async getTeamsAutoOptIn(_teamIds: number[]): Promise<Record<number, boolean>> {
     // Mock implementation - return empty (all teams default to false)
     return {};
   }

@@ -6,50 +6,26 @@ import { Prisma } from "@calcom/prisma/client";
 import type { AppFlags, FeatureId, FeatureState, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
-interface CacheOptions {
-  ttl: number; // time in ms
-}
-
 /**
  * Repository class for managing feature flags and feature access control.
  * Implements the IFeaturesRepository interface to provide feature flag functionality
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static featuresCache: { data: any[]; expiry: number } | null = null;
-
-  constructor(private prismaClient: PrismaClient) { }
-
-  private clearCache() {
-    FeaturesRepository.featuresCache = null;
-  }
+  constructor(private prismaClient: PrismaClient) {}
 
   /**
    * Gets all features with their enabled status.
-   * Uses caching to avoid hitting the database on every request.
    * @returns Promise<Feature[]> - Array of all features
    */
   public async getAllFeatures() {
-    if (FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
-      return FeaturesRepository.featuresCache.data;
-    }
-
-    const features = await this.prismaClient.feature.findMany({
+    return this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
     });
-
-    FeaturesRepository.featuresCache = {
-      data: features,
-      expiry: Date.now() + 5 * 60 * 1000, // 5 minutes cache
-    };
-
-    return features;
   }
 
   /**
    * Gets a map of all feature flags and their enabled status.
-   * Uses caching to avoid hitting the database on every request.
    * @returns Promise<AppFlags> - A map of feature flags to their enabled status
    */
   public async getFeatureFlagMap() {
@@ -95,10 +71,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<boolean> - True if the feature is enabled globally, false otherwise
    * @throws Error if the feature flag check fails
    */
-  async checkIfFeatureIsEnabledGlobally(
-    slug: FeatureId,
-    _options: CacheOptions = { ttl: 5 * 60 * 1000 }
-  ): Promise<boolean> {
+  async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
     try {
       const features = await this.getAllFeatures();
       const flag = features.find((f) => f.slug === slug);
@@ -143,7 +116,8 @@ export class FeaturesRepository implements IFeaturesRepository {
 
       // If no user-level setting, check if they belong to a team with the feature.
       // This also covers organizations, which are teams.
-      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
+      const userBelongsToTeamWithFeature =
+        await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
       return userBelongsToTeamWithFeature;
     } catch (err) {
       captureException(err);
@@ -159,13 +133,18 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<Record<string, boolean>> - A record mapping each slug to its enabled status
    * @throws Error if the feature access check fails
    */
-  async getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>> {
+  async getUserFeaturesStatus(
+    userId: number,
+    slugs: string[]
+  ): Promise<Record<string, boolean>> {
     try {
       if (slugs.length === 0) {
         return {};
       }
 
-      const featuresStatus: Record<string, boolean> = Object.fromEntries(slugs.map((slug) => [slug, false]));
+      const featuresStatus: Record<string, boolean> = Object.fromEntries(
+        slugs.map((slug) => [slug, false])
+      );
 
       const userFeatures = await this.prismaClient.userFeatures.findMany({
         where: {
@@ -195,10 +174,15 @@ export class FeaturesRepository implements IFeaturesRepository {
         }
       }
 
-      await Promise.all(slugsToCheckAtTeamLevel.map(async (slug) => {
-        const hasTeamFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
-        featuresStatus[slug] = hasTeamFeature;
-      }))
+      await Promise.all(
+        slugsToCheckAtTeamLevel.map(async (slug) => {
+          const hasTeamFeature = await this.checkIfUserBelongsToTeamWithFeature(
+            userId,
+            slug
+          );
+          featuresStatus[slug] = hasTeamFeature;
+        })
+      );
 
       return featuresStatus;
     } catch (err) {
@@ -236,10 +220,11 @@ export class FeaturesRepository implements IFeaturesRepository {
         return userFeature.enabled;
       }
 
-      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
-        userId,
-        slug
-      );
+      const userBelongsToTeamWithFeature =
+        await this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+          userId,
+          slug
+        );
 
       return userBelongsToTeamWithFeature;
     } catch (err) {
@@ -257,7 +242,10 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @throws Error if the team feature check fails
    * @private
    */
-  private async checkIfUserBelongsToTeamWithFeature(userId: number, slug: string) {
+  private async checkIfUserBelongsToTeamWithFeature(
+    userId: number,
+    slug: string
+  ) {
     try {
       const query = Prisma.sql`
         WITH RECURSIVE TeamHierarchy AS (
@@ -307,7 +295,10 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @throws Error if the query fails
    * @private
    */
-  private async checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string) {
+  private async checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+    userId: number,
+    slug: string
+  ) {
     try {
       const query = Prisma.sql`
         SELECT 1
@@ -349,7 +340,12 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async setUserFeatureState(
     input:
-      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | {
+          userId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: string;
+        }
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     const { userId, featureId, state } = input;
@@ -400,7 +396,12 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | {
+          teamId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: string;
+        }
       | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     const { teamId, featureId, state } = input;
@@ -449,7 +450,10 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<boolean> - True if the team or any ancestor has the feature enabled, false otherwise
    * @throws Error if the database query fails
    */
-  async checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean> {
+  async checkIfTeamHasFeature(
+    teamId: number,
+    featureId: FeatureId
+  ): Promise<boolean> {
     try {
       // Early return if team has feature directly assigned with enabled=true
       const teamFeature = await this.prismaClient.teamFeatures.findUnique({
@@ -507,7 +511,9 @@ export class FeaturesRepository implements IFeaturesRepository {
   async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
     try {
       // If globally disabled, treat as effectively disabled everywhere
-      const isGloballyEnabled = await this.checkIfFeatureIsEnabledGlobally(slug);
+      const isGloballyEnabled = await this.checkIfFeatureIsEnabledGlobally(
+        slug
+      );
       if (!isGloballyEnabled) return [];
 
       // Only return teams where enabled=true (tri-state semantics)
@@ -561,7 +567,9 @@ export class FeaturesRepository implements IFeaturesRepository {
 
       // Update result with actual values from database
       for (const userFeature of userFeatures) {
-        result[userFeature.featureId as FeatureId] = userFeature.enabled ? "enabled" : "disabled";
+        result[userFeature.featureId as FeatureId] = userFeature.enabled
+          ? "enabled"
+          : "disabled";
       }
 
       return result;
@@ -594,7 +602,8 @@ export class FeaturesRepository implements IFeaturesRepository {
 
     try {
       // Initialize result with all features present to avoid undefined feature keys
-      const result: Partial<Record<FeatureId, Record<number, FeatureState>>> = {};
+      const result: Partial<Record<FeatureId, Record<number, FeatureState>>> =
+        {};
       for (const featureId of featureIds) {
         result[featureId] = {};
       }
@@ -611,7 +620,9 @@ export class FeaturesRepository implements IFeaturesRepository {
       // Build result map - teams not in the result will default to 'inherit'
       for (const teamFeature of teamFeatures) {
         const featureStates = result[teamFeature.featureId as FeatureId] ?? {};
-        featureStates[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
+        featureStates[teamFeature.teamId] = teamFeature.enabled
+          ? "enabled"
+          : "disabled";
         result[teamFeature.featureId as FeatureId] = featureStates;
       }
 
