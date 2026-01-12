@@ -3,19 +3,21 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { CreateNewTeamView, LayoutWrapper } from "~/settings/teams/new/create-new-team-view";
+import { TeamInviteView } from "~/settings/teams/new/invite/team-invite-view";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("create_new_team"),
-    (t) => t("create_new_team_description"),
+export const generateMetadata = async () => {
+  return await _generateMetadata(
+    (t) => `${APP_NAME} - ${t("invite")}`,
+    () => "",
+    true,
     undefined,
-    undefined,
-    "/settings/teams/new"
+    "/settings/teams/new/invite"
   );
+};
 
 const ServerPage = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
@@ -26,11 +28,7 @@ const ServerPage = async () => {
 
   const userEmail = session.user.email || "";
 
-  return (
-    <LayoutWrapper>
-      <CreateNewTeamView userEmail={userEmail} />
-    </LayoutWrapper>
-  );
+  return <TeamInviteView userEmail={userEmail} />;
 };
 
 export default ServerPage;
