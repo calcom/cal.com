@@ -1859,10 +1859,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       {isWhatsappAction(step.action) && step.metaTemplatePhoneNumberId && (
                                         <div className="bg-default rounded-md">
                                           <div>
-                                            <div className="py-2 flex flex-row items-center">
+                                            <div className="flex flex-row items-center py-2">
                                               <Label>Whatsapp Business Account ID</Label>
-                                              <span title="This is the WhatsApp Business Account ID associated with the selected phone number and your Cal ID account." className="ml-2 flex h-4 w-4 items-center justify-center text-gray-500">
-                                                <Icon name="info" className="h-4 w-4" />
+                                              <span className="group relative ml-2 inline-flex">
+                                                <Icon name="info" className="h-4 w-4 text-gray-500" />
+
+                                                <span
+                                                  className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-max -translate-x-1/2
+               rounded bg-black px-2 py-1 text-xs text-white opacity-0
+               transition-opacity duration-0 group-hover:opacity-100">
+                                                  This is the WhatsApp Business Account ID associated with the
+                                                  selected phone number and your Cal ID account.
+                                                </span>
                                               </span>
                                             </div>
                                             <Input

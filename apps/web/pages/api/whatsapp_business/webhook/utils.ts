@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
 
-import { META_WEBHOOK_VERIFICATION_CODE } from "@calcom/lib/constants";
+import { META_WHATSAPP_PHONE_NUMBER_ID, META_WEBHOOK_VERIFICATION_CODE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { WorkflowStatus } from "@calcom/prisma/client";
 
-const log = logger.getSubLogger({ prefix: ["api/webhook/meta-whatsapp"] });
+import { isPrismaObjOrUndefined } from "@lib/isPrismaObj";
+
+const log = logger.getSubLogger({ prefix: ["api/whatsapp_business/webhook/phone_number"] });
 
 // Map WhatsApp status to workflow status
 const statusMap: Record<string, WorkflowStatus> = {
@@ -16,13 +18,25 @@ const statusMap: Record<string, WorkflowStatus> = {
   failed: WorkflowStatus.FAILED,
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "GET") {
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
 
-    if (mode === "subscribe" && token === META_WEBHOOK_VERIFICATION_CODE) {
+    const phoneNumberId = Array.isArray(req.query.phone_number_id)
+      ? req.query.phone_number_id[0]
+      : req.query.phone_number_id || null;
+
+    const whatsAppPhone =
+      phoneNumberId && phoneNumberId != META_WHATSAPP_PHONE_NUMBER_ID
+        ? await prisma.whatsAppBusinessPhone.findUnique({ where: { phoneNumberId } })
+        : null;
+
+    const verificationToken =
+      isPrismaObjOrUndefined(whatsAppPhone?.metadata)?.verification_token || META_WEBHOOK_VERIFICATION_CODE;
+
+    if (mode === "subscribe" && token === verificationToken) {
       res.status(200).send(challenge);
     } else {
       res.status(403).end();
@@ -112,10 +126,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     res.status(405).json({ error: "Method not allowed" });
   }
-}
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
 };

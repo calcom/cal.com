@@ -11,6 +11,7 @@ import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
+import { Prisma, WhatsAppBusinessPhone } from "@calcom/prisma/client";
 
 import { getWhatsAppBusinessAppKeys } from "../lib/getWhatsAppBusinessAppKeys";
 
@@ -18,7 +19,10 @@ import { getWhatsAppBusinessAppKeys } from "../lib/getWhatsAppBusinessAppKeys";
 // TYPES & CONSTANTS
 // ============================================================================
 
-const REQUIRED_WHATSAPP_SCOPES = ["whatsapp_business_management", "whatsapp_business_messaging"];
+const REQUIRED_WHATSAPP_SCOPES = [
+  "whatsapp_business_management",
+  "whatsapp_business_messaging",
+];
 const WEBHOOK_FIELDS = ["messages", "account_update"];
 
 type AuthMethod = "embedded" | "manual";
@@ -274,14 +278,6 @@ async function subscribeToWebhooks(
   }
 }
 
-/**
- * Build webhook callback URL for a specific phone number
- */
-function buildWebhookCallbackUrl(phoneNumber: string): string {
-  const frontendUrl = WEBAPP_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-  return `${frontendUrl}/api/integrations/whatsapp-business/webhook/${phoneNumber}`;
-}
-
 // ============================================================================
 // TOKEN MANAGEMENT
 // ============================================================================
@@ -363,9 +359,11 @@ async function verifyAccessToken(options?: {
   wabaId?: string;
   phoneNumberId?: string;
   phoneNumber?: string;
+  appKey?: string;
 }): Promise<{ isValid: boolean; wabaIds: string[] }> {
   const accessToken = options?.api_key;
-  const appAccessToken = `${META_WHATSAPP_BUSINESS_APP_ID}|${META_WHATSAPP_BUSINESS_APP_SECRET}`;
+  const appAccessToken =
+    options?.appKey ?? `${META_WHATSAPP_BUSINESS_APP_ID}|${META_WHATSAPP_BUSINESS_APP_SECRET}`;
 
   const debugRes = await fetch(
     `https://graph.facebook.com/${META_API_VERSION}/debug_token` +
@@ -390,7 +388,7 @@ async function verifyAccessToken(options?: {
     });
   }
 
-  if (tokenData.app_id !== META_WHATSAPP_BUSINESS_APP_ID) {
+  if (!options?.appKey && tokenData.app_id !== META_WHATSAPP_BUSINESS_APP_ID) {
     throw new HttpError({
       statusCode: 403,
       message: "Access token does not belong to this app",
@@ -454,7 +452,8 @@ async function verifyAccessToken(options?: {
 
     if (
       options.phoneNumber &&
-      phoneData.display_phone_number.replaceAll(" ", "") !== options.phoneNumber.replaceAll(" ", "")
+      phoneData.display_phone_number.replaceAll(" ", "").replaceAll("+", "") !==
+        options.phoneNumber.replaceAll(" ", "").replaceAll("+", "")
     ) {
       throw new HttpError({
         statusCode: 400,
@@ -579,15 +578,25 @@ async function createCredential({
   });
 }
 
-async function createPhoneRecord(
-  userId: number | null,
-  teamId: number | undefined,
-  credentialId: number,
-  wabaId: string,
-  phoneData: PhoneNumberData,
-  templates: any[],
-  verificationPin?: number
-) {
+async function createPhoneRecord({
+  userId,
+  teamId,
+  credentialId,
+  wabaId,
+  phoneData,
+  templates,
+  verificationPin,
+  verificationToken,
+}: {
+  userId: number | null;
+  teamId: number | undefined;
+  credentialId: number;
+  wabaId: string;
+  phoneData: PhoneNumberData;
+  templates: any[];
+  verificationPin?: number;
+  verificationToken?: string;
+}) {
   return await prisma.whatsAppBusinessPhone.create({
     data: {
       userId: !teamId ? userId : null,
@@ -598,20 +607,8 @@ async function createPhoneRecord(
       phoneNumber: phoneData.display_phone_number,
       templates,
       verificationPin: verificationPin ? String(verificationPin) : null,
+      metadata: verificationToken ? { verification_token: verificationToken } : Prisma.JsonNull,
     },
-  });
-}
-
-async function updatePhoneRecord(
-  phoneNumberId: string,
-  updates: {
-    verificationPin?: number;
-    templates?: any[];
-  }
-) {
-  return await prisma.whatsAppBusinessPhone.update({
-    where: { phoneNumberId },
-    data: updates,
   });
 }
 
@@ -625,6 +622,8 @@ async function handleEmbeddedSignup(
   teamId: number | undefined
 ): Promise<{ success: boolean; message: string; url: string }> {
   const { code, wabaId, phoneNumberId } = payload;
+
+  const sessionUserId = req.session!.user.id;
 
   console.log(`[Embedded Signup] Processing for WABA: ${wabaId}, Phone: ${phoneNumberId}`);
 
@@ -683,7 +682,7 @@ async function handleEmbeddedSignup(
   // Step 7: Create credential
   console.log("[Embedded Signup] Step 7: Creating credential");
   const credential = await createCredential({
-    userId: req.session!.user.id,
+    userId: sessionUserId,
     teamId,
     accessToken: longLivedToken,
     tokenType: longLivedTokenData.token_type || "bearer",
@@ -695,7 +694,15 @@ async function handleEmbeddedSignup(
 
   // Step 8: Create phone record with PIN and webhook token
   console.log("[Embedded Signup] Step 8: Creating phone record");
-  await createPhoneRecord(req.session!.user.id, teamId, credential.id, wabaId, phoneData, templates, pin);
+  await createPhoneRecord({
+    userId: sessionUserId,
+    teamId,
+    credentialId: credential.id,
+    wabaId,
+    phoneData,
+    templates,
+    verificationPin: pin,
+  });
 
   console.log("[Embedded Signup] Successfully completed setup");
 
@@ -710,11 +717,15 @@ async function handleManualAuth(
   req: NextApiRequest,
   payload: ManualAuthPayload,
   teamId: number | undefined
-): Promise<{ success: boolean; message: string; url: string }> {
+): Promise<{ success: boolean; message: string; url: string; phone: WhatsAppBusinessPhone }> {
   const { wabaId, phoneNumberId, phoneNumber, api_key } = payload;
+  const sessionUserId = req.session!.user.id;
 
   console.log("[Manual Auth] Step 1: Verifying access token");
-  const { wabaIds } = await verifyAccessToken(payload);
+  const { wabaIds } = await verifyAccessToken({
+    ...payload,
+    appKey: payload.api_key,
+  });
 
   if (!wabaIds.includes(wabaId)) {
     throw new HttpError({
@@ -724,13 +735,14 @@ async function handleManualAuth(
   }
 
   console.log("[Manual Auth] Step 2: Fetching phone number details");
+
   let phoneData: PhoneNumberData | null = await getSpecificPhoneNumber(phoneNumberId, api_key);
 
   if (!phoneData) {
-    phoneData = {
-      id: phoneNumberId,
-      display_phone_number: phoneData.display_phone_number,
-    };
+    throw new HttpError({
+      statusCode: 403,
+      message: "Phone number ID is not accessible with the provided access token",
+    });
   }
 
   const existingPhones = await getExistingPhoneNumbers([phoneData]);
@@ -757,7 +769,7 @@ async function handleManualAuth(
 
   console.log("[Manual Auth] Step 6: Creating credential");
   const credential = await createCredential({
-    userId: req.session!.user.id,
+    userId: sessionUserId,
     teamId,
     accessToken: api_key,
     wabaId,
@@ -766,12 +778,22 @@ async function handleManualAuth(
   });
 
   console.log("[Manual Auth] Step 7: Creating phone record");
-  await createPhoneRecord(req.session!.user.id, teamId, credential.id, wabaId, phoneData, templates);
+  const verificationToken = generateWebhookVerifyToken();
+  const phoneRecord = await createPhoneRecord({
+    userId: sessionUserId,
+    teamId,
+    credentialId: credential.id,
+    wabaId,
+    phoneData,
+    templates,
+    verificationToken,
+  });
 
   return {
     success: true,
     message: "WhatsApp Business phone number added successfully",
     url: "/apps/installed/messaging",
+    phone: phoneRecord,
   };
 }
 
