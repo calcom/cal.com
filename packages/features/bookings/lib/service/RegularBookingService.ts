@@ -41,6 +41,7 @@ import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/Sp
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -87,7 +88,6 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -128,7 +128,7 @@ import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
-import { makeGuestActor } from "../types/actor";
+import { makeGuestActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 const translator = short();
 
@@ -795,7 +795,8 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  const shouldServeCache = false;
+  // Use "booking" mode to bypass cache for booking confirmation
+  const calendarFetchMode = "booking" as const;
 
   tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
@@ -1002,7 +1003,7 @@ async function handler(
                   originalRescheduledBooking: originalRescheduledBooking ?? null,
                 },
                 tracingLogger,
-                shouldServeCache
+                calendarFetchMode
               );
             }
           }
@@ -1017,7 +1018,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           }
         }
@@ -1036,7 +1037,7 @@ async function handler(
               originalRescheduledBooking,
             },
             tracingLogger,
-            shouldServeCache
+            calendarFetchMode
           );
         } else {
           availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1065,7 +1066,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           } else {
             availableUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1178,7 +1179,7 @@ async function handler(
                       originalRescheduledBooking,
                     },
                     tracingLogger,
-                    shouldServeCache
+                    calendarFetchMode
                   );
                 }
               }
@@ -2369,25 +2370,53 @@ async function handler(
     organizationId: eventOrganizationId,
   });
 
-  const bookingRescheduledPayload: BookingRescheduledPayload = {
-    ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking
-      ? {
+  const bookingEventHandler = deps.bookingEventHandler;
+  // TODO: Identify action source correctly
+  const actionSource = 'WEBAPP';
+  // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
+  const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
+
+  if (originalRescheduledBooking) {
+    const bookingRescheduledPayload: BookingRescheduledPayload = {
+      ...bookingCreatedPayload,
+      oldBooking: {
+        uid: originalRescheduledBooking.uid,
         startTime: originalRescheduledBooking.startTime,
         endTime: originalRescheduledBooking.endTime,
-      }
-      : undefined,
-  };
-
-  const bookingEventHandler = deps.bookingEventHandler;
-
-  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
-  if (originalRescheduledBooking) {
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+      },
+    };
+    await bookingEventHandler.onBookingRescheduled({
+      payload: bookingRescheduledPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: {
+          old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.endTime.toISOString(),
+        },
+        rescheduledToUid: {
+          old: null,
+          new: bookingRescheduledPayload.booking.uid,
+        },
+      },
+      source: actionSource,
+      operationId: null,
+    });
   } else {
-    // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
-    const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
+    await bookingEventHandler.onBookingCreated({
+      payload: bookingCreatedPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: bookingCreatedPayload.booking.startTime.getTime(),
+        endTime: bookingCreatedPayload.booking.endTime.getTime(),
+        status: bookingCreatedPayload.booking.status,
+      },
+      source: actionSource,
+      operationId: null,
+    });
   }
 
   const webhookData: EventPayloadType = {
