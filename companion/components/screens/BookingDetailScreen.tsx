@@ -13,8 +13,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { FullScreenModal } from "@/components/FullScreenModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppPressable } from "@/components/AppPressable";
+import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,19 +36,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Text as UIText } from "@/components/ui/text";
-import { AppPressable } from "@/components/AppPressable";
-import { BookingActionsModal } from "@/components/BookingActionsModal";
-import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
-import { SvgImage } from "@/components/SvgImage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCancelBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
-import { defaultLocations, getDefaultLocationIconUrl } from "@/utils/defaultLocations";
-import { formatAppIdToDisplayName } from "@/utils/formatters";
-import { getAppIconUrl } from "@/utils/getAppIconUrl";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -59,136 +55,76 @@ const EMPTY_ACTIONS: BookingActionsResult = {
   markNoShow: { visible: false, enabled: false },
 };
 
-// Format date: "Tuesday, November 25, 2025"
-const formatDateFull = (dateString: string): string => {
+// Format date for iOS Calendar style: "Monday, Jan 12, 2026"
+const formatDateCalendarStyle = (dateString: string): string => {
   if (!dateString) return "";
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString("en-US", {
     weekday: "long",
-    month: "long",
     day: "numeric",
+    month: "short",
     year: "numeric",
   });
 };
 
-// Format time: "9:40pm - 10:00pm"
-const formatTime12Hour = (dateString: string): string => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "";
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const period = hours >= 12 ? "pm" : "am";
-  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  const minStr = minutes.toString().padStart(2, "0");
-  return `${hour12}:${minStr}${period}`;
-};
+// Format time for iOS Calendar style: "3 PM – 3:30 PM"
+const formatTimeCalendarStyle = (startDateString: string, endDateString: string): string => {
+  if (!startDateString || !endDateString) return "";
+  const startDate = new Date(startDateString);
+  const endDate = new Date(endDateString);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return "";
 
-// Get user's local timezone for display
-const getTimezone = (): string => {
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return timeZone || "";
-};
-
-// Get initials from a name(e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
-const getInitials = (name: string): string => {
-  if (!name) return "";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 0) return "";
-  if (parts.length === 1) {
-    return parts[0].charAt(0).toUpperCase();
-  }
-  // Get first letter of first name and first letter of last name
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-};
-
-// Get location provider info
-const getLocationProvider = (location: string | undefined, metadata?: Record<string, unknown>) => {
-  // Check metadata for videoCallUrl first
-  const videoCallUrl = metadata?.videoCallUrl;
-  const locationToCheck = videoCallUrl || location;
-
-  if (!locationToCheck) return null;
-
-  // Check if it's a video call URL
-  if (typeof locationToCheck === "string" && locationToCheck.startsWith("http")) {
-    // Try to detect provider from URL
-    if (locationToCheck.includes("cal.com/video") || locationToCheck.includes("cal-video")) {
-      const iconUrl = getAppIconUrl("daily_video", "cal-video");
-      return {
-        label: "Cal Video",
-        iconUrl: iconUrl || "https://app.cal.com/app-store/dailyvideo/icon.svg",
-        url: locationToCheck,
-      };
+  const formatTime = (date: Date): string => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? "PM" : "AM";
+    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    if (minutes === 0) {
+      return `${hour12} ${period}`;
     }
-    // Check for other video providers by URL pattern
-    const videoProviders = [
-      { pattern: /zoom\.us/, label: "Zoom", type: "zoom_video", appId: "zoom" },
-      {
-        pattern: /meet\.google\.com/,
-        label: "Google Meet",
-        type: "google_video",
-        appId: "google-meet",
-      },
-      {
-        pattern: /teams\.microsoft\.com/,
-        label: "Microsoft Teams",
-        type: "office365_video",
-        appId: "msteams",
-      },
-    ];
-
-    for (const provider of videoProviders) {
-      if (provider.pattern.test(locationToCheck)) {
-        const iconUrl = getAppIconUrl(provider.type, provider.appId);
-        return {
-          label: provider.label,
-          iconUrl: iconUrl,
-          url: locationToCheck,
-        };
-      }
-    }
-
-    // Generic link meeting
-    const linkIconUrl = getDefaultLocationIconUrl("link") || "https://app.cal.com/link.svg";
-    return {
-      label: "Link Meeting",
-      iconUrl: linkIconUrl,
-      url: locationToCheck,
-    };
-  }
-
-  // Check if it's an integration location (e.g., "integrations:zoom", "integrations:cal-video")
-  if (typeof locationToCheck === "string" && locationToCheck.startsWith("integrations:")) {
-    const appId = locationToCheck.replace("integrations:", "");
-    const iconUrl = getAppIconUrl("", appId);
-
-    if (iconUrl) {
-      return {
-        label: formatAppIdToDisplayName(appId),
-        iconUrl: iconUrl,
-        url: null,
-      };
-    }
-  }
-
-  // Check if it's a default location type
-  const defaultLocation = defaultLocations.find((loc) => loc.type === locationToCheck);
-  if (defaultLocation) {
-    return {
-      label: defaultLocation.label,
-      iconUrl: defaultLocation.iconUrl,
-      url: null,
-    };
-  }
-
-  // Fallback: return as plain text location
-  return {
-    label: locationToCheck as string,
-    iconUrl: null,
-    url: null,
+    return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
+
+  return `${formatTime(startDate)} – ${formatTime(endDate)}`;
+};
+
+// Format duration for display: "30 min" or "1 hr" or "1 hr 30 min"
+const formatDuration = (minutes: number): string => {
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (remainingMinutes === 0) {
+    return hours === 1 ? "1 hr" : `${hours} hrs`;
+  }
+  return `${hours} hr ${remainingMinutes} min`;
+};
+
+// Calculate duration from start and end times
+const calculateDuration = (startDateString: string, endDateString: string): number => {
+  if (!startDateString || !endDateString) return 0;
+  const startDate = new Date(startDateString);
+  const endDate = new Date(endDateString);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 0;
+  return Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
+};
+
+const getMeetingUrl = (booking: Booking | null): string | null => {
+  if (!booking) return null;
+
+  const videoCallUrl = booking.responses?.videoCallUrl;
+  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
+    return videoCallUrl;
+  }
+
+  const location = booking.location;
+  if (typeof location === "string" && location.startsWith("http")) {
+    return location;
+  }
+
+  return null;
 };
 
 export interface BookingDetailScreenProps {
@@ -242,6 +178,7 @@ export function BookingDetailScreen({
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [participantsExpanded, setParticipantsExpanded] = useState(true);
 
   // Cancel booking mutation
   const cancelBookingMutation = useCancelBooking();
@@ -402,6 +339,14 @@ export function BookingDetailScreen({
     });
   }, [booking, router]);
 
+  const meetingUrl = useMemo(() => getMeetingUrl(booking ?? null), [booking]);
+
+  const handleJoinMeeting = useCallback(() => {
+    if (meetingUrl) {
+      openInAppBrowser(meetingUrl, "meeting link");
+    }
+  }, [meetingUrl]);
+
   // Expose action handlers to parent component (for iOS header menu)
   useEffect(() => {
     if (booking && onActionsReady) {
@@ -426,15 +371,6 @@ export function BookingDetailScreen({
     handleCancelBooking,
     openMarkNoShowModal,
   ]);
-
-  const handleJoinMeeting = () => {
-    if (!booking?.location) return;
-
-    const provider = getLocationProvider(booking.location);
-    if (provider?.url) {
-      openInAppBrowser(provider.url, "meeting link");
-    }
-  };
 
   const dropdownActions = useMemo(() => {
     if (!booking) return [];
@@ -520,7 +456,7 @@ export function BookingDetailScreen({
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#f8f9fa]">
+      <View className="flex-1 items-center justify-center bg-[#f2f2f7]">
         <ActivityIndicator size="large" color="#000000" />
         <Text className="mt-4 text-base text-gray-500">Loading booking...</Text>
       </View>
@@ -530,8 +466,8 @@ export function BookingDetailScreen({
   if (error || !booking) {
     const errorMessage = error?.message || "Booking not found";
     return (
-      <View className="flex-1 items-center justify-center bg-[#f8f9fa] p-5">
-        <Ionicons name="alert-circle" size={64} color="#800020" />
+      <View className="flex-1 items-center justify-center bg-[#f2f2f7] p-5">
+        <Ionicons name="alert-circle" size={64} color="#FF3B30" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
           {errorMessage}
         </Text>
@@ -544,10 +480,55 @@ export function BookingDetailScreen({
 
   const startTime = booking.start || booking.startTime || "";
   const endTime = booking.end || booking.endTime || "";
-  const dateFormatted = formatDateFull(startTime);
-  const timeFormatted = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
-  const timezone = getTimezone();
-  const locationProvider = getLocationProvider(booking.location, booking.responses);
+  const dateFormatted = formatDateCalendarStyle(startTime);
+  const timeFormatted = formatTimeCalendarStyle(startTime, endTime);
+
+  const isRecurring =
+    booking.recurringEventId || (booking as { recurringBookingUid?: string }).recurringBookingUid;
+
+  const duration =
+    (booking as { duration?: number }).duration || calculateDuration(startTime, endTime);
+  const durationFormatted = duration > 0 ? formatDuration(duration) : null;
+
+  const eventTypeSlug = booking.eventType?.slug;
+
+  const hostsCount = booking.hosts?.length || (booking.user ? 1 : 0);
+  const attendeesCount = booking.attendees?.length || 0;
+  const guestsCount = (booking as { guests?: string[] }).guests?.length || 0;
+  const totalParticipants = hostsCount + attendeesCount + guestsCount;
+
+  const isPastBooking = new Date(endTime) < new Date();
+  const normalizedStatus = booking.status.toLowerCase();
+
+  const getAttendeeStatusIcon = (attendee: { noShow?: boolean; absent?: boolean }) => {
+    const isNoShow = attendee.noShow || attendee.absent;
+
+    if (isPastBooking && isNoShow) {
+      return {
+        name: "close-circle" as const,
+        color: "#FF3B30",
+        label: "No-show",
+      };
+    }
+
+    if (normalizedStatus === "pending") {
+      return {
+        name: "help-circle" as const,
+        color: "#8E8E93",
+        label: "Pending",
+      };
+    }
+
+    if (normalizedStatus === "cancelled" || normalizedStatus === "rejected") {
+      return {
+        name: "close-circle-outline" as const,
+        color: "#8E8E93",
+        label: null,
+      };
+    }
+
+    return { name: "checkmark-circle" as const, color: "#34C759", label: null };
+  };
 
   return (
     <>
@@ -557,235 +538,201 @@ export function BookingDetailScreen({
           options={{
             headerRight: () => (
               <HeaderButtonWrapper side="right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Pressable className="h-10 w-10 items-center justify-center rounded-full">
-                      <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                <View className="flex-row items-center">
+                  {meetingUrl && (
+                    <Pressable
+                      className="mr-2 h-10 w-10 items-center justify-center rounded-full"
+                      onPress={handleJoinMeeting}
+                    >
+                      <Ionicons name="videocam" size={24} color="#000" />
                     </Pressable>
-                  </DropdownMenuTrigger>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Pressable className="h-10 w-10 items-center justify-center rounded-full">
+                        <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                      </Pressable>
+                    </DropdownMenuTrigger>
 
-                  <DropdownMenuContent
-                    insets={contentInsets}
-                    sideOffset={8}
-                    className="w-52"
-                    align="end"
-                  >
-                    {dropdownActions.map((action, index) => (
-                      <React.Fragment key={action.label}>
-                        {index === destructiveStartIndex && destructiveStartIndex > 0 && (
-                          <DropdownMenuSeparator />
-                        )}
-                        <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
-                          <Ionicons
-                            name={action.icon}
-                            size={18}
-                            color={action.variant === "destructive" ? "#800020" : "#374151"}
-                            style={{ marginRight: 8 }}
-                          />
-                          <UIText
-                            className={action.variant === "destructive" ? "text-destructive" : ""}
-                          >
-                            {action.label}
-                          </UIText>
-                        </DropdownMenuItem>
-                      </React.Fragment>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    <DropdownMenuContent
+                      insets={contentInsets}
+                      sideOffset={8}
+                      className="w-52"
+                      align="end"
+                    >
+                      {dropdownActions.map((action, index) => (
+                        <React.Fragment key={action.label}>
+                          {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                            <DropdownMenuSeparator />
+                          )}
+                          <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                            <Ionicons
+                              name={action.icon}
+                              size={18}
+                              color={action.variant === "destructive" ? "#800020" : "#374151"}
+                              style={{ marginRight: 8 }}
+                            />
+                            <UIText
+                              className={action.variant === "destructive" ? "text-destructive" : ""}
+                            >
+                              {action.label}
+                            </UIText>
+                          </DropdownMenuItem>
+                        </React.Fragment>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </View>
               </HeaderButtonWrapper>
             ),
           }}
         />
       )}
-      <View className="flex-1 bg-[#f8f9fa]">
+      <View className="flex-1 bg-[#f2f2f7]">
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         >
-          {/* Title */}
-          <View className="mb-3">
-            <Text className="mb-2 text-2xl font-semibold text-[#333]">{booking.title}</Text>
-            <Text className="text-base text-[#666]">
-              {dateFormatted} {timeFormatted} ({timezone})
+          {/* Title Section - iOS Calendar Style */}
+          <View className="mb-8">
+            <Text
+              className="mb-4 text-[26px] font-semibold leading-tight text-black"
+              style={{ letterSpacing: -0.3 }}
+            >
+              {booking.title}
             </Text>
-          </View>
 
-          {/* Who Section */}
-          <View className="mb-2 rounded-2xl bg-white p-6">
-            <Text className="mb-4 text-base font-medium text-[#666]">Who</Text>
-            {/* Show host from user field or hosts array */}
-            {booking.user || (booking.hosts && booking.hosts.length > 0) ? (
-              <View className="mb-4">
-                {booking.user ? (
-                  <View className="flex-row items-start">
-                    <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
-                      <Text className="text-base font-semibold text-white">
-                        {getInitials(booking.user.name)}
-                      </Text>
-                    </View>
-                    <View className="flex-1">
-                      <View className="mb-1 flex-row flex-wrap items-center">
-                        <Text className="text-base font-medium text-[#333]">
-                          {booking.user.name}
-                        </Text>
-                        <View className="ml-2 rounded bg-[#007AFF] px-2 py-0.5">
-                          <Text className="text-xs font-medium text-white">host</Text>
-                        </View>
-                      </View>
-                      <Text className="text-sm text-[#666]">{booking.user.email}</Text>
-                    </View>
+            {eventTypeSlug || durationFormatted ? (
+              <View className="mb-3 flex-row items-center">
+                {eventTypeSlug ? (
+                  <Text className="text-[15px] text-[#8E8E93]">{eventTypeSlug}</Text>
+                ) : null}
+                {eventTypeSlug && durationFormatted ? (
+                  <Text className="mx-2 text-[15px] text-[#C7C7CC]">•</Text>
+                ) : null}
+                {durationFormatted ? (
+                  <View className="rounded-full bg-[#E5E5EA] px-2.5 py-1">
+                    <Text className="text-[13px] font-medium text-[#636366]">
+                      {durationFormatted}
+                    </Text>
                   </View>
-                ) : booking.hosts && booking.hosts.length > 0 ? (
-                  booking.hosts.map((host, hostIndex) => (
-                    <View
-                      key={host.email ?? host.name}
-                      className={`flex-row items-start ${hostIndex > 0 ? "mt-4" : ""}`}
-                    >
-                      <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
-                        <Text className="text-base font-semibold text-white">
-                          {getInitials(host.name || "Host")}
-                        </Text>
-                      </View>
-                      <View className="flex-1">
-                        <View className="mb-1 flex-row flex-wrap items-center">
-                          <Text className="text-base font-medium text-[#333]">
-                            {host.name || "Host"}
-                          </Text>
-                          <View className="ml-2 rounded bg-[#007AFF] px-2 py-0.5">
-                            <Text className="text-xs font-medium text-white">host</Text>
-                          </View>
-                        </View>
-                        {host.email && <Text className="text-sm text-[#666]">{host.email}</Text>}
-                      </View>
-                    </View>
-                  ))
                 ) : null}
               </View>
             ) : null}
-            {booking.attendees && booking.attendees.length > 0 ? (
-              <View>
-                {booking.attendees.map((attendee, index) => {
-                  const isNoShow =
-                    (attendee as { noShow?: boolean; absent?: boolean }).noShow === true ||
-                    (attendee as { noShow?: boolean; absent?: boolean }).absent === true;
+
+            <Text className="mb-0.5 text-[17px] text-black">{dateFormatted}</Text>
+            <Text className="mb-0.5 text-[17px] text-black">{timeFormatted}</Text>
+
+            {isRecurring ? (
+              <Text className="mt-0.5 text-[17px] text-[#800020]">Repeats weekly</Text>
+            ) : null}
+          </View>
+
+          {/* Participants Card - iOS Calendar Style (Expandable) */}
+          <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            <AppPressable onPress={() => setParticipantsExpanded(!participantsExpanded)}>
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <Text className="text-[17px] text-black">Participants</Text>
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px] text-[#8E8E93]">{totalParticipants}</Text>
+                  <Ionicons
+                    name={participantsExpanded ? "chevron-down" : "chevron-forward"}
+                    size={18}
+                    color="#C7C7CC"
+                  />
+                </View>
+              </View>
+            </AppPressable>
+
+            {participantsExpanded ? (
+              <View className="border-t border-[#E5E5EA] px-4 py-2.5">
+                {/* Hosts */}
+                {booking.hosts && booking.hosts.length > 0 ? (
+                  booking.hosts.map((host, index) => (
+                    <View
+                      key={host.email || `host-${index}`}
+                      className={`flex-row items-center py-2 ${
+                        index > 0 ? "border-t border-[#E5E5EA]" : ""
+                      }`}
+                    >
+                      <Ionicons name="star" size={18} color="#FFD60A" />
+                      <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                        {host.name || host.email || "Host"}
+                      </Text>
+                      <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
+                    </View>
+                  ))
+                ) : booking.user ? (
+                  <View className="flex-row items-center py-2">
+                    <Ionicons name="star" size={18} color="#FFD60A" />
+                    <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                      {booking.user.name || booking.user.email}
+                    </Text>
+                    <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
+                  </View>
+                ) : null}
+
+                {/* Attendees */}
+                {booking.attendees?.map((attendee, index) => {
+                  const statusIcon = getAttendeeStatusIcon(attendee);
                   return (
                     <View
                       key={attendee.email}
-                      className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}
+                      className={`flex-row items-center py-2 ${
+                        index > 0 || booking.hosts?.length || booking.user
+                          ? "border-t border-[#E5E5EA]"
+                          : ""
+                      }`}
                     >
-                      <View
-                        className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
-                          isNoShow ? "bg-[#800020]" : "bg-black"
-                        }`}
-                      >
-                        <Text className="text-base font-semibold text-white">
-                          {getInitials(attendee.name)}
+                      <Ionicons name={statusIcon.name} size={20} color={statusIcon.color} />
+                      <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                        {attendee.name || attendee.email}
+                      </Text>
+                      {statusIcon.label ? (
+                        <Text className="text-[13px]" style={{ color: statusIcon.color }}>
+                          {statusIcon.label}
                         </Text>
-                      </View>
-                      <View className="flex-1">
-                        <View className="mb-1 flex-row items-center">
-                          <Text
-                            className={`text-base font-medium ${
-                              isNoShow ? "text-[#800020]" : "text-[#333]"
-                            }`}
-                          >
-                            {attendee.name}
-                          </Text>
-                          {isNoShow && (
-                            <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-2 py-0.5">
-                              <Ionicons name="eye-off" size={12} color="#800020" />
-                              <Text className="ml-1 text-xs font-medium text-[#800020]">
-                                No-show
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text className={`text-sm ${isNoShow ? "text-[#800020]" : "text-[#666]"}`}>
-                          {attendee.email}
-                        </Text>
-                      </View>
+                      ) : null}
                     </View>
                   );
                 })}
+
+                {/* Guests */}
+                {(booking as { guests?: string[] }).guests?.map((guestEmail, index) => (
+                  <View
+                    key={guestEmail}
+                    className={`flex-row items-center py-2 ${
+                      index > 0 ||
+                      booking.attendees?.length ||
+                      booking.hosts?.length ||
+                      booking.user
+                        ? "border-t border-[#E5E5EA]"
+                        : ""
+                    }`}
+                  >
+                    <Ionicons name="person-outline" size={20} color="#8E8E93" />
+                    <Text className="ml-2.5 flex-1 text-[15px] text-[#8E8E93]" numberOfLines={1}>
+                      {guestEmail}
+                    </Text>
+                    <Text className="text-[13px] text-[#8E8E93]">Guest</Text>
+                  </View>
+                ))}
               </View>
             ) : null}
           </View>
 
-          {/* Where Section */}
-          {locationProvider ? (
-            <View className="mb-2 rounded-2xl bg-white p-6">
-              <Text className="mb-4 text-base font-medium text-[#666]">Where</Text>
-              {locationProvider.url ? (
-                <AppPressable
-                  onPress={handleJoinMeeting}
-                  className="flex-row flex-wrap items-center"
-                >
-                  {locationProvider.iconUrl ? (
-                    <SvgImage
-                      uri={locationProvider.iconUrl}
-                      width={20}
-                      height={20}
-                      style={{ marginRight: 8 }}
-                    />
-                  ) : null}
-                  <Text className="text-base text-[#007AFF]">{locationProvider.label}: </Text>
-                  <Text className="flex-1 text-base text-[#007AFF]" numberOfLines={1}>
-                    {locationProvider.url}
-                  </Text>
-                </AppPressable>
-              ) : (
-                <View className="flex-row items-center">
-                  {locationProvider.iconUrl ? (
-                    <SvgImage
-                      uri={locationProvider.iconUrl}
-                      width={20}
-                      height={20}
-                      style={{ marginRight: 8 }}
-                    />
-                  ) : null}
-                  <Text className="text-base text-[#333]">{locationProvider.label}</Text>
-                </View>
-              )}
-            </View>
-          ) : null}
-
-          {/* Recurring Event Section */}
-          {booking.recurringEventId ||
-          (booking as { recurringBookingUid?: string }).recurringBookingUid ? (
-            <View className="mb-2 rounded-2xl bg-white p-6">
-              <Text className="text-base font-medium text-[#666]">
-                This is part of a recurring event
-              </Text>
-            </View>
-          ) : null}
-
-          {/* Description Section */}
+          {/* Notes Card (if available) */}
           {booking.description ? (
-            <View className="mb-2 rounded-2xl bg-white p-6">
-              <Text className="mb-2 text-base font-medium text-[#666]">Description</Text>
-              <Text className="text-base leading-6 text-[#666]">{booking.description}</Text>
+            <View className="mb-4 overflow-hidden rounded-xl bg-white">
+              <View className="px-4 py-3.5">
+                <Text className="mb-1.5 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
+                  Notes
+                </Text>
+                <Text className="text-[17px] leading-6 text-black">{booking.description}</Text>
+              </View>
             </View>
-          ) : null}
-
-          {/* Join Meeting Button */}
-          {locationProvider?.url ? (
-            <AppPressable
-              onPress={handleJoinMeeting}
-              className="mb-2 flex-row items-center justify-center rounded-lg bg-black px-6 py-4"
-            >
-              {locationProvider.iconUrl ? (
-                <SvgImage
-                  uri={locationProvider.iconUrl}
-                  width={20}
-                  height={20}
-                  style={{ marginRight: 8 }}
-                />
-              ) : null}
-              <Text className="text-base font-semibold text-white">
-                Join {locationProvider.label}
-              </Text>
-            </AppPressable>
           ) : null}
         </ScrollView>
 
@@ -808,7 +755,7 @@ export function BookingDetailScreen({
         />
 
         {/* Cancelling overlay */}
-        {isCancelling && (
+        {isCancelling ? (
           <View className="absolute inset-0 items-center justify-center bg-black/50">
             <View className="rounded-2xl bg-white px-8 py-6">
               <ActivityIndicator size="large" color="#000" />
@@ -817,7 +764,7 @@ export function BookingDetailScreen({
               </Text>
             </View>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* Web/Extension: Cancel Event Modal */}
