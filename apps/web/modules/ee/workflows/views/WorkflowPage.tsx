@@ -509,7 +509,7 @@ function WorkflowPage({
               </Tooltip>
               <Button
                 loading={updateMutation.isPending}
-                disabled={permissions.readOnly || updateMutation.isPending}
+                disabled={permissions.readOnly || updateMutation.isPending || !form.formState.isDirty}
                 data-testid="save-workflow"
                 type="submit"
                 size="sm"
