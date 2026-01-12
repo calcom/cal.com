@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
@@ -241,6 +242,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       isValidOrgDomain: false,
       currentOrgDomain: null,
       isSEOIndexable: true,
+      headerUrl: (isPrismaObjOrUndefined(calIdTeam.metadata)?.headerUrl as string | null) ?? null,
     },
   } as const;
 };

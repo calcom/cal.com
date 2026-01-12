@@ -21,7 +21,7 @@ export const newFeatureCardContent: Feature[] = [
     icon: "linkedin",
     title: "Social Profiles on Public Page",
     description: "Add your social profiles to show on your public page.",
-    pageSlug: "/settings/my-account/appearance",
+    pageSlug: "/settings/my-account/custom-branding",
     isNew: true,
   },
   {
@@ -55,7 +55,7 @@ export const featureCardContent: Feature[] = [
     icon: "paintbrush",
     title: "Custom Branding",
     description: "Customize your booking page with your own branding.",
-    pageSlug: "/settings/my-account/appearance",
+    pageSlug: "/settings/my-account/custom-branding",
   },
   {
     icon: "wallpaper",

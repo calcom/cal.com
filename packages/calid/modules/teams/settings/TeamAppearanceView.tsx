@@ -3,7 +3,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import ThemeCard from "@calid/features/ui/components/card/theme-card";
 import { Form } from "@calid/features/ui/components/form";
-import { Input } from "@calid/features/ui/components/input/input";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
@@ -24,18 +23,8 @@ const themeFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
 });
 
-const brandColorsFormSchema = z.object({
-  brandColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color format"),
-  darkBrandColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color format"),
-});
-
 type TeamThemeSetting = {
   theme: "light" | "dark" | "system";
-};
-
-type TeamBrandColorsSetting = {
-  brandColor: string;
-  darkBrandColor: string;
 };
 
 interface TeamAppearanceViewProps {
@@ -54,7 +43,6 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
     error,
   } = trpc.viewer.calidTeams.get.useQuery({ teamId }, { enabled: !!teamId });
 
-  const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideTeamBranding ?? false);
   const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
   const [hideTeamProfileLink, setHideTeamProfileLink] = useState(team?.hideTeamProfileLink ?? false);
 
@@ -65,23 +53,10 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
     },
   });
 
-  const brandColorsForm = useForm<TeamBrandColorsSetting>({
-    resolver: zodResolver(brandColorsFormSchema),
-    defaultValues: {
-      brandColor: team?.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
-      darkBrandColor: team?.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
-    },
-  });
-
   const {
     formState: { isSubmitting: isThemeSubmitting, isDirty: isThemeDirty },
     reset: resetTheme,
   } = themeForm;
-
-  const {
-    formState: { isSubmitting: isBrandColorsSubmitting, isDirty: isBrandColorsDirty },
-    reset: resetBrandColors,
-  } = brandColorsForm;
 
   const mutation = trpc.viewer.calidTeams.update.useMutation();
 
@@ -110,37 +85,18 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
     });
   };
 
-  const onBrandColorsFormSubmit = async (values: TeamBrandColorsSetting) => {
-    await updateTeamSetting(
-      { brandColor: values.brandColor, darkBrandColor: values.darkBrandColor },
-      (updatedTeam) => {
-        resetBrandColors({
-          brandColor: updatedTeam?.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
-          darkBrandColor: updatedTeam?.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
-        });
-      }
-    );
-  };
-
   useEffect(() => {
     if (team?.theme) {
       themeForm.reset({
         theme: (team.theme as "light" | "dark" | null) ?? "system",
       });
     }
-    if (team?.brandColor) {
-      brandColorsForm.reset({
-        brandColor: team.brandColor ?? undefined,
-        darkBrandColor: team.darkBrandColor ?? undefined,
-      });
-    }
     // Set initial values for settings switches
     if (team) {
-      setHideBrandingValue(team.hideTeamBranding ?? false);
       setHideBookATeamMember(team.hideBookATeamMember ?? false);
       setHideTeamProfileLink(team.hideTeamProfileLink ?? false);
     }
-  }, [team, themeForm, brandColorsForm]);
+  }, [team, themeForm]);
 
   if (isLoading) {
     return <SkeletonLoader />;
@@ -150,8 +106,6 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
     router.push("/teams");
   }
 
-  const brandColor = brandColorsForm.watch("brandColor");
-  const darkBrandColor = brandColorsForm.watch("darkBrandColor");
   const isAdminOrOwner = team && checkIfMemberAdminorOwner(team.membership.role);
 
   return (
@@ -203,110 +157,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
             </Form>
           </div>
 
-          {/* Brand Colors Form */}
-          <div className="border-default space-y-6 rounded-md border p-4">
-            <Form form={brandColorsForm} onSubmit={onBrandColorsFormSubmit}>
-              <div className="mb-6 flex items-center rounded-md text-sm">
-                <div>
-                  <p className="text-base font-semibold">{t("team_brand_colors_title")}</p>
-                  <p className="text-default text-xs">{t("team_brand_colors_description")}</p>
-                </div>
-              </div>
-
-              <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <label className="text-primary text-sm font-medium">{t("team_brand_color_light")}</label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="color"
-                      value={brandColor}
-                      onChange={(e) =>
-                        brandColorsForm.setValue("brandColor", e.target.value, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })
-                      }
-                      className="h-8 w-8 p-0"
-                    />
-                    <Input
-                      type="text"
-                      value={brandColor}
-                      onChange={(e) =>
-                        brandColorsForm.setValue("brandColor", e.target.value, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })
-                      }
-                      placeholder="#007ee5"
-                    />
-                  </div>
-                  {brandColorsForm.formState.errors.brandColor && (
-                    <p className="text-xs text-red-600">
-                      {brandColorsForm.formState.errors.brandColor.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-primary text-sm font-medium">{t("team_brand_color_dark")}</label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="color"
-                      value={darkBrandColor}
-                      onChange={(e) =>
-                        brandColorsForm.setValue("darkBrandColor", e.target.value, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })
-                      }
-                      className="h-8 w-8 p-0"
-                    />
-                    <Input
-                      type="text"
-                      value={darkBrandColor}
-                      onChange={(e) =>
-                        brandColorsForm.setValue("darkBrandColor", e.target.value, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })
-                      }
-                      placeholder="#fafafa"
-                    />
-                  </div>
-                  {brandColorsForm.formState.errors.darkBrandColor && (
-                    <p className="text-xs text-red-600">
-                      {brandColorsForm.formState.errors.darkBrandColor.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={isBrandColorsSubmitting || !isBrandColorsDirty}
-                  loading={isBrandColorsSubmitting}>
-                  {t("update")}
-                </Button>
-              </div>
-            </Form>
-          </div>
-
           {/* Toggle switches */}
-          <div className="border-default flex flex-col space-y-6 rounded-md border p-4">
-            <SettingsSwitch
-              toggleSwitchAtTheEnd={true}
-              title={t("disable_cal_id_branding", { appName: APP_NAME })}
-              disabled={mutation?.isPending}
-              description={t("remove_cal_id_branding", { appName: APP_NAME })}
-              checked={hideBrandingValue}
-              onCheckedChange={async (checked) => {
-                setHideBrandingValue(checked);
-                await updateTeamSetting({ hideTeamBranding: checked });
-              }}
-            />
-          </div>
-
           <div className="border-default flex flex-col space-y-6 rounded-md border p-4">
             <SettingsSwitch
               toggleSwitchAtTheEnd={true}

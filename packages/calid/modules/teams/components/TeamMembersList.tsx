@@ -649,13 +649,6 @@ export function TeamMembersList({
           <div className="flex items-center justify-end space-x-3">
             <Button
               variant="button"
-              color="minimal"
-              onClick={() => setShowRemoveDialog(false)}
-              disabled={isRemoving}>
-              {t("cancel")}
-            </Button>
-            <Button
-              variant="button"
               color="destructive"
               onClick={() => {
                 if (memberToRemove) {
@@ -667,6 +660,7 @@ export function TeamMembersList({
               disabled={isRemoving}>
               {t("remove_team_member")}
             </Button>
+            <DialogClose />
           </div>
         </DialogContent>
       </Dialog>

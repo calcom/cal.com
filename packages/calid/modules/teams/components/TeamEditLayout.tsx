@@ -35,6 +35,12 @@ export const TeamEditLayout = ({ teamId, children }: { teamId: number; children:
         "data-testid": "appearance",
       },
       {
+        name: "custom_branding",
+        icon: "paintbrush",
+        path: `/settings/teams/${teamId}/custom-branding`,
+        "data-testid": "custom-branding",
+      },
+      {
         name: "settings",
         icon: "settings",
         path: `/settings/teams/${teamId}/settings`,

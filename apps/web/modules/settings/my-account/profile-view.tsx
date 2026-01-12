@@ -22,7 +22,6 @@ import {
 } from "@calid/features/ui/components/input/phone-number-field";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
-import { CustomBannerUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
@@ -41,7 +40,6 @@ import {
   FULL_NAME_LENGTH_MAX_LIMIT,
   PHONE_NUMBER_VERIFICATION_ENABLED,
 } from "@calcom/lib/constants";
-import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -591,37 +589,6 @@ const ProfileForm = ({
     onSubmit(getUpdatedFormValues(values));
   };
 
-  const [uploadingBanner, setUploadingBanner] = useState(false);
-
-  const updateBannerMutation = trpc.viewer.me.calid_updateProfile.useMutation({
-    onSuccess: async (res) => {
-      setUploadingBanner(false);
-      utils.viewer.me.invalidate();
-      revalidateSettingsProfile();
-      triggerToast(t("settings_updated_successfully"), "success");
-    },
-    onError: () => {
-      setUploadingBanner(false);
-      triggerToast(t("error_updating_settings"), "error");
-    },
-  });
-
-  const handleBannerUpdate = async (newHeaderUrl: string | null) => {
-    setUploadingBanner(true);
-    updateBannerMutation.mutate({
-      username: user.username || "",
-      avatarUrl: user.avatarUrl,
-      name: user.name || "",
-      email: user.email || "",
-      bio: user.bio || "",
-      secondaryEmails: [],
-      metadata: {
-        ...isPrismaObjOrUndefined(user.metadata),
-        headerUrl: newHeaderUrl,
-      },
-    });
-  };
-
   const {
     fields: secondaryEmailFields,
     remove: deleteSecondaryEmail,
@@ -705,7 +672,6 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   const bioValue = formMethods.watch("bio") || "";
-
   const getText = React.useCallback(() => bioValue, [bioValue]);
 
   // Watch phone number to conditionally show WhatsApp checkbox
@@ -922,68 +888,6 @@ const ProfileForm = ({
           </Button>
         </div>
       </Form>
-      <div className="border-default mt-6 rounded-md border px-4 py-6 sm:px-6">
-        <BannerUploaderForm
-          banner={(isPrismaObjOrUndefined(user.metadata)?.headerUrl as string | null) ?? null}
-          handleFormSubmit={handleBannerUpdate}
-          uploadingBanner={uploadingBanner}
-        />
-      </div>
-    </div>
-  );
-};
-
-const BannerUploaderForm = ({
-  banner,
-  handleFormSubmit,
-  uploadingBanner,
-}: {
-  banner: string | null;
-  handleFormSubmit: (newHeaderUrl: string | null) => void | Promise<unknown>;
-  uploadingBanner: boolean;
-}) => {
-  const { t } = useLocale();
-
-  const showRemoveHeaderButton = banner !== null;
-
-  return (
-    <div className="flex flex-col">
-      <Label>{t("booking_page_banner")}</Label>
-      <span className="text-subtle mb-4 text-sm">{t("booking_page_banner_description")}</span>
-      <div className="bg-muted mb-4 flex aspect-[10/1] w-full items-center justify-start overflow-hidden rounded-lg">
-        {!banner ? (
-          <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
-        ) : (
-          <img className="h-full w-full object-cover" src={banner} alt="Header background" />
-        )}
-      </div>
-
-      <div className="flex gap-2">
-        <CustomBannerUploader
-          target="metadata.headerUrl"
-          id="header-upload"
-          buttonMsg={t("upload_image")}
-          uploading={uploadingBanner}
-          fieldName="Banner"
-          mimeType={["image/svg+xml", "image/png"]}
-          height={320}
-          width={3200}
-          handleAvatarChange={async (newHeaderUrl) => {
-            await handleFormSubmit(newHeaderUrl);
-          }}
-          imageSrc={getPlaceholderHeader(banner, banner) ?? undefined}
-          triggerButtonColor={showRemoveHeaderButton ? "secondary" : "primary"}
-        />
-        {showRemoveHeaderButton && (
-          <Button
-            color="secondary"
-            onClick={() => {
-              handleFormSubmit(null);
-            }}>
-            {t("remove")}
-          </Button>
-        )}
-      </div>
     </div>
   );
 };

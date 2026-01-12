@@ -146,7 +146,7 @@ export function TeamsList({
             StartIcon="plus"
             data-testid="create-team-btn"
             onClick={() => router.push(`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`)}>
-            {t(`create_a_new_team`)}
+            {t(`new`)}
           </Button>
         </div>
       )}
@@ -328,6 +328,7 @@ export function TeamsList({
                                     </DialogDescription>
                                   </DialogHeader>
                                   <DialogFooter>
+                                    <DialogClose color="primary" />
                                     <Button
                                       type="button"
                                       color="destructive"
@@ -336,7 +337,6 @@ export function TeamsList({
                                       }}>
                                       {t("confirm_leave_team")}
                                     </Button>
-                                    <DialogClose color="primary" />
                                   </DialogFooter>
                                 </DialogContent>
                               </Dialog>
