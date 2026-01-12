@@ -65,8 +65,7 @@ describe("Organizations Event Types Endpoints", () => {
     let managedEventTypeSlug: string;
 
     beforeAll(async () => {
-      // Generate unique slug inside beforeAll to ensure uniqueness across test runs
-      managedEventTypeSlug = `organizations-event-types-managed-${Date.now()}-${randomString()}`;
+      managedEventTypeSlug = `managed-${randomString()}`;
       const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
