@@ -31712,6 +31712,11 @@
             "type": "string",
             "example": "jane100@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "jane100@example.com",
+            "description": "Clean email for display purposes"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -31721,10 +31726,11 @@
             "example": "America/Los_Angeles"
           }
         },
-        "required": [
+"required": [
           "id",
           "name",
           "email",
+          "displayEmail",
           "username",
           "timeZone"
         ]
@@ -31756,6 +31762,11 @@
           "email": {
             "type": "string",
             "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
           },
           "timeZone": {
             "type": "string",
@@ -31819,9 +31830,10 @@
             "example": "+1234567890"
           }
         },
-        "required": [
+"required": [
           "name",
           "email",
+          "displayEmail",
           "timeZone",
           "absent"
         ]
@@ -32168,6 +32180,11 @@
             "type": "string",
             "example": "john@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -32247,9 +32264,10 @@
             }
           }
         },
-        "required": [
+"required": [
           "name",
           "email",
+          "displayEmail",
           "timeZone",
           "absent",
           "seatUid",
@@ -33342,12 +33360,18 @@
           "email": {
             "type": "string",
             "example": "john.doe@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Clean email for display purposes"
           }
         },
-        "required": [
+"required": [
           "id",
           "name",
-          "email"
+          "email",
+          "displayEmail"
         ]
       },
       "ReassignBookingOutput_2024_08_13": {
