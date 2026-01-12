@@ -2,6 +2,7 @@ import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/B
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -38,13 +39,6 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
     });
   }
 
-  if (membership.role !== MembershipRole.OWNER && membership.role !== MembershipRole.ADMIN) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Only team owners and admins can skip the trial",
-    });
-  }
-
   try {
     const teamRepository = new TeamRepository(prisma);
     const team = await teamRepository.findById({ id: teamId });
@@ -53,6 +47,21 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Team not found",
+      });
+    }
+
+    const permissionService = new PermissionCheckService();
+    const hasManageBillingPermission = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId,
+      permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasManageBillingPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only team owners and admins can skip the trial",
       });
     }
 
