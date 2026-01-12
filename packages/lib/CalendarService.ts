@@ -137,7 +137,12 @@ export default abstract class BaseCalendarService implements Calendar {
       attendees.push(...mapAttendees(teamAttendeesWithoutCurrentUser));
     }
 
-    return attendees;
+    // Deduplicate attendees by email
+    const uniqueAttendees = Array.from(
+      new Map(attendees.map((attendee) => [attendee.email, attendee])).values()
+    );
+
+    return uniqueAttendees;
   }
 
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
@@ -188,7 +193,9 @@ export default abstract class BaseCalendarService implements Calendar {
               },
               filename: `${uid}.ics`,
               // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              iCalString: iCalString
+                ?.replace(/METHOD:[^\r\n]+[\r\n]+/g, "")
+                ?.replace(/(ORGANIZER|ATTENDEE)([:;])/g, "$1;SCHEDULE-AGENT=CLIENT$2"),
               headers: this.headers,
             })
           )
@@ -256,7 +263,9 @@ export default abstract class BaseCalendarService implements Calendar {
             calendarObject: {
               url: calendarEvent.url,
               // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              data: iCalString
+                ?.replace(/METHOD:[^\r\n]+[\r\n]+/g, "")
+                ?.replace(/(ORGANIZER|ATTENDEE)([:;])/g, "$1;SCHEDULE-AGENT=CLIENT$2"),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
@@ -375,7 +384,7 @@ export default abstract class BaseCalendarService implements Calendar {
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
-      if (!object || object.data == null || JSON.stringify(object.data) == "{}") return;
+      if (!object || object.data == null || JSON.stringify(object.data) === "{}") return;
       let vcalendar: ICAL.Component;
       try {
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
@@ -393,7 +402,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
-        const timezone = dtstart ? dtstart["timezone"] : undefined;
+        const timezone = dtstart ? dtstart.timezone : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
         const isUTC = timezone === "Z";
 
