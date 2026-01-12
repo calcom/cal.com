@@ -150,7 +150,6 @@
     "react-devtools-core": "4.28.4",
     "formidable": "2.1.3",
     "serialize-javascript": "6.0.2",
-    "body-parser": "2.2.1",
     "@adobe/css-tools": "4.3.2",
     "jsondiffpatch": "0.7.2",
     "min-document": "2.19.1"
