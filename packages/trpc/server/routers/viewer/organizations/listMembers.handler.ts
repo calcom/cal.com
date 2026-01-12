@@ -243,6 +243,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         select: {
           id: true,
           username: true,
+          name: true,
           profiles: {
             select: {
               organizationId: true,
@@ -313,6 +314,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       return {
         id: user.id,
         username: user.profiles[0]?.username || user.username,
+        name: user.name,
         email: user.email,
         timeZone: user.timeZone,
         role: membership.role,
