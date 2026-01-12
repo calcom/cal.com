@@ -2,7 +2,7 @@ import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/con
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { DatabaseEventType } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
-import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
+
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
@@ -39,9 +39,6 @@ export class EventTypesService_2024_06_14 {
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
-    if (body.bookingFields) {
-      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
-    }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
 
@@ -115,16 +112,6 @@ export class EventTypesService_2024_06_14 {
       throw new BadRequestException("User already has an event type with this slug.");
     }
     await this.checkUserOwnsSchedule(userId, body.scheduleId);
-  }
-
-  checkHasUserAccessibleEmailBookingField(bookingFields: (SystemField | CustomField)[]) {
-    const emailField = bookingFields.find((field) => field.type === "email" && field.name === "email");
-    const isEmailFieldRequiredAndVisible = emailField?.required && !emailField?.hidden;
-    if (!isEmailFieldRequiredAndVisible) {
-      throw new BadRequestException(
-        "checkIsEmailUserAccessible - Email booking field must be required and visible"
-      );
-    }
   }
 
   async getEventTypeByUsernameAndSlug(params: {
@@ -306,9 +293,6 @@ export class EventTypesService_2024_06_14 {
     body: Partial<InputEventTransformed_2024_06_14>,
     user: UserWithProfile
   ) {
-    if (body.bookingFields) {
-      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
-    }
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
@@ -339,7 +323,10 @@ export class EventTypesService_2024_06_14 {
     if (!existingEventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
-    this.checkUserOwnsEventType(userId, { id: eventTypeId, userId: existingEventType.ownerId });
+    this.checkUserOwnsEventType(userId, {
+      id: eventTypeId,
+      userId: existingEventType.ownerId,
+    });
     await this.checkUserOwnsSchedule(userId, scheduleId);
   }
 
