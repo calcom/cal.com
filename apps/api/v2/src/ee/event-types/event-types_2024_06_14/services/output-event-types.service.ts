@@ -46,6 +46,7 @@ type EventTypeRelations = {
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
+  selectedCalendars?: SelectedCalendar[];
 };
 export type DatabaseEventType = EventType & EventTypeRelations;
 
@@ -109,6 +110,8 @@ type Input = Pick<
   | "allowReschedulingPastBookings"
   | "allowReschedulingCancelledBookings"
   | "showOptimizedSlots"
+  | "selectedCalendars"
+  | "useEventLevelSelectedCalendars"
 >;
 
 @Injectable()
@@ -200,6 +203,7 @@ export class OutputEventTypesService_2024_06_14 {
       calVideoSettings,
       canSendCalVideoTranscriptionEmails
     );
+    const selectedCalendarsOutput = this.transformSelectedCalendars(databaseEventType.selectedCalendars);
 
     return {
       id,
@@ -252,6 +256,8 @@ export class OutputEventTypesService_2024_06_14 {
       allowReschedulingPastBookings,
       allowReschedulingCancelledBookings,
       showOptimizedSlots,
+      useEventLevelSelectedCalendars: databaseEventType.useEventLevelSelectedCalendars ?? undefined,
+      selectedCalendars: selectedCalendarsOutput,
     };
   }
 

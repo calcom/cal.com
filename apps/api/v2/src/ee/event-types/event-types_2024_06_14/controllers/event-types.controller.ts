@@ -100,9 +100,21 @@ export class EventTypesController_2024_06_14 {
 
     const eventType = await this.eventTypesService.createUserEventType(user, transformedBody);
 
+    await this.eventTypesService.updateEventTypeSelectedCalendars(
+      eventType.id,
+      user.id,
+      body.useEventLevelSelectedCalendars,
+      body.selectedCalendars
+    );
+
+    const eventTypeWithSelectedCalendars = await this.eventTypesService.getEventTypeWithSelectedCalendars(
+      eventType.id,
+      user.id
+    );
+
     return {
       status: SUCCESS_STATUS,
-      data: this.eventTypeResponseTransformPipe.transform(eventType),
+      data: this.eventTypeResponseTransformPipe.transform(eventTypeWithSelectedCalendars ?? eventType),
     };
   }
 
@@ -201,9 +213,21 @@ export class EventTypesController_2024_06_14 {
 
     const eventType = await this.eventTypesService.updateEventType(eventTypeId, transformedBody, user);
 
+    await this.eventTypesService.updateEventTypeSelectedCalendars(
+      eventTypeId,
+      user.id,
+      body.useEventLevelSelectedCalendars,
+      body.selectedCalendars
+    );
+
+    const eventTypeWithSelectedCalendars = await this.eventTypesService.getEventTypeWithSelectedCalendars(
+      eventTypeId,
+      user.id
+    );
+
     return {
       status: SUCCESS_STATUS,
-      data: this.eventTypeResponseTransformPipe.transform(eventType),
+      data: this.eventTypeResponseTransformPipe.transform(eventTypeWithSelectedCalendars ?? eventType),
     };
   }
 

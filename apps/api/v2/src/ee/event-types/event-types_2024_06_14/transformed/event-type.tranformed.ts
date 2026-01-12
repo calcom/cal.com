@@ -33,6 +33,8 @@ export type InputEventTransformed_2024_06_14 = Omit<
   | "disableCancelling"
   | "calVideoSettings"
   | "bookerActiveBookingsLimit"
+  | "selectedCalendars"
+  | "useEventLevelSelectedCalendars"
 > & {
   length: number;
   slug: string;

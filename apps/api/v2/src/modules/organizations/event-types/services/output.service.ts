@@ -14,6 +14,7 @@ import type {
   Host,
   DestinationCalendar,
   CalVideoSettings,
+  SelectedCalendar,
 } from "@calcom/prisma/client";
 
 type EventTypeRelations = {
@@ -26,6 +27,7 @@ type EventTypeRelations = {
     "bannerUrl" | "name" | "logoUrl" | "slug" | "weekStart" | "brandColor" | "darkBrandColor" | "theme"
   > | null;
   calVideoSettings?: CalVideoSettings | null;
+  selectedCalendars?: SelectedCalendar[];
 };
 export type DatabaseTeamEventType = EventType & EventTypeRelations;
 
@@ -97,6 +99,8 @@ type Input = Pick<
   | "allowReschedulingCancelledBookings"
   | "showOptimizedSlots"
   | "rrHostSubsetEnabled"
+  | "selectedCalendars"
+  | "useEventLevelSelectedCalendars"
 >;
 
 @Injectable()

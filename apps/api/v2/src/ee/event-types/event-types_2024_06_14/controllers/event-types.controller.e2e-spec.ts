@@ -3180,4 +3180,213 @@ describe("Event types Endpoints", () => {
       await app.close();
     });
   });
+
+  describe("Event-type level selected calendars", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+
+    const userEmail = `selected-calendars-test-${randomString()}@api.com`;
+    const name = `selected-calendars-test-${randomString()}`;
+    const username = name;
+    let user: User;
+    let apiKeyString: string;
+    let createdEventTypeId: number;
+
+    beforeAll(async () => {
+      const moduleRef = await Test.createTestingModule({
+        providers: [PrismaExceptionFilter, HttpExceptionFilter],
+        imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+      })
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({
+        name: `selected-calendars-org-${randomString()}`,
+        slug: `selected-calendars-org-slug-${randomString()}`,
+      });
+
+      oAuthClient = await createOAuthClient(organization.id);
+
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+        name,
+        username,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
+      apiKeyString = `cal_test_${keyString}`;
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["redirect-uri"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should create an event type with useEventLevelSelectedCalendars and selectedCalendars", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Event with selected calendars",
+        slug: `event-selected-calendars-${randomString()}`,
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        useEventLevelSelectedCalendars: true,
+        selectedCalendars: [
+          {
+            integration: "google_calendar",
+            externalId: "primary",
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const createdEventType = responseBody.data;
+
+      expect(createdEventType).toHaveProperty("id");
+      expect(createdEventType.title).toEqual(body.title);
+      expect(createdEventType.useEventLevelSelectedCalendars).toEqual(true);
+      expect(createdEventType.selectedCalendars).toBeDefined();
+      expect(createdEventType.selectedCalendars).toHaveLength(1);
+      expect(createdEventType.selectedCalendars?.[0].integration).toEqual("google_calendar");
+      expect(createdEventType.selectedCalendars?.[0].externalId).toEqual("primary");
+
+      createdEventTypeId = createdEventType.id;
+    });
+
+    it("should update an event type with selectedCalendars", async () => {
+      const updateBody: UpdateEventTypeInput_2024_06_14 = {
+        selectedCalendars: [
+          {
+            integration: "google_calendar",
+            externalId: "primary",
+          },
+          {
+            integration: "google_calendar",
+            externalId: "secondary@gmail.com",
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventTypeId}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(updateBody)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const updatedEventType = responseBody.data;
+
+      expect(updatedEventType.useEventLevelSelectedCalendars).toEqual(true);
+      expect(updatedEventType.selectedCalendars).toBeDefined();
+      expect(updatedEventType.selectedCalendars).toHaveLength(2);
+    });
+
+    it("should get an event type with selectedCalendars via authenticated endpoint", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types/${createdEventTypeId}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const eventType = responseBody.data;
+
+      expect(eventType.useEventLevelSelectedCalendars).toEqual(true);
+      expect(eventType.selectedCalendars).toBeDefined();
+      expect(eventType.selectedCalendars).toHaveLength(2);
+    });
+
+    it("should NOT include selectedCalendars in public endpoint response", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+      const eventTypes = responseBody.data;
+
+      const eventType = eventTypes.find((et) => et.id === createdEventTypeId);
+      expect(eventType).toBeDefined();
+      expect(eventType?.selectedCalendars).toBeUndefined();
+      expect(eventType?.useEventLevelSelectedCalendars).toBeUndefined();
+    });
+
+    it("should clear selectedCalendars when useEventLevelSelectedCalendars is set to false", async () => {
+      const updateBody: UpdateEventTypeInput_2024_06_14 = {
+        useEventLevelSelectedCalendars: false,
+        selectedCalendars: [],
+      };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventTypeId}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(updateBody)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const updatedEventType = responseBody.data;
+
+      expect(updatedEventType.useEventLevelSelectedCalendars).toEqual(false);
+      expect(
+        updatedEventType.selectedCalendars === undefined || updatedEventType.selectedCalendars?.length === 0
+      ).toBe(true);
+    });
+
+    afterAll(async () => {
+      try {
+        await eventTypesRepositoryFixture.delete(createdEventTypeId);
+      } catch (e) {
+        console.log(e);
+      }
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      try {
+        await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        console.log(e);
+      }
+      await app.close();
+    });
+  });
 });
