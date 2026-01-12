@@ -59,7 +59,8 @@ runs:
           const prNumber = parseInt(process.env.PR_NUMBER, 10);
           const prBody = process.env.PR_BODY || '';
           const sessionPatterns = JSON.parse(process.env.SESSION_PATTERNS || '[]');
-          const maxSessionAgeDays = parseInt(process.env.MAX_SESSION_AGE_DAYS, 10) || 7;
+          const parsedMaxSessionAgeDays = parseInt(process.env.MAX_SESSION_AGE_DAYS ?? '', 10);
+          const maxSessionAgeDays = Number.isFinite(parsedMaxSessionAgeDays) ? parsedMaxSessionAgeDays : 7;
           
           async function getSessionDetails(sessionId) {
             const response = await fetch(`https://api.devin.ai/v1/sessions/${sessionId}`, {
