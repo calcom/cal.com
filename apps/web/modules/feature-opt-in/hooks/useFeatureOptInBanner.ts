@@ -1,12 +1,18 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { z } from "zod";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
 const DISMISSED_STORAGE_KEY = "feature-opt-in-dismissed";
+
+const dismissedFeaturesSchema = z.record(z.string(), z.boolean());
+
+type DismissedFeatures = z.infer<typeof dismissedFeaturesSchema>;
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -28,26 +34,25 @@ export type UseFeatureOptInBannerResult = {
   dismiss: () => void;
 };
 
-function getDismissedFeatures(): Record<string, boolean> {
-  if (typeof window === "undefined") return {};
+function getDismissedFeatures(): DismissedFeatures {
+  const stored = localStorage.getItem(DISMISSED_STORAGE_KEY);
+  if (!stored) return {};
   try {
-    const stored = localStorage.getItem(DISMISSED_STORAGE_KEY);
-    if (!stored) return {};
-    return JSON.parse(stored) as Record<string, boolean>;
+    const parsed = JSON.parse(stored);
+    const result = dismissedFeaturesSchema.safeParse(parsed);
+    if (result.success) {
+      return result.data;
+    }
+    return {};
   } catch {
     return {};
   }
 }
 
 function setDismissedFeature(featureId: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    const current = getDismissedFeatures();
-    current[featureId] = true;
-    localStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(current));
-  } catch {
-    // Ignore localStorage errors
-  }
+  const current = getDismissedFeatures();
+  current[featureId] = true;
+  localStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(current));
 }
 
 function isFeatureDismissed(featureId: string): boolean {
