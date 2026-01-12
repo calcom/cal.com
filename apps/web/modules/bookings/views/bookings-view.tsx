@@ -5,8 +5,7 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 import { DataTableProvider, type SystemFilterSegment, ColumnFilterType } from "@calcom/features/data-table";
-import { FeatureOptInBanner } from "@calcom/features/feature-opt-in/components/FeatureOptInBanner";
-import { FeatureOptInConfirmDialog } from "@calcom/features/feature-opt-in/components/FeatureOptInConfirmDialog";
+import { FeatureOptInBannerWrapper } from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -95,22 +94,7 @@ function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditE
           bookingsV3Enabled={bookingsV3Enabled}
         />
       )}
-      {optInBanner.shouldShow && optInBanner.featureConfig && (
-        <FeatureOptInBanner
-          featureConfig={optInBanner.featureConfig}
-          onDismiss={optInBanner.dismiss}
-          onOpenDialog={optInBanner.openDialog}
-        />
-      )}
-      {optInBanner.featureConfig && optInBanner.userRoleContext && (
-        <FeatureOptInConfirmDialog
-          isOpen={optInBanner.isDialogOpen}
-          onClose={optInBanner.closeDialog}
-          onDismissBanner={optInBanner.dismiss}
-          featureConfig={optInBanner.featureConfig}
-          userRoleContext={optInBanner.userRoleContext}
-        />
-      )}
+      <FeatureOptInBannerWrapper state={optInBanner} />
     </div>
   );
 }
