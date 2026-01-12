@@ -13,7 +13,7 @@ export enum Resource {
   Availability = "availability",
   OutOfOffice = "ooo",
   Watchlist = "watchlist",
-  Feature = "feature",
+  FeatureOptIn = "featureOptIn",
 }
 
 export enum CrudAction {
@@ -769,22 +769,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       dependsOn: ["watchlist.read"],
     },
   },
-  [Resource.Feature]: {
+  [Resource.FeatureOptIn]: {
     _resource: {
-      i18nKey: "pbac_resource_feature",
+      i18nKey: "pbac_resource_feature_opt_in",
     },
     [CrudAction.Read]: {
       description: "View feature opt-in settings",
-      category: "feature",
+      category: "featureOptIn",
       i18nKey: "pbac_action_read",
-      descriptionI18nKey: "pbac_desc_view_features",
+      descriptionI18nKey: "pbac_desc_view_feature_opt_in",
     },
     [CrudAction.Update]: {
       description: "Manage feature opt-in and opt-out settings",
-      category: "feature",
+      category: "featureOptIn",
       i18nKey: "pbac_action_update",
-      descriptionI18nKey: "pbac_desc_update_features",
-      dependsOn: ["feature.read"],
+      descriptionI18nKey: "pbac_desc_update_feature_opt_in",
+      dependsOn: ["featureOptIn.read"],
     },
   },
 };
