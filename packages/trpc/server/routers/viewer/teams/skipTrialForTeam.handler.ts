@@ -25,7 +25,8 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
 
   const { teamId } = input;
 
-  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+  const membershipRepository = new MembershipRepository();
+  const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId,
   });
