@@ -93,6 +93,7 @@ export function TeamOOOCalendarSync() {
               isLoading={isCalendarsPending}
               isDisabled={isDisabled}
             />
+            <p className="text-subtle mt-2 text-sm">{t("shared_calendar_tip")}</p>
           </div>
         )}
       </SettingsToggle>
