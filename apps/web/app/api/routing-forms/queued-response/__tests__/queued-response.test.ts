@@ -1,4 +1,4 @@
-import "../../../../../../../tests/libs/__mocks__/prisma";
+import "@calcom/testing/lib/__mocks__/prisma";
 import { beforeEach, describe, it, expect, vi } from "vitest";
 
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
@@ -50,9 +50,9 @@ const mockQueuedFormResponse = {
 
 describe("queuedResponseHandler", () => {
   beforeEach(() => {
-    vi.mocked(RoutingFormResponseRepository).mockImplementation(
-      () => mockRoutingFormResponseRepository as any
-    );
+    vi.mocked(RoutingFormResponseRepository).mockImplementation(function () {
+      return mockRoutingFormResponseRepository as any;
+    });
   });
 
   it("should process a queued form response", async () => {

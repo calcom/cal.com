@@ -1,4 +1,4 @@
-import type { Booking } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
 
 export interface BookingListItemProps {
   booking: Booking;
@@ -6,11 +6,8 @@ export interface BookingListItemProps {
   isConfirming: boolean;
   isDeclining: boolean;
   onPress: (booking: Booking) => void;
-  onLongPress: (booking: Booking) => void;
   onConfirm: (booking: Booking) => void;
   onReject: (booking: Booking) => void;
-  onActionsPress: (booking: Booking) => void;
-  // Additional action handlers for context menu (iOS)
   onReschedule?: (booking: Booking) => void;
   onEditLocation?: (booking: Booking) => void;
   onAddGuests?: (booking: Booking) => void;

@@ -3,13 +3,14 @@
  * This file is deprecated. The only use of this file is to seed the database for E2E tests. Each test should take care of seeding it's own data going forward.
  */
 import dotEnv from "dotenv";
-import path from "path";
+import path from "node:path"
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 
+dotEnv.config({ path: path.resolve(__dirname, "../.env") });
 dotEnv.config({ path: path.resolve(__dirname, "../.env.appStore") });
 
 async function createApp(
@@ -255,7 +256,6 @@ export default async function main() {
 if (require.main === module) {
   (async () => {
     await main();
-    await seedAppData();
   })()
     .catch((e) => {
       console.error(e);

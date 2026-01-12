@@ -45,7 +45,7 @@ jobs:
   e2e-app-store:
     timeout-minutes: 20
     name: E2E App Store
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13
@@ -57,10 +57,11 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: calendso
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+          --health-start-period 2s
         ports:
           - 5432:5432
       mailhog:
@@ -80,9 +81,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
+      - run: yarn prisma generate
       - uses: ./.github/actions/cache-db
         env:
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
@@ -93,7 +97,7 @@ jobs:
           E2E_TEST_CALCOM_GCAL_KEYS: ${{ secrets.E2E_TEST_CALCOM_GCAL_KEYS }}
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: yarn e2e:app-store
+        run: yarn e2e:app-store --workers=4
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

@@ -1,10 +1,18 @@
+import type { Retell } from "retell-sdk";
+
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type { Membership, Prisma, Workflow as PrismaWorkflow } from "@calcom/prisma/client";
+import type {
+  Prisma,
+  Membership,
+  Workflow as PrismaWorkflow,
+  WorkflowStep as PrismaWorkflowStep,
+} from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 
 export type Workflow = {
   id: number;
@@ -124,3 +132,37 @@ export type WorkflowListType = PrismaWorkflow & {
   permissions?: WorkflowPermissions;
   isOrg?: boolean;
 };
+
+export type FormValues = {
+  name: string;
+  activeOn: Option[];
+  steps: (PrismaWorkflowStep & {
+    senderName: string | null;
+    agentId?: string | null;
+    inboundAgentId?: string | null;
+  })[];
+  trigger: WorkflowTriggerEvents;
+  time?: number;
+  timeUnit?: TimeUnit;
+  selectAll: boolean;
+};
+
+export type CallData = Retell.WebCallResponse | Retell.PhoneCallResponse;
+
+export type CallDetailsPayload = {
+  showModal: boolean;
+  selectedCall?: CallData;
+};
+
+export type CallDetailsState = {
+  callDetailsSheet: CallDetailsPayload;
+};
+
+export type CallDetailsAction =
+  | {
+      type: "OPEN_CALL_DETAILS";
+      payload: CallDetailsPayload;
+    }
+  | {
+      type: "CLOSE_MODAL";
+    };
