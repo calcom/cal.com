@@ -1,4 +1,4 @@
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
 import type {
   BookingInputLocation_2024_08_13,
   UpdateBookingInputLocation_2024_08_13,
@@ -107,7 +107,7 @@ export class BookingLocationService_2024_08_13 {
       auditData: {
         location: {
           old: oldLocation,
-          new: bookingFieldsLocation,
+          new: bookingLocation,
         },
       },
     });
