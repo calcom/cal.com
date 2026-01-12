@@ -3,18 +3,18 @@ import { useCallback, useMemo, useRef } from "react";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/web/modules/bookings/components/AvailableTimes";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
+import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/types";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import type { Slot } from "@calcom/web/modules/schedules/hooks/types";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForAvailableDates } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { useScheduleForEventReturnType } from "@calcom/web/modules/bookings/hooks/useEvent";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 
 type AvailableTimeSlotsProps = {
@@ -134,7 +134,7 @@ export const AvailableTimeSlots = ({
       // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
       if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
         // Ensures that user has latest available slots when they are about to confirm the booking by filling up the details
-        schedule?.invalidate();
+        schedule?.invalidate?.();
       }
       setTentativeSelectedTimeslots([]);
       // note(Lauris): setting setSeatedEventData before setSelectedTimeslot so that in useSlots we have seated event data available

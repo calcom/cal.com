@@ -1,4 +1,4 @@
-import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useFlagMap } from "@calcom/web/modules/feature-flags/context/provider";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

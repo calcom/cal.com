@@ -18,9 +18,9 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 
 import { formatEventFromTime } from "@calcom/features/bookings/Booker/utils/dates";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import type { IUseBookingErrors, IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
+import { useBookerTime } from "@calcom/atoms/hooks/booker/useBookerTime";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/types";
+import type { IUseBookingErrors, IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/types";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -145,7 +145,7 @@ export const BookEventForm = ({
               severity="info"
               title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
               message={getError({
-                globalError: errors.formErrors,
+                globalError: errors.formErrors as FieldError | undefined,
                 dataError: errors.dataErrors,
                 t,
                 responseVercelIdHeader,

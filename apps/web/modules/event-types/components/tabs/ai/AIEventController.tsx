@@ -7,7 +7,7 @@ import { z } from "zod";
 import { getTemplateFieldsSchema } from "@calcom/features/calAIPhone/getTemplateFieldsSchema";
 import { templateFieldsMap } from "@calcom/features/calAIPhone/template-fields-map";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/modules/phone-input/components";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";

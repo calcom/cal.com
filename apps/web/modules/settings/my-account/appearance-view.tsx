@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
+import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";

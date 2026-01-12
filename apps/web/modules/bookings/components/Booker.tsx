@@ -10,11 +10,11 @@ import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
+import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
+import useSkipConfirmStep from "@calcom/web/modules/bookings/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
@@ -38,7 +38,7 @@ import { OverlayCalendar } from "./OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { BookerSection } from "./Section";
 import { NotFound } from "./Unavailable";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/web/modules/bookings/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "@calcom/features/bookings/Booker/config";
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
@@ -238,7 +238,7 @@ const BookerComponent = ({
   }, [slot, setSelectedTimeslot]);
 
   const onSubmit = (timeSlot?: string) =>
-    renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
+    renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail();
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -251,7 +251,7 @@ const BookerComponent = ({
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
           if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
             // Ensures that user has latest available slots when they want to re-choose from the slots
-            schedule?.invalidate();
+            schedule.invalidate?.();
           }
           if (seatedEventData.bookingUid) {
             setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });

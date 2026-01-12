@@ -51,8 +51,8 @@ export function useOrgBranding() {
  * you can render the OrgBrandingProvider at the top of your Next.js pages, like so:
  *
  * ```ts
- * import { useOrgBrandingValues } from "@calcom/features/flags/hooks/useFlag"
- * import { OrgBrandingProvider, useOrgBranding } from @calcom/features/flags/context/provider"
+ * import { useOrgBrandingValues } from "@calcom/web/modules/feature-flags/hooks/useFlag"
+ * import { OrgBrandingProvider, useOrgBranding } from @calcom/web/modules/feature-flags/context/provider"
  *
  * export default function YourPage () {
  *   const orgBrand = useOrgBrandingValues()

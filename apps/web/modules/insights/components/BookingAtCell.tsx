@@ -15,7 +15,7 @@ import {
 } from "@calcom/ui/components/hover-card";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { RoutingFormTableRow } from "@calcom/features/insights/lib/types";
+import type { RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
 import { BookingStatusBadge } from "./BookingStatusBadge";
 
 export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId: number }) {

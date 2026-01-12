@@ -5,7 +5,7 @@ import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useFlagMap } from "@calcom/web/modules/feature-flags/context/provider";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { localStorage } from "@calcom/lib/webstorage";

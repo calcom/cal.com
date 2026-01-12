@@ -10,7 +10,7 @@ import {
   useDataTable,
 } from "@calcom/features/data-table";
 import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

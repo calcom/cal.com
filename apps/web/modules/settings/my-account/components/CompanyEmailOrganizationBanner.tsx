@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 
-import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useFlagMap } from "@calcom/web/modules/feature-flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 

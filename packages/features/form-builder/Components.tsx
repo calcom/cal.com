@@ -6,7 +6,7 @@ import type {
   TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/modules/phone-input/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prisma/zod-utils";
 import { AddressInput } from "@calcom/ui/components/address";

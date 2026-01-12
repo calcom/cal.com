@@ -10,8 +10,8 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import DynamicPostHogProvider from "~/ee/posthog/providerDynamic";
 import DynamicPostHogPageView from "~/ee/posthog/pageViewDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import { FeatureProvider } from "@calcom/features/flags/context/provider";
-import { useFlags } from "@calcom/features/flags/hooks";
+import { FeatureProvider } from "@calcom/web/modules/feature-flags/context/provider";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks";
 import DynamicHelpscoutProvider from "@calcom/web/modules/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/web/modules/ee/support/lib/intercom/providerDynamic";
 

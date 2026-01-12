@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/modules/phone-input/components";
 import { getEventTypeIdForCalAiTest } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -5,7 +5,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useInitializeWeekStart } from "@calcom/features/bookings/Booker/components/hooks/useInitializeWeekStart";
+import { useInitializeWeekStart } from "@calcom/web/modules/bookings/hooks/useInitializeWeekStart";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";

@@ -11,7 +11,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { BookingHistoryPage } from "@calcom/features/booking-audit/client/components/BookingHistoryPage";
+import { BookingHistoryPage } from "@calcom/web/modules/booking-audit/components/BookingHistoryPage";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ uid: string }> }) =>
     await _generateMetadata(

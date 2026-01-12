@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 
-import type { QuickAvailabilityCheck } from "../components/hooks/useSlots";
+import type { QuickAvailabilityCheck } from "../types";
 import { isSlotEquivalent, isValidISOFormat } from "./isSlotEquivalent";
 
 type Maybe<T> = T | undefined;

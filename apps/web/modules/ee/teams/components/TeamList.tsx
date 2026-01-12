@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
+import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
 import {
   ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
