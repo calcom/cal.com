@@ -136,7 +136,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in UTC by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60`
+          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2026-09-05&end=2026-09-09&duration=60`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -155,7 +155,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in specified timezone and in specified duration by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
+          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2026-09-05&end=2026-09-09&duration=60&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
