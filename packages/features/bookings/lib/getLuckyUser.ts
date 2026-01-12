@@ -687,7 +687,7 @@ export class LuckyUserService implements ILuckyUserService {
           getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
           getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
           user.userLevelSelectedCalendars,
-          true,
+          "slots",
           true
         )
       )
