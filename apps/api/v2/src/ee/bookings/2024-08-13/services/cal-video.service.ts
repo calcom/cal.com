@@ -20,15 +20,22 @@ export class CalVideoService {
 
   private getVideoSessionsRoomName(references?: Array<{ type: string; meetingId?: string | null }>) {
     return (
-      references?.filter((reference) => reference.type === CAL_VIDEO_TYPE)?.pop()?.meetingId ??
-      undefined
+      references?.filter((reference) => reference.type === CAL_VIDEO_TYPE)?.pop()?.meetingId ?? undefined
     );
   }
 
-  async getRecordings(bookingUid: string) {
+  async getRecordings(bookingUid: string, isAuthenticatedUser: boolean) {
     const booking = await this.bookingsRepository.getByUidWithBookingReference(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    if (!isAuthenticatedUser) {
+      this.logger.warn(`Unauthenticated access to get recordings for booking uid=${bookingUid}`, {
+        userId: booking.eventType?.userId,
+        teamId: booking.eventType?.team?.id ?? "N/A",
+        orgId: booking.eventType?.team?.parentId ?? "N/A",
+      });
     }
 
     const roomName = this.getVideoSessionsRoomName(booking.references);
