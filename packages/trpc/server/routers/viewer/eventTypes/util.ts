@@ -302,6 +302,8 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
 
 export const mapEventType = async (eventType: EventType) => ({
   ...eventType,
+  // When provided upstream, propagate favorite flag; default to false
+  isFavorite: (eventType as unknown as { isFavorite?: boolean }).isFavorite === true,
   safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
   users: await Promise.all(
     (eventType?.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users).map(async (u) =>

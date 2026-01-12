@@ -276,6 +276,16 @@ export const InfiniteEventTypeList = ({
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
+  const toggleFavoriteMutation = trpc.viewer.eventTypes.toggleFavorite.useMutation({
+    onSettled: async () => {
+      // refetch to re-sort pages with favorites first
+      await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+        limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
+        group: { teamId: group?.teamId, parentId: group?.parentId },
+      });
+    },
+  });
   const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
@@ -512,8 +522,13 @@ export const InfiniteEventTypeList = ({
   return (
     <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
       <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
-        {pages.map((page, pageIdx) => {
-          return page?.eventTypes?.map((type, index) => {
+        {(() => {
+          const totalFavorites = pages.reduce((acc, p) => acc + p.eventTypes.filter((et) => et.isFavorite).length, 0);
+          return pages.map((page, pageIdx) => {
+            return page?.eventTypes?.map((type, index) => {
+              const globalIndex = LIMIT * pageIdx + index;
+              const insertFavoritesHeader = totalFavorites > 0 && globalIndex === 0 && type.isFavorite;
+              const insertAllHeader = totalFavorites > 0 && globalIndex === totalFavorites && !type.isFavorite;
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
 
@@ -532,7 +547,18 @@ export const InfiniteEventTypeList = ({
               type.metadata?.managedEventConfig !== undefined &&
               type.schedulingType !== SchedulingType.MANAGED;
             return (
-              <li key={type.id}>
+              <>
+                {insertFavoritesHeader && (
+                  <li className="bg-subtle/50 px-4 py-2 text-xs font-semibold uppercase text-subtle">
+                    {t("favorites")}
+                  </li>
+                )}
+                {insertAllHeader && (
+                  <li className="bg-subtle/50 px-4 py-2 text-xs font-semibold uppercase text-subtle">
+                    {t("all_event_types")}
+                  </li>
+                )}
+                <li key={type.id}>
                 <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
                   <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
@@ -548,6 +574,20 @@ export const InfiniteEventTypeList = ({
                         arrowDirection="down"
                       />
                     )}
+                    {/* Favorite star toggle */}
+                    <button
+                      type="button"
+                      className={classNames(
+                        "mr-2 rounded p-1 transition-colors",
+                        type.isFavorite ? "text-yellow-500" : "text-muted"
+                      )}
+                      aria-label={type.isFavorite ? t("unfavorite") : t("favorite")}
+                      title={type.isFavorite ? t("unfavorite") : t("favorite")}
+                      onClick={() =>
+                        toggleFavoriteMutation.mutate({ eventTypeId: type.id, favorite: !type.isFavorite })
+                      }>
+                      <Icon name="star" className={classNames("h-4 w-4", type.isFavorite ? "fill-current" : "")} />
+                    </button>
                     <MemoizedItem type={type} group={group} readOnly={readOnly} />
                     <div className="mt-4 hidden sm:mt-0 sm:flex">
                       <div className="flex justify-between space-x-2 rtl:space-x-reverse">
@@ -829,9 +869,11 @@ export const InfiniteEventTypeList = ({
                   </div>
                 </div>
               </li>
+              </>
             );
+            });
           });
-        })}
+        })()}
       </ul>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

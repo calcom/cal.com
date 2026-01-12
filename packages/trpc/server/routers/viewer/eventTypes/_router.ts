@@ -12,6 +12,7 @@ import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { get } from "./procedures/get";
 import { createEventPbacProcedure } from "./util";
+import { z } from "zod";
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
@@ -144,5 +145,24 @@ export const eventTypesRouter = router({
       ctx,
       input,
     });
+  }),
+
+  // Toggle event type favorite for the current user
+  toggleFavorite: authedProcedure
+    .input(
+      z.object({
+        eventTypeId: z.number(),
+        favorite: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { toggleFavoriteHandler } = await import("./toggleFavorite.handler");
+      return toggleFavoriteHandler({ ctx, input });
+    }),
+
+  // List favorite event type ids for current user
+  listFavorites: authedProcedure.query(async ({ ctx }) => {
+    const { listFavoritesHandler } = await import("./listFavorites.handler");
+    return listFavoritesHandler({ ctx });
   }),
 });

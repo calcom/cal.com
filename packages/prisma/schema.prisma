@@ -263,6 +263,9 @@ model EventType {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
+  // Users who have favorited this event type
+  favoritedBy FavoriteEventType[]
+
   // @@partial_index([instantMeetingScheduleId])
 
   @@unique([userId, slug])
@@ -486,6 +489,9 @@ model User {
 
   autoOptInFeatures Boolean @default(false)
 
+  // Favorite event types for this user
+  favoriteEventTypes FavoriteEventType[]
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -495,6 +501,19 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+/// Join table to track per-user favorited event types
+model FavoriteEventType {
+  userId      Int
+  eventTypeId Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@id([userId, eventTypeId])
+  @@index([userId])
+  @@index([eventTypeId])
 }
 
 model NotificationsSubscriptions {

@@ -150,7 +150,28 @@ export const getEventTypesFromGroup = async ({
     nextCursor = nextItem?.id;
   }
 
-  const mappedEventTypes: MappedEventType[] = await Promise.all(eventTypes.map(mapEventType));
+  // Fetch user's favorite event type ids
+  const favoriteIds = new Set(
+    (
+      await prisma.favoriteEventType.findMany({
+        where: { userId: ctx.user.id },
+        select: { eventTypeId: true },
+      })
+    ).map((r) => r.eventTypeId)
+  );
+
+  // Attach isFavorite flag before mapping, and sort favorites first while maintaining existing order otherwise
+  const withFavorites = eventTypes.map((et) => ({ ...(et as any), isFavorite: favoriteIds.has(et.id) }));
+  withFavorites.sort((a, b) => {
+    const af = a.isFavorite ? 1 : 0;
+    const bf = b.isFavorite ? 1 : 0;
+    if (af !== bf) return bf - af; // favorites first
+    // then keep previous sort: by position desc then id desc
+    if (a.position !== b.position) return b.position - a.position;
+    return b.id - a.id;
+  });
+
+  const mappedEventTypes: MappedEventType[] = await Promise.all(withFavorites.map(mapEventType));
 
   const membership = await prisma.membership.findFirst({
     where: {
