@@ -1,17 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma as defaultPrisma } from "@calcom/prisma";
 
 export class DestinationCalendarRepository {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
-
-  private static _instance: DestinationCalendarRepository;
-
-  static getInstance(): DestinationCalendarRepository {
-    if (!DestinationCalendarRepository._instance) {
-      DestinationCalendarRepository._instance = new DestinationCalendarRepository();
-    }
-    return DestinationCalendarRepository._instance;
-  }
+  constructor(private prisma: PrismaClient) {}
 
   async getCustomReminderByCredentialId(credentialId: number): Promise<number | null> {
     const destinationCalendar = await this.prisma.destinationCalendar.findFirst({
