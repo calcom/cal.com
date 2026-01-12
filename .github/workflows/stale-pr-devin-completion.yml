@@ -160,7 +160,10 @@ jobs:
           To check out this PR:
           1. Clone the fork: git clone https://github.com/${HEAD_REPO_FULL_NAME}.git
           2. Check out the branch: git checkout ${PR_BRANCH}
-          3. Add the upstream remote: git remote add upstream https://github.com/${REPO_NAME}.git"
+          3. Add the upstream remote: git remote add upstream https://github.com/${REPO_NAME}.git
+
+          IMPORTANT - Pushing to Fork PRs:
+          Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing. Configure git to use this PAT for authentication before pushing your changes to the fork."
           else
             CLONE_INSTRUCTIONS="Clone the repository ${REPO_NAME} and check out the branch: ${PR_BRANCH}"
           fi
@@ -197,7 +200,8 @@ jobs:
           3. Follow the existing code style and conventions in the repository.
           4. If the PR's original approach seems fundamentally flawed, explain why in a comment instead of making major changes.
           5. Never ask for user confirmation. Never wait for user messages.
-          6. Credit the original author in your commit messages where appropriate."
+          6. Credit the original author in your commit messages where appropriate.
+          7. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.) even after using the DEVIN_ACTIONS_PAT, you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main repository as a workaround. Simply report the error and stop."
 
           RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
             -H "Authorization: Bearer ${DEVIN_API_KEY}" \
