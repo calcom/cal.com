@@ -216,6 +216,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "license" },
         },
         {
+          name: "admin_billing",
+          href: "/settings/admin/billing",
+          trackingMetadata: { section: "admin", page: "billing" },
+        },
+        {
           name: "impersonation",
           href: "/settings/admin/impersonation",
           trackingMetadata: { section: "admin", page: "impersonation" },
@@ -668,12 +673,13 @@ const SettingsSidebarContainer = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
-  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
+  const [otherTeamMenuState, setOtherTeamMenuState] =
+    useState<
+      {
+        teamId: number | undefined;
+        teamMenuOpen: boolean;
+      }[]
+    >();
   const session = useSession();
 
   const organizationId = session.data?.user?.org?.id;
