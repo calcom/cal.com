@@ -1,4 +1,19 @@
 /// <reference types="chrome" />
+import { initGoogleCalendarIntegration } from "../lib/google-calendar";
+import { initLinkedInIntegration } from "../lib/linkedin";
+
+/**
+ * Development-only logging utility for content scripts.
+ * In production builds, these logs are suppressed to prevent sensitive data exposure.
+ */
+const IS_DEV_MODE =
+  typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development";
+
+const devLog = {
+  log: (...args: unknown[]) => IS_DEV_MODE && console.log("[Cal.com]", ...args),
+  warn: (...args: unknown[]) => IS_DEV_MODE && console.warn("[Cal.com]", ...args),
+  error: (...args: unknown[]) => IS_DEV_MODE && console.error("[Cal.com]", ...args),
+};
 
 export default defineContentScript({
   matches: ["<all_urls>"],
@@ -8,17 +23,8 @@ export default defineContentScript({
       return;
     }
 
-    // Initialize Gmail integration if on Gmail
-    // Wrapped in try-catch to prevent breaking Gmail if anything fails
-    if (window.location.hostname === "mail.google.com") {
-      try {
-        initGmailIntegration();
-        console.log("Cal.com: Gmail integration initialized successfully");
-      } catch (error) {
-        // Fail silently - don't break Gmail UI
-        console.error("Cal.com: Failed to initialize Gmail integration:", error);
-      }
-    }
+    // NOTE: Integration initialization moved to end of main() to ensure functions are defined
+    // See initializeIntegrations() call at the bottom of main()
 
     const sessionToken = generateSecureToken();
     let iframeSessionValidated = false;
@@ -47,13 +53,14 @@ export default defineContentScript({
     sidebarContainer.style.transform = "translateX(100%)";
     sidebarContainer.style.display = "none";
 
-    // Create iframe container with max width
+    // Create iframe container - positioned to right side
     const iframeContainer = document.createElement("div");
-    iframeContainer.style.width = "100%";
-    iframeContainer.style.height = "100%";
-    iframeContainer.style.display = "flex";
-    iframeContainer.style.justifyContent = "flex-end";
-    iframeContainer.style.pointerEvents = "none";
+    iframeContainer.style.position = "absolute";
+    iframeContainer.style.top = "0";
+    iframeContainer.style.right = "0";
+    iframeContainer.style.bottom = "0";
+    iframeContainer.style.width = "400px";
+    iframeContainer.style.overflow = "hidden";
 
     const iframe = document.createElement("iframe");
     // URL is determined at build time:
@@ -62,13 +69,18 @@ export default defineContentScript({
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
     iframe.src = COMPANION_URL;
-    iframe.style.width = "400px";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.style.borderRadius = "0";
-    iframe.style.backgroundColor = "transparent";
-    iframe.style.pointerEvents = "auto";
-    iframe.style.transition = "none";
+    // Use explicit dimensions - Brave has issues with percentage-based sizing
+    iframe.style.cssText = `
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 400px !important;
+      height: 100vh !important;
+      border: none !important;
+      background-color: transparent !important;
+      pointer-events: auto !important;
+      display: block !important;
+    `;
 
     iframeContainer.appendChild(iframe);
 
@@ -95,11 +107,11 @@ export default defineContentScript({
 
       const validateSessionToken = (providedToken: string | undefined): boolean => {
         if (!iframeSessionValidated) {
-          console.warn("Cal.com: Session not validated yet");
+          devLog.warn("Session not validated yet");
           return false;
         }
         if (providedToken !== sessionToken) {
-          console.warn("Cal.com: Invalid session token");
+          devLog.warn("Invalid session token");
           return false;
         }
         return true;
@@ -108,15 +120,17 @@ export default defineContentScript({
       if (event.data.type === "cal-companion-expand") {
         // Disable transition for instant expansion
         iframe.style.transition = "none";
-        iframe.style.width = "100%";
-        iframeContainer.style.pointerEvents = "auto";
-        iframeContainer.style.justifyContent = "center";
+        iframe.style.width = "100vw";
+        iframeContainer.style.width = "100%";
+        iframeContainer.style.left = "0";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-companion-collapse") {
         // Disable transition for instant collapse
         iframe.style.transition = "none";
         iframe.style.width = "400px";
-        iframeContainer.style.pointerEvents = "none";
-        iframeContainer.style.justifyContent = "flex-end";
+        iframeContainer.style.width = "400px";
+        iframeContainer.style.left = "auto";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-extension-oauth-request") {
         // Handle OAuth request from iframe
         handleOAuthRequest(event.data.authUrl, iframe.contentWindow);
@@ -164,7 +178,7 @@ export default defineContentScript({
         { action: "start-extension-oauth", authUrl: authUrl },
         (response) => {
           if (chrome.runtime.lastError) {
-            console.error(
+            devLog.error(
               "Failed to communicate with background script:",
               chrome.runtime.lastError.message
             );
@@ -205,7 +219,7 @@ export default defineContentScript({
 
     // Handle token exchange requests by forwarding to background script
     function handleTokenExchangeRequest(
-      tokenRequest: any,
+      tokenRequest: Record<string, string>,
       tokenEndpoint: string,
       state: string | undefined,
       iframeWindow: Window | null
@@ -220,7 +234,7 @@ export default defineContentScript({
         },
         (response) => {
           if (chrome.runtime.lastError) {
-            console.error(
+            devLog.error(
               "Failed to communicate with background script:",
               chrome.runtime.lastError.message
             );
@@ -259,10 +273,13 @@ export default defineContentScript({
       );
     }
 
-    function handleTokenSyncRequest(tokens: any, iframeWindow: Window | null) {
+    function handleTokenSyncRequest(
+      tokens: { accessToken?: string; refreshToken?: string; expiresAt?: number },
+      iframeWindow: Window | null
+    ) {
       chrome.runtime.sendMessage({ action: "sync-oauth-tokens", tokens }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error(
+          devLog.error(
             "Failed to communicate with background script:",
             chrome.runtime.lastError.message
           );
@@ -291,7 +308,7 @@ export default defineContentScript({
     function handleClearTokensRequest(iframeWindow: Window | null) {
       chrome.runtime.sendMessage({ action: "clear-oauth-tokens" }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error(
+          devLog.error(
             "Failed to communicate with background script:",
             chrome.runtime.lastError.message
           );
@@ -520,7 +537,8 @@ export default defineContentScript({
     }
 
     // Listen for extension icon click
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+      // Skip debug-log messages to avoid infinite loop
       if (message.action === "icon-clicked") {
         if (isClosed) {
           openSidebar();
@@ -533,6 +551,15 @@ export default defineContentScript({
           }
         }
         sendResponse({ success: true }); // Send response to acknowledge
+      }
+    });
+
+    // Listen for custom event to open sidebar (from Google Calendar/Gmail integrations)
+    window.addEventListener("cal-companion-open-sidebar", () => {
+      if (isClosed) {
+        openSidebar();
+      } else if (!isVisible) {
+        openSidebar();
       }
     });
 
@@ -575,7 +602,13 @@ export default defineContentScript({
     // Gmail integration function
     function initGmailIntegration() {
       // Cache for event types (refreshed on page reload)
-      let eventTypesCache: any[] | null = null;
+      let eventTypesCache: Array<{
+        id: number;
+        title: string;
+        slug: string;
+        lengthInMinutes?: number;
+        description?: string;
+      }> | null = null;
       let cacheTimestamp: number | null = null;
       const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -707,7 +740,9 @@ export default defineContentScript({
               document.addEventListener("click", function closeMenu(e) {
                 if (!menu.contains(e.target as Node)) {
                   // Clean up all tooltips
-                  tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                  for (const tooltip of tooltipsToCleanup) {
+                    tooltip.remove();
+                  }
                   menu.remove();
                   document.removeEventListener("click", closeMenu);
                 }
@@ -715,7 +750,7 @@ export default defineContentScript({
             }, 0);
           });
 
-          function createTooltip(text, buttonElement) {
+          function createTooltip(text: string, buttonElement: HTMLElement): HTMLElement {
             const tooltip = document.createElement("div");
             tooltip.className = "cal-tooltip";
             tooltip.style.cssText = `
@@ -763,7 +798,7 @@ export default defineContentScript({
             return tooltip;
           }
 
-          function openCalSidebar() {
+          function _openCalSidebar() {
             // Open Cal.com sidebar or quick schedule flow
             if (isClosed) {
               // Trigger sidebar open
@@ -779,18 +814,30 @@ export default defineContentScript({
             }
           }
 
-          async function fetchEventTypes(menu, tooltipsToCleanup) {
+          async function fetchEventTypes(
+            menu: HTMLElement,
+            tooltipsToCleanup: HTMLElement[]
+          ): Promise<void> {
             try {
               // Check cache first
               const now = Date.now();
               const isCacheValid =
                 eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
 
-              let eventTypes: any[] = [];
+              let eventTypes: Array<{
+                id: number;
+                title: string;
+                slug: string;
+                lengthInMinutes?: number;
+                length?: number;
+                duration?: number;
+                description?: string;
+                users?: Array<{ username?: string }>;
+              }> = [];
 
-              if (isCacheValid) {
+              if (isCacheValid && eventTypesCache) {
                 // Use cached data
-                eventTypes = eventTypesCache!;
+                eventTypes = eventTypesCache;
               } else {
                 // Check if extension context is valid
                 if (!chrome.runtime?.id) {
@@ -803,7 +850,7 @@ export default defineContentScript({
                     chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
                       if (chrome.runtime.lastError) {
                         reject(new Error(chrome.runtime.lastError.message));
-                      } else if (response && response.error) {
+                      } else if (response?.error) {
                         reject(new Error(response.error));
                       } else {
                         resolve(response);
@@ -814,8 +861,37 @@ export default defineContentScript({
                   }
                 });
 
-                if (response && (response as any).data) {
-                  eventTypes = (response as any).data;
+                if (
+                  response &&
+                  (
+                    response as {
+                      data?: Array<{
+                        id: number;
+                        title: string;
+                        slug: string;
+                        lengthInMinutes?: number;
+                        length?: number;
+                        duration?: number;
+                        description?: string;
+                        users?: Array<{ username?: string }>;
+                      }>;
+                    }
+                  ).data
+                ) {
+                  eventTypes = (
+                    response as {
+                      data: Array<{
+                        id: number;
+                        title: string;
+                        slug: string;
+                        lengthInMinutes?: number;
+                        length?: number;
+                        duration?: number;
+                        description?: string;
+                        users?: Array<{ username?: string }>;
+                      }>;
+                    }
+                  ).data;
                 } else if (Array.isArray(response)) {
                   eventTypes = response;
                 } else {
@@ -899,7 +975,11 @@ export default defineContentScript({
                       ">
                         ${length}min
                       </span>
-                      ${description ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>` : ""}
+                      ${
+                        description
+                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                          : ""
+                      }
                     </div>
                   `;
 
@@ -927,7 +1007,7 @@ export default defineContentScript({
                   tooltipsToCleanup.push(contentTooltip);
 
                   // Show/hide tooltip
-                  contentWrapper.addEventListener("mouseenter", (e) => {
+                  contentWrapper.addEventListener("mouseenter", (_e) => {
                     const rect = contentWrapper.getBoundingClientRect();
                     // Shift right to better center on the visible content
                     contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
@@ -995,7 +1075,9 @@ export default defineContentScript({
 
                   previewBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     window.open(bookingUrl, "_blank");
                   });
                   previewBtn.addEventListener("mouseenter", () => {
@@ -1035,7 +1117,9 @@ export default defineContentScript({
                   copyBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     // Copy to clipboard
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     navigator.clipboard
                       .writeText(bookingUrl)
                       .then(() => {
@@ -1125,7 +1209,7 @@ export default defineContentScript({
 
                   menu.appendChild(menuItem);
                 });
-              } catch (forEachError) {
+              } catch (_forEachError) {
                 menu.innerHTML = `
                   <div style="padding: 16px; text-align: center; color: #ea4335;">
                     Error displaying event types
@@ -1142,7 +1226,9 @@ export default defineContentScript({
 
               if (isAuthError) {
                 // Not logged in - open sidebar directly
-                tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                for (const tooltip of tooltipsToCleanup) {
+                  tooltip.remove();
+                }
                 menu.remove();
                 openSidebar();
                 return;
@@ -1186,7 +1272,9 @@ export default defineContentScript({
                     closeBtn.style.background = "#F3F4F6";
                   });
                   closeBtn.addEventListener("click", () => {
-                    tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                    for (const tooltip of tooltipsToCleanup) {
+                      tooltip.remove();
+                    }
                     menu.remove();
                   });
                 }
@@ -1194,9 +1282,14 @@ export default defineContentScript({
             }
           }
 
-          function insertEventTypeLink(eventType) {
+          function insertEventTypeLink(eventType: {
+            slug: string;
+            users?: Array<{ username?: string }>;
+          }): void {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1216,9 +1309,14 @@ export default defineContentScript({
             }
           }
 
-          function copyEventTypeLink(eventType) {
+          function _copyEventTypeLink(eventType: {
+            slug: string;
+            users?: Array<{ username?: string }>;
+          }): void {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1238,7 +1336,7 @@ export default defineContentScript({
             }
           }
 
-          function insertTextAtCursor(text) {
+          function insertTextAtCursor(text: string): boolean {
             // Find the active compose field
             // Gmail uses contenteditable divs for the compose body
             const composeBody =
@@ -1257,7 +1355,7 @@ export default defineContentScript({
             const selection = window.getSelection();
             if (!selection || selection.rangeCount === 0) {
               // If no selection, append to the end
-              const textNode = document.createTextNode(" " + text + " ");
+              const textNode = document.createTextNode(` ${text} `);
               composeBody.appendChild(textNode);
 
               // Move cursor after inserted text
@@ -1275,7 +1373,7 @@ export default defineContentScript({
             range.deleteContents();
 
             // Create a text node with the link (with spaces around it)
-            const textNode = document.createTextNode(" " + text + " ");
+            const textNode = document.createTextNode(` ${text} `);
             range.insertNode(textNode);
 
             // Move cursor after inserted text
@@ -1291,7 +1389,7 @@ export default defineContentScript({
             return true;
           }
 
-          function showNotification(message, type) {
+          function showNotification(message: string, type: "success" | "error"): void {
             const notification = document.createElement("div");
             notification.style.cssText = `
               position: fixed;
@@ -1393,15 +1491,698 @@ export default defineContentScript({
       }, 1000);
 
       // ========== Google Calendar Chip Integration ==========
+      // TODO: Implement Google Calendar chip integration
+
+      // Shared functions (reused from Gmail integration)
+      function createTooltip(text: string, buttonElement: HTMLElement) {
+        const tooltip = document.createElement("div");
+        tooltip.className = "cal-tooltip";
+        tooltip.style.cssText = `
+          position: fixed;
+          background-color: #1a1a1a;
+          color: white;
+          padding: 4px 8px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.15s ease;
+          z-index: 10002;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          display: none;
+        `;
+        tooltip.textContent = text;
+        document.body.appendChild(tooltip);
+
+        // Position tooltip on hover
+        const updatePosition = () => {
+          const rect = buttonElement.getBoundingClientRect();
+          tooltip.style.left = `${rect.left + rect.width / 2}px`;
+          tooltip.style.top = `${rect.top - 8}px`;
+          tooltip.style.transform = "translate(-50%, -100%)";
+        };
+
+        buttonElement.addEventListener("mouseenter", () => {
+          updatePosition();
+          tooltip.style.display = "block";
+          tooltip.style.opacity = "1";
+        });
+
+        buttonElement.addEventListener("mouseleave", () => {
+          tooltip.style.opacity = "0";
+          setTimeout(() => {
+            if (tooltip.style.opacity === "0") {
+              tooltip.style.display = "none";
+            }
+          }, 150);
+        });
+
+        return tooltip;
+      }
+
+      function openCalSidebar() {
+        // Open Cal.com sidebar or quick schedule flow
+        if (isClosed) {
+          // Trigger sidebar open
+          chrome.runtime.sendMessage({ action: "icon-clicked" });
+        } else {
+          // Toggle sidebar visibility
+          isVisible = !isVisible;
+          if (isVisible) {
+            sidebarContainer.style.transform = "translateX(0)";
+          } else {
+            sidebarContainer.style.transform = "translateX(100%)";
+          }
+        }
+      }
+
+      async function _fetchEventTypes(menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {
+        try {
+          // Check cache first
+          const now = Date.now();
+          const isCacheValid =
+            eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
+
+          let eventTypes: Array<{
+            id: number;
+            title: string;
+            slug: string;
+            lengthInMinutes?: number;
+            length?: number;
+            duration?: number;
+            description?: string;
+            users?: Array<{ username?: string }>;
+          }> = [];
+
+          if (isCacheValid && eventTypesCache) {
+            // Use cached data
+            eventTypes = eventTypesCache;
+          } else {
+            // Check if extension context is valid
+            if (!chrome.runtime?.id) {
+              throw new Error("Extension context invalidated. Please reload the page.");
+            }
+
+            // Fetch fresh data from background script
+            const response = await new Promise((resolve, reject) => {
+              try {
+                chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
+                  if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                  } else if (response?.error) {
+                    reject(new Error(response.error));
+                  } else {
+                    resolve(response);
+                  }
+                });
+              } catch (err) {
+                reject(err);
+              }
+            });
+
+            if (
+              response &&
+              (
+                response as {
+                  data?: Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    length?: number;
+                    duration?: number;
+                    description?: string;
+                    users?: Array<{ username?: string }>;
+                  }>;
+                }
+              ).data
+            ) {
+              eventTypes = (
+                response as {
+                  data: Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    length?: number;
+                    duration?: number;
+                    description?: string;
+                    users?: Array<{ username?: string }>;
+                  }>;
+                }
+              ).data;
+            } else if (Array.isArray(response)) {
+              eventTypes = response;
+            } else {
+              eventTypes = [];
+            }
+
+            // Ensure eventTypes is an array
+            if (!Array.isArray(eventTypes)) {
+              eventTypes = [];
+            }
+
+            // Update cache
+            eventTypesCache = eventTypes;
+            cacheTimestamp = now;
+          }
+
+          // Clear loading state
+          menu.innerHTML = "";
+
+          if (eventTypes.length === 0) {
+            menu.innerHTML = `
+              <div style="padding: 16px; text-align: center; color: #5f6368;">
+                No event types found
+              </div>
+            `;
+            return;
+          }
+
+          // Add event types - with additional safety checks
+          try {
+            eventTypes.forEach((eventType, index) => {
+              // Validate eventType object
+              if (!eventType || typeof eventType !== "object") {
+                return;
+              }
+
+              const title = eventType.title || "Untitled Event";
+              const length =
+                eventType.lengthInMinutes || eventType.length || eventType.duration || 30;
+              const description = eventType.description || "";
+
+              const menuItem = document.createElement("div");
+              menuItem.style.cssText = `
+                padding: 14px 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                transition: background-color 0.1s ease;
+                border-bottom: ${index < eventTypes.length - 1 ? "1px solid #E5E5EA" : "none"};
+              `;
+
+              // Create content wrapper
+              const contentWrapper = document.createElement("div");
+              contentWrapper.style.cssText = `
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                margin-right: 12px;
+                position: relative;
+                min-width: 0;
+                overflow: hidden;
+              `;
+
+              contentWrapper.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
+                  <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${title}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                  <span style="
+                    display: inline-flex;
+                    align-items: center;
+                    background-color: #E5E5EA;
+                    border: 1px solid #E5E5EA;
+                    border-radius: 6px;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    color: #000;
+                    font-weight: 600;
+                    flex-shrink: 0;
+                  ">
+                    ${length}min
+                  </span>
+                  ${
+                    description
+                      ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                      : ""
+                  }
+                </div>
+              `;
+
+              // Create tooltip for content wrapper
+              const contentTooltip = document.createElement("div");
+              contentTooltip.className = "cal-tooltip";
+              contentTooltip.style.cssText = `
+                position: fixed;
+                background-color: #1a1a1a;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.15s ease;
+                z-index: 10002;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                display: none;
+              `;
+              contentTooltip.textContent = "Insert link";
+              document.body.appendChild(contentTooltip);
+              tooltipsToCleanup.push(contentTooltip);
+
+              // Show/hide tooltip
+              contentWrapper.addEventListener("mouseenter", (_e) => {
+                const rect = contentWrapper.getBoundingClientRect();
+                contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
+                contentTooltip.style.top = `${rect.top + 35}px`;
+                contentTooltip.style.transform = "translate(-50%, -100%)";
+                contentTooltip.style.display = "block";
+                contentTooltip.style.opacity = "1";
+              });
+              contentWrapper.addEventListener("mouseleave", () => {
+                contentTooltip.style.opacity = "0";
+                setTimeout(() => {
+                  if (contentTooltip.style.opacity === "0") {
+                    contentTooltip.style.display = "none";
+                  }
+                }, 150);
+              });
+
+              // Add click handler to content wrapper to insert link
+              contentWrapper.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // Remove tooltip
+                contentTooltip.remove();
+                menu.remove();
+                // Insert link into message text
+                insertEventTypeLink(eventType);
+              });
+
+              // Create buttons container
+              const buttonsContainer = document.createElement("div");
+              buttonsContainer.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 0;
+                flex-shrink: 0;
+              `;
+
+              // Preview button
+              const previewBtn = document.createElement("button");
+              previewBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              `;
+              previewBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e5e5ea;
+                border-right: none;
+                border-radius: 6px 0 0 6px;
+                background: white;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                padding: 0;
+                position: relative;
+              `;
+
+              // Create tooltip for preview button
+              const previewTooltip = createTooltip("Preview", previewBtn);
+              tooltipsToCleanup.push(previewTooltip);
+
+              previewBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const bookingUrl = `https://cal.com/${
+                  eventType.users?.[0]?.username || "user"
+                }/${eventType.slug}`;
+                window.open(bookingUrl, "_blank");
+              });
+              previewBtn.addEventListener("mouseenter", () => {
+                previewBtn.style.backgroundColor = "#f8f9fa";
+              });
+              previewBtn.addEventListener("mouseleave", () => {
+                previewBtn.style.backgroundColor = "white";
+              });
+
+              // Copy link button
+              const copyBtn = document.createElement("button");
+              copyBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              `;
+              copyBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e5e5ea;
+                border-right: none;
+                background: white;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                padding: 0;
+                position: relative;
+              `;
+
+              // Create tooltip for copy button
+              const copyTooltip = createTooltip("Copy link", copyBtn);
+              tooltipsToCleanup.push(copyTooltip);
+
+              copyBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // Copy to clipboard
+                const bookingUrl = `https://cal.com/${
+                  eventType.users?.[0]?.username || "user"
+                }/${eventType.slug}`;
+                navigator.clipboard
+                  .writeText(bookingUrl)
+                  .then(() => {
+                    showNotification("Link copied!", "success");
+                    // Change icon to checkmark
+                    copyBtn.innerHTML = `
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    `;
+                    setTimeout(() => {
+                      copyBtn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                      `;
+                    }, 2000);
+                  })
+                  .catch(() => {
+                    showNotification("Failed to copy link", "error");
+                  });
+              });
+              copyBtn.addEventListener("mouseenter", () => {
+                copyBtn.style.backgroundColor = "#f8f9fa";
+              });
+              copyBtn.addEventListener("mouseleave", () => {
+                copyBtn.style.backgroundColor = "white";
+              });
+
+              // Edit button
+              const editBtn = document.createElement("button");
+              editBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              `;
+              editBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e5e5ea;
+                border-radius: 0 6px 6px 0;
+                background: white;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                padding: 0;
+                position: relative;
+              `;
+
+              // Create tooltip for edit button
+              const editTooltip = createTooltip("Edit", editBtn);
+              tooltipsToCleanup.push(editTooltip);
+
+              editBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const editUrl = `https://app.cal.com/event-types/${eventType.id}`;
+                window.open(editUrl, "_blank");
+              });
+              editBtn.addEventListener("mouseenter", () => {
+                editBtn.style.backgroundColor = "#f8f9fa";
+              });
+              editBtn.addEventListener("mouseleave", () => {
+                editBtn.style.backgroundColor = "white";
+              });
+
+              // Assemble buttons
+              buttonsContainer.appendChild(previewBtn);
+              buttonsContainer.appendChild(copyBtn);
+              buttonsContainer.appendChild(editBtn);
+
+              // Hover effect for whole item
+              menuItem.addEventListener("mouseenter", () => {
+                menuItem.style.backgroundColor = "#f8f9fa";
+              });
+
+              menuItem.addEventListener("mouseleave", () => {
+                menuItem.style.backgroundColor = "transparent";
+              });
+
+              // Assemble menu item
+              menuItem.appendChild(contentWrapper);
+              menuItem.appendChild(buttonsContainer);
+
+              menu.appendChild(menuItem);
+            });
+          } catch (_forEachError) {
+            menu.innerHTML = `
+              <div style="padding: 16px; text-align: center; color: #ea4335;">
+                Error displaying event types
+              </div>
+            `;
+          }
+        } catch (error) {
+          const errorMessage = (error as Error).message || "";
+          const isAuthError =
+            errorMessage.includes("OAuth") ||
+            errorMessage.includes("access token") ||
+            errorMessage.includes("sign in") ||
+            errorMessage.includes("authentication");
+
+          if (isAuthError) {
+            // Not logged in - open sidebar directly
+            for (const tooltip of tooltipsToCleanup) {
+              tooltip.remove();
+            }
+            menu.remove();
+            openCalSidebar();
+            return;
+          } else {
+            // Show generic error for non-auth errors
+            menu.innerHTML = `
+              <div style="padding: 20px; text-align: center;">
+                <div style="margin-bottom: 12px;">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                  Something went wrong
+                </div>
+                <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                  ${errorMessage || "Failed to load event types"}
+                </div>
+                <button class="cal-linkedin-close-btn" style="
+                  background: #F3F4F6;
+                  color: #374151;
+                  border: none;
+                  padding: 10px 20px;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  cursor: pointer;
+                  transition: background 0.2s ease;
+                ">Close</button>
+              </div>
+            `;
+
+            const closeBtn = menu.querySelector(".cal-linkedin-close-btn") as HTMLButtonElement;
+            if (closeBtn) {
+              closeBtn.addEventListener("mouseenter", () => {
+                closeBtn.style.background = "#E5E7EB";
+              });
+              closeBtn.addEventListener("mouseleave", () => {
+                closeBtn.style.background = "#F3F4F6";
+              });
+              closeBtn.addEventListener("click", () => {
+                for (const tooltip of tooltipsToCleanup) {
+                  tooltip.remove();
+                }
+                menu.remove();
+              });
+            }
+          }
+        }
+      }
+
+      function insertEventTypeLink(eventType: {
+        slug: string;
+        users?: Array<{ username?: string }>;
+      }) {
+        // Construct the Cal.com booking link
+        const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+          eventType.slug
+        }`;
+
+        // Try to insert at cursor position in the message field
+        const inserted = insertTextAtCursor(bookingUrl);
+
+        if (inserted) {
+          showNotification("Link inserted", "success");
+        } else {
+          // Fallback: copy to clipboard if insertion fails
+          navigator.clipboard
+            .writeText(bookingUrl)
+            .then(() => {
+              showNotification("Link copied!", "success");
+            })
+            .catch(() => {
+              showNotification("Failed to copy link", "error");
+            });
+        }
+      }
+
+      function insertTextAtCursor(text: string) {
+        // Find the active message input field
+        // LinkedIn uses contenteditable divs for message input
+        const messageInput =
+          document.querySelector(
+            'div[contenteditable="true"][role="textbox"][aria-label*="message" i]'
+          ) ||
+          document.querySelector('div[contenteditable="true"][data-testid*="message"]') ||
+          document.querySelector('div[contenteditable="true"].msg-form__contenteditable');
+
+        if (!messageInput) {
+          return false;
+        }
+
+        // Focus the message field
+        (messageInput as HTMLElement).focus();
+
+        // Get the current selection
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          // If no selection, append to the end
+          const textNode = document.createTextNode(` ${text} `);
+          messageInput.appendChild(textNode);
+
+          // Move cursor after inserted text
+          const range = document.createRange();
+          range.setStartAfter(textNode);
+          range.collapse(true);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+
+          return true;
+        }
+
+        // Insert at cursor position
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+
+        // Create a text node with the link (with spaces around it)
+        const textNode = document.createTextNode(` ${text} `);
+        range.insertNode(textNode);
+
+        // Move cursor after inserted text
+        range.setStartAfter(textNode);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // Trigger input event so LinkedIn knows content changed
+        messageInput.dispatchEvent(new Event("input", { bubbles: true }));
+        messageInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+        return true;
+      }
+
+      function showNotification(message: string, type: "success" | "error") {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
+          position: fixed;
+          bottom: 80px;
+          right: 80px;
+          padding: 10px 12px;
+          background: ${type === "success" ? "#111827" : "#752522"};
+          color: white;
+          border: 1px solid #2b2b2b;
+          border-radius: 8px;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          z-index: 10000;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        `;
+
+        // Add check icon for success
+        if (type === "success") {
+          const checkIcon = document.createElement("span");
+          checkIcon.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          checkIcon.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          `;
+          notification.appendChild(checkIcon);
+        }
+
+        // Add message text
+        const messageText = document.createElement("span");
+        messageText.textContent = message;
+        notification.appendChild(messageText);
+
+        document.body.appendChild(notification);
+
+        // Trigger fade-in animation
+        requestAnimationFrame(() => {
+          notification.style.opacity = "1";
+          notification.style.transform = "translateY(0)";
+        });
+
+        // Fade out and remove after 3 seconds
+        setTimeout(() => {
+          notification.style.opacity = "0";
+          notification.style.transform = "translateY(10px)";
+          setTimeout(() => {
+            notification.remove();
+          }, 200);
+        }, 3000);
+      }
 
       /**
        * Generate HTML email embed for Cal.com booking
        * Based on the email embed feature in main Cal.com codebase
        */
       function generateEmailEmbedHTML(params: {
-        eventType: any;
+        eventType: { slug: string; title?: string };
         username: string;
-        slots: any[];
+        slots: Array<{
+          isoDate: string;
+          date: string;
+          isoTimestamp: string;
+          time?: string;
+          startTime?: string;
+          endTime?: string;
+        }>;
         duration: number;
         timezone: string;
         timezoneOffset: string;
@@ -1409,7 +2190,16 @@ export default defineContentScript({
         const { eventType, username, slots, duration, timezone, timezoneOffset } = params;
 
         // Group slots by date
-        const slotsByDate: { [date: string]: any[] } = {};
+        const slotsByDate: {
+          [date: string]: Array<{
+            isoDate: string;
+            date: string;
+            isoTimestamp: string;
+            time?: string;
+            startTime?: string;
+            endTime?: string;
+          }>;
+        } = {};
         slots.forEach((slot) => {
           if (!slotsByDate[slot.isoDate]) {
             slotsByDate[slot.isoDate] = [];
@@ -1492,7 +2282,9 @@ export default defineContentScript({
             </div>
             ${datesHTML}
             <div style="margin-top: 13px;">
-              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(timezone)}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(
+                timezone
+              )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -1513,7 +2305,7 @@ export default defineContentScript({
         try {
           // Validate input
           if (!html || typeof html !== "string") {
-            console.warn("Cal.com: Invalid HTML to insert");
+            devLog.warn("Invalid HTML to insert");
             return false;
           }
 
@@ -1543,7 +2335,7 @@ export default defineContentScript({
           }
 
           if (!composeBody) {
-            console.warn("Cal.com: Gmail compose field not found");
+            devLog.warn("Gmail compose field not found");
             return false;
           }
 
@@ -1551,7 +2343,7 @@ export default defineContentScript({
           try {
             (composeBody as HTMLElement).focus();
           } catch (focusError) {
-            console.warn("Cal.com: Failed to focus compose field:", focusError);
+            devLog.warn("Failed to focus compose field:", focusError);
           }
 
           const selection = window.getSelection();
@@ -1563,7 +2355,7 @@ export default defineContentScript({
               composeBody.appendChild(tempDiv);
               return true;
             } catch (appendError) {
-              console.warn("Cal.com: Failed to append HTML:", appendError);
+              devLog.warn("Failed to append HTML:", appendError);
               return false;
             }
           }
@@ -1593,11 +2385,11 @@ export default defineContentScript({
 
             return true;
           } catch (insertError) {
-            console.warn("Cal.com: Failed to insert HTML at cursor:", insertError);
+            devLog.warn("Failed to insert HTML at cursor:", insertError);
             return false;
           }
-        } catch (error) {
-          console.error("Cal.com: Critical error inserting HTML:", error);
+        } catch (_error) {
+          devLog.error("Critical error inserting HTML");
           return false;
         }
       }
@@ -1611,7 +2403,7 @@ export default defineContentScript({
         try {
           // Validate input
           if (!text || typeof text !== "string") {
-            console.warn("Cal.com: Invalid text to insert");
+            devLog.warn("Invalid text to insert");
             return false;
           }
 
@@ -1644,7 +2436,7 @@ export default defineContentScript({
           }
 
           if (!composeBody) {
-            console.warn("Cal.com: Gmail compose field not found (structure may have changed)");
+            devLog.warn("Gmail compose field not found (structure may have changed)");
             return false;
           }
 
@@ -1652,14 +2444,14 @@ export default defineContentScript({
           try {
             (composeBody as HTMLElement).focus();
           } catch (focusError) {
-            console.warn("Cal.com: Failed to focus compose field:", focusError);
+            devLog.warn("Failed to focus compose field:", focusError);
             // Continue anyway - might still work
           }
 
           const selection = window.getSelection();
           if (!selection || selection.rangeCount === 0) {
             try {
-              const textNode = document.createTextNode(" " + text + " ");
+              const textNode = document.createTextNode(` ${text} `);
               composeBody.appendChild(textNode);
               const range = document.createRange();
               range.setStartAfter(textNode);
@@ -1668,7 +2460,7 @@ export default defineContentScript({
               selection?.addRange(range);
               return true;
             } catch (appendError) {
-              console.warn("Cal.com: Failed to append text (fallback method):", appendError);
+              devLog.warn("Failed to append text (fallback method):", appendError);
               return false;
             }
           }
@@ -1676,7 +2468,7 @@ export default defineContentScript({
           try {
             const range = selection.getRangeAt(0);
             range.deleteContents();
-            const textNode = document.createTextNode(" " + text + " ");
+            const textNode = document.createTextNode(` ${text} `);
             range.insertNode(textNode);
             range.setStartAfter(textNode);
             range.collapse(true);
@@ -1686,14 +2478,11 @@ export default defineContentScript({
             composeBody.dispatchEvent(new Event("change", { bubbles: true }));
             return true;
           } catch (insertError) {
-            console.warn("Cal.com: Failed to insert text at cursor:", insertError);
+            devLog.warn("Failed to insert text at cursor:", insertError);
             return false;
           }
         } catch (error) {
-          console.error(
-            "Cal.com: Critical error inserting text (Gmail structure may have changed):",
-            error
-          );
+          devLog.error("Critical error inserting text (Gmail structure may have changed):", error);
           return false;
         }
       }
@@ -1749,7 +2538,7 @@ export default defineContentScript({
             try {
               notification.style.opacity = "1";
               notification.style.transform = "translateY(0)";
-            } catch (e) {
+            } catch (_e) {
               // Ignore animation errors
             }
           });
@@ -1761,17 +2550,17 @@ export default defineContentScript({
               setTimeout(() => {
                 try {
                   notification.remove();
-                } catch (e) {
+                } catch (_e) {
                   // Ignore removal errors
                 }
               }, 200);
-            } catch (e) {
+            } catch (_e) {
               // Ignore animation errors
             }
           }, 3000);
         } catch (error) {
           // Silently fail - notifications are non-critical
-          console.warn("Cal.com: Failed to show notification:", error);
+          devLog.warn("Failed to show notification:", error);
         }
       }
 
@@ -1780,7 +2569,7 @@ export default defineContentScript({
        */
       function watchForGoogleChips() {
         try {
-          const observer = new MutationObserver((mutations) => {
+          const observer = new MutationObserver((_mutations) => {
             try {
               const chips = document.querySelectorAll(
                 ".gmail_chip.gmail_ad_hoc_v2_content:not([data-calcom-chip-processed])"
@@ -1792,12 +2581,12 @@ export default defineContentScript({
                   handleGoogleChipDetected(chip as HTMLElement);
                 } catch (error) {
                   // Silently fail for individual chips to prevent breaking other chips
-                  console.warn("Cal.com: Failed to process chip:", error);
+                  devLog.warn("Failed to process chip:", error);
                 }
               });
             } catch (error) {
               // Silently fail to prevent Gmail UI from breaking
-              console.warn("Cal.com: Failed to detect chips:", error);
+              devLog.warn("Failed to detect chips:", error);
             }
           });
 
@@ -1817,16 +2606,16 @@ export default defineContentScript({
                   chip.setAttribute("data-calcom-chip-processed", "true");
                   handleGoogleChipDetected(chip as HTMLElement);
                 } catch (error) {
-                  console.warn("Cal.com: Failed to process existing chip:", error);
+                  devLog.warn("Failed to process existing chip:", error);
                 }
               });
             } catch (error) {
-              console.warn("Cal.com: Failed to find existing chips:", error);
+              devLog.warn("Failed to find existing chips:", error);
             }
           }, 1000);
-        } catch (error) {
+        } catch (_error) {
           // Critical failure - log but don't break Gmail
-          console.error("Cal.com: Failed to initialize chip watcher:", error);
+          devLog.error("Failed to initialize chip watcher");
         }
       }
 
@@ -1835,11 +2624,11 @@ export default defineContentScript({
        */
       function handleGoogleChipDetected(chipElement: HTMLElement) {
         try {
-          console.log("Cal.com: handleGoogleChipDetected called");
+          devLog.log("handleGoogleChipDetected called");
 
           // Validate chip element exists and is in DOM
           if (!chipElement || !chipElement.isConnected) {
-            console.warn("Cal.com: Invalid or disconnected chip element");
+            devLog.warn("Invalid or disconnected chip element");
             return;
           }
 
@@ -1859,8 +2648,10 @@ export default defineContentScript({
             return;
           }
 
-          console.log(
-            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${parsedData.slots.length > 1 ? "s" : ""} (${parsedData.detectedDuration}min)`
+          devLog.log(
+            `✅ Google chip detected - ${parsedData.slots.length} slot${
+              parsedData.slots.length > 1 ? "s" : ""
+            } (${parsedData.detectedDuration}min)`
           );
 
           // Safely check for parent element
@@ -1887,10 +2678,10 @@ export default defineContentScript({
               return;
             }
             // Something changed - remove old action bar and create new one
-            console.log(`Cal.com: 🔄 Chip updated - ${parsedData.detectedDuration}min`);
+            devLog.log(`🔄 Chip updated - ${parsedData.detectedDuration}min`);
             try {
               existingActionBar.remove();
-            } catch (e) {
+            } catch (_e) {
               // Silently ignore removal errors
             }
           }
@@ -1906,16 +2697,16 @@ export default defineContentScript({
 
               // Check if schedule ID changed (this changes when time range or duration changes)
               if (currentScheduleId && newScheduleId && currentScheduleId !== newScheduleId) {
-                console.log(`Cal.com: 🔄 Time range/duration changed`);
+                devLog.log(`🔄 Time range/duration changed`);
                 try {
                   actionBar?.remove();
                   // Recreate action bar with new data
                   handleGoogleChipDetected(chipElement);
-                } catch (e) {
+                } catch (_e) {
                   // Silently ignore recreation errors
                 }
               }
-            } catch (error) {
+            } catch (_error) {
               // Silently ignore observer errors - expected during DOM updates
             }
           });
@@ -1927,7 +2718,7 @@ export default defineContentScript({
               attributes: true,
               attributeFilter: ["data-ad-hoc-v2-params"],
             });
-          } catch (error) {
+          } catch (_error) {
             // Silently ignore observer setup errors
           }
 
@@ -2030,15 +2821,15 @@ export default defineContentScript({
             e.stopPropagation();
             // Re-parse the chip to get fresh data (in case it changed)
             const freshParsedData = parseGoogleChip(chipElement);
-            console.log(
-              "Cal.com: Suggest Links clicked, fresh parsed data:",
+            devLog.log(
+              "Suggest Links clicked, fresh parsed data:",
               freshParsedData?.detectedDuration,
               "min"
             );
             if (freshParsedData && freshParsedData.slots.length > 0) {
               showCalcomSuggestionMenu(chipElement, freshParsedData);
             } else {
-              console.log("Cal.com: Failed to parse fresh data or no slots found");
+              devLog.log("Failed to parse fresh data or no slots found");
             }
           });
 
@@ -2073,8 +2864,8 @@ export default defineContentScript({
 
             // Re-parse the chip to get fresh data
             const freshParsedData = parseGoogleChip(chipElement);
-            console.log(
-              "Cal.com: Insert Embed clicked, fresh parsed data:",
+            devLog.log(
+              "Insert Embed clicked, fresh parsed data:",
               freshParsedData?.detectedDuration,
               "min"
             );
@@ -2091,11 +2882,28 @@ export default defineContentScript({
               embedButton.style.opacity = "0.6";
               embedButton.style.cursor = "not-allowed";
 
-              const response: any = await new Promise((resolve, reject) => {
+              const response = await new Promise<
+                | {
+                    data?: Array<{
+                      id: number;
+                      title: string;
+                      slug: string;
+                      lengthInMinutes?: number;
+                      users?: Array<{ username?: string }>;
+                    }>;
+                  }
+                | Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    users?: Array<{ username?: string }>;
+                  }>
+              >((resolve, reject) => {
                 chrome.runtime.sendMessage({ action: "fetch-event-types" }, (result) => {
                   if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));
-                  } else if (result && result.error) {
+                  } else if (result?.error) {
                     reject(new Error(result.error));
                   } else {
                     resolve(result);
@@ -2103,9 +2911,14 @@ export default defineContentScript({
                 });
               });
 
-              const eventTypes = response?.data || (Array.isArray(response) ? response : []);
+              const eventTypes =
+                (response && "data" in response
+                  ? response.data
+                  : Array.isArray(response)
+                    ? response
+                    : []) || [];
               const matchingEventType = eventTypes.find(
-                (et: any) => et.lengthInMinutes === freshParsedData.detectedDuration
+                (et) => et.lengthInMinutes === freshParsedData.detectedDuration
               );
 
               if (!matchingEventType) {
@@ -2136,17 +2949,15 @@ export default defineContentScript({
 
               if (inserted) {
                 showGmailNotification("Cal.com embed inserted!", "success");
-                console.log("Cal.com: ✅ Email embed inserted successfully");
+                devLog.log("Email embed inserted successfully");
 
                 // Immediately remove the Google chip and action bar
                 try {
                   chipElement.remove();
-                  if ((actionBar as any).__cleanup) {
-                    (actionBar as any).__cleanup();
-                  }
+                  (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup?.();
                   actionBar.remove();
                 } catch (removeError) {
-                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                  devLog.warn("Failed to remove chip/action bar:", removeError);
                 }
               } else {
                 showGmailNotification("Failed to insert embed", "error");
@@ -2156,7 +2967,7 @@ export default defineContentScript({
               embedButton.style.opacity = "1";
               embedButton.style.cursor = "pointer";
             } catch (error) {
-              console.error("Cal.com: Failed to insert embed:", error);
+              devLog.error("Failed to insert embed");
 
               // Check if this is the "Extension context invalidated" error
               const isContextInvalidated =
@@ -2215,11 +3026,9 @@ export default defineContentScript({
             // Remove the action bar completely
             try {
               // Call cleanup function if it exists
-              if ((actionBar as any).__cleanup) {
-                (actionBar as any).__cleanup();
-              }
+              (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup?.();
               actionBar.remove();
-            } catch (error) {
+            } catch (_error) {
               // Silently ignore removal errors
             }
           });
@@ -2249,7 +3058,7 @@ export default defineContentScript({
 
                 actionBar.style.top = `${top}px`;
                 actionBar.style.left = `${left}px`;
-              } catch (error) {
+              } catch (_error) {
                 // Silently ignore positioning errors
               }
             };
@@ -2266,11 +3075,9 @@ export default defineContentScript({
               if (barScheduleId === scheduleId) {
                 // This bar belongs to the current chip - remove it (we'll create a fresh one)
                 try {
-                  if ((bar as any).__cleanup) {
-                    (bar as any).__cleanup();
-                  }
+                  (bar as Element & { __cleanup?: () => void }).__cleanup?.();
                   bar.remove();
-                } catch (e) {
+                } catch (_e) {
                   // Ignore removal errors
                 }
               } else {
@@ -2281,13 +3088,11 @@ export default defineContentScript({
                   );
                   if (!chipForBar) {
                     // Chip is gone, this is an orphaned action bar - remove it
-                    if ((bar as any).__cleanup) {
-                      (bar as any).__cleanup();
-                    }
+                    (bar as Element & { __cleanup?: () => void }).__cleanup?.();
                     bar.remove();
                   }
                   // Else: chip exists, keep this action bar (belongs to another chip)
-                } catch (e) {
+                } catch (_e) {
                   // Ignore errors when checking
                 }
               }
@@ -2309,7 +3114,7 @@ export default defineContentScript({
                 // Chip removed, clean up
                 try {
                   actionBar.remove();
-                } catch (e) {
+                } catch (_e) {
                   // Ignore
                 }
               }
@@ -2319,22 +3124,22 @@ export default defineContentScript({
             window.addEventListener("resize", updatePosition);
 
             // Store cleanup function
-            (actionBar as any).__cleanup = () => {
+            (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup = () => {
               window.removeEventListener("scroll", updatePosition, true);
               window.removeEventListener("resize", updatePosition);
             };
-          } catch (error) {
-            console.error("Cal.com: Failed to create or insert action bar:", error);
+          } catch (_error) {
+            devLog.error("Failed to create or insert action bar");
             // Clean up if something failed
             try {
               actionBar.remove();
-            } catch (e) {
+            } catch (_e) {
               // Ignore cleanup errors
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Catch-all to prevent breaking Gmail UI
-          console.error("Cal.com: Error handling Google chip:", error);
+          devLog.error("Error handling Google chip");
           return;
         }
       }
@@ -2342,9 +3147,24 @@ export default defineContentScript({
       /**
        * Show Cal.com suggestion menu for Google Calendar chip - CENTERED FULL-SCREEN MODAL
        */
-      async function showCalcomSuggestionMenu(chipElement: HTMLElement, parsedData: any) {
-        console.log(
-          "Cal.com: Opening menu for",
+      async function showCalcomSuggestionMenu(
+        chipElement: HTMLElement,
+        parsedData: {
+          detectedDuration: number;
+          slots: Array<{
+            isoDate: string;
+            date: string;
+            isoTimestamp: string;
+            time?: string;
+            startTime?: string;
+            endTime?: string;
+          }>;
+          timezone: string;
+          timezoneOffset: string;
+        }
+      ) {
+        devLog.log(
+          "Opening menu for",
           parsedData.detectedDuration,
           "min with",
           parsedData.slots.length,
@@ -2354,7 +3174,7 @@ export default defineContentScript({
         // Remove existing menu if any (to support reopening with new data)
         const existingBackdrop = document.querySelector(".cal-companion-google-chip-backdrop");
         if (existingBackdrop) {
-          console.log("Cal.com: Removing existing backdrop");
+          devLog.log("Removing existing backdrop");
           existingBackdrop.remove();
           // Wait a tick to ensure DOM is updated before creating new menu
           await new Promise((resolve) => setTimeout(resolve, 0));
@@ -2408,7 +3228,11 @@ export default defineContentScript({
         header.innerHTML = `
           <div>
             <div style="font-weight: 600; font-size: 16px; color: #000;">📅 Suggest Cal.com Links</div>
-            <div style="font-size: 13px; color: #666; margin-top: 4px;">${parsedData.slots.length} time slot${parsedData.slots.length > 1 ? "s" : ""} • ${parsedData.detectedDuration}min each</div>
+            <div style="font-size: 13px; color: #666; margin-top: 4px;">${
+              parsedData.slots.length
+            } time slot${parsedData.slots.length > 1 ? "s" : ""} • ${
+              parsedData.detectedDuration
+            }min each</div>
           </div>
           <button class="close-menu" style="background: none; border: none; cursor: pointer; font-size: 28px; color: #666; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">×</button>
         `;
@@ -2454,22 +3278,48 @@ export default defineContentScript({
 
         try {
           // Fetch event types (will use cache if available)
-          let eventTypes: any[] = [];
+          let eventTypes: Array<{
+            id: number;
+            title: string;
+            slug: string;
+            lengthInMinutes?: number;
+            description?: string;
+            users?: Array<{ username?: string }>;
+          }> = [];
 
           // Check cache first
           const now = Date.now();
           const isCacheValid =
             eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
 
-          if (isCacheValid) {
-            eventTypes = eventTypesCache!;
+          if (isCacheValid && eventTypesCache) {
+            eventTypes = eventTypesCache;
           } else {
             // Fetch from background script
-            const response: any = await new Promise((resolve, reject) => {
+            const response = await new Promise<
+              | {
+                  data?: Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    description?: string;
+                    users?: Array<{ username?: string }>;
+                  }>;
+                }
+              | Array<{
+                  id: number;
+                  title: string;
+                  slug: string;
+                  lengthInMinutes?: number;
+                  description?: string;
+                  users?: Array<{ username?: string }>;
+                }>
+            >((resolve, reject) => {
               chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
                 if (chrome.runtime.lastError) {
                   reject(new Error(chrome.runtime.lastError.message));
-                } else if (response && response.error) {
+                } else if (response?.error) {
                   reject(new Error(response.error));
                 } else {
                   resolve(response);
@@ -2477,7 +3327,7 @@ export default defineContentScript({
               });
             });
 
-            if (response && response.data) {
+            if (response && "data" in response && response.data) {
               eventTypes = response.data;
             } else if (Array.isArray(response)) {
               eventTypes = response;
@@ -2497,7 +3347,7 @@ export default defineContentScript({
 
           // Filter event types by matching duration
           const matchingEventTypes = eventTypes.filter(
-            (et: any) => et.lengthInMinutes === parsedData.detectedDuration
+            (et) => et.lengthInMinutes === parsedData.detectedDuration
           );
 
           // If no matching event types, show create prompt
@@ -2549,7 +3399,7 @@ export default defineContentScript({
                 "success"
               );
 
-              console.log("Cal.com: Opening create URL:", createUrl);
+              devLog.log("Opening create URL:", createUrl);
             });
 
             createBtn?.addEventListener("mouseenter", (e) => {
@@ -2651,7 +3501,7 @@ export default defineContentScript({
             `;
 
             // Create options
-            matchingEventTypes.forEach((et: any, index: number) => {
+            matchingEventTypes.forEach((et, index: number) => {
               const option = document.createElement("div");
               option.className = "dropdown-option";
               option.style.cssText = `
@@ -2660,7 +3510,9 @@ export default defineContentScript({
                 color: #000;
                 cursor: pointer;
                 transition: background-color 0.1s;
-                border-bottom: ${index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"};
+                border-bottom: ${
+                  index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"
+                };
                 pointer-events: auto;
               `;
               option.textContent = `${et.title} (${et.lengthInMinutes}min)`;
@@ -2683,7 +3535,7 @@ export default defineContentScript({
                   selectedText.textContent = `${et.title} (${et.lengthInMinutes}min)`;
                 }
                 optionsContainer.style.display = "none";
-                console.log("Cal.com: Event type changed to:", et.slug);
+                devLog.log("Event type changed to:", et.slug);
               });
 
               optionsContainer.appendChild(option);
@@ -2736,7 +3588,7 @@ export default defineContentScript({
           const slotsContainer = document.createElement("div");
           slotsContainer.style.cssText = "padding: 12px;";
 
-          parsedData.slots.forEach((slot: any, index: number) => {
+          parsedData.slots.forEach((slot, index: number) => {
             const slotItem = document.createElement("div");
             slotItem.style.cssText = `
               padding: 14px;
@@ -2777,7 +3629,7 @@ export default defineContentScript({
 
             // Hover effect on entire slot item
             slotItem.addEventListener("mouseenter", () => {
-              console.log("Cal.com: Mouse entered slot", index);
+              devLog.log("Mouse entered slot", index);
               slotItem.style.borderColor = "#000";
               slotItem.style.backgroundColor = "#f8f9fa";
               const btn = slotItem.querySelector(".insert-slot-btn") as HTMLElement;
@@ -2799,16 +3651,18 @@ export default defineContentScript({
           // Add event listeners for insert buttons
           const insertButtons = menu.querySelectorAll(".insert-slot-btn");
 
-          console.log("Cal.com: Found", insertButtons.length, "insert buttons");
+          devLog.log("Found", insertButtons.length, "insert buttons");
 
           insertButtons.forEach((btn) => {
             btn.addEventListener("click", (e) => {
-              console.log("Cal.com: Insert button clicked!");
+              devLog.log("Insert button clicked!");
               e.preventDefault();
               e.stopPropagation();
-              const slotIndex = parseInt(btn.getAttribute("data-slot-index")!);
+              const slotIndexAttr = btn.getAttribute("data-slot-index");
+              if (!slotIndexAttr) return;
+              const slotIndex = parseInt(slotIndexAttr, 10);
               const slot = parsedData.slots[slotIndex];
-              console.log("Cal.com: Inserting link for slot", slotIndex, slot);
+              devLog.log("Inserting link for slot", slotIndex, slot);
 
               // Get selected event type from the tracked index
               const selectedEventType = matchingEventTypes[selectedEventTypeIndex];
@@ -2824,7 +3678,7 @@ export default defineContentScript({
               });
               const calcomUrl = `${baseUrl}?${params.toString()}`;
 
-              console.log("Cal.com: Generated URL:", calcomUrl);
+              devLog.log("Generated URL:", calcomUrl);
 
               // Insert link into Gmail compose (pass chipElement to target the correct compose window)
               const inserted = insertGmailText(calcomUrl, chipElement);
@@ -2845,13 +3699,11 @@ export default defineContentScript({
                   chipElement.remove();
 
                   if (actionBar) {
-                    if ((actionBar as any).__cleanup) {
-                      (actionBar as any).__cleanup();
-                    }
+                    (actionBar as Element & { __cleanup?: () => void }).__cleanup?.();
                     actionBar.remove();
                   }
                 } catch (removeError) {
-                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                  devLog.warn("Failed to remove chip/action bar:", removeError);
                 }
               } else {
                 showGmailNotification("Failed to insert link", "error");
@@ -2859,7 +3711,7 @@ export default defineContentScript({
             });
           });
         } catch (error) {
-          console.error("Error showing Cal.com suggestion menu:", error);
+          devLog.error("Error showing suggestion menu");
           loadingDiv.remove();
 
           const errorMessage = error instanceof Error ? error.message : "";
@@ -2950,11 +3802,25 @@ export default defineContentScript({
        * Parse Google Calendar scheduling chip
        * Returns null if structure has changed or parsing fails (fail gracefully)
        */
-      function parseGoogleChip(chipElement: HTMLElement): any {
+      function parseGoogleChip(chipElement: HTMLElement): {
+        scheduleId: string;
+        timezone: string;
+        timezoneOffset: string;
+        slots: Array<{
+          date: string;
+          startTime: string;
+          endTime: string;
+          durationMinutes: number;
+          isoDate: string;
+          isoTimestamp: string;
+          googleUrl: string;
+        }>;
+        detectedDuration: number;
+      } | null {
         try {
           // Validate input
           if (!chipElement || typeof chipElement.getAttribute !== "function") {
-            console.warn("Cal.com: Invalid chip element passed to parser");
+            devLog.warn("Invalid chip element passed to parser");
             return null;
           }
 
@@ -2967,10 +3833,7 @@ export default defineContentScript({
             return null;
           }
 
-          console.log(
-            "Cal.com: Valid chip detected - Schedule ID:",
-            scheduleId?.slice(0, 20) + "..."
-          );
+          devLog.log("Valid chip detected - Schedule ID:", `${scheduleId?.slice(0, 20)}...`);
 
           // Parse timezone (non-critical - fallback to UTC if structure changed)
           let timezone = "UTC";
@@ -2979,7 +3842,7 @@ export default defineContentScript({
           try {
             // First, try to get the IANA timezone from data-ad-hoc-v2-params
             const paramsAttr = chipElement.getAttribute("data-ad-hoc-v2-params");
-            console.log("Cal.com: data-ad-hoc-v2-params:", paramsAttr);
+            devLog.log("data-ad-hoc-v2-params:", paramsAttr);
 
             if (paramsAttr) {
               // The timezone is at the end of the params string, like: "Asia/Kolkata"
@@ -2996,14 +3859,14 @@ export default defineContentScript({
                 tzMatch = paramsAttr.match(/\\"([^\\]+)\\"\]/);
               }
 
-              if (tzMatch && tzMatch[1]) {
+              if (tzMatch?.[1]) {
                 timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
-                console.log("Cal.com: ✅ Parsed IANA timezone from data attribute:", timezone);
+                devLog.log("Parsed IANA timezone from data attribute:", timezone);
               } else {
-                console.warn("Cal.com: ⚠️ Failed to extract timezone from params attribute");
+                devLog.warn("Failed to extract timezone from params attribute");
               }
             } else {
-              console.warn("Cal.com: ⚠️ No data-ad-hoc-v2-params attribute found");
+              devLog.warn("No data-ad-hoc-v2-params attribute found");
             }
 
             // Also get the display timezone and offset from the UI text
@@ -3012,11 +3875,11 @@ export default defineContentScript({
 
             if (timezoneMatch) {
               timezoneOffset = timezoneMatch[3]?.trim() || "GMT+00:00";
-              console.log("Cal.com: Parsed timezone offset from UI:", timezoneOffset);
+              devLog.log("Parsed timezone offset from UI:", timezoneOffset);
             }
           } catch (tzError) {
             // Non-critical error - continue with default timezone
-            console.warn("Cal.com: Failed to parse timezone, using UTC:", tzError);
+            devLog.warn("Failed to parse timezone, using UTC:", tzError);
           }
 
           // Find all time slot links - critical for functionality
@@ -3024,7 +3887,7 @@ export default defineContentScript({
           try {
             slotLinks = Array.from(chipElement.querySelectorAll("a[href*='slotStartTime']"));
           } catch (error) {
-            console.warn("Cal.com: Failed to find slot links:", error);
+            devLog.warn("Failed to find slot links:", error);
             return null;
           }
 
@@ -3033,7 +3896,15 @@ export default defineContentScript({
             return null;
           }
 
-          const slots: any[] = [];
+          const slots: Array<{
+            date: string;
+            startTime: string;
+            endTime: string;
+            durationMinutes: number;
+            isoDate: string;
+            isoTimestamp: string;
+            googleUrl: string;
+          }> = [];
           let detectedDuration = 60;
 
           slotLinks.forEach((link) => {
@@ -3049,18 +3920,18 @@ export default defineContentScript({
               if (!slotStartTime || !slotDurationMinutes) return;
 
               const durationMinutes = parseInt(slotDurationMinutes, 10);
-              if (isNaN(durationMinutes) || durationMinutes <= 0) return;
+              if (Number.isNaN(durationMinutes) || durationMinutes <= 0) return;
 
               detectedDuration = durationMinutes;
 
               const startTimestamp = parseInt(slotStartTime, 10);
-              if (isNaN(startTimestamp)) return;
+              if (Number.isNaN(startTimestamp)) return;
 
               const startDate = new Date(startTimestamp);
               const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
               // Validate dates
-              if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return;
+              if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return;
 
               const dateOptions: Intl.DateTimeFormatOptions = {
                 weekday: "short",
@@ -3091,7 +3962,7 @@ export default defineContentScript({
               });
             } catch (slotError) {
               // Skip individual slot if it fails - don't break entire parsing
-              console.warn("Cal.com: Failed to parse individual slot:", slotError);
+              devLog.warn("Failed to parse individual slot:", slotError);
             }
           });
 
@@ -3100,8 +3971,8 @@ export default defineContentScript({
             return null;
           }
 
-          console.log(
-            `Cal.com: ✅ Parsed chip - ${slots.length} slots, ${detectedDuration}min, timezone: ${timezone}`
+          devLog.log(
+            `Parsed chip - ${slots.length} slots, ${detectedDuration}min, timezone: ${timezone}`
           );
 
           return {
@@ -3113,16 +3984,46 @@ export default defineContentScript({
           };
         } catch (error) {
           // Critical error in parsing - fail gracefully without breaking Gmail
-          console.warn(
-            "Cal.com: Failed to parse Google chip (Gmail structure may have changed):",
-            error
-          );
+          devLog.warn("Failed to parse Google chip (Gmail structure may have changed):", error);
           return null;
         }
       }
 
       // Start watching for Google Calendar chips
       watchForGoogleChips();
+    }
+
+    // ========== Initialize Integrations ==========
+    // These calls are at the end of main() to ensure all functions are defined before being called
+
+    // Initialize Gmail integration if on Gmail
+    if (window.location.hostname === "mail.google.com") {
+      try {
+        initGmailIntegration();
+        devLog.log("Gmail integration initialized successfully");
+      } catch (error) {
+        devLog.error("Failed to initialize Gmail integration", error);
+      }
+    }
+
+    // Initialize LinkedIn integration if on LinkedIn
+    if (window.location.hostname === "www.linkedin.com") {
+      try {
+        initLinkedInIntegration();
+        devLog.log("LinkedIn integration initialized successfully");
+      } catch (error) {
+        devLog.error("Failed to initialize LinkedIn integration", error);
+      }
+    }
+
+    // Initialize Google Calendar integration if on Google Calendar
+    if (window.location.hostname === "calendar.google.com") {
+      try {
+        initGoogleCalendarIntegration();
+        devLog.log("Google Calendar integration initialized successfully");
+      } catch (error) {
+        devLog.error("Failed to initialize Google Calendar integration", error);
+      }
     }
   },
 });

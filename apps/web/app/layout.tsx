@@ -1,6 +1,4 @@
 import { dir } from "i18next";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import React from "react";
 
@@ -16,14 +14,7 @@ import { SpeculationRules } from "./SpeculationRules";
 import { extractUsernameFromPathname } from "./lib/extractUsernameFromPathname";
 import { Providers } from "./providers";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
-const calFont = localFont({
-  src: "../fonts/CalSans-SemiBold.woff2",
-  variable: "--font-cal",
-  preload: true,
-  display: "block",
-  weight: "600",
-});
+import { fontHeading, fontSans } from "@coss/ui/fonts";
 
 export const viewport = {
   width: "device-width",
@@ -45,7 +36,7 @@ export const viewport = {
 
 export const metadata = {
   icons: {
-    icon: "/favicon.ico",
+    icon: "/api/logo?type=favicon-32",
     apple: "/api/logo?type=apple-touch-icon",
     other: [
       {
@@ -120,16 +111,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       suppressHydrationWarning
       data-nextjs-router="app">
-      <head nonce={nonce}>
-        <style>{`
-          :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
-          }
-        `}</style>
-      </head>
       <body
-        className="dark:bg-default bg-subtle antialiased"
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans dark:bg-default bg-subtle antialiased`}
         style={
           isEmbed
             ? {
