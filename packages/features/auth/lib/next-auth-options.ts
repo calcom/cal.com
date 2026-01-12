@@ -3,7 +3,6 @@ import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { OAuth2Client } from "googleapis-common";
-import type { NextApiResponse } from "next";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -11,7 +10,6 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import { cookies } from "next/headers";
 
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
@@ -31,6 +29,7 @@ import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { sendUserToMakeWebhook } from "@calcom/lib/sendUserToWebhook";
@@ -40,7 +39,6 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
-import { getUtmParamsFromCookie } from "@calcom/lib/utm";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -429,11 +427,14 @@ const mapIdentityProvider = (providerName: string) => {
 };
 
 export const getOptions = ({
-  getDubId,
+  cookies,
   res,
 }: {
-  /** so we can extract the Dub cookie in both pages and app routers */
-  getDubId: () => string | undefined;
+  /** so we can extract the required cookie in both pages and app routers */
+  cookies: Partial<{
+    dub_id?: string;
+    utm_params?: string;
+  }>;
   res?: any;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -878,6 +879,25 @@ export const getOptions = ({
                 log.error("Error while linking account of already existing user", safeStringify(error));
               }
             }
+
+            // Add UTM to existing user if they don't have one
+            const existingMetadata =
+              (isPrismaObjOrUndefined(existingUser.metadata) as Record<string, unknown>) ?? {};
+            if (!existingMetadata.utm) {
+              const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+              if (utm) {
+                await prisma.user.update({
+                  where: { id: existingUser.id },
+                  data: {
+                    metadata: {
+                      ...existingMetadata,
+                      utm,
+                    },
+                  },
+                });
+              }
+            }
+
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
               return loginWithTotp(existingUser.email);
             } else {
@@ -893,7 +913,23 @@ export const getOptions = ({
           });
 
           if (!userWithNewEmail) {
-            await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
+            // Add UTM to existing user if they don't have one (email change case)
+            const existingMetadata =
+              (isPrismaObjOrUndefined(existingUser.metadata) as Record<string, unknown>) ?? {};
+            const utm = !existingMetadata.utm ? await fetchUTMfromCookies(idP, cookies?.utm_params) : null;
+
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                email: user.email,
+                ...(utm && {
+                  metadata: {
+                    ...existingMetadata,
+                    utm,
+                  },
+                }),
+              },
+            });
             if (existingUser.twoFactorEnabled) {
               return loginWithTotp(existingUser.email);
             } else {
@@ -921,12 +957,31 @@ export const getOptions = ({
         });
 
         if (existingUserWithEmail) {
+          const existingMetadata =
+            (isPrismaObjOrUndefined(existingUserWithEmail.metadata) as Record<string, unknown>) ?? {};
+
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
           if (
             !hostedCal &&
             existingUserWithEmail.emailVerified &&
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
+            // Add UTM to existing user if they don't have one (self-hosted auto-merge case)
+            if (!existingMetadata.utm) {
+              const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+              if (utm) {
+                await prisma.user.update({
+                  where: { id: existingUserWithEmail.id },
+                  data: {
+                    metadata: {
+                      ...existingMetadata,
+                      utm,
+                    },
+                  },
+                });
+              }
+            }
+
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
@@ -945,13 +1000,7 @@ export const getOptions = ({
             });
             const username = existingUserWithUsername ? usernameSlugRandom(user.name) : _username;
 
-            let utmParams;
-            try {
-              utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
-            } catch {
-              utmParams = {};
-            }
-
+            const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
             // const username = getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email));
             await prisma.user.update({
               where: {
@@ -967,7 +1016,12 @@ export const getOptions = ({
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
-                ...(utmParams && { metadata: { utm: utmParams } }),
+                ...(utm && {
+                  metadata: {
+                    ...((isPrismaObjOrUndefined(existingUserWithEmail.metadata) as object) ?? {}),
+                    utm,
+                  },
+                }),
               },
             });
 
@@ -993,6 +1047,8 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
@@ -1000,6 +1056,14 @@ export const getOptions = ({
                 email: user.email.toLowerCase(),
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
+                // Add UTM if user doesn't already have one
+                ...(utm &&
+                  !existingMetadata.utm && {
+                    metadata: {
+                      ...existingMetadata,
+                      utm,
+                    },
+                  }),
               },
             });
 
@@ -1014,6 +1078,8 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
             idP === IdentityProvider.SAML
           ) {
+            const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
@@ -1021,6 +1087,14 @@ export const getOptions = ({
                 email: user.email.toLowerCase(),
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
+                // Add UTM if user doesn't already have one
+                ...(utm &&
+                  !existingMetadata.utm && {
+                    metadata: {
+                      ...existingMetadata,
+                      utm,
+                    },
+                  }),
               },
             });
 
@@ -1047,12 +1121,7 @@ export const getOptions = ({
             ? usernameSlugRandom(user.name)
             : _username;
 
-          let utmParams;
-          try {
-            utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
-          } catch {
-            utmParams = {};
-          }
+          const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
 
           const newUser = await prisma.user.create({
             data: {
@@ -1073,9 +1142,10 @@ export const getOptions = ({
                 },
               }),
               creationSource: CreationSource.WEBAPP,
-              ...(utmParams && { metadata: { utm: utmParams } }),
+              ...(utm && { metadata: { utm } }),
             },
           });
+
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
           await calcomAdapter.linkAccount(linkAccountNewUserData);
           await sendUserToMakeWebhook({
@@ -1112,7 +1182,6 @@ export const getOptions = ({
 
     async redirect({ url, baseUrl }) {
       try {
-        console.log("Redirecting to:", { url, baseUrl });
         const parsedUrl = new URL(url);
         const parsedBase = new URL(baseUrl);
         // Normalize host by removing "app." prefix and ignoring protocol
@@ -1177,7 +1246,7 @@ export const getOptions = ({
       const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
       if ((isENVDev || IS_CALCOM) && isNewUser) {
         if (process.env.DUB_API_KEY) {
-          const clickId = getDubId();
+          const clickId = cookies.dub_id;
           // check if there's a clickId (dub_id) cookie set by @dub/analytics
           if (clickId) {
             // here we use waitUntil – meaning this code will run async to not block the main thread
@@ -1223,3 +1292,16 @@ const determineProfile = ({
   // If there is just one profile it has to be the one we want to log into.
   return profiles[0];
 };
+async function fetchUTMfromCookies(idP: IdentityProvider, utmString?: string) {
+  // Support both Google and SAML providers
+
+  try {
+    const supportedProviders = [IdentityProvider.GOOGLE, IdentityProvider.SAML];
+    const utmCookie = supportedProviders.includes(idP) ? utmString : null;
+    const utm = utmCookie ? JSON.parse(utmCookie) : null;
+    return utm;
+  } catch (err) {
+    log.error("Error fetching UTM from cookies", err);
+    return null;
+  }
+}

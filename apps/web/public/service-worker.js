@@ -13,8 +13,8 @@ self.addEventListener("push", async (event) => {
     return;
   }
 
-  const title = notificationData.title || "New Cal.com Notification";
-  const image = notificationData.icon || "https://cal.com/api/logo?type=icon";
+  const title = notificationData.title || "New Cal ID Notification";
+  const image = notificationData.icon || "https://cal.id/api/logo?type=mstile";
 
    event.waitUntil(
     (async () => {

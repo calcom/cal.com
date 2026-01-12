@@ -32,9 +32,9 @@ export const WorkflowStatusLineChart = () => {
       <LineChart
         className="linechart mt-4 h-80"
         data={workflowsTimeline}
-        categories={["Sent", "Read", "Failed", "Total"]}
+        categories={["Delivered", "Read", "Failed", "Queued", "Cancelled", "Total"]}
         index="formattedDate"
-        colors={["purple", "green", "blue", "red"]}
+        colors={["purple", "green", "red", "blue", "gray", "orange"]}
         valueFormatter={valueFormatter}
       />
     </ChartCard>

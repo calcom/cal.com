@@ -1,12 +1,11 @@
-import cookie from "cookie";
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import isPrismaObj from "@calcom/lib/isPrismaObj";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { getUtmParamsFromCookie } from "@calcom/lib/utm";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+
+import { isPrismaObjOrUndefined } from "@lib/isPrismaObj";
 
 async function getRequestCountryOrigin(
   req: import("http").IncomingMessage & { cookies: Partial<{ [key: string]: string }> }
@@ -43,30 +42,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User from session not found");
   }
 
-  //save utm params from cookie to user.metadata.utm if exists and not already set
-  //required for tracking utm tracking from oauth signup
-
-  try {
-    const cookies = cookie.parse(req.headers.cookie || "");
-    if (cookies.utm_params) {
-      const utmParamsObj = getUtmParamsFromCookie(cookies.utm_params);
-      user.metadata = {
-        ...(typeof user.metadata === "object" && user.metadata !== null ? user.metadata : {}),
-        utm: utmParamsObj,
-      };
-      await userRepo.updateWhereId({
-        whereId: user.id,
-        data: {
-          metadata: user.metadata as Prisma.InputJsonValue,
-        },
-      });
-    }
-  } catch (e) {
-    console.error("Error parsing utm_params cookie", e);
-  }
   let currentOnboardingStep: string | undefined = undefined;
-
-  //find if cookie "utm_params" exists
 
   //to handle the case where the user has already reached a step in the onboarding process
   if (
@@ -98,9 +74,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     (!user.metadata || (has_google_signup_tracked && hasNotStartedOnboarding) || google_signup_tracked)
   ) {
     google_signup_to_be_tracked = true;
+    const existingMetadata = (isPrismaObjOrUndefined(user.metadata) as Record<string, unknown>) || {};
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { metadata: { google_signup_tracked: true } },
+      data: {
+        metadata: {
+          ...existingMetadata,
+          google_signup_tracked: true,
+        },
+      },
     });
   }
 

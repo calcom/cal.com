@@ -315,6 +315,7 @@ export const calIdActivateEventTypeHandler = async ({ ctx, input }: CalIdActivat
             template: step.template,
             sender: step.sender,
             workflowStepId: step.id,
+            workflowId: step.workflowId,
           });
         } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
           await scheduleSMSReminder({

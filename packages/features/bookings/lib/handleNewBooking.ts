@@ -1460,6 +1460,7 @@ async function handler(
         paymentRequired: bookingResponse.paymentRequired,
         paymentUid: newBooking.paymentUid,
         paymentLink: newBooking?.paymentLink,
+        seatReferenceUid: newBooking.seatReferenceUid,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -1740,7 +1741,7 @@ async function handler(
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     // cancel workflow reminders from previous rescheduled booking
-    await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
+    await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.calIdWorkflowReminders);
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
     evt.rescheduledBy = reqBody.rescheduledBy;
@@ -2384,7 +2385,12 @@ async function handler(
     ...evt,
     rescheduleReason,
     metadata,
-    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+    eventType: {
+      id: eventType.id,
+      slug: eventType.slug,
+      schedulingType: eventType.schedulingType,
+      hosts: eventType.hosts,
+    },
     bookerUrl,
   };
 

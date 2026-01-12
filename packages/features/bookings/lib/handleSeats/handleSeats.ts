@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
+import { uuid } from "short-uuid";
 
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -128,6 +129,8 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     const foundBooking = await findBookingQuery(seatedBooking.id);
     resultBooking = { ...foundBooking, seatReferenceUid: existingBookingSeat.referenceUid };
   } else {
+    evt.attendeeSeatId = uuid();
+    evt.uid = seatedBooking.uid;
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
 
@@ -261,7 +264,7 @@ async function handleSeatPayment({
 
     const bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
-        referenceUid: resultBooking!["seatReferenceUid"],
+        referenceUid: resultBooking!["seatReferenceUid"] ?? evt.attendeeSeatId,
       },
       select: {
         id: true,

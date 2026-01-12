@@ -222,9 +222,25 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
-  const internalNotes = await getInternalNotePresets(
-    eventType.calIdTeam?.id ?? eventType.parent?.calIdTeamId ?? null
-  );
+  const teamId = eventType.calIdTeam?.id ?? eventType.parent?.calIdTeamId ?? null;
+  const members = teamId
+    ? await prisma.calIdMembership.findMany({
+        where: {
+          calIdTeamId: teamId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
+        },
+      })
+    : [];
+
+  const internalNotes = await getInternalNotePresets(teamId);
 
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedPreviousBooking =
@@ -236,6 +252,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      teamMembers: members,
       orgSlug: currentOrgDomain,
       themeBasis: eventType.calIdTeam ? eventType.calIdTeam.slug : eventType.users[0]?.username,
       hideBranding: await shouldHideBrandingForEvent({

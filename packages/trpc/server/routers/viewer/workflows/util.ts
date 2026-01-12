@@ -742,6 +742,7 @@ export async function scheduleBookingReminders(
           template: step.template,
           sender: step.sender,
           workflowStepId: step.id,
+          workflowId: step.workflowId,
           // verifiedAt: step?.verifiedAt ?? null,
           // userId,
           // teamId,
