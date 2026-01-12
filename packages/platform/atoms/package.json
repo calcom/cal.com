@@ -62,6 +62,7 @@
     "./dist/index.d.ts": "./dist/index.d.ts",
     "./globals.min.css": "./globals.min.css",
     "./hooks/booker/useBookerTime": "./hooks/booker/useBookerTime.ts",
+    "./hooks/booker/useAvailableTimeSlots": "./hooks/booker/useAvailableTimeSlots.ts",
     "./hooks/bookings/useBookings": "./hooks/bookings/useBookings.ts",
     "./hooks/bookings/useHandleBookEvent": "./hooks/bookings/useHandleBookEvent.ts",
     "./hooks/useAtomsContext": "./hooks/useAtomsContext.ts",
