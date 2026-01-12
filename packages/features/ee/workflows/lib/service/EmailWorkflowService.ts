@@ -455,7 +455,11 @@ export class EmailWorkflowService {
       location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
-    const attachments = includeCalendarEvent
+    const shouldIncludeCalendarEvent =
+    includeCalendarEvent &&
+    triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
+
+  const attachments = shouldIncludeCalendarEvent
       ? [
           {
             content:
