@@ -33,16 +33,18 @@ const ensureValidPhoneNumber = (value: string) => {
  * - Domain without @ prefix: "example.com" - matches any email ending with "@example.com"
  */
 const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
+  const bookerEmailLower = bookerEmail.toLowerCase();
+
   if (entry.startsWith("@")) {
-    const domain = entry.slice(1);
-    return bookerEmail.endsWith("@" + domain);
+    const domain = entry.slice(1).toLowerCase();
+    return bookerEmailLower.endsWith("@" + domain);
   }
 
   if (entry.includes("@")) {
-    return bookerEmail.toLowerCase() === entry.toLowerCase();
+    return bookerEmailLower === entry.toLowerCase();
   }
 
-  return bookerEmail.endsWith("@" + entry);
+  return bookerEmailLower.endsWith("@" + entry.toLowerCase());
 };
 export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
