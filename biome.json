@@ -79,16 +79,6 @@
       "formatter": { "enabled": false }
     },
     {
-      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useImportType": "off"
-          }
-        }
-      }
-    },
-    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
@@ -112,7 +102,7 @@
             "useQwikValidLexicalScope": "off",
             "useExplicitType": "info",
             "noReactForwardRef": "warn",
-            "noTernary": "warn",
+            "noTernary": "info",
             "noUnresolvedImports": "warn"
           },
           "correctness": {
@@ -130,7 +120,8 @@
           "style": {
             "useExportsLast": "warn",
             "noProcessEnv": "warn",
-            "useNodejsImportProtocol": "error"
+            "useNodejsImportProtocol": "error",
+            "noNestedTernary": "warn"
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "warn"
@@ -153,6 +144,35 @@
           "security": {
             "noBlankTarget": "warn",
             "noDangerouslySetInnerHtml": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          },
+          "correctness": {
+            "noProcessGlobal": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/api/v2/src/config/app.ts",
+        "apps/api/v2/src/config/bootstrap.ts",
+        "apps/api/v2/src/config/env.ts",
+        "apps/api/v2/src/env.ts",
+        "apps/api/v2/test/setEnvVars.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noProcessEnv": "off"
           }
         }
       }
@@ -296,6 +316,38 @@
                   {
                     "group": ["../features/**"],
                     "message": "testing package should not import from features to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@calcom/trpc/react",
+                      "@calcom/trpc/react/**"
+                    ],
+                    "message": "atoms package should not import from @calcom/trpc/react."
+                  },
+                  {
+                    "group": [
+                      "../../trpc/react",
+                      "../../trpc/react/**"
+                    ],
+                    "message": "atoms package should not import from trpc/react."
                   }
                 ]
               }
