@@ -306,7 +306,7 @@ export const OAuthClientDetailsDialog = ({
             ) : null}
 
             {approvalStatus === "REJECTED" && client.rejectionReason ? (
-              <div className="text-subtle text-sm">
+              <div className="text-subtle text-sm" data-testid="oauth-client-details-rejection-reason-display">
                 <span className="font-medium">{t("oauth_client_rejection_reason")}:</span> {client.rejectionReason}
               </div>
             ) : null}
@@ -392,6 +392,7 @@ export const OAuthClientDetailsDialog = ({
                       type="button"
                       color="primary"
                       StartIcon="x"
+                      data-testid="oauth-client-details-reject-trigger"
                       loading={isStatusChangePending}
                       className="not-disabled:hover:!bg-error not-disabled:hover:!text-white not-disabled:hover:!border-semantic-error"
                       onClick={() => {
@@ -407,6 +408,7 @@ export const OAuthClientDetailsDialog = ({
                       type="button"
                       color="primary"
                       StartIcon="check"
+                      data-testid="oauth-client-details-approve-trigger"
                       loading={isStatusChangePending}
                       className="not-disabled:hover:!bg-cal-success not-disabled:hover:!text-white not-disabled:hover:!border-cal-success"
                       onClick={() => onApprove?.(client.clientId)}>
@@ -438,6 +440,7 @@ export const OAuthClientDetailsDialog = ({
                     type="button"
                     color="primary"
                     StartIcon="x"
+                    data-testid="oauth-client-details-reject-confirm"
                     loading={isStatusChangePending}
                     className="not-disabled:hover:!bg-error not-disabled:hover:!text-white not-disabled:hover:!border-semantic-error"
                     onClick={handleConfirmReject}>
@@ -448,6 +451,7 @@ export const OAuthClientDetailsDialog = ({
                   <Label htmlFor="oauth-rejection-reason">{t("reason_for_rejection")}</Label>
                   <TextArea
                     id="oauth-rejection-reason"
+                    data-testid="oauth-client-details-rejection-reason"
                     value={rejectionReason}
                     onChange={(e) => {
                       setRejectionReason(e.target.value);

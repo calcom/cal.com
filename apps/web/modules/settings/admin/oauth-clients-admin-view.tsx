@@ -131,6 +131,7 @@ export default function OAuthClientsAdminView() {
       StartIcon="plus"
       size="sm"
       variant="fab"
+      data-testid="open-admin-oauth-client-create-dialog"
       onClick={() => setShowAddDialog(true)}>
       {t("new")}
     </Button>
@@ -148,7 +149,7 @@ export default function OAuthClientsAdminView() {
       CTA={newOAuthClientButton}>
       {hasClients ? (
         <div className="space-y-10">
-          <div className="space-y-3">
+          <div className="space-y-3" data-testid="oauth-client-admin-pending-section">
             <h2 className="text-emphasis text-base font-semibold">{t("pending")}</h2>
             <OAuthClientsList
               clients={(pendingClients ?? []).map(toClientDetails)}
@@ -157,7 +158,7 @@ export default function OAuthClientsAdminView() {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3" data-testid="oauth-client-admin-rejected-section">
             <h2 className="text-emphasis text-base font-semibold">{t("rejected")}</h2>
             <OAuthClientsList
               clients={(rejectedClients ?? []).map(toClientDetails)}
@@ -166,7 +167,7 @@ export default function OAuthClientsAdminView() {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3" data-testid="oauth-client-admin-approved-section">
             <h2 className="text-emphasis text-base font-semibold">{t("approved")}</h2>
             <OAuthClientsList
               clients={(approvedClients ?? []).map(toClientDetails)}
