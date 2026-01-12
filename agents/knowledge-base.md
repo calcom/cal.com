@@ -931,6 +931,116 @@ When creating a new service or repository that should use DI:
 
 5. **Use the getter function** everywhere you need the service - never manually instantiate.
 
+### The moduleLoader Pattern (Type-Safe DI)
+
+The basic DI pattern shown above has a limitation: if a service adds a new dependency, TypeScript won't catch that you forgot to load it in the container. The **moduleLoader pattern** solves this by making dependency declarations type-safe at build time.
+
+**The Problem with Manual Module Loading**
+
+```typescript
+// ❌ Not type-safe - if FeatureOptInService adds a new dependency, TS won't catch the missing load()
+const container = createContainer();
+container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
+container.load(DI_TOKENS.FEATURES_REPOSITORY_MODULE, featuresRepositoryModule);
+container.load(DI_TOKENS.FEATURE_OPT_IN_SERVICE_MODULE, featureOptInServiceModule);
+
+export function getFeatureOptInService() {
+  return container.get<FeatureOptInService>(DI_TOKENS.FEATURE_OPT_IN_SERVICE);
+}
+```
+
+**The moduleLoader Pattern Solution**
+
+Instead, each module exports a `moduleLoader` object that knows its own dependencies. The `bindModuleToClassOnToken` function uses TypeScript generics to ensure the `depsMap` matches exactly what the class constructor expects.
+
+**Step 1: Create a module file with moduleLoader**
+
+```typescript
+// packages/features/oauth/di/OAuthService.module.ts
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
+
+import { moduleLoader as accessCodeRepositoryModuleLoader } from "./AccessCodeRepository.module";
+import { moduleLoader as oAuthClientRepositoryModuleLoader } from "./OAuthClientRepository.module";
+import { moduleLoader as teamRepositoryModuleLoader } from "./TeamRepository.module";
+import { OAUTH_DI_TOKENS } from "./tokens";
+
+const thisModule = createModule();
+const token = OAUTH_DI_TOKENS.OAUTH_SERVICE;
+const moduleToken = OAUTH_DI_TOKENS.OAUTH_SERVICE_MODULE;
+
+const loadModule = bindModuleToClassOnToken({
+  module: thisModule,
+  moduleToken,
+  token,
+  classs: OAuthService,
+  depsMap: {
+    // TypeScript ensures these keys match OAuthService constructor's dependency interface
+    oAuthClientRepository: oAuthClientRepositoryModuleLoader,
+    accessCodeRepository: accessCodeRepositoryModuleLoader,
+    teamsRepository: teamRepositoryModuleLoader,
+  },
+});
+
+export const moduleLoader: ModuleLoader = {
+  token,
+  loadModule,
+};
+
+export type { OAuthService };
+```
+
+**Step 2: Create a simple container that uses the moduleLoader**
+
+```typescript
+// packages/features/oauth/di/OAuthService.container.ts
+import { createContainer } from "@calcom/features/di/di";
+
+import { type OAuthService, moduleLoader as oAuthServiceModuleLoader } from "./OAuthService.module";
+
+const oAuthServiceContainer = createContainer();
+
+export function getOAuthService(): OAuthService {
+  oAuthServiceModuleLoader.loadModule(oAuthServiceContainer);
+  return oAuthServiceContainer.get<OAuthService>(oAuthServiceModuleLoader.token);
+}
+```
+
+**Why This Is Type-Safe**
+
+The `bindModuleToClassOnToken` function in `packages/features/di/di.ts` uses TypeScript generics to infer the required dependencies from the class constructor:
+
+```typescript
+depsMap: Record<
+  keyof (TClass extends new (deps: infer TDeps) => any ? TDeps : never),
+  ModuleLoader
+>
+```
+
+This means if `OAuthService` adds a new constructor dependency (e.g., `userRepository`), TypeScript will error because `depsMap` is missing that key. The error happens at build time, not runtime.
+
+**Key Benefits of moduleLoader Pattern**
+
+- **Build-time safety**: TypeScript catches missing dependencies before runtime
+- **Automatic recursive loading**: The `loadModule` function automatically loads all dependencies recursively
+- **Self-documenting**: Each module declares its own dependencies, making the dependency graph explicit
+- **Simpler containers**: Containers just call `moduleLoader.loadModule()` instead of manually loading each dependency
+
+**Convention: Expose tokens from the feature package**
+
+When using the moduleLoader pattern, expose tokens from the feature package itself rather than adding them to the central `packages/features/di/tokens.ts`:
+
+```typescript
+// packages/features/oauth/di/tokens.ts
+export const OAUTH_DI_TOKENS = {
+  OAUTH_SERVICE: Symbol("OAuthService"),
+  OAUTH_SERVICE_MODULE: Symbol("OAuthServiceModule"),
+  // ... other tokens for this feature
+};
+```
+
+Then import these tokens in the central tokens file if needed for cross-feature dependencies.
+
 ### Why Use DI?
 
 - **Testability**: Dependencies can be easily mocked in tests by providing alternative implementations
