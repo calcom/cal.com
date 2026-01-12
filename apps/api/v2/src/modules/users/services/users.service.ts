@@ -1,8 +1,6 @@
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import type { User } from "@calcom/prisma/client";
-
 @Injectable()
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
@@ -11,7 +9,7 @@ export class UsersService {
     const users = await Promise.all(
       usernames.map((username) => this.usersRepository.findByUsername(username, orgSlug, orgId))
     );
-    const usersFiltered: User[] = [];
+    const usersFiltered: UserWithProfile[] = [];
 
     for (const user of users) {
       if (user) {
@@ -19,7 +17,7 @@ export class UsersService {
       }
     }
 
-    return users;
+    return usersFiltered;
   }
 
   getUserMainProfile(user: UserWithProfile) {
