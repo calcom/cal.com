@@ -29,14 +29,25 @@ import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
+import { getAppActor } from "../getAppActor";
+
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
-export async function handlePaymentSuccess(paymentId: number, bookingId: number, traceContext: TraceContext) {
+
+export async function handlePaymentSuccess(params: {
+  paymentId: number;
+  appSlug: string;
+  bookingId: number;
+  traceContext: TraceContext;
+}) {
+  const { paymentId, bookingId, appSlug, traceContext } = params;
   const updatedTraceContext = distributedTracing.updateTrace(traceContext, {
     bookingId,
     paymentId,
   });
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+  const actor = getAppActor({ appSlug, bookingId, apps });
 
   try {
     await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
@@ -238,6 +249,8 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
         paid: true,
         platformClientParams,
         traceContext: updatedTraceContext,
+        actionSource: "WEBHOOK",
+        actor,
       });
     } else {
       await handleBookingRequested({

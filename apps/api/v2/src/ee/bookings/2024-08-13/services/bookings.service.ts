@@ -69,6 +69,7 @@ import {
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -921,40 +922,40 @@ export class BookingsService_2024_08_13 {
     return await this.getBooking(recurringBookingUid, authUser);
   }
 
-    async markAbsent(
-      bookingUid: string,
-      bookingOwnerId: number,
-      body: MarkAbsentBookingInput_2024_08_13,
-      userUuid?: string
-    ) {
-      const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
-      const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+  async markAbsent(
+    bookingUid: string,
+    bookingOwnerId: number,
+    body: MarkAbsentBookingInput_2024_08_13,
+    userUuid?: string
+  ) {
+    const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
+    const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
 
-      if (!bookingBefore) {
-        throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
-      }
+    if (!bookingBefore) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
+    }
 
-      const nowUtc = DateTime.utc();
-      const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
+    const nowUtc = DateTime.utc();
+    const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
 
-      if (nowUtc < bookingStartTimeUtc) {
-        throw new BadRequestException(
-          `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
-        );
-      }
+    if (nowUtc < bookingStartTimeUtc) {
+      throw new BadRequestException(
+        `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
+      );
+    }
 
-      const platformClientParams = bookingBefore?.eventTypeId
-        ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
-        : undefined;
+    const platformClientParams = bookingBefore?.eventTypeId
+      ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
+      : undefined;
 
-      await handleMarkNoShow({
-        bookingUid,
-        attendees: bodyTransformed.attendees,
-        noShowHost: bodyTransformed.noShowHost,
-        userId: bookingOwnerId,
-        userUuid,
-        platformClientParams,
-      });
+    await handleMarkNoShow({
+      bookingUid,
+      attendees: bodyTransformed.attendees,
+      noShowHost: bodyTransformed.noShowHost,
+      userId: bookingOwnerId,
+      userUuid,
+      platformClientParams,
+    });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
 
@@ -1146,6 +1147,8 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
@@ -1179,6 +1182,8 @@ export class BookingsService_2024_08_13 {
         reason,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
