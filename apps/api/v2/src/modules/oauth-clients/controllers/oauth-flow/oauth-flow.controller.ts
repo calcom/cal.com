@@ -1,3 +1,4 @@
+import { extractBearerToken } from "@/lib/api-key";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -89,7 +90,7 @@ export class OAuthFlowController {
     @Param("clientId") clientId: string,
     @Body() body: ExchangeAuthorizationCodeInput
   ): Promise<KeysResponseDto> {
-    const authorizeEndpointCode = authorization.replace("Bearer ", "").trim();
+    const authorizeEndpointCode = extractBearerToken(authorization);
     if (!authorizeEndpointCode) {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
