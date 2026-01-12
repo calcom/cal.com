@@ -8,7 +8,7 @@ import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
-import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import DisconnectIntegration from "@calcom/web/modules/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
@@ -343,7 +343,7 @@ export const AppPage = ({
                 src={logo}
                 alt={name}
               />
-              <h1 className="font-cal text-emphasis ml-4 text-3xl">{name}</h1>
+              <h1 className="font-heading text-emphasis ml-4 text-3xl">{name}</h1>
             </div>
             <h2 className="text-default text-sm font-medium">
               <Link

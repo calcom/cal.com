@@ -1,4 +1,4 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import "@calcom/lib/server/__mocks__/serviceAccountKey";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -12,13 +12,12 @@ const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   return {
     __esModule: true,
-    createGoogleCalendarServiceWithGoogleType: vi.fn(() => ({
+    createGoogleCalendarServiceWithGoogleType: vi.fn().mockImplementation(function() { return {
       getPrimaryCalendar: getPrimaryCalendarMock,
-    })),
-    // Also mock the default export in case any code path uses it
-    default: vi.fn(() => ({
+    }; }),
+    default: vi.fn().mockImplementation(function() { return {
       getPrimaryCalendar: getPrimaryCalendarMock,
-    })),
+    }; }),
   };
 });
 

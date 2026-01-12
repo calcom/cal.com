@@ -1,4 +1,4 @@
-import "../../../../tests/libs/__mocks__/prisma";
+import "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
@@ -145,7 +145,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([]);
@@ -161,7 +162,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -184,7 +186,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -220,16 +223,17 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
-      expect(mockGoogleGetAvailability).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar],
-        undefined,
-        false
-      );
+      expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         availability.map((av) => ({
           ...av,
@@ -287,23 +291,24 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedGoogleCalendar, selectedOfficeCalendar]
+        [selectedGoogleCalendar, selectedOfficeCalendar],
+        "slots"
       );
 
-      expect(mockGoogleGetAvailability).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedGoogleCalendar],
-        undefined,
-        false
-      );
-      expect(mockOfficeGetAvailability).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedOfficeCalendar],
-        undefined,
-        false
-      );
+      expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedGoogleCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
+      expect(mockOfficeGetAvailability).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedOfficeCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         googleAvailability.map((av) => ({
           ...av,
@@ -323,7 +328,8 @@ describe("getCalendarsEvents", () => {
         [buildRegularCredential(credential)],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(mockGoogleGetAvailability).not.toHaveBeenCalled();
@@ -339,9 +345,15 @@ describe("getCalendarsEvents", () => {
       const credentials = [delegationCredential];
       mockGoogleGetAvailability.mockResolvedValueOnce([]);
 
-      const result = await getCalendarsEvents(credentials, startDate, endDate, []);
+      const result = await getCalendarsEvents(credentials, startDate, endDate, [], "slots");
 
-      expect(mockGoogleGetAvailability).toHaveBeenCalledWith(startDate, endDate, [], undefined, true);
+      expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars: [],
+        mode: "slots",
+        fallbackToPrimary: true,
+      });
       expect(result).toEqual([[]]);
     });
   });
@@ -469,12 +481,13 @@ describe("getCalendarsEventsWithTimezones", () => {
         [selectedCalendar]
       );
 
-      expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar],
-        false
-      );
+      expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         availability.map((av) => ({
           ...av,
@@ -507,7 +520,13 @@ describe("getCalendarsEventsWithTimezones", () => {
 
       const result = await getCalendarsEventsWithTimezones(credentials, startDate, endDate, []);
 
-      expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith(startDate, endDate, [], true);
+      expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith({
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars: [],
+        mode: "slots",
+        fallbackToPrimary: true,
+      });
       expect(result).toEqual([[]]);
     });
   });

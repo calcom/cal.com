@@ -4,7 +4,6 @@ import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated"
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -14,9 +13,11 @@ import { handleNoShowFee } from "./handleNoShowFee";
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
     stripepayment: Promise.resolve({
-      BuildPaymentService: vi.fn().mockImplementation(() => ({
-        chargeCard: vi.fn(),
-      })),
+      BuildPaymentService: vi.fn().mockImplementation(function () {
+        return {
+          chargeCard: vi.fn(),
+        };
+      }),
     }),
   },
 }));
@@ -36,16 +37,24 @@ vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => 
   },
 }));
 
+const { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository } = vi.hoisted(() => {
+  const mockFindUniqueByUserIdAndTeamId = vi.fn();
+
+  class MockMembershipRepository {
+    findUniqueByUserIdAndTeamId = mockFindUniqueByUserIdAndTeamId;
+  }
+
+  return { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository };
+});
+
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: {
-    findUniqueByUserIdAndTeamId: vi.fn(),
-  },
+  MembershipRepository: MockMembershipRepository,
 }));
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(() => ({
+  TeamRepository: vi.fn().mockImplementation(function() { return {
     findParentOrganizationByTeamId: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -61,8 +70,8 @@ describe("handleNoShowFee", () => {
       chargeCard: vi.fn(),
     };
 
-        const paymentServiceModule = await PaymentServiceMap.stripepayment;
-        vi.mocked(paymentServiceModule.BuildPaymentService).mockImplementation(() => mockPaymentService);
+    const paymentServiceModule = await PaymentServiceMap.stripepayment;
+    vi.mocked(paymentServiceModule.BuildPaymentService).mockImplementation(function() { return mockPaymentService; });
   });
 
   const mockBooking = {
@@ -154,7 +163,7 @@ describe("handleNoShowFee", () => {
 
       mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
 
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 1,
@@ -175,7 +184,7 @@ describe("handleNoShowFee", () => {
       });
 
       expect(result).toEqual({ success: true, paymentId: "pay_123" });
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(mockFindUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -192,7 +201,7 @@ describe("handleNoShowFee", () => {
 
       mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
 
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 1,
@@ -211,7 +220,7 @@ describe("handleNoShowFee", () => {
       const mockTeamRepository = {
         findParentOrganizationByTeamId: vi.fn().mockResolvedValue({ id: 2 }),
       };
-      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepository);
+      vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepository; });
 
       const result = await handleNoShowFee({
         booking: teamBooking,
@@ -251,7 +260,7 @@ describe("handleNoShowFee", () => {
         },
       };
 
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue(null);
+      mockFindUniqueByUserIdAndTeamId.mockResolvedValue(null);
 
       await expect(
         handleNoShowFee({
