@@ -484,6 +484,8 @@ model User {
   agents                         Agent[]
   holidaySettings                UserHolidaySettings?
 
+  autoOptInFeatures Boolean @default(false)
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -614,6 +616,8 @@ model Team {
 
   teamBilling         TeamBilling?         @relation("TeamBilling")
   organizationBilling OrganizationBilling? @relation("OrganizationBilling")
+
+  autoOptInFeatures Boolean @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -2406,11 +2410,12 @@ model Watchlist {
   source         WatchlistSource @default(MANUAL)
   lastUpdatedAt  DateTime        @default(now())
 
-  bookingReports BookingReport[]
-  audits         WatchlistAudit[]
+  bookingReports       BookingReport[]
+  globalBookingReports BookingReport[]  @relation("GlobalBlocklist")
+  audits               WatchlistAudit[]
 
   @@unique([type, value, organizationId])
-  @@index([type, value, organizationId, action])
+  @@index([isGlobal, action, organizationId, type, value])
 }
 
 model WatchlistAudit {
@@ -2450,6 +2455,12 @@ enum BookingReportStatus {
   BLOCKED // Added to watchlist
 }
 
+enum SystemReportStatus {
+  PENDING // Not yet reviewed by system admin
+  BLOCKED // Added to global blocklist
+  DISMISSED // System admin dismissed (won't see again)
+}
+
 model BookingReport {
   id             String              @id @default(uuid()) @db.Uuid
   bookingUid     String              @unique
@@ -2463,17 +2474,22 @@ model BookingReport {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   status         BookingReportStatus @default(PENDING)
+  systemStatus   SystemReportStatus  @default(PENDING)
 
-  watchlistId String? @db.Uuid
+  watchlistId       String? @db.Uuid
+  globalWatchlistId String? @db.Uuid
 
-  reportedBy   User?      @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
-  organization Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  watchlist    Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  reportedBy      User?      @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  organization    Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  watchlist       Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  globalWatchlist Watchlist? @relation("GlobalBlocklist", fields: [globalWatchlistId], references: [id], onDelete: SetNull)
 
   @@index([bookerEmail])
   @@index([reportedById])
   @@index([organizationId])
   @@index([watchlistId])
+  @@index([globalWatchlistId])
+  @@index([systemStatus])
   @@index([createdAt])
 }
 
@@ -2814,6 +2830,11 @@ model BookingAudit {
   operationId String
 
   data Json?
+
+  // Context for across action types concerns like impersonation, ip, userAgent etc.
+  // This is separate from `data` because it isn't related to action type but makes sense with every action
+  // BookingAuditContextSchema
+  context Json?
 
   @@index([actorId])
   @@index([bookingUid])

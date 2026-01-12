@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -126,7 +126,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())
@@ -170,7 +170,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
@@ -199,7 +199,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())
@@ -232,7 +232,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())

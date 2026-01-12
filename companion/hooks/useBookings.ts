@@ -117,6 +117,46 @@ export function useCancelBooking() {
 }
 
 /**
+ * Hook to mark an attendee as no-show (absent)
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: markNoShow, isPending } = useMarkNoShow();
+ *
+ * markNoShow({ uid: 'abc-123', attendeeEmail: 'attendee@example.com', absent: true });
+ * ```
+ */
+export function useMarkNoShow() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      attendeeEmail,
+      absent,
+    }: {
+      uid: string;
+      attendeeEmail: string;
+      absent: boolean;
+    }) => CalComAPIService.markAbsent(uid, attendeeEmail, absent),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (_error) => {
+      console.error("Failed to mark attendee as no-show");
+    },
+  });
+}
+
+/**
  * Hook to reschedule a booking
  *
  * @returns Mutation function and state
@@ -221,6 +261,83 @@ export function useDeclineBooking() {
     },
     onError: (_error) => {
       console.error("Failed to decline booking");
+    },
+  });
+}
+
+/**
+ * Hook to update the location of a booking
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: updateLocation, isPending } = useUpdateLocation();
+ *
+ * updateLocation({
+ *   uid: 'abc-123',
+ *   location: { type: 'link', link: 'https://meet.example.com' }
+ * });
+ * ```
+ */
+export function useUpdateLocation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      location,
+    }: {
+      uid: string;
+      location: { type: string; [key: string]: string };
+    }) => CalComAPIService.updateLocationV2(uid, location),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (_error) => {
+      console.error("Failed to update location");
+    },
+  });
+}
+
+/**
+ * Hook to add guests to a booking
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: addGuests, isPending } = useAddGuests();
+ *
+ * addGuests({
+ *   uid: 'abc-123',
+ *   guests: [{ email: 'guest@example.com', name: 'Guest Name' }]
+ * });
+ * ```
+ */
+export function useAddGuests() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, guests }: { uid: string; guests: { email: string; name?: string }[] }) =>
+      CalComAPIService.addGuests(uid, guests),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (_error) => {
+      console.error("Failed to add guests");
     },
   });
 }
