@@ -3,10 +3,8 @@ SELECT
   gen_random_uuid(), 'admin_role', resource, action, NOW()
 FROM (
   VALUES
-    ('feature', 'create'),
     ('feature', 'read'),
-    ('feature', 'update'),
-    ('feature', 'delete')
+    ('feature', 'update')
 ) AS permissions(resource, action)
 ON CONFLICT ("roleId", resource, action) DO NOTHING;
 

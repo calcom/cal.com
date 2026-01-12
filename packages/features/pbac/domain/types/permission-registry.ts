@@ -773,31 +773,17 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     _resource: {
       i18nKey: "pbac_resource_feature",
     },
-    [CrudAction.Create]: {
-      description: "Create features",
-      category: "feature",
-      i18nKey: "pbac_action_create",
-      descriptionI18nKey: "pbac_desc_create_features",
-      dependsOn: ["feature.read"],
-    },
     [CrudAction.Read]: {
-      description: "View features",
+      description: "View feature opt-in settings",
       category: "feature",
       i18nKey: "pbac_action_read",
       descriptionI18nKey: "pbac_desc_view_features",
     },
     [CrudAction.Update]: {
-      description: "Update features",
+      description: "Manage feature opt-in and opt-out settings",
       category: "feature",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_features",
-      dependsOn: ["feature.read"],
-    },
-    [CrudAction.Delete]: {
-      description: "Delete features",
-      category: "feature",
-      i18nKey: "pbac_action_delete",
-      descriptionI18nKey: "pbac_desc_delete_features",
       dependsOn: ["feature.read"],
     },
   },
