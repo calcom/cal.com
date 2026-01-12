@@ -21,7 +21,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import { isEmailAction, getTemplateBodyForAction } from "../actionHelperFunctions";
+import { isEmailAction, getTemplateBodyForAction, getTemplateSubjectForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
@@ -339,9 +339,9 @@ export class EmailWorkflowService {
     };
     const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
-    // Check if body matches REMINDER or RATING default template (regardless of template type field)
-    // If matches default, regenerate with recipient's locale for proper translation
-    // If customized, use saved body with customTemplate() to preserve user edits
+    // Check if body AND subject match REMINDER or RATING default template (regardless of template type field)
+    // If both match default, regenerate with recipient's locale for proper translation
+    // If either is customized, use saved body/subject with customTemplate() to preserve user edits
     let matchedTemplate: WorkflowTemplates | null = null;
 
     // If emailBody is empty but template is specified, use that template type
@@ -351,35 +351,54 @@ export class EmailWorkflowService {
       matchedTemplate = WorkflowTemplates.RATING;
     } else if (emailBody) {
       const tEn = await getTranslation("en", "common");
+      const timeFormat = evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
 
-      // Check against REMINDER default
-      const reminderDefault = getTemplateBodyForAction({
+      // Check against REMINDER default (both body AND subject must match)
+      const reminderDefaultBody = getTemplateBodyForAction({
         action,
         template: WorkflowTemplates.REMINDER,
         locale: "en",
         t: tEn,
-        timeFormat: evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR,
+        timeFormat,
       });
-      if (
-        reminderDefault &&
-        compareReminderBodyToTemplate({ reminderBody: emailBody, template: reminderDefault })
-      ) {
+      const reminderDefaultSubject = getTemplateSubjectForAction({
+        action,
+        template: WorkflowTemplates.REMINDER,
+        locale: "en",
+        t: tEn,
+        timeFormat,
+      });
+      const bodyMatchesReminder =
+        reminderDefaultBody &&
+        compareReminderBodyToTemplate({ reminderBody: emailBody, template: reminderDefaultBody });
+      const subjectMatchesReminder = reminderDefaultSubject && emailSubject === reminderDefaultSubject;
+
+      if (bodyMatchesReminder && subjectMatchesReminder) {
         matchedTemplate = WorkflowTemplates.REMINDER;
       }
 
-      // Check against RATING default if not already matched
+      // Check against RATING default if not already matched (both body AND subject must match)
       if (!matchedTemplate) {
-        const ratingDefault = getTemplateBodyForAction({
+        const ratingDefaultBody = getTemplateBodyForAction({
           action,
           template: WorkflowTemplates.RATING,
           locale: "en",
           t: tEn,
-          timeFormat: evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR,
+          timeFormat,
         });
-        if (
-          ratingDefault &&
-          compareReminderBodyToTemplate({ reminderBody: emailBody, template: ratingDefault })
-        ) {
+        const ratingDefaultSubject = getTemplateSubjectForAction({
+          action,
+          template: WorkflowTemplates.RATING,
+          locale: "en",
+          t: tEn,
+          timeFormat,
+        });
+        const bodyMatchesRating =
+          ratingDefaultBody &&
+          compareReminderBodyToTemplate({ reminderBody: emailBody, template: ratingDefaultBody });
+        const subjectMatchesRating = ratingDefaultSubject && emailSubject === ratingDefaultSubject;
+
+        if (bodyMatchesRating && subjectMatchesRating) {
           matchedTemplate = WorkflowTemplates.RATING;
         }
       }
