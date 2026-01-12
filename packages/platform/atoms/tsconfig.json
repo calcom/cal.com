@@ -38,7 +38,6 @@
     "../../dayjs",
     "../../prisma/zod-utils.ts",
     "../../prisma/zod",
-    "../../trpc/react",
     "../../trpc/server/routers/viewer/slots",
     "../../trpc/server/types",
     "../../features/eventtypes",

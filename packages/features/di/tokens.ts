@@ -1,6 +1,7 @@
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
+import { OAUTH_DI_TOKENS } from "@calcom/features/oauth/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 
@@ -67,10 +68,13 @@ export const DI_TOKENS = {
   CREDENTIAL_REPOSITORY_MODULE: Symbol("CredentialRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
+  ORG_MEMBERSHIP_LOOKUP: Symbol("OrgMembershipLookup"),
+  ORG_MEMBERSHIP_LOOKUP_MODULE: Symbol("OrgMembershipLookupModule"),
   // Booking service tokens
   ...BOOKING_AUDIT_DI_TOKENS,
   ...BOOKING_DI_TOKENS,
   ...HASHED_LINK_DI_TOKENS,
+  ...OAUTH_DI_TOKENS,
   ...WATCHLIST_DI_TOKENS,
   ...ORGANIZATION_DI_TOKENS,
 };
