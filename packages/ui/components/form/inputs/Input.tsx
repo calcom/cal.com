@@ -91,6 +91,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
     <textarea
       {...props}
       ref={ref}
+      aria-required={props.required || undefined}
       className={classNames(inputStyles(), "min-h-[80px] w-full", props.className)}
     />
   );
@@ -100,9 +101,9 @@ type TextAreaFieldProps = {
   label?: ReactNode;
   t?: (key: string) => string;
 } & React.ComponentProps<typeof TextArea> & {
-    name: string;
-    labelProps?: React.ComponentProps<typeof Label>;
-  };
+  name: string;
+  labelProps?: React.ComponentProps<typeof Label>;
+};
 
 export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextField(
   props,

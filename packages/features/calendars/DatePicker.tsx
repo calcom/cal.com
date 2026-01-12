@@ -87,12 +87,11 @@ const Day = ({
         active
           ? "bg-brand-default text-brand"
           : !disabled
-          ? `${
-              !customClassName?.dayActive
-                ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassName.dayActive}`
+            ? `${!customClassName?.dayActive
+              ? "hover:border-brand-default text-emphasis bg-emphasis"
+              : `hover:border-brand-default ${customClassName.dayActive}`
             }`
-          : `${customClassName ? "" : " text-mute"}`
+            : `${customClassName ? "" : " text-mute"}`
       )}
       data-testid="day"
       data-disabled={disabled}
@@ -286,8 +285,8 @@ const Days = ({
 
     const isSelectedDateAvailable = selected
       ? daysToRenderForTheMonth.some(({ day, disabled }) => {
-          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
-        })
+        if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+      })
       : false;
 
     if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
@@ -400,12 +399,18 @@ const DatePicker = ({
   };
   const month = browsingDate
     ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(
-        new Date(browsingDate.year(), browsingDate.month())
-      )
+      new Date(browsingDate.year(), browsingDate.month())
+    )
     : null;
 
   return (
     <div className={className}>
+      {/* Add semantic heading for better screen reader navigation */}
+      <h2 className="sr-only">{t("calendar_heading")}</h2>
+      {/* Add aria-live region for announcing date changes */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {month && browsingDate && `${month} ${browsingDate.format("YYYY")}`}
+      </div>
       <div className="mb-1 flex items-center justify-between text-xl">
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
@@ -428,7 +433,7 @@ const DatePicker = ({
               className={classNames(
                 `group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180`,
                 !browsingDate.isAfter(dayjs()) &&
-                  `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
+                `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
                 customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}
