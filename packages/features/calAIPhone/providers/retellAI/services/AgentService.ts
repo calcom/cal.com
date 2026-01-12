@@ -5,6 +5,8 @@ import { PrismaApiKeyRepository } from "@calcom/features/ee/api-keys/repositorie
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -45,10 +47,7 @@ export class AgentService {
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent ID is required and cannot be empty",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     try {
@@ -58,10 +57,7 @@ export class AgentService {
         agentId,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: `Failed to get agent ${agentId}`,
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to get agent ${agentId}`);
     }
   }
 
@@ -70,24 +66,15 @@ export class AgentService {
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ) {
     if (!agentId?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent ID is required and cannot be empty",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     if (!data.eventTypeId || !data.userId) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Event type ID and user ID are required",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Event type ID and user ID are required");
     }
 
     if (!timeZoneSchema.safeParse(data.timeZone).success) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Invalid time zone",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid time zone");
     }
 
     let eventTypeId = data.eventTypeId;
@@ -102,15 +89,12 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new HttpError({
-          statusCode: 404,
-          message: "Agent does not have an LLM configured.",
-        });
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
-        throw new HttpError({ statusCode: 404, message: "LLM details not found." });
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "LLM details not found.");
       }
 
       const existing = llmDetails?.general_tools ?? [];
@@ -169,7 +153,7 @@ export class AgentService {
 
       await this.deps.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -177,21 +161,18 @@ export class AgentService {
         agentId,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: `Failed to update agent general tools ${agentId}: ${
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        `Failed to update agent general tools ${agentId}: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`,
-      });
+        }`
+      );
     }
   }
 
   async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]) {
     if (!agentId?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent ID is required and cannot be empty",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     if (!eventTypeIds.length) {
@@ -212,16 +193,13 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new HttpError({
-          statusCode: 404,
-          message: "Agent does not have an LLM configured.",
-        });
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
-        throw new HttpError({ statusCode: 404, message: "LLM details not found." });
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "LLM details not found.");
       }
 
       const existing = llmDetails?.general_tools ?? [];
@@ -244,7 +222,7 @@ export class AgentService {
         });
       }
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -253,19 +231,13 @@ export class AgentService {
         eventTypeIds,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: `Failed to remove tools for agent ${agentId}`,
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to remove tools for agent ${agentId}`);
     }
   }
 
   async cleanupUnusedTools(agentId: string, activeEventTypeIds: number[] = []) {
     if (!agentId?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent ID is required and cannot be empty",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     let mappedActiveEventTypeIds = activeEventTypeIds;
@@ -282,16 +254,13 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new HttpError({
-          statusCode: 404,
-          message: "Agent does not have an LLM configured.",
-        });
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
-        throw new HttpError({ statusCode: 404, message: "LLM details not found." });
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "LLM details not found.");
       }
 
       const existing = llmDetails?.general_tools ?? [];
@@ -333,7 +302,7 @@ export class AgentService {
         removedTools: [],
       };
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -343,10 +312,7 @@ export class AgentService {
         mappedActiveEventTypeIds: RETELL_AI_TEST_MODE ? mappedActiveEventTypeIds : undefined,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: `Failed to cleanup tools for agent ${agentId}`,
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to cleanup tools for agent ${agentId}`);
     }
   }
 
@@ -361,11 +327,11 @@ export class AgentService {
     }
   ): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new HttpError({ statusCode: 400, message: "Agent ID is required and cannot be empty" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     if (!data || Object.keys(data).length === 0) {
-      throw new HttpError({ statusCode: 400, message: "Update data is required" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Update data is required");
     }
 
     try {
@@ -377,10 +343,7 @@ export class AgentService {
         data,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: `Failed to update agent ${agentId}`,
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to update agent ${agentId}`);
     }
   }
 
@@ -415,10 +378,10 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Agent not found or you don't have permission to view it.",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to view it."
+      );
     }
 
     try {
@@ -426,17 +389,14 @@ export class AgentService {
       const llmId = getLlmId(retellAgent);
 
       if (!llmId) {
-        throw new HttpError({
-          statusCode: 404,
-          message: "Agent does not have an LLM configured.",
-        });
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -447,10 +407,10 @@ export class AgentService {
         teamId,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: "Unable to fetch agent details. Please try again.",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        "Unable to fetch agent details. Please try again."
+      );
     }
   }
 
@@ -475,10 +435,10 @@ export class AgentService {
         teamId,
       });
       if (!canManage) {
-        throw new HttpError({
-          statusCode: 403,
-          message: "You don't have permission to create agents for this team.",
-        });
+        throw new ErrorWithCode(
+          ErrorCode.Forbidden,
+          "You don't have permission to create agents for this team."
+        );
       }
     }
 
@@ -528,19 +488,16 @@ export class AgentService {
         teamId,
       });
       if (!canManage) {
-        throw new HttpError({
-          statusCode: 403,
-          message: "You don't have permission to create agents for this team.",
-        });
+        throw new ErrorWithCode(
+          ErrorCode.Forbidden,
+          "You don't have permission to create agents for this team."
+        );
       }
     }
 
     const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
     if (!isPhoneNumberValid) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Invalid phone number",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid phone number");
     }
 
     let phoneNumberRecord;
@@ -558,17 +515,17 @@ export class AgentService {
     }
 
     if (!phoneNumberRecord) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Phone number not found or you don't have access to it",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Phone number not found or you don't have access to it"
+      );
     }
 
     if (phoneNumberRecord.inboundAgentId) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Inbound agent already configured for this phone number",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.InvalidOperation,
+        "Inbound agent already configured for this phone number"
+      );
     }
 
     const agentName = name || `Inbound Agent - ${workflowStepId}`;
@@ -602,10 +559,10 @@ export class AgentService {
         phoneNumberId: phoneNumberRecord.id,
       });
 
-      throw new HttpError({
-        statusCode: 409,
-        message: `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`,
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceConflict,
+        `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`
+      );
     }
 
     return {
@@ -652,10 +609,10 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Agent not found or you don't have permission to update it.",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to update it."
+      );
     }
 
     const updatedPrompt =
@@ -707,14 +664,14 @@ export class AgentService {
           error,
         });
 
-        if (error instanceof HttpError) {
+        if (error instanceof ErrorWithCode) {
           throw error;
         }
 
-        throw new HttpError({
-          statusCode: 500,
-          message: "Unable to update agent configuration. Please try again.",
-        });
+        throw new ErrorWithCode(
+          ErrorCode.InternalServerError,
+          "Unable to update agent configuration. Please try again."
+        );
       }
     }
 
@@ -774,10 +731,10 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Agent not found or you don't have permission to delete it.",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to delete it."
+      );
     }
 
     try {

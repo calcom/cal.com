@@ -1,4 +1,5 @@
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 
 import type { RetellAIRepository, RetellVoice } from "../types";
@@ -24,10 +25,7 @@ export class VoiceService {
       this.logger.error("Failed to list voices from external AI service", {
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: "Failed to retrieve available voices. Please try again.",
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to retrieve available voices. Please try again.");
     }
   }
 }

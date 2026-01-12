@@ -1,5 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 
 import type {
@@ -37,17 +38,17 @@ export class CallService {
     dynamicVariables?: RetellDynamicVariables;
   }): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data.fromNumber?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "From phone number is required and cannot be empty",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.RequestBodyInvalid,
+        "From phone number is required and cannot be empty"
+      );
     }
 
     if (!data.toNumber?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "To phone number is required and cannot be empty",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.RequestBodyInvalid,
+        "To phone number is required and cannot be empty"
+      );
     }
 
     const { fromNumber, toNumber, dynamicVariables } = data;
@@ -64,10 +65,10 @@ export class CallService {
         toNumber: data.toNumber,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: `Failed to create phone call from ${data.fromNumber} to ${data.toNumber}`,
-      });
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        `Failed to create phone call from ${data.fromNumber} to ${data.toNumber}`
+      );
     }
   }
 
@@ -87,10 +88,7 @@ export class CallService {
     eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent ID is required and cannot be empty",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     await this.validateCreditsForTestCall({ userId, teamId });
@@ -102,10 +100,7 @@ export class CallService {
 
     const toNumber = phoneNumber?.trim();
     if (!toNumber) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Phone number is required for test call",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is required for test call");
     }
 
     const agent = await this.deps.agentRepository.findByIdWithCallAccess({
@@ -114,27 +109,27 @@ export class CallService {
     });
 
     if (!agent) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Agent not found or you don't have permission to use it.",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to use it."
+      );
     }
 
     const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
 
     if (!agentPhoneNumber) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent must have a phone number assigned to make calls.",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.RequestBodyInvalid,
+        "Agent must have a phone number assigned to make calls."
+      );
     }
 
     if (!this.retellAIService) {
       this.logger.error("RetellAIService not configured before createTestCall");
-      throw new HttpError({
-        statusCode: 500,
-        message: "Internal configuration error: AI phone service not initialized",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        "Internal configuration error: AI phone service not initialized"
+      );
     }
 
     const call = await this.createPhoneCall({
@@ -182,10 +177,7 @@ export class CallService {
     eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent ID is required and cannot be empty",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     await this.validateCreditsForTestCall({ userId, teamId });
@@ -201,17 +193,14 @@ export class CallService {
     });
 
     if (!agent) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Agent not found or you don't have permission to use it.",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to use it."
+      );
     }
 
     if (!agent.providerAgentId) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent provider ID not found.",
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent provider ID not found.");
     }
 
     const dynamicVariables = {
@@ -249,10 +238,7 @@ export class CallService {
         agentId: agent.providerAgentId,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: "Failed to create web call",
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to create web call");
     }
   }
 
@@ -266,14 +252,14 @@ export class CallService {
       });
 
       if (!hasCredits) {
-        throw new HttpError({
-          statusCode: 403,
-          message: `Insufficient credits to make test call. Please purchase more credits.`,
-        });
+        throw new ErrorWithCode(
+          ErrorCode.Forbidden,
+          "Insufficient credits to make test call. Please purchase more credits."
+        );
       }
     } catch (error) {
-      // Re-throw HTTP errors (like insufficient credits) as-is
-      if (error instanceof HttpError) {
+      // Re-throw ErrorWithCode errors (like insufficient credits) as-is
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -282,10 +268,7 @@ export class CallService {
         teamId,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: "Unable to validate credits. Please try again.",
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Unable to validate credits. Please try again.");
     }
   }
 
@@ -333,10 +316,7 @@ export class CallService {
         phoneNumbers: filters?.fromNumber,
         error,
       });
-      throw new HttpError({
-        statusCode: 500,
-        message: "Failed to retrieve call history",
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to retrieve call history");
     }
   }
 }

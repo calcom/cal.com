@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { validateAndGetCorrectedUsernameInTeam } from "@calcom/features/auth/signup/utils/validateUsername";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 
 export async function findTokenByToken({ token }: { token: string }) {
@@ -16,10 +17,7 @@ export async function findTokenByToken({ token }: { token: string }) {
   });
 
   if (!foundToken) {
-    throw new HttpError({
-      statusCode: 401,
-      message: "Invalid Token",
-    });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "Invalid Token");
   }
 
   return foundToken;
@@ -28,10 +26,7 @@ export async function findTokenByToken({ token }: { token: string }) {
 export function throwIfTokenExpired(expires?: Date) {
   if (!expires) return;
   if (dayjs(expires).isBefore(dayjs())) {
-    throw new HttpError({
-      statusCode: 401,
-      message: "Token expired",
-    });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "Token expired");
   }
 }
 
@@ -50,16 +45,10 @@ export async function validateAndGetCorrectedUsernameForTeam({
 
   const teamUserValidation = await validateAndGetCorrectedUsernameInTeam(username, email, teamId, isSignup);
   if (!teamUserValidation.isValid) {
-    throw new HttpError({
-      statusCode: 409,
-      message: "Username or email is already taken",
-    });
+    throw new ErrorWithCode(ErrorCode.ResourceAlreadyExists, "Username or email is already taken");
   }
   if (!teamUserValidation.username) {
-    throw new HttpError({
-      statusCode: 422,
-      message: "Invalid username",
-    });
+    throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid username");
   }
   return teamUserValidation.username;
 }

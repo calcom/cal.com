@@ -15,6 +15,7 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as cookieParser from "cookie-parser";
 import { Request } from "express";
 import helmet from "helmet";
+import { ErrorWithCodeExceptionFilter } from "@/filters/error-with-code-exception.filter";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
@@ -71,6 +72,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
   app.useGlobalFilters(new CalendarServiceExceptionFilter());
+  app.useGlobalFilters(new ErrorWithCodeExceptionFilter());
 
   app.use(cookieParser());
 

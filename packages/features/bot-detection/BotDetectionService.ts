@@ -3,7 +3,8 @@ import type { IncomingHttpHeaders } from "node:http";
 
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 
 interface BotDetectionConfig {
@@ -79,7 +80,7 @@ export class BotDetectionService {
 
     if (verification.isBot) {
       log.warn("Bot detected - blocking request", verificationDetails);
-      throw new HttpError({ statusCode: 403, message: "Access denied" });
+      throw new ErrorWithCode(ErrorCode.Forbidden, "Access denied");
     }
   }
 }
