@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
@@ -10,8 +10,9 @@ import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "next-auth";
 import Stripe from "stripe";
+
+import { User } from "@calcom/prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -46,7 +47,7 @@ describe("Teams endpoint", () => {
       imports: [AppModule, TeamsModule],
     }).compile();
 
-    jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({} as unknown as Stripe));
+    jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({}) as unknown as Stripe);
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);

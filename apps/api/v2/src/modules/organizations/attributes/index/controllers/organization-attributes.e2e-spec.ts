@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/create-organization-attribute.input";
 import { UpdateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/update-organization-attribute.input";
@@ -16,7 +16,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, Membership } from "@calcom/prisma/client";
+import type { User, Team, Membership } from "@calcom/prisma/client";
 
 describe("Organizations Attributes Endpoints", () => {
   describe("User lacks required role", () => {

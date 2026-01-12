@@ -2,6 +2,10 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
+
+import { SchedulingType } from "@calcom/platform-libraries";
+import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
+import type { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 import type {
   Team,
   EventType,
@@ -10,10 +14,7 @@ import type {
   Host,
   DestinationCalendar,
   CalVideoSettings,
-} from "@prisma/client";
-
-import { SchedulingType } from "@calcom/platform-libraries";
-import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
+} from "@calcom/prisma/client";
 
 type EventTypeRelations = {
   users: User[];
@@ -84,6 +85,18 @@ type Input = Pick<
   | "calVideoSettings"
   | "hidden"
   | "bookingRequiresAuthentication"
+  | "rescheduleWithSameRoundRobinHost"
+  | "maxActiveBookingPerBookerOfferReschedule"
+  | "maxActiveBookingsPerBooker"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "minimumRescheduleNotice"
+  | "canSendCalVideoTranscriptionEmails"
+  | "interfaceLanguage"
+  | "allowReschedulingPastBookings"
+  | "allowReschedulingCancelledBookings"
+  | "showOptimizedSlots"
+  | "rrHostSubsetEnabled"
 >;
 
 @Injectable()
@@ -95,7 +108,18 @@ export class OutputOrganizationsEventTypesService {
   ) {}
 
   async getResponseTeamEventType(databaseEventType: Input, isOrgTeamEvent: boolean) {
-    const { teamId, userId, parentId, assignAllTeamMembers } = databaseEventType;
+    const metadata = this.outputEventTypesService.transformMetadata(databaseEventType.metadata);
+
+    const emailSettings = this.transformEmailSettings(metadata);
+
+    const {
+      teamId,
+      userId,
+      parentId,
+      assignAllTeamMembers,
+      rescheduleWithSameRoundRobinHost,
+      rrHostSubsetEnabled,
+    } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
       0,
@@ -117,6 +141,7 @@ export class OutputOrganizationsEventTypesService {
         ? this.getResponseSchedulingType(databaseEventType.schedulingType)
         : databaseEventType.schedulingType,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
+      emailSettings,
       team: {
         id: teamId,
         name: databaseEventType?.team?.name,
@@ -128,6 +153,8 @@ export class OutputOrganizationsEventTypesService {
         darkBrandColor: databaseEventType?.team?.darkBrandColor,
         theme: databaseEventType?.team?.theme,
       },
+      rescheduleWithSameRoundRobinHost,
+      rrHostSubsetEnabled,
     };
   }
 
@@ -193,6 +220,23 @@ export class OutputOrganizationsEventTypesService {
     }
 
     return transformedHosts;
+  }
+
+  private transformEmailSettings(metadata: EventTypeMetadata) {
+    if (!metadata?.disableStandardEmails?.all) {
+      return undefined;
+    }
+
+    const { attendee, host } = metadata.disableStandardEmails.all;
+
+    if (attendee !== undefined || host !== undefined) {
+      return {
+        disableEmailsToAttendees: attendee ?? false,
+        disableEmailsToHosts: host ?? false,
+      };
+    }
+
+    return undefined;
   }
 }
 

@@ -1,15 +1,14 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import OrgSettingsAttributesPage from "@calcom/ee/organizations/pages/settings/attributes/attributes-list-view";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import OrgSettingsAttributesPage from "~/ee/organizations/attributes/attributes-list-view";
+
+import { validateUserHasOrg } from "../../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -22,11 +21,7 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-
-  if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
-    return redirect("/settings/profile");
-  }
+  const session = await validateUserHasOrg();
 
   const { canRead, canEdit, canDelete, canCreate } = await getResourcePermissions({
     userId: session.user.id,

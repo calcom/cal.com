@@ -2,6 +2,10 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, useEffect } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
+import {
+  convertToSmallestCurrencyUnit,
+  convertFromSmallestToPresentableCurrencyUnit,
+} from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import classNames from "@calcom/ui/classNames";
@@ -11,10 +15,6 @@ import { CheckboxField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
 
-import {
-  convertToSmallestCurrencyUnit,
-  convertFromSmallestToPresentableCurrencyUnit,
-} from "../../_utils/payments/currencyConversions";
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
 import { autoChargeNoShowFeeTimeUnitEnum } from "../zod";
@@ -170,7 +170,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               <RadioGroup.Root
                 disabled={disabled || paymentOption === "HOLD"}
                 defaultValue="never"
-                className="flex flex-col space-y-2"
+                className="flex flex-col stack-y-2"
                 value={getAppData("refundPolicy")}
                 onValueChange={(val) => {
                   setAppData("refundPolicy", val);

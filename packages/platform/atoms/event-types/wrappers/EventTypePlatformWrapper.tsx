@@ -3,15 +3,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
-import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
-import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
-import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
-import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
-import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
-import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
-import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import type { ChildrenEventType } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+import { EventType as EventTypeComponent } from "@calcom/web/modules/event-types/components/EventType";
+import ManagedEventTypeDialog from "@calcom/web/modules/event-types/components/dialogs/ManagedEventDialog";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -19,6 +14,12 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { EventAdvancedTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
+import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab";
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
+import type { EventLimitsTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/limits/EventLimitsTab";
+import type { EventRecurringTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/recurring/RecurringEventController";
+import type { EventSetupTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
@@ -417,20 +418,22 @@ export const EventTypePlatformWrapper = forwardRef<
   if (!eventTypeQueryData) return null;
 
   return (
-    <EventType
-      {...eventTypeQueryData}
-      id={id}
-      tabs={tabs}
-      onSuccess={onSuccess}
-      onError={onError}
-      onDeleteSuccess={onDeleteSuccess}
-      onDeleteError={onDeleteError}
-      allowDelete={allowDelete}
-      customClassNames={customClassNames}
-      isDryRun={isDryRun}
-      onFormStateChange={onFormStateChange}
-      ref={ref}
-      disableToasts={disableToasts}
-    />
+    <BookerStoreProvider>
+      <EventType
+        {...eventTypeQueryData}
+        id={id}
+        tabs={tabs}
+        onSuccess={onSuccess}
+        onError={onError}
+        onDeleteSuccess={onDeleteSuccess}
+        onDeleteError={onDeleteError}
+        allowDelete={allowDelete}
+        customClassNames={customClassNames}
+        isDryRun={isDryRun}
+        onFormStateChange={onFormStateChange}
+        ref={ref}
+        disableToasts={disableToasts}
+      />
+    </BookerStoreProvider>
   );
 });

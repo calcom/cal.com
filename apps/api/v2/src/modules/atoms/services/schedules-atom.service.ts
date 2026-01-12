@@ -7,7 +7,7 @@ import { Injectable } from "@nestjs/common";
 import { ScheduleRepository, UpdateScheduleResponse } from "@calcom/platform-libraries/schedules";
 import { updateSchedule } from "@calcom/platform-libraries/schedules";
 import { UpdateAtomScheduleDto } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class SchedulesAtomsService {
@@ -32,8 +32,8 @@ export class SchedulesAtomsService {
     const user = await this.usersRepository.findById(userId);
 
     if (!user?.defaultScheduleId) return null;
-
-    return await ScheduleRepository.findDetailedScheduleById({
+    const scheduleRepo = new ScheduleRepository(this.dbWrite.prisma as unknown as PrismaClient);
+    return await scheduleRepo.findDetailedScheduleById({
       scheduleId: scheduleId ?? user.defaultScheduleId,
       isManagedEventType,
       userId,

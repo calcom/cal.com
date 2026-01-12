@@ -8,13 +8,13 @@ import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
-import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import DisconnectIntegration from "@calcom/web/modules/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -115,8 +115,8 @@ export const AppPage = ({
 
   const handleAppInstall = () => {
     if (isRedirectApp(slug)) {
-      setIsLoading(true);
-      mutation.mutate({ type, variant, slug });
+      // For redirect apps, open the external URL directly
+      if (website) window.open(website, "_blank", "noopener,noreferrer");
       return;
     }
     setIsLoading(true);
@@ -145,9 +145,9 @@ export const AppPage = ({
     useGrouping: false,
   }).format(price);
 
-  const [existingCredentials, setExistingCredentials] = useState<
-    NonNullable<typeof appDbQuery.data>["credentials"]
-  >([]);
+  type Credentials = RouterOutputs["viewer"]["apps"]["appCredentialsByType"]["credentials"];
+
+  const [existingCredentials, setExistingCredentials] = useState<Credentials>([]);
 
   /**
    * Marks whether the app is installed for all possible teams and the user.
@@ -160,13 +160,21 @@ export const AppPage = ({
     function refactorMeWithoutEffect() {
       const data = appDbQuery.data;
 
-      const credentialsCount = data?.credentials.length || 0;
-      setExistingCredentials(data?.credentials || []);
+      const credentials = data?.credentials || [];
+      setExistingCredentials(credentials);
+
+      const hasPersonalInstall = credentials.some((c) => !!c.userId && !c.teamId);
+      const installedTeamIds = new Set<number>();
+      for (const cred of credentials) {
+        if (cred.teamId) installedTeamIds.add(cred.teamId);
+      }
+
+      const totalInstalledTargets = (hasPersonalInstall ? 1 : 0) + installedTeamIds.size;
 
       const appInstalledForAllTargets =
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? credentialsCount >= data.userAdminTeams.length
-          : credentialsCount > 0;
+          ? totalInstalledTargets >= data.userAdminTeams.length + 1
+          : credentials.length > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
     [appDbQuery.data, availableForTeams]
@@ -176,8 +184,7 @@ export const AppPage = ({
     enabled: !!dependencies,
   });
 
-  const disableInstall =
-    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+  const disableInstall = dependencyData.data ? dependencyData.data.some((dependency) => !dependency.installed) : false;
 
   // const disableInstall = requiresGCal && !gCalInstalled.data;
 
@@ -189,6 +196,7 @@ export const AppPage = ({
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run only once on mount
   }, []);
 
   const installOrDisconnectAppButton = () => {
@@ -244,7 +252,14 @@ export const AppPage = ({
               loading: isLoading,
             };
           }
-          return <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />;
+
+          return (
+            <InstallAppButtonChild
+              credentials={availableForTeams ? undefined : appDbQuery.data?.credentials}
+              paid={paid}
+              {...props}
+            />
+          );
         }}
       />
     );
@@ -300,6 +315,7 @@ export const AppPage = ({
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- external app screenshots with unknown dimensions
                 <img
                   key={descriptionItem}
                   src={descriptionItem}
@@ -321,12 +337,13 @@ export const AppPage = ({
         <div className="mb-8 flex pt-4">
           <header>
             <div className="mb-4 flex items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element -- external app logo with unknown dimensions */}
               <img
                 className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
                 src={logo}
                 alt={name}
               />
-              <h1 className="font-cal text-emphasis ml-4 text-3xl">{name}</h1>
+              <h1 className="font-heading text-emphasis ml-4 text-3xl">{name}</h1>
             </div>
             <h2 className="text-default text-sm font-medium">
               <Link
@@ -360,6 +377,21 @@ export const AppPage = ({
           </header>
         </div>
         {installOrDisconnectAppButton()}
+
+        {slug === "msteams" && (
+          <div className="bg-info mt-4 rounded-md px-4 py-3">
+            <div className="items-start space-x-2.5">
+              <div className="text-info flex items-start">
+                <div>
+                  <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                </div>
+                <div>
+                  <span className="font-semibold">{t("msteams_calendar_warning_body")}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {dependencies &&
           (!dependencyData.isPending ? (
@@ -467,7 +499,7 @@ export const AppPage = ({
           )}
         </ul>
         <hr className="border-subtle my-8 border" />
-        <span className="leading-1 text-subtle block text-xs">
+        <span className="text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>

@@ -15,12 +15,12 @@ import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/c
 import { Switch } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 
+import * as Connect from "../../connect";
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
 import { useDeleteCalendarCredentials } from "../../hooks/calendars/useDeleteCalendarCredentials";
 import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelectedCalendar";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
-import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
@@ -161,7 +161,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                               )}>
                               {t("toggle_calendars_conflict")}
                             </p>
-                            <ul className="space-y-4 px-5 py-4">
+                            <ul className="stack-y-4 px-5 py-4">
                               {connectedCalendar.calendars?.map((cal) => {
                                 return (
                                   <PlatformCalendarSwitch
@@ -192,7 +192,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                         message={<span>{connectedCalendar.error?.message || t("calendar_error")}</span>}
                         iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                         actions={
-                          !Boolean(connectedCalendar.delegationCredentialId) && (
+                          !connectedCalendar.delegationCredentialId && (
                             <div className="flex w-32 justify-end">
                               <PlatformDisconnectIntegration
                                 credentialId={connectedCalendar.credentialId}
@@ -277,7 +277,7 @@ const PlatformDisconnectIntegration = (props: {
         description: t("app_removed_successfully"),
       });
       setModalOpen(false);
-      onSuccess && onSuccess();
+      if (onSuccess) onSuccess();
     },
     onError: () => {
       toast({
@@ -290,7 +290,7 @@ const PlatformDisconnectIntegration = (props: {
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={async () => {
-        !props.isDryRun && setModalOpen(false);
+        if (!props.isDryRun) setModalOpen(false);
 
         if (props.isDryRun) {
           toast({
@@ -412,7 +412,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Google" })}
               loadingLabel={t("add_calendar_label", { calendar: "Google" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -425,7 +425,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Outlook" })}
               loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -438,7 +438,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
         </div>

@@ -1,6 +1,8 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
+"use client";
+
 import type { Dispatch, SetStateAction } from "react";
 
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
@@ -52,7 +54,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const fieldIdentifier = getFieldIdentifier(field);
         return (
           <div key={field.id} className="block flex-col sm:flex ">
-            <div className="min-w-48 mb-2 flex-grow">
+            <div className="min-w-48 mb-2 grow">
               <label id="slug-label" htmlFor="slug" className="text-default flex text-sm font-medium">
                 {field.label}
               </label>

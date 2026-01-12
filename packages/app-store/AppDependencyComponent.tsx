@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -13,15 +12,17 @@ export const AppDependencyComponent = ({
   dependencyData,
 }: {
   appName: string;
-  dependencyData: RouterOutputs["viewer"]["apps"]["queryForDependencies"];
+  dependencyData?: { name: string; slug: string; installed: boolean }[];
 }) => {
   const { t } = useLocale();
+
+  const hasUnmetDependencies = dependencyData ? dependencyData.some((dep) => !dep.installed) : false;
 
   return (
     <div
       className={classNames(
         "rounded-md px-4 py-3",
-        dependencyData && dependencyData.some((dependency) => !dependency.installed) ? "bg-info" : "bg-subtle"
+        hasUnmetDependencies ? "bg-error" : "bg-subtle"
       )}>
       {dependencyData &&
         dependencyData.map((dependency) => {
@@ -51,9 +52,9 @@ export const AppDependencyComponent = ({
             </div>
           ) : (
             <div className="items-start space-x-2.5">
-              <div className="text-info flex items-start">
+              <div className="text-error flex items-start">
                 <div>
-                  <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                  <Icon name="circle-x" className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -63,13 +64,12 @@ export const AppDependencyComponent = ({
                       interpolation: { escapeValue: false },
                     })}
                   </span>
-
                   <div>
                     <div>
                       <>
                         <Link
                           href={`${WEBAPP_URL}/apps/${dependency.slug}`}
-                          className="text-info flex items-center underline">
+                          className="text-error flex items-center underline">
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
                           </span>

@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getTeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
@@ -11,7 +12,6 @@ import { Resource, CrudAction, Scope } from "@calcom/features/pbac/domain/types/
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -49,6 +49,19 @@ const getCachedResourcePermissions = (userId: number, teamId: number, resource: 
     },
     [`resource-permissions-for-team-roles-${userId}-${teamId}-${resource}`],
     { revalidate: 3600, tags: [`resource-permissions-${teamId}`] }
+  );
+
+const getCachedTeamPrivacy = (teamId: number) =>
+  unstable_cache(
+    async () => {
+      const team = await prisma.team.findUnique({
+        where: { id: teamId },
+        select: { isPrivate: true },
+      });
+      return team?.isPrivate ?? false;
+    },
+    [`team-privacy-${teamId}`],
+    { revalidate: 3600, tags: [`team-privacy-${teamId}`] }
   );
 
 const getCachedTeam = (teamId: string, userId: number) =>
@@ -111,9 +124,10 @@ const Page = async ({
 
   roleSearchParamsCache.parse(searchParams);
 
-  const [roles, rolePermissions] = await Promise.all([
+  const [roles, rolePermissions, isPrivate] = await Promise.all([
     getCachedTeamRoles(team.id)(),
     getCachedResourcePermissions(session.user.id, team.id, Resource.Role)(),
+    getCachedTeamPrivacy(team.id)(),
   ]);
 
   // NOTE: this approach of fetching permssions per resource does not account for fall back roles.
@@ -153,6 +167,7 @@ const Page = async ({
         initialSelectedRole={selectedRole}
         initialSheetOpen={isSheetOpen}
         scope={Scope.Team}
+        isPrivate={isPrivate}
       />
     </SettingsHeader>
   );

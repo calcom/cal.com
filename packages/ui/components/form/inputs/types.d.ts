@@ -21,7 +21,7 @@ export type InputFieldProps<Translations extends Record<string, string> = object
   placeholder?: string;
   dataTestid?: string;
   noLabel?: boolean;
-  onClickAddon?: () => void;
+  onClickAddon?: (e: React.MouseEvent<HTMLDivElement>) => void;
 } & InputProps & {
     labelProps?: React.ComponentProps<typeof Label>;
     labelClassName?: string;

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
@@ -14,7 +14,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -40,6 +39,7 @@ import {
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
 } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 
@@ -70,6 +70,7 @@ describe("Managed user bookings 2024-08-13", () => {
 
   let firstManagedUserEventTypeId: number;
   let eventTypeRequiresConfirmationId: number;
+  let seatedEventTypeId: number;
 
   const orgAdminManagedUserEmail = `managed-user-bookings-2024-08-13-org-admin-${randomString()}@api.com`;
   let orgAdminManagedUser: CreateManagedUserData;
@@ -307,6 +308,20 @@ describe("Managed user bookings 2024-08-13", () => {
       firstManagedUser.user.id
     );
     eventTypeRequiresConfirmationId = eventTypeRequiresConfirmation.id;
+  });
+
+  it("should create a seated event type for first managed user", async () => {
+    const seatedEventType = await eventTypesRepositoryFixture.create(
+      {
+        title: `managed-user-bookings-seated-event-type-${randomString()}`,
+        slug: `managed-user-bookings-seated-event-type-${randomString()}`,
+        length: 30,
+        seatsPerTimeSlot: 5,
+        seatsShowAttendees: true,
+      },
+      firstManagedUser.user.id
+    );
+    seatedEventTypeId = seatedEventType.id;
   });
 
   describe("bookings using original emails", () => {
@@ -609,6 +624,91 @@ describe("Managed user bookings 2024-08-13", () => {
     });
   });
 
+  describe("displayEmail fields", () => {
+    it("should return displayEmail without CUID suffix for host", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 10, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "External Attendee",
+          email: "external-display-email-test@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // Host email should have CUID, displayEmail should not
+      expect(bookingData.hosts[0].email).toEqual(firstManagedUser.user.email);
+      expect(bookingData.hosts[0].displayEmail).toEqual(firstManagedUserEmail);
+    });
+
+    it("should return displayEmail without CUID suffix for attendee", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 10, 30, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: secondManagedUser.user.name!,
+          email: secondManagedUser.user.email,
+          timeZone: secondManagedUser.user.timeZone,
+          language: secondManagedUser.user.locale,
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // Attendee email should have CUID, displayEmail should not
+      expect(bookingData.attendees[0].email).toEqual(secondManagedUser.user.email);
+      expect(bookingData.attendees[0].displayEmail).toEqual(secondManagedUserEmail);
+
+      // bookingFieldsResponses should also have displayEmail
+      expect(bookingData.bookingFieldsResponses.email).toEqual(secondManagedUser.user.email);
+      expect(bookingData.bookingFieldsResponses.displayEmail).toEqual(secondManagedUserEmail);
+    });
+
+    it("should return displayGuests without CUID suffix", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 11, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "External Attendee",
+          email: "external-display-guests-test@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        guests: [secondManagedUser.user.email],
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // guests should have CUID, displayGuests should not
+      expect(bookingData.bookingFieldsResponses.guests).toContain(secondManagedUser.user.email);
+      expect(bookingData.bookingFieldsResponses.displayGuests).toContain(secondManagedUserEmail);
+    });
+  });
+
   describe("booking confirmation by org admin", () => {
     it("should allow org admin managed user to confirm booking using access token", async () => {
       const bookingRequiringConfirmation = await bookingsRepositoryFixture.create({
@@ -770,6 +870,107 @@ describe("Managed user bookings 2024-08-13", () => {
         .expect(401);
 
       await userRepositoryFixture.delete(regularUser.id);
+    });
+  });
+
+  describe("seated booking management by org admin", () => {
+    let seatedBookingUid: string;
+
+    it("should create a seated booking with multiple attendees", async () => {
+      const bodyOne: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: secondManagedUser.user.name!,
+          email: secondManagedUser.user.email,
+          timeZone: secondManagedUser.user.timeZone,
+          language: secondManagedUser.user.locale,
+        },
+      };
+
+      const responseOne = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bodyOne)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const responseBodyForFirstAttendee: ApiSuccessResponse<BookingOutput_2024_08_13> = responseOne.body;
+      expect(responseBodyForFirstAttendee.status).toEqual(SUCCESS_STATUS);
+      expect(responseBodyForFirstAttendee.data).toBeDefined();
+
+      const bookingDataForFirstAttendee = responseBodyForFirstAttendee.data as BookingOutput_2024_08_13;
+      seatedBookingUid = bookingDataForFirstAttendee.uid;
+      expect(bookingDataForFirstAttendee.attendees).toBeDefined();
+      expect(bookingDataForFirstAttendee.attendees.length).toBeGreaterThan(0);
+
+      const bodyTwo: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: thirdManagedUser.user.name!,
+          email: thirdManagedUser.user.email,
+          timeZone: thirdManagedUser.user.timeZone,
+          language: thirdManagedUser.user.locale,
+        },
+      };
+
+      const responseTwo = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bodyTwo)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const responseBodyForSecondAttendee: ApiSuccessResponse<BookingOutput_2024_08_13> = responseTwo.body;
+      expect(responseBodyForSecondAttendee.status).toEqual(SUCCESS_STATUS);
+      expect(responseBodyForSecondAttendee.data).toBeDefined();
+
+      const bookingDataForSecondAttendee = responseBodyForSecondAttendee.data as BookingOutput_2024_08_13;
+      expect(bookingDataForSecondAttendee.attendees).toBeDefined();
+      expect(bookingDataForSecondAttendee.attendees.length).toBeGreaterThan(0);
+    });
+
+    it("should allow org admin to reschedule all seats in a seated booking for a managed user", async () => {
+      const newStartTime = new Date(Date.UTC(2030, 0, 10, 11, 0, 0)).toISOString();
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${seatedBookingUid}/reschedule`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .send({
+          start: newStartTime,
+        })
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<BookingOutput_2024_08_13> = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const bookingData = responseBody.data as BookingOutput_2024_08_13;
+      expect(bookingData.start).toEqual(newStartTime);
+
+      seatedBookingUid = bookingData.uid;
+    });
+
+    it("should allow org admin to cancel all seats in a seated booking for a managed user", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${seatedBookingUid}/cancel`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .send({
+          cancellationReason: "Org admin cancelled the booking",
+        })
+        .expect(200);
+
+      const responseBody: GetBookingOutput_2024_08_13 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const bookingData = responseBody.data as BookingOutput_2024_08_13;
+      expect(bookingData.status).toEqual("cancelled");
+      expect(bookingData.uid).toEqual(seatedBookingUid);
+
+      const cancelledBooking = await bookingsRepositoryFixture.getByUid(seatedBookingUid);
+      expect(cancelledBooking?.status).toEqual("CANCELLED");
     });
   });
 

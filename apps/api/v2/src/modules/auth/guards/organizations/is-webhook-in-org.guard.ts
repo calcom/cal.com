@@ -4,7 +4,7 @@ import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
-import { Team } from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
 
 type CachedData = {
   org?: Team;
@@ -43,7 +43,7 @@ export class IsWebhookInOrg implements CanActivate {
       }
     }
 
-    const org = await this.organizationsRepository.findById(Number(organizationId));
+    const org = await this.organizationsRepository.findById({ id: Number(organizationId) });
 
     if (org?.isOrganization) {
       const isWebhookInOrg = await this.organizationsWebhooksRepository.findWebhook(

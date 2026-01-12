@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -17,13 +16,13 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 
 import { CtaRow } from "~/settings/billing/billing-view";
+import Shell from "~/shell/Shell";
 
 declare global {
   interface Window {
-    Plain?: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      init: (config: any) => void;
+    Support?: {
       open: () => void;
+      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }
@@ -31,16 +30,18 @@ declare global {
 export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
-  const returnTo = pathname;
-  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
-
-  const onContactSupportClick = async () => {
-    if (window.Plain) {
-      window.Plain.open();
-    }
-  };
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
     useGetUserAttributes();
+
+  const returnTo = pathname;
+  const teamId = `teamId=${userOrgId}`;
+  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}&${teamId}`;
+
+  const onContactSupportClick = async () => {
+    if (window.Support) {
+      window.Support.open();
+    }
+  };
 
   const { mutateAsync: removeTeamSubscription, isPending: isRemoveTeamSubscriptionLoading } =
     useUnsubscribeTeamToStripe({
@@ -88,7 +89,7 @@ export default function PlatformBillingUpgrade() {
         subtitle={t("manage_billing_description")}
         isPlatformUser={true}>
         <>
-          <div className="border-subtle space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
+          <div className="border-subtle stack-y-6 sm:stack-y-8 rounded-lg border px-6 py-8 text-sm">
             <CtaRow
               title={t("view_and_manage_billing_details")}
               description={t("view_and_edit_billing_details")}>

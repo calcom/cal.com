@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "Schedule a chat with your guests or have a WhatsApp Video call.",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

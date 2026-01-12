@@ -1,8 +1,9 @@
-import { CredentialRepository } from "../../../lib/server/repository/credential";
-import { EventTypeService } from "../../../lib/server/service/eventTypeService";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+
 import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import SalesforceCRMService from "./CrmService";
 import { SalesforceRecordEnum, RoutingReasons } from "./enums";
+import { EventTypeService } from "./eventTypeService";
 
 const routingFormBookingFormHandler = async (
   attendeeEmail: string,

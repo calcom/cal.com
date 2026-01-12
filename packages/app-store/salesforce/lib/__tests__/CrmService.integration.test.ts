@@ -6,8 +6,6 @@
  *
  * CrmService.test.ts could still focus on testing detailed edge cases as needed.
  */
-import "../../../../../tests/libs/__mocks__/prisma";
-
 import jsforce from "@jsforce/jsforce-node";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -41,12 +39,12 @@ vi.mock("@calcom/lib/constants", () => {
 vi.mock("@jsforce/jsforce-node", () => {
   return {
     default: {
-      Connection: vi.fn().mockImplementation(() => ({})),
+      Connection: vi.fn().mockImplementation(function() { return {}; }),
     },
   };
 });
 
-vi.mock("@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
   checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
 }));
 
@@ -118,13 +116,15 @@ describe("SalesforceCRMService", () => {
     // Override jsforce mock with our custom mock
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Not full implementation of jsforce.Connection
-    vi.mocked(jsforce.Connection).mockImplementation(() => ({
-      ...salesforceMock.mockConnection,
-      version: "1.0",
-      loginUrl: "https://test.salesforce.com",
-      instanceUrl: "https://test.salesforce.com",
-      accessToken: "123",
-    }));
+    vi.mocked(jsforce.Connection).mockImplementation(function() {
+      return {
+        ...salesforceMock.mockConnection,
+        version: "1.0",
+        loginUrl: "https://test.salesforce.com",
+        instanceUrl: "https://test.salesforce.com",
+        accessToken: "123",
+      };
+    });
   });
 
   describe("createOnLeadAndSearchOnAccount", () => {
@@ -210,7 +210,7 @@ describe("SalesforceCRMService", () => {
           Website: "https://anything",
         });
 
-        const contact = salesforceMock.addContact({
+        const _contact = salesforceMock.addContact({
           // Contact doesn't have the matching email
           Email: contactEmail,
           FirstName: "Test",
@@ -250,7 +250,7 @@ describe("SalesforceCRMService", () => {
         const contactOwnerEmail = "contact-owner@acme.com";
         const leadOwnerEmail = "lead-owner@acme.com";
         const lookingForEmail = "test1@example.com";
-        const contactEmail = "test2@example.com";
+        const _contactEmail = "test2@example.com";
 
         const account = salesforceMock.addAccount({
           Id: "test-account-id",
@@ -271,7 +271,7 @@ describe("SalesforceCRMService", () => {
           },
         });
 
-        const lead = salesforceMock.addLead({
+        const _lead = salesforceMock.addLead({
           // Lead has the matching email
           Email: lookingForEmail,
           FirstName: "Test",
