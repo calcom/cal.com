@@ -148,7 +148,7 @@ jobs:
             
             const prompt = `You are analyzing open community pull requests in the Cal.com repository (${owner}/${repo}) to assign priority labels.
 
-            Your task is to analyze each PR below and add the appropriate priority label using the GitHub CLI.
+            Your task is to analyze each PR below and add the appropriate priority label using the GitHub REST API.
 
             Priority Guidelines:
             - High priority: Critical bug fixes, security issues, features blocking users, PRs linked to high-priority/urgent issues, changes to core functionality (auth, billing, bookings, payments)
@@ -167,7 +167,11 @@ jobs:
 
             Instructions:
             1. For each PR listed above, analyze it based on the guidelines
-            2. Add the appropriate priority label using: gh pr edit <PR_NUMBER> --add-label "<PRIORITY_LABEL>" --repo ${owner}/${repo}
+            2. Add the appropriate priority label using the GitHub REST API with curl:
+               curl -X POST "https://api.github.com/repos/${owner}/${repo}/issues/<PR_NUMBER>/labels" \\
+                 -H "Authorization: Bearer $DEVIN_ACTIONS_PAT" \\
+                 -H "Accept: application/vnd.github+json" \\
+                 -d '{"labels":["<PRIORITY_LABEL>"]}'
             3. The label names are exactly: "High priority", "Medium priority", or "Low priority"
             4. After labeling each PR, briefly log why you chose that priority level
             5. Process all PRs one by one until complete
