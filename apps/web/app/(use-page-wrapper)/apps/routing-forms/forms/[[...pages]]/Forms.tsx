@@ -305,7 +305,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="_delete"
                                       routingForm={form}
                                       color="destructive"
-                                      className="w-full"
+                                      className="w-full rounded-t-none"
                                       StartIcon="trash">
                                       {t("delete")}
                                     </FormAction>
