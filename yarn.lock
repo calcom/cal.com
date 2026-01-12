@@ -2828,6 +2828,7 @@ __metadata:
     "@formbricks/api": "npm:1.7.0"
     "@formbricks/js": "npm:2.1.0"
     "@sendgrid/client": "npm:7.7.0"
+    "@trigger.dev/sdk": "npm:4.1.2"
     "@unkey/ratelimit": "npm:2.1.3"
     "@vercel/og": "npm:0.6.3"
     city-timezones: "npm:1.2.1"
