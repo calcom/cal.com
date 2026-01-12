@@ -71,9 +71,9 @@ const emailReminderTemplate = ({
     "date_and_time"
   )}: </strong></div>${eventDate} - ${endTime} (${timeZone})<br><br>`;
 
-  const attendeeHtml = `<div><strong class="editor-text-bold">${t("attendees")}: </strong></div>${t(
-    "you_and_conjunction"
-  )} ${otherPerson}<br><br>`;
+  const attendeeHtml = `<div><strong class="editor-text-bold">${t(
+    "attendees"
+  )}: </strong></div>${t("you_and_conjunction")} ${otherPerson}<br><br>`;
 
   const locationHtml = `<div><strong class="editor-text-bold">${t(
     "location"
