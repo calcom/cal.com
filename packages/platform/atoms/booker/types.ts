@@ -119,13 +119,12 @@ type SlotInfo = {
   away?: boolean;
   fromUser?: {
     id: number;
-    name: string | null;
-    username: string | null;
+    displayName: string | null;
   };
   toUser?: {
     id: number;
-    name: string | null;
     username: string | null;
+    displayName: string | null;
   };
   reason?: string;
   emoji?: string;
