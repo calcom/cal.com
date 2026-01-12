@@ -1,16 +1,17 @@
+import process from "node:process";
+import { withSentryConfig } from "@sentry/nextjs";
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
-
 import i18nConfig from "./next-i18next.config";
 import packageJson from "./package.json";
 import {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
-  orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
+  orgUserTypeRoutePath,
 } from "./pagesAndRewritePaths";
 
 dotenvConfig({ path: "../../.env" });
@@ -137,6 +138,25 @@ plugins.push(withAxiom);
 
 if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
   plugins.push(withBotId);
+}
+
+const sentryTracesSampleRate = parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? "0.0") || 0.0;
+const isSentryEnabled =
+  process.env.NODE_ENV === "production" &&
+  process.env.NEXT_PUBLIC_SENTRY_DSN &&
+  sentryTracesSampleRate > 0;
+
+if (isSentryEnabled) {
+  plugins.push((config) =>
+    withSentryConfig(config, {
+      silent: !process.env.SENTRY_DEBUG,
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      widenClientFileUpload: true,
+      disableLogger: true,
+    })
+  );
 }
 
 interface OrgDomainMatcher {
