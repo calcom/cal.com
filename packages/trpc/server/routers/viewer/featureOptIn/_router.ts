@@ -45,6 +45,44 @@ async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | n
   return { orgId, teamIds };
 }
 
+type UserRoleContext = {
+  isOrgAdmin: boolean;
+  orgId: number | null;
+  adminTeamIds: number[];
+  adminTeamNames: { id: number; name: string }[];
+};
+
+/**
+ * Helper to get user's role context for feature opt-in banner.
+ * Returns whether user is org admin and which teams they are admin of.
+ */
+async function getUserRoleContext(userId: number): Promise<UserRoleContext> {
+  const memberships = await MembershipRepository.findAllByUserId({
+    userId,
+    filters: { accepted: true },
+  });
+
+  let isOrgAdmin = false;
+  let orgId: number | null = null;
+
+  for (const membership of memberships) {
+    const isAdmin = membership.role === "ADMIN" || membership.role === "OWNER";
+
+    if (membership.team.isOrganization) {
+      orgId = membership.teamId;
+      if (isAdmin) {
+        isOrgAdmin = true;
+      }
+    }
+  }
+
+  const adminTeams = await teamRepository.findOwnedTeamsByUserId({ userId });
+  const adminTeamIds = adminTeams.map((team) => team.id);
+  const adminTeamNames = adminTeams.map((team) => ({ id: team.id, name: team.name }));
+
+  return { isOrgAdmin, orgId, adminTeamIds, adminTeamNames };
+}
+
 export const featureOptInRouter = router({
   /**
    * Get all opt-in features with states for current user.
@@ -82,6 +120,88 @@ export const featureOptInRouter = router({
     // Pass scope: "org" to filter features that are scoped to organizations
     return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId, scope: "org" });
   }),
+
+  /**
+   * Check if user is eligible to see the feature opt-in banner.
+   * Returns eligibility status and user role context for the confirmation dialog.
+   */
+  checkFeatureOptInEligibility: authedProcedure
+    .input(
+      z.object({
+        featureId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (!isOptInFeature(input.featureId)) {
+        return {
+          status: "invalid_feature" as const,
+          canOptIn: false,
+          userRoleContext: null,
+          blockingReason: null,
+        };
+      }
+
+      const { orgId, teamIds } = await getUserOrgAndTeamIds(ctx.user.id);
+      const resolvedStates = await featureOptInService.resolveFeatureStatesAcrossTeams({
+        userId: ctx.user.id,
+        orgId,
+        teamIds,
+        featureIds: [input.featureId],
+      });
+
+      const featureState = resolvedStates[input.featureId];
+      if (!featureState) {
+        return {
+          status: "invalid_feature" as const,
+          canOptIn: false,
+          userRoleContext: null,
+          blockingReason: null,
+        };
+      }
+
+      if (!featureState.globalEnabled) {
+        return {
+          status: "feature_disabled" as const,
+          canOptIn: false,
+          userRoleContext: null,
+          blockingReason: "feature_global_disabled",
+        };
+      }
+
+      if (featureState.effectiveEnabled) {
+        return {
+          status: "already_enabled" as const,
+          canOptIn: false,
+          userRoleContext: null,
+          blockingReason: null,
+        };
+      }
+
+      const userRoleContext = await getUserRoleContext(ctx.user.id);
+
+      const blockingReasons = [
+        "feature_org_disabled",
+        "feature_all_teams_disabled",
+        "feature_any_team_disabled",
+        "feature_user_only_not_allowed",
+      ];
+
+      if (blockingReasons.includes(featureState.effectiveReason)) {
+        return {
+          status: "blocked" as const,
+          canOptIn: false,
+          userRoleContext,
+          blockingReason: featureState.effectiveReason,
+        };
+      }
+
+      return {
+        status: "can_opt_in" as const,
+        canOptIn: true,
+        userRoleContext,
+        blockingReason: null,
+      };
+    }),
 
   /**
    * Set user's feature state.
