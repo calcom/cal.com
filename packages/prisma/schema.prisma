@@ -621,6 +621,10 @@ model Team {
 
   autoOptInFeatures Boolean @default(false)
 
+  // Monthly proration tracking
+  seatChangeLogs    SeatChangeLog[]
+  monthlyProrations MonthlyProration[]
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -3149,5 +3153,6 @@ model AttributeSyncFieldMapping {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([integrationAttributeSyncId, attributeId])
   @@index([integrationAttributeSyncId])
 }

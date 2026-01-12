@@ -3114,6 +3114,7 @@
   "attribute_sync_user_filter_rules_description": "Define which users to sync based on team membership or attributes",
   "attribute_sync_field_mappings": "Field Mappings",
   "attribute_sync_duplicate_field_mapping": "Duplicate field name and attribute combination found",
+  "attribute_sync_duplicate_attribute_mapping": "Each attribute can only be mapped once",
   "attribute_sync_field_mappings_description": "Map integration field names to Cal.com attributes for syncing",
   "attribute_sync_created_successfully": "Attribute sync created successfully",
   "attribute_sync_updated_successfully": "Attribute sync updated successfully",

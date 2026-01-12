@@ -1,4 +1,8 @@
 import { getIntegrationAttributeSyncService } from "@calcom/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
+import {
+  DuplicateAttributeWithinSyncError,
+  DuplicateAttributeAcrossSyncsError,
+} from "@calcom/ee/integration-attribute-sync/services/IntegrationAttributeSyncService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -12,7 +16,10 @@ type CreateAttributeSyncOptions = {
   input: ZCreateAttributeSyncSchema;
 };
 
-const createAttributeSyncHandler = async ({ ctx, input }: CreateAttributeSyncOptions) => {
+const createAttributeSyncHandler = async ({
+  ctx,
+  input,
+}: CreateAttributeSyncOptions) => {
   const org = ctx.user.organization;
 
   if (!org?.id) {
@@ -25,12 +32,29 @@ const createAttributeSyncHandler = async ({ ctx, input }: CreateAttributeSyncOpt
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
   try {
-    return await integrationAttributeSyncService.createAttributeSync(input, org.id);
+    return await integrationAttributeSyncService.createAttributeSync(
+      input,
+      org.id
+    );
   } catch (error) {
     if (error instanceof Error && error.message === "Credential not found") {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Credential not found",
+      });
+    }
+    if (error instanceof DuplicateAttributeWithinSyncError) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Each attribute can only be mapped once per sync. Please remove duplicate attribute mappings.",
+      });
+    }
+    if (error instanceof DuplicateAttributeAcrossSyncsError) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "An attribute is already mapped in another sync. Each attribute can only be synced from one source.",
       });
     }
     throw error;

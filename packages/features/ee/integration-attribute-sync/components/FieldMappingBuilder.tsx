@@ -27,9 +27,10 @@ interface MappingRowProps {
   onRemove: () => void;
   attributeOptions: AttributeOptions;
   isLoading?: boolean;
+  error?: string;
 }
 
-const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading }: MappingRowProps) => {
+const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading, error }: MappingRowProps) => {
   const { t } = useLocale();
 
   const selectedAttribute = attributeOptions.find((opt) => opt.value === mapping.attributeId);
@@ -57,44 +58,48 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading }
   };
 
   return (
-    <div className="bg-default border-subtle flex flex-wrap items-center gap-3 rounded-lg border p-3">
-      <div className="flex-1" style={{ minWidth: "200px" }}>
-        <Input
-          type="text"
-          value={mapping.integrationFieldName}
-          onChange={handleFieldNameChange}
-          disabled={isLoading}
-          placeholder={t("attribute_sync_field_placeholder")}
-          className="h-7 text-sm"
-        />
-      </div>
+    <div>
+      <div
+        className={`bg-default border-subtle flex flex-wrap items-center gap-3 rounded-lg border p-3 ${error ? "border-red-500" : ""}`}>
+        <div className="flex-1" style={{ minWidth: "200px" }}>
+          <Input
+            type="text"
+            value={mapping.integrationFieldName}
+            onChange={handleFieldNameChange}
+            disabled={isLoading}
+            placeholder={t("attribute_sync_field_placeholder")}
+            className="h-7 text-sm"
+          />
+        </div>
 
-      <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+        <Icon name="arrow-right" className="text-subtle h-4 w-4" />
 
-      <div className="flex-1" style={{ minWidth: "200px" }}>
-        <Select
+        <div className="flex-1" style={{ minWidth: "200px" }}>
+          <Select
+            size="sm"
+            placeholder={t("attribute_sync_select_attribute")}
+            options={attributeOptions}
+            value={selectedAttribute}
+            onChange={handleAttributeChange}
+            isLoading={isLoading}
+            isDisabled={isLoading}
+            className="w-full"
+          />
+        </div>
+
+        <Switch checked={mapping.enabled} onCheckedChange={handleEnabledChange} disabled={isLoading} />
+
+        <Button
+          color="minimal"
           size="sm"
-          placeholder={t("attribute_sync_select_attribute")}
-          options={attributeOptions}
-          value={selectedAttribute}
-          onChange={handleAttributeChange}
-          isLoading={isLoading}
-          isDisabled={isLoading}
-          className="w-full"
+          StartIcon="trash-2"
+          onClick={onRemove}
+          disabled={isLoading}
+          className="text-subtle hover:text-default"
+          aria-label={t("remove")}
         />
       </div>
-
-      <Switch checked={mapping.enabled} onCheckedChange={handleEnabledChange} disabled={isLoading} />
-
-      <Button
-        color="minimal"
-        size="sm"
-        StartIcon="trash-2"
-        onClick={onRemove}
-        disabled={isLoading}
-        className="text-subtle hover:text-default"
-        aria-label={t("remove")}
-      />
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );
 };
@@ -106,6 +111,22 @@ export const FieldMappingBuilder = ({
   isLoadingAttributes,
 }: FieldMappingBuilderProps) => {
   const { t } = useLocale();
+
+  // Find indices of rows with duplicate attribute mappings
+  const duplicateIndices = new Set<number>();
+  const seenAttributes = new Map<string, number>(); // attributeId -> first index
+  value.mappings.forEach((mapping, index) => {
+    if (mapping.attributeId) {
+      const firstIndex = seenAttributes.get(mapping.attributeId);
+      if (firstIndex !== undefined) {
+        // Mark both the first occurrence and current as duplicates
+        duplicateIndices.add(firstIndex);
+        duplicateIndices.add(index);
+      } else {
+        seenAttributes.set(mapping.attributeId, index);
+      }
+    }
+  });
 
   const handleAddMapping = () => {
     onChange({
@@ -151,6 +172,11 @@ export const FieldMappingBuilder = ({
               onRemove={() => handleRemoveMapping(index)}
               attributeOptions={attributeOptions}
               isLoading={isLoadingAttributes}
+              error={
+                duplicateIndices.has(index)
+                  ? t("attribute_sync_duplicate_attribute_mapping")
+                  : undefined
+              }
             />
           ))
         )}
