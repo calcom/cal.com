@@ -72,6 +72,8 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
     allowUpdatingUrlParams: true,
     verificationCode: null,
     setVerificationCode: vi.fn(),
+    isEnableTwoStepSlotSelectionVisible: false,
+    setIsEnableTwoStepSlotSelectionVisible: vi.fn(),
     ...initialState,
   };
 
