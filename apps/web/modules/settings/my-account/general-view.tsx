@@ -371,7 +371,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
         />
         <TravelScheduleModal
           open={isTZScheduleOpen}
-          onOpenChange={() => setIsTZScheduleOpen(false)}
+          onOpenChange={setIsTZScheduleOpen}
           setValue={formMethods.setValue}
           existingSchedules={formMethods.getValues("travelSchedules") ?? []}
         />
