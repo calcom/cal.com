@@ -246,9 +246,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             placeholder={placeholder}
             size={size}
             className={classNames(
-              "w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",
+              "w-full min-w-0 truncate focus:outline-none focus:ring-0",
               "text-default rounded-lg text-sm font-medium leading-none",
-              "placeholder:text-muted disabled:cursor-not-allowed disabled:bg-transparent",
+              "placeholder:text-muted disabled:cursor-not-allowed",
               addOnLeading && "rounded-none pl-0.5 pr-0",
               addOnSuffix && !addOnLeading && "pl-0.5",
               className
