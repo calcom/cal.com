@@ -9,7 +9,9 @@ import {
   X_CAL_PLATFORM_EMBED,
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-import type { ValidationError } from "@nestjs/common";
+  if (!process.env.VERCEL) {
+    app.enableShutdownHooks();
+  }
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
