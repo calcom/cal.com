@@ -5,6 +5,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZEditInputSchema } from "./edit.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZHasNoShowForEventTypeInputSchema } from "./hasNoShowForEventType.schema";
 import { ZListInputSchema } from "./list.schema";
 import { ZTestTriggerInputSchema } from "./testTrigger.schema";
 import { createWebhookPbacProcedure } from "./util";
@@ -17,6 +18,7 @@ type WebhookRouterHandlerCache = {
   delete?: typeof import("./delete.handler").deleteHandler;
   testTrigger?: typeof import("./testTrigger.handler").testTriggerHandler;
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
+  hasNoShowForEventType?: typeof import("./hasNoShowForEventType.handler").hasNoShowForEventTypeHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WebhookRouterHandlerCache = {};
@@ -150,4 +152,24 @@ export const webhookRouter = router({
       });
     }
   ),
+
+  hasNoShowForEventType: createWebhookPbacProcedure("webhook.read", ["ADMIN", "OWNER", "MEMBER"])
+    .input(ZHasNoShowForEventTypeInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.hasNoShowForEventType) {
+        UNSTABLE_HANDLER_CACHE.hasNoShowForEventType = await import("./hasNoShowForEventType.handler").then(
+          (mod) => mod.hasNoShowForEventTypeHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.hasNoShowForEventType) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.hasNoShowForEventType({
+        ctx,
+        input,
+      });
+    }),
 });

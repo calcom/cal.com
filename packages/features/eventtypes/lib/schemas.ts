@@ -13,6 +13,8 @@ type CalVideoSettings =
       disableTranscriptionForGuests?: boolean | null;
       disableTranscriptionForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
+      enableAutomaticNoShowTrackingForHosts?: boolean | null;
+      enableAutomaticNoShowTrackingForGuests?: boolean | null;
       requireEmailForGuests?: boolean | null;
     }
   | null
@@ -27,6 +29,8 @@ const calVideoSettingsSchema: z.ZodType<CalVideoSettings> = z
     disableTranscriptionForGuests: z.boolean().nullish(),
     disableTranscriptionForOrganizer: z.boolean().nullish(),
     redirectUrlOnExit: z.string().url().nullish(),
+    enableAutomaticNoShowTrackingForHosts: z.boolean().nullish(),
+    enableAutomaticNoShowTrackingForGuests: z.boolean().nullish(),
     requireEmailForGuests: z.boolean().nullish(),
   })
   .optional()
