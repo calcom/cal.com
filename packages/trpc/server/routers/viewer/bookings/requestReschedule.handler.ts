@@ -5,6 +5,7 @@ import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/de
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
+import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
@@ -115,6 +116,28 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     cancelledBy: user.email,
   });
 
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  const auditTeamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: bookingToReschedule.eventType?.teamId ?? null },
+      parentId: bookingToReschedule.eventType?.parentId ?? null,
+    },
+  });
+  const auditTriggerForUser = !auditTeamId || (auditTeamId && bookingToReschedule.eventType?.parentId);
+  const auditUserId = auditTriggerForUser ? bookingToReschedule.userId : null;
+  const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
+  const auditData: RescheduleRequestedAuditData = {
+    rescheduleReason: cancellationReason ?? null,
+    rescheduledRequestedBy: user.email,
+  };
+  await bookingEventHandlerService.onRescheduleRequested({
+    bookingUid: bookingToReschedule.uid,
+    actor: makeUserActor(user.uuid),
+    organizationId: auditOrgId ?? null,
+    auditData,
+    source: "WEBAPP",
+  });
+
   // delete scheduled jobs of previous booking
   const webhookPromises = [];
   webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
@@ -171,10 +194,10 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: bookingToReschedule.eventType?.team
       ? {
-          name: bookingToReschedule.eventType.team.name,
-          id: bookingToReschedule.eventType.team.id,
-          members: [],
-        }
+        name: bookingToReschedule.eventType.team.name,
+        id: bookingToReschedule.eventType.team.id,
+        members: [],
+      }
       : undefined,
   });
 
@@ -309,16 +332,4 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     })
   );
   await Promise.all(promises);
-
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  await bookingEventHandlerService.onRescheduleRequested({
-    bookingUid: bookingToReschedule.uid,
-    actor: makeUserActor(user.uuid),
-    organizationId: orgId ?? null,
-    source,
-    auditData: {
-      rescheduleReason: cancellationReason ?? null,
-      rescheduledRequestedBy: user.email,
-    },
-  });
 };

@@ -275,6 +275,7 @@ export class BookingsController_2024_04_15 {
           platformCancelUrl: bookingRequest.platformCancelUrl,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
           platformBookingUrl: bookingRequest.platformBookingUrl,
+          actionSource: "API_V2" as const,
         });
         if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
@@ -311,6 +312,7 @@ export class BookingsController_2024_04_15 {
         noShowHost: body.noShowHost,
         userId: user.id,
         userUuid: user.uuid,
+        actionSource: "API_V2" as const,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };

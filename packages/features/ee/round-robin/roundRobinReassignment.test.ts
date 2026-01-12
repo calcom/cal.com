@@ -164,6 +164,9 @@ describe("roundRobinReassignment test", () => {
 
     await roundRobinReassignment({
       bookingId: 123,
+      orgId: null,
+      reassignedById: 1,
+      reassignedByUuid: "test-uuid-1",
     });
 
     expect(eventManagerSpy).toBeCalledTimes(1);
@@ -276,6 +279,9 @@ describe("roundRobinReassignment test", () => {
 
     await roundRobinReassignment({
       bookingId: 123,
+      orgId: null,
+      reassignedById: 1,
+      reassignedByUuid: "test-uuid-1",
     });
 
     expect(eventManagerSpy).toBeCalledTimes(1);

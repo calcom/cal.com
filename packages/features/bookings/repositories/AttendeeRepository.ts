@@ -2,11 +2,6 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import type { IAttendeeRepository } from "./IAttendeeRepository";
 
-/**
- * Prisma-based implementation of IAttendeeRepository
- *
- * This repository provides methods for looking up attendee information.
- */
 export class AttendeeRepository implements IAttendeeRepository {
   constructor(private prismaClient: PrismaClient) {}
 

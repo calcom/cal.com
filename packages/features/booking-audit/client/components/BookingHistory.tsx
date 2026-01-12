@@ -252,13 +252,13 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                             <span>
                                                 {log.actor.displayName}
                                                 {actorRole && <span>{` (${t(actorRole)})`}</span>}
-                                            </span>
+                                            </span >
                                             <span>•</span>
                                             <span>{dayjs(log.timestamp).fromNow()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                        </div >
+                                    </div >
+                                </div >
+                            </div >
 
                             <div className="px-3">
                                 <div className="bg-muted rounded-lg border border-muted">
@@ -327,11 +327,11 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                     )}
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </div >
+                    </div >
                 );
             })}
-        </div>
+        </div >
     );
 }
 

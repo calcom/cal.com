@@ -70,6 +70,9 @@ type PlatformParams = {
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
+  /**
+   * @deprecated Use userUuid instead
+   */
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
@@ -101,12 +104,9 @@ function getAuditActor({
         bookingUid,
       })
     );
-    // Having fallback prefix makes it clear that we created guest actor from fallback logic
     actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "fallback" }), actorType: "guest" });
   }
   else {
-    // We can't trust cancelledByEmail and thus can't reuse it as is because it can be set anything by anyone. If we use that as guest actor, we could accidentally attribute the action to the wrong guest actor.
-    // Having param prefix makes it clear that we created guest actor from query param and we still don't use the email as is.
     actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "param" }), actorType: "guest" });
   }
 
@@ -129,6 +129,7 @@ async function handler(input: CancelBookingInput) {
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
     userId,
+    userUuid,
     platformBookingUrl,
     platformCancelUrl,
     platformClientId,
@@ -136,19 +137,19 @@ async function handler(input: CancelBookingInput) {
     arePlatformEmailsEnabled,
   } = input;
 
-  const userUuid = input.userUuid ?? null;
+  const userUuidValue = userUuid ?? null;
 
   // Extract action source once for reuse
   const actionSource = input.actionSource ?? "UNKNOWN";
   if (actionSource === "UNKNOWN") {
     log.warn("Booking cancellation with unknown actionSource", safeStringify({
       bookingUid: bookingToDelete.uid,
-      userUuid,
+      userUuid: userUuidValue,
     }));
   }
 
   const actorToUse = getAuditActor({
-    userUuid,
+    userUuid: userUuidValue,
     cancelledByEmailInQueryParam: cancelledBy ?? null,
     bookingUid: bookingToDelete.uid,
   });

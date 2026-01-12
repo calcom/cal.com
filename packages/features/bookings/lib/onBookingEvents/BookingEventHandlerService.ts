@@ -97,9 +97,6 @@ export class BookingEventHandlerService {
   async onBookingRescheduled(params: OnBookingRescheduledParams) {
     const { payload, actor, auditData, source, operationId, context } = params;
     this.log.debug("onBookingRescheduled", safeStringify(payload));
-    if (payload.config.isDryRun) {
-      return;
-    }
     await this.onBookingCreatedOrRescheduled(payload);
 
     await this.bookingAuditProducerService.queueRescheduledAudit({
@@ -354,6 +351,56 @@ export class BookingEventHandlerService {
       source,
       operationId,
       context,
+    });
+  }
+
+  async onBulkBookingsCreated(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: CreatedAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+  }) {
+    const { bookings, actor, organizationId, operationId, source } = params;
+    await this.bookingAuditProducerService.queueBulkCreatedAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
+    });
+  }
+
+  /**
+   * Handles bulk booking rescheduling for recurring bookings
+   * Creates a single task that will be processed to create multiple audit logs atomically
+   */
+  async onBulkBookingsRescheduled(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: RescheduledAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+  }) {
+    const { bookings, actor, organizationId, operationId, source } = params;
+    await this.bookingAuditProducerService.queueBulkRescheduledAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
     });
   }
 }

@@ -3,6 +3,7 @@ import type { JsonValue } from "@calcom/types/Json";
 import logger from "@calcom/lib/logger";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 
 import type { PiiFreeActor, BookingAuditContext } from "../dto/types";
 import type {
@@ -22,6 +23,7 @@ interface BookingAuditTaskConsumerDeps {
     auditActorRepository: IAuditActorRepository;
     featuresRepository: IFeaturesRepository;
     userRepository: UserRepository;
+    bookingRepository: BookingRepository;
 }
 
 type CreateBookingAuditInput = {
@@ -78,7 +80,7 @@ export class BookingAuditTaskConsumer {
         this.userRepository = deps.userRepository;
 
         // Centralized registry for all action services
-        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
+        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository, bookingRepository: deps.bookingRepository });
     }
 
     /**

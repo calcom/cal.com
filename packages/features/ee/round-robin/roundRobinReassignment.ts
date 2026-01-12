@@ -12,6 +12,7 @@ import {
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -19,7 +20,9 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -47,16 +50,28 @@ export const roundRobinReassignment = async ({
   emailsEnabled = true,
   platformClientParams,
   reassignedById,
+  reassignedByUuid,
+  actionSource = "UNKNOWN",
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   reassignedById: number;
+  reassignedByUuid: string;
+  actionSource?: ActionSource;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
+
+  if (actionSource === "UNKNOWN") {
+    roundRobinReassignLogger.warn("Round robin reassignment called with unknown actionSource", {
+      bookingId,
+      reassignedById,
+      reassignedByUuid,
+    });
+  }
 
   roundRobinReassignLogger.info(`User ${reassignedById} initiating round robin reassignment`);
 
@@ -101,14 +116,14 @@ export const roundRobinReassignment = async ({
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-        groupId: null,
-      }));
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0), // use earliest possible date as fallback
+      groupId: null,
+    }));
 
   if (eventType.hosts.length === 0) {
     throw new Error(ErrorCode.EventTypeNoHosts);
@@ -246,6 +261,10 @@ export const roundRobinReassignment = async ({
 
     newBookingTitle = getEventName(eventNameObject);
 
+    const oldUserId = booking.userId;
+    const oldEmail = booking.user?.email || "";
+    const oldTitle = booking.title;
+
     booking = await prisma.booking.update({
       where: {
         id: bookingId,
@@ -259,10 +278,26 @@ export const roundRobinReassignment = async ({
           startTime: booking.startTime,
           endTime: booking.endTime,
           userId: reassignedRRHost.id,
-          reassignedById,
+          reassignedById: reassignedById,
         }),
       },
       select: bookingSelect,
+    });
+
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    await bookingEventHandlerService.onReassignment({
+      bookingUid: booking.uid,
+      actor: makeUserActor(reassignedByUuid),
+      organizationId: orgId,
+      auditData: {
+        assignedToId: { old: oldUserId, new: reassignedRRHost.id },
+        assignedById: { old: null, new: reassignedById },
+        reassignmentReason: { old: null, new: "Round robin reassignment" },
+        reassignmentType: "roundRobin",
+        userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
+        title: { old: oldTitle, new: newBookingTitle },
+      },
+      source: actionSource,
     });
   } else {
     const previousRRHostAttendee = booking.attendees.find(
@@ -299,10 +334,10 @@ export const roundRobinReassignment = async ({
   // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: originalOrganizer.id,
-        },
-      })
+      where: {
+        userId: originalOrganizer.id,
+      },
+    })
     : null;
 
   const evt: CalendarEvent = {
@@ -349,6 +384,7 @@ export const roundRobinReassignment = async ({
     // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
     evt.iCalUID = undefined;
   }
+
   const credentials = await prisma.credential.findMany({
     where: {
       userId: organizer.id,

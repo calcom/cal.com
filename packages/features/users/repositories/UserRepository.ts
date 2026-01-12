@@ -985,6 +985,7 @@ export class UserRepository {
       },
     });
   }
+
   async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await this.prismaClient.user.findUnique({
       where: {
