@@ -1,6 +1,8 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -38,7 +40,16 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     });
   }
 
-  if (membership.role !== MembershipRole.OWNER && membership.role !== MembershipRole.ADMIN) {
+  const team = await TeamService.fetchTeamOrThrow(teamId);
+  const permissionService = new PermissionCheckService();
+  const hasManageBillingPermission = await permissionService.checkPermission({
+    userId: ctx.user.id,
+    teamId,
+    permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
+  if (!hasManageBillingPermission) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Only team owners and admins can view subscription status",
@@ -46,9 +57,7 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
   }
 
   try {
-    const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
-      role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] },
-    });
+    const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id);
 
     const team = teams.find((t) => t.id === teamId);
 
