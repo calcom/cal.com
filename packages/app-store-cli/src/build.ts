@@ -561,7 +561,7 @@ function generateFiles() {
     ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
-    const filePath = `${APP_STORE_PATH}/${fileName}`;
+    const filePath = path.join(APP_STORE_PATH, fileName);
     fs.writeFileSync(filePath, formatOutput(`${banner}${output.join("\n")}`));
     formatFileWithBiome(filePath);
   });
