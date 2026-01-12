@@ -147,7 +147,7 @@ export default function EventTypeDetail() {
   const [eventDescription, setEventDescription] = useState(description || "");
   const [eventSlug, setEventSlug] = useState(slug || "");
   const [eventDuration, setEventDuration] = useState(duration || "30");
-  const [username, _setUsername] = useState("username");
+  const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
   const [_locationAddress, setLocationAddress] = useState("");
@@ -854,6 +854,18 @@ export default function EventTypeDetail() {
     fetchEventTypeData();
     fetchConferencingOptions();
   }, [fetchConferencingOptions, fetchEventTypeData]);
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const userUsername = await CalComAPIService.getUsername();
+        setUsername(userUsername);
+      } catch (error) {
+        safeLogError("Failed to fetch username:", error);
+      }
+    };
+    fetchUsername();
+  }, []);
 
   const formatTime = (time: string) => {
     // Handle different time formats that might come from the API
