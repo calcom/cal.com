@@ -1,5 +1,5 @@
 import type { IncomingHttpHeaders } from "node:http";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -32,10 +32,8 @@ describe("BotDetectionService", () => {
   let mockHeaders: IncomingHttpHeaders;
 
   beforeEach(() => {
-    // Reset all mocks before each test
     vi.clearAllMocks();
 
-    // Setup mock repositories
     mockFeaturesRepository = {
       checkIfTeamHasFeature: vi.fn(),
     } as unknown as FeaturesRepository;
@@ -50,14 +48,15 @@ describe("BotDetectionService", () => {
     };
 
     botDetectionService = new BotDetectionService(mockFeaturesRepository, mockEventTypeRepository);
+  });
 
-    // Reset environment variable
-    delete process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER;
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   describe("checkBotDetection", () => {
     it("should return early if BotID is not enabled at instance level", async () => {
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "0";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "0");
 
       await botDetectionService.checkBotDetection({
         eventTypeId: 123,
@@ -68,7 +67,7 @@ describe("BotDetectionService", () => {
     });
 
     it("should return early if no eventTypeId is provided", async () => {
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "1");
 
       await botDetectionService.checkBotDetection({
         headers: mockHeaders,
@@ -78,7 +77,7 @@ describe("BotDetectionService", () => {
     });
 
     it("should throw ErrorWithCode for invalid eventTypeId", async () => {
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "1");
 
       await expect(
         botDetectionService.checkBotDetection({
@@ -113,7 +112,7 @@ describe("BotDetectionService", () => {
     });
 
     it("should return early if event type has no teamId", async () => {
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "1");
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: null,
       });
@@ -127,7 +126,7 @@ describe("BotDetectionService", () => {
     });
 
     it("should return early if BotID feature is not enabled for the team", async () => {
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "1");
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: 456,
       });
@@ -144,7 +143,7 @@ describe("BotDetectionService", () => {
     });
 
     it("should throw HttpError when a bot is detected", async () => {
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "1");
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: 456,
       });
@@ -177,7 +176,7 @@ describe("BotDetectionService", () => {
     });
 
     it("should pass when a human is detected", async () => {
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "1");
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: 456,
       });
@@ -204,7 +203,7 @@ describe("BotDetectionService", () => {
 
     it("should check feature flag with correct teamId", async () => {
       const teamId = 789;
-      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+      vi.stubEnv("NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER", "1");
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId,
       });
