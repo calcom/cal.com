@@ -63,6 +63,11 @@ export function CreateButton(props: CreateBtnProps) {
   const hasTeams = !!options.find((option) => option.teamId);
   const platform = !!options.find((option) => option.platform);
   const hasMultipleOptions = options.length > 1;
+  const isFabVariant = !disableMobileButton;
+  // On FAB variant, EndIcon shows as "plus" on mobile, so we remove StartIcon to avoid duplicate
+  // On button variant, both icons work correctly
+  const startIcon = isFabVariant && hasMultipleOptions ? undefined : "plus";
+  const endIcon = hasMultipleOptions ? "chevron-down" : undefined;
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
@@ -95,8 +100,8 @@ export function CreateButton(props: CreateBtnProps) {
               : null
           }
           data-testid="create-button"
-          StartIcon="plus"
-          EndIcon={hasMultipleOptions ? "chevron-down" : undefined}
+          StartIcon={startIcon}
+          EndIcon={endIcon}
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           className={classNames(
@@ -112,8 +117,8 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon="plus"
-              EndIcon={hasMultipleOptions ? "chevron-down" : undefined}
+              StartIcon={startIcon}
+              EndIcon={endIcon}
               size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
