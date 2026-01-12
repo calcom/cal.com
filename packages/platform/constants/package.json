@@ -1,12 +1,11 @@
 {
   "name": "@calcom/platform-constants",
   "version": "0.0.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./index.ts",
+  "types": "./index.ts",
   "private": true,
-  "scripts": {
-    "build": "tsc --build --force tsconfig.json",
-    "build:watch": "tsc --build --force ./tsconfig.json --watch",
-    "post-install": "yarn build"
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*.ts"
   }
 }
