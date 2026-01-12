@@ -24,7 +24,7 @@ export const topLevelRoutesExcludedFromOrgRewrite: string[] = globSync(
   }
 )
   .map((filename) =>
-    filename
+    filename.split("\\").join("/")
       // Remove the directory prefix (pages/, app/ and route group folders.)
       .replace(
         /^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|app\/\(booking-page-wrapper\)|pages|app)\//,
