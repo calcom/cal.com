@@ -99,6 +99,11 @@
       "import": "./dist/pbac.js",
       "require": "./dist/pbac.cjs",
       "types": "./dist/pbac.d.ts"
+    },
+    "./errors": {
+      "import": "./dist/errors.js",
+      "require": "./dist/errors.cjs",
+      "types": "./dist/errors.d.ts"
     }
   },
   "typesVersions": {
@@ -138,6 +143,9 @@
       ],
       "pbac": [
         "dist/pbac.d.ts"
+      ],
+      "errors": [
+        "dist/errors.d.ts"
       ]
     }
   }

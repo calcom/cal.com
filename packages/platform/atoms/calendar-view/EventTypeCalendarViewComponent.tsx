@@ -11,7 +11,7 @@ import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/componen
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useTimezoneChangeDetection } from "@calcom/features/bookings/Booker/components/hooks/useTimezoneChangeDetection";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
+import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 

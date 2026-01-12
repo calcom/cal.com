@@ -19,6 +19,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+
 export { slugify } from "@calcom/lib/slugify";
 export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
@@ -53,7 +54,6 @@ export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/f
 export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
-export { HttpError } from "@calcom/lib/http-error";
 
 export { MINUTES_TO_BOOK, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 
@@ -80,8 +80,6 @@ export { getTranslation };
 
 export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
-
-export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 
@@ -138,3 +136,12 @@ export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 export { getTasker } from "@calcom/features/tasker/tasker-factory";
 export type { Tasker } from "@calcom/features/tasker/tasker";
+
+export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
+
+export { verifyCodeChallenge } from "@calcom/lib/pkce";
+export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+export { OAuthService } from "@calcom/features/oauth/services/OAuthService";
+
+export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+export type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
