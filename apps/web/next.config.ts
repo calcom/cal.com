@@ -140,10 +140,11 @@ if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
   plugins.push(withBotId);
 }
 
+const sentryTracesSampleRate = parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? "0.0");
 const isSentryEnabled =
   process.env.NODE_ENV === "production" &&
   process.env.NEXT_PUBLIC_SENTRY_DSN &&
-  process.env.SENTRY_TRACES_SAMPLE_RATE;
+  sentryTracesSampleRate > 0;
 
 if (isSentryEnabled) {
   plugins.push((config) =>
