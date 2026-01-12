@@ -20,11 +20,13 @@ export function List(props: ListProps) {
       className={classNames(
         "mx-0 rounded-sm sm:overflow-hidden ",
         // Add rounded top and bottom if roundContainer is true
-        props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
+        props.roundContainer &&
+          "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
         !props.noBorderTreatment &&
           "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
         props.className
-      )}>
+      )}
+    >
       {props.children}
     </ul>
   );
@@ -56,13 +58,7 @@ export function ListItem(props: ListItemProps) {
     props.children
   );
 
-  return href ? (
-    <Link href={href}>
-      {element}
-    </Link>
-  ) : (
-    element
-  );
+  return href ? <Link href={href}>{element}</Link> : element;
 }
 
 export type ListLinkItemProps = {
@@ -93,17 +89,22 @@ export function ListLinkItem(props: ListLinkItemProps) {
     <li
       data-testid="list-link-item"
       className={classNames(
-        "group flex w-full items-center justify-between p-5 pb-4",
+        // Mobile: stack content vertically to look like a card; larger screens keep previous alignment
+        "group relative w-full flex flex-col items-start justify-between p-5 pb-4 sm:flex-row sm:items-center",
         className,
         disabled ? "hover:bg-cal-muted" : ""
-      )}>
+      )}
+    >
       <Link
         passHref
         href={href}
         className={classNames(
-          "text-default grow truncate text-sm",
+          // Ensure the link block takes full width on mobile so badges/actions can drop below
+          // Add padding-right so absolute actions don't overlap text on mobile
+          "text-default grow truncate text-sm w-full pr-24 sm:pr-0",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
-        )}>
+        )}
+      >
         <div className="flex items-center">
           <h1 className="text-sm font-semibold leading-none">{heading}</h1>
           {readOnly && (
@@ -116,39 +117,50 @@ export function ListLinkItem(props: ListLinkItemProps) {
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>
-        <div className="mt-2">{children}</div>
+        <div className="mt-2 flex flex-col items-start gap-2 w-full">
+          {children}
+        </div>
       </Link>
-      {actions}
+      {/* On mobile, place actions at the top-right; on larger screens keep inline on the right */}
+      <div className="flex flex-col items-end justify-start gap-2 sm:flex-row sm:items-center sm:gap-2 sm:static sm:mt-0 sm:w-auto sm:pl-4 w-auto absolute right-5  top-3 z-10">
+        {actions}
+      </div>
     </li>
   );
 }
 
-export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "span">(
-  props: JSX.IntrinsicElements[TComponent] & { component?: TComponent }
-) {
+export function ListItemTitle<
+  TComponent extends keyof JSX.IntrinsicElements = "span"
+>(props: JSX.IntrinsicElements[TComponent] & { component?: TComponent }) {
   const { component = "span", ...passThroughProps } = props;
 
   return createElement(
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm font-medium text-emphasis truncate", props.className),
+      className: classNames(
+        "text-sm font-medium text-emphasis truncate",
+        props.className
+      ),
       "data-testid": "list-item-title",
     },
     props.children
   );
 }
 
-export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "span">(
-  props: JSX.IntrinsicElements[TComponent] & { component?: TComponent }
-) {
+export function ListItemText<
+  TComponent extends keyof JSX.IntrinsicElements = "span"
+>(props: JSX.IntrinsicElements[TComponent] & { component?: TComponent }) {
   const { component = "span", ...passThroughProps } = props;
 
   return createElement(
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm text-subtle truncate prose", props.className),
+      className: classNames(
+        "text-sm text-subtle truncate prose",
+        props.className
+      ),
       "data-testid": "list-item-text",
     },
     props.children
