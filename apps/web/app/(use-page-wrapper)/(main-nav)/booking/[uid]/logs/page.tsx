@@ -11,7 +11,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import BookingLogsView from "~/booking/logs/views/booking-logs-view";
+import { BookingHistoryPage } from "@calcom/features/booking-audit/client/components/BookingHistoryPage";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ uid: string }> }) =>
     await _generateMetadata(
@@ -39,7 +39,7 @@ const Page = async ({ params }: PageProps) => {
 
     return (
         <ShellMainAppDir heading={t("booking_history")} subtitle={t("booking_history_description")}>
-            <BookingLogsView bookingUid={bookingUid} />
+            <BookingHistoryPage bookingUid={bookingUid} />
         </ShellMainAppDir>
     );
 };

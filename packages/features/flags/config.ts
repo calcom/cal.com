@@ -34,8 +34,17 @@ export type AppFlags = {
   "booking-email-sms-tasker": boolean;
   "bookings-v3": boolean;
   "booking-audit": boolean;
+  "sidebar-tips": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;
 
+/**
+ * Explicit state for API/UI layer.
+ * - "enabled": row with enabled = true
+ * - "disabled": row with enabled = false
+ * - "inherit": no row
+ */
 export type FeatureState = "enabled" | "disabled" | "inherit";
+
+export type FeatureId = keyof AppFlags;

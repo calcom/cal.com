@@ -5,7 +5,7 @@ import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "r
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
+import { Booker as BookerComponent } from "@calcom/web/modules/bookings/components/Booker";
 import {
   BookerStoreProvider,
   useInitializeBookerStoreContext,
