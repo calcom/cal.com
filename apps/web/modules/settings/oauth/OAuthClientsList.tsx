@@ -34,10 +34,11 @@ export const OAuthClientsList = ({
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle rounded-lg border">
+    <div className="border-subtle rounded-lg border" data-testid="oauth-clients-list">
       {clients.map((client, index) => (
         <div
           key={client.clientId}
+          data-testid={`oauth-client-list-item-${client.clientId}`}
           className={`hover:bg-subtle flex cursor-pointer items-center justify-between p-4 transition-colors ${
             index !== clients.length - 1 ? "border-subtle border-b" : ""
           }`}

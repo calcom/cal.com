@@ -284,6 +284,7 @@ export const OAuthClientDetailsDialog = ({
       <DialogContent enableOverflow type="creation"> 
         {client ? (
           <form
+            data-testid="oauth-client-details-form"
             className="space-y-4"
             onSubmit={form.handleSubmit((values) => {
               if (!canEdit) return;
@@ -313,7 +314,9 @@ export const OAuthClientDetailsDialog = ({
             <div>
               <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
               <div className="flex">
-                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
+                <code
+                  data-testid="oauth-client-details-client-id"
+                  className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                   {client.clientId}
                 </code>
                 <Tooltip side="top" content={t("copy_to_clipboard")}> 
@@ -348,6 +351,7 @@ export const OAuthClientDetailsDialog = ({
                       type="button"
                       color="destructive"
                       StartIcon="trash"
+                      data-testid="oauth-client-details-delete-trigger"
                       loading={isDeletePending}
                       className="w-auto"
                       onClick={() => setIsDeleteConfirmOpen(true)}>
@@ -357,14 +361,20 @@ export const OAuthClientDetailsDialog = ({
                       <ConfirmationDialogContent
                         variety="danger"
                         title={t("delete_oauth_client")}
-                        confirmBtnText={t("delete")}
                         cancelBtnText={t("cancel")}
                         isPending={isDeletePending}
-                        loadingText={t("deleting")}
-                        onConfirm={() => {
-                          if (!client) return;
-                          onDelete?.(client.clientId);
-                        }}>
+                        confirmBtn={
+                          <DialogClose
+                            data-testid="oauth-client-details-delete-confirm"
+                            color="primary"
+                            loading={isDeletePending}
+                            onClick={() => {
+                              if (!client) return;
+                              onDelete?.(client.clientId);
+                            }}>
+                            {isDeletePending ? t("deleting") : t("delete")}
+                          </DialogClose>
+                        }>
                         <p className="mb-4">{t("confirm_delete_oauth_client")}</p>
                       </ConfirmationDialogContent>
                     </Dialog>
@@ -376,7 +386,7 @@ export const OAuthClientDetailsDialog = ({
             <DialogFooter className="mt-6">
               {showAdminActions ? (
                 <div className="flex w-full items-center justify-end gap-2">
-                  <DialogClose color="minimal">{t("close")}</DialogClose>
+                  <DialogClose color="minimal" data-testid="oauth-client-details-close">{t("close")}</DialogClose>
                   {showReject ? (
                     <Button
                       type="button"
@@ -406,14 +416,14 @@ export const OAuthClientDetailsDialog = ({
                 </div>
               ) : canEdit ? (
                 <div className="flex w-full items-center justify-end gap-2">
-                  <DialogClose color="minimal">{t("close")}</DialogClose>
-                  <Button type="submit" loading={isUpdatePending}>
+                  <DialogClose color="minimal" data-testid="oauth-client-details-close">{t("close")}</DialogClose>
+                  <Button type="submit" loading={isUpdatePending} data-testid="oauth-client-details-save">
                     {t("save")}
                   </Button>
                 </div>
               ) : (
                 <div className="flex w-full items-center justify-end">
-                  <DialogClose color="minimal">{t("close")}</DialogClose>
+                  <DialogClose color="minimal" data-testid="oauth-client-details-close">{t("close")}</DialogClose>
                 </div>
               )}
             </DialogFooter>

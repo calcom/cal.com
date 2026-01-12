@@ -125,6 +125,7 @@ export const OAuthClientFormFields = ({
         <Label className="text-emphasis mb-2 block text-sm font-medium">{t("authentication_mode")}</Label>
         <div className="flex items-center space-x-3">
           <Switch
+            data-testid="oauth-client-pkce-toggle"
             checked={form.watch("enablePkce")}
             onCheckedChange={(checked) => form.setValue("enablePkce", checked)}
             disabled={isFormDisabled || isPkceLocked}
@@ -148,6 +149,7 @@ export const OAuthClientFormFields = ({
                 target="avatar"
                 id="avatar-upload"
                 buttonMsg={t("upload_logo")}
+                testId="oauth-client-logo"
                 handleAvatarChange={(newLogo: string) => {
                   setLogo(newLogo);
                   form.setValue("logo", newLogo);

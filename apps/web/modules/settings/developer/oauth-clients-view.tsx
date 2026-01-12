@@ -122,6 +122,7 @@ const OAuthClientsView = () => {
       StartIcon="plus"
       size="sm"
       variant="fab"
+      data-testid="open-oauth-client-create-dialog"
       onClick={() => setShowDialog(true)}>
       {t("new")}
     </Button>

@@ -103,19 +103,20 @@ export const OAuthClientCreateDialog = ({
                 enablePkce: values.enablePkce,
               });
             }}
-            className="space-y-4">
+            className="space-y-4"
+            data-testid="oauth-client-create-form">
             <OAuthClientFormFields form={form} logo={logo} setLogo={setLogo} />
 
             <DialogFooter>
               <DialogClose>{t("close")}</DialogClose>
-              <Button type="submit" loading={isSubmitting}>
+              <Button type="submit" loading={isSubmitting} data-testid="oauth-client-create-submit">
                 {submitLabel}
               </Button>
             </DialogFooter>
           </Form>
         ) : (
           <>
-            <div className="space-y-4">
+            <div className="space-y-4" data-testid="oauth-client-submitted-modal">
               {resultClient.approvalStatus === "PENDING" ? (
                 <div className="flex items-center justify-start">
                   <Badge variant="orange">{t("pending")}</Badge>
@@ -129,7 +130,9 @@ export const OAuthClientCreateDialog = ({
               <div>
                 <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
                 <div className="flex">
-                  <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
+                  <code
+                    data-testid="oauth-client-submitted-client-id"
+                    className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                     {resultClient.clientId}
                   </code>
                   <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -154,7 +157,9 @@ export const OAuthClientCreateDialog = ({
                 <div>
                   <div className="text-subtle mb-1 text-sm">{t("client_secret")}</div>
                   <div className="flex">
-                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
+                    <code
+                      data-testid="oauth-client-submitted-client-secret"
+                      className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                       {resultClient.clientSecret}
                     </code>
                     <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -182,7 +187,7 @@ export const OAuthClientCreateDialog = ({
               ) : null}
             </div>
             <DialogFooter className="mt-6">
-              <Button type="button" onClick={handleClose}>
+              <Button type="button" onClick={handleClose} data-testid="oauth-client-submitted-done">
                 {t("done")}
               </Button>
             </DialogFooter>
