@@ -816,7 +816,8 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  const shouldServeCache = false;
+  // Use "booking" mode to bypass cache for booking confirmation
+  const calendarFetchMode = "booking" as const;
 
   tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
@@ -1023,7 +1024,7 @@ async function handler(
                   originalRescheduledBooking: originalRescheduledBooking ?? null,
                 },
                 tracingLogger,
-                shouldServeCache
+                calendarFetchMode
               );
             }
           }
@@ -1038,7 +1039,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           }
         }
@@ -1057,7 +1058,7 @@ async function handler(
               originalRescheduledBooking,
             },
             tracingLogger,
-            shouldServeCache
+            calendarFetchMode
           );
         } else {
           availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1086,7 +1087,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           } else {
             availableUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1199,7 +1200,7 @@ async function handler(
                       originalRescheduledBooking,
                     },
                     tracingLogger,
-                    shouldServeCache
+                    calendarFetchMode
                   );
                 }
               }
