@@ -124,6 +124,10 @@ const Page = async ({ searchParams }: PageProps) => {
     return redirect(onboardingPath);
   }
 
+  if (!session.user.profile?.upId) {
+    return redirect("/auth/login");
+  }
+
   const t = await getTranslate();
   const filters = getTeamsFiltersFromQuery(_searchParams);
   const userEventGroupsData = await getCachedEventGroups(
