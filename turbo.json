@@ -378,6 +378,7 @@
     },
     "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
       "env": [
         "NODE_ENV",
         "API_PORT",

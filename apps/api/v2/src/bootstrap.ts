@@ -12,7 +12,7 @@ import {
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import * as cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 import { Request } from "express";
 import helmet from "helmet";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
@@ -22,7 +22,9 @@ import { CalendarServiceExceptionFilter } from "./filters/calendar-service-excep
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
-  app.enableShutdownHooks();
+  if (!process.env.VERCEL) {
+    app.enableShutdownHooks();
+  }
   app.enableVersioning({
     type: VersioningType.CUSTOM,
     extractor: (request: unknown) => {

@@ -164,7 +164,7 @@
     {
       "includes": [
         "apps/api/v2/src/config/app.ts",
-        "apps/api/v2/src/config/bootstrap.ts",
+        "apps/api/v2/src/bootstrap.ts",
         "apps/api/v2/src/config/env.ts",
         "apps/api/v2/src/env.ts",
         "apps/api/v2/test/setEnvVars.ts"
@@ -325,9 +325,7 @@
       }
     },
     {
-      "includes": [
-        "packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
-      ],
+      "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
           "style": {
@@ -336,17 +334,11 @@
               "options": {
                 "patterns": [
                   {
-                    "group": [
-                      "@calcom/trpc/react",
-                      "@calcom/trpc/react/**"
-                    ],
+                    "group": ["@calcom/trpc/react", "@calcom/trpc/react/**"],
                     "message": "atoms package should not import from @calcom/trpc/react."
                   },
                   {
-                    "group": [
-                      "../../trpc/react",
-                      "../../trpc/react/**"
-                    ],
+                    "group": ["../../trpc/react", "../../trpc/react/**"],
                     "message": "atoms package should not import from trpc/react."
                   }
                 ]
