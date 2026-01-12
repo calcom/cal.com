@@ -238,12 +238,14 @@ describe("GET /api/event-types/[id]", () => {
       expect(responseData.event_type.bookingFields).toHaveLength(3);
       expect(responseData.event_type.metadata).toBeDefined();
 
-      expect(responseData.event_type.locations[0]).toMatchObject({
+      const locations = responseData.event_type.locations as Array<Record<string, unknown>>;
+      expect(locations[0]).toMatchObject({
         type: "integrations:zoom",
         link: "https://zoom.us/j/123456789",
       });
 
-      expect(responseData.event_type.bookingFields[0]).toMatchObject({
+      const bookingFields = responseData.event_type.bookingFields as Array<Record<string, unknown>>;
+      expect(bookingFields[0]).toMatchObject({
         name: "name",
         type: "name",
         required: true,
@@ -394,19 +396,20 @@ describe("GET /api/event-types/[id]", () => {
 
       expect(responseData.event_type.bookingFields).toHaveLength(3);
 
-      const selectField = responseData.event_type.bookingFields.find(
-        (f: { name: string }) => f.name === "customSelect"
-      );
-      expect(selectField.options).toHaveLength(3);
-      expect(selectField.options[0]).toMatchObject({
+      const bookingFields = responseData.event_type.bookingFields as Array<{
+        name: string;
+        options?: Array<{ label: string; value: string }>;
+        maxLength?: number;
+      }>;
+      const selectField = bookingFields.find((f) => f.name === "customSelect");
+      expect(selectField?.options).toHaveLength(3);
+      expect(selectField?.options?.[0]).toMatchObject({
         label: "Morning",
         value: "morning",
       });
 
-      const textareaField = responseData.event_type.bookingFields.find(
-        (f: { name: string }) => f.name === "customTextarea"
-      );
-      expect(textareaField.maxLength).toBe(500);
+      const textareaField = bookingFields.find((f) => f.name === "customTextarea");
+      expect(textareaField?.maxLength).toBe(500);
     });
 
     test("Returns properly validated event type with team configuration", async () => {
