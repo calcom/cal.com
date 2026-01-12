@@ -120,12 +120,13 @@ export const AvailabilitySettingsWebWrapper = ({
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
       handleSubmit={async ({ dateOverrides, ...values }) => {
-        scheduleId &&
-          updateMutation.mutate({
+        if (scheduleId) {
+          await updateMutation.mutateAsync({
             scheduleId,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
             ...values,
           });
+        }
       }}
       bulkUpdateModalProps={{
         isOpen: isBulkUpdateModalOpen,

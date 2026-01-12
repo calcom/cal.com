@@ -332,19 +332,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       control: form.control,
     });
 
-    const initialValuesRef = useRef<AvailabilityFormValues | null>(null);
-    useEffect(() => {
-      initialValuesRef.current = form.getValues() as AvailabilityFormValues;
-    }, [form, schedule]);
-
-    const formHasChanges = useMemo(() => {
-      if (!initialValuesRef.current) return false;
-      try {
-        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) || JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
-      } catch {
-        return form.formState.isDirty;
-      }
-    }, [watchedValues, form.formState.isDirty]);
+    // Use React Hook Form's built-in isDirty which properly tracks form state
+    const { isDirty } = form.formState;
 
     // Trigger callback whenever the form state changes
     useEffect(() => {
@@ -641,7 +630,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               type="submit"
               form="availability-form"
               loading={isSaving}
-              disabled={isLoading || !formHasChanges}
+              disabled={isLoading || !isDirty}
             >
               {t("save")}
             </Button>
@@ -659,7 +648,10 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             form={form}
             id="availability-form"
             handleSubmit={async (props) => {
-              handleSubmit(props);
+              try {
+                await handleSubmit(props);
+                form.reset(form.getValues());
+              } catch {}
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
             <div className="flex-1">
