@@ -236,18 +236,19 @@ export function Card({
       )}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
-      {variant === "basic" && actionButton && (
-        <div>
-          <Button
-            color="secondary"
-            href={actionButton?.href}
-            className="mt-10"
-            EndIcon="arrow-right"
-            data-testid={actionButton["data-testid"]}>
-            {actionButton?.child}
-          </Button>
-        </div>
-      )}
+            {variant === "basic" && actionButton && (
+              <div>
+                <Button
+                  color="secondary"
+                  href={actionButton?.href}
+                  onClick={actionButton?.onClick}
+                  className="mt-10"
+                  EndIcon="arrow-right"
+                  data-testid={actionButton["data-testid"]}>
+                  {actionButton?.child}
+                </Button>
+              </div>
+            )}
 
       {(variant === "SidebarCard" || variant === "NewLaunchSidebarCard") && (
         <div className="mt-2 flex items-center justify-between">
