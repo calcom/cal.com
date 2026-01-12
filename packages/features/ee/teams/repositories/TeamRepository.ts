@@ -469,7 +469,7 @@ export class TeamRepository {
   }
 
   async findOrganizationIdBySlug({ slug }: { slug: string }): Promise<number | null> {
-    const org = await this.prismaClient.team.findFirst({
+    const org = await this.prismaClient.team.findUnique({
       where: {
         slug,
         parentId: null,
