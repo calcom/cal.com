@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsOptional, IsString, Validate } from "class-validator";
 
 import { WebhookTriggerEvents, WebhookVersion } from "@calcom/platform-libraries";
+
+import { WebhookUrlValidator } from "../validators/webhookUrlValidator";
 
 export class CreateWebhookInputDto {
   @IsString()
@@ -24,6 +26,7 @@ export class CreateWebhookInputDto {
   active!: boolean;
 
   @IsString()
+  @Validate(WebhookUrlValidator)
   @ApiProperty()
   subscriberUrl!: string;
 
