@@ -21,7 +21,11 @@ const {
       properties: { coreApi: { getAll: ReturnType<typeof vi.fn> } };
       contacts: {
         searchApi: { doSearch: ReturnType<typeof vi.fn> };
-        basicApi: { create: ReturnType<typeof vi.fn> };
+        basicApi: {
+          create: ReturnType<typeof vi.fn>;
+          getById: ReturnType<typeof vi.fn>;
+          update: ReturnType<typeof vi.fn>;
+        }; 
       };
       objects: {
         meetings: {
@@ -53,6 +57,8 @@ const {
         },
         basicApi: {
           create: vi.fn(),
+          getById: vi.fn(),
+          update: vi.fn(),
         },
       },
       objects: {
@@ -668,13 +674,24 @@ describe("HubspotCalendarService", () => {
         }
       );
     });
-
-    it("should set hubspot owner when organizer email matches", async () => {
-      mockAppOptions({});
+    it("should set contact owner when setOrganizerAsOwner is enabled and organizer email matches", async () => {
+      mockAppOptions({ setOrganizerAsOwner: true });
 
       // Mock owner lookup - return matching owner
       mockHubspotClient.crm.owners.ownersApi.getPage.mockResolvedValue({
         results: [{ id: "owner-123", email: "organizer@example.com" }],
+      });
+
+      // Mock contact owner lookup - return no existing owner
+      mockHubspotClient.crm.contacts.basicApi.getById.mockResolvedValue({
+        id: "contact-1",
+        properties: { hubspot_owner_id: null },
+      });
+
+      // Mock contact update
+      mockHubspotClient.crm.contacts.basicApi.update.mockResolvedValue({
+        id: "contact-1",
+        properties: { hubspot_owner_id: "owner-123" },
       });
 
       mockHubspotClient.crm.objects.meetings.basicApi.create.mockResolvedValue({
@@ -691,10 +708,15 @@ describe("HubspotCalendarService", () => {
 
       await service.createEvent(event, contacts);
 
-      const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
-      expect(createCall.properties.hubspot_owner_id).toBe("owner-123");
-    });
+      // Verify contact owner was set (not meeting owner)
+      expect(mockHubspotClient.crm.contacts.basicApi.update).toHaveBeenCalledWith("contact-1", {
+        properties: { hubspot_owner_id: "owner-123" },
+      });
 
+      // Verify meeting was created without hubspot_owner_id
+      const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
+      expect(createCall.properties.hubspot_owner_id).toBeUndefined();
+    });
     it("should create meeting successfully when owner lookup fails due to missing scope", async () => {
       mockAppOptions({});
 
