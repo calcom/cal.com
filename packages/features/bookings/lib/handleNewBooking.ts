@@ -614,6 +614,10 @@ async function handler(
     });
     console.log("Existing booking: ", existingBooking);
 
+    if (existingBooking?.status === BookingStatus.CANCELLED) {
+      existingBooking = null;
+    }
+
     if (existingBooking) {
       if (eventType.seatsPerTimeSlot && eventType.seatsPerTimeSlot > 1) {
         existingBookingSeat = await prisma.bookingSeat.findFirst({
