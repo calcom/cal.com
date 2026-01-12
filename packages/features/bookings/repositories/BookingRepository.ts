@@ -9,6 +9,7 @@ import {
   bookingDetailsSelect,
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { BookingMetadata, BookingResponses } from "@calcom/prisma/zod-utils";
 
 type ManagedEventReassignmentCreateParams = {
   uid: string;
@@ -992,9 +993,9 @@ export class BookingRepository {
     where: { id: number };
     data: {
       location: string;
-      metadata: Record<string, unknown>;
+      metadata: BookingMetadata;
       referencesToCreate: Prisma.BookingReferenceCreateInput[];
-      responses?: Record<string, unknown>;
+      responses?: BookingResponses;
       iCalSequence?: number;
     };
   }) {
@@ -1004,9 +1005,7 @@ export class BookingRepository {
       },
       data: {
         location,
-        // FIXME: metadata is untyped
         metadata: metadata as unknown as Prisma.InputJsonValue,
-        // FIXME: responses is untyped
         ...(responses && { responses: responses as unknown as Prisma.InputJsonValue }),
         ...(iCalSequence !== undefined && { iCalSequence }),
         references: {

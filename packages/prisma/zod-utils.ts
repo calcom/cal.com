@@ -527,6 +527,8 @@ export const bookingMetadataSchema = z
   .nullable()
   .describe("BookingMetadata");
 
+export type BookingMetadata = z.infer<typeof bookingMetadataSchema>;
+
 export const customInputOptionSchema = z.array(
   z.object({
     label: z.string(),
