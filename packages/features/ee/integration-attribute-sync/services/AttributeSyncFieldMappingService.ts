@@ -25,13 +25,13 @@ export class AttributeSyncFieldMappingService {
   constructor(private readonly deps: IAttributeSyncFieldMappingServiceDeps) {}
 
   async syncIntegrationFieldsToAttributes({
-    memberId,
-    orgId,
+    userId,
+    organizationId,
     syncFieldMappings,
     integrationFields,
   }: {
-    memberId: number;
-    orgId: number;
+    userId: number;
+    organizationId: number;
     syncFieldMappings: IFieldMapping[];
     integrationFields: Record<string, string>;
   }): Promise<void> {
@@ -42,7 +42,7 @@ export class AttributeSyncFieldMappingService {
     );
 
     if (enabledSyncFieldMappings.length === 0) {
-      log.debug("No enabled mappings with matching integration fields");
+      log.warn("No enabled mappings with matching integration fields");
       return;
     }
 
@@ -51,7 +51,7 @@ export class AttributeSyncFieldMappingService {
     const attributes =
       await this.deps.attributeRepository.findManyByIdsAndOrgIdWithOptions({
         attributeIds,
-        orgId,
+        orgId: organizationId,
       });
 
     const attributeMap = new Map(attributes.map((a) => [a.id, a]));
@@ -62,14 +62,14 @@ export class AttributeSyncFieldMappingService {
         attributeMap,
         integrationFields,
         memberId,
-        orgId,
+        orgId: organizationId,
       });
 
     if (optionsToCreate.length > 0) {
       const newAssignments = await this.createOptionsAndGetAssignments({
         optionsToCreate,
         memberId,
-        orgId,
+        orgId: organizationId,
       });
       assignmentsToCreate.push(...newAssignments);
     }
