@@ -197,7 +197,15 @@ export class EventTypesRepository_2024_06_14 {
         schedule: true,
         destinationCalendar: true,
         calVideoSettings: true,
-        selectedCalendars: true,
+        selectedCalendars: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            userId: true,
+            integration: true,
+            externalId: true,
+          },
+        },
       },
     });
   }

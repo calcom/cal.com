@@ -400,35 +400,54 @@ export class EventTypesService_2024_06_14 {
       return;
     }
 
+    const existingEventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    if (!existingEventType) {
+      throw new NotFoundException(`Event type with ID=${eventTypeId} not found`);
+    }
+    this.checkUserOwnsEventType(userId, existingEventType);
+
     const hasSelectedCalendars = selectedCalendars && selectedCalendars.length > 0;
     const shouldUseEventLevelCalendars = useEventLevelSelectedCalendars ?? hasSelectedCalendars ?? false;
 
-    await this.eventTypesRepository.updateUseEventLevelSelectedCalendars(
-      eventTypeId,
-      shouldUseEventLevelCalendars
+    const userSelectedCalendars = hasSelectedCalendars
+      ? await this.selectedCalendarsRepository.getUserSelectedCalendars(userId)
+      : [];
+
+    const userCalendarMap = new Map(
+      userSelectedCalendars.map((uc) => [`${uc.integration}:${uc.externalId}`, uc])
     );
 
-    if (selectedCalendars !== undefined) {
-      await this.selectedCalendarsRepository.deleteByEventTypeId(eventTypeId);
-
-      if (hasSelectedCalendars) {
-        const userSelectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(userId);
-
-        for (const calendar of selectedCalendars) {
-          const matchingUserCalendar = userSelectedCalendars.find(
-            (uc) => uc.integration === calendar.integration && uc.externalId === calendar.externalId
-          );
-
-          await this.selectedCalendarsRepository.createForEventType(
+    const calendarsToCreate = hasSelectedCalendars
+      ? selectedCalendars.map((calendar) => {
+          const matchingUserCalendar = userCalendarMap.get(`${calendar.integration}:${calendar.externalId}`);
+          return {
             eventTypeId,
             userId,
-            calendar.integration,
-            calendar.externalId,
-            matchingUserCalendar?.credentialId ?? null
-          );
+            integration: calendar.integration,
+            externalId: calendar.externalId,
+            credentialId: matchingUserCalendar?.credentialId ?? null,
+          };
+        })
+      : [];
+
+    await this.dbWrite.prisma.$transaction(async (tx) => {
+      await tx.eventType.update({
+        where: { id: eventTypeId },
+        data: { useEventLevelSelectedCalendars: shouldUseEventLevelCalendars },
+      });
+
+      if (selectedCalendars !== undefined) {
+        await tx.selectedCalendar.deleteMany({
+          where: { eventTypeId },
+        });
+
+        if (calendarsToCreate.length > 0) {
+          await tx.selectedCalendar.createMany({
+            data: calendarsToCreate,
+          });
         }
       }
-    }
+    });
   }
 
   async getEventTypeWithSelectedCalendars(eventTypeId: number, userId: number) {
@@ -437,6 +456,8 @@ export class EventTypesService_2024_06_14 {
     if (!eventType) {
       return null;
     }
+
+    this.checkUserOwnsEventType(userId, eventType);
 
     return {
       ownerId: userId,

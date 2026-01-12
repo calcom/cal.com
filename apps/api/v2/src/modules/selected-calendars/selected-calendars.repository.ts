@@ -135,6 +135,13 @@ export class SelectedCalendarsRepository {
       where: {
         eventTypeId,
       },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
+        integration: true,
+        externalId: true,
+      },
     });
   }
 
@@ -152,6 +159,13 @@ export class SelectedCalendarsRepository {
         integration,
         externalId,
         credentialId,
+      },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
+        integration: true,
+        externalId: true,
       },
     });
   }
