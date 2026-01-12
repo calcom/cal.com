@@ -53,7 +53,7 @@ export type RemoveMemberResult = {
 };
 
 export class TeamService {
-  static async createInvite(
+  static async createOrganizationTeamInvite(
     teamId: number,
     options?: { token?: string }
   ): Promise<{ token: string; inviteLink: string }> {
@@ -64,22 +64,59 @@ export class TeamService {
 
     if (!team) throw new ErrorWithCode(ErrorCode.NotFound, "Team not found");
 
-    const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
+    const isOrgContext = !!(team.parentId || team.isOrganization);
 
-    if (options?.token) {
-      const existingToken = await prisma.verificationToken.findFirst({
+    return TeamService.getOrCreateInviteToken(teamId, isOrgContext, options?.token);
+  }
+
+  static async createTeamInvite(
+    teamId: number,
+    options?: { token?: string }
+  ): Promise<{ token: string; inviteLink: string }> {
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { id: true },
+    });
+
+    if (!team) throw new ErrorWithCode(ErrorCode.NotFound, "Team not found");
+
+    return TeamService.getOrCreateInviteToken(teamId, false, options?.token);
+  }
+
+  private static async buildInviteLink(
+    token: string,
+    isOrgContext: boolean
+  ): Promise<string> {
+    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    if (!isOrgContext) {
+      return teamInviteLink;
+    }
+    const gettingStartedPath =
+      await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=${gettingStartedPath}`;
+    return orgInviteLink;
+  }
+
+  private static async getOrCreateInviteToken(
+    teamId: number,
+    isOrgContext: boolean,
+    existingToken?: string
+  ): Promise<{ token: string; inviteLink: string }> {
+    if (existingToken) {
+      const foundToken = await prisma.verificationToken.findFirst({
         where: {
-          token: options.token,
+          token: existingToken,
           identifier: `invite-link-for-teamId-${teamId}`,
           teamId,
         },
       });
-      if (!existingToken) throw new ErrorWithCode(ErrorCode.NotFound, "Invite token not found");
+      if (!foundToken)
+        throw new ErrorWithCode(ErrorCode.NotFound, "Invite token not found");
       return {
-        token: existingToken.token,
+        token: foundToken.token,
         inviteLink: await TeamService.buildInviteLink(
-          existingToken.token,
-          isOrganizationOrATeamInOrganization
+          foundToken.token,
+          isOrgContext
         ),
       };
     }
@@ -97,18 +134,8 @@ export class TeamService {
 
     return {
       token,
-      inviteLink: await TeamService.buildInviteLink(token, isOrganizationOrATeamInOrganization),
+      inviteLink: await TeamService.buildInviteLink(token, isOrgContext),
     };
-  }
-
-  private static async buildInviteLink(token: string, isOrgContext: boolean): Promise<string> {
-    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    if (!isOrgContext) {
-      return teamInviteLink;
-    }
-    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
-    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=${gettingStartedPath}`;
-    return orgInviteLink;
   }
   /**
    * Deletes a team and all its associated data in a safe, transactional order.
@@ -170,7 +197,9 @@ export class TeamService {
 
     await Promise.all(deleteMembershipPromises);
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
+    const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(
+      teamIds
+    );
     const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
       teamBillingService.updateQuantity()
     );
@@ -193,9 +222,13 @@ export class TeamService {
       },
     });
 
-    if (!verificationToken) throw new ErrorWithCode(ErrorCode.NotFound, "Invite not found");
+    if (!verificationToken)
+      throw new ErrorWithCode(ErrorCode.NotFound, "Invite not found");
     if (!verificationToken.teamId || !verificationToken.team)
-      throw new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team");
+      throw new ErrorWithCode(
+        ErrorCode.NotFound,
+        "Invite token is not associated with any team"
+      );
 
     try {
       await prisma.membership.create({
@@ -219,7 +252,9 @@ export class TeamService {
     }
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = await teamBillingServiceFactory.findAndInit(verificationToken.teamId);
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(
+      verificationToken.teamId
+    );
     await teamBillingService.updateQuantity();
 
     return verificationToken.team.name;
@@ -262,7 +297,11 @@ export class TeamService {
     }
 
     const isASubteam = team.parentId !== null;
-    const idOfOrganizationInContext = team.isOrganization ? team.id : isASubteam ? team.parentId : null;
+    const idOfOrganizationInContext = team.isOrganization
+      ? team.id
+      : isASubteam
+      ? team.parentId
+      : null;
     const needProfileUpdate = !!idOfOrganizationInContext;
 
     if (needProfileUpdate) {
@@ -278,7 +317,13 @@ export class TeamService {
 
     await updateNewTeamMemberEventTypes(userId, teamId);
   }
-  static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
+  static async leaveTeamMembership({
+    userId,
+    teamId,
+  }: {
+    userId: number;
+    teamId: number;
+  }) {
     try {
       const membership = await prisma.membership.delete({
         where: {
@@ -301,7 +346,10 @@ export class TeamService {
     }
   }
 
-  static async acceptInvitationByToken(acceptanceToken: string, userId: number) {
+  static async acceptInvitationByToken(
+    acceptanceToken: string,
+    userId: number
+  ) {
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
         token: acceptanceToken,
@@ -319,7 +367,10 @@ export class TeamService {
     }
 
     if (!verificationToken.teamId || !verificationToken.team) {
-      throw new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team");
+      throw new ErrorWithCode(
+        ErrorCode.NotFound,
+        "Invite token is not associated with any team"
+      );
     }
 
     const currentUser = await prisma.user.findUnique({
@@ -335,7 +386,10 @@ export class TeamService {
       currentUser.email !== verificationToken.identifier &&
       currentUser.username !== verificationToken.identifier
     ) {
-      throw new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account");
+      throw new ErrorWithCode(
+        ErrorCode.Forbidden,
+        "This invitation is not for your account"
+      );
     }
 
     await TeamService.acceptTeamMembership({
@@ -348,7 +402,9 @@ export class TeamService {
 
   static async publish(teamId: number) {
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(
+      teamId
+    );
     return teamBillingService.publish();
   }
 
@@ -426,7 +482,9 @@ export class TeamService {
   }
 
   // TODO: Needs to be moved to repository
-  private static async fetchUserOrThrow(userId: number): Promise<UserWithTeams> {
+  private static async fetchUserOrThrow(
+    userId: number
+  ): Promise<UserWithTeams> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -456,7 +514,10 @@ export class TeamService {
   }
 
   // TODO: Needs to be moved to repository
-  private static async cleanupTempOrgRedirect(user: UserWithTeams, team: TeamWithSettings) {
+  private static async cleanupTempOrgRedirect(
+    user: UserWithTeams,
+    team: TeamWithSettings
+  ) {
     const profileToDelete = await ProfileRepository.findByUserIdAndOrgId({
       userId: user.id,
       organizationId: team.id,
@@ -541,7 +602,10 @@ export class TeamService {
   }
 
   // Remove member from regular team
-  private static async removeFromTeam(membership: MembershipWithRelations, teamId: number) {
+  private static async removeFromTeam(
+    membership: MembershipWithRelations,
+    teamId: number
+  ) {
     await prisma.$transaction([
       // Remove user from all team event types' hosts
       prisma.host.deleteMany({
