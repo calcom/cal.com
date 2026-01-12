@@ -262,7 +262,7 @@ jobs:
             - Clone the FORK repository: ${pr.head_repo_owner}/${pr.head_repo_name}
             - The branch to work on is: ${pr.head_ref}
             - Add the upstream remote for ${owner}/${repo}
-            - Fetch the upstream ${pr.base_ref} branch and merge it using: git fetch upstream && git merge upstream/${pr.base_ref} -m "Merge branch '${pr.base_ref}' into ${pr.head_ref}"
+            - Fetch and merge the upstream ${pr.base_ref} branch using standard git merge
             
             IMPORTANT - Merge Commit Message:
             The merge commit message MUST be exactly: Merge branch '${pr.base_ref}' into ${pr.head_ref}
