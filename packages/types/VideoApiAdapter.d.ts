@@ -46,6 +46,8 @@ export type VideoApiAdapter =
       checkIfRoomNameMatchesInRecording?(roomName: string, recordingId: string): Promise<boolean>;
 
       getMeetingInformation?(roomName: string): Promise<TGetMeetingInformationResponsesSchema>;
+
+      deleteRecording?(recordingId: string): Promise<boolean>;
     }
   | undefined;
 
