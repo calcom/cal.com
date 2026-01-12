@@ -39,7 +39,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, InternalNotePresetType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -680,6 +680,7 @@ async function handler(input: CancelBookingInput) {
         booking: bookingToDelete,
         userId: userId || -1,
         teamId: teamId,
+        presetType: InternalNotePresetType.CANCELLATION,
       });
     }
   } catch (error) {

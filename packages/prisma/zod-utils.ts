@@ -377,6 +377,14 @@ export const bookingConfirmPatchBodySchema = z.object({
   confirmed: z.boolean(),
   recurringEventId: z.string().optional(),
   reason: z.string().optional(),
+  internalNote: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      cancellationReason: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
 });
