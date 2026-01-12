@@ -2405,6 +2405,11 @@ async function handler(
       operationId: null,
     });
   } else {
+    const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
+    const availabilitySnapshot = organizerUserAvailability?.availabilityData
+      ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
+      : null;
+
     await bookingEventHandler.onBookingCreated({
       payload: bookingCreatedPayload,
       actor: auditActor,
@@ -2412,6 +2417,7 @@ async function handler(
         startTime: bookingCreatedPayload.booking.startTime.getTime(),
         endTime: bookingCreatedPayload.booking.endTime.getTime(),
         status: bookingCreatedPayload.booking.status,
+        availabilitySnapshot,
       },
       source: actionSource,
       operationId: null,
