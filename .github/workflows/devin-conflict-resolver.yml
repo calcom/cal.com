@@ -478,21 +478,23 @@ jobs:
               console.log(`Requesting maintainer access for PR #${pr.number}: ${pr.title}`);
 
               try {
-                const commentBody = `### Maintainer Access Needed
-
-            Hi @${pr.author}! Thanks for your contribution to Cal.com.
-
-            We noticed that this PR doesn't have "Allow edits from maintainers" enabled. We'd love to help keep your PR up to date by resolving merge conflicts and making small fixes when needed.
-
-            **Could you please enable this setting?** Here's how:
-            1. Scroll down to the bottom of this PR page
-            2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**
-
-            This allows us to push commits directly to your PR branch, which helps us:
-            - Resolve merge conflicts automatically
-            - Make small adjustments to help get your PR merged faster
-
-            If you have any concerns about enabling this setting, feel free to let us know!`;
+                const commentBody = [
+                  '### Maintainer Access Needed',
+                  '',
+                  `Hi @${pr.author}! Thanks for your contribution to Cal.com.`,
+                  '',
+                  'We noticed that this PR doesn\'t have "Allow edits from maintainers" enabled. We\'d love to help keep your PR up to date by resolving merge conflicts and making small fixes when needed.',
+                  '',
+                  '**Could you please enable this setting?** Here\'s how:',
+                  '1. Scroll down to the bottom of this PR page',
+                  '2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**',
+                  '',
+                  'This allows us to push commits directly to your PR branch, which helps us:',
+                  '- Resolve merge conflicts automatically',
+                  '- Make small adjustments to help get your PR merged faster',
+                  '',
+                  'If you have any concerns about enabling this setting, feel free to let us know!'
+                ].join('\n');
 
                 await github.rest.issues.createComment({
                   owner,
