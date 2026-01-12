@@ -1,3 +1,5 @@
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
@@ -30,6 +32,7 @@ export const bookingsRouter = router({
     return requestRescheduleHandler({
       ctx,
       input,
+      source: "WEBAPP"
     });
   }),
 

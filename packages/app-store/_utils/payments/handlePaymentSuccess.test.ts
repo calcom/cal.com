@@ -74,7 +74,6 @@ vi.mock("@calcom/lib/logger", () => ({
     })),
   },
 }));
-// Mock routing-forms modules to prevent async import issues during test teardown
 vi.mock("@calcom/features/routing-forms/lib/findFieldValueByIdentifier", () => ({
   findFieldValueByIdentifier: vi.fn(),
 }));
