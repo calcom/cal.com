@@ -111,10 +111,13 @@ jobs:
             
             core.setOutput('pr-number', prNumber.toString());
             core.setOutput('has-pr', 'true');
+            core.setOutput('mergeable-status', pr.mergeable || 'UNKNOWN');
+            core.setOutput('has-conflicts', pr.mergeable === 'CONFLICTING' ? 'true' : 'false');
             
             console.log(`PR #${prNumber}: ${pr.title}`);
             console.log(`Mergeable status: ${pr.mergeable}`);
             console.log(`Is fork: ${isFork}`);
+            console.log(`Has conflicts: ${pr.mergeable === 'CONFLICTING'}`);
 
       - name: Request maintainer access for fork PR
         if: steps.get-pr.outputs.needs-maintainer-access == 'true'
@@ -174,8 +177,47 @@ jobs:
             console.log(`Posted comment and updated labels for PR #${prNumber}`);
             core.setFailed('Cannot proceed without maintainer access on fork PR');
 
+      - name: Handle PR without conflicts
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts != 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = parseInt('${{ steps.get-pr.outputs.pr-number }}', 10);
+            const mergeableStatus = '${{ steps.get-pr.outputs.mergeable-status }}';
+            
+            console.log(`PR #${prNumber} does not have conflicts (status: ${mergeableStatus})`);
+            
+            let message;
+            if (mergeableStatus === 'MERGEABLE') {
+              message = `### No Conflicts Detected\n\nThis PR does not have any merge conflicts with the base branch. The \`devin-conflict-resolution\` label has been removed.\n\nIf you believe this PR should have conflicts, please check the PR status and try again.`;
+            } else {
+              message = `### Mergeable Status Unknown\n\nGitHub is still computing the mergeable status for this PR (current status: \`${mergeableStatus}\`). The \`devin-conflict-resolution\` label has been removed.\n\nPlease wait a moment and re-add the label if the PR has conflicts.`;
+            }
+            
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: message
+            });
+            
+            try {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: prNumber,
+                name: 'devin-conflict-resolution'
+              });
+            } catch (e) {
+              console.log(`Label may have already been removed: ${e.message}`);
+            }
+            
+            console.log(`Posted comment and removed label for PR #${prNumber}`);
+
       - name: Create Devin session for conflict resolution
-        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true'
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
