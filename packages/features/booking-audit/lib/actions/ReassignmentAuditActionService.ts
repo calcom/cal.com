@@ -88,12 +88,16 @@ export class ReassignmentAuditActionService implements IAuditActionService {
         labelKey: string;
         valueKey: string;
     }> {
-        const { fields } = storedData;
-        const typeTranslationKey = `booking_audit_action.assignmentType_${fields.reassignmentType}`;
+        const { fields } = this.parseStored(storedData);
+        const map = {
+            manual: "manual",
+            roundRobin: "round_robin",
+        }
+        const typeTranslationKey = `booking_audit_action.assignment_type_${map[fields.reassignmentType]}`;
 
         return [
             {
-                labelKey: "booking_audit_action.type",
+                labelKey: "booking_audit_action.assignment_type",
                 valueKey: typeTranslationKey,
             }
         ];
