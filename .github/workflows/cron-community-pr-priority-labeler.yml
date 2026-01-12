@@ -148,18 +148,18 @@ jobs:
             
             const prompt = `You are analyzing open community pull requests in the Cal.com repository (${owner}/${repo}) to assign priority labels.
 
-            Your task is to analyze each PR below and add the appropriate priority label using the GitHub API.
+            Your task is to analyze each PR below and add the appropriate priority label using the GitHub CLI.
 
             Priority Guidelines:
-            - High priority: Critical bug fixes, security issues, features blocking users, PRs linked to high-priority issues, changes to core functionality (auth, billing, bookings)
+            - High priority: Critical bug fixes, security issues, features blocking users, PRs linked to high-priority/urgent issues, changes to core functionality (auth, billing, bookings, payments)
             - Medium priority: Feature additions, moderate bug fixes, improvements to existing functionality, PRs with moderate scope
-            - Low priority: Minor improvements, documentation, small UI tweaks, refactoring, dependency updates
+            - Low priority: Minor improvements, documentation, small UI tweaks, refactoring, dependency updates, i18n changes
 
             For each PR, consider:
             1. The PR description and what it's trying to accomplish
             2. The size and scope of changes (additions, deletions, files changed)
-            3. Linked issues and their labels (especially if they have priority or urgency labels)
-            4. The area of the codebase being modified
+            3. Linked issues and their labels (especially if they have priority or urgency labels like "High priority", "Urgent", "Low priority")
+            4. The area of the codebase being modified (auth, billing, bookings = higher priority)
             5. Whether it's a bug fix, feature, or improvement
 
             Here are the community PRs to analyze and label:
@@ -167,12 +167,11 @@ jobs:
 
             Instructions:
             1. For each PR listed above, analyze it based on the guidelines
-            2. Use the GitHub CLI (gh) to add the appropriate priority label to each PR
+            2. Add the appropriate priority label using: gh pr edit <PR_NUMBER> --add-label "<PRIORITY_LABEL>" --repo ${owner}/${repo}
             3. The label names are exactly: "High priority", "Medium priority", or "Low priority"
-            4. Use this command format for each PR: gh pr edit <PR_NUMBER> --add-label "<PRIORITY_LABEL>" --repo ${owner}/${repo}
-            5. After labeling each PR, briefly explain why you chose that priority level
-            6. Process all PRs one by one until complete
-            7. Never ask for user confirmation. Never wait for user messages.`;
+            4. After labeling each PR, briefly log why you chose that priority level
+            5. Process all PRs one by one until complete
+            6. Never ask for user confirmation. Never wait for user messages.`;
 
             console.log('Creating Devin session for PR priority labeling...');
             
