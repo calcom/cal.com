@@ -103,7 +103,7 @@ export default function TeamList(props: Props) {
                       "As an organization owner, you are in charge of every team account. You can make changes with admin-only tools and see organization wide analytics in one place."
                     )}
                     actionButton={{
-                      href: "https://go.cal.com/quote",
+                      href: "https://cal.com/blog/insight-2-0-calcom-scheduling",
                       child: t("learn_more"),
                     }}
                   />
