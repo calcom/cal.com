@@ -1,14 +1,14 @@
-import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
-import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
+import { RedisService } from "@/modules/redis/redis.service";
 
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
 
 const getLicenseCacheKey = (key: string) => `api-v2-license-key-goblin-url-${key}`;
 
 type LicenseCheckResponse = {
-  status: boolean;
+  valid: boolean;
 };
 @Injectable()
 export class DeploymentsService {
@@ -36,12 +36,12 @@ export class DeploymentsService {
     const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `/${licenseKey}`;
     const cachedData = await this.redisService.redis.get(getLicenseCacheKey(licenseKey));
     if (cachedData) {
-      return (JSON.parse(cachedData) as LicenseCheckResponse)?.status;
+      return (JSON.parse(cachedData) as LicenseCheckResponse)?.valid;
     }
     const response = await fetch(licenseKeyUrl, { mode: "cors" });
     const data = (await response.json()) as LicenseCheckResponse;
     const cacheKey = getLicenseCacheKey(licenseKey);
     this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
-    return data.status;
+    return data.valid;
   }
 }
