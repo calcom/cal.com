@@ -234,6 +234,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       data-testid="ooofor_username_select"
                       isSearchable={true}
                       isDisabled={!!currentlyEditingOutOfOfficeEntry}
+                      menuPlacement="bottom"
                       value={oooMemberListOptions.find((member) => member.value === value)}
                       placeholder={t("search")}
                       options={oooMemberListOptions}
