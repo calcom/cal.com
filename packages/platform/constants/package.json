@@ -6,7 +6,12 @@
   "private": true,
   "scripts": {
     "build": "tsc --build --force tsconfig.json",
+    "build:swc": "rm -rf ./dist && swc . -d ./dist --config-file .swcrc --ignore '**/*.d.ts,dist/**,node_modules/**,.turbo/**' && npx tsc --build --force tsconfig.types.json",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
     "post-install": "yarn build"
+  },
+  "devDependencies": {
+    "@swc/cli": "0.6.0",
+    "@swc/core": "1.11.24"
   }
 }

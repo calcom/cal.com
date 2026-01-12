@@ -7,6 +7,7 @@
   "scripts": {
     "test": "jest ./tests",
     "build": "tsc --build --force tsconfig.json",
+    "build:swc": "rm -rf ./dist && swc . -d ./dist --config-file .swcrc --ignore '**/*.d.ts,dist/**,node_modules/**,.turbo/**,tests/**' && npx tsc --build --force tsconfig.types.json",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
     "post-install": "yarn build"
   },
@@ -15,6 +16,8 @@
     "@calcom/platform-types": "workspace:*"
   },
   "devDependencies": {
+    "@swc/cli": "0.6.0",
+    "@swc/core": "1.11.24",
     "@types/jest": "29.5.12",
     "jest": "29.7.0",
     "ts-jest": "29.1.4"
