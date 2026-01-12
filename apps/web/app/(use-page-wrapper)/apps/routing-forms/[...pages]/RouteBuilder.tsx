@@ -44,8 +44,8 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { JsonValue } from "@calcom/types/Json";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
@@ -186,7 +186,7 @@ const buildEventsData = ({
       }
 
       // Pass app data that works with routing forms
-      const eventTypeAppMetadata = getEventTypeAppMetadata(eventType.metadata as Prisma.JsonValue);
+      const eventTypeAppMetadata = getEventTypeAppMetadata(eventType.metadata as JsonValue);
 
       eventTypesMap.set(eventType.id, {
         eventTypeAppMetadata,

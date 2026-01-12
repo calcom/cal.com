@@ -8,8 +8,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
-import type { Prisma, EventType } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { JsonValue } from "@calcom/types/Json";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 
@@ -21,7 +22,7 @@ export type EventTypeDescriptionProps = {
     | "seatsPerTimeSlot"
   > & {
     descriptionAsSafeHTML?: string | null;
-    recurringEvent: Prisma.JsonValue;
+    recurringEvent: JsonValue;
   };
   className?: string;
   shortenDescription?: boolean;

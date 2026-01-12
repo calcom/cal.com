@@ -16,8 +16,8 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
+import type { JsonValue } from "@calcom/types/Json";
 
 export async function getCachedTeamData(teamSlug: string, orgSlug: string | null) {
   return unstable_cache(async () => getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
@@ -116,7 +116,7 @@ export async function getCRMData(
     id: number;
     isInstantEvent: boolean;
     schedulingType: SchedulingType | null;
-    metadata: Prisma.JsonValue | null;
+    metadata: JsonValue | null;
     length: number;
   }
 ) {

@@ -4,7 +4,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@prisma/client": ["@calcom/prisma/client"],
+      "@calcom/prisma/client": ["../prisma/client"],
       "@calcom/testing/*": ["../testing/src/*"]
     },
     "resolveJsonModule": true,

@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { EventType, User, WorkflowsOnEventTypes } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { JsonValue } from "@calcom/types/Json";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 // Helper to setup transaction mock that executes the callback with the prisma mock
@@ -27,7 +27,7 @@ const mockFindFirstEventType = (
 ) => {
   const eventType = buildEventType({
     ...data,
-    metadata: !data?.metadata || data.metadata === null ? {} : (data.metadata as Prisma.JsonValue),
+    metadata: !data?.metadata || data.metadata === null ? {} : (data.metadata as JsonValue),
   });
   // const { scheduleId, destinationCalendar, ...restEventType } = eventType;
   prismaMock.eventType.findFirst.mockResolvedValue(eventType);
