@@ -92,7 +92,7 @@ export default async (req: Request, res: Response): Promise<void> => {
     if (req.url) {
       const [_path, queryString] = req.url.split("?");
       if (queryString) {
-        req.query = qs.parse(queryString, { arrayLimit: 1000, comma: true });
+        req.query = qs.parse(queryString, { arrayLimit: 1000 });
       }
     }
 
@@ -118,7 +118,7 @@ export async function createNestApp(): Promise<
   });
 
   // Custom query parser configuration for the underlying Express app
-  app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000, comma: true }));
+  app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000 }));
 
   return app;
 }
