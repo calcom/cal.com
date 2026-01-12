@@ -780,7 +780,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_view_feature_opt_in",
     },
     [CrudAction.Update]: {
-      description: "Manage feature opt-in and opt-out settings",
+      description: "Manage feature opt-in settings",
       category: "featureOptIn",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_feature_opt_in",
