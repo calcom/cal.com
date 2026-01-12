@@ -1,16 +1,9 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type { Booking, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -19,9 +12,15 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import type { Booking, User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Booking access authorization", () => {
