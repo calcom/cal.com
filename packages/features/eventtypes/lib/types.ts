@@ -113,6 +113,7 @@ export type FormValues = {
   disabledCancelling: boolean;
   disabledRescheduling: boolean;
   minimumRescheduleNotice: number | null;
+  allowReschedulingCancelledBookings: boolean;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)

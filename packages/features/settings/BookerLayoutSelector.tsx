@@ -54,10 +54,20 @@ export const BookerLayoutSelector = ({
   user,
   isUserLoading,
 }: BookerLayoutSelectorProps) => {
-  const { control, getValues } = useFormContext();
+  const { control, getValues, setValue } = useFormContext();
   const { t } = useLocale();
   // Only fallback if event current does not have any settings, and the fallbackToUserSettings boolean is set.
-  const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
+  const fieldName = name || defaultFieldName;
+  const shouldShowUserSettings = (fallbackToUserSettings && !getValues(fieldName)) || false;
+  const [isOverriding, setIsOverriding] = useState(false);
+
+  const handleOverride = () => {
+    setIsOverriding(true);
+    // Initialize form with user's default settings when overriding
+    if (user?.defaultBookerLayouts) {
+      setValue(fieldName, user.defaultBookerLayouts, { shouldDirty: true });
+    }
+  };
 
   return (
     <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6")}>
@@ -69,41 +79,55 @@ export const BookerLayoutSelector = ({
           {description ? description : t("bookerlayout_description")}
         </p>
       </div>
-      <Controller
-        // If the event does not have any settings, we don't want to register this field in the form.
-        // That way the settings won't get saved into the event on save, but remain null. Thus keep using
-        // the global user's settings.
-        control={shouldShowUserSettings ? undefined : control}
-        name={name || defaultFieldName}
-        render={({ field: { value, onChange } }) => (
-          <>
-            <BookerLayoutFields
-              showUserSettings={shouldShowUserSettings}
-              settings={value}
-              onChange={onChange}
-              isDark={isDark}
-              isOuterBorder={isOuterBorder}
-              user={user}
-              isUserLoading={isUserLoading}
-            />
-            {!isOuterBorder && (
-              <SectionBottomActions align="end">
-                <Button loading={isLoading} type="submit" disabled={isDisabled} color="primary">
-                  {t("update")}
-                </Button>
-              </SectionBottomActions>
-            )}
-          </>
-        )}
-      />
+      {shouldShowUserSettings && !isOverriding ? (
+        <BookerLayoutFields
+          showUserSettings={true}
+          settings={user?.defaultBookerLayouts}
+          onOverride={handleOverride}
+          isOverriding={false}
+          isDark={isDark}
+          isOuterBorder={isOuterBorder}
+          user={user}
+          isUserLoading={isUserLoading}
+        />
+      ) : (
+        <Controller
+          control={control}
+          name={fieldName}
+          render={({ field: { value, onChange } }) => (
+            <>
+              <BookerLayoutFields
+                showUserSettings={shouldShowUserSettings}
+                settings={value}
+                onChange={onChange}
+                onOverride={handleOverride}
+                isOverriding={isOverriding}
+                isDark={isDark}
+                isOuterBorder={isOuterBorder}
+                user={user}
+                isUserLoading={isUserLoading}
+              />
+              {!isOuterBorder && (
+                <SectionBottomActions align="end">
+                  <Button loading={isLoading} type="submit" disabled={isDisabled} color="primary">
+                    {t("update")}
+                  </Button>
+                </SectionBottomActions>
+              )}
+            </>
+          )}
+        />
+      )}
     </div>
   );
 };
 
 type BookerLayoutFieldsProps = {
-  settings: BookerLayoutSettings;
-  onChange: (settings: BookerLayoutSettings) => void;
+  settings?: BookerLayoutSettings;
+  onChange?: (settings: BookerLayoutSettings) => void;
   showUserSettings: boolean;
+  onOverride?: () => void;
+  isOverriding?: boolean;
   isDark?: boolean;
   isOuterBorder?: boolean;
   user?: Partial<Pick<RouterOutputs["viewer"]["me"]["get"], "defaultBookerLayouts">>;
@@ -116,15 +140,17 @@ const BookerLayoutFields = ({
   settings,
   onChange,
   showUserSettings,
+  onOverride,
+  isOverriding = false,
   isDark,
   isOuterBorder,
   user,
   isUserLoading,
 }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
-  const [isOverridingSettings, setIsOverridingSettings] = useState(false);
 
-  const disableFields = showUserSettings && !isOverridingSettings;
+  // Fields are disabled when showing user settings and override hasn't been clicked
+  const disableFields = showUserSettings && !isOverriding;
   const shownSettings = disableFields ? user?.defaultBookerLayouts : settings;
   const defaultLayout = shownSettings?.defaultLayout || BookerLayouts.MONTH_VIEW;
 
@@ -146,7 +172,7 @@ const BookerLayoutFields = ({
       const isDefaultLayoutToggledOff = newEnabledLayouts.indexOf(defaultLayout) === -1;
       const firstEnabledLayout = newEnabledLayouts[0];
 
-      onChange({
+      onChange?.({
         enabledLayouts: newEnabledLayouts,
         // If default layout is toggled off, we set the default layout to the first enabled layout
         // if there's none enabled, we set it to month view.
@@ -160,7 +186,7 @@ const BookerLayoutFields = ({
 
   const onDefaultLayoutChange = useCallback(
     (newDefaultLayout: BookerLayouts) => {
-      onChange({
+      onChange?.({
         enabledLayouts: Object.keys(toggleValues).filter(
           (layout) => toggleValues[layout as BookerLayouts] === true
         ) as BookerLayouts[],
@@ -170,11 +196,6 @@ const BookerLayoutFields = ({
     [toggleValues, onChange]
   );
 
-  const onOverrideSettings = () => {
-    setIsOverridingSettings(true);
-    // Sent default layout settings to form, otherwise it would still have 'null' as it's value.
-    if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
-  };
   return (
     <div className={classNames("stack-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
       <div
@@ -242,7 +263,7 @@ const BookerLayoutFields = ({
               </Link>,
               <Button
                 key="override-button"
-                onClick={onOverrideSettings}
+                onClick={() => onOverride?.()}
                 color="minimal"
                 className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
                 Override
