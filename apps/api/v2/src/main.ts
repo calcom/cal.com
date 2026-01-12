@@ -52,7 +52,7 @@ class NestServer {
 // LOCAL DEVELOPMENT STARTUP
 // -----------------------------------------------------------------------------
 if (!process.env.VERCEL) {
-  console.log("CALL RUN STARTUP");
+  logger.log("CALL RUN STARTUP");
   run().catch((error: Error) => {
     logger.error("Failed to start Cal Platform API", { error: error.stack });
     process.exit(1);
@@ -60,7 +60,7 @@ if (!process.env.VERCEL) {
 }
 
 async function run(): Promise<void> {
-  console.log("RUN LOCAL/FlightControl STARTUP");
+  logger.log("RUN LOCAL/FlightControl STARTUP");
   const app = await createNestApp();
   try {
     bootstrap(app);
@@ -92,14 +92,14 @@ export default async (req: Request, res: Response): Promise<void> => {
     if (req.url) {
       const [_path, queryString] = req.url.split("?");
       if (queryString) {
-        req.query = qs.parse(queryString, { arrayLimit: 1000 });
+        req.query = qs.parse(queryString, { arrayLimit: 1000, comma: true });
       }
     }
 
     // Delegate request to the cached Express instance
     return server(req, res);
   } catch (error) {
-    console.error("Critical: Failed to initialize NestJS Serverless instance", error);
+    logger.error("Critical: Failed to initialize NestJS Serverless instance", error);
     res.statusCode = 500;
     res.end("Internal Server Error: Initialization Failed");
   }
@@ -118,7 +118,7 @@ export async function createNestApp(): Promise<
   });
 
   // Custom query parser configuration for the underlying Express app
-  app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000 }));
+  app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000, comma: true }));
 
   return app;
 }
