@@ -262,7 +262,11 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
                       // Get path without the last segment (slug)
                       const pathParts = url.pathname.split("/").filter(Boolean);
                       pathParts.pop(); // Remove slug
-                      const prefix = pathParts.length > 0 ? `/${pathParts.join("/")}/` : "/";
+                      // Compute prefix outside try/catch for React Compiler
+                      let prefix = "/";
+                      if (pathParts.length > 0) {
+                        prefix = `/${pathParts.join("/")}/`;
+                      }
                       return `${url.hostname}${prefix}`;
                     } catch {
                       // fallback
