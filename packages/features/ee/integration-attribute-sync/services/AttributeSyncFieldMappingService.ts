@@ -5,7 +5,6 @@ import {
   hasOptions,
 } from "@calcom/features/ee/dsync/lib/assignValueToUserUtils";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -89,26 +88,22 @@ export class AttributeSyncFieldMappingService {
       assignmentsToCreate.push(...newAssignments);
     }
 
-    if (assignmentsToCreate.length > 0) {
-      await prisma.attributeToUser.createMany({
-        data: assignmentsToCreate,
-        skipDuplicates: true,
+    // Delete old assignments before creating new ones
+    if (attributeIdsToSync.length > 0) {
+      await this.deps.attributeToUserRepository.deleteMany({
+        memberId,
+        attributeOption: {
+          attributeId: { in: attributeIdsToSync },
+        },
       });
+    }
+
+    if (assignmentsToCreate.length > 0) {
+      await this.deps.attributeToUserRepository.createManySkipDuplicates(assignmentsToCreate);
 
       log.info(
         `Synced ${assignmentsToCreate.length} attribute(s) for member ${memberId}`
       );
-    }
-
-    if (attributeIdsToSync.length > 0) {
-      await prisma.attributeToUser.deleteMany({
-        where: {
-          memberId,
-          attributeOption: {
-            attributeId: { in: attributeIdsToSync },
-          },
-        },
-      });
     }
   }
 
