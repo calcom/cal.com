@@ -74,6 +74,7 @@ jobs:
 
             core.setOutput('pr_number', prNumber);
             core.setOutput('pr_title', pr.title);
+            core.setOutput('pr_body', pr.body || '');
             core.setOutput('pr_author', pr.user.login);
             core.setOutput('pr_branch', pr.head.ref);
             core.setOutput('is_fork', isFork);
@@ -154,7 +155,7 @@ jobs:
         uses: ./.github/actions/check-devin-session
         with:
           pr_number: ${{ steps.pr.outputs.pr_number }}
-          pr_body: ${{ github.event.pull_request.body }}
+          pr_body: ${{ steps.pr.outputs.pr_body }}
           devin_api_key: ${{ secrets.DEVIN_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           session_patterns: '["Devin AI is completing this stale PR", "Devin AI is resolving merge conflicts", "Devin AI is addressing Cubic AI"]'

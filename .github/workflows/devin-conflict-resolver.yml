@@ -116,6 +116,7 @@ jobs:
             fs.writeFileSync('/tmp/pr-data.json', JSON.stringify(prData));
             
             core.setOutput('pr-number', prNumber.toString());
+            core.setOutput('pr-body', pr.body || '');
             core.setOutput('has-pr', 'true');
             core.setOutput('mergeable-status', pr.mergeable || 'UNKNOWN');
             core.setOutput('has-conflicts', pr.mergeable === 'CONFLICTING' ? 'true' : 'false');
@@ -228,7 +229,7 @@ jobs:
         uses: ./.github/actions/check-devin-session
         with:
           pr_number: ${{ steps.get-pr.outputs.pr-number }}
-          pr_body: ${{ github.event.pull_request.body }}
+          pr_body: ${{ steps.get-pr.outputs.pr-body }}
           devin_api_key: ${{ secrets.DEVIN_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           session_patterns: '["Devin AI is resolving merge conflicts", "Devin AI is addressing Cubic AI", "Devin AI is completing this stale PR"]'
