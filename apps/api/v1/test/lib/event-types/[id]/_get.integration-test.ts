@@ -4,7 +4,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, test, beforeAll, afterAll } from "vitest";
 
 import { prisma } from "@calcom/prisma";
-import type { User, Team, EventType } from "@calcom/prisma/client";
+import type { User, Team, EventType, Schedule } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import handler from "../../../../pages/api/event-types/[id]/_get";
@@ -17,6 +17,7 @@ describe("GET /api/event-types/[id]", () => {
   let adminUser: User;
   let teamUser: User;
   let testTeam: Team;
+  let testSchedule: Schedule;
   let complexEventType: EventType;
   let seatsEventType: EventType;
   let maxSeatsEventType: EventType;
@@ -54,6 +55,15 @@ describe("GET /api/event-types/[id]", () => {
 
     [testUser, adminUser, teamUser] = await Promise.all([createTestUser, createAdminUser, createTeamUser]);
 
+    // Create a schedule for the test user (required for event types with scheduleId)
+    testSchedule = await prisma.schedule.create({
+      data: {
+        name: `Test Schedule ${timestamp}`,
+        userId: testUser.id,
+        timeZone: "UTC",
+      },
+    });
+
     testTeam = await prisma.team.create({
       data: {
         name: `Test Team ${timestamp}`,
@@ -78,7 +88,7 @@ describe("GET /api/event-types/[id]", () => {
         slug: `complex-event-${timestamp}`,
         length: 60,
         userId: testUser.id,
-        scheduleId: 1111,
+        scheduleId: testSchedule.id,
         locations: [
           {
             type: "integrations:zoom",
@@ -131,7 +141,7 @@ describe("GET /api/event-types/[id]", () => {
         slug: `seats-event-${timestamp}`,
         length: 60,
         userId: testUser.id,
-        scheduleId: 1111,
+        scheduleId: testSchedule.id,
         seatsPerTimeSlot: 10,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: false,
@@ -144,7 +154,7 @@ describe("GET /api/event-types/[id]", () => {
         slug: `max-seats-event-${timestamp}`,
         length: 60,
         userId: testUser.id,
-        scheduleId: 1111,
+        scheduleId: testSchedule.id,
         seatsPerTimeSlot: 1000,
         seatsShowAttendees: false,
         seatsShowAvailabilityCount: true,
@@ -157,7 +167,7 @@ describe("GET /api/event-types/[id]", () => {
         slug: `null-seats-event-${timestamp}`,
         length: 60,
         userId: testUser.id,
-        scheduleId: 1111,
+        scheduleId: testSchedule.id,
         seatsPerTimeSlot: null,
         seatsShowAttendees: null,
         seatsShowAvailabilityCount: null,
@@ -170,7 +180,7 @@ describe("GET /api/event-types/[id]", () => {
         slug: `custom-fields-event-${timestamp}`,
         length: 60,
         userId: testUser.id,
-        scheduleId: 1111,
+        scheduleId: testSchedule.id,
         bookingFields: [
           {
             name: "name",
@@ -222,7 +232,7 @@ describe("GET /api/event-types/[id]", () => {
         slug: `metadata-event-${timestamp}`,
         length: 60,
         userId: testUser.id,
-        scheduleId: 1111,
+        scheduleId: testSchedule.id,
         metadata: {
           additionalNotesRequired: true,
           disableStandardEmails: false,
@@ -290,6 +300,10 @@ describe("GET /api/event-types/[id]", () => {
 
     await prisma.team.delete({
       where: { id: testTeam.id },
+    });
+
+    await prisma.schedule.delete({
+      where: { id: testSchedule.id },
     });
 
     await prisma.user.deleteMany({
