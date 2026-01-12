@@ -1,5 +1,22 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
+
+import process from "node:process";
+import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
+import type {
+  Person as AttendeeInCalendarEvent,
+  Calendar,
+  CalendarEvent,
+  CalendarEventType,
+  CalendarServiceEvent,
+  EventBusyDate,
+  GetAvailabilityParams,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  TeamMember,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
@@ -14,23 +31,6 @@ import {
   updateCalendarObject,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
-
-import dayjs from "@calcom/dayjs";
-import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
-import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
-import type {
-  Calendar,
-  CalendarServiceEvent,
-  CalendarEvent,
-  CalendarEventType,
-  EventBusyDate,
-  GetAvailabilityParams,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  TeamMember,
-} from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
@@ -94,9 +94,52 @@ const convertDate = (date: string): DateArray =>
     .slice(0, 6)
     .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray;
 
+/**
+ * Converts a date to a DateArray in the specified timezone.
+ * Used instead of UTC to ensure CalDAV clients like Nextcloud
+ * correctly display event times in the user's local timezone.
+ */
+const convertDateToTimezone = (date: string, timezone: string): DateArray =>
+  dayjs(date)
+    .tz(timezone)
+    .toArray()
+    .slice(0, 6)
+    .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray;
+
 const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
+
+/**
+ * Adds VTIMEZONE component and TZID parameters to an ICS string.
+ * Some CalDAV clients (like Nextcloud) don't handle UTC times (Z suffix)
+ * correctly and need explicit timezone info to display correct local times.
+ */
+const addTimezoneToIcs = (icsString: string, timezone: string): string => {
+  const now = dayjs().tz(timezone);
+  const offsetMinutes = now.utcOffset();
+  const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+  const offsetMins = Math.abs(offsetMinutes) % 60;
+  const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+  const offsetStr = `${offsetSign}${String(offsetHours).padStart(2, "0")}${String(offsetMins).padStart(2, "0")}`;
+
+  const vtimezone = [
+    "BEGIN:VTIMEZONE",
+    `TZID:${timezone}`,
+    "BEGIN:STANDARD",
+    `TZOFFSETFROM:${offsetStr}`,
+    `TZOFFSETTO:${offsetStr}`,
+    "TZNAME:STD",
+    "DTSTART:19700101T000000",
+    "END:STANDARD",
+    "END:VTIMEZONE",
+  ].join("\r\n");
+
+  let result = icsString.replace(/(BEGIN:VCALENDAR\r\n(?:.*?\r\n)*?)(BEGIN:VEVENT)/, `$1${vtimezone}\r\n$2`);
+  result = result.replace(/DTSTART:(\d{8}T\d{6})(?!Z)/g, `DTSTART;TZID=${timezone}:$1`);
+  result = result.replace(/DTEND:(\d{8}T\d{6})(?!Z)/g, `DTEND;TZID=${timezone}:$1`);
+  return result;
+};
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
@@ -144,12 +187,14 @@ export default abstract class BaseCalendarService implements Calendar {
     try {
       const calendars = await this.listCalendars(event);
       const uid = uuidv4();
+      const timezone = event.organizer.timeZone;
 
-      // We create local ICS files
+      // We create ICS files using the organizer's timezone.
+      // Using local time with explicit TZID instead of UTC ensures CalDAV clients
+      // like Nextcloud correctly display event times. See issue #15368.
       const { error, value: iCalString } = createEvent({
         uid,
-        startInputType: "utc",
-        start: convertDate(event.startTime),
+        start: convertDateToTimezone(event.startTime, timezone),
         duration: getDuration(event.startTime, event.endTime),
         title: event.title,
         description: event.calendarDescription,
@@ -165,33 +210,33 @@ export default abstract class BaseCalendarService implements Calendar {
         ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
       });
 
-      if (error || !iCalString)
+      if (error || !iCalString) {
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
+      }
 
-      const mainHostDestinationCalendar = event.destinationCalendar
-        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-          event.destinationCalendar[0]
-        : undefined;
+      // Add VTIMEZONE component and TZID parameters for proper timezone handling
+      const iCalStringWithTimezone = addTimezoneToIcs(iCalString, timezone);
 
-      // We create the event directly on iCal
+      const mainHostDestinationCalendar =
+        event.destinationCalendar?.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar?.[0];
+
+      // Strip METHOD property per RFC 4791 section 4.1
+      const sanitizedICalString = iCalStringWithTimezone.replace(/METHOD:[^\r\n]+\r\n/g, "");
+
+      const calendarsToCreate = mainHostDestinationCalendar?.externalId
+        ? calendars.filter((c) => c.externalId === mainHostDestinationCalendar.externalId)
+        : calendars;
+
       const responses = await Promise.all(
-        calendars
-          .filter((c) =>
-            mainHostDestinationCalendar?.externalId
-              ? c.externalId === mainHostDestinationCalendar.externalId
-              : true
-          )
-          .map((calendar) =>
-            createCalendarObject({
-              calendar: {
-                url: calendar.externalId,
-              },
-              filename: `${uid}.ics`,
-              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
-              headers: this.headers,
-            })
-          )
+        calendarsToCreate.map((calendar) =>
+          createCalendarObject({
+            calendar: { url: calendar.externalId },
+            filename: `${uid}.ics`,
+            iCalString: sanitizedICalString,
+            headers: this.headers,
+          })
+        )
       );
 
       if (responses.some((r) => !r.ok)) {
@@ -221,12 +266,12 @@ export default abstract class BaseCalendarService implements Calendar {
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     try {
       const events = await this.getEventsByUID(uid);
+      const timezone = event.organizer.timeZone;
 
-      /** We generate the ICS files */
+      /** We generate the ICS files using the organizer's timezone */
       const { error, value: iCalString } = createEvent({
         uid,
-        startInputType: "utc",
-        start: convertDate(event.startTime),
+        start: convertDateToTimezone(event.startTime, timezone),
         duration: getDuration(event.startTime, event.endTime),
         title: event.title,
         description: getRichDescription(event),
@@ -235,9 +280,8 @@ export default abstract class BaseCalendarService implements Calendar {
         attendees: this.getAttendees(event),
       });
 
-      if (error) {
+      if (error || !iCalString) {
         this.log.debug("Error creating iCalString");
-
         return {
           uid,
           type: event.type,
@@ -247,47 +291,50 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
-      let calendarEvent: CalendarEventType;
+
+      // Add VTIMEZONE component and TZID parameters for proper timezone handling
+      const iCalStringWithTimezone = addTimezoneToIcs(iCalString, timezone);
+
       const eventsToUpdate = events.filter((e) => e.uid === uid);
-      return Promise.all(
-        eventsToUpdate.map((eventItem) => {
-          calendarEvent = eventItem;
-          return updateCalendarObject({
+      // Strip METHOD property for iCal 2.0 compliance required by various providers
+      const sanitizedICalString = iCalStringWithTimezone.replace(/METHOD:[^\r\n]+\r\n/g, "");
+
+      const responses = await Promise.all(
+        eventsToUpdate.map((eventItem) =>
+          updateCalendarObject({
             calendarObject: {
-              url: calendarEvent.url,
-              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
-              etag: calendarEvent?.etag,
+              url: eventItem.url,
+              data: sanitizedICalString,
+              etag: eventItem.etag,
             },
             headers: this.headers,
-          });
-        })
-      ).then((responses) =>
-        responses.map((response) => {
-          if (response.status >= 200 && response.status < 300) {
-            return {
-              uid,
-              type: this.credentials.type,
-              id: typeof calendarEvent.uid === "string" ? calendarEvent.uid : "-1",
-              password: "",
-              url: calendarEvent.url,
-              additionalInfo:
-                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
-            };
-          } else {
-            this.log.error("Error: Status Code", response.status);
-            return {
-              uid,
-              type: event.type,
-              id: typeof event.uid === "string" ? event.uid : "-1",
-              password: "",
-              url: typeof event.location === "string" ? event.location : "-1",
-              additionalInfo:
-                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
-            };
-          }
-        })
+          })
+        )
       );
+
+      return responses.map((response, index) => {
+        const eventItem = eventsToUpdate[index];
+        if (response.status >= 200 && response.status < 300) {
+          return {
+            uid,
+            type: this.credentials.type,
+            id: typeof eventItem.uid === "string" ? eventItem.uid : "-1",
+            password: "",
+            url: eventItem.url,
+            additionalInfo:
+              typeof event.additionalInformation === "string" ? event.additionalInformation : {},
+          };
+        }
+        this.log.error("Error: Status Code", response.status);
+        return {
+          uid,
+          type: event.type,
+          id: typeof event.uid === "string" ? event.uid : "-1",
+          password: "",
+          url: typeof event.location === "string" ? event.location : "-1",
+          additionalInfo: typeof event.additionalInformation === "string" ? event.additionalInformation : {},
+        };
+      });
     } catch (reason) {
       this.log.error(reason);
       throw reason;
@@ -622,10 +669,7 @@ export default abstract class BaseCalendarService implements Calendar {
       (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
         promise.status === "fulfilled"
     );
-    const flatResult = fulfilledPromises
-      .map((promise) => promise.value)
-      .flat()
-      .filter((obj) => obj !== null);
+    const flatResult = fulfilledPromises.flatMap((promise) => promise.value).filter((obj) => obj !== null);
     return flatResult as DAVObject[];
   }
 
