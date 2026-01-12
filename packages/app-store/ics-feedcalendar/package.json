@@ -7,8 +7,12 @@
   "dependencies": {
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
-    "@calcom/ui": "workspace:*",
-    "react-hook-form": "^7.43.3"
+    "@calcom/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-hook-form": "^7.0.0"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*"

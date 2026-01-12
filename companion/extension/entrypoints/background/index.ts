@@ -1,6 +1,6 @@
 /// <reference types="chrome" />
-
 import type { OAuthTokens } from "../../../services/oauthService";
+import type { Booking } from "../../../services/types/bookings.types";
 
 const DEV_API_KEY = import.meta.env.EXPO_PUBLIC_CAL_API_KEY as string | undefined;
 const IS_DEV_MODE = Boolean(DEV_API_KEY && DEV_API_KEY.length > 0);
@@ -11,6 +11,156 @@ const devLog = {
   warn: (...args: unknown[]) => IS_DEV_MODE && console.warn("[Cal.com]", ...args),
   error: (...args: unknown[]) => console.error("[Cal.com]", ...args),
 };
+
+/**
+ * Request timeout in milliseconds (30 seconds)
+ */
+const REQUEST_TIMEOUT_MS = 30000;
+
+/**
+ * Fetch with timeout to prevent hanging requests
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = REQUEST_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Safely parse JSON with validation for OAuthTokens
+ */
+function safeParseOAuthTokens(jsonString: string): OAuthTokens | null {
+  if (typeof jsonString !== "string" || !jsonString.trim()) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(jsonString);
+
+    // Validate it's a plain object (not null, array, or primitive)
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed) ||
+      Object.getPrototypeOf(parsed) !== Object.prototype
+    ) {
+      devLog.warn("Invalid OAuth tokens structure - not a plain object");
+      return null;
+    }
+
+    const obj = parsed as Record<string, unknown>;
+
+    // Validate required fields: accessToken and tokenType must be strings
+    if (typeof obj.accessToken !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - missing accessToken");
+      return null;
+    }
+
+    if (typeof obj.tokenType !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - missing tokenType");
+      return null;
+    }
+
+    // Validate optional fields have correct types if present
+    if (obj.refreshToken !== undefined && typeof obj.refreshToken !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - invalid refreshToken type");
+      return null;
+    }
+
+    if (obj.expiresAt !== undefined && typeof obj.expiresAt !== "number") {
+      devLog.warn("Invalid OAuth tokens structure - invalid expiresAt type");
+      return null;
+    }
+
+    if (obj.scope !== undefined && typeof obj.scope !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - invalid scope type");
+      return null;
+    }
+
+    // Construct validated OAuthTokens object
+    const tokens: OAuthTokens = {
+      accessToken: obj.accessToken,
+      tokenType: obj.tokenType,
+    };
+
+    if (typeof obj.refreshToken === "string") {
+      tokens.refreshToken = obj.refreshToken;
+    }
+
+    if (typeof obj.expiresAt === "number") {
+      tokens.expiresAt = obj.expiresAt;
+    }
+
+    if (typeof obj.scope === "string") {
+      tokens.scope = obj.scope;
+    }
+
+    return tokens;
+  } catch (error) {
+    devLog.warn("Failed to parse OAuth tokens:", error);
+    return null;
+  }
+}
+
+/**
+ * Safely parse JSON error response with structure validation.
+ * Validates the expected error response structure before returning.
+ */
+function safeParseErrorJson(
+  jsonString: string
+): { error?: { message?: string }; message?: string } | null {
+  if (typeof jsonString !== "string" || !jsonString.trim()) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(jsonString);
+
+    // Validate it's a plain object
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed) ||
+      Object.getPrototypeOf(parsed) !== Object.prototype
+    ) {
+      return null;
+    }
+
+    const obj = parsed as Record<string, unknown>;
+
+    // Validate expected error structure - must have error or message property with correct types
+    const hasValidErrorProp =
+      obj.error === undefined ||
+      (typeof obj.error === "object" &&
+        obj.error !== null &&
+        !Array.isArray(obj.error) &&
+        ((obj.error as Record<string, unknown>).message === undefined ||
+          typeof (obj.error as Record<string, unknown>).message === "string"));
+
+    const hasValidMessageProp = obj.message === undefined || typeof obj.message === "string";
+
+    if (hasValidErrorProp && hasValidMessageProp) {
+      return obj as { error?: { message?: string }; message?: string };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Browser type enum (inlined to avoid import issues in service worker)
@@ -35,7 +185,6 @@ function detectBrowser(): BrowserType {
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for Brave
-  // @ts-ignore - Brave adds this to navigator
   if (navigator.brave && typeof navigator.brave.isBrave === "function") {
     return BrowserType.Brave;
   }
@@ -95,9 +244,7 @@ function getBrowserDisplayName(): string {
 
 // Get the appropriate browser API namespace
 function getBrowserAPI(): typeof chrome {
-  // @ts-ignore - Firefox/Safari use browser namespace
-  if (typeof browser !== "undefined" && browser.runtime) {
-    // @ts-ignore
+  if (typeof browser !== "undefined" && browser?.runtime) {
     return browser;
   }
   return chrome;
@@ -130,8 +277,8 @@ function getTabsAPI(): typeof chrome.tabs | null {
 // Get action API with cross-browser support
 function getActionAPI(): typeof chrome.action | null {
   const api = getBrowserAPI();
-  // @ts-ignore - Some browsers use browserAction instead of action
-  return api?.action || api?.browserAction || null;
+  // Safari uses browserAction (Manifest V2), Chrome uses action (Manifest V3)
+  return api?.action || (api as any)?.browserAction || null;
 }
 
 // Check if the URL is a restricted page where content scripts can't run
@@ -168,9 +315,8 @@ function openAppPage(): void {
   }
 }
 
-// @ts-ignore - WXT provides this globally
 export default defineBackground(() => {
-  const browserType = detectBrowser();
+  const _browserType = detectBrowser();
   const browserName = getBrowserDisplayName();
 
   if (IS_DEV_MODE) {
@@ -204,7 +350,7 @@ export default defineBackground(() => {
   }
 
   if (runtimeAPI) {
-    runtimeAPI.onMessage.addListener((message, sender, sendResponse) => {
+    runtimeAPI.onMessage.addListener((message, _sender, sendResponse) => {
       if (message.action === "fetch-event-types") {
         fetchEventTypes()
           .then((eventTypes) => sendResponse({ data: eventTypes }))
@@ -305,6 +451,41 @@ export default defineBackground(() => {
         return true;
       }
 
+      if (message.action === "check-auth-status") {
+        checkAuthStatus()
+          .then((isAuthenticated) => sendResponse({ isAuthenticated }))
+          .catch((error) => sendResponse({ isAuthenticated: false, error: error.message }));
+        return true;
+      }
+
+      if (message.action === "get-booking-status") {
+        const { bookingUid } = message.payload as { bookingUid: string };
+
+        getBookingStatus(bookingUid)
+          .then((result) => sendResponse({ success: true, data: result }))
+          .catch((error) => {
+            devLog.error("Get booking status failed:", error);
+            sendResponse({ success: false, error: error.message });
+          });
+        return true;
+      }
+
+      if (message.action === "mark-no-show") {
+        const { bookingUid, attendeeEmail, absent } = message.payload as {
+          bookingUid: string;
+          attendeeEmail: string;
+          absent: boolean;
+        };
+
+        markAttendeeNoShow(bookingUid, attendeeEmail, absent)
+          .then((result) => sendResponse({ success: true, data: result }))
+          .catch((error) => {
+            devLog.error("Mark no-show failed:", error);
+            sendResponse({ success: false, error: error.message });
+          });
+        return true;
+      }
+
       return false;
     });
   }
@@ -342,8 +523,10 @@ async function handleExtensionOAuth(authUrl: string): Promise<string> {
     // Firefox and Safari use Promise-based API
     if (browserType === BrowserType.Firefox || browserType === BrowserType.Safari) {
       try {
-        // @ts-ignore - Firefox/Safari return Promises
-        const result = identityAPI.launchWebAuthFlow({ url: authUrl, interactive: true });
+        const result = identityAPI.launchWebAuthFlow({
+          url: authUrl,
+          interactive: true,
+        }) as Promise<string | undefined> | undefined;
 
         if (result && typeof result.then === "function") {
           result
@@ -395,7 +578,7 @@ async function handleTokenExchange(
 
   const body = new URLSearchParams(tokenRequest);
 
-  const response = await fetch(tokenEndpoint, {
+  const response = await fetchWithTimeout(tokenEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -488,7 +671,7 @@ async function validateTokens(tokens: OAuthTokens): Promise<boolean> {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/me`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/me`, {
       headers: {
         Authorization: `Bearer ${tokens.accessToken}`,
         "Content-Type": "application/json",
@@ -515,7 +698,7 @@ async function getAuthHeader(): Promise<string> {
   if (storageAPI?.local) {
     const result = await storageAPI.local.get(["cal_oauth_tokens"]);
     const oauthTokens = result.cal_oauth_tokens
-      ? (JSON.parse(result.cal_oauth_tokens as string) as OAuthTokens)
+      ? safeParseOAuthTokens(result.cal_oauth_tokens as string)
       : null;
 
     if (oauthTokens?.accessToken) {
@@ -534,7 +717,7 @@ async function getAuthHeader(): Promise<string> {
 async function fetchEventTypes(): Promise<unknown[]> {
   const authHeader = await getAuthHeader();
 
-  const userResponse = await fetch(`${API_BASE_URL}/me`, {
+  const userResponse = await fetchWithTimeout(`${API_BASE_URL}/me`, {
     headers: {
       Authorization: authHeader,
       "Content-Type": "application/json",
@@ -556,7 +739,7 @@ async function fetchEventTypes(): Promise<unknown[]> {
   const queryString = params.toString();
   const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
 
-  const response = await fetch(endpoint, {
+  const response = await fetchWithTimeout(endpoint, {
     headers: {
       Authorization: authHeader,
       "Content-Type": "application/json",
@@ -581,4 +764,120 @@ async function fetchEventTypes(): Promise<unknown[]> {
   }
 
   return [];
+}
+
+/**
+ * Check if user is authenticated by verifying tokens exist in storage
+ */
+async function checkAuthStatus(): Promise<boolean> {
+  const storageAPI = getStorageAPI();
+
+  if (!storageAPI?.local) {
+    return false;
+  }
+
+  try {
+    const result = await storageAPI.local.get(["cal_oauth_tokens"]);
+    const oauthTokens = result.cal_oauth_tokens
+      ? safeParseOAuthTokens(result.cal_oauth_tokens as string)
+      : null;
+
+    return Boolean(oauthTokens?.accessToken);
+  } catch (error) {
+    devLog.error("Failed to check auth status:", error);
+    return false;
+  }
+}
+
+/**
+ * Get booking status to check attendee no-show status
+ */
+async function getBookingStatus(bookingUid: string): Promise<Booking> {
+  const authHeader = await getAuthHeader();
+
+  const response = await fetchWithTimeout(`${API_BASE_URL}/bookings/${bookingUid}`, {
+    method: "GET",
+    headers: {
+      Authorization: authHeader,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-08-13",
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    let errorMessage = response.statusText;
+
+    const errorJson = safeParseErrorJson(errorBody);
+    if (errorJson) {
+      errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
+    } else {
+      errorMessage = errorBody || response.statusText;
+    }
+
+    if (response.status === 401) {
+      throw new Error("Session expired. Please login again.");
+    }
+    if (response.status === 403) {
+      throw new Error("You don't have permission to view this booking.");
+    }
+    if (response.status === 404) {
+      throw new Error("Booking not found in Cal.com.");
+    }
+
+    throw new Error(`Failed to get booking status: ${errorMessage}`);
+  }
+
+  const data = await response.json();
+  return (data?.data ?? data) as Booking;
+}
+
+/**
+ * Mark an attendee as no-show for a booking
+ */
+async function markAttendeeNoShow(
+  bookingUid: string,
+  attendeeEmail: string,
+  absent: boolean
+): Promise<Booking> {
+  const authHeader = await getAuthHeader();
+
+  const response = await fetchWithTimeout(`${API_BASE_URL}/bookings/${bookingUid}/mark-absent`, {
+    method: "POST",
+    headers: {
+      Authorization: authHeader,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-08-13",
+    },
+    body: JSON.stringify({
+      attendees: [{ email: attendeeEmail, absent }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    let errorMessage = response.statusText;
+
+    const errorJson = safeParseErrorJson(errorBody);
+    if (errorJson) {
+      errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
+    } else {
+      errorMessage = errorBody || response.statusText;
+    }
+
+    if (response.status === 401) {
+      throw new Error("Session expired. Please login again.");
+    }
+    if (response.status === 403) {
+      throw new Error("You don't have permission to modify this booking.");
+    }
+    if (response.status === 404) {
+      throw new Error("Booking not found in Cal.com.");
+    }
+
+    throw new Error(`Failed to mark no-show: ${errorMessage}`);
+  }
+
+  const data = await response.json();
+  return (data?.data ?? data) as Booking;
 }
