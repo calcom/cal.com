@@ -59,11 +59,14 @@ export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
   />
 );
 
-type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
+type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["Item"]>;
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
-  ({ className = "", ...props }, forwardedRef) => (
+  ({ className, ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:ring-0 focus:outline-none focus:bg-subtle focus:text-emphasis ${className}`}
+      className={classNames(
+        "text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:outline-none focus:ring-0",
+        className
+      )}
       {...props}
       ref={forwardedRef}
     />
