@@ -299,11 +299,14 @@ jobs:
             const existingSession = await findExistingSession(pr.number, pr.body);
             
             const forkInstructions = pr.is_fork ? `
-            IMPORTANT: This PR is from a fork. The contributor has enabled "Allow edits from maintainers".
+            IMPORTANT: This PR is from a fork.
             - Clone the FORK repository: ${pr.head_repo_owner}/${pr.head_repo_name}
             - The branch to work on is: ${pr.head_ref}
             - Add the upstream remote for ${owner}/${repo}
-            - Fetch and merge the upstream ${pr.base_ref} branch using standard git merge` : `
+            - Fetch and merge the upstream ${pr.base_ref} branch using standard git merge
+            
+            IMPORTANT - Pushing to Fork PRs:
+            Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing. Configure git to use this PAT for authentication before pushing your changes to the fork.` : `
             - Clone the repository: ${owner}/${repo}
             - Check out the PR branch: ${pr.head_ref}
             - Merge the base branch (${pr.base_ref}) using standard git merge`;
@@ -375,7 +378,7 @@ jobs:
             3. Run lint and type checks before pushing to ensure the code is valid.
             4. If a conflict seems too complex or risky to resolve automatically, explain the situation in a PR comment instead.
             5. Never ask for user confirmation. Never wait for user messages.
-            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.), you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.
+            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.) even after using the DEVIN_ACTIONS_PAT, you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.
             7. CRITICAL: Never reproduce or recreate changes from the target branch. Your merge commit should ONLY contain conflict resolutions. If you find yourself manually copying file contents from ${pr.base_ref} or creating changes that mirror what's already in ${pr.base_ref}, you are doing it wrong. Use git's merge functionality properly - it handles bringing in changes automatically.
             8. CRITICAL: If your merge commit shows significantly more files than the original PR (more than original PR files + 10), DO NOT PUSH UNDER ANY CIRCUMSTANCES. This is a sign that the merge was done incorrectly. Abort the task and leave a comment explaining the issue. A bad merge commit in the git history is worse than leaving the PR with conflicts.`;
 
