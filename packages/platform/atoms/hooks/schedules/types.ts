@@ -1,27 +1,8 @@
-export type ScheduleAvailability = {
-  id: number;
-  userId: number | null;
-  eventTypeId: number | null;
-  days: number[];
-  startTime: Date;
-  endTime: Date;
-  date: Date | null;
-  scheduleId: number | null;
-};
-
-export type Schedule = {
+type Schedule = {
   id: number;
   userId: number;
   name: string;
   timeZone: string | null;
-};
-
-export type ScheduleForList = {
-  id: number;
-  name: string;
-  timeZone: string | null;
-  availability: ScheduleAvailability[];
-  isDefault: boolean;
 };
 
 export type CreateScheduleHandlerReturn = {
@@ -33,7 +14,19 @@ export type DuplicateScheduleHandlerReturn = {
 };
 
 export type GetAvailabilityListHandlerReturn = {
-  schedules: ScheduleForList[];
+  schedules: Omit<Schedule, "userId"> & {
+    availability: {
+      id: number;
+      userId: number | null;
+      eventTypeId: number | null;
+      days: number[];
+      startTime: Date;
+      endTime: Date;
+      date: Date | null;
+      scheduleId: number | null;
+    }[];
+    isDefault: boolean;
+  }[];
 };
 
 export type CreateScheduleInput = {
