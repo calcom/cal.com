@@ -8,6 +8,7 @@ import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
   Calendar,
