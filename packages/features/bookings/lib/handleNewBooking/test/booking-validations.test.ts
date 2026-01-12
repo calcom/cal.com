@@ -12,6 +12,7 @@ import {
   getScenarioData,
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
+  getMockBookingAttendee,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
@@ -398,6 +399,122 @@ describe("Booking Validation Specifications", () => {
         expect(error.data).toEqual(
           expect.objectContaining({
             rescheduleUid: "existing-booking-1",
+          })
+        );
+      }
+    });
+
+    test("includes seatUid in reschedule error for seated events", async () => {
+      vi.setSystemTime(new Date("2025-01-01"));
+      const plus1DateString = "2025-01-02";
+      const plus2DateString = "2025-01-03";
+
+      const handleNewBooking = getNewBookingHandler();
+
+      const bookerA = getBooker({
+        email: "bookerA@example.com",
+        name: "Booker A",
+      });
+
+      const bookerB = getBooker({
+        email: "bookerB@example.com",
+        name: "Booker B",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const seatReferenceUidA = "seat-reference-uid-a";
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              maxActiveBookingsPerBooker: 1,
+              maxActiveBookingPerBookerOfferReschedule: true,
+              seatsPerTimeSlot: 3,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"]],
+          bookings: [
+            {
+              uid: "existing-booking-1",
+              eventTypeId: 1,
+              userId: organizer.id,
+              startTime: `${plus1DateString}T10:00:00.000Z`,
+              endTime: `${plus1DateString}T10:30:00.000Z`,
+              title: "Existing Booking",
+              status: BookingStatus.ACCEPTED,
+              attendees: [
+                getMockBookingAttendee({
+                  id: 1,
+                  name: bookerA.name,
+                  email: bookerA.email,
+                  locale: "en",
+                  timeZone: "America/Toronto",
+                  bookingSeat: {
+                    referenceUid: seatReferenceUidA,
+                    data: {},
+                  },
+                }),
+                getMockBookingAttendee({
+                  id: 2,
+                  name: bookerB.name,
+                  email: bookerB.email,
+                  locale: "en",
+                  timeZone: "America/Toronto",
+                  bookingSeat: {
+                    referenceUid: "seat-reference-uid-b",
+                    data: {},
+                  },
+                }),
+              ],
+            },
+          ],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          start: `${plus2DateString}T10:00:00.000Z`,
+          end: `${plus2DateString}T10:30:00.000Z`,
+          responses: {
+            email: bookerA.email,
+            name: bookerA.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      try {
+        await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+        expect.fail("Expected booking to throw booker_limit_exceeded_error_reschedule");
+      } catch (error) {
+        expect(error.message).toEqual("booker_limit_exceeded_error_reschedule");
+        expect(error.data).toEqual(
+          expect.objectContaining({
+            rescheduleUid: "existing-booking-1",
+            seatUid: seatReferenceUidA,
           })
         );
       }
