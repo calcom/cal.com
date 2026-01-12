@@ -355,6 +355,41 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@calcom/*",
+                      "@calcom/**",
+                      "!@calcom/platform-constants",
+                      "!@calcom/platform-constants/**",
+                      "!@calcom/platform-enums",
+                      "!@calcom/platform-enums/**",
+                      "!@calcom/platform-libraries",
+                      "!@calcom/platform-libraries/**",
+                      "!@calcom/platform-types",
+                      "!@calcom/platform-types/**",
+                      "!@calcom/platform-utils",
+                      "!@calcom/platform-utils/**",
+                      "!@calcom/prisma",
+                      "!@calcom/prisma/**"
+                    ],
+                    "message": "API v2 should only import from @calcom/platform-constants, @calcom/platform-enums, @calcom/platform-libraries, @calcom/platform-types, @calcom/platform-utils, and @calcom/prisma. Other @calcom packages are not allowed."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
