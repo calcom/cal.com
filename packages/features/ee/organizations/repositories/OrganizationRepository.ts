@@ -472,6 +472,48 @@ export class OrganizationRepository {
     });
   }
 
+  async findVerifiedNonPlatformOrgByAutoAcceptEmailDomainIncludeName(domain: string) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        isOrganization: true,
+        isPlatform: false,
+        organizationSettings: {
+          orgAutoAcceptEmail: domain,
+          isOrganizationVerified: true,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        organizationSettings: {
+          select: {
+            orgAutoAcceptEmail: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findAdminsAndOwnersByOrgId(orgId: number) {
+    return await this.prismaClient.membership.findMany({
+      where: {
+        teamId: orgId,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        accepted: true,
+      },
+      select: {
+        user: {
+          select: {
+            email: true,
+            locale: true,
+          },
+        },
+      },
+    });
+  }
+
   async setSlug({ id, slug }: { id: number; slug: string }) {
     return await this.prismaClient.team.update({
       where: { id, isOrganization: true },

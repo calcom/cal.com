@@ -7,6 +7,11 @@ export default {
     skipWarnings
       ? `biome lint --config-path=biome-staged.json ${files.join(" ")}`
       : `biome lint --config-path=biome-staged.json --error-on-warnings ${files.join(" ")}`,
-      "*.json": (files) => `biome format --config-path=biome-staged.json ${files.join(" ")}`,
+  "*.json": (files) => {
+    // Filter out locale files since biome is configured to ignore public/ directories
+    const nonLocaleFiles = files.filter((f) => !f.includes("/public/static/locales/"));
+    if (nonLocaleFiles.length === 0) return [];
+    return `biome format --config-path=biome-staged.json ${nonLocaleFiles.join(" ")}`;
+  },
   "packages/prisma/schema.prisma": ["prisma format"],
 };

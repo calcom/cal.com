@@ -10,6 +10,8 @@ import type { OrganizationEmailVerify } from "./templates/organization-email-ver
 import OrganizationEmailVerification from "./templates/organization-email-verification";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
 import AdminOrganizationNotification from "./templates/admin-organization-notification";
+import type { OrganizationJoinRequestEmailInput } from "./templates/organization-join-request-email";
+import OrganizationJoinRequestEmail from "./templates/organization-join-request-email";
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -42,4 +44,8 @@ export const sendOrganizationEmailVerification = async (sendOrgInput: Organizati
 
 export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
   await sendEmail(() => new AdminOrganizationNotification(input));
+};
+
+export const sendOrganizationJoinRequestEmail = async (input: OrganizationJoinRequestEmailInput) => {
+  await sendEmail(() => new OrganizationJoinRequestEmail(input));
 };

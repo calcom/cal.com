@@ -19,6 +19,7 @@ import {
   InvalidAppCredentialBanners,
   type InvalidAppCredentialBannersProps,
 } from "@calcom/web/modules/users/components/InvalidAppCredentialsBanner";
+import OrgJoinBanner, { type OrgJoinBannerProps } from "@calcom/web/modules/users/components/OrgJoinBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/web/modules/users/components/VerifyEmailBanner";
@@ -31,6 +32,7 @@ type BannerTypeProps = {
   impersonationBanner: ImpersonatingBannerProps;
   calendarCredentialBanner: CalendarCredentialBannerProps;
   invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
+  orgJoinBanner: OrgJoinBannerProps;
 };
 
 type BannerType = keyof BannerTypeProps;
@@ -51,6 +53,7 @@ export const BannerComponent: BannerComponent = {
   invalidAppCredentialBanners: (props: InvalidAppCredentialBannersProps) => (
     <InvalidAppCredentialBanners {...props} />
   ),
+  orgJoinBanner: (props: OrgJoinBannerProps) => <OrgJoinBanner {...props} />,
 };
 
 interface BannerContainerProps {
@@ -80,6 +83,9 @@ export const BannerContainer: React.FC<BannerContainerProps> = ({ banners }) => 
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;
         } else if (key === "invalidAppCredentialBanners") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "orgJoinBanner") {
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;
         }

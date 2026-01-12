@@ -10,6 +10,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { checkIfOrgNeedsUpgradeHandler } from "../organizations/checkIfOrgNeedsUpgrade.handler";
 import { getUpgradeableHandler } from "../teams/getUpgradeable.handler";
 import { checkInvalidAppCredentials } from "./checkForInvalidAppCredentials";
+import { checkForVerifiedOrgDomainHandler } from "./checkForVerifiedOrgDomain.handler";
 import { shouldVerifyEmailHandler } from "./shouldVerifyEmail.handler";
 
 type Props = {
@@ -45,6 +46,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
   const shouldEmailVerify = shouldVerifyEmailHandler({ ctx });
   // const isInvalidCalendarCredential = checkInvalidGoogleCalendarCredentials({ ctx });
   const appsWithInavlidCredentials = checkInvalidAppCredentials({ ctx });
+  const verifiedOrgDomain = checkForVerifiedOrgDomainHandler({ ctx });
 
   const [
     teamUpgradeBanner,
@@ -52,12 +54,14 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     verifyEmailBanner,
     // calendarCredentialBanner,
     invalidAppCredentialBanners,
+    orgJoinBanner,
   ] = await Promise.allSettled([
     upgradeableTeamMememberships,
     upgradeableOrgMememberships,
     shouldEmailVerify,
     // isInvalidCalendarCredential,
     appsWithInavlidCredentials,
+    verifiedOrgDomain,
   ]);
 
   return {
@@ -67,5 +71,6 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     calendarCredentialBanner: false,
     invalidAppCredentialBanners:
       invalidAppCredentialBanners.status === "fulfilled" ? invalidAppCredentialBanners.value : [],
+    orgJoinBanner: orgJoinBanner.status === "fulfilled" ? orgJoinBanner.value : null,
   };
 };
