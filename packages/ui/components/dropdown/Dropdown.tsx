@@ -1,7 +1,7 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import type { ComponentProps } from "react";
-import { Children, forwardRef, isValidElement } from "react";
+import { forwardRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -60,34 +60,14 @@ export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
 );
 
 type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
-
-const hasDestructiveDescendant = (node: React.ReactNode): boolean =>
-  Children.toArray(node).some((child) => {
-    if (!isValidElement(child)) return false;
-
-    const childProps = child.props as { color?: ButtonColor; children?: React.ReactNode };
-    if (childProps.color === "destructive") return true;
-
-    return childProps.children ? hasDestructiveDescendant(childProps.children) : false;
-  });
-
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
-  ({ className = "", children, ...props }, forwardedRef) => {
-    const hasDestructiveChild = hasDestructiveDescendant(children);
-
-    return (
-      <DropdownMenuPrimitive.Item
-        className={classNames(
-          "hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:ring-0 focus:outline-none focus:text-emphasis",
-          hasDestructiveChild ? "hover:bg-transparent focus:bg-transparent" : "hover:bg-subtle focus:bg-subtle",
-          className
-        )}
-        {...props}
-        ref={forwardedRef}>
-        {children}
-      </DropdownMenuPrimitive.Item>
-    );
-  }
+  ({ className = "", ...props }, forwardedRef) => (
+    <DropdownMenuPrimitive.Item
+      className={`hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:ring-0 focus:outline-none focus:bg-subtle focus:text-emphasis ${className}`}
+      {...props}
+      ref={forwardedRef}
+    />
+  )
 );
 DropdownMenuItem.displayName = "DropdownMenuItem";
 
