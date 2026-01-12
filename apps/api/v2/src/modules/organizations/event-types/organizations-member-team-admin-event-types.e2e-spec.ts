@@ -65,7 +65,7 @@ describe("Organizations Event Types Endpoints", () => {
     let managedEventTypeSlug: string;
 
     beforeAll(async () => {
-      managedEventTypeSlug = `managed-${randomString()}`;
+      managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
       const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
