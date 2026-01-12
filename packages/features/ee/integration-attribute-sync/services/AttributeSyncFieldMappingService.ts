@@ -2,6 +2,7 @@ import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/rep
 import {
   buildSlugFromValue,
   canSetValueBeyondOptions,
+  doesSupportMultipleValues,
   hasOptions,
 } from "@calcom/features/ee/dsync/lib/assignValueToUserUtils";
 import logger from "@calcom/lib/logger";
@@ -9,7 +10,6 @@ import { PrismaAttributeRepository } from "@calcom/features/attributes/repositor
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
-import { attributeRepositoryModule } from "di/modules/Attribute";
 
 const log = logger.getSubLogger({
   prefix: ["[AttributeSyncFieldMappingService]"],
@@ -154,30 +154,47 @@ export class AttributeSyncFieldMappingService {
         continue;
       }
 
-      const fieldValue = String(
+      const rawFieldValue = String(
         integrationFields[mapping.integrationFieldName]
       );
 
       if (hasOptions({ attribute })) {
         // SINGLE_SELECT / MULTI_SELECT - must find existing option
-        const matchingOption = attribute.options.find(
-          (opt) => opt.value.toLowerCase() === fieldValue.toLowerCase()
-        );
 
-        if (!matchingOption) {
-          log.warn(
-            `No matching option for value "${fieldValue}" in attribute ${attribute.id} (${attribute.name})`
-          );
-          continue;
-        }
+        const isMultiSelect = doesSupportMultipleValues({ attribute });
 
+        // For MULTI_SELECT, process all comma-separated values; for SINGLE_SELECT, take the first only
+        const fieldValues = isMultiSelect
+          ? rawFieldValue
+              .split(",")
+              .map((v) => v.trim())
+              .filter(Boolean)
+          : [rawFieldValue.split(",")[0].trim()].filter(Boolean);
+
+        // Always mark for sync so old assignments get cleared (even if field is blank)
         attributeIdsToSync.push(attribute.id);
-        assignmentsToCreate.push({
-          memberId,
-          attributeOptionId: matchingOption.id,
-        });
+
+        for (const fieldValue of fieldValues) {
+          const matchingOption = attribute.options.find(
+            (opt) => opt.value.toLowerCase() === fieldValue.toLowerCase()
+          );
+
+          if (!matchingOption) {
+            log.warn(
+              `No matching option for value "${fieldValue}" in attribute ${attribute.id} (${attribute.name})`
+            );
+            continue;
+          }
+
+          assignmentsToCreate.push({
+            memberId,
+            attributeOptionId: matchingOption.id,
+          });
+        }
       } else if (canSetValueBeyondOptions({ attribute })) {
         // TEXT / NUMBER - find existing option or create new one
+        // For TEXT/NUMBER, use first value if comma-separated
+        const fieldValue = rawFieldValue.split(",")[0].trim();
         const existingOption = attribute.options.find(
           (opt) => opt.value.toLowerCase() === fieldValue.toLowerCase()
         );
