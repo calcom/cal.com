@@ -7,6 +7,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -34,6 +35,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
+  const utils = trpc.useUtils();
 
   const store = useOnboardingStore();
   const { teamInvites, setTeamInvites, teamDetails, setTeamId, teamId, resetOnboardingPreservingPlan } = store;
@@ -107,7 +109,8 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
           })),
           i18n.language
         );
-        // After successful invite, redirect to teams page
+        // Invalidate teams query to refresh the list
+        await utils.viewer.teams.list.invalidate();
         resetOnboardingPreservingPlan();
         router.replace("/teams");
       } catch (error) {
@@ -117,7 +120,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       }
     } else {
       // No invites, skip to teams page
-      console.log("No invites, skipping to teams page");
+      await utils.viewer.teams.list.invalidate();
       resetOnboardingPreservingPlan();
       router.replace("/teams");
     }
@@ -125,8 +128,8 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
 
   const handleSkip = async () => {
     setTeamInvites([]);
+    await utils.viewer.teams.list.invalidate();
     resetOnboardingPreservingPlan();
-    // Skip inviting members and go to teams page
     router.replace("/teams");
   };
 
