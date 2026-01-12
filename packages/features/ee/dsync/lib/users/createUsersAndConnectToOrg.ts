@@ -1,4 +1,5 @@
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
@@ -69,7 +70,7 @@ export const createUsersAndConnectToOrg = async ({
   });
 
   // Create memberships for new members
-  await MembershipRepository.createMany(
+  const membershipResult = await MembershipRepository.createMany(
     users.map((user) => ({
       userId: user.id,
       teamId: org.id,
@@ -77,6 +78,14 @@ export const createUsersAndConnectToOrg = async ({
       accepted: true,
     }))
   );
+
+  if (membershipResult.count > 0) {
+    const seatTracker = new SeatChangeTrackingService();
+    await seatTracker.logSeatAddition({
+      teamId: org.id,
+      seatCount: membershipResult.count,
+    });
+  }
 
   return users;
 };

@@ -1,4 +1,5 @@
 import { TeamRepository } from "@calcom/ee/teams/repositories/TeamRepository";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
@@ -32,6 +33,22 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
         .join(", ")}`,
     });
   }
+
+  const teamsForSeatTracking = await prisma.team.findMany({
+    where: {
+      id: {
+        in: input.teamIds,
+      },
+    },
+    select: {
+      id: true,
+      parentId: true,
+    },
+  });
+
+  const topLevelTeamIds = new Set(
+    teamsForSeatTracking.filter((team) => !team.parentId).map((team) => team.id)
+  );
 
   // Check if user has permission to invite team members in the organization
   const permissionCheckService = new PermissionCheckService();
@@ -105,6 +122,26 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   await prisma.membership.createMany({
     data: membershipData,
   });
+
+  if (topLevelTeamIds.size > 0 && membershipData.length > 0) {
+    const seatTracker = new SeatChangeTrackingService();
+    const additionsByTeam = Array.from(topLevelTeamIds)
+      .map((teamId) => ({
+        teamId,
+        seatCount: membershipData.filter((entry) => entry.teamId === teamId).length,
+      }))
+      .filter((entry) => entry.seatCount > 0);
+
+    await Promise.all(
+      additionsByTeam.map(({ teamId, seatCount }) =>
+        seatTracker.logSeatAddition({
+          teamId,
+          seatCount,
+          triggeredBy: user.id,
+        })
+      )
+    );
+  }
 
   membershipData.forEach(async ({ userId, teamId }) => {
     await updateNewTeamMemberEventTypes(userId, teamId);

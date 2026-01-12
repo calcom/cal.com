@@ -1,6 +1,8 @@
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { createMemberships } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
@@ -97,21 +99,47 @@ describe("MonthlyProrationService Integration Tests", () => {
   });
 
   it("should process end-to-end proration for annual team with seat additions", async () => {
-    const seatTracker = new SeatChangeTrackingService();
     const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(7);
 
-    await seatTracker.logSeatAddition({
+    const newMembers = await Promise.all(
+      [0, 1, 2].map((index) =>
+        prisma.user.create({
+          data: {
+            email: `test-proration-member-${timestamp}-${randomSuffix}-${index}@example.com`,
+            username: `testprorationmember-${timestamp}-${randomSuffix}-${index}`,
+            name: `Test Proration Member ${index}`,
+          },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            identityProvider: true,
+            completedOnboarding: true,
+          },
+        })
+      )
+    );
+
+    await createMemberships({
       teamId: testTeam.id,
-      userId: testUser.id,
-      triggeredBy: testUser.id,
-      seatCount: 3,
+      language: "en",
+      invitees: newMembers.map((member) => ({
+        ...member,
+        profiles: [],
+        teams: [],
+        password: null,
+        newRole: MembershipRole.MEMBER,
+        needToCreateOrgMembership: false,
+      })),
+      parentId: null,
+      accepted: true,
     });
 
-    await seatTracker.logSeatRemoval({
+    await TeamService.leaveTeamMembership({
       teamId: testTeam.id,
-      userId: testUser.id,
-      triggeredBy: testUser.id,
-      seatCount: 1,
+      userId: newMembers[0].id,
     });
 
     const proration = await prorationService.createProrationForTeam({

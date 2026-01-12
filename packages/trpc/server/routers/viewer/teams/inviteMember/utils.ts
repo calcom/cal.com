@@ -4,6 +4,7 @@ import type { TFunction } from "i18next";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
@@ -464,6 +465,33 @@ export async function createMemberships({
         return data;
       }),
     });
+
+    const seatTracker = new SeatChangeTrackingService();
+    const teamSeatAdditions = parentId ? 0 : invitees.length;
+    const organizationSeatAdditions = parentId
+      ? invitees.filter((invitee) => invitee.needToCreateOrgMembership).length
+      : 0;
+
+    const trackingPromises: Promise<void>[] = [];
+    if (teamSeatAdditions > 0) {
+      trackingPromises.push(
+        seatTracker.logSeatAddition({
+          teamId,
+          seatCount: teamSeatAdditions,
+        })
+      );
+    }
+
+    if (parentId && organizationSeatAdditions > 0) {
+      trackingPromises.push(
+        seatTracker.logSeatAddition({
+          teamId: parentId,
+          seatCount: organizationSeatAdditions,
+        })
+      );
+    }
+
+    await Promise.all(trackingPromises);
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       logger.error("Failed to create memberships", teamId);
@@ -927,6 +955,14 @@ export async function handleExistingUsersInvites({
         };
       })
     );
+
+    if (!team.parentId && existingUsersWithMembershipsNew.length > 0) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatAddition({
+        teamId: team.id,
+        seatCount: existingUsersWithMembershipsNew.length,
+      });
+    }
 
     const autoJoinUsers = existingUsersWithMembershipsNew.filter(
       (user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept
