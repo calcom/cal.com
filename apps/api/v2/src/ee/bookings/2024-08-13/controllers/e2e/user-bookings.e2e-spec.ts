@@ -483,6 +483,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -493,8 +494,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.bookingFieldsResponses).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 ...body.bookingFieldsResponses,
                 guests: body.guests,
+                displayGuests: body.guests,
                 location: {
                   optionValue: googleMeetUrl,
                   value: "link",
@@ -566,6 +569,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(firstBooking.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -588,6 +592,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(secondBooking.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -609,6 +614,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(thirdBooking.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -2077,6 +2083,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -2087,8 +2094,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.bookingFieldsResponses).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 ...body.bookingFieldsResponses,
                 guests: body.guests,
+                displayGuests: body.guests,
                 location: {
                   optionValue: googleMeetUrl,
                   value: "link",
@@ -2527,6 +2536,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           expect(data.attendees[0]).toEqual({
             name: body.attendee.name,
             email: body.attendee.email,
+            displayEmail: body.attendee.email,
             timeZone: body.attendee.timeZone,
             language: body.attendee.language,
             phoneNumber: body.attendee.phoneNumber,
@@ -2535,6 +2545,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           expect(data.bookingFieldsResponses).toEqual({
             name: body.attendee.name,
             email: body.attendee.email,
+            displayEmail: body.attendee.email,
             attendeePhoneNumber: body.attendee.phoneNumber,
             smsReminderNumber: body.attendee.phoneNumber,
           });
