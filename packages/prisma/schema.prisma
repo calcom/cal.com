@@ -3126,6 +3126,7 @@ model IntegrationAttributeSync {
   updatedAt DateTime @updatedAt
 
   @@index([organizationId])
+  @@index([credentialId])
 }
 
 model AttributeSyncRule {
