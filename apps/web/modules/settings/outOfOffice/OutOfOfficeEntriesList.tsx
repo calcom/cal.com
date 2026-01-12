@@ -35,6 +35,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
+import { TeamOOOCalendarSync } from "./TeamOOOCalendarSync";
 import type { BookingRedirectForm } from "./types";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
@@ -358,6 +359,7 @@ function OutOfOfficeEntriesListContent({
 
   return (
     <>
+      {selectedTab === OutOfOfficeTab.TEAM && <TeamOOOCalendarSync />}
       <DataTableWrapper
         testId="ooo-list-data-table"
         rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
