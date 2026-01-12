@@ -526,15 +526,19 @@ export class CalComOAuthService {
       refresh_token: refreshToken,
     };
 
-    const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/token`;
+    const refreshTokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/refreshToken`;
 
     if (this.isRunningInIframe()) {
-      const tokens = await this.exchangeCodeForTokensViaExtension(tokenRequest, tokenEndpoint);
+      const tokens = await this.exchangeCodeForTokensViaExtension(
+        tokenRequest,
+        refreshTokenEndpoint
+      );
       await this.syncTokensToExtension(tokens);
       return tokens;
     }
 
-    return this.exchangeCodeForTokensDirect(tokenRequest, tokenEndpoint);
+    const result = await this.exchangeCodeForTokensDirect(tokenRequest, refreshTokenEndpoint);
+    return result;
   }
 }
 
