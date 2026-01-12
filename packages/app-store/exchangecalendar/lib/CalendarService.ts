@@ -195,13 +195,18 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   private async getExchangeService(): Promise<ExchangeService> {
-    const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
+    const version = this.payload.exchangeVersion === ExchangeVersion.Exchange2019 
+  ? ExchangeVersion.Exchange2016 
+  : this.payload.exchangeVersion;
+
+const service: ExchangeService = new ExchangeService(version);
     service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
     service.Url = new Uri(this.payload.url);
     if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
       const { XhrApi } = await import("@ewsjs/xhr");
       const xhr = new XhrApi({
-        rejectUnauthorized: false,
+      rejectUnauthorized: false,
+      strictSSL: false, // Add this line if your library supports it
       }).useNtlmAuthentication(this.payload.username, this.payload.password);
       service.XHRApi = xhr;
     }

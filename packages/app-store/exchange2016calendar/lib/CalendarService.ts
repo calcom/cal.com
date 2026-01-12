@@ -60,7 +60,12 @@ export default class ExchangeCalendarService implements Calendar {
       username,
       password,
     };
-    this.exchangeVersion = ExchangeVersion.Exchange2016;
+    this.exchangeVersion =
+  decryptedCredential.exchangeVersion &&
+  ExchangeVersion[decryptedCredential.exchangeVersion]
+    ? ExchangeVersion[decryptedCredential.exchangeVersion]
+    : ExchangeVersion.Exchange2016_SP2;
+
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
@@ -231,9 +236,27 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   private getExchangeService(): ExchangeService {
-    const exch1 = new ExchangeService(this.exchangeVersion);
-    exch1.Credentials = new WebCredentials(this.credentials.username, this.credentials.password);
-    exch1.Url = new Uri(this.url);
-    return exch1;
-  }
+  const service = new ExchangeService(this.exchangeVersion);
+
+  service.Url = new Uri(this.url);
+
+  service.Credentials = new WebCredentials(
+    this.credentials.username,
+    this.credentials.password
+  );
+
+  // Force NTLM instead of broken Basic Auth
+  service.UseDefaultCredentials = false;
+
+  // Required for Exchange 2016/2019 NTLM handshake
+  service.PreAuthenticate = true;
+
+  service.HttpHeaders = {
+    ...service.HttpHeaders,
+    "X-Requested-With": "XMLHttpRequest",
+  };
+
+  return service;
+}
+
 }
