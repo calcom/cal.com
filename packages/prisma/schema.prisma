@@ -1782,7 +1782,7 @@ model OAuthClient {
   clientSecret    String?
   clientType      OAuthClientType           @default(CONFIDENTIAL)
   name            String
-  purpose         String                    @default("")
+  purpose         String
   logo            String?
   websiteUrl      String?
   rejectionReason String?
@@ -1791,7 +1791,7 @@ model OAuthClient {
   approvalStatus  OAuthClientApprovalStatus @default(APPROVED)
   userId          Int?
   user            User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt       DateTime                  @default(now())
+  createdAt       DateTime                  @default(dbgenerated("timezone('UTC', now())"))
 
   @@index([userId])
 }

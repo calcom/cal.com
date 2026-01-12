@@ -98,7 +98,7 @@ export const OAuthClientFormFields = ({
         label={t("redirect_uri")}
         type="url"
         id="redirectUri"
-        placeholder="https://example.com/callback"
+        placeholder={t("redirect_uri_placeholder")}
         required
         disabled={isFormDisabled}
       />

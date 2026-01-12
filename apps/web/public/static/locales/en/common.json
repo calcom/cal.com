@@ -1046,6 +1046,7 @@
   "purpose_placeholder": "Explain what this OAuth client is for and how it will be used",
   "purpose_tooltip": "Please explain how and what this OAuth client will be used for. This helps us review and approve your request.",
   "redirect_uri": "Redirect URI",
+  "redirect_uri_placeholder": "https://example.com/callback",
   "website_url": "Website URL",
   "website_url_tooltip": "For development, you can use a localhost URL (e.g. http://localhost:3000).",
   "authentication_mode": "Authentication Mode",
