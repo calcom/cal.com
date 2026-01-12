@@ -128,6 +128,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "developer", page: "api_keys" },
         },
         {
+          name: "oauth_clients",
+          href: "/settings/developer/oauth",
+          trackingMetadata: { section: "developer", page: "oauth_clients" }
+        },
+        {
           name: "admin_api",
           href: "/settings/organizations/admin-api",
           trackingMetadata: { section: "developer", page: "admin_api" },
@@ -247,7 +252,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
         {
           name: "oAuth",
-          href: "/settings/admin/oAuth",
+          href: "/settings/admin/oauth",
           trackingMetadata: { section: "admin", page: "oauth" },
         },
         {

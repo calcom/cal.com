@@ -482,6 +482,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  oAuthClients                   OAuthClient[]
   holidaySettings                UserHolidaySettings?
 
   autoOptInFeatures Boolean @default(false)
@@ -1765,15 +1766,30 @@ enum OAuthClientType {
   PUBLIC       @map("public")
 }
 
+enum OAuthClientApprovalStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+}
+
 model OAuthClient {
-  clientId     String          @id @unique
-  redirectUri  String
-  clientSecret String?
-  clientType   OAuthClientType @default(CONFIDENTIAL)
-  name         String
-  logo         String?
-  isTrusted    Boolean         @default(false)
-  accessCodes  AccessCode[]
+  clientId        String                    @id @unique
+  redirectUri     String
+  clientSecret    String?
+  clientType      OAuthClientType           @default(CONFIDENTIAL)
+  name            String
+  purpose         String                    @default("")
+  logo            String?
+  websiteUrl      String?
+  rejectionReason String?
+  isTrusted       Boolean                   @default(false)
+  accessCodes     AccessCode[]
+  approvalStatus  OAuthClientApprovalStatus @default(PENDING)
+  userId          Int?
+  user            User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime                  @default(now())
+
+  @@index([userId])
 }
 
 model AccessCode {
