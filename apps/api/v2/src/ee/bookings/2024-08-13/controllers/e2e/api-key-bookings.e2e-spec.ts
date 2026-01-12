@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
@@ -177,6 +177,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,

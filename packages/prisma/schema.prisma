@@ -619,6 +619,10 @@ model Team {
 
   autoOptInFeatures Boolean @default(false)
 
+  // Monthly proration tracking
+  seatChangeLogs    SeatChangeLog[]
+  monthlyProrations MonthlyProration[]
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -2408,11 +2412,12 @@ model Watchlist {
   source         WatchlistSource @default(MANUAL)
   lastUpdatedAt  DateTime        @default(now())
 
-  bookingReports BookingReport[]
-  audits         WatchlistAudit[]
+  bookingReports       BookingReport[]
+  globalBookingReports BookingReport[]  @relation("GlobalBlocklist")
+  audits               WatchlistAudit[]
 
   @@unique([type, value, organizationId])
-  @@index([type, value, organizationId, action])
+  @@index([isGlobal, action, organizationId, type, value])
 }
 
 model WatchlistAudit {
@@ -2452,6 +2457,12 @@ enum BookingReportStatus {
   BLOCKED // Added to watchlist
 }
 
+enum SystemReportStatus {
+  PENDING // Not yet reviewed by system admin
+  BLOCKED // Added to global blocklist
+  DISMISSED // System admin dismissed (won't see again)
+}
+
 model BookingReport {
   id             String              @id @default(uuid()) @db.Uuid
   bookingUid     String              @unique
@@ -2465,17 +2476,22 @@ model BookingReport {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   status         BookingReportStatus @default(PENDING)
+  systemStatus   SystemReportStatus  @default(PENDING)
 
-  watchlistId String? @db.Uuid
+  watchlistId       String? @db.Uuid
+  globalWatchlistId String? @db.Uuid
 
-  reportedBy   User?      @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
-  organization Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  watchlist    Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  reportedBy      User?      @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  organization    Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  watchlist       Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  globalWatchlist Watchlist? @relation("GlobalBlocklist", fields: [globalWatchlistId], references: [id], onDelete: SetNull)
 
   @@index([bookerEmail])
   @@index([reportedById])
   @@index([organizationId])
   @@index([watchlistId])
+  @@index([globalWatchlistId])
+  @@index([systemStatus])
   @@index([createdAt])
 }
 
@@ -2921,6 +2937,12 @@ model TeamBilling {
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
 
+  billingPeriod     BillingPeriod?
+  pricePerSeat      Int?
+  paidSeats         Int?
+  monthlyProrations MonthlyProration[]
+  seatChangeLogs    SeatChangeLog[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -2939,8 +2961,108 @@ model OrganizationBilling {
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
 
+  billingPeriod     BillingPeriod?
+  pricePerSeat      Int?
+  paidSeats         Int?
+  monthlyProrations MonthlyProration[]
+  seatChangeLogs    SeatChangeLog[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model SeatChangeLog {
+  id     String @id @default(uuid())
+  teamId Int
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  changeType  SeatChangeType
+  seatCount   Int
+  userId      Int?
+  triggeredBy Int?
+
+  changeDate DateTime @default(now())
+  monthKey   String
+
+  processedInProrationId String?
+  proration              MonthlyProration? @relation(fields: [processedInProrationId], references: [id])
+
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  teamBillingId         String?
+  teamBilling           TeamBilling?         @relation(fields: [teamBillingId], references: [id])
+  organizationBillingId String?
+  organizationBilling   OrganizationBilling? @relation(fields: [organizationBillingId], references: [id])
+
+  @@index([teamId, monthKey])
+  @@index([teamId, processedInProrationId])
+  @@index([monthKey])
+}
+
+enum SeatChangeType {
+  ADDITION
+  REMOVAL
+}
+
+model MonthlyProration {
+  id     String @id @default(uuid())
+  teamId Int
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  monthKey    String
+  periodStart DateTime
+  periodEnd   DateTime
+
+  seatsAtStart    Int
+  seatsAdded      Int
+  seatsRemoved    Int
+  netSeatIncrease Int
+  seatsAtEnd      Int
+
+  subscriptionId     String
+  subscriptionItemId String
+  customerId         String
+
+  subscriptionStart DateTime
+  subscriptionEnd   DateTime
+  remainingDays     Int
+  pricePerSeat      Int
+  proratedAmount    Int
+
+  invoiceItemId String?
+  invoiceId     String?
+
+  status ProrationStatus @default(PENDING)
+
+  chargedAt     DateTime?
+  failedAt      DateTime?
+  failureReason String?
+  retryCount    Int       @default(0)
+
+  seatChanges SeatChangeLog[]
+
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teamBillingId         String?
+  teamBilling           TeamBilling?         @relation(fields: [teamBillingId], references: [id])
+  organizationBillingId String?
+  organizationBilling   OrganizationBilling? @relation(fields: [organizationBillingId], references: [id])
+
+  @@unique([teamId, monthKey])
+  @@index([monthKey, status])
+  @@index([status])
+  @@index([teamId])
+}
+
+enum ProrationStatus {
+  PENDING // Created, waiting to be processed
+  INVOICE_CREATED // Stripe invoice item created
+  CHARGED // Payment succeeded
+  FAILED // Payment failed
+  CANCELLED // Cancelled (e.g., subscription ended before charge)
 }
 
 enum CalendarCacheEventStatus {
