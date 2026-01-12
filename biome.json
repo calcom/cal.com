@@ -323,6 +323,38 @@
           }
         }
       }
+    },
+    {
+      "includes": [
+        "packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@calcom/trpc/react",
+                      "@calcom/trpc/react/**"
+                    ],
+                    "message": "atoms package should not import from @calcom/trpc/react."
+                  },
+                  {
+                    "group": [
+                      "../../trpc/react",
+                      "../../trpc/react/**"
+                    ],
+                    "message": "atoms package should not import from trpc/react."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
