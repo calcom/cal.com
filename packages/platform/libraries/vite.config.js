@@ -17,7 +17,7 @@ console.log("Platform libraries usePool", usePool);
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
   define: {
-    "process.env.USE_POOL": usePool,
+    "process.env.USE_POOL": JSON.stringify(usePool),
   },
   esbuild: {
     target: "node18",
