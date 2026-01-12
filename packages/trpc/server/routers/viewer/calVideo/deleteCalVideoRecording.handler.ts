@@ -51,7 +51,8 @@ export const deleteCalVideoRecordingHandler = async ({
 
   // Verify the recordingId belongs to this room (prevents IDOR attack)
   const recordings = await getRecordingsOfCalVideoByRoomName(roomName);
-  const recordingBelongsToRoom = recordings?.data?.some((r) => r.id === recordingId);
+  const recordingBelongsToRoom =
+    recordings && "data" in recordings && recordings.data?.some((r) => r.id === recordingId);
 
   if (!recordingBelongsToRoom) {
     throw new TRPCError({

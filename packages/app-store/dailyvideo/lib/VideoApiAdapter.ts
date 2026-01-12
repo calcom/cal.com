@@ -25,10 +25,18 @@ import {
   dailyReturnTypeSchema,
   getTranscripts,
   getBatchProcessJobs,
-  getRooms,
   meetingTokenSchema,
   ZGetMeetingTokenResponseSchema,
 } from "./types";
+import { deleteRecordingFromS3 } from "./s3Utils";
+
+interface DailyDeleteRecordingResponse {
+  deleted: boolean;
+  id: string;
+  s3_bucket?: string;
+  s3_region?: string;
+  s3_key?: string;
+}
 
 export interface DailyEventResult {
   id: string;
@@ -414,7 +422,27 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     deleteRecording: async (recordingId: string): Promise<boolean> => {
       try {
-        await fetcher(`/recordings/${recordingId}`, { method: "DELETE" });
+        const response = (await fetcher(`/recordings/${recordingId}`, {
+          method: "DELETE",
+        })) as DailyDeleteRecordingResponse;
+
+        console.log("response", response);
+
+        if (isS3StorageEnabled && response.s3_bucket && response.s3_region && response.s3_key) {
+          try {
+            await deleteRecordingFromS3({
+              s3_bucket: response.s3_bucket,
+              s3_region: response.s3_region,
+              s3_key: response.s3_key,
+            });
+          } catch (s3Err) {
+            console.warn(
+              "Failed to delete recording from S3:",
+              s3Err instanceof Error ? s3Err.message : "Unknown error"
+            );
+          }
+        }
+
         return true;
       } catch (err) {
         console.error("Error deleting recording:", err instanceof Error ? err.message : "Unknown error");
