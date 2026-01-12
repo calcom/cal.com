@@ -45,6 +45,7 @@ export const getEventTypesFromDB = async (id: number) => {
       hideOrganizerName: true,
       disableCancelling: true,
       disableRescheduling: true,
+      minimumRescheduleNotice: true,
       disableGuests: true,
       timeZone: true,
       profile: {

@@ -22,6 +22,7 @@ const getEventTypesFromDBSelect = {
   restrictionScheduleId: true,
   useBookerTimezone: true,
   disableRescheduling: true,
+  minimumRescheduleNotice: true,
   disableCancelling: true,
   users: {
     select: {
@@ -182,6 +183,9 @@ const getEventTypesFromDBSelect = {
       name: true,
     },
   },
+  rrHostSubsetEnabled: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  autoTranslateInstantMeetingTitleEnabled: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

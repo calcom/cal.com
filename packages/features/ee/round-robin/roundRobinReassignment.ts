@@ -8,9 +8,9 @@ import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@cal
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinReassignedEmailsAndSMS,
-  sendRoundRobinScheduledEmailsAndSMS,
-  sendRoundRobinUpdatedEmailsAndSMS,
+  sendReassignedEmailsAndSMS,
+  sendReassignedScheduledEmailsAndSMS,
+  sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -330,6 +330,7 @@ export const roundRobinReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
+    schedulingType: eventType.schedulingType,
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
       bookingFields: eventType?.bookingFields ?? null,
@@ -340,6 +341,7 @@ export const roundRobinReassignment = async ({
     customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
+    organizationId: orgId,
   };
 
   if (hasOrganizerChanged) {
@@ -421,7 +423,7 @@ export const roundRobinReassignment = async ({
 
   // Send to new RR host
   if (emailsEnabled) {
-    await sendRoundRobinScheduledEmailsAndSMS({
+    await sendReassignedScheduledEmailsAndSMS({
       calEvent: evtWithoutCancellationReason,
       members: [
         {
@@ -472,7 +474,7 @@ export const roundRobinReassignment = async ({
     }
 
     if (emailsEnabled) {
-      await sendRoundRobinReassignedEmailsAndSMS({
+      await sendReassignedEmailsAndSMS({
         calEvent: cancelledRRHostEvt,
         members: [
           {
@@ -493,7 +495,7 @@ export const roundRobinReassignment = async ({
   if (hasOrganizerChanged) {
     if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
-      await sendRoundRobinUpdatedEmailsAndSMS({
+      await sendReassignedUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });

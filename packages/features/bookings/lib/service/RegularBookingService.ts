@@ -22,6 +22,7 @@ import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
@@ -34,11 +35,13 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -85,8 +88,6 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -126,6 +127,8 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
+import { makeGuestActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 const translator = short();
 
@@ -412,6 +415,48 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
+function buildBookingCreatedPayload({
+  booking,
+  organizerUserId,
+  hashedLink,
+  isDryRun,
+  organizationId,
+}: {
+  booking: {
+    id: number;
+    uid: string;
+    startTime: Date;
+    endTime: Date;
+    status: BookingStatus;
+    userId: number | null;
+  };
+  organizerUserId: number;
+  hashedLink: string | null;
+  isDryRun: boolean;
+  organizationId: number | null;
+}) {
+  return {
+    config: {
+      isDryRun,
+    },
+    bookingFormData: {
+      hashedLink,
+    },
+    booking: {
+      id: booking.id,
+      uid: booking.uid,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: booking.status,
+      userId: booking.userId,
+      user: {
+        id: organizerUserId,
+      },
+    },
+    organizationId,
+  };
+}
+
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
@@ -422,6 +467,57 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+}
+
+async function validateRescheduleRestrictions({
+  rescheduleUid,
+  userId,
+  eventType,
+}: {
+  rescheduleUid: string | null | undefined;
+  userId: number | null;
+  eventType: { seatsPerTimeSlot: number | null; minimumRescheduleNotice: number | null } | null;
+}): Promise<void> {
+  if (!rescheduleUid || !eventType) {
+    return; // Not a reschedule, skip validation
+  }
+
+  const bookingSeat = rescheduleUid ? await getSeatedBooking(rescheduleUid) : null;
+  const actualRescheduleUid = bookingSeat ? bookingSeat.booking.uid : rescheduleUid;
+
+  if (!actualRescheduleUid) {
+    return; // No valid reschedule UID
+  }
+
+  try {
+    const originalRescheduledBooking = await getOriginalRescheduledBooking(
+      actualRescheduleUid,
+      !!eventType.seatsPerTimeSlot
+    );
+
+    // Check if user is the organizer
+    const isUserOrganizer =
+      userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
+
+    // Check minimum reschedule notice (only for non-organizers)
+    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
+    if (
+      !isUserOrganizer &&
+      isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
+    ) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "Rescheduling is not allowed within the minimum notice period before the event",
+      });
+    }
+  } catch (error) {
+    // Re-throw HttpError (including our 403 validation error)
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    // For other errors (like booking not found), let the service handle it later
+    // We don't want to fail early validation for these cases
+  }
 }
 
 /**
@@ -503,6 +599,18 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  // Early validation: Check reschedule restrictions if rescheduling
+  await validateRescheduleRestrictions({
+    rescheduleUid: rawBookingData.rescheduleUid,
+    userId: userId ?? null,
+    eventType: eventType
+      ? {
+        seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+        minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+      }
+      : null,
+  });
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
@@ -534,6 +642,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
+    rrHostSubsetIds,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -580,7 +689,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "email_verification_required",
-        data: { traceId: traceContext.traceId },
       });
     }
 
@@ -590,7 +698,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "invalid_verification_code",
-        data: { traceId: traceContext.traceId },
       });
     }
   }
@@ -608,14 +715,12 @@ async function handler(
     throw new HttpError({
       statusCode: 404,
       message: "event_type_not_found",
-      data: { traceId: traceContext.traceId },
     });
 
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
     throw new HttpError({
       statusCode: 400,
       message: "recurring_event_seats_error",
-      data: { traceId: traceContext.traceId },
     });
   }
 
@@ -690,7 +795,8 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  const shouldServeCache = false;
+  // Use "booking" mode to bypass cache for booking confirmation
+  const calendarFetchMode = "booking" as const;
 
   tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
@@ -757,7 +863,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing routingFormResponseId",
-        data: { traceId: traceContext.traceId },
       });
     }
     routingFormResponse = await deps.prismaClient.app_RoutingForms_FormResponse.findUnique({
@@ -789,6 +894,7 @@ async function handler(
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
+    rrHostSubsetIds: rrHostSubsetIds ?? undefined,
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -854,6 +960,7 @@ async function handler(
       users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
@@ -896,7 +1003,7 @@ async function handler(
                   originalRescheduledBooking: originalRescheduledBooking ?? null,
                 },
                 tracingLogger,
-                shouldServeCache
+                calendarFetchMode
               );
             }
           }
@@ -911,7 +1018,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           }
         }
@@ -930,7 +1037,7 @@ async function handler(
               originalRescheduledBooking,
             },
             tracingLogger,
-            shouldServeCache
+            calendarFetchMode
           );
         } else {
           availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -959,7 +1066,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           } else {
             availableUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1072,7 +1179,7 @@ async function handler(
                       originalRescheduledBooking,
                     },
                     tracingLogger,
-                    shouldServeCache
+                    calendarFetchMode
                   );
                 }
               }
@@ -1270,9 +1377,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-        conferenceCredentialId: undefined,
-      }
+      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+      conferenceCredentialId: undefined,
+    }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1318,8 +1425,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-    ? [organizerUser.destinationCalendar]
-    : null;
+      ? [organizerUser.destinationCalendar]
+      : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1395,6 +1502,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
     .build();
 
@@ -1614,6 +1722,7 @@ async function handler(
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
+      traceContext,
     });
 
     if (newBooking) {
@@ -1858,7 +1967,6 @@ async function handler(
       throw new HttpError({
         statusCode: 409,
         message: ErrorCode.BookingConflict,
-        data: { traceId: traceContext.traceId },
       });
     }
     throw err;
@@ -1941,18 +2049,18 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-          evt,
-          originalRescheduledBooking.uid,
-          undefined,
-          changedOrganizer,
-          previousHostDestinationCalendar,
-          isBookingRequestedReschedule,
-          skipDeleteEventsAndMeetings
-        )
+        evt,
+        originalRescheduledBooking.uid,
+        undefined,
+        changedOrganizer,
+        previousHostDestinationCalendar,
+        isBookingRequestedReschedule,
+        skipDeleteEventsAndMeetings
+      )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt.description = eventType.description ?? evt.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -2105,7 +2213,6 @@ async function handler(
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
         message: "Booking failed",
-        data: { traceId: traceContext.traceId },
       };
 
       tracingLogger.error(
@@ -2250,32 +2357,66 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
+      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+    }
     : undefined;
 
-  const bookingFlowConfig = {
+  const bookingCreatedPayload = buildBookingCreatedPayload({
+    booking,
+    organizerUserId: organizerUser.id,
+    // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
+    hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
     isDryRun,
-  };
-
-  const bookingCreatedPayload = {
-    config: bookingFlowConfig,
-    bookingFormData: {
-      // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
-      hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
-    },
-  };
-
-  // Add more fields here when needed
-  const bookingRescheduledPayload = bookingCreatedPayload;
+    organizationId: eventOrganizationId,
+  });
 
   const bookingEventHandler = deps.bookingEventHandler;
+  // TODO: Identify action source correctly
+  const actionSource = 'WEBAPP';
+  // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
+  const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
 
-  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    const bookingRescheduledPayload: BookingRescheduledPayload = {
+      ...bookingCreatedPayload,
+      oldBooking: {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      },
+    };
+    await bookingEventHandler.onBookingRescheduled({
+      payload: bookingRescheduledPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: {
+          old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.endTime.toISOString(),
+        },
+        rescheduledToUid: {
+          old: null,
+          new: bookingRescheduledPayload.booking.uid,
+        },
+      },
+      source: actionSource,
+      operationId: null,
+    });
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
+    await bookingEventHandler.onBookingCreated({
+      payload: bookingCreatedPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: bookingCreatedPayload.booking.startTime.getTime(),
+        endTime: bookingCreatedPayload.booking.endTime.getTime(),
+        status: bookingCreatedPayload.booking.status,
+      },
+      source: actionSource,
+      operationId: null,
+    });
   }
 
   const webhookData: EventPayloadType = {
@@ -2329,7 +2470,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing payment credentials",
-        data: { traceId: traceContext.traceId },
       });
     }
 
@@ -2341,9 +2481,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-              ...eventType.metadata,
-              apps: eventType.metadata?.apps as Prisma.JsonValue,
-            }
+            ...eventType.metadata,
+            apps: eventType.metadata?.apps as Prisma.JsonValue,
+          }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2371,6 +2511,7 @@ async function handler(
         paymentId: payment?.id,
       },
       isDryRun,
+      traceContext,
     });
 
     try {
@@ -2508,6 +2649,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2519,6 +2661,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2562,6 +2705,7 @@ async function handler(
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2677,7 +2821,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) {}
+  constructor(private readonly deps: IBookingServiceDependencies) { }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);

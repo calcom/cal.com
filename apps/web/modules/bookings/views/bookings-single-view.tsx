@@ -21,9 +21,10 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
+import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
@@ -36,9 +37,9 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -46,6 +47,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
@@ -58,6 +60,7 @@ import { timeZone } from "@calcom/web/lib/clock";
 
 import { HostDisplay } from "../components/HostDisplay";
 import { useBookingHosts } from "../hooks/useBookingHosts";
+import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -78,6 +81,7 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
   rating: z.string().optional(),
   noShow: stringToBoolean,
+  redirect_status: z.string().optional(),
 });
 
 const useBrandColors = ({
@@ -119,6 +123,7 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
+    redirect_status,
   } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
@@ -147,7 +152,10 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
+
+  const isPaymentSucceededFromRedirect = redirect_status === "succeeded";
+  const isAwaitingPayment =
+    props.paymentStatus && !props.paymentStatus.success && !isPaymentSucceededFromRedirect;
 
   const attendees = bookingInfo?.attendees;
 
@@ -395,6 +403,31 @@ export default function Success(props: PageProps) {
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
+  // Check if reschedule should be disabled due to minimum reschedule notice
+  // Use server-side computed isHost prop instead of client-side computation
+  const isWithinMinimumRescheduleNotice = isHost
+    ? false // Organizers can always reschedule
+    : isWithinMinimumRescheduleNoticeUtil(
+        bookingInfo?.startTime ?? null,
+        eventType?.minimumRescheduleNotice ?? null
+      );
+  const isRescheduleDisabled = !canReschedule || isWithinMinimumRescheduleNotice;
+  const paymentStatusMessage = usePaymentStatus({
+    bookingStatus: bookingInfo.status,
+    startTime: bookingInfo.startTime,
+    eventTypeTeamId: eventType?.teamId,
+    userId: eventType?.owner?.id,
+    payment: props.paymentStatus
+      ? {
+          success: props.paymentStatus.success,
+          refunded: props.paymentStatus.refunded,
+          paymentOption: props.paymentStatus.paymentOption,
+        }
+      : { success: false, refunded: false },
+    refundPolicy: eventType?.metadata?.apps?.stripe?.refundPolicy,
+    refundDaysCount: eventType?.metadata?.apps?.stripe?.refundDaysCount,
+  });
+
   const successPageHeadline = (() => {
     if (isAwaitingPayment && !isCancelled) {
       return props.paymentStatus?.paymentOption === "HOLD"
@@ -483,7 +516,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
+                      className={classNames(isRoundRobin && "min-h-24 min-w-32 relative mx-auto h-24 w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -531,47 +564,7 @@ export default function Success(props: PageProps) {
                       </div>
                       {props.paymentStatus &&
                         (bookingInfo.status === BookingStatus.CANCELLED ||
-                          bookingInfo.status === BookingStatus.REJECTED) && (
-                          <h4>
-                            {!props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              t("booking_with_payment_cancelled")}
-                            {props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              (() => {
-                                const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
-                                const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
-
-                                // Handle missing team or event type owner (same in processPaymentRefund.ts)
-                                if (!eventType?.teamId && !eventType?.owner) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle DAYS policy with expired refund window
-                                else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
-                                  const startTime = new Date(bookingInfo.startTime);
-                                  const cancelTime = new Date();
-                                  const daysDiff = Math.floor(
-                                    (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
-                                  );
-
-                                  if (daysDiff > refundDaysCount) {
-                                    return t("booking_with_payment_cancelled_refund_window_expired");
-                                  }
-                                }
-                                // Handle NEVER policy
-                                else if (refundPolicy === RefundPolicy.NEVER) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle ALWAYS policy
-                                else {
-                                  return t("booking_with_payment_cancelled_already_paid");
-                                }
-                              })()}
-                            {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
-                          </h4>
-                        )}
+                          bookingInfo.status === BookingStatus.REJECTED) && <h4>{paymentStatusMessage}</h4>}
 
                       <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
@@ -606,8 +599,14 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
-                        <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? bookingInfo.title : eventName}
+                        <div
+                          className="wrap-break-word col-span-2 mb-6 last:mb-0"
+                          data-testid="booking-title">
+                          {isRoundRobin
+                            ? typeof bookingInfo.title === "string"
+                              ? bookingInfo.title
+                              : eventName
+                            : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
@@ -827,15 +826,14 @@ export default function Success(props: PageProps) {
                           </span>
                           {/* Login button but redirect to here */}
                           <span className="text-default inline">
-                            <span className="underline" data-testid="reschedule-link">
-                              <Link
-                                href={`/auth/login?callbackUrl=${encodeURIComponent(
-                                  `/booking/${bookingInfo?.uid}`
-                                )}`}
-                                legacyBehavior>
-                                {t("login")}
-                              </Link>
-                            </span>
+                            <Link
+                              href={`/auth/login?callbackUrl=${encodeURIComponent(
+                                `/booking/${bookingInfo?.uid}`
+                              )}`}
+                              className="underline"
+                              data-testid="reschedule-link">
+                              {t("login")}
+                            </Link>
                           </span>
                         </div>
                       </>
@@ -847,47 +845,55 @@ export default function Success(props: PageProps) {
                       canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
-                          <hr className="border-subtle mb-8" />
-                          <div className="text-center last:pb-0">
-                            <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                              {t("need_to_make_a_change")}
-                            </span>
-
+                          {/* Only show section if there's at least one actionable option */}
+                          {((!props.recurringBookings &&
+                            (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                            canReschedule) ||
+                            (!isBookingInPast && canCancel)) && (
                             <>
-                              {!props.recurringBookings &&
-                                (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
-                                canReschedule && (
-                                  <span className="text-default inline">
-                                    <span className="underline" data-testid="reschedule-link">
-                                      <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                          currentUserEmail
-                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                            : ""
-                                        }`}
-                                        legacyBehavior>
-                                        {t("reschedule")}
-                                      </Link>
-                                    </span>
-                                    {!isBookingInPast && canCancel && (
-                                      <span className="mx-2">{t("or_lowercase")}</span>
-                                    )}
-                                  </span>
-                                )}
+                              <hr className="border-subtle mb-8" />
+                              <div className="text-center last:pb-0">
+                                <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                                  {t("need_to_make_a_change")}
+                                </span>
 
-                              {!isBookingInPast && canCancel && (
-                                <button
-                                  data-testid="cancel"
-                                  className={classNames(
-                                    "text-default underline",
-                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                <>
+                                  {!props.recurringBookings &&
+                                    (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                    canReschedule &&
+                                    !isRescheduleDisabled && (
+                                      <span className="text-default inline">
+                                        <Link
+                                          href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                            currentUserEmail
+                                              ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                              : ""
+                                          }`}
+                                          className="underline"
+                                          data-testid="reschedule-link">
+                                          {t("reschedule")}
+                                        </Link>
+                                        {!isBookingInPast && canCancel && (
+                                          <span className="mx-2">{t("or_lowercase")}</span>
+                                        )}
+                                      </span>
+                                    )}
+
+                                  {!isBookingInPast && canCancel && (
+                                    <button
+                                      data-testid="cancel"
+                                      className={classNames(
+                                        "text-default underline",
+                                        props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                      )}
+                                      onClick={() => setIsCancellationMode(true)}>
+                                      {t("cancel")}
+                                    </button>
                                   )}
-                                  onClick={() => setIsCancellationMode(true)}>
-                                  {t("cancel")}
-                                </button>
-                              )}
+                                </>
+                              </div>
                             </>
-                          </div>
+                          )}
                         </>
                       ) : (
                         <>
@@ -913,6 +919,7 @@ export default function Success(props: PageProps) {
                             currentUserEmail={currentUserEmail}
                             isHost={isHost}
                             internalNotePresets={props.internalNotePresets}
+                            renderContext="booking-single-view"
                           />
                         </>
                       ))}
@@ -1206,6 +1213,12 @@ function RecurringBookings({
   if (!duration) return null;
 
   if (recurringBookingsSorted && allRemainingBookings) {
+    const shiftFlags = getTimeShiftFlags({
+      dates: recurringBookingsSorted,
+      timezone: tz,
+    });
+    const displayFlags = getFirstShiftFlags(shiftFlags);
+
     return (
       <>
         {eventType.recurringEvent?.count && (
@@ -1240,6 +1253,14 @@ function RecurringBookings({
               <span className="text-bookinglight">
                 ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
+              {displayFlags[idx] && (
+                <>
+                  {" "}
+                  <Badge variant="orange" size="sm">
+                    {t("time_shift")}
+                  </Badge>
+                </>
+              )}
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -1271,6 +1292,14 @@ function RecurringBookings({
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
+                    {displayFlags[idx + 4] && (
+                      <>
+                        {" "}
+                        <Badge variant="orange" size="sm">
+                          {t("time_shift")}
+                        </Badge>
+                      </>
+                    )}
                   </div>
                 ))}
             </CollapsibleContent>

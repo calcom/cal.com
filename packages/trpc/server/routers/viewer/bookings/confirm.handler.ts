@@ -2,14 +2,17 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -18,34 +21,90 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import {
-  BookingStatus,
-  MembershipRole,
-  WebhookTriggerEvents,
-  WorkflowTriggerEvents,
-  UserPermissionRole,
-} from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
+import { v4 as uuidv4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
-
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import logger from "@calcom/lib/logger";
 type ConfirmOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
+    user: Pick<
+      NonNullable<TrpcSessionUser>,
+      "id" | "uuid" | "email" | "username" | "role" | "destinationCalendar"
+    >;
+    traceContext: TraceContext;
   };
-  input: TConfirmInputSchema;
+  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor };
 };
 
+async function fireRejectionEvent({
+  actor,
+  organizationId,
+  actionSource,
+  rejectedBookings,
+  rejectionReason,
+  tracingLogger,
+}: {
+  actor: Actor;
+  organizationId: number | null;
+  rejectionReason: string | null;
+  actionSource: ValidActionSource;
+  rejectedBookings: {
+    uid: string;
+    oldStatus: BookingStatus;
+  }[];
+  tracingLogger: ISimpleLogger;
+}): Promise<void> {
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (rejectedBookings.length > 1) {
+      const operationId = uuidv4();
+      await bookingEventHandlerService.onBulkBookingsRejected({
+        bookings: rejectedBookings.map((booking) => ({
+          bookingUid: booking.uid,
+          auditData: {
+            rejectionReason,
+            status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
+          },
+        })),
+        actor,
+        organizationId,
+        operationId,
+        source: actionSource,
+      });
+    } else if (rejectedBookings.length === 1) {
+      const booking = rejectedBookings[0];
+      await bookingEventHandlerService.onBookingRejected({
+        bookingUid: booking.uid,
+        actor,
+        organizationId,
+        auditData: {
+          rejectionReason,
+          status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
+        },
+        source: actionSource,
+      });
+    }
+  } catch (error) {
+    tracingLogger.error("Error firing booking rejection event", safeStringify(error));
+  }
+}
+/**
+ * TODO: Convert it to a service as this fn is the single point of entry across trpc, magic-links, and API v2
+ */
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
+  const log = logger.getSubLogger({ prefix: ["confirmHandler"] });
   const {
     bookingId,
     recurringEventId,
@@ -53,6 +112,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     confirmed,
     emailsEnabled,
     platformClientParams,
+    actionSource,
+    actor,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -145,13 +206,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking must have an organizer" });
   }
 
-  await checkIfUserIsAuthorizedToConfirmBooking({
-    eventTypeId: booking.eventTypeId,
-    loggedInUserId: ctx.user.id,
-    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
-    bookingUserId: booking.userId,
-    userRole: ctx.user.role,
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isUserAuthorizedToConfirmBooking = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: ctx.user.id,
+    bookingId: bookingId,
   });
+
+  if (!isUserAuthorizedToConfirmBooking) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "User is not authorized to confirm this booking",
+    });
+  }
 
   // Do not move this before authorization check.
   // This is done to avoid exposing extra information to the requester.
@@ -238,8 +304,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     hideOrganizerName: booking.eventType?.hideOrganizerName,
@@ -255,6 +321,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
+    organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
   };
 
@@ -278,6 +345,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
   }
+  const traceContext = {
+    ...ctx.traceContext,
+    bookingUid: booking.uid || "unknown",
+    confirmed: String(confirmed),
+    eventTypeId: booking.eventType?.id?.toString() || "null",
+    userId: user.id.toString(),
+    teamId: booking.eventType?.teamId?.toString() || "null",
+  };
+
   if (recurringEventId && recurringEvent) {
     const groupedRecurringBookings = await prisma.booking.groupBy({
       where: {
@@ -308,6 +384,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       (booking.eventType?.locations as LocationObject[]) || []
     );
     evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
+
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -317,22 +394,47 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      traceContext,
+      actionSource,
+      actor,
     });
   } else {
     evt.rejectionReason = rejectionReason;
+    let rejectedBookings: {
+      uid: string;
+      oldStatus: BookingStatus;
+    }[] = [];
+
     if (recurringEventId) {
       // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
       // bookings as rejected.
-      await prisma.booking.updateMany({
+      const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {
           recurringEventId,
           status: BookingStatus.PENDING,
+        },
+        select: {
+          uid: true,
+          status: true,
+        },
+      });
+
+      await prisma.booking.updateMany({
+        where: {
+          uid: {
+            in: unconfirmedRecurringBookings.map((booking) => booking.uid),
+          },
         },
         data: {
           status: BookingStatus.REJECTED,
           rejectionReason,
         },
       });
+
+      rejectedBookings = unconfirmedRecurringBookings.map((recurringBooking) => ({
+        uid: recurringBooking.uid,
+        oldStatus: recurringBooking.status,
+      }));
     } else {
       // handle refunds
       if (booking.payment.length) {
@@ -352,6 +454,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           rejectionReason,
         },
       });
+
+      rejectedBookings = [
+        {
+          uid: booking.uid,
+          oldStatus: booking.status,
+        },
+      ];
     }
 
     if (emailsEnabled) {
@@ -366,6 +475,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    await fireRejectionEvent({
+      actor,
+      actionSource,
+      organizationId: orgId ?? null,
+      rejectionReason: rejectionReason ?? null,
+      rejectedBookings,
+      tracingLogger: log,
+    });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
@@ -393,7 +511,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {
@@ -427,69 +545,4 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };
-};
-
-const checkIfUserIsAuthorizedToConfirmBooking = async ({
-  eventTypeId,
-  loggedInUserId,
-  teamId,
-  bookingUserId,
-  userRole,
-}: {
-  eventTypeId: number | null;
-  loggedInUserId: number;
-  teamId?: number | null;
-  bookingUserId: number | null;
-  userRole: string;
-}): Promise<void> => {
-  // check system wide admin
-  if (userRole === UserPermissionRole.ADMIN) return;
-
-  // Check if the user is the owner of the event type
-  if (bookingUserId === loggedInUserId) return;
-
-  // Check if user is associated with the event type
-  if (eventTypeId) {
-    const [loggedInUserAsHostOfEventType, loggedInUserAsUserOfEventType] = await Promise.all([
-      prisma.eventType.findUnique({
-        where: {
-          id: eventTypeId,
-          hosts: { some: { userId: loggedInUserId } },
-        },
-        select: { id: true },
-      }),
-      prisma.eventType.findUnique({
-        where: {
-          id: eventTypeId,
-          users: { some: { id: loggedInUserId } },
-        },
-        select: { id: true },
-      }),
-    ]);
-
-    if (loggedInUserAsHostOfEventType || loggedInUserAsUserOfEventType) return;
-  }
-
-  // Check if the user is an admin/owner of the team the booking belongs to
-  if (teamId) {
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId: loggedInUserId,
-        teamId: teamId,
-        role: {
-          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
-        },
-      },
-    });
-    if (membership) return;
-  }
-
-  if (
-    bookingUserId &&
-    (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(loggedInUserId, bookingUserId))
-  ) {
-    return;
-  }
-
-  throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };

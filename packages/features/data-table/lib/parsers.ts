@@ -1,5 +1,5 @@
 import type { SortingState, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
-import { parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
+import { parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString, createParser } from "nuqs";
 
 import { ZActiveFilter, ZSorting, ZColumnVisibility, ZColumnSizing } from "./types";
 import type { ActiveFilters } from "./types";
@@ -20,5 +20,13 @@ export const columnVisibilityParser = parseAsJson(ZColumnVisibility.parse).withD
 export const columnSizingParser = parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING);
 export const segmentIdParser = parseAsString.withDefault("");
 export const pageIndexParser = parseAsInteger.withDefault(0);
-export const pageSizeParser = parseAsInteger.withDefault(DEFAULT_PAGE_SIZE);
+// Custom parser that validates pageSize is positive to prevent division by zero
+export const pageSizeParser = createParser({
+  parse: (value) => {
+    const parsed = parseAsInteger.parse(value);
+    // Return null for invalid values (0 or negative), which will fall back to default
+    return parsed !== null && parsed > 0 ? parsed : null;
+  },
+  serialize: (value) => String(value),
+}).withDefault(DEFAULT_PAGE_SIZE);
 export const searchTermParser = parseAsString.withDefault("");

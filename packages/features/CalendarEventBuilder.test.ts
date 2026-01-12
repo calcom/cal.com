@@ -982,6 +982,9 @@ describe("CalendarEventBuilder", () => {
     });
 
     it("should create a calendar event from booking with team", async () => {
+      // Note: The CalendarEventBuilder filters team members to only include hosts
+      // whose emails appear in booking.attendees. This simulates a COLLECTIVE event
+      // where all hosts are assigned to the booking.
       const mockBooking = {
         uid: "booking-789",
         metadata: null,
@@ -1000,6 +1003,14 @@ describe("CalendarEventBuilder", () => {
             name: "Client",
             email: "client@example.com",
             timeZone: "America/Chicago",
+            locale: "en",
+            phoneNumber: null,
+          },
+          {
+            // Team member host - included in attendees for COLLECTIVE events
+            name: "Team Member",
+            email: "member@example.com",
+            timeZone: "America/Los_Angeles",
             locale: "en",
             phoneNumber: null,
           },
@@ -1688,6 +1699,14 @@ describe("CalendarEventBuilder", () => {
             locale: "en",
             phoneNumber: null,
           },
+          {
+            // Team member host - included in attendees for COLLECTIVE events
+            name: "Team Member",
+            email: "member@example.com",
+            timeZone: "America/Los_Angeles",
+            locale: "en",
+            phoneNumber: null,
+          },
         ],
         user: {
           id: 100,
@@ -1878,12 +1897,14 @@ describe("CalendarEventBuilder", () => {
       expect(builtFromBooking.organizer.username).toBe("teamlead");
       expect(builtFromBooking.organizer.timeZone).toBe("America/New_York");
 
-      expect(builtFromBooking.attendees).toHaveLength(2);
+      expect(builtFromBooking.attendees).toHaveLength(3);
       expect(builtFromBooking.attendees[0].name).toBe("Complete User");
       expect(builtFromBooking.attendees[0].email).toBe("complete@example.com");
       expect(builtFromBooking.attendees[0].timeZone).toBe("America/New_York");
       expect(builtFromBooking.attendees[1].name).toBe("Guest User");
       expect(builtFromBooking.attendees[1].email).toBe("guest@example.com");
+      expect(builtFromBooking.attendees[2].name).toBe("Team Member");
+      expect(builtFromBooking.attendees[2].email).toBe("member@example.com");
 
       expect(builtFromBooking.team).toBeDefined();
       expect(builtFromBooking.team?.id).toBe(50);
@@ -1926,6 +1947,112 @@ describe("CalendarEventBuilder", () => {
       expect(builtFromBooking.customInputs).toEqual({ oldCustomField: "oldValue" });
 
       expect(builtFromBooking.bookerUrl).toBe("https://cal.com");
+    });
+
+    it("should resolve app type to human-readable app name in appsStatus", async () => {
+      const mockBooking = {
+        uid: "booking-app-name-test",
+        metadata: null,
+        title: "App Name Test Event",
+        startTime: new Date(mockStartTime),
+        endTime: new Date(mockEndTime),
+        description: null,
+        location: "integrations:google:meet",
+        responses: null,
+        customInputs: null,
+        iCalUID: null,
+        iCalSequence: 0,
+        oneTimePassword: null,
+        attendees: [
+          {
+            name: "Test Attendee",
+            email: "attendee@example.com",
+            timeZone: "UTC",
+            locale: "en",
+            phoneNumber: null,
+            bookingSeat: null,
+          },
+        ],
+        user: {
+          id: 1,
+          name: "Test Host",
+          email: "host@example.com",
+          username: "testhost",
+          timeZone: "UTC",
+          locale: "en",
+          timeFormat: 24,
+          destinationCalendar: null,
+          profiles: [],
+        },
+        destinationCalendar: null,
+        eventType: {
+          id: 1,
+          title: "Test Event Type",
+          slug: "test-event",
+          description: null,
+          hideCalendarNotes: false,
+          hideCalendarEventDetails: false,
+          hideOrganizerEmail: false,
+          schedulingType: null,
+          seatsPerTimeSlot: null,
+          seatsShowAttendees: false,
+          seatsShowAvailabilityCount: false,
+          customReplyToEmail: null,
+          disableRescheduling: false,
+          disableCancelling: false,
+          requiresConfirmation: false,
+          recurringEvent: null,
+          bookingFields: [],
+          metadata: null,
+          eventName: null,
+          team: null,
+          users: [],
+          hosts: [],
+          workflows: [],
+        },
+        references: [
+          {
+            type: "google_calendar",
+            uid: "google-cal-uid-123",
+            meetingId: null,
+            meetingPassword: null,
+            meetingUrl: null,
+          },
+          {
+            type: "google_video",
+            uid: "google-meet-uid-456",
+            meetingId: "meet-123",
+            meetingPassword: null,
+            meetingUrl: "https://meet.google.com/abc-defg-hij",
+          },
+        ],
+        seatsReferences: [],
+      } satisfies BookingForCalEventBuilder;
+
+      const eventFromBooking = await CalendarEventBuilder.fromBooking(mockBooking);
+      const builtEvent = eventFromBooking.build();
+
+      expect(builtEvent).not.toBeNull();
+      if (builtEvent) {
+        expect(builtEvent.appsStatus).toBeDefined();
+        expect(builtEvent.appsStatus).toHaveLength(2);
+
+        // Verify Google Calendar uses human-readable name, not the type slug
+        const googleCalendarStatus = builtEvent.appsStatus?.find((app) => app.type === "google_calendar");
+        expect(googleCalendarStatus).toBeDefined();
+        expect(googleCalendarStatus?.appName).toBe("Google Calendar");
+        // Should NOT be the raw type like "google_calendar" or "google-calendar"
+        expect(googleCalendarStatus?.appName).not.toBe("google_calendar");
+        expect(googleCalendarStatus?.appName).not.toBe("google-calendar");
+
+        // Verify Google Meet uses human-readable name
+        const googleMeetStatus = builtEvent.appsStatus?.find((app) => app.type === "google_video");
+        expect(googleMeetStatus).toBeDefined();
+        expect(googleMeetStatus?.appName).toBe("Google Meet");
+        // Should NOT be the raw type
+        expect(googleMeetStatus?.appName).not.toBe("google_video");
+        expect(googleMeetStatus?.appName).not.toBe("google-video");
+      }
     });
   });
 });

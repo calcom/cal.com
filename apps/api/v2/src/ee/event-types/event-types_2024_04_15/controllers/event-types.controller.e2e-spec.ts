@@ -1,43 +1,42 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { Editable } from "@/ee/event-types/event-types_2024_04_15//inputs/enums/editable";
-import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
-import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
-import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
-import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
-import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_04_15,
+  VERSION_2024_06_11,
+} from "@calcom/platform-constants";
+import {
+  EventTypesByViewer,
+  EventTypesPublic,
+  eventTypeBookingFields,
+  eventTypeLocations,
+} from "@calcom/platform-libraries/event-types";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import {
-  SUCCESS_STATUS,
-  VERSION_2024_06_11,
-  VERSION_2024_04_15,
-  CAL_API_VERSION_HEADER,
-} from "@calcom/platform-constants";
-import {
-  EventTypesByViewer,
-  eventTypeBookingFields,
-  eventTypeLocations,
-  EventTypesPublic,
-} from "@calcom/platform-libraries/event-types";
-import type { ApiSuccessResponse } from "@calcom/platform-types";
-import type { EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { Editable } from "@/ee/event-types/event-types_2024_04_15//inputs/enums/editable";
+import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
+import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
+import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
+import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Event types Endpoints", () => {
   describe("Not authenticated", () => {
@@ -429,12 +428,12 @@ describe("Event types Endpoints", () => {
       await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(eventType.id);
-      } catch (e) {
+      } catch (_e) {
         // Event type might have been deleted by the test
       }
       try {
         await userRepositoryFixture.delete(user.id);
-      } catch (e) {
+      } catch (_e) {
         // User might have been deleted by the test
       }
       await app.close();

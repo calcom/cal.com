@@ -64,11 +64,13 @@ export const buildCalEventFromBooking = async ({
   organizer,
   location,
   conferenceCredentialId,
+  organizationId,
 }: {
   booking: Booking;
   organizer: Organizer;
   location: string;
   conferenceCredentialId: number | null;
+  organizationId: number | null;
 }) => {
   const attendeesList = await Promise.all(
     booking.attendees.map(async (attendee) => {
@@ -115,5 +117,6 @@ export const buildCalEventFromBooking = async ({
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     iCalUID: booking.iCalUID ?? booking.uid,
     iCalSequence: booking.iCalSequence ?? 0,
+    organizationId,
   };
 };

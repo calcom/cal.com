@@ -1,13 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { MembershipRole, BookingReportReason, BookingReportStatus } from "@calcom/prisma/enums";
+import {
+  MembershipRole,
+  BookingReportReason,
+  BookingReportStatus,
+  SystemReportStatus,
+} from "@calcom/prisma/enums";
 
 import { listBookingReportsHandler } from "./listBookingReports.handler";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/lib/server/repository/bookingReport");
+vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 
 describe("listBookingReportsHandler (Organization)", () => {
   const mockUser = {
@@ -29,7 +34,10 @@ describe("listBookingReportsHandler (Organization)", () => {
         cancelled: false,
         createdAt: new Date("2025-01-01"),
         status: BookingReportStatus.PENDING,
+        systemStatus: SystemReportStatus.PENDING,
         watchlistId: null,
+        globalWatchlistId: null,
+        organizationId: 100,
         reporter: { id: 1, name: "Admin", email: "admin@example.com" },
         booking: {
           id: 1,
@@ -39,6 +47,8 @@ describe("listBookingReportsHandler (Organization)", () => {
           uid: "uid-1",
         },
         watchlist: null,
+        globalWatchlist: null,
+        organization: { id: 100, name: "Test Org", slug: "test-org" },
       },
       {
         id: "report-2",
@@ -50,7 +60,10 @@ describe("listBookingReportsHandler (Organization)", () => {
         cancelled: true,
         createdAt: new Date("2025-01-02"),
         status: BookingReportStatus.BLOCKED,
+        systemStatus: SystemReportStatus.PENDING,
         watchlistId: "watchlist-123",
+        globalWatchlistId: null,
+        organizationId: 100,
         reporter: { id: 1, name: "Admin", email: "admin@example.com" },
         booking: {
           id: 2,
@@ -66,6 +79,8 @@ describe("listBookingReportsHandler (Organization)", () => {
           action: "REPORT" as const,
           description: null,
         },
+        globalWatchlist: null,
+        organization: { id: 100, name: "Test Org", slug: "test-org" },
       },
     ],
     meta: { totalRowCount: 2 },
@@ -81,12 +96,12 @@ describe("listBookingReportsHandler (Organization)", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(
-      () => mockPermissionCheckService as InstanceType<typeof PermissionCheckService>
-    );
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(
-      () => mockReportRepo as InstanceType<typeof PrismaBookingReportRepository>
-    );
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as InstanceType<typeof PermissionCheckService>;
+    });
+    vi.mocked(PrismaBookingReportRepository).mockImplementation(function () {
+      return mockReportRepo as InstanceType<typeof PrismaBookingReportRepository>;
+    });
   });
 
   describe("access control", () => {
