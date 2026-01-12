@@ -619,6 +619,10 @@ model Team {
 
   autoOptInFeatures Boolean @default(false)
 
+  // Monthly proration tracking
+  seatChangeLogs    SeatChangeLog[]
+  monthlyProrations MonthlyProration[]
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -2933,6 +2937,12 @@ model TeamBilling {
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
 
+  billingPeriod     BillingPeriod?
+  pricePerSeat      Int?
+  paidSeats         Int?
+  monthlyProrations MonthlyProration[]
+  seatChangeLogs    SeatChangeLog[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -2951,8 +2961,108 @@ model OrganizationBilling {
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
 
+  billingPeriod     BillingPeriod?
+  pricePerSeat      Int?
+  paidSeats         Int?
+  monthlyProrations MonthlyProration[]
+  seatChangeLogs    SeatChangeLog[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model SeatChangeLog {
+  id     String @id @default(uuid())
+  teamId Int
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  changeType  SeatChangeType
+  seatCount   Int
+  userId      Int?
+  triggeredBy Int?
+
+  changeDate DateTime @default(now())
+  monthKey   String
+
+  processedInProrationId String?
+  proration              MonthlyProration? @relation(fields: [processedInProrationId], references: [id])
+
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  teamBillingId         String?
+  teamBilling           TeamBilling?         @relation(fields: [teamBillingId], references: [id])
+  organizationBillingId String?
+  organizationBilling   OrganizationBilling? @relation(fields: [organizationBillingId], references: [id])
+
+  @@index([teamId, monthKey])
+  @@index([teamId, processedInProrationId])
+  @@index([monthKey])
+}
+
+enum SeatChangeType {
+  ADDITION
+  REMOVAL
+}
+
+model MonthlyProration {
+  id     String @id @default(uuid())
+  teamId Int
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  monthKey    String
+  periodStart DateTime
+  periodEnd   DateTime
+
+  seatsAtStart    Int
+  seatsAdded      Int
+  seatsRemoved    Int
+  netSeatIncrease Int
+  seatsAtEnd      Int
+
+  subscriptionId     String
+  subscriptionItemId String
+  customerId         String
+
+  subscriptionStart DateTime
+  subscriptionEnd   DateTime
+  remainingDays     Int
+  pricePerSeat      Int
+  proratedAmount    Int
+
+  invoiceItemId String?
+  invoiceId     String?
+
+  status ProrationStatus @default(PENDING)
+
+  chargedAt     DateTime?
+  failedAt      DateTime?
+  failureReason String?
+  retryCount    Int       @default(0)
+
+  seatChanges SeatChangeLog[]
+
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teamBillingId         String?
+  teamBilling           TeamBilling?         @relation(fields: [teamBillingId], references: [id])
+  organizationBillingId String?
+  organizationBilling   OrganizationBilling? @relation(fields: [organizationBillingId], references: [id])
+
+  @@unique([teamId, monthKey])
+  @@index([monthKey, status])
+  @@index([status])
+  @@index([teamId])
+}
+
+enum ProrationStatus {
+  PENDING // Created, waiting to be processed
+  INVOICE_CREATED // Stripe invoice item created
+  CHARGED // Payment succeeded
+  FAILED // Payment failed
+  CANCELLED // Cancelled (e.g., subscription ended before charge)
 }
 
 enum CalendarCacheEventStatus {

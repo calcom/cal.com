@@ -44,4 +44,7 @@ export interface IBillingRepositoryCreateArgs {
   subscriptionStart?: Date;
   subscriptionTrialEnd?: Date;
   subscriptionEnd?: Date;
+  billingPeriod?: "MONTHLY" | "ANNUALLY";
+  pricePerSeat?: number;
+  paidSeats?: number;
 }
