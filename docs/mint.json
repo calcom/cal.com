@@ -207,7 +207,6 @@
     {
       "group": "Getting Started",
       "pages": [
-        "platform/introduction",
         "platform/setup",
         "platform/quickstart",
         {
