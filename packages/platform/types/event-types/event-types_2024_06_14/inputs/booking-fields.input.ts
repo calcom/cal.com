@@ -328,6 +328,60 @@ export class RescheduleReasonDefaultFieldInput_2024_06_14 {
   disableOnPrefill?: boolean;
 }
 
+export class PhoneDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({
+    default: "phone",
+  })
+  type!: "phone";
+
+  @IsString()
+  @DocsProperty({
+    default: "attendeePhoneNumber",
+  })
+  slug!: "attendeePhoneNumber";
+
+  @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
+  isDefault = true;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,\
+      the phone field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
 export class PhoneFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
@@ -887,6 +941,7 @@ type InputDefaultField_2024_06_14 =
   | NameDefaultFieldInput_2024_06_14
   | SplitNameDefaultFieldInput_2024_06_14
   | EmailDefaultFieldInput_2024_06_14
+  | PhoneDefaultFieldInput_2024_06_14
   | TitleDefaultFieldInput_2024_06_14
   | LocationDefaultFieldInput_2024_06_14
   | NotesDefaultFieldInput_2024_06_14
@@ -920,6 +975,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     guests: GuestsDefaultFieldInput_2024_06_14,
     rescheduleReason: RescheduleReasonDefaultFieldInput_2024_06_14,
     phone: PhoneFieldInput_2024_06_14,
+    attendeePhoneNumber: PhoneDefaultFieldInput_2024_06_14,
     address: AddressFieldInput_2024_06_14,
     text: TextFieldInput_2024_06_14,
     number: NumberFieldInput_2024_06_14,
@@ -974,7 +1030,9 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
         slugs.push(slug);
       }
 
-      const ClassType = fieldNeedsType ? this.classMap[type] : this.classMap[slug];
+      const indexByType = fieldNeedsType && slug !== "attendeePhoneNumber";
+
+      const ClassType = indexByType ? this.classMap[type] : this.classMap[slug];
       if (!ClassType) {
         throw new BadRequestException(
           fieldNeedsType

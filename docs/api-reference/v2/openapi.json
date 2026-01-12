@@ -18127,6 +18127,49 @@
           "hidden"
         ]
       },
+      "PhoneDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "phone"
+          },
+          "slug": {
+            "type": "string",
+            "default": "attendeePhoneNumber"
+          },
+          "isDefault": {
+            "type": "object",
+            "description": "This property is always true because it's a default field",
+            "example": true,
+            "default": true
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,      the phone field will be prefilled with this value and disabled."
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "isDefault",
+          "required",
+          "hidden"
+        ]
+      },
       "AddressFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -19262,6 +19305,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
@@ -21577,6 +21623,9 @@
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
                 },
                 {
@@ -23557,6 +23606,9 @@
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
                 },
                 {
@@ -24151,6 +24203,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
