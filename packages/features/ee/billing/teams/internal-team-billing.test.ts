@@ -5,6 +5,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
+import { Plan, SubscriptionStatus } from "../repository/billing/IBillingRepository";
+
 import type { IBillingRepository } from "../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
@@ -45,14 +47,30 @@ describe("TeamBillingService", () => {
     mockBillingProviderService = {
       handleSubscriptionCancel: vi.fn(),
       handleSubscriptionUpdate: vi.fn(),
+      handleSubscriptionCreation: vi.fn(),
       checkoutSessionIsPaid: vi.fn(),
       getSubscriptionStatus: vi.fn(),
       handleEndTrial: vi.fn(),
+      createCustomer: vi.fn(),
+      createPaymentIntent: vi.fn(),
+      createSubscriptionCheckout: vi.fn(),
+      createPrice: vi.fn(),
+      getPrice: vi.fn(),
+      getCheckoutSession: vi.fn(),
+      getCustomer: vi.fn(),
+      getSubscriptions: vi.fn(),
+      updateCustomer: vi.fn(),
+      createInvoiceItem: vi.fn(),
+      createInvoice: vi.fn(),
+      finalizeInvoice: vi.fn(),
+      getSubscription: vi.fn(),
       getPaymentIntentFailureReason: vi.fn(),
     } as IBillingProviderService;
 
     mockTeamBillingDataRepository = {
       find: vi.fn(),
+      findMany: vi.fn(),
+      findBySubscriptionId: vi.fn(),
     } as unknown as ITeamBillingDataRepository;
 
     mockBillingRepository = {
@@ -214,8 +232,8 @@ describe("TeamBillingService", () => {
         subscriptionId: "sub_org_123",
         subscriptionItemId: "si_org_123",
         customerId: "cus_org_123",
-        planName: "ORGANIZATION" as const,
-        status: "ACTIVE" as const,
+        planName: Plan.ORGANIZATION,
+        status: SubscriptionStatus.ACTIVE,
       };
 
       await teamBillingService.saveTeamBilling(mockBillingArgs);
@@ -229,8 +247,8 @@ describe("TeamBillingService", () => {
         subscriptionId: "sub_detailed_789",
         subscriptionItemId: "si_detailed_789",
         customerId: "cus_detailed_789",
-        planName: "ENTERPRISE" as const,
-        status: "TRIALING" as const,
+        planName: Plan.ENTERPRISE,
+        status: SubscriptionStatus.TRIALING,
       };
 
       await teamBillingService.saveTeamBilling(mockBillingArgs);
@@ -241,8 +259,8 @@ describe("TeamBillingService", () => {
           subscriptionId: "sub_detailed_789",
           subscriptionItemId: "si_detailed_789",
           customerId: "cus_detailed_789",
-          planName: "ENTERPRISE",
-          status: "TRIALING",
+          planName: Plan.ENTERPRISE,
+          status: SubscriptionStatus.TRIALING,
         })
       );
     });
@@ -253,8 +271,8 @@ describe("TeamBillingService", () => {
         subscriptionId: "sub_error_999",
         subscriptionItemId: "si_error_999",
         customerId: "cus_error_999",
-        planName: "TEAM" as const,
-        status: "ACTIVE" as const,
+        planName: Plan.TEAM,
+        status: SubscriptionStatus.ACTIVE,
       };
 
       const repositoryError = new Error("Database constraint violation");
