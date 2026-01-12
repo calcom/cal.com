@@ -5,6 +5,16 @@ import { getOptions } from "@calcom/features/auth/lib/next-auth-options";
 
 // pass req to NextAuth: https://github.com/nextauthjs/next-auth/discussions/469
 const handler = (req: NextApiRequest, res: NextApiResponse) =>
-  NextAuth(req, res, getOptions({ getDubId: () => req.cookies.dub_id || req.cookies.dclid, res }));
+  NextAuth(
+    req,
+    res,
+    getOptions({
+      cookies: {
+        utm_params: req.cookies.utm_params,
+        dub_id: req.cookies.dub_id || req.cookies.dclid,
+      },
+      res,
+    })
+  );
 
 export default handler;
