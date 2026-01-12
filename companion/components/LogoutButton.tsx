@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { TouchableOpacity, Text, Alert, Platform } from "react-native";
-import { useAuth } from "../contexts/AuthContext";
+import { useState } from "react";
+import { Alert, Platform, Text, TouchableOpacity } from "react-native";
+import { useAuth } from "@/contexts/AuthContext";
+import { showErrorAlert } from "@/utils/alerts";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
 
 interface LogoutButtonProps {
@@ -35,12 +36,13 @@ export function LogoutButton({ className = "" }: LogoutButtonProps) {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
-      if (Platform.OS === "web") {
-        window.alert("Failed to sign out. Please try again.");
-      } else {
-        Alert.alert("Error", "Failed to sign out. Please try again.");
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Logout error", message);
+      if (__DEV__) {
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[LogoutButton] logout failed", { message, stack });
       }
+      showErrorAlert("Error", "Failed to sign out. Please try again.");
     }
   };
 
@@ -57,7 +59,7 @@ export function LogoutButton({ className = "" }: LogoutButtonProps) {
     <>
       <TouchableOpacity
         onPress={handleLogoutPress}
-        className={`"px-4 rounded-lg" bg-gray-600 py-2 ${className}`}
+        className={`rounded-lg bg-gray-600 px-4 py-2 ${className}`}
         style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
         activeOpacity={0.7}
       >
