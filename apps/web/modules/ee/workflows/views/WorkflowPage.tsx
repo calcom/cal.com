@@ -160,13 +160,13 @@ function WorkflowPage({
   };
 
   const handleNameSubmit = () => {
-    form.setValue("name", nameValue);
+    form.setValue("name", nameValue, { shouldDirty: true });
     setIsEditingName(false);
   };
 
   const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      form.setValue("name", nameValue);
+      form.setValue("name", nameValue, { shouldDirty: true });
       setIsEditingName(false);
     } else if (e.key === "Escape") {
       setNameValue(watchedName || "");
@@ -291,6 +291,7 @@ function WorkflowPage({
       form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
+      form.reset(form.getValues());
       setNameValue(workflowData.name);
       setIsAllDataLoaded(true);
     }
@@ -300,6 +301,7 @@ function WorkflowPage({
     onSuccess: async ({ workflow }) => {
       utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
       setFormData(workflow);
+      form.reset(form.getValues());
 
       const autoCreateAgent = searchParams?.get("autoCreateAgent");
       if (!autoCreateAgent) {
@@ -318,6 +320,8 @@ function WorkflowPage({
       }
     },
   });
+
+  const isDisabled = permissions.readOnly || updateMutation.isPending || !form.formState.isDirty;
 
   const validateAndSubmitWorkflow = async (values: FormValues): Promise<void> => {
     let isEmpty = false;
@@ -509,7 +513,7 @@ function WorkflowPage({
               </Tooltip>
               <Button
                 loading={updateMutation.isPending}
-                disabled={permissions.readOnly || updateMutation.isPending}
+                disabled={isDisabled}
                 data-testid="save-workflow"
                 type="submit"
                 size="sm"
