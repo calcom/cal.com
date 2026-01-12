@@ -1,12 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, TouchableOpacity, Linking } from "react-native";
-
+import { Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Text } from "@/components/ui/text";
+import { getBookingActions } from "@/utils/booking-actions";
+import {
+  BadgesRow,
+  BookingDescription,
+  BookingTitle,
+  ConfirmRejectButtons,
+  HostAndAttendees,
+  MeetingLink,
+  TimeAndDateRow,
+} from "./BookingListItemParts";
 import type { BookingListItemProps } from "./types";
-import { SvgImage } from "../SvgImage";
-import { getMeetingInfo } from "../../utils/meetings-utils";
-import { formatTime, formatDate, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
-import { showErrorAlert } from "../../utils/alerts";
+import { useBookingListItemData } from "./useBookingListItemData";
 
 export const BookingListItem: React.FC<BookingListItemProps> = ({
   booking,
@@ -14,157 +29,188 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   isConfirming,
   isDeclining,
   onPress,
-  onLongPress,
   onConfirm,
   onReject,
-  onActionsPress,
+  onReschedule,
+  onEditLocation,
+  onAddGuests,
+  onViewRecordings,
+  onMeetingSessionDetails,
+  onMarkNoShow,
+  onReportBooking,
+  onCancelBooking,
 }) => {
-  const startTime = booking.start || booking.startTime || "";
-  const endTime = booking.end || booking.endTime || "";
-  const isUpcoming = new Date(endTime) >= new Date();
-  const isPending = booking.status?.toUpperCase() === "PENDING";
-  const isCancelled = booking.status?.toUpperCase() === "CANCELLED";
-  const isRejected = booking.status?.toUpperCase() === "REJECTED";
+  const {
+    isUpcoming,
+    isPending,
+    isCancelled,
+    isRejected,
+    hostAndAttendeesDisplay,
+    meetingInfo,
+    hasNoShowAttendee,
+    formattedDate,
+    formattedTimeRange,
+  } = useBookingListItemData(booking, userEmail);
 
-  const hostAndAttendeesDisplay = getHostAndAttendeesDisplay(booking, userEmail);
-  const meetingInfo = getMeetingInfo(booking.location);
+  const insets = useSafeAreaInsets();
 
-  // Check if any attendee is marked as no-show
-  const hasNoShowAttendee = booking.attendees?.some(
-    (att: any) => att.noShow === true || att.absent === true
+  const contentInsets = {
+    top: insets.top,
+    bottom: insets.bottom,
+    left: 12,
+    right: 12,
+  };
+
+  const actions = React.useMemo(() => {
+    return getBookingActions({
+      booking,
+      eventType: undefined,
+      currentUserId: undefined,
+      currentUserEmail: userEmail,
+      isOnline: true,
+    });
+  }, [booking, userEmail]);
+
+  type DropdownAction = {
+    label: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    onPress: () => void;
+    variant?: "default" | "destructive";
+  };
+
+  const allActions: (DropdownAction & { visible: boolean })[] = [
+    {
+      label: "Reschedule Booking",
+      icon: "calendar-outline",
+      onPress: () => onReschedule?.(booking),
+      variant: "default" as const,
+      visible: isUpcoming && !isCancelled && !isRejected && !isPending && !!onReschedule,
+    },
+    {
+      label: "Edit Location",
+      icon: "location-outline",
+      onPress: () => onEditLocation?.(booking),
+      variant: "default" as const,
+      visible: isUpcoming && !isCancelled && !isRejected && !isPending && !!onEditLocation,
+    },
+    {
+      label: "Add Guests",
+      icon: "person-add-outline",
+      onPress: () => onAddGuests?.(booking),
+      variant: "default" as const,
+      visible: isUpcoming && !isCancelled && !isRejected && !isPending && !!onAddGuests,
+    },
+    {
+      label: "View Recordings",
+      icon: "videocam-outline",
+      onPress: () => onViewRecordings?.(booking),
+      variant: "default" as const,
+      visible:
+        actions.viewRecordings.visible && actions.viewRecordings.enabled && !!onViewRecordings,
+    },
+    {
+      label: "Meeting Session Details",
+      icon: "information-circle-outline",
+      onPress: () => onMeetingSessionDetails?.(booking),
+      variant: "default" as const,
+      visible:
+        actions.meetingSessionDetails.visible &&
+        actions.meetingSessionDetails.enabled &&
+        !!onMeetingSessionDetails,
+    },
+    {
+      label: "Mark as No-Show",
+      icon: "eye-off-outline",
+      onPress: () => onMarkNoShow?.(booking),
+      variant: "default" as const,
+      visible: actions.markNoShow.visible && actions.markNoShow.enabled && !!onMarkNoShow,
+    },
+    {
+      label: "Report Booking",
+      icon: "flag-outline",
+      onPress: () => onReportBooking?.(booking),
+      variant: "destructive" as const,
+      visible: !!onReportBooking,
+    },
+    {
+      label: "Cancel Event",
+      icon: "close-circle-outline",
+      onPress: () => onCancelBooking?.(booking),
+      variant: "destructive" as const,
+      visible: isUpcoming && !isCancelled && !isRejected && !!onCancelBooking,
+    },
+  ];
+
+  const visibleActions = allActions.filter((action) => action.visible);
+
+  const destructiveStartIndex = visibleActions.findIndex(
+    (action) => action.variant === "destructive"
   );
 
   return (
-    <View className="border-b border-[#E5E5EA] bg-white">
-      <TouchableOpacity
-        className="active:bg-[#F8F9FA]"
+    <View className="border-b border-cal-border bg-cal-bg">
+      <Pressable
         onPress={() => onPress(booking)}
-        onLongPress={() => onLongPress(booking)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
+        className="active:bg-cal-bg-secondary"
+        android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
       >
-        {/* Time and Date Row */}
-        <View className="mb-2 flex-row flex-wrap items-center">
-          <Text className="text-sm font-medium text-[#333]">
-            {formatDate(startTime, isUpcoming)}
-          </Text>
-          <Text className="ml-2 text-sm text-[#666]">
-            {formatTime(startTime)} - {formatTime(endTime)}
-          </Text>
-        </View>
-        {/* Badges Row */}
-        <View className="mb-3 flex-row flex-wrap items-center">
-          {isPending ? (
-            <View className="mb-1 mr-2 rounded bg-[#FF9500] px-2 py-0.5">
-              <Text className="text-xs font-medium text-white">Unconfirmed</Text>
-            </View>
-          ) : null}
-        </View>
-        {/* Title */}
-        <Text
-          className={`mb-2 text-lg font-medium leading-5 text-[#333] ${isCancelled || isRejected ? "line-through" : ""}`}
-          numberOfLines={2}
-        >
-          {booking.title}
-        </Text>
-        {/* Description */}
-        {booking.description ? (
-          <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
-            &quot;{booking.description}&quot;
-          </Text>
-        ) : null}
-        {/* Host and Attendees */}
-        {hostAndAttendeesDisplay ? (
-          <View className="mb-2 flex-row items-center">
-            <Text className="text-sm text-[#333]">{hostAndAttendeesDisplay}</Text>
-            {hasNoShowAttendee && (
-              <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-1.5 py-0.5">
-                <Ionicons name="eye-off" size={10} color="#DC2626" />
-                <Text className="ml-0.5 text-[10px] font-medium text-[#DC2626]">No-show</Text>
-              </View>
-            )}
-          </View>
-        ) : null}
-        {/* Meeting Link */}
-        {meetingInfo ? (
-          <View className="mb-1 flex-row">
-            <TouchableOpacity
-              className="flex-row items-center"
-              style={{ alignSelf: "flex-start" }}
-              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-              onPress={async (e) => {
-                e.stopPropagation();
-                try {
-                  await Linking.openURL(meetingInfo.cleanUrl);
-                } catch {
-                  showErrorAlert("Error", "Failed to open meeting link. Please try again.");
-                }
-              }}
-            >
-              {meetingInfo.iconUrl ? (
-                <SvgImage
-                  uri={meetingInfo.iconUrl}
-                  width={16}
-                  height={16}
-                  style={{ marginRight: 6 }}
-                />
-              ) : (
-                <Ionicons name="videocam" size={16} color="#007AFF" style={{ marginRight: 6 }} />
-              )}
-              <Text className="text-sm font-medium text-[#007AFF]">{meetingInfo.label}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </TouchableOpacity>
+        <TimeAndDateRow formattedDate={formattedDate} formattedTimeRange={formattedTimeRange} />
+        <BadgesRow isPending={isPending} />
+        <BookingTitle title={booking.title} isCancelled={isCancelled} isRejected={isRejected} />
+        <BookingDescription description={booking.description} />
+        <HostAndAttendees
+          hostAndAttendeesDisplay={hostAndAttendeesDisplay}
+          hasNoShowAttendee={hasNoShowAttendee}
+        />
+        <MeetingLink meetingInfo={meetingInfo} />
+      </Pressable>
       <View
         className="flex-row items-center justify-end"
         style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
       >
-        {isPending ? (
-          <>
-            <TouchableOpacity
-              className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-white"
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                opacity: isConfirming || isDeclining ? 0.5 : 1,
-              }}
-              disabled={isConfirming || isDeclining}
-              onPress={(e) => {
-                e.stopPropagation();
-                onConfirm(booking);
-              }}
-            >
-              <Ionicons name="checkmark" size={16} color="#3C3F44" />
-              <Text className="ml-1 text-sm font-medium text-[#3C3F44]">Confirm</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-white"
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                opacity: isConfirming || isDeclining ? 0.5 : 1,
-              }}
-              disabled={isConfirming || isDeclining}
-              onPress={(e) => {
-                e.stopPropagation();
-                onReject(booking);
-              }}
-            >
-              <Ionicons name="close" size={16} color="#3C3F44" />
-              <Text className="ml-1 text-sm font-medium text-[#3C3F44]">Reject</Text>
-            </TouchableOpacity>
-          </>
-        ) : null}
-        <TouchableOpacity
-          className="items-center justify-center rounded-lg border border-[#E5E5EA]"
-          style={{ width: 32, height: 32 }}
-          onPress={(e) => {
-            e.stopPropagation();
-            onActionsPress(booking);
-          }}
-        >
-          <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
-        </TouchableOpacity>
+        <ConfirmRejectButtons
+          booking={booking}
+          isPending={isPending}
+          isConfirming={isConfirming}
+          isDeclining={isDeclining}
+          onConfirm={onConfirm}
+          onReject={onReject}
+        />
+
+        {visibleActions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Pressable
+                className="items-center justify-center rounded-lg border border-cal-border"
+                style={{ width: 32, height: 32 }}
+              >
+                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+              </Pressable>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-52" align="end">
+              {visibleActions.map((action, index) => (
+                <React.Fragment key={action.label}>
+                  {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                    <DropdownMenuSeparator />
+                  )}
+                  <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                    <Ionicons
+                      name={action.icon}
+                      size={18}
+                      color={action.variant === "destructive" ? "#800020" : "#374151"}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
+                      {action.label}
+                    </Text>
+                  </DropdownMenuItem>
+                </React.Fragment>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </View>
     </View>
   );

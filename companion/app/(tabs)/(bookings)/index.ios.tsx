@@ -1,11 +1,11 @@
+import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-stack";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
-import React, { useState } from "react";
-import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-stack";
+import { useState } from "react";
 
-import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
-import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
-import { useEventTypes } from "../../../hooks";
+import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
+import { useEventTypes } from "@/hooks";
+import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,17 +38,19 @@ export default function Bookings() {
         type: "action",
         label: option.label,
         icon: {
-          name:
-            option.key === "upcoming"
-              ? "calendar.badge.clock"
+          name: isSelected
+            ? "checkmark.circle.fill"
+            : option.key === "upcoming"
+              ? "calendar"
               : option.key === "unconfirmed"
-                ? "calendar.badge.exclamationmark"
-                : option.key === "past"
-                  ? "calendar.badge.checkmark"
-                  : "calendar.badge.minus",
+                ? "questionmark.circle"
+                : option.key === "recurring"
+                  ? "repeat.circle"
+                  : option.key === "past"
+                    ? "checkmark.circle"
+                    : "xmark.circle",
           type: "sfSymbol",
         },
-        state: isSelected ? "on" : "off",
         onPress: () => {
           handleFilterChange(option.key);
         },

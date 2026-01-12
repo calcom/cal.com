@@ -9,13 +9,12 @@
  *
  * Note: iOS uses BookingActionsModal.ios.tsx with native Glass UI styling.
  */
-import type { Booking } from "../services/calcom";
-import type { BookingActionsResult } from "../utils/booking-actions";
-import { FullScreenModal } from "./FullScreenModal";
+
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import type { Booking } from "@/services/calcom";
+import type { BookingActionsResult } from "@/utils/booking-actions";
+import { FullScreenModal } from "./FullScreenModal";
 
 export interface BookingActionsModalProps {
   visible: boolean;
@@ -67,8 +66,8 @@ function ActionButton({
 }: ActionButtonProps) {
   if (!visible) return null;
 
-  const iconColor = !enabled ? "#D1D5DB" : isDanger ? "#DC2626" : "#6B7280";
-  const textColor = !enabled ? "#D1D5DB" : isDanger ? "#DC2626" : "#111827";
+  const iconColor = !enabled ? "#D1D5DB" : isDanger ? "#800020" : "#6B7280";
+  const textColor = !enabled ? "#D1D5DB" : isDanger ? "#800020" : "#111827";
 
   return (
     <TouchableOpacity
@@ -126,8 +125,6 @@ export function BookingActionsModal({
   onReportBooking,
   onCancelBooking,
 }: BookingActionsModalProps) {
-  const insets = useSafeAreaInsets();
-
   if (!booking) return null;
 
   const handleAction = (action: () => void) => {

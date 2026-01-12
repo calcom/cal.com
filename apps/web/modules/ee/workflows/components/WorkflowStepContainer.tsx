@@ -1381,7 +1381,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   (hasActiveTeamPlan || isSMSAction(step.action))
                 }
                 excludedToolbarItems={
-                  !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
+                  isSMSAction(step.action) ? ["blockType", "bold", "italic", "link"] : ["link"]
                 }
                 plainText={isSMSAction(step.action)}
               />
@@ -1392,7 +1392,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                   </p>
                 )}
-              {isEmailSubjectNeeded && (
+              {isEmailSubjectNeeded &&
+                trigger !== WorkflowTriggerEvents.BOOKING_REQUESTED && (
                 <div className="mt-2">
                   <Controller
                     name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}

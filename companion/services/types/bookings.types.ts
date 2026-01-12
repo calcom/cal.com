@@ -1,3 +1,5 @@
+export type BookingStatus = "accepted" | "pending" | "cancelled" | "rejected";
+
 export interface Booking {
   id: number;
   uid: string;
@@ -32,8 +34,9 @@ export interface Booking {
     name: string;
     timeZone: string;
     noShow?: boolean;
+    absent?: boolean;
   }>;
-  status: "ACCEPTED" | "PENDING" | "CANCELLED" | "REJECTED";
+  status: BookingStatus;
   paid?: boolean;
   payment?: Array<{
     id: number;
@@ -44,11 +47,22 @@ export interface Booking {
   fromReschedule?: string;
   recurringEventId?: string;
   recurringBookingUid?: string;
+  requiresConfirmation?: boolean;
   smsReminderNumber?: string;
   location?: string;
   cancellationReason?: string;
   rejectionReason?: string;
-  responses?: Record<string, any>;
+  responses?: Record<string, unknown>;
+  // Additional fields from API
+  guests?: string[];
+  bookingFieldsResponses?: Record<string, unknown>;
+  rescheduledFromUid?: string;
+  rescheduledToUid?: string;
+  reschedulingReason?: string;
+  cancelledByEmail?: string;
+  absentHost?: boolean;
+  duration?: number;
+  meetingUrl?: string;
 }
 
 export interface GetBookingsResponse {
