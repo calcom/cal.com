@@ -218,7 +218,9 @@ const Item = ({
         </small>
       ) : null}
       {!isManagedEventType && type.hidden && (
-        <span className="ml-2 text-sm text-gray-400 sm:hidden">(hidden)</span>
+        <span className="ml-2 text-sm text-gray-400 sm:hidden">
+          {t("hidden")}
+        </span>
       )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
@@ -270,7 +272,7 @@ const Item = ({
               ) : null}
               {!isManagedEventType && type.hidden && (
                 <span className="ml-2 text-sm text-gray-400 sm:hidden">
-                  (hidden)
+                  {t("hidden")}
                 </span>
               )}
               {readOnly && (
@@ -669,7 +671,7 @@ export const InfiniteEventTypeList = ({
                             <>
                               {type.hidden && (
                                 <span className="text-sm text-gray-400">
-                                  (hidden)
+                                  {t("hidden")}
                                 </span>
                               )}
                               <Tooltip
