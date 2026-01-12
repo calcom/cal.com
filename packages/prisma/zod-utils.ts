@@ -386,6 +386,16 @@ export const userMetadata = z
       })
       .optional(),
     usePhoneForWhatsApp: z.boolean().optional(),
+    utm: z
+      .object({
+        utm_term: z.string().optional().nullable(),
+        utm_source: z.string().optional().nullable(),
+        utm_medium: z.string().optional().nullable(),
+        utm_campaign: z.string().optional().nullable(),
+        utm_content: z.string().optional().nullable(),
+      })
+      .optional(),
+    google_signup_tracked: z.boolean().optional(),
   })
   .nullable();
 

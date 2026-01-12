@@ -7,7 +7,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({
     req: context.req,
     authOptions: getOptions({
-      getDubId: () => context.req.cookies.dub_id || context.req.cookies.dclid,
+      cookies: {
+        utm_params: context.req.cookies.utm_params,
+        dub_id: context.req.cookies.dub_id || context.req.cookies.dclid,
+      },
     }),
   });
   // Disable this check if we ever make this self serve.
