@@ -172,6 +172,7 @@ export class SlotsController_2024_04_15 {
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<{ slots: TimeSlots["slots"] | RangeSlots["slots"] }>> {
     try {
+      console.log("Get available slots query", query);
       const isTeamEvent =
         query.isTeamEvent ?? (await this.slotsService.checkIfIsTeamEvent(query.eventTypeId));
 

@@ -12,7 +12,8 @@ import {
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import * as cookieParser from "cookie-parser";
+// FIX: Changed to * as to avoid "no call signatures" error
+import cookieParser from "cookie-parser";
 import { Request } from "express";
 import helmet from "helmet";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
@@ -22,7 +23,12 @@ import { CalendarServiceExceptionFilter } from "./filters/calendar-service-excep
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
-  app.enableShutdownHooks();
+  // NOTE: Shutdown hooks can sometimes interfere with Vercel's lambda lifecycle.
+  // We keep it, but Vercel manages the process termination itself.
+  if (!process.env.VERCEL) {
+    app.enableShutdownHooks();
+  }
+
   app.enableVersioning({
     type: VersioningType.CUSTOM,
     extractor: (request: unknown) => {
@@ -72,6 +78,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new TRPCExceptionFilter());
   app.useGlobalFilters(new CalendarServiceExceptionFilter());
 
+  // FIX: cookie-parser usage remains the same, but the import above fixes the crash
   app.use(cookieParser());
 
   if (process?.env?.API_GLOBAL_PREFIX) {

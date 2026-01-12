@@ -89,7 +89,8 @@ export function getValueOfAttributeOption(
   ) {
     if (attributeOption.isGroup) {
       const subOptions = attributeOption.contains.map((option) => option.value);
-      console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
+      /*       console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
+       */
       return subOptions;
     }
     return attributeOption.value;
