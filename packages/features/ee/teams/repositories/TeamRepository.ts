@@ -468,18 +468,20 @@ export class TeamRepository {
     });
   }
 
-  async findOrganizationIdBySlug({ slug }: { slug: string }): Promise<number | null> {
-    const org = await this.prismaClient.team.findFirst({
+  async findTopLevelTeamBySlug({
+    slug,
+  }: {
+    slug: string;
+  }): Promise<{ id: number; isOrganization: boolean } | null> {
+    return this.prismaClient.team.findUnique({
       where: {
-        slug,
-        parentId: null,
-        isOrganization: true,
+        slug_parentId: { slug, parentId: null },
       },
       select: {
         id: true,
+        isOrganization: true,
       },
     });
-    return org?.id ?? null;
   }
 
   async isSlugAvailableForUpdate({

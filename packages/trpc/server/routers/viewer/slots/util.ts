@@ -1019,11 +1019,12 @@ export class AvailableSlotsService {
     };
   }): Promise<number | null> {
     if (orgDetails.isValidOrgDomain && orgDetails.currentOrgDomain) {
-      const orgId = await this.dependencies.teamRepo.findOrganizationIdBySlug({
+      const topLevelTeam = await this.dependencies.teamRepo.findTopLevelTeamBySlug({
         slug: orgDetails.currentOrgDomain,
       });
-      if (orgId) {
-        return orgId;
+      // If the top level team is an organization, return its ID
+      if (topLevelTeam?.isOrganization) {
+        return topLevelTeam.id;
       }
     }
 
