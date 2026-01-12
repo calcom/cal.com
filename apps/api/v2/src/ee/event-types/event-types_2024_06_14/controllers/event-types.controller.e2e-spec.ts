@@ -1,16 +1,32 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  FrequencyInput,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
+import {
+  type ApiSuccessResponse,
+  BaseConfirmationPolicy_2024_06_14,
+  type CreateEventTypeInput_2024_06_14,
+  type EventTypeOutput_2024_06_14,
+  type GuestsDefaultFieldOutput_2024_06_14,
+  type NameDefaultFieldInput_2024_06_14,
+  type NotesDefaultFieldInput_2024_06_14,
+  type SplitNameDefaultFieldOutput_2024_06_14,
+  supportedIntegrations,
+  TeamEventTypeOutput_2024_06_14,
+  type UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
+import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
+import type { EventType, PlatformOAuthClient, Schedule, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -21,32 +37,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookerLayoutsInputEnum_2024_06_14,
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-  FrequencyInput,
-} from "@calcom/platform-enums";
-import { SchedulingType } from "@calcom/platform-libraries";
-import {
-  BaseConfirmationPolicy_2024_06_14,
-  TeamEventTypeOutput_2024_06_14,
-  supportedIntegrations,
-  type ApiSuccessResponse,
-  type CreateEventTypeInput_2024_06_14,
-  type EventTypeOutput_2024_06_14,
-  type GuestsDefaultFieldOutput_2024_06_14,
-  type NameDefaultFieldInput_2024_06_14,
-  type NotesDefaultFieldInput_2024_06_14,
-  type SplitNameDefaultFieldOutput_2024_06_14,
-  type UpdateEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
-import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
-import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
-import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -432,6 +431,29 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
+    it("should return an error when creating an event type with invalid interfaceLanguage", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class invalid locale",
+        slug: "coding-class-invalid-locale",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        interfaceLanguage: "invalid-locale-xyz",
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(400);
+    });
+
     it("should create an event type", async () => {
       const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
@@ -532,6 +554,13 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: true,
+        disableCancelling: { disabled: true },
+        disableRescheduling: { disabled: true },
+        calVideoSettings: { sendTranscriptionEmails: true },
+        interfaceLanguage: "en",
+        allowReschedulingPastBookings: true,
+        allowReschedulingCancelledBookings: true,
+        showOptimizedSlots: true,
       };
 
       return request(app.getHttpServer())
@@ -606,6 +635,15 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.disableCancelling).toEqual({ disabled: true });
+          expect(createdEventType.disableRescheduling).toEqual({ disabled: true });
+          expect(createdEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(true);
+          expect(createdEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
+          expect(createdEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
+          expect(createdEventType.allowReschedulingCancelledBookings).toEqual(
+            body.allowReschedulingCancelledBookings
+          );
+          expect(createdEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
           eventType = responseBody.data;
         });
     });
@@ -693,6 +731,19 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
+      expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
+      expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
+        eventType.calVideoSettings?.sendTranscriptionEmails
+      );
+      expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
+      expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
+        eventType.allowReschedulingPastBookings
+      );
+      expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
+        eventType.allowReschedulingCancelledBookings
+      );
+      expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
 
       expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
       expect(fetchedHiddenEventType?.hidden).toEqual(true);
@@ -822,6 +873,19 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
+      expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
+      expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
+        eventType.calVideoSettings?.sendTranscriptionEmails
+      );
+      expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
+      expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
+        eventType.allowReschedulingPastBookings
+      );
+      expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
+        eventType.allowReschedulingCancelledBookings
+      );
+      expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
     });
 
     it(`/GET/event-types by username and eventSlug should not return hidden event type if auth of non event type owner provided`, async () => {
@@ -1209,6 +1273,7 @@ describe("Event types Endpoints", () => {
           enableAutomaticTranscription: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
+          sendTranscriptionEmails: false,
         },
         bookingFields: [
           nameBookingField,
@@ -1268,6 +1333,12 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: false,
+        disableCancelling: { disabled: false },
+        disableRescheduling: { disabled: false, minutesBefore: 60 },
+        interfaceLanguage: "es",
+        allowReschedulingPastBookings: false,
+        allowReschedulingCancelledBookings: false,
+        showOptimizedSlots: false,
       };
 
       return request(app.getHttpServer())
@@ -1374,6 +1445,23 @@ describe("Event types Endpoints", () => {
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
 
           expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
+          expect(updatedEventType.disableCancelling).toEqual({ disabled: false });
+          expect(updatedEventType.disableRescheduling).toEqual({ disabled: false, minutesBefore: 60 });
+          expect(updatedEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(false);
+          expect(updatedEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
+          expect(updatedEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
+          expect(updatedEventType.allowReschedulingCancelledBookings).toEqual(
+            body.allowReschedulingCancelledBookings
+          );
+          expect(updatedEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
+
+          eventType.disableCancelling = updatedEventType.disableCancelling;
+          eventType.disableRescheduling = updatedEventType.disableRescheduling;
+          eventType.calVideoSettings = updatedEventType.calVideoSettings;
+          eventType.interfaceLanguage = updatedEventType.interfaceLanguage;
+          eventType.allowReschedulingPastBookings = updatedEventType.allowReschedulingPastBookings;
+          eventType.allowReschedulingCancelledBookings = updatedEventType.allowReschedulingCancelledBookings;
+          eventType.showOptimizedSlots = updatedEventType.showOptimizedSlots;
         });
     });
 
@@ -1398,6 +1486,19 @@ describe("Event types Endpoints", () => {
             integration: "office365-video",
           },
         ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when updating an event type with invalid interfaceLanguage", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        interfaceLanguage: "invalid-locale-xyz",
       };
 
       return request(app.getHttpServer())

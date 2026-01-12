@@ -420,6 +420,28 @@ export interface BookingDTO {
 }
 ```
 
+### DTO Location and Naming
+
+**Location**: All DTOs go in `packages/lib/dto/`
+
+**Naming conventions**:
+- Base entity: `{Entity}Dto` (e.g., `BookingDto`)
+- With relations: `{Entity}With{Relations}Dto` (e.g., `BookingWithAttendeesDto`)
+- For specific projections: `{Entity}For{Purpose}Dto` (e.g., `BookingForConfirmationDto`)
+- Avoid: `{Entity}Dto2`, `{Entity}DtoForHandler`, or other use-case-specific names
+
+**Enum/union pattern** – use string literal unions to stay ORM-agnostic:
+
+```typescript
+// ✅ Good - ORM-agnostic string literal union
+export type BookingStatusDto = "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING";
+
+// ❌ Bad - importing Prisma enum
+import { BookingStatus } from "@calcom/prisma/client";
+```
+
+**Type safety** – never use `as any` in DTO mapping functions. If types don't align, fix the mapping explicitly.
+
 ### Prisma boundaries
 
 - **Allowed**: `packages/prisma`, repository implementations (`packages/features/**/repositories/*Repository.ts`), and low-level data access infrastructure.
@@ -708,4 +730,8 @@ When doing logic that depends on Browser locale, use i18n.language (prefer to de
 
 Note that with Date, you’re dealing with System time, so it’s not suited to everywhere (such as in the Booker, where instead we’ll likely migrate to Temporal) - but in most cases the above are suitable.
 
-The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It’s a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It's a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+
+## Dependency Injection (DI) Pattern
+
+See [di-pattern.md](./di-pattern.md) for the complete guide on using the type-safe moduleLoader pattern for dependency injection.

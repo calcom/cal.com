@@ -9,8 +9,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMarkNoShow } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 
 interface Attendee {
   id?: number | string;
@@ -24,6 +25,7 @@ export interface MarkNoShowScreenProps {
   attendees: Attendee[];
   onUpdate: (attendees: Attendee[]) => void;
   onBookingUpdate?: (booking: Booking) => void;
+  transparentBackground?: boolean;
 }
 
 const getInitials = (name: string): string => {
@@ -50,13 +52,18 @@ export function MarkNoShowScreen({
   attendees,
   onUpdate,
   onBookingUpdate,
+  transparentBackground = false,
 }: MarkNoShowScreenProps) {
-  "use no memo";
   const insets = useSafeAreaInsets();
+  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+  const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
 
-  const handleMarkNoShow = async (attendee: Attendee) => {
+  // Mark no-show mutation
+  const markNoShowMutation = useMarkNoShow();
+
+  const handleMarkNoShow = (attendee: Attendee) => {
     if (!booking) return;
 
     const isCurrentlyNoShow = attendee.noShow === true;
@@ -70,65 +77,72 @@ export function MarkNoShowScreen({
         {
           text: "Confirm",
           style: isCurrentlyNoShow ? "default" : "destructive",
-          onPress: async () => {
+          onPress: () => {
             setProcessingEmail(attendee.email);
-            try {
-              const updatedBooking = await CalComAPIService.markAbsent(
-                booking.uid,
-                attendee.email,
-                !isCurrentlyNoShow
-              );
+            markNoShowMutation.mutate(
+              {
+                uid: booking.uid,
+                attendeeEmail: attendee.email,
+                absent: !isCurrentlyNoShow,
+              },
+              {
+                onSuccess: (updatedBooking) => {
+                  // API returns "absent" field, not "noShow"
+                  const updatedAttendees: Attendee[] = [];
+                  if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
+                    updatedBooking.attendees.forEach(
+                      (att: {
+                        id?: number | string;
+                        email: string;
+                        name?: string;
+                        noShow?: boolean;
+                        absent?: boolean;
+                      }) => {
+                        updatedAttendees.push({
+                          id: att.id,
+                          email: att.email,
+                          name: att.name || att.email,
+                          noShow: att.absent === true || att.noShow === true,
+                        });
+                      }
+                    );
+                  }
 
-              // API returns "absent" field, not "noShow"
-              const updatedAttendees: Attendee[] = [];
-              if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
-                updatedBooking.attendees.forEach(
-                  (att: {
-                    id?: number | string;
-                    email: string;
-                    name?: string;
-                    noShow?: boolean;
-                    absent?: boolean;
-                  }) => {
-                    updatedAttendees.push({
-                      id: att.id,
-                      email: att.email,
-                      name: att.name || att.email,
-                      noShow: att.absent === true || att.noShow === true,
+                  onUpdate(updatedAttendees);
+
+                  if (onBookingUpdate) {
+                    onBookingUpdate(updatedBooking);
+                  }
+
+                  showSuccessAlert(
+                    "Success",
+                    `${attendee.name || attendee.email} has been ${
+                      isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
+                    }`
+                  );
+                  setProcessingEmail(null);
+                },
+                onError: (error) => {
+                  console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
+                  if (__DEV__) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    const stack = error instanceof Error ? error.stack : undefined;
+                    console.debug("[MarkNoShowScreen] Error details:", {
+                      message,
+                      stack,
+                      attendeeEmail: maskEmail(attendee.email),
+                      bookingUid: booking.uid,
+                      absent: !isCurrentlyNoShow,
                     });
                   }
-                );
+                  showErrorAlert(
+                    "Error",
+                    error instanceof Error ? error.message : `Failed to ${action}`
+                  );
+                  setProcessingEmail(null);
+                },
               }
-
-              onUpdate(updatedAttendees);
-
-              if (onBookingUpdate) {
-                onBookingUpdate(updatedBooking);
-              }
-
-              Alert.alert(
-                "Success",
-                `${attendee.name || attendee.email} has been ${
-                  isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
-                }`
-              );
-              setProcessingEmail(null);
-            } catch (error) {
-              console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
-              if (__DEV__) {
-                const message = error instanceof Error ? error.message : String(error);
-                const stack = error instanceof Error ? error.stack : undefined;
-                console.debug("[MarkNoShowScreen] Error details:", {
-                  message,
-                  stack,
-                  attendeeEmail: maskEmail(attendee.email),
-                  bookingUid: booking.uid,
-                  absent: !isCurrentlyNoShow,
-                });
-              }
-              Alert.alert("Error", error instanceof Error ? error.message : `Failed to ${action}`);
-              setProcessingEmail(null);
-            }
+            );
           },
         },
       ]
@@ -140,39 +154,46 @@ export function MarkNoShowScreen({
     const isProcessing = processingEmail === item.email;
     const isLast = index === safeAttendees.length - 1;
 
+    // For transparent mode (iOS glass UI), use consistent styling regardless of no-show state
+    const itemBgStyle = transparentBackground
+      ? "bg-white/60"
+      : isNoShow
+        ? "bg-[#FEF2F2]"
+        : "bg-white";
+
     return (
       <TouchableOpacity
-        className={`flex-row items-center px-4 py-4 ${!isLast ? "border-b border-gray-100" : ""} ${
-          isNoShow ? "bg-[#FEF2F2]" : "bg-white"
-        }`}
+        className={`flex-row items-center px-4 py-4 ${
+          transparentBackground
+            ? `rounded-xl border border-gray-300/40 ${!isLast ? "mb-3" : ""}`
+            : !isLast
+              ? "border-b border-gray-100"
+              : ""
+        } ${itemBgStyle}`}
         onPress={() => handleMarkNoShow(item)}
         disabled={isProcessing}
         activeOpacity={0.7}
       >
         <View
           className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
-            isNoShow ? "bg-[#FECACA]" : "bg-[#E8E8ED]"
+            transparentBackground ? "bg-[#000]" : isNoShow ? "bg-[#FECACA]" : pillStyle
           }`}
         >
           <Text
-            className={`text-[16px] font-semibold ${isNoShow ? "text-[#DC2626]" : "text-gray-600"}`}
+            className={`text-[16px] font-semibold ${
+              transparentBackground ? "text-white" : isNoShow ? "text-[#800020]" : "text-gray-600"
+            }`}
           >
             {getInitials(item.name)}
           </Text>
         </View>
         <View className="mr-3 flex-1">
-          <Text
-            className={`text-[17px] font-medium ${isNoShow ? "text-[#991B1B]" : "text-[#000]"}`}
-          >
-            {item.name || "Unknown"}
-          </Text>
-          <Text className={`mt-0.5 text-[15px] ${isNoShow ? "text-[#DC2626]" : "text-gray-500"}`}>
-            {item.email}
-          </Text>
+          <Text className="text-[17px] font-medium text-[#000]">{item.name || "Unknown"}</Text>
+          <Text className="mt-0.5 text-[15px] text-gray-500">{item.email}</Text>
           {isNoShow && (
             <View className="mt-1.5 flex-row items-center">
-              <Ionicons name="eye-off" size={12} color="#DC2626" />
-              <Text className="ml-1 text-[13px] font-medium text-[#DC2626]">Marked as no-show</Text>
+              <Ionicons name="eye-off" size={12} color="#800020" />
+              <Text className="ml-1 text-[13px] font-medium text-[#800020]">Marked as no-show</Text>
             </View>
           )}
         </View>
@@ -190,13 +211,11 @@ export function MarkNoShowScreen({
               <Ionicons
                 name={isNoShow ? "eye" : "eye-off"}
                 size={15}
-                color={isNoShow ? "#16A34A" : "#DC2626"}
+                color={isNoShow ? "#16A34A" : "#800020"}
                 style={{ marginRight: 5 }}
               />
               <Text
-                className={`text-[14px] font-semibold ${
-                  isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"
-                }`}
+                className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#800020]"}`}
               >
                 {isNoShow ? "Unmark" : "Mark"}
               </Text>
@@ -209,23 +228,15 @@ export function MarkNoShowScreen({
 
   if (!booking) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+      <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
         <Text className="text-gray-500">No booking data</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#F2F2F7]">
+    <View className={`flex-1 ${backgroundStyle}`}>
       <View className="flex-1 p-4">
-        {/* Info note */}
-        <View className="mb-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-          <Ionicons name="information-circle" size={20} color="#1976D2" />
-          <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-            Tap an attendee to mark them as no-show or to undo a previous no-show marking.
-          </Text>
-        </View>
-
         {safeAttendees.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-[#E8E8ED]">
@@ -241,15 +252,25 @@ export function MarkNoShowScreen({
             <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
               Attendees ({safeAttendees.length})
             </Text>
-            <View className="overflow-hidden rounded-xl">
+            {transparentBackground ? (
               <FlatList
                 data={safeAttendees}
                 renderItem={renderAttendee}
                 keyExtractor={(item) => item.email}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+                scrollEnabled={false}
               />
-            </View>
+            ) : (
+              <View className="overflow-hidden rounded-xl bg-white">
+                <FlatList
+                  data={safeAttendees}
+                  renderItem={renderAttendee}
+                  keyExtractor={(item) => item.email}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+                />
+              </View>
+            )}
           </>
         )}
       </View>

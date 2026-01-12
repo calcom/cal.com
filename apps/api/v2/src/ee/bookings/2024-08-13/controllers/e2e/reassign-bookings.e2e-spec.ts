@@ -1,17 +1,10 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
-import { BOOKING_REASSIGN_PERMISSION_ERROR } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
+import type { Booking, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -23,10 +16,16 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import type { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
-import type { Booking, User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
+import { BOOKING_REASSIGN_PERMISSION_ERROR } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Reassign bookings", () => {
@@ -492,6 +491,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             id: teamUser2.id,
             name: teamUser2.name,
             email: teamUser2.email,
+            displayEmail: teamUser2.email,
           });
 
           const reassigned = await bookingsRepositoryFixture.getByUid(roundRobinBooking.uid);
@@ -532,6 +532,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             id: teamUser1.id,
             name: teamUser1.name,
             email: teamUser1.email,
+            displayEmail: teamUser1.email,
           });
 
           const reassigned = await bookingsRepositoryFixture.getByUid(roundRobinBooking.uid);
@@ -664,7 +665,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       expect(booking).toBeDefined();
       expect(booking?.userId).toBeDefined();
-      const initialHostId = booking!.userId!;
+      const initialHostId = booking?.userId!;
       rescheduleReasonBookingInitialHostId = initialHostId;
 
       const expectedInitialTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${
@@ -706,7 +707,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       expect(booking).toBeDefined();
       expect(booking?.userId).toBeDefined();
 
-      const currentHostId = booking!.userId!;
+      const currentHostId = booking?.userId!;
       const initialHostId = rescheduleReasonBookingInitialHostId;
       const initialHostName = initialHostId === teamUser1.id ? teamUser1.name : teamUser2.name;
 

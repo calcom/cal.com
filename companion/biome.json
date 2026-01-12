@@ -1,5 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+  "root": false,
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -18,7 +19,10 @@
       "!**/dist",
       "!**/.output",
       "!**/*.d.ts",
-      "!**/bun.lock"
+      "!**/bun.lock",
+      "!**/android",
+      "!**/ios",
+      "!**/safari-extension"
     ]
   },
   "formatter": {
