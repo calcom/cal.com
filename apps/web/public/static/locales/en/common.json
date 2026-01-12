@@ -4340,5 +4340,19 @@
   "pbac_resource_feature_opt_in": "Feature Opt-In",
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
   "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "try_it_now": "Try it now",
+  "enable_feature": "Enable Feature",
+  "enable_for": "Enable for",
+  "entire_organization": "Entire organization",
+  "team_name": "{{name}}",
+  "my_teams_count": "My teams ({{count}})",
+  "just_for_me": "Just for me",
+  "auto_opt_in_future_features_org": "Automatically opt into future features for my organization",
+  "auto_opt_in_future_features_teams": "Automatically opt into future features for my teams",
+  "auto_opt_in_future_features_user": "Automatically opt into future features",
+  "feature_enabled_successfully": "Feature enabled successfully!",
+  "feature_enabled_description": "You can manage this feature in your settings.",
+  "view_settings": "View Settings",
+  "error_enabling_feature": "Error enabling feature. Please try again.",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
