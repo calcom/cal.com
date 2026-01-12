@@ -4,7 +4,6 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import isPrismaObj from "@calcom/lib/isPrismaObj";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 
 import { isPrismaObjOrUndefined } from "@lib/isPrismaObj";
 
@@ -43,31 +42,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User from session not found");
   }
 
-  //save utm params from cookie to user.metadata.utm if exists and not already set
-  //required for tracking utm tracking from oauth signup
-
-  try {
-    //if UTM INFO in cookie exists and not already set
-    if (req.cookies.utm_params && !isPrismaObjOrUndefined(user.metadata)?.utm) {
-      const _cookiesFromReq = req.cookies;
-      const parsedUtm = _cookiesFromReq.utm_params && JSON.parse(_cookiesFromReq.utm_params);
-      user.metadata = {
-        ...(typeof user.metadata === "object" && user.metadata !== null ? user.metadata : {}),
-        ...(parsedUtm && { utm: parsedUtm }),
-      };
-      await userRepo.updateWhereId({
-        whereId: user.id,
-        data: {
-          metadata: user.metadata as Prisma.InputJsonValue,
-        },
-      });
-    }
-  } catch (e) {
-    console.error("Error parsing utm_params cookie", e);
-  }
   let currentOnboardingStep: string | undefined = undefined;
-
-  //find if cookie "utm_params" exists
 
   //to handle the case where the user has already reached a step in the onboarding process
   if (
@@ -99,9 +74,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     (!user.metadata || (has_google_signup_tracked && hasNotStartedOnboarding) || google_signup_tracked)
   ) {
     google_signup_to_be_tracked = true;
+    const existingMetadata = (isPrismaObjOrUndefined(user.metadata) as Record<string, unknown>) || {};
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { metadata: { google_signup_tracked: true } },
+      data: {
+        metadata: {
+          ...existingMetadata,
+          google_signup_tracked: true,
+        },
+      },
     });
   }
 
