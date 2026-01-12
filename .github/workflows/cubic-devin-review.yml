@@ -150,7 +150,7 @@ jobs:
           
           MESSAGE="New Cubic AI review feedback has been submitted on PR #${{ github.event.pull_request.number }}.
 
-          IMPORTANT: Before fixing any issue, check the individual Cubic comment on the PR for that issue's confidence score. The confidence score appears as 'Fix confidence (alpha): X/10' in each comment. Only fix issues where the confidence score is 9/10 or higher. If you cannot find a confidence score for an issue, skip it.
+          IMPORTANT: Before fixing any issue, check the individual Cubic comment on the PR for that issue's confidence score. The confidence score appears as 'Fix confidence (alpha): X/10' in each comment. Note that the (alpha) may or not be there. Don't be picky about that text. But only fix issues where the confidence score is 9/10 or higher. If you cannot find a confidence score for an issue, skip it.
 
           Here are the issues identified by Cubic AI:
 
