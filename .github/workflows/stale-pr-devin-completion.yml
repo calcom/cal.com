@@ -109,22 +109,24 @@ jobs:
             );
 
             if (!alreadyRequested) {
-              const commentBody = `### Maintainer Access Needed
-
-            Hi @${prAuthor}! Thanks for your contribution to Cal.com.
-
-            We'd like to help complete this stale PR, but we noticed that "Allow edits from maintainers" isn't enabled. We need this setting to push updates to your PR branch.
-
-            **Could you please enable this setting?** Here's how:
-            1. Scroll down to the bottom of this PR page
-            2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**
-
-            This allows us to push commits directly to your PR branch, which helps us:
-            - Complete any remaining work on your PR
-            - Fix merge conflicts and make small adjustments
-            - Get your contribution merged faster
-
-            Once you've enabled this setting, we'll be able to help finish up this PR. If you have any concerns about enabling this setting, feel free to let us know!`;
+              const commentBody = [
+                '### Maintainer Access Needed',
+                '',
+                `Hi @${prAuthor}! Thanks for your contribution to Cal.com.`,
+                '',
+                `We'd like to help complete this stale PR, but we noticed that "Allow edits from maintainers" isn't enabled. We need this setting to push updates to your PR branch.`,
+                '',
+                '**Could you please enable this setting?** Here\'s how:',
+                '1. Scroll down to the bottom of this PR page',
+                '2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**',
+                '',
+                'This allows us to push commits directly to your PR branch, which helps us:',
+                '- Complete any remaining work on your PR',
+                '- Fix merge conflicts and make small adjustments',
+                '- Get your contribution merged faster',
+                '',
+                'Once you\'ve enabled this setting, we\'ll be able to help finish up this PR. If you have any concerns about enabling this setting, feel free to let us know!'
+              ].join('\n');
 
               await github.rest.issues.createComment({
                 owner,
