@@ -173,7 +173,7 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
 
   useEffect(() => {
     if (isEditMode && inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.focus({ preventScroll: true });
     }
   }, [isEditMode]);
 
