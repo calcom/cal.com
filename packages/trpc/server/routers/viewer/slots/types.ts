@@ -1,6 +1,7 @@
 import type { IncomingMessage } from "node:http";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 const isValidDateString = (val: string) => !isNaN(Date.parse(val));
@@ -51,6 +52,14 @@ export const getScheduleSchema = getScheduleSchemaObject
     if (!val.orgSlug) {
       val.orgSlug = null;
     }
+
+    const maxEndTime = dayjs.utc().add(1, "year");
+    const endTime = dayjs.utc(val.endTime);
+    
+    if (endTime.isAfter(maxEndTime)) {
+      val.endTime = maxEndTime.toISOString();
+    }
+
     return val;
   })
   .refine(

@@ -20,4 +20,8 @@ export class SelectedSlotRepositoryFixture {
   async deleteByUId(uid: SelectedSlots["uid"]) {
     return this.prismaWriteClient.selectedSlots.deleteMany({ where: { uid } });
   }
+
+  async deleteByEventTypeId(eventTypeId: number) {
+    return this.prismaWriteClient.selectedSlots.deleteMany({ where: { eventTypeId } });
+  }
 }
