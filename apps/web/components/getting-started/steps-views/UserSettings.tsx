@@ -117,6 +117,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         type="submit"
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
+        data-testid="connect-calendar-button"
         disabled={mutation.isPending}>
         {t("connect_your_calendar")}
       </Button>

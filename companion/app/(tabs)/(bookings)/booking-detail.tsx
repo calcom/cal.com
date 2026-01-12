@@ -1,11 +1,11 @@
-import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
-import { useAuth } from "../../../contexts/AuthContext";
-import { useBookingActionModals } from "../../../hooks";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
-import { getBookingActions, type BookingActionsResult } from "../../../utils/booking-actions";
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Alert } from "react-native";
+import { useCallback, useMemo, useRef } from "react";
+import { Platform } from "react-native";
+import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBookingByUid } from "@/hooks/useBookings";
+import { showErrorAlert, showInfoAlert } from "@/utils/alerts";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -31,9 +31,12 @@ type ActionHandlers = {
 };
 
 export default function BookingDetail() {
+  "use no memo";
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
-  const [booking, setBooking] = useState<Booking | null>(null);
+
+  // Use React Query hook for booking data - single source of truth
+  const { data: booking, isLoading, error, refetch, isRefetching } = useBookingByUid(uid);
 
   // Ref to store action handlers from BookingDetailScreen
   const actionHandlersRef = useRef<ActionHandlers | null>(null);
@@ -42,20 +45,6 @@ export default function BookingDetail() {
   const handleActionsReady = useCallback((handlers: ActionHandlers) => {
     actionHandlersRef.current = handlers;
   }, []);
-
-  // Fetch booking data for the iOS header menu actions
-  useEffect(() => {
-    if (uid) {
-      CalComAPIService.getBookingByUid(uid)
-        .then(setBooking)
-        .catch(() => {
-          // Error handling is done in BookingDetailScreen
-        });
-    }
-  }, [uid]);
-
-  // Booking action modals hook
-  const { selectedBooking: actionModalBooking } = useBookingActionModals();
 
   // Compute actions using centralized gating (same as BookingDetailScreen)
   const actions = useMemo(() => {
@@ -70,70 +59,65 @@ export default function BookingDetail() {
   }, [booking, userInfo?.id, userInfo?.email]);
 
   // Action handlers that use the booking data
+  // Note: These are stable functions that don't change, so we don't memoize them
+  // They access refs which is safe in event handlers
   const handleReschedule = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openRescheduleModal) {
       actionHandlersRef.current.openRescheduleModal();
     } else {
-      Alert.alert("Error", "Unable to reschedule. Please try again.");
+      showErrorAlert("Error", "Unable to reschedule. Please try again.");
     }
   }, []);
 
   const handleEditLocation = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openEditLocationModal) {
       actionHandlersRef.current.openEditLocationModal();
     } else {
-      Alert.alert("Error", "Unable to edit location. Please try again.");
+      showErrorAlert("Error", "Unable to edit location. Please try again.");
     }
   }, []);
 
   const handleAddGuests = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openAddGuestsModal) {
       actionHandlersRef.current.openAddGuestsModal();
     } else {
-      Alert.alert("Error", "Unable to add guests. Please try again.");
+      showErrorAlert("Error", "Unable to add guests. Please try again.");
     }
   }, []);
 
   const handleViewRecordings = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openViewRecordingsModal) {
       actionHandlersRef.current.openViewRecordingsModal();
     } else {
-      Alert.alert("Error", "Unable to view recordings. Please try again.");
+      showErrorAlert("Error", "Unable to view recordings. Please try again.");
     }
   }, []);
 
   const handleSessionDetails = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openMeetingSessionDetailsModal) {
       actionHandlersRef.current.openMeetingSessionDetailsModal();
     } else {
-      Alert.alert("Error", "Unable to view session details. Please try again.");
+      showErrorAlert("Error", "Unable to view session details. Please try again.");
     }
   }, []);
 
   const handleMarkNoShow = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openMarkNoShowModal) {
       actionHandlersRef.current.openMarkNoShowModal();
     } else {
-      Alert.alert("Error", "Unable to mark no-show. Please try again.");
+      showErrorAlert("Error", "Unable to mark no-show. Please try again.");
     }
   }, []);
 
   const handleReport = useCallback(() => {
-    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+    showInfoAlert("Report Booking", "Report booking functionality is not yet available");
   }, []);
 
   const handleCancel = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.handleCancelBooking) {
       actionHandlersRef.current.handleCancelBooking();
     } else {
-      Alert.alert("Error", "Unable to cancel. Please try again.");
+      showErrorAlert("Error", "Unable to cancel. Please try again.");
     }
   }, []);
 
@@ -242,59 +226,68 @@ export default function BookingDetail() {
         }}
       />
 
-      <Stack.Header style={{ shadowColor: "transparent" }}>
-        <Stack.Header.Title>Booking Details</Stack.Header.Title>
+      {Platform.OS === "ios" && (
+        <Stack.Header style={{ shadowColor: "transparent" }}>
+          <Stack.Header.Title>Booking Details</Stack.Header.Title>
 
-        {/* Header right and left API only works on iOS ATM see: https://docs.expo.dev/versions/unversioned/sdk/router/#stackheaderright */}
-        <Stack.Header.Right>
-          <Stack.Header.Menu>
-            <Stack.Header.Label>Actions</Stack.Header.Label>
-            <Stack.Header.Icon sf="ellipsis" />
+          {/* Header right and left API only works on iOS ATM see: https://docs.expo.dev/versions/unversioned/sdk/router/#stackheaderright */}
+          <Stack.Header.Right>
+            <Stack.Header.Menu>
+              <Stack.Header.Label>Actions</Stack.Header.Label>
+              <Stack.Header.Icon sf="ellipsis" />
 
-            {/* Edit Event Section */}
-            <Stack.Header.Menu inline title="Edit Event">
-              {bookingActionsSections.editEvent.map((action) => (
-                <Stack.Header.MenuAction
-                  key={action.id}
-                  icon={action.icon}
-                  onPress={action.onPress}
-                >
-                  {action.label}
-                </Stack.Header.MenuAction>
-              ))}
+              {/* Edit Event Section */}
+              <Stack.Header.Menu inline title="Edit Event">
+                {bookingActionsSections.editEvent.map((action) => (
+                  <Stack.Header.MenuAction
+                    key={action.id}
+                    icon={action.icon}
+                    onPress={action.onPress}
+                  >
+                    {action.label}
+                  </Stack.Header.MenuAction>
+                ))}
+              </Stack.Header.Menu>
+
+              {/* After Event Section */}
+              <Stack.Header.Menu inline title="After Event">
+                {bookingActionsSections.afterEvent.map((action) => (
+                  <Stack.Header.MenuAction
+                    key={action.id}
+                    icon={action.icon}
+                    onPress={action.onPress}
+                  >
+                    {action.label}
+                  </Stack.Header.MenuAction>
+                ))}
+              </Stack.Header.Menu>
+
+              {/* Danger Zone Submenu */}
+              <Stack.Header.Menu inline title="Danger Zone">
+                {bookingActionsSections.standalone.map((action) => (
+                  <Stack.Header.MenuAction
+                    key={action.id}
+                    icon={action.icon}
+                    onPress={action.onPress}
+                    destructive
+                  >
+                    {action.label}
+                  </Stack.Header.MenuAction>
+                ))}
+              </Stack.Header.Menu>
             </Stack.Header.Menu>
+          </Stack.Header.Right>
+        </Stack.Header>
+      )}
 
-            {/* After Event Section */}
-            <Stack.Header.Menu inline title="After Event">
-              {bookingActionsSections.afterEvent.map((action) => (
-                <Stack.Header.MenuAction
-                  key={action.id}
-                  icon={action.icon}
-                  onPress={action.onPress}
-                >
-                  {action.label}
-                </Stack.Header.MenuAction>
-              ))}
-            </Stack.Header.Menu>
-
-            {/* Danger Zone Submenu */}
-            <Stack.Header.Menu inline title="Danger Zone">
-              {bookingActionsSections.standalone.map((action) => (
-                <Stack.Header.MenuAction
-                  key={action.id}
-                  icon={action.icon}
-                  onPress={action.onPress}
-                  destructive
-                >
-                  {action.label}
-                </Stack.Header.MenuAction>
-              ))}
-            </Stack.Header.Menu>
-          </Stack.Header.Menu>
-        </Stack.Header.Right>
-      </Stack.Header>
-
-      <BookingDetailScreen uid={uid} onActionsReady={handleActionsReady} />
+      <BookingDetailScreen
+        booking={booking}
+        isLoading={isLoading}
+        error={error ?? null}
+        refetch={refetch}
+        isRefetching={isRefetching}
+        onActionsReady={handleActionsReady}
+      />
 
       {/* Action Modals for iOS header menu */}
     </>

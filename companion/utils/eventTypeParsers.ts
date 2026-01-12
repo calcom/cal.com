@@ -10,7 +10,7 @@
  */
 export const parseBufferTime = (buffer: string): number => {
   const match = buffer.match(/(\d+)/);
-  return match ? parseInt(match[1]) : 0;
+  return match ? parseInt(match[1], 10) : 0;
 };
 
 /**
@@ -20,7 +20,7 @@ export const parseBufferTime = (buffer: string): number => {
  * @returns Total minutes
  */
 export const parseMinimumNotice = (value: string, unit: string): number => {
-  const val = parseInt(value) || 0;
+  const val = parseInt(value, 10) || 0;
   if (unit === "Hours") return val * 60;
   if (unit === "Days") return val * 24 * 60;
   return val; // Minutes
@@ -47,5 +47,5 @@ export const parseFrequencyUnit = (unit: string): string | null => {
  */
 export const parseSlotInterval = (interval: string): number => {
   const match = interval.match(/(\d+)/);
-  return match ? parseInt(match[1]) : 0;
+  return match ? parseInt(match[1], 10) : 0;
 };

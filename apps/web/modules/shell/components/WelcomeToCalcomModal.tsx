@@ -30,8 +30,8 @@ export function WelcomeToCalcomModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
-      <DialogContent size="default" className="p-0!" enableOverflow>
-        <div className="flex flex-col gap-4 p-6">
+      <DialogContent size="default" className="p-0!">
+        <div className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto p-6">
           <div className="flex flex-col items-center gap-1">
             <Logo className="h-10 w-auto" />
           </div>
@@ -83,7 +83,7 @@ export function WelcomeToCalcomModal() {
           </div>
 
           <div className="mb-2 flex flex-col gap-2 text-center">
-            <h2 className="font-cal text-emphasis text-2xl leading-none">
+            <h2 className="font-heading text-emphasis text-2xl leading-none">
               {t("welcome_to_calcom", { appName: APP_NAME })}
             </h2>
             <p className="text-default text-sm leading-normal">{t("personal_welcome_description")}</p>

@@ -269,7 +269,8 @@ export const useEmbedType = () => {
 };
 
 function makeBodyVisible() {
-  if (typeof document === "undefined") {
+  // Guard against test environment teardown where document may no longer exist
+  if (typeof document === "undefined" || !document.body) {
     return;
   }
   if (document.body.style.visibility !== "visible") {

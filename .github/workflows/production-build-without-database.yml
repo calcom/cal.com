@@ -4,6 +4,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
@@ -38,10 +39,35 @@ env:
 jobs:
   build:
     name: Build Web App
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
+      - name: Generate cache key
+        id: cache-key
+        uses: ./.github/actions/cache-build-key
+        with:
+          branch_key: ${{ github.head_ref || github.ref_name }}
+      - name: Check if production build cache exists
+        uses: actions/cache@v4
+        id: cache-check
+        with:
+          path: |
+            ${{ github.workspace }}/apps/web/.next
+            ${{ github.workspace }}/apps/web/public/embed
+            **/.turbo/**
+            **/dist/**
+          key: ${{ steps.cache-key.outputs.key }}
+          lookup-only: true
+      - name: Delete old production build caches for this branch
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: prod-build-${{ github.head_ref || github.ref_name }}
+          prefix: "true"
       - uses: ./.github/actions/cache-build
