@@ -1,5 +1,6 @@
 import { Button, ContextMenu, Host, HStack, Image as SwiftUIImage } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import * as Haptics from "expo-haptics";
+import { buttonStyle, controlSize, fixedSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -18,7 +19,7 @@ import {
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { EventTypeListSkeleton } from "@/components/event-type-list-item/EventTypeListItemSkeleton";
 import {
   useCreateEventType,
   useDeleteEventType,
@@ -168,7 +169,10 @@ export default function EventTypesIOS() {
                 console.error("Failed to delete event type", message);
                 if (__DEV__) {
                   const stack = deleteError instanceof Error ? deleteError.stack : undefined;
-                  console.debug("[EventTypes] deleteEventType failed", { message, stack });
+                  console.debug("[EventTypes] deleteEventType failed", {
+                    message,
+                    stack,
+                  });
                 }
                 showErrorAlert("Error", "Failed to delete event type. Please try again.");
               },
@@ -233,6 +237,7 @@ export default function EventTypesIOS() {
   };
 
   const handleOpenCreateModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Use native iOS Alert.prompt for a native look
     Alert.prompt(
       "Add a new event type",
@@ -321,9 +326,22 @@ export default function EventTypesIOS() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-        <LoadingSpinner size="large" />
-      </View>
+      <>
+        <Stack.Header
+          style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+          blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+        >
+          <Stack.Header.Title large>Event Types</Stack.Header.Title>
+        </Stack.Header>
+        <ScrollView
+          style={{ backgroundColor: "white" }}
+          contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <EventTypeListSkeleton />
+        </ScrollView>
+      </>
     );
   }
 
@@ -476,11 +494,13 @@ export default function EventTypesIOS() {
       <ScrollView
         style={{ backgroundColor: "white" }}
         contentContainerStyle={{ paddingBottom: 120 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        {filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
+        {refreshing ? (
+          <EventTypeListSkeleton />
+        ) : filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
           <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20">
             <EmptyScreen
               icon="search-outline"
@@ -524,24 +544,21 @@ export default function EventTypesIOS() {
       {/* Floating Action Button for New Event Type with Glass UI Menu */}
       <View className="absolute right-6" style={{ bottom: 100 }}>
         <Host matchContents>
-          <ContextMenu
-            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-            activationMethod="singlePress"
+          <Button
+            onPress={handleOpenCreateModal}
+            modifiers={[
+              buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"),
+              padding(),
+              controlSize("large"),
+            ]}
           >
-            <ContextMenu.Items>
-              <Button systemImage="link" onPress={handleOpenCreateModal} label="New Event Type" />
-            </ContextMenu.Items>
-            <ContextMenu.Trigger>
-              <HStack modifiers={[frame({ width: 35, height: 40 })]}>
-                <SwiftUIImage
-                  systemName="plus"
-                  color="primary"
-                  size={28}
-                  // modifiers={[frame({ width: 56, height: 56 })]}
-                />
-              </HStack>
-            </ContextMenu.Trigger>
-          </ContextMenu>
+            <SwiftUIImage
+              systemName="plus"
+              color="primary"
+              size={24}
+              modifiers={[frame({ height: 24, width: 17 })]}
+            />
+          </Button>
         </Host>
       </View>
     </>

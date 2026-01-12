@@ -1,5 +1,18 @@
-import { bootstrap } from "@/bootstrap";
+import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test, TestingModule } from "@nestjs/testing";
+import request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withNextAuth } from "test/utils/withNextAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
@@ -10,20 +23,6 @@ import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/e
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test, TestingModule } from "@nestjs/testing";
-import * as request from "supertest";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withNextAuth } from "test/utils/withNextAuth";
-
-import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("OAuthFlow Endpoints", () => {
   describe("User Not Authenticated", () => {
