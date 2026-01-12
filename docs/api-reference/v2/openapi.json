@@ -13291,6 +13291,7 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
+        "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
         "parameters": [
           {
             "name": "Authorization",
@@ -15535,6 +15536,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -19114,6 +19140,31 @@
           }
         }
       },
+      "DisableRescheduling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Disable rescheduling when less than the specified number of minutes before the meeting. If set, `disabled` should be false or undefined.",
+            "example": 60
+          }
+        }
+      },
+      "DisableCancelling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
       "CalVideoSettings": {
         "type": "object",
         "properties": {
@@ -19144,6 +19195,11 @@
           "disableTranscriptionForOrganizer": {
             "type": "boolean",
             "description": "If true, the organizer will not be able to receive transcription of the meeting"
+          },
+          "sendTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           }
         }
       },
@@ -19416,6 +19472,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -20528,6 +20666,31 @@
           }
         }
       },
+      "DisableCancellingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
+      "DisableReschedulingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Rescheduling is disabled when less than the specified number of minutes before the meeting.",
+            "example": 60
+          }
+        }
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -20795,6 +20958,41 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Arrange time slots to optimize availability."
           },
           "ownerId": {
             "type": "number",
@@ -21161,6 +21359,41 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Arrange time slots to optimize availability."
           },
           "teamId": {
             "type": "number"
@@ -21549,6 +21782,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -23451,6 +23766,88 @@
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
+          },
           "schedulingType": {
             "type": "string",
             "enum": [
@@ -23961,6 +24358,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "schedulingType": {
             "type": "string",
@@ -31259,6 +31738,11 @@
             "type": "string",
             "example": "jane100@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "jane100@example.com",
+            "description": "Clean email for display purposes"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -31272,6 +31756,7 @@
           "id",
           "name",
           "email",
+          "displayEmail",
           "username",
           "timeZone"
         ]
@@ -31303,6 +31788,11 @@
           "email": {
             "type": "string",
             "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
           },
           "timeZone": {
             "type": "string",
@@ -31369,6 +31859,7 @@
         "required": [
           "name",
           "email",
+          "displayEmail",
           "timeZone",
           "absent"
         ]
@@ -31715,6 +32206,11 @@
             "type": "string",
             "example": "john@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -31797,6 +32293,7 @@
         "required": [
           "name",
           "email",
+          "displayEmail",
           "timeZone",
           "absent",
           "seatUid",
@@ -32889,12 +33386,18 @@
           "email": {
             "type": "string",
             "example": "john.doe@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Clean email for display purposes"
           }
         },
         "required": [
           "id",
           "name",
-          "email"
+          "email",
+          "displayEmail"
         ]
       },
       "ReassignBookingOutput_2024_08_13": {

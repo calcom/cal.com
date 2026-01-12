@@ -82,7 +82,8 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("profile-redirect-switch").click();
 
-    await page.getByTestId(`team_username_select_${userTo.id}`).click();
+    await page.getByTestId("team_username_select").click();
+    await page.getByTestId(`select-option-${userTo.id}`).click();
 
     // send request
     await saveAndWaitForResponse(page);
@@ -158,7 +159,8 @@ test.describe("Out of office", () => {
     await page.getByTestId("notes_input").click();
     await page.getByTestId("notes_input").fill("Changed notes");
 
-    await page.getByTestId(`team_username_select_${userToSecond.id}`).click();
+    await page.getByTestId("team_username_select").click();
+    await page.getByTestId(`select-option-${userToSecond.id}`).click();
 
     // send request
     await saveAndWaitForResponse(page);
@@ -392,7 +394,8 @@ test.describe("Out of office", () => {
 
       await test.step("Admin can create OOO for team member and add redirect", async () => {
         //OOO is created for 'member-1' on Next month 1st - 3rd, forwarding to 'member-2'
-        await page.getByTestId(`ooofor_username_select_${member1User?.id}`).click();
+        await page.getByTestId("ooofor_username_select").click();
+        await page.getByTestId(`select-option-${member1User?.id}`).click();
 
         await selectDateAndCreateOOO(page, "1", "3", member2User?.id, 200, true);
         await expect(
@@ -404,7 +407,8 @@ test.describe("Out of office", () => {
         //Try to create OOO for 'member-2' on Next month 1st - 3rd, forwarding to 'member-1'
         await openOOODialog(page);
 
-        await page.getByTestId(`ooofor_username_select_${member2User?.id}`).click();
+        await page.getByTestId("ooofor_username_select").click();
+        await page.getByTestId(`select-option-${member2User?.id}`).click();
         await selectDateAndCreateOOO(page, "1", "3", member1User?.id, 400, true);
         expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
         await page.locator(`text=${t("cancel")}`).click();
@@ -414,7 +418,8 @@ test.describe("Out of office", () => {
         //Change redirect member to 'member-3' for OOO created in step 1
         await page.getByTestId(`ooo-edit-${member2User?.username}`).click();
 
-        await page.getByTestId(`team_username_select_${member3User?.id}`).click();
+        await page.getByTestId("team_username_select").click();
+        await page.getByTestId(`select-option-${member3User?.id}`).click();
         await saveAndWaitForResponse(page);
         await expect(
           page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
@@ -738,7 +743,8 @@ async function selectDateAndCreateOOO(
   await page.getByTestId("notes_input").fill("Demo notes");
   if (redirectToUserId) {
     await page.getByTestId("profile-redirect-switch").click();
-    await page.getByTestId(`team_username_select_${redirectToUserId}`).click();
+    await page.getByTestId("team_username_select").click();
+    await page.getByTestId(`select-option-${redirectToUserId}`).click();
   }
   await saveAndWaitForResponse(page, expectedStatusCode);
 }

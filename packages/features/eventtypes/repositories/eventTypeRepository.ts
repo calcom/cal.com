@@ -49,7 +49,7 @@ type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number |
 type HostWithLegacySelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
   THost,
-  TUser
+  TUser,
 > = THost & {
   user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
 };
@@ -73,7 +73,7 @@ function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: num
 
 function usersWithSelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
-  TUser extends { selectedCalendars: TSelectedCalendar[] }
+  TUser extends { selectedCalendars: TSelectedCalendar[] },
 >(users: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>[]) {
   return users.map((user) => withSelectedCalendars(user));
 }
@@ -1271,6 +1271,7 @@ export class EventTypeRepository {
       },
       select: {
         id: true,
+        userId: true,
         slug: true,
         minimumBookingNotice: true,
         length: true,
@@ -1325,6 +1326,7 @@ export class EventTypeRepository {
             team: {
               select: {
                 id: true,
+                parentId: true,
                 bookingLimits: true,
                 includeManagedEventsInLimits: true,
               },
@@ -1362,6 +1364,7 @@ export class EventTypeRepository {
             groupId: true,
             user: {
               select: {
+                locked: true,
                 credentials: { select: credentialForCalendarServiceSelect },
                 ...availabilityUserSelect,
               },
@@ -1384,6 +1387,7 @@ export class EventTypeRepository {
         },
         users: {
           select: {
+            locked: true,
             credentials: { select: credentialForCalendarServiceSelect },
             ...availabilityUserSelect,
           },
