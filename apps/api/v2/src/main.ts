@@ -83,7 +83,7 @@ async function run(): Promise<void> {
 // VERCEL SERVERLESS HANDLER
 // -----------------------------------------------------------------------------
 export default async (req: Request, res: Response): Promise<void> => {
-  console.log("VERCEL SERVERLESS HANDLER", process.env.VERCEL);
+  logger.log("VERCEL SERVERLESS HANDLER", process.env.VERCEL);
   try {
     const server = await NestServer.getInstance();
 
