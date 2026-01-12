@@ -51,7 +51,6 @@ class NestServer {
 // LOCAL DEVELOPMENT STARTUP
 // -----------------------------------------------------------------------------
 if (!process.env.VERCEL) {
-  logger.log("CALL RUN STARTUP");
   run().catch((error: Error) => {
     logger.error("Failed to start Cal Platform API", { error: error.stack });
     process.exit(1);
@@ -59,7 +58,6 @@ if (!process.env.VERCEL) {
 }
 
 async function run(): Promise<void> {
-  logger.log("RUN LOCAL/FlightControl STARTUP");
   const app = await createNestApp();
   try {
     bootstrap(app);
@@ -82,8 +80,6 @@ async function run(): Promise<void> {
 // VERCEL SERVERLESS HANDLER
 // -----------------------------------------------------------------------------
 export default async (req: Request, res: Response): Promise<void> => {
-  logger.log("VERCEL SERVERLESS HANDLER", process.env.VERCEL);
-  logger.log("REDIS configured:", !!process.env.REDIS_URL);
   try {
     const server = await NestServer.getInstance();
 
