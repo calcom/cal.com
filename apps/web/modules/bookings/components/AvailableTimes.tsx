@@ -149,6 +149,16 @@ const SlotItem = ({
   };
 
   const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
+
+  // Create descriptive aria-label for screen readers
+  const timeLabel = computedDateWithUsersTimezone.format(timeFormat);
+  const ariaLabel = [
+    timeLabel,
+    bookingFull ? t("booking_full") : null,
+    hasTimeSlots && !bookingFull ? `${t("seats_available")}: ${seatsPerTimeSlot && slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot}` : null,
+    isTimeslotUnavailable ? t("timeslot_unavailable") : null,
+  ].filter(Boolean).join(", ");
+
   return (
     <AnimatePresence>
       <div className="flex gap-2">
@@ -168,6 +178,7 @@ const SlotItem = ({
           data-disabled={bookingFull}
           data-time={slot.time}
           onClick={onButtonClick}
+          aria-label={ariaLabel}
           className={classNames(
             `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",

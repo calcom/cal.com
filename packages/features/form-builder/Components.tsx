@@ -33,57 +33,57 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
 
 type Component =
   | {
-      propsType: "text";
-      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
-    }
+    propsType: "text";
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "textList";
-      factory: <TProps extends TextLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
-    }
+    propsType: "textList";
+    factory: <TProps extends TextLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "select";
-      factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
-    }
+    propsType: "select";
+    factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "boolean";
-      factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
-    }
+    propsType: "boolean";
+    factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "multiselect";
-      factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
-    }
+    propsType: "multiselect";
+    factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+  }
   | {
-      // Objective type question with option having a possible input
-      propsType: "objectiveWithInput";
-      factory: <
-        TProps extends SelectLikeComponentProps<{
-          value: string;
-          optionValue: string;
-        }> & {
-          optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
-          value: { value: string; optionValue: string };
-        } & {
-          name?: string;
-          required?: boolean;
-          translatedDefaultLabel?: string;
-        }
-      >(
-        props: TProps
-      ) => JSX.Element;
-    }
+    // Objective type question with option having a possible input
+    propsType: "objectiveWithInput";
+    factory: <
+      TProps extends SelectLikeComponentProps<{
+        value: string;
+        optionValue: string;
+      }> & {
+        optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
+        value: { value: string; optionValue: string };
+      } & {
+        name?: string;
+        required?: boolean;
+        translatedDefaultLabel?: string;
+      }
+    >(
+      props: TProps
+    ) => JSX.Element;
+  }
   | {
-      propsType: "variants";
-      factory: <
-        TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
-          variant: string | undefined;
-          variants: z.infer<typeof variantsConfigSchema>["variants"];
-          value: Record<string, string> | string | undefined;
-          setValue: (value: string | Record<string, string>) => void;
-        }
-      >(
-        props: TProps
-      ) => JSX.Element;
-    };
+    propsType: "variants";
+    factory: <
+      TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
+        variant: string | undefined;
+        variants: z.infer<typeof variantsConfigSchema>["variants"];
+        value: Record<string, string> | string | undefined;
+        setValue: (value: string | Record<string, string>) => void;
+      }
+    >(
+      props: TProps
+    ) => JSX.Element;
+  };
 
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
@@ -144,6 +144,7 @@ export const Components: Record<FieldType, Component> = {
             readOnly={props.readOnly}
             value={value}
             required={variantField.required}
+            aria-required={variantField.required || undefined}
             type="text"
             autoComplete="name"
             onChange={(e) => {
@@ -174,13 +175,14 @@ export const Components: Record<FieldType, Component> = {
               containerClassName={`w-full testid-${variantField.name}`}
               value={value[variantField.name as keyof typeof value]}
               required={variantField.required}
+              aria-required={variantField.required || undefined}
               type="text"
               autoComplete={
                 variantField.name === "firstName"
                   ? "given-name"
                   : variantField.name === "lastName"
-                  ? "family-name"
-                  : undefined
+                    ? "family-name"
+                    : undefined
               }
               onChange={(e) => onChange(variantField.name, e.target.value)}
             />
@@ -483,8 +485,8 @@ export const Components: Record<FieldType, Component> = {
                     {options[0].value === "somewhereElse"
                       ? translatedDefaultLabel
                       : getCleanLabel(
-                          didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
-                        )}
+                        didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                      )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
                     ) : null}
