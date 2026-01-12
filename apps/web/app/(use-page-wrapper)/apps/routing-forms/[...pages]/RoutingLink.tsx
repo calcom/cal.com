@@ -181,7 +181,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                 <div className="main border-booker md:border-booker-width dark:bg-cal-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
                   <Toaster position="bottom-right" />
 
-                  <form onSubmit={handleOnSubmit}>
+                  <form noValidate onSubmit={handleOnSubmit}>
                     <div className="mb-8">
                       <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold tracking-wide">
                         {form.name}
