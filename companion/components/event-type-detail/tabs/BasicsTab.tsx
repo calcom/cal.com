@@ -202,12 +202,12 @@ function SettingRow({
     <View className="bg-white pl-4">
       <View
         className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height }}
+        style={{ height, flexDirection: "row", alignItems: "center" }}
       >
         <Text className="flex-1 text-[17px] text-black" style={{ fontWeight: "400" }}>
           {title}
         </Text>
-        <View style={{ alignSelf: "center" }}>
+        <View style={{ alignSelf: "center", justifyContent: "center" }}>
           <Switch
             value={value}
             onValueChange={onValueChange}

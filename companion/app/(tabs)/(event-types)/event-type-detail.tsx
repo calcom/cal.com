@@ -2326,15 +2326,17 @@ export default function EventTypeDetail() {
                   <View className="bg-white pl-4">
                     <View
                       className="flex-row items-center justify-between pr-4"
-                      style={{ height: 44 }}
+                      style={{ height: 44, flexDirection: "row", alignItems: "center" }}
                     >
                       <Text className="text-[17px] text-black">Hidden</Text>
-                      <Switch
-                        value={isHidden}
-                        onValueChange={setIsHidden}
-                        trackColor={{ false: "#E5E5EA", true: "#000000" }}
-                        thumbColor="#FFFFFF"
-                      />
+                      <View style={{ justifyContent: "center", height: "100%" }}>
+                        <Switch
+                          value={isHidden}
+                          onValueChange={setIsHidden}
+                          trackColor={{ false: "#E5E5EA", true: "#000000" }}
+                          thumbColor="#FFFFFF"
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>
