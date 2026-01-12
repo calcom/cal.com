@@ -69,6 +69,7 @@ import {
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -889,6 +890,8 @@ export class BookingsService_2024_08_13 {
     const res = await handleCancelBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
+      userUuid: authUser?.uuid,
+      actionSource: "API_V2",
       arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
       platformClientId: bookingRequest.platformClientId,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -919,7 +922,12 @@ export class BookingsService_2024_08_13 {
     return await this.getBooking(recurringBookingUid, authUser);
   }
 
-  async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
+  async markAbsent(
+    bookingUid: string,
+    bookingOwnerId: number,
+    body: MarkAbsentBookingInput_2024_08_13,
+    userUuid?: string
+  ) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
 
@@ -945,6 +953,7 @@ export class BookingsService_2024_08_13 {
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
+      userUuid,
       platformClientParams,
     });
 
@@ -1138,6 +1147,8 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
@@ -1171,6 +1182,8 @@ export class BookingsService_2024_08_13 {
         reason,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 

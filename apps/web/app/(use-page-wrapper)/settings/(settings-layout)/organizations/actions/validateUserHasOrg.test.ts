@@ -38,6 +38,7 @@ describe("validateUserHasOrg", () => {
     hasValidLicense: true,
     user: {
       id: 123,
+      uuid: "test-uuid-123",
       email: "test@example.com",
       name: "Test User",
       org: {
@@ -87,6 +88,7 @@ describe("validateUserHasOrg", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: undefined,
@@ -132,6 +134,7 @@ describe("validateUserHasOrg", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: undefined,
@@ -159,6 +162,7 @@ describe("validateUserHasOrg", () => {
       const mockSession = createMockSession({
         user: {
           id: undefined as unknown as number,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: {

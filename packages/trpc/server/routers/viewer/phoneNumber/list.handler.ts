@@ -1,4 +1,4 @@
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
 import prisma from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";

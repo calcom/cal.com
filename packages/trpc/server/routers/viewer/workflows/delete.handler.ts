@@ -1,4 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -8,11 +9,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import {
-  isAuthorized,
-  removeSmsReminderFieldForEventTypes,
-  removeAIAgentCallPhoneNumberFieldForEventTypes,
-} from "./util";
+import { removeSmsReminderFieldForEventTypes, removeAIAgentCallPhoneNumberFieldForEventTypes } from "./util";
 
 type DeleteOptions = {
   ctx: {
