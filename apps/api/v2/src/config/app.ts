@@ -1,5 +1,4 @@
 import { getEnv } from "@/env";
-
 import type { AppConfig } from "./type";
 
 const loadConfig = (): AppConfig => {
@@ -31,6 +30,7 @@ const loadConfig = (): AppConfig => {
       workerReadPoolMax: getEnv("DATABASE_READ_WORKER_POOL_MAX", 4),
       workerWritePoolMax: getEnv("DATABASE_WRITE_WORKER_POOL_MAX", 6),
       redisUrl: getEnv("REDIS_URL"),
+      usePool: getEnv("USE_POOL", "true") === "true",
     },
     next: {
       authSecret: getEnv("NEXTAUTH_SECRET"),

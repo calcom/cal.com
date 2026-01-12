@@ -59,7 +59,12 @@ export default defineConfig({
     name: "Cal.com Companion",
     version: "1.7.5",
     description: "Your calendar companion for quick booking and scheduling",
-    permissions: ["activeTab", "storage", "identity"],
+    permissions: [
+      "activeTab",
+      "storage",
+      // Safari doesn't support Chrome's identity API
+      ...(browserTarget !== "safari" ? ["identity"] : []),
+    ],
     host_permissions: [
       "https://companion.cal.com/*",
       "https://api.cal.com/*",
