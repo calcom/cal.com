@@ -1,12 +1,11 @@
-import { useEffect, useRef } from "react";
-import { shallow } from "zustand/shallow";
-
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
+import { useEffect, useRef, useState } from "react";
+import { shallow } from "zustand/shallow";
 
 import { extraDaysConfig } from "../../config";
 import type { BookerLayout } from "../../types";
@@ -20,9 +19,20 @@ export const useBookerLayout = (
 ) => {
   const [_layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobileQuery = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const embedUiConfig = useEmbedUiConfig();
+
+  // Track if the media query has been evaluated on the client
+  const [isMobileReady, setIsMobileReady] = useState(false);
+  useEffect(() => {
+    setIsMobileReady(true);
+  }, []);
+
+  // For embeds, default to mobile view until we can accurately detect the viewport
+  // This prevents a flash of desktop layout on mobile devices during hydration
+  const isMobile = (isEmbed && !isMobileReady) || isMobileQuery;
+
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
   const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
@@ -80,8 +90,8 @@ export const useBookerLayout = (
   const hideEventTypeDetails = isEmbed
     ? embedUiConfig.hideEventTypeDetails
     : typeof hideEventTypeDetailsParam === "string"
-    ? hideEventTypeDetailsParam === "true"
-    : false;
+      ? hideEventTypeDetailsParam === "true"
+      : false;
 
   return {
     shouldShowFormInDialog,
