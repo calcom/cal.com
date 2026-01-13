@@ -8,7 +8,7 @@ import type { PlatformOrganizationBillingTasks } from "./types";
 export interface IPlatformOrganizationBillingTaskServiceDependencies {
   organizationRepository: OrganizationRepository;
   platformBillingRepository: PlatformBillingRepository;
-  billingProviderService: IBillingProviderService;
+  billingProviderService: Pick<IBillingProviderService, "createSubscriptionUsageRecord">;
 }
 
 export class PlatformOrganizationBillingTaskService implements PlatformOrganizationBillingTasks {
@@ -16,7 +16,7 @@ export class PlatformOrganizationBillingTaskService implements PlatformOrganizat
     public readonly dependencies: { logger: ITaskerDependencies["logger"] } & IPlatformOrganizationBillingTaskServiceDependencies
   ) {}
 
-  async incrementUsage(payload: Parameters<PlatformOrganizationBillingTasks["incrementUsage"]>[0]) {
+  async incrementUsage(payload: Parameters<PlatformOrganizationBillingTasks["incrementUsage"]>[0]): Promise<void> {
     const { userId } = payload;
     const { organizationRepository, platformBillingRepository, billingProviderService, logger } =
       this.dependencies;
