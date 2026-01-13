@@ -7,6 +7,7 @@ import {
 } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -56,6 +57,10 @@ const billingPortalLinkHandler = async ({ input }: GetOptions) => {
   const data = await response.json();
 
   if (!response.ok) {
+    logger.warn("Failed to fetch billing portal link", {
+      message: data?.message,
+      status: response.status,
+    });
     throw new Error(data?.message || "Failed to fetch billing portal link");
   }
 
