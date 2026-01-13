@@ -1,3 +1,16 @@
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
+import { Request } from "express";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
@@ -24,52 +37,38 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
-import { Request } from "express";
-import { DateTime } from "luxon";
-import { z } from "zod";
 
 export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
 
 import {
-  getTranslation,
-  getAllUserBookings,
-  handleCancelBooking,
-  roundRobinReassignment,
-  roundRobinManualReassignment,
-  handleMarkNoShow,
   confirmBookingHandler,
+  getAllUserBookings,
   getCalendarLinks,
+  getTranslation,
+  handleCancelBooking,
+  handleMarkNoShow,
+  roundRobinManualReassignment,
+  roundRobinReassignment,
 } from "@calcom/platform-libraries";
-import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
+import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
+import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import {
-  CreateBookingInput_2024_08_13,
+  BookingOutput_2024_08_13,
+  CancelBookingInput,
   CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
   ReassignToUserBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
   RescheduleBookingInput,
-  CancelBookingInput,
 } from "@calcom/platform-types";
-import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
-import type { EventType, User, Team } from "@calcom/prisma/client";
-import { makeUserActor } from "@calcom/platform-libraries/bookings";
+import type { EventType, Team, User } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -613,6 +612,30 @@ export class BookingsService_2024_08_13 {
     }
 
     return this.outputService.getOutputRecurringBookings(ids);
+  }
+
+  async getBookingBySeatUid(seatUid: string, authUser: AuthOptionalUser) {
+    const bookingSeat =
+      await this.bookingSeatRepository.getByReferenceUidIncludeBookingWithAttendeesAndUserAndEvent(seatUid);
+
+    if (!bookingSeat || !bookingSeat.booking) {
+      throw new NotFoundException(`Booking with seatUid=${seatUid} was not found in the database`);
+    }
+
+    const booking = bookingSeat.booking;
+    const userIsEventTypeAdminOrOwner =
+      authUser && booking.eventType
+        ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(authUser, booking.eventType)
+        : false;
+
+    const isRecurring = !!booking.recurringEventId;
+    const showAttendees = userIsEventTypeAdminOrOwner || !!booking.eventType?.seatsShowAttendees;
+
+    if (isRecurring) {
+      return this.outputService.getOutputRecurringSeatedBooking(booking, showAttendees);
+    }
+
+    return this.outputService.getOutputSeatedBooking(booking, showAttendees);
   }
 
   async getBookings(

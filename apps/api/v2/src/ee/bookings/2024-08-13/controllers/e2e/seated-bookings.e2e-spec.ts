@@ -364,6 +364,49 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should get a booking by seatUid", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/bookings/by-seat/${createdSeatedBooking.seatUid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.id).toEqual(createdSeatedBooking.id);
+            expect(data.uid).toEqual(createdSeatedBooking.uid);
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.status).toEqual("accepted");
+            expect(data.eventTypeId).toEqual(seatedEventTypeId);
+            expect(data.eventType).toEqual({
+              id: seatedEventTypeId,
+              slug: seatedEventSlug,
+            });
+            expect(data.attendees.length).toEqual(2);
+          } else {
+            throw new Error(
+              "Invalid response data - expected seated booking but received non seated booking response"
+            );
+          }
+        });
+    });
+
+    it("should return 404 when getting booking by non-existent seatUid", async () => {
+      return request(app.getHttpServer())
+        .get("/v2/bookings/by-seat/non-existent-seat-uid")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(404)
+        .then(async (response) => {
+          expect(response.body.error.message).toEqual(
+            "Booking with seatUid=non-existent-seat-uid was not found in the database"
+          );
+        });
+    });
+
     it("should not be able to reschedule seated booking if seatUid is not provided", async () => {
       const body = {
         start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
