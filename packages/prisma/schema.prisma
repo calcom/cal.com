@@ -295,13 +295,14 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-  destinationCalendars   DestinationCalendar[]
-  selectedCalendars      SelectedCalendar[]
-  invalid                Boolean?              @default(false)
-  CalendarCache          CalendarCache[]
-  references             BookingReference[]
-  delegationCredentialId String?
-  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  destinationCalendars      DestinationCalendar[]
+  selectedCalendars         SelectedCalendar[]
+  invalid                   Boolean?                   @default(false)
+  CalendarCache             CalendarCache[]
+  references                BookingReference[]
+  delegationCredentialId    String?
+  delegationCredential      DelegationCredential?      @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  integrationAttributeSyncs IntegrationAttributeSync[]
 
   @@index([appId])
   @@index([subscriptionId])
@@ -614,8 +615,9 @@ model Team {
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
 
-  teamBilling         TeamBilling?         @relation("TeamBilling")
-  organizationBilling OrganizationBilling? @relation("OrganizationBilling")
+  teamBilling               TeamBilling?               @relation("TeamBilling")
+  organizationBilling       OrganizationBilling?       @relation("OrganizationBilling")
+  integrationAttributeSyncs IntegrationAttributeSync[]
 
   autoOptInFeatures Boolean @default(false)
 
@@ -2230,11 +2232,12 @@ model Attribute {
 
   usersCanEditRelation Boolean @default(false)
 
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  options          AttributeOption[]
-  isWeightsEnabled Boolean           @default(false)
-  isLocked         Boolean           @default(false)
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+  options                    AttributeOption[]
+  isWeightsEnabled           Boolean                     @default(false)
+  isLocked                   Boolean                     @default(false)
+  attributeSyncFieldMappings AttributeSyncFieldMapping[]
 
   @@unique([teamId, slug])
   @@index([teamId])
@@ -3102,4 +3105,55 @@ model CalendarCacheEvent {
   @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
+}
+
+model IntegrationAttributeSync {
+  id             String @id @default(uuid())
+  organizationId Int
+  organization   Team   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name         String
+  integration  String
+  credentialId Int?
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  enabled Boolean
+
+  attributeSyncRule AttributeSyncRule?
+  syncFieldMappings AttributeSyncFieldMapping[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([credentialId])
+}
+
+model AttributeSyncRule {
+  id String @id @default(uuid())
+
+  integrationAttributeSyncId String                   @unique
+  integrationAttributeSync   IntegrationAttributeSync @relation(fields: [integrationAttributeSyncId], references: [id], onDelete: Cascade)
+
+  rule Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AttributeSyncFieldMapping {
+  id                   String    @id @default(uuid())
+  integrationFieldName String
+  attributeId          String
+  attribute            Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  enabled                    Boolean
+  integrationAttributeSyncId String
+  integrationAttributeSync   IntegrationAttributeSync @relation(fields: [integrationAttributeSyncId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([integrationAttributeSyncId, attributeId])
+  @@index([integrationAttributeSyncId])
 }

@@ -22,7 +22,7 @@ export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFi
 
 export const FieldTypes = [
   {
-    label: "Short Text",
+    label: "Short text",
     value: RoutingFormFieldType.TEXT,
   },
   {
@@ -30,15 +30,15 @@ export const FieldTypes = [
     value: RoutingFormFieldType.NUMBER,
   },
   {
-    label: "Long Text",
+    label: "Long text",
     value: RoutingFormFieldType.TEXTAREA,
   },
   {
-    label: "Single Selection",
+    label: "Single-choice selection",
     value: RoutingFormFieldType.SINGLE_SELECT,
   },
   {
-    label: "Multiple Selection",
+    label: "Multiple choice selection",
     value: RoutingFormFieldType.MULTI_SELECT,
   },
   {
