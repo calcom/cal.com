@@ -4,7 +4,8 @@ import { z } from "zod";
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getCachedTeamFeatureRepository } from "@calcom/features/flags/di/CachedTeamFeatureRepository.container";
+import { getCachedUserFeatureRepository } from "@calcom/features/flags/di/CachedUserFeatureRepository.container";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
 
@@ -17,7 +18,8 @@ import { createOrgPbacProcedure, createTeamPbacProcedure } from "../../../proced
 const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum(["enabled", "disabled", "inherit"]);
 
 const featureOptInService = getFeatureOptInService();
-const featuresRepository = new FeaturesRepository(prisma);
+const cachedUserFeatureRepo = getCachedUserFeatureRepository();
+const cachedTeamFeatureRepo = getCachedTeamFeatureRepository();
 const teamRepository = new TeamRepository(prisma);
 
 /**
@@ -173,7 +175,7 @@ export const featureOptInRouter = router({
    * Get user's auto opt-in preference.
    */
   getUserAutoOptIn: authedProcedure.query(async ({ ctx }) => {
-    const autoOptIn = await featuresRepository.getUserAutoOptIn(ctx.user.id);
+    const autoOptIn = await cachedUserFeatureRepo.findAutoOptInByUserId(ctx.user.id);
     return { autoOptIn };
   }),
 
@@ -187,7 +189,7 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await featuresRepository.setUserAutoOptIn(ctx.user.id, input.autoOptIn);
+      await cachedUserFeatureRepo.updateAutoOptIn(ctx.user.id, input.autoOptIn);
       return { success: true };
     }),
 
@@ -195,7 +197,7 @@ export const featureOptInRouter = router({
    * Get team's auto opt-in preference (requires team admin).
    */
   getTeamAutoOptIn: createTeamPbacProcedure("featureOptIn.read").query(async ({ input }) => {
-    const result = await featuresRepository.getTeamsAutoOptIn([input.teamId]);
+    const result = await cachedTeamFeatureRepo.findAutoOptInByTeamIds([input.teamId]);
     return { autoOptIn: result[input.teamId] ?? false };
   }),
 
@@ -209,7 +211,7 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      await featuresRepository.setTeamAutoOptIn(input.teamId, input.autoOptIn);
+      await cachedTeamFeatureRepo.updateAutoOptIn(input.teamId, input.autoOptIn);
       return { success: true };
     }),
 
@@ -217,7 +219,7 @@ export const featureOptInRouter = router({
    * Get organization's auto opt-in preference (requires org admin).
    */
   getOrganizationAutoOptIn: createOrgPbacProcedure("featureOptIn.read").query(async ({ ctx }) => {
-    const result = await featuresRepository.getTeamsAutoOptIn([ctx.organizationId]);
+    const result = await cachedTeamFeatureRepo.findAutoOptInByTeamIds([ctx.organizationId]);
     return { autoOptIn: result[ctx.organizationId] ?? false };
   }),
 
@@ -231,7 +233,7 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await featuresRepository.setTeamAutoOptIn(ctx.organizationId, input.autoOptIn);
+      await cachedTeamFeatureRepo.updateAutoOptIn(ctx.organizationId, input.autoOptIn);
       return { success: true };
     }),
 });
