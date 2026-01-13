@@ -11,7 +11,11 @@ import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory"
  */
 export type BookingExtraDataMap = {
   [WebhookTriggerEvents.BOOKING_CREATED]: null;
-  [WebhookTriggerEvents.BOOKING_CANCELLED]: { cancelledBy?: string; cancellationReason?: string };
+  [WebhookTriggerEvents.BOOKING_CANCELLED]: {
+    cancelledBy?: string;
+    cancellationReason?: string;
+    requestReschedule?: boolean;
+  };
   [WebhookTriggerEvents.BOOKING_REQUESTED]: null;
   [WebhookTriggerEvents.BOOKING_REJECTED]: null;
   [WebhookTriggerEvents.BOOKING_RESCHEDULED]: {
