@@ -6,21 +6,20 @@ import {
   useOrgBranding,
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
-import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { useMobileMoreItems } from "./useMobileMoreItems";
 import classNames from "@calcom/ui/classNames";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import UnconfirmedBookingBadge from "../../bookings/components/UnconfirmedBookingBadge";
 import { KBarTrigger } from "../Kbar";
 import { TeamInviteBadge } from "../TeamInviteBadge";
-import { useBottomNavItems } from "../useBottomNavItems";
 import type { NavigationItemType } from "./NavigationItem";
 import {
   NavigationItem,
   MobileNavigationItem,
   MobileNavigationMoreItem,
 } from "./NavigationItem";
+import { useBottomNavItems } from "~/shell/useBottomNavItems";
 
 export const MORE_SEPARATOR_NAME = "more";
 
@@ -292,25 +291,9 @@ const MobileNavigation = ({
 
 export const MobileNavigationMoreItems = () => {
   const { mobileNavigationMoreItems } = useNavigationItems();
-  const { data: session } = useSession();
-  const user = session?.user;
+  const bottomItems = useMobileMoreItems();
 
-  const isAdmin = user?.role === UserPermissionRole.ADMIN;
-  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${
-    user?.orgAwareUsername ?? user?.username
-  }`;
-
-  const bottomNavItems = useBottomNavItems({
-    publicPageUrl,
-    isAdmin,
-    user,
-  });
-
-  const filteredBottomNavItems = bottomNavItems.filter(
-    (item: NavigationItemType) => item.name !== "settings"
-  );
-
-  const allItems = [...mobileNavigationMoreItems, ...filteredBottomNavItems];
+  const allItems = [...mobileNavigationMoreItems, ...bottomItems];
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">
