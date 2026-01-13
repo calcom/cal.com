@@ -46,6 +46,7 @@ const mockBillingService: IBillingProviderService = {
 describe("MonthlyProrationService Integration Tests", () => {
   let testUser: User;
   let testTeam: Team;
+  let billingCustomerId: string;
   const monthKey = "2026-01";
 
   beforeEach(async () => {
@@ -81,12 +82,14 @@ describe("MonthlyProrationService Integration Tests", () => {
     const subscriptionEnd = new Date("2026-06-01T00:00:00Z");
     const subscriptionTrialEnd = new Date("2025-06-08T00:00:00Z");
 
+    billingCustomerId = `cus_test_${timestamp}`;
+
     await prisma.teamBilling.create({
       data: {
         teamId: testTeam.id,
         subscriptionId: `sub_test_${timestamp}`,
         subscriptionItemId: `si_test_${timestamp}`,
-        customerId: `cus_test_${timestamp}`,
+        customerId: billingCustomerId,
         billingPeriod: "ANNUALLY",
         pricePerSeat: 12000,
         paidSeats: 0,
@@ -103,6 +106,9 @@ describe("MonthlyProrationService Integration Tests", () => {
     const prorationService = new MonthlyProrationService(undefined, mockBillingService);
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(7);
+
+    vi.mocked(mockBillingService.createInvoice).mockClear();
+    vi.mocked(mockBillingService.createInvoiceItem).mockClear();
 
     const newMembers = await Promise.all(
       [0, 1, 2].map((index) =>
@@ -154,6 +160,15 @@ describe("MonthlyProrationService Integration Tests", () => {
     expect(proration?.seatsRemoved).toBe(1);
     expect(proration?.status).toBe("INVOICE_CREATED");
     expect(proration?.invoiceItemId).toBe("ii_test_123");
+    expect(mockBillingService.createInvoice).toHaveBeenCalledWith({
+      customerId: billingCustomerId,
+      autoAdvance: true,
+      collectionMethod: "charge_automatically",
+      metadata: {
+        type: "monthly_proration",
+        prorationId: proration!.id,
+      },
+    });
 
     const seatChanges = await prisma.seatChangeLog.findMany({
       where: { teamId: testTeam.id, monthKey },
