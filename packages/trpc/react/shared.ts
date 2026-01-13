@@ -46,4 +46,5 @@ export const ENDPOINTS = [
   "aiVoiceAgent",
   "phoneNumber",
   "pbac",
+  "attributeSync",
 ] as const;

@@ -4,21 +4,8 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import type { OptInFeaturePolicy } from "../types";
 import { getOptInFeatureConfig, OPT_IN_FEATURES } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
-import type { EffectiveStateReason } from "../lib/computeEffectiveState";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
-
-type ResolvedFeatureState = {
-  featureId: FeatureId;
-  globalEnabled: boolean;
-  orgState: FeatureState;
-  teamStates: FeatureState[];
-  userState: FeatureState | undefined;
-  effectiveEnabled: boolean;
-  effectiveReason: EffectiveStateReason;
-  orgAutoOptIn: boolean;
-  teamAutoOptIns: boolean[];
-  userAutoOptIn: boolean;
-};
+import type { IFeatureOptInService, ResolvedFeatureState } from "./IFeatureOptInService";
 
 type ListFeaturesForUserResult = {
   featureId: FeatureId;
@@ -76,7 +63,7 @@ function getOrgStateForTeam(
  * Service class for managing feature opt-in logic.
  * Computes effective states based on global, org, team, and user settings.
  */
-export class FeatureOptInService {
+export class FeatureOptInService implements IFeatureOptInService {
   constructor(private featuresRepository: FeaturesRepository) {}
 
   /**

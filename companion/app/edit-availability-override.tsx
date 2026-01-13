@@ -1,12 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import type { EditAvailabilityOverrideScreenHandle } from "@/components/screens/EditAvailabilityOverrideScreen";
 import EditAvailabilityOverrideScreenComponent from "@/components/screens/EditAvailabilityOverrideScreen";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 export default function EditAvailabilityOverride() {
   const { id, overrideIndex } = useLocalSearchParams<{
@@ -30,13 +31,13 @@ export default function EditAvailabilityOverride() {
       CalComAPIService.getScheduleById(Number(id))
         .then(setSchedule)
         .catch(() => {
-          Alert.alert("Error", "Failed to load schedule details");
+          showErrorAlert("Error", "Failed to load schedule details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Schedule ID is missing");
+      showErrorAlert("Error", "Schedule ID is missing");
       router.back();
     }
   }, [id, router]);
@@ -109,7 +110,7 @@ export default function EditAvailabilityOverride() {
                   isSaving ? "text-gray-400" : "text-[#007AFF]"
                 }`}
               >
-                {isSaving ? "Saving..." : "Save"}
+                Save
               </Text>
             </HeaderButtonWrapper>
           ),

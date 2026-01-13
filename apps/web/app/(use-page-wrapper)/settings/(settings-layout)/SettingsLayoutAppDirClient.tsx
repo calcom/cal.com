@@ -107,6 +107,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/security/two-factor-auth",
           trackingMetadata: { section: "security", page: "2fa_auth" },
         },
+        {
+          name: "compliance",
+          href: "/settings/security/compliance",
+          trackingMetadata: { section: "security", page: "compliance" },
+        },
       ],
     },
     {
@@ -235,6 +240,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "license" },
         },
         {
+          name: "admin_billing",
+          href: "/settings/admin/billing",
+          trackingMetadata: { section: "admin", page: "billing" },
+        },
+        {
           name: "impersonation",
           href: "/settings/admin/impersonation",
           trackingMetadata: { section: "admin", page: "impersonation" },
@@ -258,6 +268,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "lockedSMS",
           href: "/settings/admin/lockedSMS",
           trackingMetadata: { section: "admin", page: "locked_sms" },
+        },
+        {
+          name: "pbac_resource_blocklist",
+          href: "/settings/admin/blocklist",
+          trackingMetadata: { section: "admin", page: "blocklist" },
         },
         {
           name: "oAuth",
@@ -692,12 +707,13 @@ const SettingsSidebarContainer = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
-  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
+  const [otherTeamMenuState, setOtherTeamMenuState] =
+    useState<
+      {
+        teamId: number | undefined;
+        teamMenuOpen: boolean;
+      }[]
+    >();
   const session = useSession();
 
   const organizationId = session.data?.user?.org?.id;

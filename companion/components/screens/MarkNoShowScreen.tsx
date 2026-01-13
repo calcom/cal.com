@@ -11,6 +11,7 @@ import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMarkNoShow } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 
 interface Attendee {
   id?: number | string;
@@ -113,7 +114,7 @@ export function MarkNoShowScreen({
                     onBookingUpdate(updatedBooking);
                   }
 
-                  Alert.alert(
+                  showSuccessAlert(
                     "Success",
                     `${attendee.name || attendee.email} has been ${
                       isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
@@ -134,7 +135,7 @@ export function MarkNoShowScreen({
                       absent: !isCurrentlyNoShow,
                     });
                   }
-                  Alert.alert(
+                  showErrorAlert(
                     "Error",
                     error instanceof Error ? error.message : `Failed to ${action}`
                   );

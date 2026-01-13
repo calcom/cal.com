@@ -1,9 +1,9 @@
 import type { ZodEnum } from "zod";
 import { z } from "zod";
 
+import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
-import { FeatureOptInService } from "@calcom/features/feature-opt-in/services/FeatureOptInService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
@@ -16,9 +16,9 @@ import { createOrgPbacProcedure, createTeamPbacProcedure } from "../../../proced
 
 const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum(["enabled", "disabled", "inherit"]);
 
-const featuresRepository: FeaturesRepository = new FeaturesRepository(prisma);
-const featureOptInService: FeatureOptInService = new FeatureOptInService(featuresRepository);
-const teamRepository: TeamRepository = new TeamRepository(prisma);
+const featureOptInService = getFeatureOptInService();
+const featuresRepository = new FeaturesRepository(prisma);
+const teamRepository = new TeamRepository(prisma);
 
 /**
  * Helper to get user's org and team IDs from their memberships.
