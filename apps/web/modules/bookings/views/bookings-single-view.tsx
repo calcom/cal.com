@@ -1061,7 +1061,7 @@ export default function Success(props: PageProps) {
                         ))}
                       </div>
                       <div className="stack-y-1 my-4 text-center">
-                        <h2 className="font-heading text-lg">{t("submitted_feedback")}</h2>
+                        <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
                       <TextArea
