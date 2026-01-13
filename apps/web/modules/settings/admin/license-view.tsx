@@ -14,41 +14,35 @@ export default function LicenseView() {
   const { t } = useLocale();
   const [billingEmail, setBillingEmail] = useState("");
 
-  const resendEmailMutation =
-    trpc.viewer.admin.resendPurchaseCompleteEmail.useMutation({
-      onSuccess: () => {
-        showToast(t("admin_license_resend_success"), "success");
-      },
-      onError: (error) => {
-        showToast(error.message || t("admin_license_resend_error"), "error");
-      },
-    });
+  const resendEmailMutation = trpc.viewer.admin.resendPurchaseCompleteEmail.useMutation({
+    onSuccess: () => {
+      showToast(t("admin_license_resend_success"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message || t("admin_license_resend_error"), "error");
+    },
+  });
 
-  const billingPortalMutation = trpc.viewer.admin.billingPortalLink.useMutation(
-    {
-      onSuccess: (data) => {
-        if (!data?.url) {
-          showToast(t("admin_license_portal_missing_url"), "error");
-          return;
-        }
+  const billingPortalMutation = trpc.viewer.admin.billingPortalLink.useMutation({
+    onSuccess: (data) => {
+      if (!data?.url) {
+        showToast(t("admin_license_portal_missing_url"), "error");
+        return;
+      }
 
-        window.open(data.url, "_blank", "noopener,noreferrer");
-      },
-      onError: (error) => {
-        showToast(error.message || t("admin_license_portal_error"), "error");
-      },
-    }
-  );
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    },
+    onError: (error) => {
+      showToast(error.message || t("admin_license_portal_error"), "error");
+    },
+  });
 
   const showResendSection = IS_CALCOM;
 
   return (
     <div className="flex flex-col gap-4">
       {showResendSection && (
-        <PanelCard
-          title={t("admin_license_resend_title")}
-          subtitle={t("admin_license_resend_description")}
-        >
+        <PanelCard title={t("admin_license_resend_title")} subtitle={t("admin_license_resend_description")}>
           <div className="p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <TextField
@@ -68,8 +62,7 @@ export default function LicenseView() {
                   resendEmailMutation.mutate({
                     billingEmail: billingEmail.trim(),
                   });
-                }}
-              >
+                }}>
                 {t("admin_license_resend_button")}
               </Button>
             </div>
@@ -77,16 +70,12 @@ export default function LicenseView() {
         </PanelCard>
       )}
 
-      <PanelCard
-        title={t("admin_license_portal_title")}
-        subtitle={t("admin_license_portal_description")}
-      >
+      <PanelCard title={t("admin_license_portal_title")} subtitle={t("admin_license_portal_description")}>
         <div className="p-4">
           <Button
             type="button"
-            isLoading={billingPortalMutation.isPending}
-            onClick={() => billingPortalMutation.mutate({})}
-          >
+            loading={billingPortalMutation.isPending}
+            onClick={() => billingPortalMutation.mutate({})}>
             {t("admin_license_portal_button")}
           </Button>
         </div>
