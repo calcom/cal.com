@@ -1,5 +1,4 @@
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -7,9 +6,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { EventTypeWebWrapper } from "@calcom/web/modules/event-types/components/EventTypeWebWrapper";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import { getEventTypePermissions } from "@calcom/features/pbac/lib/event-type-permissions";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -33,12 +34,23 @@ export const generateMetadata = async () => {
 };
 
 const getCachedEventType = unstable_cache(
-  async (eventTypeId: number, headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
-    return await caller.get({ id: eventTypeId });
+  async (
+    eventTypeId: number,
+    userId: number,
+    currentOrganizationId: number | null,
+    isUserOrganizationAdmin: boolean
+  ) => {
+    return await getEventTypeById({
+      eventTypeId,
+      userId,
+      currentOrganizationId,
+      isUserOrganizationAdmin,
+      prisma,
+      isTrpcCall: false,
+    });
   },
   ["viewer.eventTypes.get"],
-  { revalidate: 3600 } // Cache for 1 hour
+  { revalidate: 3600, tags: ["viewer.eventTypes.get"] }
 );
 
 const ServerPage = async ({ params }: PageProps) => {
@@ -52,15 +64,20 @@ const ServerPage = async ({ params }: PageProps) => {
     throw new Error("Invalid Event Type id");
   }
   const eventTypeId = parsed.data.type;
-  const _headers = await headers();
-  const _cookies = await cookies();
 
-  const data = await getCachedEventType(eventTypeId, _headers, _cookies);
+  const currentOrganizationId = session.user.profile?.organizationId ?? null;
+  const isUserOrganizationAdmin = checkAdminOrOwner(session.user.org?.role);
+
+  const data = await getCachedEventType(
+    eventTypeId,
+    session.user.id,
+    currentOrganizationId,
+    isUserOrganizationAdmin
+  );
   if (!data?.eventType) {
     throw new Error("This event type does not exist");
   }
 
-  // Fetch permissions for the event type's team
   const permissions = await getEventTypePermissions(session.user.id, data.eventType.teamId);
 
   return <EventTypeWebWrapper data={data} id={eventTypeId} permissions={permissions} />;
