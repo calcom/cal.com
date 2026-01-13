@@ -1935,7 +1935,7 @@ __metadata:
     "@microsoft/microsoft-graph-types-beta": "npm:0.42.0-preview"
     "@nest-lab/throttler-storage-redis": "npm:1.0.0"
     "@nestjs/axios": "npm:4.0.0"
-    "@nestjs/bull": "npm:10.1.1"
+    "@nestjs/bull": "npm:11.0.4"
     "@nestjs/cli": "npm:10.3.2"
     "@nestjs/common": "npm:10.4.20"
     "@nestjs/config": "npm:3.2.0"
@@ -8209,29 +8209,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/bull-shared@npm:^10.1.1":
-  version: 10.1.1
-  resolution: "@nestjs/bull-shared@npm:10.1.1"
+"@nestjs/bull-shared@npm:^11.0.4":
+  version: 11.0.4
+  resolution: "@nestjs/bull-shared@npm:11.0.4"
   dependencies:
-    tslib: "npm:2.6.2"
+    tslib: "npm:2.8.1"
   peerDependencies:
-    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/core": ^8.0.0 || ^9.0.0 || ^10.0.0
-  checksum: 10/d8eb7747e6e5d0e8cc7ebd1c9824fc6a99bdf5798ab3b192a60643a4fb6bf3c352d336990b52c7437a00265724e7fb1449a57aec6e9d82bb35bdb898e2fe10c1
+    "@nestjs/common": ^10.0.0 || ^11.0.0
+    "@nestjs/core": ^10.0.0 || ^11.0.0
+  checksum: 10/dd8c9e93805e7e44b478e39652d513bbdba8b445491c0ebc6c7e5d03c48cb08a085c9a21ffa24091215c0a03f2977162310f4218d547cc029b28c8649d801060
   languageName: node
   linkType: hard
 
-"@nestjs/bull@npm:10.1.1":
-  version: 10.1.1
-  resolution: "@nestjs/bull@npm:10.1.1"
+"@nestjs/bull@npm:11.0.4":
+  version: 11.0.4
+  resolution: "@nestjs/bull@npm:11.0.4"
   dependencies:
-    "@nestjs/bull-shared": "npm:^10.1.1"
-    tslib: "npm:2.6.2"
+    "@nestjs/bull-shared": "npm:^11.0.4"
+    tslib: "npm:2.8.1"
   peerDependencies:
-    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/core": ^8.0.0 || ^9.0.0 || ^10.0.0
+    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+    "@nestjs/core": ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
     bull: ^3.3 || ^4.0.0
-  checksum: 10/8b97a3f6b12927a22dd0fcfbebeaeb978f8e783da084fd50d79b34b72570593b7ee926f94fdf8e50eca3530282227ac4abe759e0bdd555fbbf2dda4f54b5a0ae
+  checksum: 10/6338e53537789b0aef6a9558c3baedfef04ab96c4442a22afebfc1ac9da9951e9b49c5b1ccef3d56009b7ddf0dec59a59e17663aa01a3171eebca13e791feb58
   languageName: node
   linkType: hard
 
@@ -37367,13 +37367,6 @@ __metadata:
   version: 2.0.1
   resolution: "tslib@npm:2.0.1"
   checksum: 10/609a4124f259551e173f2615eca023cc40e5748331e4a4a4f8e75d39567491d73936d847f11463965018b0dc78200b8494341426a038338e633d452afd44aec8
-  languageName: node
-  linkType: hard
-
-"tslib@npm:2.6.2":
-  version: 2.6.2
-  resolution: "tslib@npm:2.6.2"
-  checksum: 10/bd26c22d36736513980091a1e356378e8b662ded04204453d353a7f34a4c21ed0afc59b5f90719d4ba756e581a162ecbf93118dc9c6be5acf70aa309188166ca
   languageName: node
   linkType: hard
 
