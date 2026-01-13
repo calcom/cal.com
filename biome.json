@@ -254,12 +254,12 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["../trpc/**"],
-                    "message": "features package should not import from trpc to avoid circular dependencies."
-                  },
-                  {
                     "group": ["@calcom/trpc", "@calcom/trpc/**"],
                     "message": "features package should not import from @calcom/trpc."
+                  },
+                  {
+                    "group": ["../trpc/**"],
+                    "message": "features package should not import from trpc to avoid circular dependencies."
                   },
                   {
                     "group": ["@calcom/web", "@calcom/web/**"],
