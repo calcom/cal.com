@@ -201,6 +201,28 @@ export interface BookingAuditProducerService {
     context?: BookingAuditContext;
   }): Promise<void>;
 
+  queueBulkCreatedAudit(params: {
+    bookings: Array<{
+      bookingUid: string;
+      data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    source: ActionSource;
+    operationId?: string | null;
+  }): Promise<void>;
+
+  queueBulkRescheduledAudit(params: {
+    bookings: Array<{
+      bookingUid: string;
+      data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    source: ActionSource;
+    operationId?: string | null;
+  }): Promise<void>;
+
   queueBulkRejectedAudit(params: {
     bookings: Array<{
       bookingUid: string;

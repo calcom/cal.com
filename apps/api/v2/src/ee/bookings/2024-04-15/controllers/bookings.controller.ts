@@ -349,6 +349,7 @@ export class BookingsController_2024_04_15 {
           platformBookingLocation: bookingRequest.platformBookingLocation,
           noEmail: bookingRequest.body.noEmail,
         },
+        creationSource: "API_V2",
       });
 
       createdBookings.forEach(async (booking) => {
