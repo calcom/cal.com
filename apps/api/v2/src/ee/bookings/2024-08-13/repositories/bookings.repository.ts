@@ -203,6 +203,15 @@ export class BookingsRepository_2024_08_13 {
       },
       select: {
         references: true,
+        // TODO: Remove below selects when get recording endpoint is authenticated properly
+        eventType: {
+          select: {
+            team: {
+              select: { id: true, parentId: true },
+            },
+            userId: true,
+          },
+        },
       },
     });
   }
