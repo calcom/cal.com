@@ -8,6 +8,9 @@ export class PlatformBillingRepository {
       where: {
         id: teamId,
       },
+      select: {
+        subscriptionId: true,
+      },
     });
   }
 }
