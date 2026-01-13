@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
 import { Button } from "@calcom/ui/components/button";
@@ -18,8 +17,6 @@ import {
 } from "../oauth/OAuthClientCreateDialog";
 import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
-
-type OAuthClientRow = RouterOutputs["viewer"]["oAuth"]["listClients"][number];
 
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
@@ -113,18 +110,6 @@ export default function OAuthClientsAdminView() {
     return <OAuthClientsAdminSkeleton />;
   }
 
-  const toClientDetails = (client: OAuthClientRow): OAuthClientDetails => ({
-    clientId: client.clientId,
-    name: client.name,
-    purpose: client.purpose,
-    redirectUri: client.redirectUri,
-    websiteUrl: client.websiteUrl,
-    logo: client.logo,
-    approvalStatus: client.approvalStatus,
-    rejectionReason: client.rejectionReason,
-    clientType: client.clientType,
-  });
-
   const newOAuthClientButton = (
     <Button
       color="secondary"
@@ -152,7 +137,7 @@ export default function OAuthClientsAdminView() {
           <div className="space-y-3" data-testid="oauth-client-admin-pending-section">
             <h2 className="text-emphasis text-base font-semibold">{t("pending")}</h2>
             <OAuthClientsList
-              clients={(pendingClients ?? []).map(toClientDetails)}
+              clients={pendingClients ?? []}
               onSelectClient={(client) => setSelectedClient(client)}
               showStatus
             />
@@ -161,7 +146,7 @@ export default function OAuthClientsAdminView() {
           <div className="space-y-3" data-testid="oauth-client-admin-rejected-section">
             <h2 className="text-emphasis text-base font-semibold">{t("rejected")}</h2>
             <OAuthClientsList
-              clients={(rejectedClients ?? []).map(toClientDetails)}
+              clients={rejectedClients ?? []}
               onSelectClient={(client) => setSelectedClient(client)}
               showStatus
             />
@@ -170,7 +155,7 @@ export default function OAuthClientsAdminView() {
           <div className="space-y-3" data-testid="oauth-client-admin-approved-section">
             <h2 className="text-emphasis text-base font-semibold">{t("approved")}</h2>
             <OAuthClientsList
-              clients={(approvedClients ?? []).map(toClientDetails)}
+              clients={approvedClients ?? []}
               onSelectClient={(client) => setSelectedClient(client)}
               showStatus
             />

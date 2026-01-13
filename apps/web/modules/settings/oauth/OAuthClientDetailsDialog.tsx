@@ -23,7 +23,7 @@ import { OAuthClientFormFields } from "./OAuthClientFormFields";
 export type OAuthClientDetails = {
   clientId: string;
   name: string;
-  purpose?: string;
+  purpose?: string | null;
   redirectUri?: string;
   websiteUrl?: string | null;
   logo?: string | null;
