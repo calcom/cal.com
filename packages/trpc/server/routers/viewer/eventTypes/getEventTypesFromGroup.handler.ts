@@ -161,7 +161,11 @@ export const getEventTypesFromGroup = async ({
   );
 
   // Attach isFavorite flag before mapping, and sort favorites first while maintaining existing order otherwise
-  const withFavorites = eventTypes.map((et) => ({ ...(et as any), isFavorite: favoriteIds.has(et.id) }));
+  type EventTypeWithFavorite = (typeof eventTypes)[number] & { isFavorite: boolean };
+  const withFavorites: EventTypeWithFavorite[] = eventTypes.map((et) => ({
+    ...et,
+    isFavorite: favoriteIds.has(et.id),
+  }));
   withFavorites.sort((a, b) => {
     const af = a.isFavorite ? 1 : 0;
     const bf = b.isFavorite ? 1 : 0;

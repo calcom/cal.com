@@ -12,7 +12,6 @@ import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { get } from "./procedures/get";
 import { createEventPbacProcedure } from "./util";
-import { z } from "zod";
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?

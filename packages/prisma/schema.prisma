@@ -514,6 +514,7 @@ model FavoriteEventType {
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
+  @@map("FavoriteEventType")
 }
 
 model NotificationsSubscriptions {

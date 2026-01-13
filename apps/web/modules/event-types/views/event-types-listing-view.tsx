@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -547,18 +547,18 @@ export const InfiniteEventTypeList = ({
               type.metadata?.managedEventConfig !== undefined &&
               type.schedulingType !== SchedulingType.MANAGED;
             return (
-              <>
+              <React.Fragment key={`event-type-${type.id}-${globalIndex}`}>
                 {insertFavoritesHeader && (
-                  <li className="bg-subtle/50 px-4 py-2 text-xs font-semibold uppercase text-subtle">
+                  <li key="favorites-header" className="bg-subtle/50 px-4 py-2 text-xs font-semibold uppercase text-subtle">
                     {t("favorites")}
                   </li>
                 )}
                 {insertAllHeader && (
-                  <li className="bg-subtle/50 px-4 py-2 text-xs font-semibold uppercase text-subtle">
+                  <li key="all-header" className="bg-subtle/50 px-4 py-2 text-xs font-semibold uppercase text-subtle">
                     {t("all_event_types")}
                   </li>
                 )}
-                <li key={type.id}>
+                <li key={`event-item-${type.id}`}>
                 <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
                   <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
@@ -869,7 +869,7 @@ export const InfiniteEventTypeList = ({
                   </div>
                 </div>
               </li>
-              </>
+              </React.Fragment>
             );
             });
           });
