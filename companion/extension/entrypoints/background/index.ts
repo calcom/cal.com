@@ -606,7 +606,6 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
     let oauthTabId: number | null = null;
     let isResolved = false;
 
-    // Set up timeout (5 minutes)
     const timeoutId = setTimeout(
       () => {
         if (!isResolved) {
@@ -617,7 +616,6 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
       5 * 60 * 1000
     );
 
-    // Listen for tab updates to capture the OAuth callback
     const tabUpdateListener = (
       tabId: number,
       changeInfo: chrome.tabs.TabChangeInfo,
@@ -627,7 +625,6 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
       if (tabId !== oauthTabId) return;
 
       // Check if the tab navigated to the redirect URI
-      // Safari may not always set changeInfo.url, so check tab.url directly
       if (tab.url) {
         try {
           const tabUrl = new URL(tab.url);
@@ -635,7 +632,6 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
           // Check if this is our OAuth callback URL - exact origin and path match
           if (tabUrl.origin === redirectOrigin && tabUrl.pathname === redirectPath) {
             if (!isResolved) {
-              // Check for OAuth error response first
               const error = tabUrl.searchParams.get("error");
               if (error) {
                 isResolved = true;
@@ -653,14 +649,12 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
                 return;
               }
 
-              // Verify code parameter exists
               const code = tabUrl.searchParams.get("code");
               if (!code) {
                 // No code yet, keep listening (might be an intermediate redirect)
                 return;
               }
 
-              // Validate state from the intercepted URL before resolving
               const state = tabUrl.searchParams.get("state");
               if (!state) {
                 isResolved = true;
@@ -812,7 +806,6 @@ async function validateOAuthStateWithoutCleanup(state: string): Promise<void> {
   const result = await storageAPI.local.get(["oauth_state"]);
   const storedState = result.oauth_state as string | undefined;
 
-  // Fail closed: state must exist and match exactly
   if (!storedState) {
     throw new Error("No stored OAuth state found - possible CSRF attack");
   }
@@ -821,8 +814,6 @@ async function validateOAuthStateWithoutCleanup(state: string): Promise<void> {
     devLog.error("State parameter mismatch - possible CSRF attack");
     throw new Error("Invalid state parameter - possible CSRF attack");
   }
-
-  // State is valid but NOT cleaned up - token exchange will clean it up
 }
 
 async function validateOAuthState(state: string): Promise<void> {
@@ -838,7 +829,7 @@ async function validateOAuthState(state: string): Promise<void> {
 
     // Fail closed: state must exist and match exactly
     if (!storedState) {
-      throw new Error("No stored OAuth state found - possible CSRF attack");
+      throw new Error("No stored OAuth state found");
     }
 
     if (storedState !== state) {
@@ -847,7 +838,6 @@ async function validateOAuthState(state: string): Promise<void> {
       throw new Error("Invalid state parameter - possible CSRF attack");
     }
 
-    // State is valid, clean up
     await storageAPI.local.remove("oauth_state");
   } catch (error) {
     // Clean up on any error
