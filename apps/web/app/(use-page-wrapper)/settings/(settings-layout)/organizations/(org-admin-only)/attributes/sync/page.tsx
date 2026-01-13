@@ -1,6 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import IntegrationAttributeSyncView from "@calcom/features/ee/integration-attribute-sync/IntegrationAttributeSyncView";
+import IntegrationAttributeSyncView from "@calcom/web/modules/ee/integration-attribute-sync/IntegrationAttributeSyncView";
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
