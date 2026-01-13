@@ -348,4 +348,16 @@ function RenderResults(): JSX.Element {
   );
 }
 
-export { KBarRoot, KBarContent, KBarTrigger };
+function useKBarImpersonation(): () => void {
+  const { query } = useKBar();
+
+  return useCallback(() => {
+    query.toggle();
+    // Small delay to ensure KBar is open before setting the root action
+    setTimeout(() => {
+      query.setCurrentRootAction("impersonation-search");
+    }, 50);
+  }, [query]);
+}
+
+export { KBarRoot, KBarContent, KBarTrigger, useKBarImpersonation };
