@@ -4,7 +4,7 @@ CREATE TYPE "public"."OAuthClientApprovalStatus" AS ENUM ('pending', 'approved',
 -- AlterTable
 ALTER TABLE "public"."OAuthClient" ADD COLUMN     "approvalStatus" "public"."OAuthClientApprovalStatus" NOT NULL DEFAULT 'approved',
 ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "purpose" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "purpose" TEXT,
 ADD COLUMN     "rejectionReason" TEXT,
 ADD COLUMN     "userId" INTEGER,
 ADD COLUMN     "websiteUrl" TEXT;

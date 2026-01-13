@@ -1782,7 +1782,7 @@ model OAuthClient {
   clientSecret    String?
   clientType      OAuthClientType           @default(CONFIDENTIAL)
   name            String
-  purpose         String
+  purpose         String?
   logo            String?
   websiteUrl      String?
   rejectionReason String?
