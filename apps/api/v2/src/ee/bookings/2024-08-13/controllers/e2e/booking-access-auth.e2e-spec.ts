@@ -185,51 +185,51 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
-    // describe("GET /v2/bookings/:bookingUid/recordings - Authorization", () => {
-    //   it("should allow booking organizer to access recordings", async () => {
-    //     const calVideoService = app.get(CalVideoService);
-    //     jest.spyOn(calVideoService, "getRecordings").mockResolvedValue([]);
+    describe("GET /v2/bookings/:bookingUid/recordings - Authorization", () => {
+      it("should allow booking organizer to access recordings", async () => {
+        const calVideoService = app.get(CalVideoService);
+        jest.spyOn(calVideoService, "getRecordings").mockResolvedValue([]);
 
-    //     const response = await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/recordings`)
-    //       .set("Authorization", `Bearer ${ownerApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(200);
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/recordings`)
+          .set("Authorization", `Bearer ${ownerApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
 
-    //     expect(response.body.status).toEqual(SUCCESS_STATUS);
-    //   });
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+      });
 
-    //   it("should return 403 when unauthorized user tries to access recordings", async () => {
-    //     await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/recordings`)
-    //       .set("Authorization", `Bearer ${unauthorizedApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(403);
-    //   });
-    // });
+      it("should return 403 when unauthorized user tries to access recordings", async () => {
+        await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/recordings`)
+          .set("Authorization", `Bearer ${unauthorizedApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+    });
 
-    // describe("GET /v2/bookings/:bookingUid/transcripts - Authorization", () => {
-    //   it("should allow booking organizer to access transcripts", async () => {
-    //     const calVideoService = app.get(CalVideoService);
-    //     jest.spyOn(calVideoService, "getTranscripts").mockResolvedValue([]);
+    describe("GET /v2/bookings/:bookingUid/transcripts - Authorization", () => {
+      it("should allow booking organizer to access transcripts", async () => {
+        const calVideoService = app.get(CalVideoService);
+        jest.spyOn(calVideoService, "getTranscripts").mockResolvedValue([]);
 
-    //     const response = await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/transcripts`)
-    //       .set("Authorization", `Bearer ${ownerApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(200);
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/transcripts`)
+          .set("Authorization", `Bearer ${ownerApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
 
-    //     expect(response.body.status).toEqual(SUCCESS_STATUS);
-    //   });
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+      });
 
-    //   it("should return 403 when unauthorized user tries to access transcripts", async () => {
-    //     await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/transcripts`)
-    //       .set("Authorization", `Bearer ${unauthorizedApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(403);
-    //   });
-    // });
+      it("should return 403 when unauthorized user tries to access transcripts", async () => {
+        await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/transcripts`)
+          .set("Authorization", `Bearer ${unauthorizedApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+    });
 
     afterAll(async () => {
       await bookingsRepositoryFixture.deleteById(testBooking.id);
