@@ -223,7 +223,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
 
         await page.getByTestId("location-select").click();
-        await page.locator(`text="Organizer phone number"`).click();
+        await page.getByTestId("location-select-item-organizer_phone_number").click();
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
         await page.locator(`input[name="${locationInputName}"]`).clear();

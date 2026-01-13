@@ -262,8 +262,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         )}
         <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
         {hint && (
-          <div className="text-gray-500 mt-2 flex items-center text-sm">
-            <Icon name="info" className="text-gray-500 h-4 w-4 mr-1" />
+          <div className="text-muted mt-2 flex items-center text-sm">
+            <Icon name="info" className="text-muted h-4 w-4 mr-1" />
             {hint}
           </div>
         )}
