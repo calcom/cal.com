@@ -1,5 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { moduleLoader as redisModuleLoader } from "@calcom/features/di/modules/Redis";
+import { moduleLoader as redisModuleLoader } from "@calcom/features/redis/di/redisModule";
 
 import { RedisTeamFeatureRepository } from "../repositories/RedisTeamFeatureRepository";
 import { FLAGS_DI_TOKENS } from "./tokens";
