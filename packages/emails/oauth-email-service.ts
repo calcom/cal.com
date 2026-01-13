@@ -7,15 +7,17 @@ import OAuthClientApprovedEmail from "./templates/oauth-client-approved-notifica
 import type { OAuthClientRejectedNotification } from "./templates/oauth-client-rejected-notification";
 import OAuthClientRejectedEmail from "./templates/oauth-client-rejected-notification";
 
-const sendEmail = (prepare: () => BaseEmail) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const email = prepare();
-      resolve(email.sendEmail());
-    } catch (e) {
-      reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
-    }
-  });
+const sendEmail = async (prepare: () => BaseEmail) => {
+  let email: BaseEmail | undefined;
+
+  try {
+    email = prepare();
+    return await email.sendEmail();
+  } catch (e) {
+    const errorName = e instanceof Error ? e.name : "UnknownError";
+    console.error(`${email?.constructor?.name ?? "Email"}.sendEmail oauth-email-service failed (${errorName})`);
+    throw e;
+  }
 };
 
 export const sendAdminOAuthClientNotification = async (input: OAuthClientNotification) => {
