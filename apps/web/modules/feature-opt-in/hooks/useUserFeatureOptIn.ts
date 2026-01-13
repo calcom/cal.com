@@ -60,7 +60,11 @@ function createUserBlockedWarningFn(t: TFunction): (feature: NormalizedFeature) 
 }
 
 function isUserBlockedByHigherLevel(feature: NormalizedFeature): boolean {
-  return feature.effectiveReason === "feature_org_disabled" || feature.effectiveReason === "feature_all_teams_disabled";
+  return (
+    feature.effectiveReason === "feature_org_disabled" ||
+    feature.effectiveReason === "feature_all_teams_disabled" ||
+    feature.effectiveReason === "feature_any_team_disabled"
+  );
 }
 
 /**
