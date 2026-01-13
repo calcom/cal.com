@@ -223,7 +223,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
 
         await page.getByTestId("location-select").click();
-        await page.locator(`text="Organizer Phone Number"`).click();
+        await page.locator(`text="Organizer phone number"`).click();
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
         await page.locator(`input[name="${locationInputName}"]`).clear();
@@ -367,7 +367,7 @@ test.describe("Event Types tests", () => {
 
         // Add Multiple Organizer Phone Number options
         await page.getByTestId("location-select").last().click();
-        await page.locator(`text="Organizer Phone Number"`).click();
+        await page.locator(`text="Organizer phone number"`).click();
 
         const organizerPhoneNumberInputName = (idx: number) => `locations[${idx}].hostPhoneNumber`;
 
@@ -380,7 +380,7 @@ test.describe("Event Types tests", () => {
         await page.locator("[data-testid=add-location]").click();
 
         const testPhoneInputValue2 = "9188888888";
-        await page.locator(`text="Organizer Phone Number"`).last().click();
+        await page.locator(`text="Organizer phone number"`).last().click();
         await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).waitFor();
         await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).fill(testPhoneInputValue2);
         await checkDisplayLocation(page);
