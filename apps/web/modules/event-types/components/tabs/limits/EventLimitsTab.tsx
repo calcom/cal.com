@@ -35,6 +35,8 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
+const PREDEFINED_SLOT_INTERVAL_MINUTES = [5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120] as const;
+
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
 export type EventLimitsTabCustomClassNames = {
@@ -409,6 +411,12 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
     (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
   );
+  const [slotIntervalCustomMode, setSlotIntervalCustomMode] = useState(() => {
+    const currentValue = formMethods.getValues("slotInterval");
+    // Check if current value is not in the predefined options
+    const predefinedValues = [-1, ...PREDEFINED_SLOT_INTERVAL_MINUTES];
+    return currentValue !== null && !predefinedValues.includes(currentValue);
+  });
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -548,30 +556,89 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             </Label>
             <Controller
               name="slotInterval"
-              render={() => {
+              render={({ field }) => {
                 const slotIntervalOptions = [
                   {
                     label: t("slot_interval_default"),
                     value: -1,
                   },
-                  ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
+                  ...PREDEFINED_SLOT_INTERVAL_MINUTES.map((minutes) => ({
                     label: `${minutes} ${t("minutes")}`,
                     value: minutes,
                   })),
+                  {
+                    label: t("custom"),
+                    value: "custom",
+                  },
                 ];
+
+                if (slotIntervalCustomMode) {
+                  return (
+                    <div className="flex items-center gap-2">
+                      <TextField
+                        type="number"
+                        noLabel
+                        containerClassName="[&>div]:h-9 [&>div]:min-h-[36px] [&>div]:mb-0"
+                        className={classNames(
+                          "flex-1",
+                          customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select
+                        )}
+                        disabled={shouldLockDisableProps("slotInterval").disabled}
+                        defaultValue={field.value ?? ""}
+                        {...formMethods.register("slotInterval", {
+                          setValueAs: (value) => {
+                            if (["", null, undefined].includes(value)) {
+                              return null;
+                            }
+                            const num = typeof value === "string" ? parseInt(value, 10) : Number(value);
+                            return !isNaN(num) && num > 0 ? num : null;
+                          },
+                        })}
+                        addOnSuffix={<>{t("minutes")}</>}
+                        min={1}
+                        step={1}
+                      />
+                      <Button
+                        type="button"
+                        variant="icon"
+                        color="secondary"
+                        StartIcon="x"
+                        onClick={() => {
+                          setSlotIntervalCustomMode(false);
+                          // Reset to default when closing custom mode
+                          formMethods.setValue("slotInterval", null, {
+                            shouldDirty: true,
+                          });
+                        }}
+                        disabled={shouldLockDisableProps("slotInterval").disabled}
+                        aria-label={t("close")}
+                      />
+                    </div>
+                  );
+                }
+
                 return (
                   <Select
                     isSearchable={false}
                     isDisabled={shouldLockDisableProps("slotInterval").disabled}
                     onChange={(val) => {
-                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
-                        shouldDirty: true,
-                      });
+                      if (val?.value === "custom") {
+                        setSlotIntervalCustomMode(true);
+                        // Clear the value when entering custom mode
+                        formMethods.setValue("slotInterval", null, { shouldDirty: true });
+                      } else {
+                        setSlotIntervalCustomMode(false);
+                        formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
+                          shouldDirty: true,
+                        });
+                      }
                     }}
-                    defaultValue={
-                      slotIntervalOptions.find(
-                        (option) => option.value === formMethods.getValues("slotInterval")
-                      ) || slotIntervalOptions[0]
+                    value={
+                      slotIntervalOptions.find((option) => {
+                        const currentValue = formMethods.getValues("slotInterval");
+                        if (option.value === "custom") return false;
+                        return option.value === currentValue;
+                      }) || slotIntervalOptions[0]
                     }
                     options={slotIntervalOptions}
                     className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
