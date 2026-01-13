@@ -14,6 +14,7 @@ import { ZGetSchema } from "./get.schema";
 import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
+import { ZGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasActiveTeamPlanInputSchema } from "./hasActiveTeamPlan.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
@@ -22,19 +23,20 @@ import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.sch
 import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
+import { ZGetManagedEventUsersToReassignInputSchema } from "./managedEvents/getManagedEventUsersToReassign.schema";
+import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedEventManualReassign.schema";
+import { ZManagedEventReassignInputSchema } from "./managedEvents/managedEventReassign.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
-import { ZGetManagedEventUsersToReassignInputSchema } from "./managedEvents/getManagedEventUsersToReassign.schema";
-import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedEventManualReassign.schema";
-import { ZManagedEventReassignInputSchema } from "./managedEvents/managedEventReassign.schema";
 import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
 import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
+import { ZSkipTrialForTeamInputSchema } from "./skipTrialForTeam.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
@@ -179,8 +181,8 @@ export const viewerTeamsRouter = router({
     .input(ZGetManagedEventUsersToReassignInputSchema)
     .query(async (opts) => {
       const { default: handler } = await import("./managedEvents/getManagedEventUsersToReassign.handler");
-    return handler(opts);
-  }),
+      return handler(opts);
+    }),
   checkIfMembershipExists: authedProcedure
     .input(ZCheckIfMembershipExistsInputSchema)
     .mutation(async (opts) => {
@@ -213,6 +215,14 @@ export const viewerTeamsRouter = router({
   }),
   skipTeamTrials: authedProcedure.input(ZSkipTeamTrialsInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./skipTeamTrials.handler");
+    return handler(opts);
+  }),
+  skipTrialForTeam: authedProcedure.input(ZSkipTrialForTeamInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./skipTrialForTeam.handler");
+    return handler(opts);
+  }),
+  getSubscriptionStatus: authedProcedure.input(ZGetSubscriptionStatusInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./getSubscriptionStatus.handler");
     return handler(opts);
   }),
 });
