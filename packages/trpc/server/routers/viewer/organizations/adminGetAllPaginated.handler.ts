@@ -72,6 +72,7 @@ const adminGetAllPaginatedHandler = async ({ input }: AdminGetAllPaginatedOption
       slug: true,
       metadata: true,
       organizationSettings: true,
+      createdAt: true,
       members: {
         where: {
           role: "OWNER",
@@ -84,6 +85,17 @@ const adminGetAllPaginatedHandler = async ({ input }: AdminGetAllPaginatedOption
               email: true,
             },
           },
+        },
+      },
+      children: {
+        select: {
+          id: true,
+        },
+      },
+      _count: {
+        select: {
+          members: true,
+          eventTypes: true,
         },
       },
     },

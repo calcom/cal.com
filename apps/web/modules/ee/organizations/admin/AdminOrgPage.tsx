@@ -1,11 +1,11 @@
 "use client";
 
+import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -145,152 +145,202 @@ export function AdminOrgTable() {
               <Header>
                 <ColumnTitle widthClassNames="w-auto">{t("organization")}</ColumnTitle>
                 <ColumnTitle widthClassNames="w-auto">{t("owner")}</ColumnTitle>
-                <ColumnTitle widthClassNames="w-auto">{t("reviewed")}</ColumnTitle>
-                <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
-                <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
-                <ColumnTitle widthClassNames="w-auto">{t("admin_api")}</ColumnTitle>
+                <ColumnTitle>{t("members")}</ColumnTitle>
+                <ColumnTitle>{t("teams")}</ColumnTitle>
+                <ColumnTitle>{t("status")}</ColumnTitle>
+                <ColumnTitle>{t("created")}</ColumnTitle>
                 <ColumnTitle widthClassNames="w-auto">
                   <span className="sr-only">{t("edit")}</span>
                 </ColumnTitle>
               </Header>
               <Body>
-                {flatData.map((org) => (
-                  <Row key={org.id}>
-                    <Cell widthClassNames="w-auto">
-                      <div className="text-subtle font-medium">
-                        <span className="text-default">{org.name}</span>
-                        <br />
-                        <span className="text-muted">
-                          {org.slug}.{subdomainSuffix()}
+                {flatData.map((org) => {
+                  const owner = org.members[0]?.user;
+                  const isReviewed = org.organizationSettings?.isAdminReviewed;
+                  const isDnsConfigured = org.organizationSettings?.isOrganizationConfigured;
+                  const isPublished = !!org.slug;
+                  const isApiEnabled = org.organizationSettings?.isAdminAPIEnabled;
+
+                  return (
+                    <Row key={org.id}>
+                      <Cell widthClassNames="w-auto">
+                        <div className="flex items-start gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-default font-medium">{org.name}</span>
+                              {isReviewed ? (
+                                <Icon name="circle-check" className="text-success h-4 w-4" />
+                              ) : (
+                                <Icon name="circle-x" className="text-error h-4 w-4" />
+                              )}
+                            </div>
+                            <div className="text-muted text-xs">
+                              {org.slug ? (
+                                <span>
+                                  {org.slug}.{subdomainSuffix()}
+                                </span>
+                              ) : (
+                                <span className="text-attention">
+                                  {org.metadata?.requestedSlug || "no-slug"}.{subdomainSuffix()} (pending)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Cell>
+                      <Cell widthClassNames="w-auto">
+                        {owner ? (
+                          <div>
+                            <div className="text-default text-sm font-medium">{owner.name || "No name"}</div>
+                            <div className="text-muted break-all text-xs">{owner.email}</div>
+                          </div>
+                        ) : (
+                          <span className="text-muted text-xs">No owner</span>
+                        )}
+                      </Cell>
+                      <Cell>
+                        <div className="flex items-center gap-1">
+                          <Icon name="users" className="text-subtle h-3.5 w-3.5" />
+                          <span className="text-default text-xs font-medium">{org._count?.members ?? 0}</span>
+                        </div>
+                      </Cell>
+                      <Cell>
+                        <div className="flex items-center gap-1">
+                          <Icon name="layers" className="text-subtle h-3.5 w-3.5" />
+                          <span className="text-default text-xs font-medium">
+                            {org.children?.length ?? 0}
+                          </span>
+                        </div>
+                      </Cell>
+                      <Cell>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="flex items-center gap-1"
+                              title={isPublished ? "Published" : "Not published"}>
+                              {isPublished ? (
+                                <Icon name="check" className="text-success h-3.5 w-3.5" />
+                              ) : (
+                                <Icon name="x" className="text-error h-3.5 w-3.5" />
+                              )}
+                              <span className="text-subtle text-xs">Published</span>
+                            </div>
+                            <div
+                              className="flex items-center gap-1"
+                              title={isDnsConfigured ? "DNS configured" : "DNS not configured"}>
+                              {isDnsConfigured ? (
+                                <Icon name="check" className="text-success h-3.5 w-3.5" />
+                              ) : (
+                                <Icon name="x" className="text-error h-3.5 w-3.5" />
+                              )}
+                              <span className="text-subtle text-xs">DNS</span>
+                            </div>
+                            <div
+                              className="flex items-center gap-1"
+                              title={isApiEnabled ? "Admin API enabled" : "Admin API disabled"}>
+                              {isApiEnabled ? (
+                                <Icon name="check" className="text-success h-3.5 w-3.5" />
+                              ) : (
+                                <Icon name="x" className="text-error h-3.5 w-3.5" />
+                              )}
+                              <span className="text-subtle text-xs">API</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Cell>
+                      <Cell>
+                        <span
+                          className="text-subtle text-xs"
+                          title={dayjs(org.createdAt).format("MMMM D, YYYY")}>
+                          {dayjs(org.createdAt).fromNow()}
                         </span>
-                      </div>
-                    </Cell>
-                    <Cell widthClassNames="w-auto">
-                      <span className="break-all">
-                        {org.members.length ? org.members[0].user.email : "No members"}
-                      </span>
-                    </Cell>
-                    <Cell>
-                      <div className="space-x-2">
-                        {!org.organizationSettings?.isAdminReviewed ? (
-                          <Badge variant="red">{t("unreviewed")}</Badge>
-                        ) : (
-                          <Badge variant="green">{t("reviewed")}</Badge>
-                        )}
-                      </div>
-                    </Cell>
-                    <Cell>
-                      <div className="space-x-2">
-                        {org.organizationSettings?.isOrganizationConfigured ? (
-                          <Badge variant="blue">{t("dns_configured")}</Badge>
-                        ) : (
-                          <Badge variant="red">{t("dns_missing")}</Badge>
-                        )}
-                      </div>
-                    </Cell>
-                    <Cell>
-                      <div className="space-x-2">
-                        {!org.slug ? (
-                          <Badge variant="red">{t("unpublished")}</Badge>
-                        ) : (
-                          <Badge variant="green">{t("published")}</Badge>
-                        )}
-                      </div>
-                    </Cell>
-                    <Cell>
-                      <div className="space-x-2">
-                        {!org.organizationSettings?.isAdminAPIEnabled ? (
-                          <Badge variant="red">{t("disabled")}</Badge>
-                        ) : (
-                          <Badge variant="green">{t("enabled")}</Badge>
-                        )}
-                      </div>
-                    </Cell>
-                    <Cell widthClassNames="w-auto">
-                      <div className="flex w-full justify-end">
-                        <DropdownActions
-                          actions={[
-                            ...(!org.organizationSettings?.isAdminReviewed
-                              ? [
-                                  {
-                                    id: "review",
-                                    label: t("review"),
-                                    onClick: () => {
-                                      updateMutation.mutate({
-                                        id: org.id,
-                                        organizationSettings: {
-                                          isAdminReviewed: true,
-                                        },
-                                      });
+                      </Cell>
+                      <Cell widthClassNames="w-auto">
+                        <div className="flex w-full justify-end">
+                          <DropdownActions
+                            actions={[
+                              ...(!org.organizationSettings?.isAdminReviewed
+                                ? [
+                                    {
+                                      id: "review",
+                                      label: t("review"),
+                                      onClick: () => {
+                                        updateMutation.mutate({
+                                          id: org.id,
+                                          organizationSettings: {
+                                            isAdminReviewed: true,
+                                          },
+                                        });
+                                      },
+                                      icon: "check" as const,
                                     },
-                                    icon: "check" as const,
-                                  },
-                                ]
-                              : []),
-                            ...(!org.organizationSettings?.isOrganizationConfigured
-                              ? [
-                                  {
-                                    id: "dns",
-                                    label: t("mark_dns_configured"),
-                                    onClick: () => {
-                                      updateMutation.mutate({
-                                        id: org.id,
-                                        organizationSettings: {
-                                          isOrganizationConfigured: true,
-                                        },
-                                      });
+                                  ]
+                                : []),
+                              ...(!org.organizationSettings?.isOrganizationConfigured
+                                ? [
+                                    {
+                                      id: "dns",
+                                      label: t("mark_dns_configured"),
+                                      onClick: () => {
+                                        updateMutation.mutate({
+                                          id: org.id,
+                                          organizationSettings: {
+                                            isOrganizationConfigured: true,
+                                          },
+                                        });
+                                      },
+                                      icon: "check-check" as const,
                                     },
-                                    icon: "check-check" as const,
-                                  },
-                                ]
-                              : []),
-                            {
-                              id: "edit",
-                              label: t("edit"),
-                              href: `/settings/admin/organizations/${org.id}/edit`,
-                              icon: "pencil" as const,
-                            },
-                            ...(!org.slug
-                              ? [
-                                  {
-                                    id: "publish",
-                                    label: t("publish"),
-                                    onClick: () => {
-                                      publishOrg(org);
-                                    },
-                                    icon: "book-open-check" as const,
-                                  },
-                                ]
-                              : []),
-                            {
-                              id: "api",
-                              label: org.organizationSettings?.isAdminAPIEnabled
-                                ? t("revoke_admin_api")
-                                : t("grant_admin_api"),
-                              onClick: () => {
-                                updateMutation.mutate({
-                                  id: org.id,
-                                  organizationSettings: {
-                                    isAdminAPIEnabled: !org.organizationSettings?.isAdminAPIEnabled,
-                                  },
-                                });
+                                  ]
+                                : []),
+                              {
+                                id: "edit",
+                                label: t("edit"),
+                                href: `/settings/admin/organizations/${org.id}/edit`,
+                                icon: "pencil" as const,
                               },
-                              icon: "terminal" as const,
-                            },
-                            {
-                              id: "delete",
-                              label: t("delete"),
-                              onClick: () => {
-                                setOrgToDelete(org);
+                              ...(!org.slug
+                                ? [
+                                    {
+                                      id: "publish",
+                                      label: t("publish"),
+                                      onClick: () => {
+                                        publishOrg(org);
+                                      },
+                                      icon: "book-open-check" as const,
+                                    },
+                                  ]
+                                : []),
+                              {
+                                id: "api",
+                                label: org.organizationSettings?.isAdminAPIEnabled
+                                  ? t("revoke_admin_api")
+                                  : t("grant_admin_api"),
+                                onClick: () => {
+                                  updateMutation.mutate({
+                                    id: org.id,
+                                    organizationSettings: {
+                                      isAdminAPIEnabled: !org.organizationSettings?.isAdminAPIEnabled,
+                                    },
+                                  });
+                                },
+                                icon: "terminal" as const,
                               },
-                              icon: "trash" as const,
-                            },
-                          ]}
-                        />
-                      </div>
-                    </Cell>
-                  </Row>
-                ))}
+                              {
+                                id: "delete",
+                                label: t("delete"),
+                                onClick: () => {
+                                  setOrgToDelete(org);
+                                },
+                                icon: "trash" as const,
+                              },
+                            ]}
+                          />
+                        </div>
+                      </Cell>
+                    </Row>
+                  );
+                })}
               </Body>
             </Table>
           </div>
