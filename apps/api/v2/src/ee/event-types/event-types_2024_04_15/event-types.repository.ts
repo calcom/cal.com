@@ -1,12 +1,11 @@
+import { getEventTypeById } from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
+import { Injectable } from "@nestjs/common";
 import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
-
-import { getEventTypeById } from "@calcom/platform-libraries/event-types";
-import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class EventTypesRepository_2024_04_15 {
@@ -54,6 +53,7 @@ export class EventTypesRepository_2024_04_15 {
       currentOrganizationId: this.usersService.getUserMainOrgId(user),
       eventTypeId,
       userId: user.id,
+      userLocale: user.locale ?? "en",
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
       isTrpcCall: true,
