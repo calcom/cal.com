@@ -12,11 +12,15 @@ import { type NavigationItemType } from "./navigation/NavigationItem";
 type BottomNavItemsProps = {
   publicPageUrl: string;
   user: UserAuth | null | undefined;
+  isAdmin: boolean;
+  onImpersonateClick?: () => void;
 };
 
 export function useBottomNavItems({
   publicPageUrl,
   user,
+  isAdmin,
+  onImpersonateClick,
 }: BottomNavItemsProps): NavigationItemType[] {
   const { t } = useLocale();
   const { isTrial } = useHasActiveTeamPlanAsOwner();
@@ -69,6 +73,17 @@ export function useBottomNavItems({
           icon: "gift",
           onClick: () => {
             posthog.capture("refer_and_earn_clicked");
+          },
+        }
+      : null,
+    isAdmin && onImpersonateClick
+      ? {
+          name: "impersonation",
+          href: "",
+          icon: "user",
+          onClick: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            onImpersonateClick();
           },
         }
       : null,
