@@ -242,6 +242,15 @@ function getBrowserDisplayName(): string {
  * These provide unified access to browser extension APIs across Chrome, Firefox, Safari, and Edge
  */
 
+/**
+ * Extended browser API interface that includes browserAction (Manifest V2)
+ * Safari uses browserAction instead of action
+ */
+interface BrowserAPIWithLegacyAction {
+  action?: typeof chrome.action;
+  browserAction?: typeof chrome.action;
+}
+
 // Get the appropriate browser API namespace
 function getBrowserAPI(): typeof chrome {
   if (typeof browser !== "undefined" && browser?.runtime) {
@@ -278,7 +287,8 @@ function getTabsAPI(): typeof chrome.tabs | null {
 function getActionAPI(): typeof chrome.action | null {
   const api = getBrowserAPI();
   // Safari uses browserAction (Manifest V2), Chrome uses action (Manifest V3)
-  return api?.action || (api as any)?.browserAction || null;
+  const apiWithLegacyAction = api as unknown as BrowserAPIWithLegacyAction;
+  return api?.action || apiWithLegacyAction?.browserAction || null;
 }
 
 // Check if the URL is a restricted page where content scripts can't run
@@ -616,11 +626,7 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
       5 * 60 * 1000
     );
 
-    const tabUpdateListener = (
-      tabId: number,
-      changeInfo: chrome.tabs.TabChangeInfo,
-      tab: chrome.tabs.Tab
-    ) => {
+    const tabUpdateListener = (tabId: number, _changeInfo: unknown, tab: chrome.tabs.Tab) => {
       // Only process updates for our OAuth tab
       if (tabId !== oauthTabId) return;
 
@@ -684,6 +690,10 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
                       // Ignore errors when closing tab
                     });
                   }
+                  if (!tab.url) {
+                    reject(new Error("Tab URL is undefined"));
+                    return;
+                  }
                   resolve(tab.url);
                 })
                 .catch((error) => {
@@ -697,7 +707,7 @@ async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
                 });
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Invalid URL, ignore
         }
       }

@@ -1,6 +1,6 @@
-import { Button, ContextMenu, Host, HStack, Image as SwiftUIImage } from "@expo/ui/swift-ui";
+import { Button, Host, Image as SwiftUIImage } from "@expo/ui/swift-ui";
 import * as Haptics from "expo-haptics";
-import { buttonStyle, controlSize, fixedSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { buttonStyle, controlSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
