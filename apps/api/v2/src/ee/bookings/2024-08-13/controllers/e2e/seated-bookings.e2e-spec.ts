@@ -407,6 +407,142 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    describe("get booking by seatUid with seatsShowAttendees disabled", () => {
+      let bookingWithAttendeesDisabled: CreateSeatedBookingOutput_2024_08_13;
+      let secondAttendeeSeatUid: string;
+      const emailAttendeeThree = `seated-bookings-attendee3-${randomString()}@api.com`;
+      const nameAttendeeThree = `Attendee Three ${randomString()}`;
+
+      it("should book first seat on event type with seatsShowAttendees disabled", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 11, 13, 0, 0)).toISOString(),
+          eventTypeId: seatedEventTypeIdAttendeesDisabledId,
+          attendee: {
+            name: nameAttendeeOne,
+            email: emailAttendeeOne,
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          bookingFieldsResponses: {
+            codingLanguage: "TypeScript",
+          },
+          metadata: {
+            userId: "100",
+          },
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsCreateSeatedBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsCreateSeatedBooking(responseBody.data)) {
+              const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+              expect(data.seatUid).toBeDefined();
+              bookingWithAttendeesDisabled = data;
+            } else {
+              throw new Error("Invalid response data - expected seated booking");
+            }
+          });
+      });
+
+      it("should book second seat on same event type with seatsShowAttendees disabled", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 11, 13, 0, 0)).toISOString(),
+          eventTypeId: seatedEventTypeIdAttendeesDisabledId,
+          attendee: {
+            name: nameAttendeeThree,
+            email: emailAttendeeThree,
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          bookingFieldsResponses: {
+            codingLanguage: "Rust",
+          },
+          metadata: {
+            userId: "300",
+          },
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsCreateSeatedBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsCreateSeatedBooking(responseBody.data)) {
+              const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+              expect(data.seatUid).toBeDefined();
+              secondAttendeeSeatUid = data.seatUid;
+            } else {
+              throw new Error("Invalid response data - expected seated booking");
+            }
+          });
+      });
+
+      it("should return only the attendee for the specific seatUid when seatsShowAttendees is false and no auth", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/by-seat/${secondAttendeeSeatUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsGetSeatedBooking(responseBody.data)) {
+              const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toEqual(bookingWithAttendeesDisabled.id);
+              expect(data.uid).toEqual(bookingWithAttendeesDisabled.uid);
+              expect(data.eventTypeId).toEqual(seatedEventTypeIdAttendeesDisabledId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0].email).toEqual(emailAttendeeThree);
+              expect(data.attendees[0].name).toEqual(nameAttendeeThree);
+              expect(data.attendees[0].seatUid).toEqual(secondAttendeeSeatUid);
+            } else {
+              throw new Error("Invalid response data - expected seated booking");
+            }
+          });
+      });
+
+      it("should return all attendees when admin auth is provided", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/by-seat/${secondAttendeeSeatUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${apiKeyString}`)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsGetSeatedBooking(responseBody.data)) {
+              const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toEqual(bookingWithAttendeesDisabled.id);
+              expect(data.uid).toEqual(bookingWithAttendeesDisabled.uid);
+              expect(data.eventTypeId).toEqual(seatedEventTypeIdAttendeesDisabledId);
+              expect(data.attendees.length).toEqual(2);
+              await bookingsRepositoryFixture.deleteById(data.id);
+            } else {
+              throw new Error("Invalid response data - expected seated booking");
+            }
+          });
+      });
+    });
+
     it("should not be able to reschedule seated booking if seatUid is not provided", async () => {
       const body = {
         start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
