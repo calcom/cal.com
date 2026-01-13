@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   getDate,
@@ -7,19 +7,19 @@ import {
   getMockBookingAttendee,
   TestData,
   addWorkflowReminders,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
   expectWorkflowToBeTriggered,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, vi, expect } from "vitest";
 
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 vi.mock("@calcom/features/bookings/lib/EventManager");
 

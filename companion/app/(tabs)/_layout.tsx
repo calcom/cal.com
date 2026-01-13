@@ -71,6 +71,12 @@ function WebTabs() {
       }}
     >
       <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="(event-types)"
         options={{
           title: "Event Types",

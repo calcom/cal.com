@@ -19,6 +19,7 @@ import {
   IsIn,
 } from "class-validator";
 
+import { SUPPORTED_LOCALES } from "@calcom/platform-constants";
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
@@ -70,6 +71,8 @@ import {
   Host,
   CalVideoSettings,
 } from "./create-event-type.input";
+import { DisableCancelling_2024_06_14 } from "./disable-cancelling.input";
+import { DisableRescheduling_2024_06_14 } from "./disable-rescheduling.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EmailSettings_2024_06_14 } from "./email-settings.input";
@@ -127,7 +130,9 @@ import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/Can
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   BookerActiveBookingsLimit_2024_06_14,
-  EmailSettings_2024_06_14
+  EmailSettings_2024_06_14,
+  DisableRescheduling_2024_06_14,
+  DisableCancelling_2024_06_14
 )
 @CantHaveRecurrenceAndBookerActiveBookingsLimit()
 class BaseUpdateEventTypeInput {
@@ -461,6 +466,62 @@ class BaseUpdateEventTypeInput {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableCancelling_2024_06_14)
+  @DocsPropertyOptional({
+    description: "Settings for disabling cancelling of this event type.",
+    type: DisableCancelling_2024_06_14,
+    example: { disabled: true },
+  })
+  disableCancelling?: DisableCancelling_2024_06_14;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableRescheduling_2024_06_14)
+  @DocsPropertyOptional({
+    description:
+      "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+    type: DisableRescheduling_2024_06_14,
+    example: { disabled: false, minutesBefore: 60 },
+  })
+  disableRescheduling?: DisableRescheduling_2024_06_14;
+
+  @IsOptional()
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  @DocsPropertyOptional({
+    description:
+      "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+    enum: SUPPORTED_LOCALES,
+  })
+  interfaceLanguage?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Enabling this option allows for past events to be rescheduled.",
+    default: false,
+  })
+  allowReschedulingPastBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+    default: false,
+  })
+  allowReschedulingCancelledBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Arrange time slots to optimize availability.",
+    default: false,
+  })
+  showOptimizedSlots?: boolean;
 }
 export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @IsOptional()
