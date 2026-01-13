@@ -415,9 +415,8 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
-  window.dataLayer = window.dataLayer || [];
-
   try {
+    window.dataLayer = window.dataLayer || [];
     const gtmEvent = {
       event: "booking_success",
 
