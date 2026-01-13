@@ -103,10 +103,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
   }
 
-  let event: Partial<EventType> = {};
-  if (bookingToReschedule.eventType) {
-    event = bookingToReschedule.eventType;
-  }
+  const event: Partial<EventType> = bookingToReschedule.eventType ?? {};
   await bookingRepository.updateBookingStatus({
     bookingId: bookingToReschedule.id,
     status: BookingStatus.CANCELLED,
@@ -277,7 +274,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     cancelledBy: user.email,
     eventTypeId: bookingToReschedule.eventTypeId,
     length: bookingToReschedule.eventType?.length ?? null,
-    iCalSequence: bookingToReschedule.iCalSequence + 1,
+    iCalSequence: (bookingToReschedule.iCalSequence ?? 0) + 1,
     eventTitle: bookingToReschedule.eventType?.title ?? null,
     requestReschedule: true,
   });
