@@ -102,7 +102,15 @@ export class BookingSeatRepository {
                 username: true,
               },
             },
-            eventType: true,
+            eventType: {
+              select: {
+                id: true,
+                slug: true,
+                seatsShowAttendees: true,
+                teamId: true,
+                userId: true,
+              },
+            },
           },
         },
       },

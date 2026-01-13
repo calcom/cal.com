@@ -623,10 +623,16 @@ export class BookingsService_2024_08_13 {
     }
 
     const booking = bookingSeat.booking;
-    const userIsEventTypeAdminOrOwner =
-      authUser && booking.eventType
-        ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(authUser, booking.eventType)
-        : false;
+    let userIsEventTypeAdminOrOwner = false;
+    if (authUser && booking.eventTypeId) {
+      const eventType = await this.eventTypesRepository.getEventTypeById(booking.eventTypeId);
+      if (eventType) {
+        userIsEventTypeAdminOrOwner = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+          authUser,
+          eventType
+        );
+      }
+    }
 
     const isRecurring = !!booking.recurringEventId;
     const seatsShowAttendees = !!booking.eventType?.seatsShowAttendees;
