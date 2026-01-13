@@ -394,6 +394,103 @@ describe("BaseCalendarService - CalDAV Duplicate Invitation Fix", () => {
     });
   });
 
+  describe("RFC 5545 Line Folding", () => {
+    it("should unfold and process folded ORGANIZER lines", async () => {
+      const service = new TestCalendarService();
+
+      // Simulate a folded line (line break with leading space)
+      const mockIcsOutput =
+        "BEGIN:VCALENDAR\r\nORGANIZER;CN=Very Long Name That Could Be Fol\r\n ded;ROLE=CHAIR:mailto:test@example.com\r\nEND:VCALENDAR";
+      vi.mocked(createIcsEvent).mockReturnValue({
+        error: null as unknown as Error,
+        value: mockIcsOutput,
+      });
+
+      const event = {
+        title: "Test Event",
+        startTime: "2023-01-01T10:00:00Z",
+        endTime: "2023-01-01T11:00:00Z",
+        organizer: { name: "Test", email: "test@example.com" },
+        attendees: [],
+      } as unknown as CalendarServiceEvent;
+
+      await service.createEvent(event, 1);
+
+      const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+      const iCalString = calledArg.iCalString;
+
+      // Should unfold the line, inject SCHEDULE-AGENT, and potentially refold
+      expect(iCalString).toContain("SCHEDULE-AGENT=CLIENT");
+      expect(iCalString).toContain("Very Long Name That Could Be Folded");
+    });
+
+    it("should fold lines longer than 75 octets", async () => {
+      const service = new TestCalendarService();
+
+      // Create a very long ORGANIZER line that exceeds 75 octets
+      const longName = "A".repeat(100);
+      const mockIcsOutput = `BEGIN:VCALENDAR\r\nORGANIZER;CN=${longName}:mailto:test@example.com\r\nEND:VCALENDAR`;
+      vi.mocked(createIcsEvent).mockReturnValue({
+        error: null as unknown as Error,
+        value: mockIcsOutput,
+      });
+
+      const event = {
+        title: "Test Event",
+        startTime: "2023-01-01T10:00:00Z",
+        endTime: "2023-01-01T11:00:00Z",
+        organizer: { name: "Test", email: "test@example.com" },
+        attendees: [],
+      } as unknown as CalendarServiceEvent;
+
+      await service.createEvent(event, 1);
+
+      const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+      const iCalString = calledArg.iCalString;
+
+      // The output should have folded lines (indicated by \r\n followed by space)
+      const lines = iCalString.split("\r\n");
+      const organizerLines = lines.filter((line) => line.startsWith("ORGANIZER") || line.startsWith(" "));
+
+      // Should have multiple lines due to folding
+      expect(organizerLines.length).toBeGreaterThan(1);
+
+      // Continuation lines should start with space
+      const continuationLines = organizerLines.filter((line) => line.startsWith(" "));
+      expect(continuationLines.length).toBeGreaterThan(0);
+    });
+
+    it("should handle folded ATTENDEE lines with multiple parameters", async () => {
+      const service = new TestCalendarService();
+
+      // Folded ATTENDEE line (tab-based folding)
+      const mockIcsOutput =
+        "BEGIN:VCALENDAR\r\nATTENDEE;CN=Guest Name;PARTSTAT=NEEDS-ACTION;RSVP=TR\r\n\tUE:mailto:guest@example.com\r\nEND:VCALENDAR";
+      vi.mocked(createIcsEvent).mockReturnValue({
+        error: null as unknown as Error,
+        value: mockIcsOutput,
+      });
+
+      const event = {
+        title: "Test Event",
+        startTime: "2023-01-01T10:00:00Z",
+        endTime: "2023-01-01T11:00:00Z",
+        organizer: { name: "Test", email: "test@example.com" },
+        attendees: [{ name: "Guest", email: "guest@example.com" }],
+      } as unknown as CalendarServiceEvent;
+
+      await service.createEvent(event, 1);
+
+      const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+      const iCalString = calledArg.iCalString;
+
+      // Should properly unfold, inject SCHEDULE-AGENT, and maintain other parameters
+      expect(iCalString).toContain("SCHEDULE-AGENT=CLIENT");
+      expect(iCalString).toContain("RSVP=TRUE");
+      expect(iCalString).toContain("PARTSTAT=NEEDS-ACTION");
+    });
+  });
+
   describe("Edge cases", () => {
     it("should handle empty attendee list", async () => {
       const service = new TestCalendarService();

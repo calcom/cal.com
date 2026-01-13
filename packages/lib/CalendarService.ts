@@ -102,10 +102,55 @@ const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Atte
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
 /**
+ * Unfolds iCalendar content lines per RFC 5545 Section 3.1.
+ * Lines that start with whitespace (space or tab) are continuation lines.
+ *
+ * @param iCalString - The iCalendar string with potentially folded lines
+ * @returns The iCalendar string with all lines unfolded
+ */
+const unfoldLines = (iCalString: string): string => {
+  // Replace CRLF or LF followed by space/tab with nothing (unfold)
+  return iCalString.replace(/\r?\n[ \t]/g, "");
+};
+
+/**
+ * Folds iCalendar content lines per RFC 5545 Section 3.1.
+ * Lines longer than 75 octets should be folded by inserting CRLF followed by a space.
+ *
+ * @param iCalString - The iCalendar string with potentially long lines
+ * @returns The iCalendar string with lines properly folded
+ */
+const foldLines = (iCalString: string): string => {
+  const lines = iCalString.split(/\r?\n/);
+  const foldedLines = lines.map((line) => {
+    if (line.length <= 75) {
+      return line;
+    }
+    // Fold line at 75 octets by inserting CRLF + space
+    const folded: string[] = [];
+    let remaining = line;
+    folded.push(remaining.substring(0, 75));
+    remaining = remaining.substring(75);
+
+    while (remaining.length > 0) {
+      folded.push(" " + remaining.substring(0, 74)); // 74 because of leading space
+      remaining = remaining.substring(74);
+    }
+
+    return folded.join("\r\n");
+  });
+
+  return foldedLines.join("\r\n");
+};
+
+/**
  * Injects SCHEDULE-AGENT=CLIENT into ORGANIZER and ATTENDEE properties of an iCalendar string.
  * This prevents CalDAV servers from sending duplicate invitation emails.
  *
+ * Handles RFC 5545 line folding by unfolding before processing and refolding after.
+ *
  * @see RFC 6638 Section 7.1 - SCHEDULE-AGENT Parameter
+ * @see RFC 5545 Section 3.1 - Content Lines
  * @param iCalString - The iCalendar string to process
  * @returns The processed iCalendar string with SCHEDULE-AGENT injected
  */
@@ -114,8 +159,10 @@ const injectScheduleAgent = (iCalString: string): string => {
   // Calendar object resources in calendar collections MUST NOT specify the METHOD property
   let processedString = iCalString.replace(/METHOD:[^\r\n]+[\r\n]+/g, "");
 
+  // Unfold lines per RFC 5545 before processing
+  processedString = unfoldLines(processedString);
+
   // Inject SCHEDULE-AGENT=CLIENT for both ORGANIZER and ATTENDEE properties
-  // Process line by line to handle multiline iCalendar format
   const lines = processedString.split(/\r?\n/);
   const processedLines = lines.map((line) => {
     // Match ORGANIZER or ATTENDEE property lines
@@ -134,7 +181,8 @@ const injectScheduleAgent = (iCalString: string): string => {
     return line;
   });
 
-  return processedLines.join("\r\n");
+  // Refold lines per RFC 5545 after processing
+  return foldLines(processedLines.join("\r\n"));
 };
 
 export default abstract class BaseCalendarService implements Calendar {
