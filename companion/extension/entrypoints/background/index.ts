@@ -277,7 +277,9 @@ function getTabsAPI(): typeof chrome.tabs | null {
 // Get action API with cross-browser support
 function getActionAPI(): typeof chrome.action | null {
   const api = getBrowserAPI();
-  return api?.action || null;
+  // Safari uses browserAction (Manifest V2), Chrome uses action (Manifest V3)
+  // biome-ignore lint/suspicious/noExplicitAny: Safari's browserAction API is not in Chrome types
+  return api?.action || (api as any)?.browserAction || null;
 }
 
 // Check if the URL is a restricted page where content scripts can't run
