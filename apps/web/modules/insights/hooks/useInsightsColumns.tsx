@@ -254,9 +254,7 @@ export const useInsightsColumns = ({
           filter: { type: ColumnFilterType.TEXT },
         },
         cell: (info) => {
-          const assignmentReason = info.getValue();
-          const firstReason = assignmentReason?.split(",")[0]?.trim() || "";
-          return <div className="max-w-[250px]">{firstReason}</div>;
+          return <div className="max-w-[250px]">{info.getValue()}</div>;
         },
       }),
       columnHelper.accessor("utm_source", {
