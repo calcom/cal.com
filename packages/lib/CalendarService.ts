@@ -143,19 +143,40 @@ export default abstract class BaseCalendarService implements Calendar {
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
-      const uid = uuidv4();
+      const uid =
+  typeof event.uid === "string"
+    ? event.uid
+    : (event as any).bookingId
+    ? String((event as any).bookingId)
+    : uuidv4();
+
 
       // We create local ICS files
       const { error, value: iCalString } = createEvent({
         uid,
-        startInputType: "utc",
-        start: convertDate(event.startTime),
+startInputType: "local",
+start: dayjs(event.startTime).toArray().slice(0, 6) as DateArray,
+
         duration: getDuration(event.startTime, event.endTime),
         title: event.title,
         description: event.calendarDescription,
         location: getLocation(event),
-        organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: this.getAttendees(event),
+       
+        organizer: {
+  email: event.organizer.email,
+  name: event.organizer.name,
+  params: {
+    "SCHEDULE-AGENT": "CLIENT",
+  },
+},
+attendees: this.getAttendees(event).map((a) => ({
+  ...a,
+  params: {
+    "SCHEDULE-AGENT": "CLIENT",
+  },
+})),
+
+
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
@@ -223,17 +244,35 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = await this.getEventsByUID(uid);
 
       /** We generate the ICS files */
-      const { error, value: iCalString } = createEvent({
-        uid,
-        startInputType: "utc",
-        start: convertDate(event.startTime),
-        duration: getDuration(event.startTime, event.endTime),
-        title: event.title,
-        description: getRichDescription(event),
-        location: getLocation(event),
-        organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: this.getAttendees(event),
-      });
+   const { error, value: iCalString } = createEvent({
+  uid,
+
+  //  FIX TIMEZONE (NO UTC FORCING)
+  startInputType: "local",
+  start: dayjs(event.startTime).toArray().slice(0, 6) as DateArray,
+
+  duration: getDuration(event.startTime, event.endTime),
+  title: event.title,
+  description: getRichDescription(event),
+  location: getLocation(event),
+
+  //  FIX SCHEDULE-AGENT
+  organizer: {
+    email: event.organizer.email,
+    name: event.organizer.name,
+    params: {
+      "SCHEDULE-AGENT": "CLIENT",
+    },
+  },
+
+  attendees: this.getAttendees(event).map((a) => ({
+    ...a,
+    params: {
+      "SCHEDULE-AGENT": "CLIENT",
+    },
+  })),
+});
+
 
       if (error) {
         this.log.debug("Error creating iCalString");
