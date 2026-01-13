@@ -318,7 +318,7 @@ const HostLocationRow = ({
     return hostData.installedApps.some((app) => app.appId === appSlug || app.type === currentLocation.type);
   }, [currentLocation, hostData]);
 
-  const displayName = hostData?.name || `User ${host.userId}`;
+  const displayName = hostData?.name || `${t("user")} ${host.userId}`;
   const avatarUrl = hostData?.avatarUrl || "";
 
   const currentLocationEventType = currentLocation ? getEventLocationType(currentLocation.type) : null;
