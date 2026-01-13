@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import { PlusIcon, Trash2Icon } from "lucide-react";
+import { ArrowRightIcon, PlusIcon, Trash2Icon } from "lucide-react";
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -159,7 +159,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
       <hr className="border-subtle my-6" />
       <Button
         data-testid="publish-button"
-        EndIcon={!orgBranding || isOrg ? "arrow-right" : undefined}
+        EndIcon={!orgBranding || isOrg ? ArrowRightIcon : undefined}
         color="primary"
         className="w-full justify-center"
         disabled={publishTeamMutation.isPending}

@@ -1,6 +1,7 @@
 "use client";
 
 import type { TFunction } from "i18next";
+import { DownloadIcon, RotateCcwIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 import posthog from "posthog-js";
@@ -69,7 +70,7 @@ function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
       variant="icon"
       onClick={handleDownload}
       disabled={isDownloading}
-      StartIcon={isDownloading ? "rotate-ccw" : "download"}
+      StartIcon={isDownloading ? RotateCcwIcon : DownloadIcon}
     />
   );
 }

@@ -1,6 +1,6 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import startCase from "lodash/startCase";
-import { CircleIcon } from "lucide-react";
+import { CheckIcon, CircleIcon, ClipboardIcon } from "lucide-react";
 import { useMemo } from "react";
 import { z } from "zod";
 
@@ -353,7 +353,7 @@ function CopyButton({ label, value }: { label: string; value: string }) {
       size="sm"
       className="overflow-hidden"
       tooltip={value}
-      EndIcon={isCopied ? "check" : "clipboard"}
+      EndIcon={isCopied ? CheckIcon : ClipboardIcon}
       onClick={() => {
         copyToClipboard(value);
       }}>

@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -104,7 +105,7 @@ export default function SendgridSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed === undefined ? undefined : testPassed ? "check" : "x"}
+                    StartIcon={testPassed === undefined ? undefined : testPassed ? CheckIcon : XIcon}
                     className={
                       testPassed !== undefined
                         ? testPassed

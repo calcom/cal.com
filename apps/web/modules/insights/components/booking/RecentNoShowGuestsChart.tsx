@@ -1,5 +1,7 @@
 "use client";
 
+import { ClipboardCheckIcon, ClipboardIcon } from "lucide-react";
+
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -63,7 +65,7 @@ export const RecentNoShowGuestsChart = () => {
                   <Button
                     color="minimal"
                     size="sm"
-                    StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+                    StartIcon={isCopied ? ClipboardCheckIcon : ClipboardIcon}
                     onClick={() => handleCopyEmail(item.guestEmail)}>
                     {!isCopied ? t("email") : t("copied")}
                   </Button>

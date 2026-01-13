@@ -1,6 +1,6 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import * as HoverCard from "@radix-ui/react-hover-card";
-import { CalendarX2Icon } from "lucide-react";
+import { CalendarX2Icon, ChevronRightIcon } from "lucide-react";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 
@@ -206,7 +206,7 @@ const SlotItem = ({
               <m.div key={slot.time} initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
                 <Button
                   variant={layout === "column_view" ? "icon" : "button"}
-                  StartIcon={layout === "column_view" ? "chevron-right" : undefined}
+                  StartIcon={layout === "column_view" ? ChevronRightIcon : undefined}
                   type="button"
                   className={confirmStepClassNames?.confirmButton}
                   onClick={() =>
