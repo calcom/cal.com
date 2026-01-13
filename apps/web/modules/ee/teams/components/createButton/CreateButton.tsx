@@ -102,6 +102,7 @@ export function CreateButton(props: CreateBtnProps) {
           data-testid="create-button"
           StartIcon={startIcon}
           EndIcon={endIcon}
+          size="sm"
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           className={classNames(
