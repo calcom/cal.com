@@ -1661,7 +1661,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       ?.reminderBody?.message || ""}
                   </p>
                 )}
-              {isEmailSubjectNeeded && (
+              {isEmailSubjectNeeded &&
+                trigger !== WorkflowTriggerEvents.BOOKING_REQUESTED && (
                 <div className="mt-2">
                   <Controller
                     name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}

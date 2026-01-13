@@ -262,7 +262,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           </div>
                         </div>
                         <Button
-                          color="secondary"
+                          color="destructive"
                           className="ml-auto"
                           variant="icon"
                           StartIcon="trash-2"
