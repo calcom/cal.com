@@ -64,7 +64,7 @@ export const featureOptInRouter = router({
    * Used by team admins to configure feature opt-in for their team.
    * Also returns the organization state if the team belongs to an organization.
    */
-  listForTeam: createTeamPbacProcedure("team.read").query(async ({ input }) => {
+  listForTeam: createTeamPbacProcedure("featureOptIn.read").query(async ({ input }) => {
     // Get the team's parent organization ID (if any)
     const parentOrg = await teamRepository.findParentOrganizationByTeamId(input.teamId);
     const parentOrgId = parentOrg?.id ?? null;
@@ -76,7 +76,7 @@ export const featureOptInRouter = router({
    * Get all opt-in features with states for organization settings page.
    * Used by org admins to configure feature opt-in for their organization.
    */
-  listForOrganization: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
+  listForOrganization: createOrgPbacProcedure("featureOptIn.read").query(async ({ ctx }) => {
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
     return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId });
   }),
@@ -112,7 +112,7 @@ export const featureOptInRouter = router({
   /**
    * Set team's feature state (requires team admin).
    */
-  setTeamState: createTeamPbacProcedure("team.update")
+  setTeamState: createTeamPbacProcedure("featureOptIn.update")
     .input(
       z.object({
         slug: z.string(),
@@ -140,7 +140,7 @@ export const featureOptInRouter = router({
   /**
    * Set organization's feature state (requires org admin).
    */
-  setOrganizationState: createOrgPbacProcedure("organization.update")
+  setOrganizationState: createOrgPbacProcedure("featureOptIn.update")
     .input(
       z.object({
         slug: z.string(),
@@ -191,7 +191,7 @@ export const featureOptInRouter = router({
   /**
    * Get team's auto opt-in preference (requires team admin).
    */
-  getTeamAutoOptIn: createTeamPbacProcedure("team.read").query(async ({ input }) => {
+  getTeamAutoOptIn: createTeamPbacProcedure("featureOptIn.read").query(async ({ input }) => {
     const result = await featuresRepository.getTeamsAutoOptIn([input.teamId]);
     return { autoOptIn: result[input.teamId] ?? false };
   }),
@@ -199,7 +199,7 @@ export const featureOptInRouter = router({
   /**
    * Set team's auto opt-in preference (requires team admin).
    */
-  setTeamAutoOptIn: createTeamPbacProcedure("team.update")
+  setTeamAutoOptIn: createTeamPbacProcedure("featureOptIn.update")
     .input(
       z.object({
         autoOptIn: z.boolean(),
@@ -213,7 +213,7 @@ export const featureOptInRouter = router({
   /**
    * Get organization's auto opt-in preference (requires org admin).
    */
-  getOrganizationAutoOptIn: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
+  getOrganizationAutoOptIn: createOrgPbacProcedure("featureOptIn.read").query(async ({ ctx }) => {
     const result = await featuresRepository.getTeamsAutoOptIn([ctx.organizationId]);
     return { autoOptIn: result[ctx.organizationId] ?? false };
   }),
@@ -221,7 +221,7 @@ export const featureOptInRouter = router({
   /**
    * Set organization's auto opt-in preference (requires org admin).
    */
-  setOrganizationAutoOptIn: createOrgPbacProcedure("organization.update")
+  setOrganizationAutoOptIn: createOrgPbacProcedure("featureOptIn.update")
     .input(
       z.object({
         autoOptIn: z.boolean(),
