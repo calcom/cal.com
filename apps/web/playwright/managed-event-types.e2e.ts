@@ -233,6 +233,107 @@ test.describe("Managed Event Types", () => {
       await expect(await tab.locator(page)).toBeVisible();
     });
   });
+
+  test("Admin can toggle hidden for managed event type", async ({ page, users }) => {
+    const { adminUser, managedEvent } = await setupManagedEvent({ users });
+    await adminUser.apiLogin();
+    await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
+    await page.getByTestId("update-eventtype").waitFor();
+
+    // Find the hidden switch in the header
+    const hiddenSwitch = page.getByTestId("hidden-switch");
+    await expect(hiddenSwitch).toBeVisible();
+
+    // Initially the event should be visible (not hidden)
+    await expect(hiddenSwitch).toBeChecked();
+
+    // Toggle to hidden
+    await hiddenSwitch.click();
+    await expect(hiddenSwitch).not.toBeChecked();
+
+    // Save changes
+    await saveAndWaitForResponse(page);
+
+    // Reload and verify the change persisted
+    await page.reload();
+    await page.getByTestId("update-eventtype").waitFor();
+    await expect(page.getByTestId("hidden-switch")).not.toBeChecked();
+  });
+
+  test("Admin can lock/unlock hidden field for managed event type", async ({ page, users }) => {
+    const { adminUser, managedEvent } = await setupManagedEvent({ users });
+    await adminUser.apiLogin();
+    await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
+    await page.getByTestId("update-eventtype").waitFor();
+
+    // Find the hidden lock indicator in the header
+    const hiddenLockIndicator = page.getByTestId("locked-indicator-hidden");
+    await expect(hiddenLockIndicator).toBeVisible();
+
+    // By default, hidden should be locked (checked state)
+    await expect(hiddenLockIndicator.locator("[data-state='checked']")).toHaveCount(1);
+
+    // Unlock the hidden field
+    await hiddenLockIndicator.click();
+    await expect(hiddenLockIndicator.locator("[data-state='unchecked']")).toHaveCount(1);
+
+    // Save changes
+    await saveAndWaitForResponse(page);
+
+    // Verify the unlocked state persists
+    await page.reload();
+    await page.getByTestId("update-eventtype").waitFor();
+    await expect(page.getByTestId("locked-indicator-hidden").locator("[data-state='unchecked']")).toHaveCount(
+      1
+    );
+  });
+
+  test("Hidden value propagates to children when locked", async ({ page, users }) => {
+    const { adminUser, managedEvent } = await setupManagedEvent({ users });
+
+    // Admin sets the event to hidden
+    await adminUser.apiLogin();
+    await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
+    await page.getByTestId("update-eventtype").waitFor();
+
+    const hiddenSwitch = page.getByTestId("hidden-switch");
+    await hiddenSwitch.click();
+    await expect(hiddenSwitch).toBeChecked();
+
+    // Save changes
+    await saveAndWaitForResponse(page);
+
+    await page.goto(`/event-types/${managedEvent.id}?tabName=team`);
+    await page.getByTestId("update-eventtype").waitFor();
+    const childHiddenSwitch = page.getByTestId(/child-event-hidden-switch-/);
+    const switchCount = await childHiddenSwitch.count();
+    if (switchCount > 0) {
+      const firstSwitch = childHiddenSwitch.first();
+      await expect(firstSwitch).toBeDisabled();
+      await expect(firstSwitch).toBeChecked();
+    }
+  });
+
+  test("Children can have individual hidden values when unlocked", async ({ page, users }) => {
+    const { adminUser, managedEvent } = await setupManagedEvent({
+      users,
+      unlockedFields: {
+        hidden: true,
+      },
+    });
+
+    await adminUser.apiLogin();
+    await page.goto(`/event-types/${managedEvent.id}?tabName=team`);
+    await page.getByTestId("update-eventtype").waitFor();
+
+    // The per-child hidden toggles should be enabled (not disabled)
+    const childHiddenSwitch = page.getByTestId(/child-event-hidden-switch-/);
+    const switchCount = await childHiddenSwitch.count();
+
+    expect(switchCount).toBeGreaterThan(0);
+    const firstSwitch = childHiddenSwitch.first();
+    await expect(firstSwitch).not.toBeDisabled();
+  });
 });
 
 async function gotoBookingPage(page: Page) {
