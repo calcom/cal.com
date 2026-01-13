@@ -1,3 +1,4 @@
+import { formatDateTime, formatDateTimeRange } from "@calcom/lib/dateTimeFormatter";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 
 interface EventFromToTime {
@@ -17,20 +18,27 @@ interface EventFromTime {
 
 export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: EventFromTime) => {
   const startDate = new Date(date);
-  const formattedDate = new Intl.DateTimeFormat(language, {
+
+  const formattedDate = formatDateTime(startDate, {
+    locale: language,
     timeZone,
     dateStyle: "full",
-  }).format(startDate);
+  });
 
-  const formattedTime = new Intl.DateTimeFormat(language, {
+  const formattedTime = formatDateTime(startDate, {
+    locale: language,
     timeZone,
     timeStyle: "short",
-    hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
-  })
-    .format(startDate)
-    .toLowerCase();
+    hour12: timeFormat === TimeFormat.TWELVE_HOUR,
+  });
 
-  return { date: formattedDate, time: formattedTime };
+  return {
+    date: formattedDate,
+    time:
+      timeFormat === TimeFormat.TWELVE_HOUR
+        ? formattedTime.toLowerCase()
+        : formattedTime,
+  };
 };
 
 export const formatEventFromToTime = ({
@@ -45,20 +53,26 @@ export const formatEventFromToTime = ({
     ? new Date(new Date(date).setMinutes(startDate.getMinutes() + duration))
     : startDate;
 
-  const formattedDate = new Intl.DateTimeFormat(language, {
+  const formattedDate = formatDateTimeRange(startDate, endDate, {
+    locale: language,
     timeZone,
     dateStyle: "full",
-  }).formatRange(startDate, endDate);
+  });
 
-  const formattedTime = new Intl.DateTimeFormat(language, {
+  const formattedTime = formatDateTimeRange(startDate, endDate, {
+    locale: language,
     timeZone,
     timeStyle: "short",
-    hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
-  })
-    .formatRange(startDate, endDate)
-    .toLowerCase();
+    hour12: timeFormat === TimeFormat.TWELVE_HOUR,
+  });
 
-  return { date: formattedDate, time: formattedTime };
+  return {
+    date: formattedDate,
+    time:
+      timeFormat === TimeFormat.TWELVE_HOUR
+        ? formattedTime.toLowerCase()
+        : formattedTime,
+  };
 };
 
 export const FromToTime = (props: EventFromToTime) => {
