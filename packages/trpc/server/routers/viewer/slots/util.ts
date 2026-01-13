@@ -52,7 +52,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { TRPCError } from "@trpc/server";
 import type { Logger } from "tslog";
@@ -63,7 +63,7 @@ import type { GetScheduleOptions } from "./types";
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
-type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabilityUser>, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
 
@@ -90,6 +90,14 @@ export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
 
+/**
+ * Minimal capability interface for looking up a user's organization membership.
+ * Used as a fallback when org context can't be determined from request or eventType.
+ */
+export interface OrgMembershipLookup {
+  findFirstOrganizationIdForUser(args: { userId: number }): Promise<number | null>;
+}
+
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
@@ -106,6 +114,7 @@ export interface IAvailableSlotsService {
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
   noSlotsNotificationService: NoSlotsNotificationService;
+  orgMembershipLookup: OrgMembershipLookup;
 }
 
 function withSlotsCache(
@@ -156,7 +165,7 @@ export class AvailableSlotsService {
     eventTypeId,
   }: {
     bookerClientUid: string | undefined;
-    usersWithCredentials: GetAvailabilityUser[];
+    usersWithCredentials: NonNullable<GetAvailabilityUser>[];
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
@@ -786,7 +795,7 @@ export class AvailableSlotsService {
     endTime,
     bypassBusyCalendarTimes,
     silentCalendarFailures,
-    shouldServeCache,
+    mode,
   }: {
     input: TGetScheduleInputSchema;
     eventType: Exclude<
@@ -803,7 +812,7 @@ export class AvailableSlotsService {
     endTime: Dayjs;
     bypassBusyCalendarTimes: boolean;
     silentCalendarFailures: boolean;
-    shouldServeCache?: boolean;
+    mode?: CalendarFetchMode;
   }) {
     const usersWithCredentials = this.getUsersWithCredentials({
       hosts,
@@ -940,7 +949,7 @@ export class AvailableSlotsService {
         returnDateOverrides: false,
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures: silentCalendarFailures,
-        shouldServeCache,
+        mode,
       },
       initialData: {
         eventType,
@@ -985,6 +994,55 @@ export class AvailableSlotsService {
     }
 
     return await this.dependencies.featuresRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
+  }
+
+  /**
+   * Resolves the organization ID for watchlist blocking with the following priority:
+   * 1. Request context (orgSlug) - most accurate for the current request scope
+   * 2. EventType team hierarchy - for team/managed events
+   * 3. User's org membership - fallback for personal events of org members
+   *
+   * This ensures org-scoped blocking works correctly for:
+   * - Team events under an org
+   * - Managed events (child events of org team event types)
+   * - Personal events of org members accessed via org domain
+   */
+  private async resolveOrganizationIdForBlocking({
+    orgDetails,
+    eventType,
+  }: {
+    orgDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
+    eventType: {
+      parent?: { team?: { parentId: number | null } | null } | null;
+      team?: { parentId: number | null } | null;
+      userId: number | null;
+    };
+  }): Promise<number | null> {
+    if (orgDetails.isValidOrgDomain && orgDetails.currentOrgDomain) {
+      const orgId = await this.dependencies.teamRepo.findOrganizationIdBySlug({
+        slug: orgDetails.currentOrgDomain,
+      });
+      if (orgId) {
+        return orgId;
+      }
+    }
+
+    // EventType team hierarchy - for team/managed events
+    const eventTypeOrgId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+    if (eventTypeOrgId) {
+      return eventTypeOrgId;
+    }
+
+    // User's org membership - fallback for personal events of org members
+    // This is a heuristic and uses the first org membership.
+    // TODO:When multi-org is supported, revisit.
+    if (eventType.userId) {
+      return await this.dependencies.orgMembershipLookup.findFirstOrganizationIdForUser({
+        userId: eventType.userId,
+      });
+    }
+
+    return null;
   }
 
   private async _getRegularOrDynamicEventType(
@@ -1032,7 +1090,8 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const shouldServeCache = false;
+    // Use "slots" mode to enable cache when available for getting calendar availability
+    const mode: CalendarFetchMode = "slots";
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1097,7 +1156,11 @@ export class AvailableSlotsService {
       });
 
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
-    const organizationId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+
+    const organizationId = await this.resolveOrganizationIdForBlocking({
+      orgDetails,
+      eventType,
+    });
 
     const { eligibleHosts: eligibleQualifiedRRHosts } = await filterBlockedHosts(
       qualifiedRRHosts,
@@ -1141,7 +1204,7 @@ export class AvailableSlotsService {
             : endTime,
         bypassBusyCalendarTimes,
         silentCalendarFailures,
-        shouldServeCache,
+        mode,
       });
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -1168,7 +1231,7 @@ export class AvailableSlotsService {
             endTime: twoWeeksFromNow,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
-            shouldServeCache,
+            mode,
           });
           if (
             !getAggregatedAvailability(
@@ -1204,7 +1267,7 @@ export class AvailableSlotsService {
             endTime,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
-            shouldServeCache,
+            mode,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
       }
