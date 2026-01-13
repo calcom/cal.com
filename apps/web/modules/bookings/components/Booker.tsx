@@ -527,9 +527,12 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                "flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0",
+                !isTablet && "border-subtle rtl:border-default rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
+                  !isTablet &&
                   "h-full overflow-hidden md:w-(--booker-timeslots-width)",
+                layout === BookerLayouts.MONTH_VIEW && isTablet && "h-full overflow-hidden w-full",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}
