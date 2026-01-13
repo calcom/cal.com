@@ -1515,4 +1515,22 @@ export class UserRepository {
 
     return { email: user.email, username: user.username };
   }
+
+  async findUsersByEmails({ emails }: { emails: string[] }) {
+    if (!emails || emails.length === 0) {
+      return [];
+    }
+
+    return this.prismaClient.user.findMany({
+      where: {
+        email: {
+          in: emails.map((e) => e.toLowerCase()),
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+  }
 }
