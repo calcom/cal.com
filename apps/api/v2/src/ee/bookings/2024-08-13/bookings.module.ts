@@ -49,12 +49,8 @@ import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module, Scope } from "@nestjs/common";
-import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
-import { HashedLinkService } from "@/lib/services/hashed-link.service";
-import { BookingAuditProducerService } from "@/lib/services/booking-audit-producer.service";
-import { Logger } from "@/lib/logger.bridge";
-import { TaskerService } from "@/lib/services/tasker.service";
+import { Module } from "@nestjs/common";
+import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.module";
 
 @Module({
   imports: [
@@ -76,6 +72,7 @@ import { TaskerService } from "@/lib/services/tasker.service";
     RegularBookingModule,
     RecurringBookingModule,
     InstantBookingModule,
+    BookingEventHandlerModule,
   ],
   providers: [
     TokensRepository,
@@ -108,17 +105,6 @@ import { TaskerService } from "@/lib/services/tasker.service";
     CalVideoOutputService,
     BookingPbacGuard,
     BookingLocationService_2024_08_13,
-    {
-      provide: Logger,
-      useFactory: () => {
-        return new Logger();
-      },
-      scope: Scope.TRANSIENT,
-    },
-    BookingEventHandlerService,
-    HashedLinkService,
-    BookingAuditProducerService,
-    TaskerService,
   ],
   controllers: [
     BookingsController_2024_08_13,
