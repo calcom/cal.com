@@ -62,11 +62,16 @@ export default function Bookings() {
             <DropdownMenuTrigger asChild>
               <AppPressable
                 className="flex-row items-center rounded-lg border border-gray-200 bg-white"
-                style={{ paddingHorizontal: 8, paddingVertical: 6 }}
+                style={{
+                  paddingHorizontal: 8,
+                  paddingVertical: 6,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
               >
                 <Ionicons name="options-outline" size={14} color="#333" />
                 <Text
-                  className={`text-sm ${selectedEventTypeId !== null ? "text-[#007AFF] font-semibold" : "text-[#333]"}`}
+                  className={`text-sm ${selectedEventTypeId !== null ? "text-[#000000] font-semibold" : "text-[#333]"}`}
                   style={{ marginLeft: 4 }}
                   numberOfLines={1}
                 >

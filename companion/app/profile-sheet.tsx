@@ -124,7 +124,7 @@ export default function ProfileSheet() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
       >
         {/* Profile Header */}
-        <View className="border-b border-gray-200 px-6 py-6">
+        <View className="px-6 py-6">
           {isLoading ? (
             <View className="items-center py-8">
               <ActivityIndicator size="large" color="#000" />

@@ -125,9 +125,7 @@ export class BookingAuditViewerService {
                 userTimeZone,
             });
             if (rescheduledFromLog) {
-                // Add the rescheduled log from the previous booking as the first entry
-                // (appears last chronologically since logs are ordered by timestamp DESC)
-                enrichedAuditLogs.unshift(rescheduledFromLog);
+                enrichedAuditLogs.push(rescheduledFromLog);
             }
         }
 
