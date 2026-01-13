@@ -32,6 +32,7 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { CalVideoSettings } from "@calcom/features/eventtypes/lib/types";
 import { v4 as uuidv4 } from "uuid";
 
 import { getCalEventResponses } from "./getCalEventResponses";
@@ -117,6 +118,7 @@ export async function handleConfirmation(args: {
       workflows?: {
         workflow: Workflow;
       }[];
+      calVideoSettings?: CalVideoSettings | null;
     } | null;
     metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
@@ -548,6 +550,7 @@ export async function handleConfirmation(args: {
       teamId,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
+      calVideoSettings: booking.eventType?.calVideoSettings ?? null,
     });
 
     const eventTypeInfo: EventTypeInfo = {

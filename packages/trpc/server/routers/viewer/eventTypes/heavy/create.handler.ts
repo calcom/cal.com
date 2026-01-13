@@ -93,6 +93,10 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
         requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+        enableAutomaticNoShowTrackingForHosts:
+          calVideoSettings.enableAutomaticNoShowTrackingForHosts ?? false,
+        enableAutomaticNoShowTrackingForGuests:
+          calVideoSettings.enableAutomaticNoShowTrackingForGuests ?? false,
       },
     };
   }

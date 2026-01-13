@@ -21,6 +21,8 @@ export class CalVideoSettingsRepository {
       disableTranscriptionForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
       requireEmailForGuests?: boolean | null;
+      enableAutomaticNoShowTrackingForHosts?: boolean | null;
+      enableAutomaticNoShowTrackingForGuests?: boolean | null;
     };
   }) {
     return await prisma.calVideoSettings.create({
@@ -33,6 +35,10 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
         requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+        enableAutomaticNoShowTrackingForHosts:
+          calVideoSettings.enableAutomaticNoShowTrackingForHosts ?? false,
+        enableAutomaticNoShowTrackingForGuests:
+          calVideoSettings.enableAutomaticNoShowTrackingForGuests ?? false,
         eventTypeId,
       },
     });
@@ -52,6 +58,8 @@ export class CalVideoSettingsRepository {
       enableAutomaticRecordingForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
       requireEmailForGuests?: boolean | null;
+      enableAutomaticNoShowTrackingForHosts?: boolean | null;
+      enableAutomaticNoShowTrackingForGuests?: boolean | null;
     };
   }) {
     return await prisma.calVideoSettings.upsert({
@@ -65,6 +73,10 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
         requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+        enableAutomaticNoShowTrackingForHosts:
+          calVideoSettings.enableAutomaticNoShowTrackingForHosts ?? false,
+        enableAutomaticNoShowTrackingForGuests:
+          calVideoSettings.enableAutomaticNoShowTrackingForGuests ?? false,
         updatedAt: new Date(),
       },
       create: {
@@ -76,6 +88,10 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
         requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+        enableAutomaticNoShowTrackingForHosts:
+          calVideoSettings.enableAutomaticNoShowTrackingForHosts ?? false,
+        enableAutomaticNoShowTrackingForGuests:
+          calVideoSettings.enableAutomaticNoShowTrackingForGuests ?? false,
         eventTypeId,
       },
     });

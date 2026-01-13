@@ -54,6 +54,7 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants,
+    isAutomaticTrackingOnly,
   } = result;
 
   const hostEmails = new Set(hosts.map((h) => h.email));
@@ -73,14 +74,17 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
       const bookingWithUpdatedData = updatedAttendees
         ? { ...booking, attendees: updatedAttendees, guests }
         : booking;
-      await sendWebhookPayload(
-        webhook,
-        WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        bookingWithUpdatedData,
-        maxStartTime,
-        participants,
-        originalRescheduledBooking
-      );
+
+      if (!isAutomaticTrackingOnly) {
+        await sendWebhookPayload(
+          webhook,
+          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+          bookingWithUpdatedData,
+          maxStartTime,
+          participants,
+          originalRescheduledBooking
+        );
+      }
     }
   } else {
     if (!didGuestJoinTheCall) {
@@ -92,14 +96,17 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
       const bookingWithUpdatedData = updatedAttendees
         ? { ...booking, attendees: updatedAttendees, guests }
         : booking;
-      await sendWebhookPayload(
-        webhook,
-        WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        bookingWithUpdatedData,
-        maxStartTime,
-        participants,
-        originalRescheduledBooking
-      );
+
+      if (!isAutomaticTrackingOnly) {
+        await sendWebhookPayload(
+          webhook,
+          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+          bookingWithUpdatedData,
+          maxStartTime,
+          participants,
+          originalRescheduledBooking
+        );
+      }
     }
   }
 }

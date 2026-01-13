@@ -790,6 +790,8 @@ export class EventTypeRepository {
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
           requireEmailForGuests: true,
+          enableAutomaticNoShowTrackingForHosts: true,
+          enableAutomaticNoShowTrackingForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
@@ -1090,6 +1092,8 @@ export class EventTypeRepository {
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
           requireEmailForGuests: true,
+          enableAutomaticNoShowTrackingForHosts: true,
+          enableAutomaticNoShowTrackingForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;

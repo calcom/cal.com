@@ -3981,6 +3981,8 @@
   "voice_id": "Voice ID",
   "use_voice": "Use Voice",
   "current_voice": "Current Voice",
+  "enable_automatic_no_show_tracking_for_hosts": "Enable automatic no-show tracking for hosts",
+  "enable_automatic_no_show_tracking_for_guests": "Enable automatic no-show tracking for guests",
   "setup_incoming_agent": "Set up incoming agent",
   "setup_incoming_agent_description": "Configure an AI agent to handle incoming calls on your phone number",
   "connect_a_phone_number_first": "Connect a Phone Number first",
