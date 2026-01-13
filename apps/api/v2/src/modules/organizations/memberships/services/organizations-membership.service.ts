@@ -29,8 +29,8 @@ export class OrganizationsMembershipService {
     private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
     private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService,
     private readonly oAuthClientsRepository: OAuthClientRepository,
-    private readonly delegationCredentialRepository: OrganizationsDelegationCredentialRepository,
-    private readonly usersRepository: UsersRepository,
+    @Optional() private readonly delegationCredentialRepository?: OrganizationsDelegationCredentialRepository,
+    private readonly usersRepository?: UsersRepository,
     @Optional() @InjectQueue(CALENDARS_QUEUE) private readonly calendarsQueue?: Queue
   ) {}
 
@@ -125,7 +125,7 @@ export class OrganizationsMembershipService {
   }
 
   private async ensureDefaultCalendarsForDelegationCredential(organizationId: number, userId: number) {
-    if (!this.calendarsQueue) {
+    if (!this.calendarsQueue || !this.delegationCredentialRepository || !this.usersRepository) {
       return;
     }
 
