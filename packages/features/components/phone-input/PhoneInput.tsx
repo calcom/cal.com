@@ -14,7 +14,7 @@ import classNames from "@calcom/ui/classNames";
 const CUSTOM_PHONE_MASKS = {
   ci: ".. .. .. .. ..",
   bj: ".. .. .. .. ..",
-  at: "... ... ....",
+  at: "... ..........",
 };
 
 export type PhoneInputProps = {
