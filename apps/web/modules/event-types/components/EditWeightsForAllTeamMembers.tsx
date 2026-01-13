@@ -26,9 +26,9 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 
 import {
-  useTeamMembersWithSegment,
   useTeamMembersWithSegmentPlatform,
-} from "../../../../../packages/platform/atoms/event-types/hooks/useTeamMembersWithSegment";
+} from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
+import { useTeamMembersWithSegment } from "@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };

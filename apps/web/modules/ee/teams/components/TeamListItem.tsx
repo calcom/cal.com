@@ -308,6 +308,7 @@ export default function TeamListItem(props: Props) {
                               color="destructive"
                               type="button"
                               StartIcon={LogOutIcon}
+                              className="rounded-t-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>

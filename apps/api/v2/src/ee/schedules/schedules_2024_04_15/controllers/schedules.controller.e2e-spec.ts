@@ -1,5 +1,16 @@
-import { bootstrap } from "@/app";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_04_15 } from "@calcom/platform-constants";
+import type { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { CreateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/create-schedule.output";
 import { GetSchedulesOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-schedules.output";
@@ -9,18 +20,6 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_04_15 } from "@calcom/platform-constants";
-import type { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
-import type { User } from "@calcom/prisma/client";
 
 describe("Schedules Endpoints", () => {
   describe("User Authentication", () => {
@@ -214,7 +213,7 @@ describe("Schedules Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       try {
         await scheduleRepositoryFixture.deleteById(createdSchedule.id);
-      } catch (e) {}
+      } catch (_e) {}
 
       await app.close();
     });

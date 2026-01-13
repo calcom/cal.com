@@ -579,5 +579,6 @@ function getTrpcHandlerData({
       } as unknown as NonNullable<TrpcSessionUser>,
     },
     input: input,
+    source: "WEBAPP" as const,
   };
 }
