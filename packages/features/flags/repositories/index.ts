@@ -1,29 +1,29 @@
 export {
   PrismaFeatureRepository,
   type IPrismaFeatureRepository,
-} from "./prisma-feature.repository";
+} from "./PrismaFeatureRepository";
 
 export {
   PrismaTeamFeatureRepository,
   type IPrismaTeamFeatureRepository,
-} from "./prisma-team-feature.repository";
+} from "./PrismaTeamFeatureRepository";
 
 export {
   PrismaUserFeatureRepository,
   type IPrismaUserFeatureRepository,
-} from "./prisma-user-feature.repository";
+} from "./PrismaUserFeatureRepository";
 
 export {
   RedisFeatureRepository,
   type IRedisFeatureRepository,
-} from "./redis-feature.repository";
+} from "./RedisFeatureRepository";
 
 export {
   RedisTeamFeatureRepository,
   type IRedisTeamFeatureRepository,
-} from "./redis-team-feature.repository";
+} from "./RedisTeamFeatureRepository";
 
 export {
   RedisUserFeatureRepository,
   type IRedisUserFeatureRepository,
-} from "./redis-user-feature.repository";
+} from "./RedisUserFeatureRepository";
