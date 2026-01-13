@@ -5,7 +5,7 @@ import type { OptInFeaturePolicy } from "../types";
 import { getOptInFeatureConfig, OPT_IN_FEATURES } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
-import type { IFeatureOptInService, ResolvedFeatureState } from "./IFeatureOptInService";
+import type { EffectiveStateReason, IFeatureOptInService, ResolvedFeatureState } from "./IFeatureOptInService";
 
 type ListFeaturesForUserResult = {
   featureId: FeatureId;

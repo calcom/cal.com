@@ -2,6 +2,8 @@ import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 
 import type { EffectiveStateReason } from "../lib/computeEffectiveState";
 
+export type { EffectiveStateReason };
+
 export type ResolvedFeatureState = {
   featureId: FeatureId;
   globalEnabled: boolean;
@@ -26,8 +28,8 @@ export interface IFeatureOptInService {
     ResolvedFeatureState[]
   >;
   listFeaturesForTeam(
-    input: { teamId: number }
-  ): Promise<{ featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState }[]>;
+    input: { teamId: number; parentOrgId?: number | null }
+  ): Promise<{ featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState; orgState: FeatureState }[]>;
   setUserFeatureState(
     input:
       | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
