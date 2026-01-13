@@ -898,6 +898,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
+      impersonatedByUserUuid: null,
     });
 
     if (!res.onlyRemovedAttendee) {

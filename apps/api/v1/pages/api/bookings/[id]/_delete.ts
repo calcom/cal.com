@@ -82,6 +82,7 @@ async function handler(req: NextApiRequest) {
   return await handleCancelBooking({
     bookingData: { id, allRemainingBookings, cancellationReason, cancelledBy },
     userId: req.userId,
+    impersonatedByUserUuid: null,
   });
 }
 
