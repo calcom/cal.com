@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -14,6 +13,7 @@ import {
 } from "../oauth/OAuthClientCreateDialog";
 import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
+import { NewOAuthClientButton } from "../oauth/NewOAuthClientButton";
 
 import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
@@ -116,23 +116,15 @@ const OAuthClientsView = () => {
     return <OAuthClientsSkeleton />;
   }
 
-  const NewOAuthClientButton = () => (
-    <Button
-      color="secondary"
-      StartIcon="plus"
-      size="sm"
-      variant="fab"
-      data-testid="open-oauth-client-create-dialog"
-      onClick={() => setShowDialog(true)}>
-      {t("new")}
-    </Button>
+  const newOAuthClientButton = (
+    <NewOAuthClientButton dataTestId="open-oauth-client-create-dialog" onClick={() => setShowDialog(true)} />
   );
 
   return (
     <SettingsHeader
       title={t("oauth_clients")}
       description={t("oauth_clients_description")}
-      CTA={<NewOAuthClientButton />}>
+      CTA={newOAuthClientButton}>
       {oAuthClients && oAuthClients.length > 0 ? (
         <OAuthClientsList
           clients={oAuthClients.map((client) => ({
@@ -153,9 +145,7 @@ const OAuthClientsView = () => {
           Icon="key"
           headline={t("no_oauth_clients")}
           description={t("no_oauth_clients_description")}
-          buttonRaw={
-            <NewOAuthClientButton />
-          }
+          buttonRaw={newOAuthClientButton}
         />
       )}
 

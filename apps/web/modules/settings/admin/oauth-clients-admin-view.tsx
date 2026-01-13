@@ -6,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
-import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -17,6 +16,7 @@ import {
 } from "../oauth/OAuthClientCreateDialog";
 import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
+import { NewOAuthClientButton } from "../oauth/NewOAuthClientButton";
 
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
@@ -111,15 +111,10 @@ export default function OAuthClientsAdminView() {
   }
 
   const newOAuthClientButton = (
-    <Button
-      color="secondary"
-      StartIcon="plus"
-      size="sm"
-      variant="fab"
-      data-testid="open-admin-oauth-client-create-dialog"
-      onClick={() => setShowCreateDialog(true)}>
-      {t("new")}
-    </Button>
+    <NewOAuthClientButton
+      dataTestId="open-admin-oauth-client-create-dialog"
+      onClick={() => setShowCreateDialog(true)}
+    />
   );
 
   const hasClients =
