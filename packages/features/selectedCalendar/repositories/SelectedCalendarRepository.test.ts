@@ -131,6 +131,7 @@ describe("SelectedCalendarRepository", () => {
               },
             },
           },
+          AND: undefined,
         },
         take: 10,
       });
@@ -160,6 +161,7 @@ describe("SelectedCalendarRepository", () => {
               },
             },
           },
+          AND: undefined,
         },
         take: 5,
       });
@@ -189,6 +191,43 @@ describe("SelectedCalendarRepository", () => {
               },
             },
           },
+          AND: undefined,
+        },
+        take: 10,
+      });
+
+      expect(result).toEqual(mockCalendars);
+    });
+
+    test("should filter out generic calendars when genericCalendarSuffixes is provided", async () => {
+      const mockCalendars = [mockSelectedCalendar];
+      vi.mocked(mockPrismaClient.selectedCalendar.findMany).mockResolvedValue(mockCalendars);
+
+      const genericSuffixes = ["@group.v.calendar.google.com", "@group.calendar.google.com"];
+
+      const result = await repository.findNextSubscriptionBatch({
+        take: 10,
+        teamIds: [1, 2],
+        integrations: ["google_calendar"],
+        genericCalendarSuffixes: genericSuffixes,
+      });
+
+      expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
+        where: {
+          integration: { in: ["google_calendar"] },
+          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
+          user: {
+            teams: {
+              some: {
+                teamId: { in: [1, 2] },
+                accepted: true,
+              },
+            },
+          },
+          AND: [
+            { NOT: { externalId: { endsWith: "@group.v.calendar.google.com" } } },
+            { NOT: { externalId: { endsWith: "@group.calendar.google.com" } } },
+          ],
         },
         take: 10,
       });

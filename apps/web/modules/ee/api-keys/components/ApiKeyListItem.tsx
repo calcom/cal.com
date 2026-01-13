@@ -84,7 +84,7 @@ const ApiKeyListItem = ({
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-transparent">
+            <DropdownMenuItem>
               <DropdownItem
                 type="button"
                 color="destructive"
