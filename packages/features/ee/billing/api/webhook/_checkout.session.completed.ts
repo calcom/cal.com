@@ -1,20 +1,52 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
+import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
+import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import prisma from "@calcom/prisma";
+import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { CHECKOUT_SESSION_TYPES } from "../../constants";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
 
+const log = logger.getSubLogger({ prefix: ["checkout.session.completed"] });
+
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const session = data.object;
 
+  // Store ad tracking data in Stripe customer metadata for Zapier tracking
+  if (session.customer && session.metadata) {
+    try {
+      const trackingMetadata = {
+        gclid: session.metadata?.gclid,
+        campaignId: session.metadata?.campaignId,
+        liFatId: session.metadata?.liFatId,
+        linkedInCampaignId: session.metadata?.linkedInCampaignId,
+      };
+
+      const cleanedMetadata = Object.fromEntries(
+        Object.entries(trackingMetadata).filter(([_, value]) => value)
+      );
+
+      if (Object.keys(cleanedMetadata).length > 0) {
+        const customerId = typeof session.customer === "string" ? session.customer : session.customer.id;
+        await stripe.customers.update(customerId, {
+          metadata: cleanedMetadata,
+        });
+      }
+    } catch (error) {
+      log.error("Failed to update Stripe customer metadata with ad tracking data", { error });
+    }
+  }
+
   if (session.metadata?.type === CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION) {
     return await handleCalAIPhoneNumberSubscription(session);
+  }
+
+  if (session.metadata?.type === CHECKOUT_SESSION_TYPES.TEAM_CREATION) {
+    return await handleTeamCreationCheckoutSessionComplete(session);
   }
 
   // Handle credit purchases (existing logic)
@@ -75,6 +107,17 @@ async function saveToCreditBalance({
       creditBalanceId,
     });
   }
+}
+
+async function handleTeamCreationCheckoutSessionComplete(
+  session: SWHMap["checkout.session.completed"]["data"]["object"]
+) {
+  log.info("Team creation checkout session completed - handled via redirect flow", {
+    sessionId: session.id,
+    teamName: session.metadata?.teamName,
+    teamSlug: session.metadata?.teamSlug,
+  });
+  return { success: true, message: "Team checkout handled via redirect" };
 }
 
 async function handleCalAIPhoneNumberSubscription(

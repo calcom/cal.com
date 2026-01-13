@@ -2,9 +2,9 @@ import type { NextApiRequest } from "next";
 
 import type { UserWithCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";

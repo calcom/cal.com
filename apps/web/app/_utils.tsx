@@ -66,10 +66,10 @@ export const _generateMetadata = async (
   );
   const image =
     SEO_IMG_OGIMG +
-    constructGenericImage({
+    (await constructGenericImage({
       title: metadata.title,
       description: metadata.description,
-    });
+    }));
 
   return {
     ...metadata,
@@ -80,7 +80,7 @@ export const _generateMetadata = async (
   };
 };
 
-export const _generateMetadataForStaticPage = (
+export const _generateMetadataForStaticPage = async (
   title: string,
   description: string,
   hideBranding?: boolean,
@@ -108,10 +108,10 @@ export const _generateMetadataForStaticPage = (
   };
   const image =
     SEO_IMG_OGIMG +
-    constructGenericImage({
+    (await constructGenericImage({
       title: metadata.title,
       description: metadata.description,
-    });
+    }));
 
   return {
     ...metadata,
@@ -137,7 +137,7 @@ export const generateMeetingMetadata = async (
     origin,
     pathname
   );
-  const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
+  const image = SEO_IMG_OGIMG + (await constructMeetingImage(meeting));
 
   return {
     ...metadata,
@@ -164,7 +164,7 @@ export const generateAppMetadata = async (
     pathname
   );
 
-  const image = SEO_IMG_OGIMG + constructAppImage({ ...app, description: metadata.description });
+  const image = SEO_IMG_OGIMG + (await constructAppImage({ ...app, description: metadata.description }));
 
   return {
     ...metadata,

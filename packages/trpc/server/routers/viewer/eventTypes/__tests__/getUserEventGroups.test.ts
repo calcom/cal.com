@@ -12,31 +12,41 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
-  MembershipRepository: {
-    findAllByUpIdIncludeTeam: vi.fn(),
-  },
+const { mockFindAllByUpIdIncludeTeam, MockMembershipRepository } = vi.hoisted(() => {
+  const mockFindAllByUpIdIncludeTeam = vi.fn();
+  const mockFindUniqueByUserIdAndTeamId = vi.fn();
+
+  class MockMembershipRepository {
+    static findAllByUpIdIncludeTeam = mockFindAllByUpIdIncludeTeam;
+    findUniqueByUserIdAndTeamId = mockFindUniqueByUserIdAndTeamId;
+  }
+
+  return { mockFindAllByUpIdIncludeTeam, MockMembershipRepository };
+});
+
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
+  MembershipRepository: MockMembershipRepository,
 }));
 
-vi.mock("@calcom/lib/server/repository/profile", () => ({
+vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   ProfileRepository: {
-    findByUpId: vi.fn(),
+    findByUpIdWithAuth: vi.fn(),
   },
 }));
 
 const mockFilterTeamsByEventTypeReadPermission = vi.fn();
 
 vi.mock("../teamAccessUseCase", () => ({
-  TeamAccessUseCase: vi.fn().mockImplementation(() => ({
+  TeamAccessUseCase: vi.fn().mockImplementation(function() { return {
     filterTeamsByEventTypeReadPermission: mockFilterTeamsByEventTypeReadPermission,
-  })),
+  }; }),
 }));
 
-vi.mock("@calcom/lib/getBookerUrl/server", () => ({
+vi.mock("@calcom/features/ee/organizations/lib/getBookerUrlServer", () => ({
   getBookerBaseUrl: vi.fn().mockResolvedValue("https://cal.com"),
 }));
 
-vi.mock("@calcom/lib/getBookerUrl/client", () => ({
+vi.mock("@calcom/features/ee/organizations/lib/getBookerBaseUrlSync", () => ({
   getBookerBaseUrlSync: vi.fn().mockReturnValue("https://cal.com"),
 }));
 
@@ -68,7 +78,11 @@ describe("getUserEventGroups", () => {
     organizationId: null,
     organization: null,
   } as unknown as NonNullable<
-    Awaited<ReturnType<typeof import("@calcom/lib/server/repository/profile").ProfileRepository.findByUpId>>
+    Awaited<
+      ReturnType<
+        typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpIdWithAuth
+      >
+    >
   >;
 
   const mockCtx = {
@@ -82,8 +96,8 @@ describe("getUserEventGroups", () => {
 
   describe("Basic functionality", () => {
     it("should throw TRPCError when profile is not found", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(null);
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(null);
 
       await expect(
         getUserEventGroups({
@@ -94,11 +108,10 @@ describe("getUserEventGroups", () => {
     });
 
     it("should return user event groups when no filters are applied", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
-      const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
-      vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([]);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
+      mockFindAllByUpIdIncludeTeam.mockResolvedValue([]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([]);
 
       const result = await getUserEventGroups({
@@ -122,8 +135,7 @@ describe("getUserEventGroups", () => {
 
   describe("Team memberships", () => {
     it("should include team events when team memberships exist", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
-      const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
       const mockTeamMembership = {
@@ -148,13 +160,13 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
-      vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
+      mockFindAllByUpIdIncludeTeam.mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 
       vi.mocked(getResourcePermissions).mockResolvedValue({
@@ -182,8 +194,7 @@ describe("getUserEventGroups", () => {
 
   describe("Permissions", () => {
     it("should handle PBAC permissions correctly", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
-      const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
       const mockTeamMembership = {
@@ -208,13 +219,13 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
-      vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
+      mockFindAllByUpIdIncludeTeam.mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 
       vi.mocked(getResourcePermissions).mockResolvedValue({
@@ -236,8 +247,7 @@ describe("getUserEventGroups", () => {
     });
 
     it("should fallback to role-based permissions when PBAC fails", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
-      const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
       const mockTeamMembership = {
@@ -262,13 +272,13 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
-      vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
+      mockFindAllByUpIdIncludeTeam.mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 
       vi.mocked(getResourcePermissions).mockRejectedValue(new Error("PBAC failed"));
@@ -288,8 +298,7 @@ describe("getUserEventGroups", () => {
 
   describe("Organization handling", () => {
     it("should handle organization locked event types", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
-      const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
 
       const mockProfileWithOrg = {
         ...mockProfile,
@@ -300,12 +309,14 @@ describe("getUserEventGroups", () => {
         },
       } as unknown as NonNullable<
         Awaited<
-          ReturnType<typeof import("@calcom/lib/server/repository/profile").ProfileRepository.findByUpId>
+          ReturnType<
+            typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpIdWithAuth
+          >
         >
       >;
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfileWithOrg);
-      vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([]);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfileWithOrg);
+      mockFindAllByUpIdIncludeTeam.mockResolvedValue([]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([]);
 
       const result = await getUserEventGroups({
@@ -319,8 +330,7 @@ describe("getUserEventGroups", () => {
 
   describe("Routing forms", () => {
     it("should handle routing forms slug format", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
-      const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
       const mockTeamMembership = {
@@ -345,13 +355,13 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
-      vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
+      mockFindAllByUpIdIncludeTeam.mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 
       vi.mocked(getResourcePermissions).mockResolvedValue({

@@ -265,6 +265,7 @@ describe("scheduleNoShowTriggers Integration", () => {
         payloadTemplate: null,
         secret: null,
         appId: null,
+        version: "2021-10-20",
       },
     });
 
@@ -273,8 +274,8 @@ describe("scheduleNoShowTriggers Integration", () => {
     expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
       expect.objectContaining({
         webhook: expect.objectContaining({
-          id: hostWebhook.id,
           subscriberUrl: "https://example.com/host-webhook",
+          version: "2021-10-20",
         }),
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         data: expect.objectContaining({
@@ -287,6 +288,11 @@ describe("scheduleNoShowTriggers Integration", () => {
               user_name: "Guest User",
             }),
           ]),
+          webhook: expect.objectContaining({
+            id: hostWebhook.id,
+            subscriberUrl: "https://example.com/host-webhook",
+            version: "2021-10-20",
+          }),
         }),
       })
     );

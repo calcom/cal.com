@@ -1,6 +1,6 @@
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
+import { deleteUser } from "@calcom/features/users/lib/deleteUser";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";

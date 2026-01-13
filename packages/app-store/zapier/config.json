@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Zapier",
+  "slug": "zapier",
+  "type": "zapier_automation",
+  "logo": "icon.svg",
+  "url": "https://zapier.com/apps/calcom/integrations",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Workflow automation for everyone. Use the Cal.com Zapier app to automate your workflows when a booking is created, rescheduled, cancelled or when a meeting ends.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

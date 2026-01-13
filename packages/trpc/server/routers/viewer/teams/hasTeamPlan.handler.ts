@@ -1,5 +1,5 @@
 import { BillingPlanService } from "@calcom/features/ee/billing/domain/billing-plans";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
 
 type HasTeamPlanOptions = {

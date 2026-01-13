@@ -35,8 +35,8 @@ describe("getEventTypePermissions", () => {
       getResourcePermissions: vi.fn(),
     };
 
-    vi.mocked(FeaturesRepository).mockImplementation(() => mockFeaturesRepository as any);
-    vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
+    vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
+    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
 
     prisma.membership.findFirst = vi.fn();
     prisma.team.findUnique = vi.fn();
@@ -423,11 +423,9 @@ describe("getEventTypePermissions", () => {
       });
 
       it("should use org MEMBER role when user has no team membership", async () => {
-        (prisma.membership.findFirst as Mock)
-          .mockResolvedValueOnce(null)
-          .mockResolvedValueOnce({
-            role: MembershipRole.MEMBER,
-          });
+        (prisma.membership.findFirst as Mock).mockResolvedValueOnce(null).mockResolvedValueOnce({
+          role: MembershipRole.MEMBER,
+        });
 
         const result = await getEventTypePermissions(1, 2);
 
@@ -459,9 +457,7 @@ describe("getEventTypePermissions", () => {
 
   describe("error handling", () => {
     it("should propagate errors from FeaturesRepository", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockRejectedValue(
-        new Error("Database connection failed")
-      );
+      mockFeaturesRepository.checkIfTeamHasFeature.mockRejectedValue(new Error("Database connection failed"));
 
       await expect(getEventTypePermissions(1, 2)).rejects.toThrow("Database connection failed");
     });
@@ -550,8 +546,8 @@ describe("getEventTypePermissions", () => {
       vi.clearAllMocks();
 
       // Re-initialize mocks after clearing
-      vi.mocked(FeaturesRepository).mockImplementation(() => mockFeaturesRepository as any);
-      vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
+      vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
+      vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
       prisma.membership.findFirst = vi.fn();
       prisma.team.findUnique = vi.fn();
 

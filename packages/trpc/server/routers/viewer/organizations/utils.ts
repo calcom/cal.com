@@ -1,3 +1,4 @@
+import { TeamRepository } from "@calcom/ee/teams/repositories/TeamRepository";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
@@ -16,6 +17,21 @@ interface AddBulkToTeamProps {
 
 export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => {
   if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  const teamRepository = new TeamRepository(prisma);
+  const teamsNotBelongingToOrg = await teamRepository.findTeamsNotBelongingToOrgByIds({
+    teamIds: input.teamIds,
+    orgId: user.organizationId,
+  });
+
+  if (teamsNotBelongingToOrg.length > 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `One or more teams do not belong to your organization: ${teamsNotBelongingToOrg
+        .map((team) => team.id)
+        .join(", ")}`,
+    });
+  }
 
   // Check if user has permission to invite team members in the organization
   const permissionCheckService = new PermissionCheckService();

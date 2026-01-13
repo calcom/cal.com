@@ -672,12 +672,15 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
   await page.locator('[data-testid="preview-button"]').click();
   const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
+  await previewTabPage.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
   return previewTabPage;
 }
 
 async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }
@@ -756,7 +759,7 @@ test.describe("Text area min and max characters text", () => {
       await element.click();
       const locatorForSelect = page.locator("[id=test-field-type]").nth(0);
       await locatorForSelect.click();
-      await locatorForSelect.locator(`text="Long Text"`).click();
+      await page.getByTestId("select-option-textarea").click();
 
       await page.fill('[name="name"]', questionName);
       await page.fill('[name="label"]', questionName);

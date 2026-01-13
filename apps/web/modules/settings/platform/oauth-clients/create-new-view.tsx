@@ -2,9 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
@@ -17,11 +15,11 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
+import Shell from "~/shell/Shell";
+
 export default function CreateOAuthClient() {
-  const searchParams = useCompatSearchParams();
   const router = useRouter();
   const { t } = useLocale();
-  const clientId = searchParams?.get("clientId") || "";
 
   const { isUserLoading, isPlatformUser, isPaidUser } = useGetUserAttributes();
 
@@ -77,24 +75,7 @@ export default function CreateOAuthClient() {
                 </p>
               </div>
             </div>
-            <OAuthClientForm
-              isPending={isSaving}
-              onSubmit={onSubmit}
-              defaultValues={{
-                areCalendarEventsEnabled: true,
-                areEmailsEnabled: true,
-                eventTypeRead: true,
-                eventTypeWrite: true,
-                bookingRead: true,
-                bookingWrite: true,
-                scheduleRead: true,
-                scheduleWrite: true,
-                appsRead: true,
-                appsWrite: true,
-                profileRead: true,
-                profileWrite: true,
-              }}
-            />
+            <OAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
           </div>
         </Shell>
       </div>

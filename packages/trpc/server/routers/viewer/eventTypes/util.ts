@@ -1,10 +1,10 @@
 import { z } from "zod";
 
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { PeriodType } from "@calcom/prisma/enums";
@@ -61,7 +61,10 @@ export const eventOwnerProcedure = authedProcedure
 
     const isAuthorized = (function () {
       if (event.team) {
-        return event.team.members.map((member) => member.userId).includes(ctx.user.id);
+        const teamMember = event.team.members.find((member) => member.userId === ctx.user.id);
+        const isOwnerOrAdmin = teamMember?.role === "ADMIN" || teamMember?.role === "OWNER";
+
+        return isOwnerOrAdmin;
       }
       return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
     })();
@@ -274,40 +277,37 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
   if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Both Email and Attendee Phone Number cannot be hidden`,
+      message: "booking_fields_email_and_phone_both_hidden",
     });
   }
   if (!emailField?.required && !attendeePhoneNumberField?.required) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `At least Email or Attendee Phone Number need to be required field.`,
+      message: "booking_fields_email_or_phone_required",
+    });
+  }
+  if (emailField?.hidden && !attendeePhoneNumberField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "booking_fields_phone_required_when_email_hidden",
+    });
+  }
+  if (attendeePhoneNumberField?.hidden && !emailField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "booking_fields_email_required_when_phone_hidden",
     });
   }
 }
-
-type Host = {
-  userId: number;
-  isFixed?: boolean | undefined;
-  priority?: number | null | undefined;
-  weight?: number | null | undefined;
-  scheduleId?: number | null | undefined;
-  groupId: string | null;
-};
-
-type User = {
-  id: number;
-  email: string;
-};
 
 export const mapEventType = async (eventType: EventType) => ({
   ...eventType,
   safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
   users: await Promise.all(
-    (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-      async (u) =>
-        await new UserRepository(prisma).enrichUserWithItsProfile({
-          user: u,
-        })
+    (eventType?.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users).map(async (u) =>
+      new UserRepository(prisma).enrichUserWithItsProfile({
+        user: u,
+      })
     )
   ),
   metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,

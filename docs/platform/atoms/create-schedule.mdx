@@ -1,0 +1,127 @@
+---
+title: "Create schedule"
+---
+
+The Create Schedule atom provides a simple dialog interface for users to create new availability
+schedules. Fully customizable with callback support for handling successful schedule creation.
+
+Below code snippet can be used to render the Create schedule atom
+
+```js
+import { CreateSchedule } from "@calcom/atoms";
+
+export default function CreateSchedule() {
+  return (
+    <>
+      <CreateSchedule
+        name="Create new schedule"
+        customClassNames={{
+          createScheduleButton: "bg-red-500 border-none my-4 mx-2 rounded-md",
+        }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the Create schedule atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/2d80dd0dddb64c6fb755b00091bdbced?sid=540f2e02-085e-4240-8b64-ca269cf2bb08"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+For developers who don't want the dialog-based interface, we provide a `CreateScheduleForm` atom to integrate the schedule
+creation form directly into your own UI. This headless approach gives you full flexibility to
+handle layout, styling, and user flow exactly how you need it.
+
+Below code snippet can be used to render the Create schedule form atom
+
+```js
+import { CreateScheduleForm } from "@calcom/atoms";
+
+export default function CreateScheduleForm() {
+  return (
+    <>
+      <CreateScheduleForm
+        customClassNames={{
+          atomsWrapper: "border-black border w-[500px] my-10 mx-5 rounded-md px-5 py-5",
+          buttons: {
+            continue: "bg-red-400 border-none",
+            container: "justify-start",
+          },
+        }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the Create schedule form, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/6f019f1ba49a43439032d2d6b434c17c?sid=448e105f-14f2-4735-979d-30470e7c10d1"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+We offer all kinds of customizations to the Create schedule atom via props. Below is a list of props that can be passed to the atom.
+
+<p></p>
+
+| Name             | Required | Description                                                              |
+| :--------------- | :------- | :----------------------------------------------------------------------- |
+| name             | No       | The label for the create schedule button                 |
+| customClassNames | No       | To pass in custom classnames from outside for styling the atom                                       |
+| onSuccess        | No       | Callback function that handles successful creation of schedule             |
+| onError          | No       | Callback function to handles errors at the time of schedule creation                          |
+| disableToasts    | No       | Boolean value that determines whether the toasts are displayed or not |
+
+
+Along with the props, create schedule atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+<p></p>
+| Name                      | Description                                                           |
+|:---------------------------|:-----------------------------------------------------------------------|
+| createScheduleButton              | Adds styling to the create button            |
+| inputField              | Adds styling to the container of the name input field               |
+| formWrapper              | Adds styling to the whole form              |
+| actionsButtons              | Object containing classnames for the submit, cancel buttons and container inside the create schedule atom             |
+
+Similar to the create schedule atom, the create schedule form also offer all kinds of customizations via props. Below is a list of props that can be passed to the atom.
+<p></p>
+| customClassNames | No       | To pass in custom classnames from outside for styling the atom                                       |
+| onSuccess        | No       | Callback function that handles successful creation of schedule             |
+| onError          | No       | Callback function to handles errors at the time of schedule creation                          |
+| disableToasts    | No       | Boolean value that determines whether the toasts are displayed or not |
+
+Along with the props, create schedule form also accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+
+| Name                      | Description                                                           |
+|:---------------------------|:-----------------------------------------------------------------------|
+| formWrapper              | Adds styling to the whole form            |
+| inputField              | Adds styling to the container of the name input field               |
+| actionsButtons              | Object containing classnames for the submit, cancel buttons and container inside the create schedule atom             |
+
+
+<Note>
+  Please ensure all custom classnames are valid Tailwind CSS classnames. Note that sometimes the custom
+  classnames may fail to override the styling with the classnames that you might have passed via props. That
+  is because the clsx utility function that we use to override classnames inside our components has some
+  limitations. A simple get around to solve this issue is to just prefix your classnames with ! property just
+  before passing in any classname.
+</Note>
