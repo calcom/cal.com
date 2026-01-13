@@ -122,16 +122,15 @@ async function postHandler(req: NextApiRequest) {
   }
 
   // TODO: Perhaps there is a better fix for this?
-  const cloneData: typeof data & {
+  const { bookingPageAppearance: _bpa, ...dataWithoutAppearance } = data;
+  const cloneData: typeof dataWithoutAppearance & {
     metadata: NonNullable<typeof data.metadata> | undefined;
     bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
-    bookingPageAppearance: NonNullable<typeof data.bookingPageAppearance> | undefined;
   } = {
-    ...data,
+    ...dataWithoutAppearance,
     smsLockReviewedByAdmin: false,
     bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits || undefined,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
-    bookingPageAppearance: data.bookingPageAppearance === null ? undefined : data.bookingPageAppearance,
   };
 
   if (!IS_TEAM_BILLING_ENABLED || data.parentId) {
