@@ -158,6 +158,7 @@ describe("handleNewRecurringBooking", () => {
             bookingMeta: {
               userId: -1, // Simulating anonymous user like in the API test
             },
+            creationSource: "WEBAPP",
           });
 
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);

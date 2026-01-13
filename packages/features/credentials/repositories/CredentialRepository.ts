@@ -300,4 +300,33 @@ export class CredentialRepository {
       },
     });
   }
+
+  findByTeamIdAndSlugs({ teamId, slugs }: { teamId: number; slugs: string[] }) {
+    return this.primaClient.credential.findMany({
+      where: {
+        teamId,
+        appId: {
+          in: slugs,
+        },
+      },
+      select: { ...safeCredentialSelect, team: { select: { name: true } } },
+    });
+  }
+
+  findByIdAndTeamId({ id, teamId }: { id: number; teamId: number }) {
+    return this.primaClient.credential.findFirst({
+      where: {
+        id,
+        teamId,
+      },
+      select: {
+        ...safeCredentialSelect,
+        app: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+    });
+  }
 }
