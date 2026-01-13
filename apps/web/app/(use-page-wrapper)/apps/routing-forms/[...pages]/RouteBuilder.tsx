@@ -1268,9 +1268,9 @@ const Routes = ({
           );
         })}
         {mainRoutes.length === 0 ? (
-          <EmptyState
-            Icon={MenuIcon}
-            header="Create your first route"
+                    <EmptyState
+                      icon={MenuIcon}
+                      header="Create your first route"
             text="Routes determine where your form responses will be sent based on the answers provided."
             buttonText={t("add_a_new_route")}
             buttonOnClick={createRoute}
