@@ -10,10 +10,8 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import {
-  OAuthClientCreateDialog,
-  type OAuthClientCreateFormValues,
-} from "../oauth/OAuthClientCreateDialog";
+import { AdminOAuthClientCreateDialog } from "../oauth/AdminOAuthClientCreateDialog";
+import type { OAuthClientCreateFormValues } from "../oauth/OAuthClientCreateDialog";
 import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
 import { NewOAuthClientButton } from "../oauth/NewOAuthClientButton";
@@ -165,16 +163,12 @@ export default function OAuthClientsAdminView() {
         />
       )}
 
-      <OAuthClientCreateDialog
+      <AdminOAuthClientCreateDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
-        title={t("create_oauth_client")}
-        submitLabel={t("create")}
         isSubmitting={addMutation.isPending}
         onSubmit={handleAddClient}
         resultClient={createdClient}
-        resultTitle={t("oauth_client_created")}
-        resultDescription={t("oauth_client_created_description")}
         clientSecretInfoKey="copy_client_secret_info"
         onClose={handleCloseDialog}
       />

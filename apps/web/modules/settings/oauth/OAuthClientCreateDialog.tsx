@@ -3,20 +3,16 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert } from "@calcom/ui/components/alert";
-import { Badge } from "@calcom/ui/components/badge";
+import { OAuthClientResultDialog } from "./OAuthClientResultDialog";
+import type { OAuthClientDetails } from "./OAuthClientDetailsDialog";
+import { OAuthClientFormFields } from "./OAuthClientFormFields";
+
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Button } from "@calcom/ui/components/button";
 import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import type { OAuthClientDetails } from "./OAuthClientDetailsDialog";
-import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
 export type OAuthClientCreateFormValues = {
   name: string;
@@ -27,35 +23,77 @@ export type OAuthClientCreateFormValues = {
   enablePkce: boolean;
 };
 
-export const OAuthClientCreateDialog = ({
-  open,
-  onOpenChange,
-  title,
-  description,
-  submitLabel,
-  isSubmitting,
-  onSubmit,
-  resultClient,
-  resultTitle,
-  resultDescription,
-  clientSecretInfoKey,
-  onClose,
-}: {
+type BaseOAuthClientCreateDialogContentProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isSubmitting: boolean;
+  onSubmit: (values: OAuthClientCreateFormValues) => void;
+  onClose: () => void;
   title: string;
-  description?: string;
+  description: string;
   submitLabel: string;
+};
+
+export type OAuthClientCreateDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   isSubmitting: boolean;
   onSubmit: (values: OAuthClientCreateFormValues) => void;
   resultClient: OAuthClientDetails | null;
-  resultTitle: string;
-  resultDescription?: string;
   clientSecretInfoKey?: string;
   onClose: () => void;
-}) => {
+};
+
+export function OAuthClientCreateDialog({
+  open,
+  onOpenChange,
+  isSubmitting,
+  onSubmit,
+  resultClient,
+  clientSecretInfoKey,
+  onClose,
+}: OAuthClientCreateDialogProps) {
   const { t } = useLocale();
-  const { copyToClipboard } = useCopy();
+
+  if (resultClient) {
+    return (
+      <OAuthClientResultDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title={t("oauth_client_submitted")}
+        description={t("oauth_client_submitted_description")}
+        resultClient={resultClient}
+        clientSecretInfoKey={clientSecretInfoKey}
+        onClose={onClose}
+      />
+    );
+  }
+
+  return (
+    <OAuthClientCreateDialogContent
+      open={open}
+      onOpenChange={onOpenChange}
+      isSubmitting={isSubmitting}
+      onSubmit={onSubmit}
+      onClose={onClose}
+      title={t("create_oauth_client")}
+      description={t("create_oauth_client_description")}
+      submitLabel={t("create")}
+    />
+  );
+}
+
+export function OAuthClientCreateDialogContent({
+  open,
+  onOpenChange,
+  isSubmitting,
+  onSubmit,
+  onClose,
+  title,
+  description,
+  submitLabel,
+}: BaseOAuthClientCreateDialogContentProps) {
+  const { t } = useLocale();
   const [logo, setLogo] = useState("");
 
   const form = useForm<OAuthClientCreateFormValues>({
@@ -85,115 +123,31 @@ export const OAuthClientCreateDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent
-        enableOverflow
-        type="creation"
-        title={resultClient ? resultTitle : title}
-        description={resultClient ? resultDescription : description}>
-        {!resultClient ? (
-          <Form
-            form={form}
-            handleSubmit={(values) => {
-              onSubmit({
-                name: values.name.trim() || "",
-                purpose: values.purpose.trim() || "",
-                redirectUri: values.redirectUri.trim() || "",
-                websiteUrl: values.websiteUrl.trim() || "",
-                logo: values.logo,
-                enablePkce: values.enablePkce,
-              });
-            }}
-            className="space-y-4"
-            data-testid="oauth-client-create-form">
-            <OAuthClientFormFields form={form} logo={logo} setLogo={setLogo} />
+      <DialogContent enableOverflow type="creation" title={title} description={description}>
+        <Form
+          form={form}
+          handleSubmit={(values) => {
+            onSubmit({
+              name: values.name.trim() || "",
+              purpose: values.purpose.trim() || "",
+              redirectUri: values.redirectUri.trim() || "",
+              websiteUrl: values.websiteUrl.trim() || "",
+              logo: values.logo,
+              enablePkce: values.enablePkce,
+            });
+          }}
+          className="space-y-4"
+          data-testid="oauth-client-create-form">
+          <OAuthClientFormFields form={form} logo={logo} setLogo={setLogo} />
 
-            <DialogFooter>
-              <DialogClose>{t("close")}</DialogClose>
-              <Button type="submit" loading={isSubmitting} data-testid="oauth-client-create-submit">
-                {submitLabel}
-              </Button>
-            </DialogFooter>
-          </Form>
-        ) : (
-          <>
-            <div className="space-y-4" data-testid="oauth-client-submitted-modal">
-              {resultClient.approvalStatus === "PENDING" ? (
-                <div className="flex items-center justify-start">
-                  <Badge variant="orange">{t("pending")}</Badge>
-                </div>
-              ) : null}
-              <div>
-                <div className="text-subtle mb-1 text-sm">{t("client_name")}</div>
-                <div className="text-emphasis font-medium">{resultClient.name}</div>
-              </div>
-
-              <div>
-                <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
-                <div className="flex">
-                  <code
-                    data-testid="oauth-client-submitted-client-id"
-                    className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                    {resultClient.clientId}
-                  </code>
-                  <Tooltip side="top" content={t("copy_to_clipboard")}>
-                    <Button
-                      onClick={() => {
-                        copyToClipboard(resultClient.clientId, {
-                          onSuccess: () => showToast(t("client_id_copied"), "success"),
-                          onFailure: () => showToast(t("error"), "error"),
-                        });
-                      }}
-                      type="button"
-                      size="sm"
-                      className="rounded-l-none"
-                      StartIcon="clipboard">
-                      {t("copy")}
-                    </Button>
-                  </Tooltip>
-                </div>
-              </div>
-
-              {resultClient.clientSecret ? (
-                <div>
-                  <div className="text-subtle mb-1 text-sm">{t("client_secret")}</div>
-                  <div className="flex">
-                    <code
-                      data-testid="oauth-client-submitted-client-secret"
-                      className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                      {resultClient.clientSecret}
-                    </code>
-                    <Tooltip side="top" content={t("copy_to_clipboard")}>
-                      <Button
-                        onClick={() => {
-                          copyToClipboard(resultClient.clientSecret ?? "", {
-                            onSuccess: () => showToast(t("client_secret_copied"), "success"),
-                            onFailure: () => showToast(t("error"), "error"),
-                          });
-                        }}
-                        type="button"
-                        size="sm"
-                        className="rounded-l-none"
-                        StartIcon="clipboard">
-                        {t("copy")}
-                      </Button>
-                    </Tooltip>
-                  </div>
-                  <Alert
-                    severity="warning"
-                    message={t(clientSecretInfoKey ?? "oauth_client_client_secret_one_time_warning")}
-                    className="mt-3"
-                  />
-                </div>
-              ) : null}
-            </div>
-            <DialogFooter className="mt-6">
-              <Button type="button" onClick={handleClose} data-testid="oauth-client-submitted-done">
-                {t("done")}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
+          <DialogFooter>
+            <DialogClose>{t("close")}</DialogClose>
+            <Button type="submit" loading={isSubmitting} data-testid="oauth-client-create-submit">
+              {submitLabel}
+            </Button>
+          </DialogFooter>
+        </Form>
       </DialogContent>
     </Dialog>
   );
-};
+}
