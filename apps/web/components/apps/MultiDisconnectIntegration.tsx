@@ -1,3 +1,4 @@
+import { UserIcon, UsersIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -73,7 +74,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                 type="button"
                 color="destructive"
                 className="hover:bg-subtle hover:text-emphasis w-full border-0"
-                StartIcon={cred.teamId ? "users" : "user"}
+                StartIcon={cred.teamId ? UsersIcon : UserIcon}
                 onClick={() => {
                   setCredentialToDelete({
                     id: cred.id,
