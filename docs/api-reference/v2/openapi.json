@@ -13291,6 +13291,7 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
+        "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
         "parameters": [
           {
             "name": "Authorization",
@@ -15535,6 +15536,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -20977,6 +21003,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full URL to the booking page for this event type",
+            "example": "https://cal.com/john-doe/30min",
+            "format": "uri"
           }
         },
         "required": [
@@ -21000,7 +21032,8 @@
           "hidden",
           "bookingRequiresAuthentication",
           "ownerId",
-          "users"
+          "users",
+          "bookingUrl"
         ]
       },
       "CreateEventTypeOutput_2024_06_14": {
@@ -31712,6 +31745,11 @@
             "type": "string",
             "example": "jane100@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "jane100@example.com",
+            "description": "Clean email for display purposes"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -31725,6 +31763,7 @@
           "id",
           "name",
           "email",
+          "displayEmail",
           "username",
           "timeZone"
         ]
@@ -31756,6 +31795,11 @@
           "email": {
             "type": "string",
             "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
           },
           "timeZone": {
             "type": "string",
@@ -31822,6 +31866,7 @@
         "required": [
           "name",
           "email",
+          "displayEmail",
           "timeZone",
           "absent"
         ]
@@ -32168,6 +32213,11 @@
             "type": "string",
             "example": "john@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -32250,6 +32300,7 @@
         "required": [
           "name",
           "email",
+          "displayEmail",
           "timeZone",
           "absent",
           "seatUid",
@@ -33342,12 +33393,18 @@
           "email": {
             "type": "string",
             "example": "john.doe@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Clean email for display purposes"
           }
         },
         "required": [
           "id",
           "name",
-          "email"
+          "email",
+          "displayEmail"
         ]
       },
       "ReassignBookingOutput_2024_08_13": {

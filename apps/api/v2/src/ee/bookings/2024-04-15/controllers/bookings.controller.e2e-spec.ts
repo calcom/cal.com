@@ -1,5 +1,20 @@
-import { bootstrap } from "@/bootstrap";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { BookingResponse } from "@calcom/platform-libraries";
+import { type RegularBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import type { ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
 import { CreateRecurringBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-recurring-booking.input";
 import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
@@ -10,22 +25,6 @@ import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { BookingResponse } from "@calcom/platform-libraries";
-import { type RegularBookingCreateResult } from "@calcom/platform-libraries/bookings";
-import type { ApiSuccessResponse, ApiErrorResponse } from "@calcom/platform-types";
-import type { User } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-04-15", () => {
   describe("User Authenticated", () => {

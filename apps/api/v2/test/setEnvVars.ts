@@ -1,6 +1,4 @@
-/** biome-ignore-all lint/correctness/noProcessGlobal: e2e file */
 /** biome-ignore-all lint/suspicious/noTsIgnore: e2e file */
-/** biome-ignore-all lint/style/noProcessEnv: e2e file */
 import type { Environment } from "@/env";
 import "dotenv/config";
 
