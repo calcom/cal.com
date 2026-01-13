@@ -9,7 +9,7 @@ import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inpu
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { InjectQueue } from "@nestjs/bull";
-import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
 import { Queue } from "bull";
 
 import { TeamService } from "@calcom/platform-libraries";
@@ -31,7 +31,7 @@ export class OrganizationsMembershipService {
     private readonly oAuthClientsRepository: OAuthClientRepository,
     private readonly delegationCredentialRepository: OrganizationsDelegationCredentialRepository,
     private readonly usersRepository: UsersRepository,
-    @InjectQueue(CALENDARS_QUEUE) private readonly calendarsQueue: Queue
+    @Optional() @InjectQueue(CALENDARS_QUEUE) private readonly calendarsQueue?: Queue
   ) {}
 
   async getOrgMembership(organizationId: number, membershipId: number) {
@@ -125,6 +125,10 @@ export class OrganizationsMembershipService {
   }
 
   private async ensureDefaultCalendarsForDelegationCredential(organizationId: number, userId: number) {
+    if (!this.calendarsQueue) {
+      return;
+    }
+
     try {
       const user = await this.usersRepository.findById(userId);
       if (!user?.email) {
