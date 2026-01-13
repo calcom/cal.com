@@ -13,6 +13,7 @@ import {
   ClockIcon,
   EllipsisIcon,
   ExternalLinkIcon,
+  HandshakeIcon,
   LockIcon,
   PencilIcon,
   PlusIcon,
@@ -758,7 +759,7 @@ function MemberListContent(props: Props) {
               <DataTableSelectionBar.Button
                 color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                icon="handshake">
+                icon={HandshakeIcon}>
                 {t("group_meeting")}
               </DataTableSelectionBar.Button>
             )}
