@@ -8,7 +8,7 @@ import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { z } from "zod";
 
 import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -35,6 +35,19 @@ interface IconParams {
 function getIconParamsFromMetadata(metadata: Record<string, unknown> | null | undefined): IconParams {
   const iconParams = metadata?.iconParams as IconParams;
   return iconParams || { icon: "calendar", color: "#6B7280" };
+}
+
+function stripHtmlTags(html: string): string {
+  if (typeof window !== "undefined") {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  }
+  // Fallback for SSR: simple regex to remove HTML tags
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .trim();
 }
 
 function UserNotFound(props: { slug: string }) {
@@ -91,6 +104,11 @@ export function UserPage(props: PageProps) {
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const { user: _user, orgSlug: _orgSlug, redirect: _redirect, ...query } = useRouterQuery();
   const isLongName = (profile?.name?.length ?? 0) > 18;
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
+
+  const BIO_CHAR_LIMIT = 250;
+  const bioPlainText = stripHtmlTags(props.safeBio || "");
+  const isBioLong = bioPlainText.length > BIO_CHAR_LIMIT;
 
   useTheme(profile?.theme, false, false);
 
@@ -214,11 +232,51 @@ export function UserPage(props: PageProps) {
             </div>
             {!isBioEmpty && (
               <>
-                <div
-                  className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]"
-                  // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{ __html: props.safeBio }}
-                />
+                <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
+                  {isBioLong && !isBioExpanded ? (
+                    <div className="relative inline-block w-full">
+                      <div
+                        className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                      />
+                      <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
+                        <button
+                          onClick={() => setIsBioExpanded(!isBioExpanded)}
+                          className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
+                          type="button">
+                          Read more
+                        </button>
+                      </div>
+                      <div className="mt-2 flex w-full justify-center md:hidden">
+                        <button
+                          onClick={() => setIsBioExpanded(!isBioExpanded)}
+                          className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+                          type="button">
+                          Read more
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div
+                        className="overflow-visible"
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                      />
+                      {isBioLong && (
+                        <div className="mt-2">
+                          <button
+                            onClick={() => setIsBioExpanded(!isBioExpanded)}
+                            className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+                            type="button">
+                            Read less
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </div>
