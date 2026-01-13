@@ -4010,6 +4010,7 @@
   "choose_a_voice_for_your_agent": "Choose a voice for your agent",
   "trait": "Trait",
   "voice_id": "Voice ID",
+  "schedule_name_cannot_be_empty": "Schedule name cannot be empty",
   "use_voice": "Use voice",
   "current_voice": "Current voice",
   "setup_incoming_agent": "Set up incoming agent",
