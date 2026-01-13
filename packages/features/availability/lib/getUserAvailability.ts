@@ -159,6 +159,8 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  /** Guest busy times for reschedule scenarios - times when attendees (who are Cal.com users) are busy */
+  guestBusyTimes?: { start: Date; end: Date }[];
 };
 
 export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
@@ -612,6 +614,21 @@ export class UserAvailabilityService {
       };
     }
 
+    // Add guest busy times for reschedule scenarios
+    const guestBusyTimesFormatted: EventBusyDetails[] =
+      initialData?.guestBusyTimes?.map((guestBusyTime) => ({
+        start: dayjs(guestBusyTime.start).toISOString(),
+        end: dayjs(guestBusyTime.end).toISOString(),
+        title: "Guest busy time",
+        source: params.withSource ? "guest-availability" : undefined,
+      })) || [];
+
+    if (guestBusyTimesFormatted.length > 0) {
+      log.debug(
+        `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Adding guest busy times: ${guestBusyTimesFormatted.length}`
+      );
+    }
+
     const detailedBusyTimes: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
         ...a,
@@ -622,6 +639,7 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...guestBusyTimesFormatted,
     ];
 
     log.debug(
@@ -738,7 +756,7 @@ export class UserAvailabilityService {
     }
 
     return await Promise.all(
-      users.map((user) =>
+      users.map((user, index) =>
         this._getUserAvailability(
           {
             ...params,
@@ -751,6 +769,8 @@ export class UserAvailabilityService {
                 user,
                 currentBookings: user.currentBookings,
                 outOfOfficeDays: user.outOfOfficeDays,
+                // Only pass guest busy times to the first user (host) to avoid double-counting
+                guestBusyTimes: index === 0 ? initialData.guestBusyTimes : undefined,
               }
             : undefined
         )

@@ -2067,4 +2067,75 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
       data: { isRecorded },
     });
   }
+
+  /**
+   * Finds bookings for specified users within a date range.
+   * Used to check guest availability during reschedule scenarios.
+   */
+  async findBookingsByUserIdsAndDateRange({
+    userIds,
+    userEmails,
+    dateFrom,
+    dateTo,
+  }: {
+    userIds: number[];
+    userEmails: string[];
+    dateFrom: Date;
+    dateTo: Date;
+  }) {
+    if (!userIds.length && !userEmails.length) return [];
+
+    const normalizedEmails = userEmails.map((e) => e.toLowerCase());
+
+    return this.prismaClient.booking.findMany({
+      where: {
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+        },
+        // Booking overlaps with the date range
+        AND: [{ startTime: { lt: dateTo } }, { endTime: { gt: dateFrom } }],
+        // Booking belongs to one of the users (as host or attendee)
+        OR: [
+          ...(userIds.length > 0 ? [{ userId: { in: userIds } }] : []),
+          ...(normalizedEmails.length > 0
+            ? [
+                {
+                  attendees: {
+                    some: {
+                      email: { in: normalizedEmails },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
+      select: {
+        startTime: true,
+        endTime: true,
+        title: true,
+        userId: true,
+        status: true,
+      },
+    });
+  }
+
+  /**
+   * Finds a booking by UID with its attendees.
+   * Used to get attendee emails for guest availability checking during reschedule.
+   */
+  async findBookingByUidWithAttendees({ uid }: { uid: string }) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid },
+      select: {
+        id: true,
+        uid: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }
