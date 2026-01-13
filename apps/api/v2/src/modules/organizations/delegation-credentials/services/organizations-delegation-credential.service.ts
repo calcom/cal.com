@@ -125,7 +125,12 @@ export class OrganizationsDelegationCredentialService {
 
   async ensureDefaultCalendarsForUser(orgId: number, userId: number, userEmail: string) {
     try {
-      const emailDomain = `@${userEmail.split("@")[1]}`;
+      const emailParts = userEmail.split("@");
+      if (emailParts.length < 2 || !emailParts[1]) {
+        this.logger.warn(`Invalid email format for user ${userId}: missing domain`);
+        return;
+      }
+      const emailDomain = `@${emailParts[1]}`;
 
       const delegationCredential =
         await this.organizationsDelegationCredentialRepository.findEnabledByOrgIdAndDomain(orgId, emailDomain);
