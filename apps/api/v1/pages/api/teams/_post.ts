@@ -125,11 +125,13 @@ async function postHandler(req: NextApiRequest) {
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
     bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
+    bookingPageAppearance: NonNullable<typeof data.bookingPageAppearance> | undefined;
   } = {
     ...data,
     smsLockReviewedByAdmin: false,
     bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits || undefined,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
+    bookingPageAppearance: data.bookingPageAppearance === null ? undefined : data.bookingPageAppearance,
   };
 
   if (!IS_TEAM_BILLING_ENABLED || data.parentId) {

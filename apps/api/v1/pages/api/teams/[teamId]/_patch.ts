@@ -126,11 +126,13 @@ export async function patchHandler(req: NextApiRequest) {
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
     bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
+    bookingPageAppearance: NonNullable<typeof data.bookingPageAppearance> | undefined;
   } = {
     ...data,
     smsLockReviewedByAdmin: false,
     bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
+    bookingPageAppearance: data.bookingPageAppearance === null ? undefined : data.bookingPageAppearance,
   };
   const updatedTeam = await prisma.team.update({ where: { id: teamId }, data: cloneData });
   const result = {

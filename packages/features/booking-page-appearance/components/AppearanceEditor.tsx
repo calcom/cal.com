@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,7 +17,7 @@ import {
 import { ColorPicker, Label, Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { SUPPORTED_GOOGLE_FONTS, buildGoogleFontsUrl } from "../lib/buildAppearanceCssVars";
+import { SUPPORTED_GOOGLE_FONTS } from "../lib/buildAppearanceCssVars";
 
 type AppearanceFormValues = {
   fontFamily: string;
@@ -32,138 +32,60 @@ type AppearanceFormValues = {
 
 function BookingPagePreview({ formValues }: { formValues: AppearanceFormValues }) {
   const { t } = useLocale();
+  const [iframeSrc, setIframeSrc] = useState<string>("");
 
-  const previewStyles = useMemo(() => {
-    const styles: React.CSSProperties = {};
-    if (formValues.colorBackground) {
-      styles.backgroundColor = formValues.colorBackground;
-    }
-    if (formValues.colorTextPrimary) {
-      styles.color = formValues.colorTextPrimary;
-    }
-    return styles;
-  }, [formValues.colorBackground, formValues.colorTextPrimary]);
-
-  const buttonStyles = useMemo(() => {
-    const styles: React.CSSProperties = {};
-    if (formValues.colorBrandPrimary) {
-      styles.backgroundColor = formValues.colorBrandPrimary;
-    }
-    if (formValues.colorButtonText) {
-      styles.color = formValues.colorButtonText;
-    }
-    if (formValues.borderRadiusButton) {
-      styles.borderRadius = formValues.borderRadiusButton;
-    }
-    return styles;
-  }, [formValues.colorBrandPrimary, formValues.colorButtonText, formValues.borderRadiusButton]);
-
-  const cardStyles = useMemo(() => {
-    const styles: React.CSSProperties = {};
-    if (formValues.borderRadiusBase) {
-      styles.borderRadius = formValues.borderRadiusBase;
-    }
-    return styles;
-  }, [formValues.borderRadiusBase]);
-
-  const fontStyles = useMemo(() => {
-    const styles: React.CSSProperties = {};
-    if (formValues.fontFamily) {
-      styles.fontFamily = `"${formValues.fontFamily}", sans-serif`;
-    }
-    return styles;
-  }, [formValues.fontFamily]);
-
-  const headingFontStyles = useMemo(() => {
-    const styles: React.CSSProperties = {};
-    if (formValues.headingFontFamily) {
-      styles.fontFamily = `"${formValues.headingFontFamily}", sans-serif`;
-    } else if (formValues.fontFamily) {
-      styles.fontFamily = `"${formValues.fontFamily}", sans-serif`;
-    }
-    return styles;
-  }, [formValues.headingFontFamily, formValues.fontFamily]);
-
-  const googleFontsUrl = useMemo(() => {
+  const buildPreviewUrl = useCallback((values: AppearanceFormValues) => {
     const appearance: BookingPageAppearance = {
-      fontFamily: formValues.fontFamily || undefined,
-      headingFontFamily: formValues.headingFontFamily || undefined,
+      fontFamily: values.fontFamily || undefined,
+      headingFontFamily: values.headingFontFamily || undefined,
+      borderRadius:
+        values.borderRadiusBase || values.borderRadiusButton
+          ? {
+              base: values.borderRadiusBase || undefined,
+              button: values.borderRadiusButton || undefined,
+            }
+          : undefined,
+      colors:
+        values.colorBackground || values.colorTextPrimary || values.colorButtonText
+          ? {
+              background: values.colorBackground || undefined,
+              textPrimary: values.colorTextPrimary || undefined,
+              buttonText: values.colorButtonText || undefined,
+            }
+          : undefined,
     };
-    return buildGoogleFontsUrl(appearance);
-  }, [formValues.fontFamily, formValues.headingFontFamily]);
+
+    const params = new URLSearchParams();
+    params.set("appearance", encodeURIComponent(JSON.stringify(appearance)));
+    if (values.colorBrandPrimary) {
+      params.set("brandColor", values.colorBrandPrimary);
+    }
+
+    return `/booking-page-preview?${params.toString()}`;
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setIframeSrc(buildPreviewUrl(formValues));
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [formValues, buildPreviewUrl]);
 
   return (
-    <div
-      className="border-subtle flex h-full flex-col overflow-hidden rounded-lg border"
-      style={{ ...previewStyles, ...fontStyles }}>
-      {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
+    <div className="border-subtle flex h-full flex-col overflow-hidden rounded-lg border">
       <div className="bg-muted/50 border-subtle border-b px-4 py-2">
         <span className="text-subtle text-xs font-medium">{t("preview")}</span>
       </div>
-      <div className="flex flex-1 items-center justify-center p-4">
-        <div
-          className="border-subtle w-full max-w-[280px] border bg-white p-4 shadow-sm"
-          style={cardStyles}>
-          <div className="mb-4 flex items-center gap-3">
-            <div className="bg-subtle h-10 w-10 rounded-full" />
-            <div>
-              <p className="text-sm font-semibold" style={headingFontStyles}>
-                John Doe
-              </p>
-              <p className="text-subtle text-xs">30 Min Meeting</p>
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <p className="text-subtle mb-2 text-xs font-medium" style={headingFontStyles}>
-              {t("select_date")}
-            </p>
-            <div className="grid grid-cols-7 gap-1">
-              {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
-                <div key={i} className="text-subtle text-center text-[10px]">
-                  {day}
-                </div>
-              ))}
-              {Array.from({ length: 14 }, (_, i) => (
-                <div
-                  key={i}
-                  className={`text-center text-[10px] p-1 ${i === 5 ? "text-white" : "text-default"}`}
-                  style={
-                    i === 5
-                      ? { backgroundColor: formValues.colorBrandPrimary || "#111827", borderRadius: "4px" }
-                      : {}
-                  }>
-                  {i + 1}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-subtle text-xs font-medium" style={headingFontStyles}>
-              {t("select_time")}
-            </p>
-            {["9:00am", "10:00am", "11:00am"].map((time) => (
-              <button
-                key={time}
-                type="button"
-                className="border-subtle text-default w-full border py-2 text-center text-xs transition-colors hover:border-gray-400"
-                style={cardStyles}>
-                {time}
-              </button>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            className="mt-4 w-full py-2 text-center text-xs font-medium text-white"
-            style={{
-              backgroundColor: formValues.colorBrandPrimary || "#111827",
-              ...buttonStyles,
-            }}>
-            {t("confirm")}
-          </button>
-        </div>
+      <div className="flex-1 overflow-hidden">
+        {iframeSrc && (
+          <iframe
+            src={iframeSrc}
+            className="h-full w-full border-0"
+            title={t("booking_page_preview")}
+            sandbox="allow-same-origin allow-scripts"
+          />
+        )}
       </div>
     </div>
   );
