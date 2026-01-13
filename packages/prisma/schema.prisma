@@ -324,7 +324,7 @@ model Credential {
   delegationCredentialId    String?
   delegationCredential      DelegationCredential?      @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   integrationAttributeSyncs IntegrationAttributeSync[]
-  hostLocations          HostLocation[]
+  hostLocations             HostLocation[]
 
   @@index([appId])
   @@index([subscriptionId])

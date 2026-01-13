@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -192,6 +193,80 @@ const HostLocationDialog = ({
           </Button>
           <Button type="button" onClick={handleSave} disabled={!inputValue}>
             {t("save")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+type MassApplyLocationDialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  locationOption: LocationOption | null;
+  onSave: (inputValue: string) => void;
+};
+
+const MassApplyLocationDialog = ({
+  isOpen,
+  onClose,
+  locationOption,
+  onSave,
+}: MassApplyLocationDialogProps) => {
+  const { t } = useLocale();
+  const eventLocationType = locationOption ? getEventLocationType(locationOption.value) : null;
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setInputValue("");
+    }
+  }, [isOpen]);
+
+  const handleSave = () => {
+    onSave(inputValue);
+    setInputValue("");
+    onClose();
+  };
+
+  const handleClose = () => {
+    setInputValue("");
+    onClose();
+  };
+
+  if (!eventLocationType) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent>
+        <DialogHeader title={t("set_location_for_all_hosts")} />
+        <div className="space-y-4">
+          <div>
+            <Label className="text-default mb-1 block text-sm font-medium">
+              {t(eventLocationType.messageForOrganizer || "")}
+            </Label>
+            {eventLocationType.organizerInputType === "phone" ? (
+              <PhoneInput
+                value={inputValue}
+                onChange={(val) => setInputValue(val || "")}
+                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              />
+            ) : (
+              <TextField
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                type="text"
+              />
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" color="secondary" onClick={handleClose}>
+            {t("cancel")}
+          </Button>
+          <Button type="button" onClick={handleSave} disabled={!inputValue}>
+            {t("apply_to_all")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -396,7 +471,13 @@ const MassApplySelect = ({
 
 export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsProps) => {
   const { t } = useLocale();
+  const session = useSession();
   const formMethods = useFormContext<FormValues>();
+
+  const [isMassApplyDialogOpen, setIsMassApplyDialogOpen] = useState(false);
+  const [pendingMassApplyOption, setPendingMassApplyOption] = useState<LocationOption | null>(null);
+
+  const isOrg = !!session.data?.user?.org?.id;
 
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
   const hosts = formMethods.watch("hosts");
@@ -476,24 +557,61 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
     formMethods.setValue("hosts", updatedHosts, { shouldDirty: true });
   };
 
-  const handleMassApply = (locationType: string) => {
+  const applyLocationToAllHosts = (locationType: string, inputValue: string | null) => {
+    const eventLocationType = getEventLocationType(locationType);
+
     const updatedHosts = hosts.map((host) => {
       if (host.isFixed) return host;
       const hostData = hostDataMap.get(host.userId);
       const credential = hostData?.installedApps.find(
         (app) => app.appId === getAppSlugFromLocationType(locationType) || app.type === locationType
       );
-      return {
-        ...host,
-        location: {
-          userId: host.userId,
-          eventTypeId: 0,
-          type: locationType,
-          credentialId: credential?.credentialId ?? null,
-        },
+
+      const location: HostLocation = {
+        userId: host.userId,
+        eventTypeId: 0,
+        type: locationType,
+        credentialId: credential?.credentialId ?? null,
       };
+
+      if (inputValue && eventLocationType) {
+        if (eventLocationType.defaultValueVariable === "link") {
+          location.link = inputValue;
+        } else if (eventLocationType.defaultValueVariable === "address") {
+          location.address = inputValue;
+        } else if (eventLocationType.organizerInputType === "phone") {
+          location.phoneNumber = inputValue;
+        }
+      }
+
+      return { ...host, location };
     });
     formMethods.setValue("hosts", updatedHosts, { shouldDirty: true });
+  };
+
+  const handleMassApply = (locationType: string) => {
+    const eventLocationType = getEventLocationType(locationType);
+
+    if (eventLocationType?.organizerInputType) {
+      const option = getLocationFromOptions(locationType, mergedLocationOptions);
+      setPendingMassApplyOption(option || null);
+      setIsMassApplyDialogOpen(true);
+      return;
+    }
+
+    applyLocationToAllHosts(locationType, null);
+  };
+
+  const handleMassApplyDialogSave = (inputValue: string) => {
+    if (pendingMassApplyOption) {
+      applyLocationToAllHosts(pendingMassApplyOption.value, inputValue);
+    }
+    setPendingMassApplyOption(null);
+  };
+
+  const handleMassApplyDialogClose = () => {
+    setIsMassApplyDialogOpen(false);
+    setPendingMassApplyOption(null);
   };
 
   if (roundRobinHosts.length === 0) {
@@ -508,6 +626,14 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
           description={t("enable_custom_host_locations_description")}
           checked={enablePerHostLocations}
           onCheckedChange={handleToggle}
+          disabled={!isOrg}
+          Badge={
+            !isOrg ? (
+              <a href="/enterprise" className="hover:underline">
+                <Badge variant="gray">{t("upgrade")}</Badge>
+              </a>
+            ) : undefined
+          }
         />
 
         {enablePerHostLocations && (
@@ -541,6 +667,12 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
           </div>
         )}
       </div>
+      <MassApplyLocationDialog
+        isOpen={isMassApplyDialogOpen}
+        onClose={handleMassApplyDialogClose}
+        locationOption={pendingMassApplyOption}
+        onSave={handleMassApplyDialogSave}
+      />
     </div>
   );
 };

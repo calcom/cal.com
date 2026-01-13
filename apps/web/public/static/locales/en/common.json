@@ -1,4 +1,6 @@
 {
+  "set_location_for_all_hosts": "Set location for all hosts",
+  "apply_to_all": "Apply to all",
   "identity_provider": "Identity provider",
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your pro trial",
   "day_one": "{{count}} day",
