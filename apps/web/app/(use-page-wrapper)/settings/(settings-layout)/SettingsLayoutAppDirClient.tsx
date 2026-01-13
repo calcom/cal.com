@@ -97,6 +97,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/security/two-factor-auth",
           trackingMetadata: { section: "security", page: "2fa_auth" },
         },
+        {
+          name: "compliance",
+          href: "/settings/security/compliance",
+          trackingMetadata: { section: "security", page: "compliance" },
+        },
       ],
     },
     {

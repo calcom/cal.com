@@ -89,7 +89,7 @@ function SettingRow({
     <View className="bg-white pl-4">
       <View
         className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ minHeight: 44 }}
+        style={{ minHeight: 44, flexDirection: "row", alignItems: "center" }}
       >
         <TouchableOpacity
           className="flex-1 flex-row items-center py-3"
@@ -104,7 +104,7 @@ function SettingRow({
             <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
           ) : null}
         </TouchableOpacity>
-        <View style={{ alignSelf: "center" }}>
+        <View style={{ alignSelf: "center", justifyContent: "center" }}>
           <Switch
             value={value}
             onValueChange={onValueChange}
