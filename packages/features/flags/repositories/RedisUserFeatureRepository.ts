@@ -7,6 +7,15 @@ import { userFeaturesSchema } from "./schemas";
 const CACHE_PREFIX = "features:user";
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+const KEY = {
+  byUserIdAndFeatureId: (userId: number, featureId: string) => `${CACHE_PREFIX}:${userId}:${featureId}`,
+  byUserIdAndFeatureIds: (userId: number, featureIds: string[]) => {
+    const sortedFeatureIds = [...featureIds].sort().join(",");
+    return `${CACHE_PREFIX}:batch:${userId}:${sortedFeatureIds}`;
+  },
+  autoOptInByUserId: (userId: number) => `${CACHE_PREFIX}:autoOptIn:${userId}`,
+} as const;
+
 export interface IRedisUserFeatureRepository {
   findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null>;
   setByUserIdAndFeatureId(userId: number, featureId: string, data: UserFeatures, ttlMs?: number): Promise<void>;
@@ -32,21 +41,8 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     private ttlMs: number = DEFAULT_TTL_MS
   ) {}
 
-  private getByUserIdAndFeatureIdKey(userId: number, featureId: string): string {
-    return `${CACHE_PREFIX}:${userId}:${featureId}`;
-  }
-
-  private getByUserIdAndFeatureIdsKey(userId: number, featureIds: FeatureId[]): string {
-    const sortedFeatureIds = [...featureIds].sort().join(",");
-    return `${CACHE_PREFIX}:batch:${userId}:${sortedFeatureIds}`;
-  }
-
-  private getAutoOptInKey(userId: number): string {
-    return `${CACHE_PREFIX}:autoOptIn:${userId}`;
-  }
-
   async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null> {
-    const cached = await this.redisService.get<unknown>(this.getByUserIdAndFeatureIdKey(userId, featureId));
+    const cached = await this.redisService.get<unknown>(KEY.byUserIdAndFeatureId(userId, featureId));
     if (cached === null) {
       return null;
     }
@@ -63,7 +59,7 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     data: UserFeatures,
     ttlMs?: number
   ): Promise<void> {
-    await this.redisService.set(this.getByUserIdAndFeatureIdKey(userId, featureId), data, {
+    await this.redisService.set(KEY.byUserIdAndFeatureId(userId, featureId), data, {
       ttl: ttlMs ?? this.ttlMs,
     });
   }
@@ -73,7 +69,7 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, FeatureState>> | null> {
     return this.redisService.get<Partial<Record<FeatureId, FeatureState>>>(
-      this.getByUserIdAndFeatureIdsKey(userId, featureIds)
+      KEY.byUserIdAndFeatureIds(userId, featureIds)
     );
   }
 
@@ -83,24 +79,24 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     data: Partial<Record<FeatureId, FeatureState>>,
     ttlMs?: number
   ): Promise<void> {
-    await this.redisService.set(this.getByUserIdAndFeatureIdsKey(userId, featureIds), data, {
+    await this.redisService.set(KEY.byUserIdAndFeatureIds(userId, featureIds), data, {
       ttl: ttlMs ?? this.ttlMs,
     });
   }
 
   async findAutoOptInByUserId(userId: number): Promise<boolean | null> {
-    return this.redisService.get<boolean>(this.getAutoOptInKey(userId));
+    return this.redisService.get<boolean>(KEY.autoOptInByUserId(userId));
   }
 
   async setAutoOptInByUserId(userId: number, enabled: boolean, ttlMs?: number): Promise<void> {
-    await this.redisService.set(this.getAutoOptInKey(userId), enabled, { ttl: ttlMs ?? this.ttlMs });
+    await this.redisService.set(KEY.autoOptInByUserId(userId), enabled, { ttl: ttlMs ?? this.ttlMs });
   }
 
   async invalidateByUserIdAndFeatureId(userId: number, featureId: string): Promise<void> {
-    await this.redisService.del(this.getByUserIdAndFeatureIdKey(userId, featureId));
+    await this.redisService.del(KEY.byUserIdAndFeatureId(userId, featureId));
   }
 
   async invalidateAutoOptIn(userId: number): Promise<void> {
-    await this.redisService.del(this.getAutoOptInKey(userId));
+    await this.redisService.del(KEY.autoOptInByUserId(userId));
   }
 }

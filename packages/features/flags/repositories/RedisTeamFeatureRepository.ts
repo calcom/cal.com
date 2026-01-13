@@ -7,6 +7,20 @@ import { teamFeaturesSchema } from "./schemas";
 const CACHE_PREFIX = "features:team";
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+const KEY = {
+  enabledByTeamId: (teamId: number) => `${CACHE_PREFIX}:enabled:${teamId}`,
+  byTeamIdAndFeatureId: (teamId: number, featureId: string) => `${CACHE_PREFIX}:${teamId}:${featureId}`,
+  byTeamIdsAndFeatureIds: (teamIds: number[], featureIds: string[]) => {
+    const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
+    const sortedFeatureIds = [...featureIds].sort().join(",");
+    return `${CACHE_PREFIX}:batch:${sortedTeamIds}:${sortedFeatureIds}`;
+  },
+  autoOptInByTeamIds: (teamIds: number[]) => {
+    const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
+    return `${CACHE_PREFIX}:autoOptIn:${sortedTeamIds}`;
+  },
+} as const;
+
 export interface IRedisTeamFeatureRepository {
   findEnabledByTeamId(teamId: number): Promise<TeamFeaturesMap | null>;
   setEnabledByTeamId(teamId: number, features: TeamFeaturesMap, ttlMs?: number): Promise<void>;
@@ -34,37 +48,18 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     private ttlMs: number = DEFAULT_TTL_MS
   ) {}
 
-  private getEnabledByTeamIdKey(teamId: number): string {
-    return `${CACHE_PREFIX}:enabled:${teamId}`;
-  }
-
-  private getByTeamIdAndFeatureIdKey(teamId: number, featureId: FeatureId): string {
-    return `${CACHE_PREFIX}:${teamId}:${featureId}`;
-  }
-
-  private getByTeamIdsAndFeatureIdsKey(teamIds: number[], featureIds: FeatureId[]): string {
-    const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
-    const sortedFeatureIds = [...featureIds].sort().join(",");
-    return `${CACHE_PREFIX}:batch:${sortedTeamIds}:${sortedFeatureIds}`;
-  }
-
-  private getAutoOptInKey(teamIds: number[]): string {
-    const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
-    return `${CACHE_PREFIX}:autoOptIn:${sortedTeamIds}`;
-  }
-
   async findEnabledByTeamId(teamId: number): Promise<TeamFeaturesMap | null> {
-    return this.redisService.get<TeamFeaturesMap>(this.getEnabledByTeamIdKey(teamId));
+    return this.redisService.get<TeamFeaturesMap>(KEY.enabledByTeamId(teamId));
   }
 
   async setEnabledByTeamId(teamId: number, features: TeamFeaturesMap, ttlMs?: number): Promise<void> {
-    await this.redisService.set(this.getEnabledByTeamIdKey(teamId), features, {
+    await this.redisService.set(KEY.enabledByTeamId(teamId), features, {
       ttl: ttlMs ?? this.ttlMs,
     });
   }
 
   async findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null> {
-    const cached = await this.redisService.get<unknown>(this.getByTeamIdAndFeatureIdKey(teamId, featureId));
+    const cached = await this.redisService.get<unknown>(KEY.byTeamIdAndFeatureId(teamId, featureId));
     if (cached === null) {
       return null;
     }
@@ -81,7 +76,7 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     data: TeamFeatures,
     ttlMs?: number
   ): Promise<void> {
-    await this.redisService.set(this.getByTeamIdAndFeatureIdKey(teamId, featureId), data, {
+    await this.redisService.set(KEY.byTeamIdAndFeatureId(teamId, featureId), data, {
       ttl: ttlMs ?? this.ttlMs,
     });
   }
@@ -91,7 +86,7 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>> | null> {
     return this.redisService.get<Partial<Record<FeatureId, Record<number, FeatureState>>>>(
-      this.getByTeamIdsAndFeatureIdsKey(teamIds, featureIds)
+      KEY.byTeamIdsAndFeatureIds(teamIds, featureIds)
     );
   }
 
@@ -101,13 +96,13 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     featureIds: FeatureId[],
     ttlMs?: number
   ): Promise<void> {
-    await this.redisService.set(this.getByTeamIdsAndFeatureIdsKey(teamIds, featureIds), data, {
+    await this.redisService.set(KEY.byTeamIdsAndFeatureIds(teamIds, featureIds), data, {
       ttl: ttlMs ?? this.ttlMs,
     });
   }
 
   async findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean> | null> {
-    return this.redisService.get<Record<number, boolean>>(this.getAutoOptInKey(teamIds));
+    return this.redisService.get<Record<number, boolean>>(KEY.autoOptInByTeamIds(teamIds));
   }
 
   async setAutoOptInByTeamIds(
@@ -115,15 +110,15 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     teamIds: number[],
     ttlMs?: number
   ): Promise<void> {
-    await this.redisService.set(this.getAutoOptInKey(teamIds), data, { ttl: ttlMs ?? this.ttlMs });
+    await this.redisService.set(KEY.autoOptInByTeamIds(teamIds), data, { ttl: ttlMs ?? this.ttlMs });
   }
 
   async invalidateByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<void> {
-    await this.redisService.del(this.getByTeamIdAndFeatureIdKey(teamId, featureId));
-    await this.redisService.del(this.getEnabledByTeamIdKey(teamId));
+    await this.redisService.del(KEY.byTeamIdAndFeatureId(teamId, featureId));
+    await this.redisService.del(KEY.enabledByTeamId(teamId));
   }
 
   async invalidateAutoOptIn(teamIds: number[]): Promise<void> {
-    await this.redisService.del(this.getAutoOptInKey(teamIds));
+    await this.redisService.del(KEY.autoOptInByTeamIds(teamIds));
   }
 }
