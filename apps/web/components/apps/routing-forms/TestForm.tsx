@@ -10,8 +10,12 @@ import { TeamMembersMatchResult } from "@calcom/app-store/routing-forms/componen
 import type { MembersMatchResultType } from "@calcom/app-store/routing-forms/components/_components/TeamMembersMatchResult";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import type { RoutingForm, FormResponse, NonRouterRoute } from "@calcom/app-store/routing-forms/types/types";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import type {
+  RoutingForm,
+  FormResponse,
+  NonRouterRoute,
+} from "@calcom/app-store/routing-forms/types/types";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,7 +23,12 @@ import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+} from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
@@ -27,7 +36,11 @@ import type { getServerSidePropsForSingleFormView } from "@lib/apps/routing-form
 import { TRPCClientError } from "@trpc/react-query";
 
 export type UptoDateForm = Brand<
-  NonNullable<inferSSRProps<typeof getServerSidePropsForSingleFormView>["enrichedWithUserProfileForm"]>,
+  NonNullable<
+    inferSSRProps<
+      typeof getServerSidePropsForSingleFormView
+    >["enrichedWithUserProfileForm"]
+  >,
   "UptoDateForm"
 >;
 
@@ -46,7 +59,11 @@ const FormView = ({
   areRequiredFieldsFilled: boolean;
   onClose: () => void;
   onSubmit: () => void;
-  renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
+  renderFooter?: (
+    onClose: () => void,
+    onSubmit: () => void,
+    isValid: boolean
+  ) => React.ReactNode;
 }) => {
   const { t } = useLocale();
   return (
@@ -54,17 +71,29 @@ const FormView = ({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.2 }}>
+      transition={{ duration: 0.2 }}
+    >
       <form
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-        }}>
-        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+        }}
+      >
+        {form && (
+          <FormInputFields
+            form={form}
+            response={response}
+            setResponse={setResponse}
+          />
+        )}
       </form>
       {!renderFooter ? (
         <div className="mt-4">
-          <Button onClick={onSubmit} disabled={!areRequiredFieldsFilled} data-testid="submit-button">
+          <Button
+            onClick={onSubmit}
+            disabled={!areRequiredFieldsFilled}
+            data-testid="submit-button"
+          >
             {t("submit")}
           </Button>
         </div>
@@ -85,7 +114,11 @@ export const TestForm = ({
 }: {
   form: UptoDateForm | RoutingForm;
   supportsTeamMembersMatchingLogic: boolean;
-  renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
+  renderFooter?: (
+    onClose: () => void,
+    onSubmit: () => void,
+    isValid: boolean
+  ) => React.ReactNode;
   isDialog?: boolean;
   onClose?: () => void;
   showRRData?: boolean;
@@ -94,7 +127,8 @@ export const TestForm = ({
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
   const searchParams = useCompatSearchParams();
-  const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
+  const [membersMatchResult, setMembersMatchResult] =
+    useState<MembersMatchResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [formKey, setFormKey] = useState<number>(0);
 
@@ -132,7 +166,11 @@ export const TestForm = ({
     // Create a copy of the route with substituted variables for display
     let displayRoute = route;
     if (route && form.fields && route.action.type === "eventTypeRedirectUrl") {
-      const substitutedUrl = substituteVariables(route.action.value, response, form.fields);
+      const substitutedUrl = substituteVariables(
+        route.action.value,
+        response,
+        form.fields
+      );
       displayRoute = {
         ...route,
         action: {
@@ -175,27 +213,31 @@ export const TestForm = ({
   }
 
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
-      onSuccess(data) {
-        setMembersMatchResult({
-          isUsingAttributeWeights: data.isUsingAttributeWeights,
-          eventTypeRedirectUrl: data.eventTypeRedirectUrl,
-          contactOwnerEmail: data.contactOwnerEmail,
-          teamMembersMatchingAttributeLogic: data.result ? data.result.users : data.result,
-          perUserData: data.result ? data.result.perUserData : null,
-          checkedFallback: data.checkedFallback,
-          mainWarnings: data.mainWarnings,
-          fallbackWarnings: data.fallbackWarnings,
-        });
-      },
-      onError(e) {
-        if (e instanceof TRPCClientError) {
-          showToast(e.message, "error");
-        } else {
-          showToast(t("something_went_wrong"), "error");
-        }
-      },
-    });
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation(
+      {
+        onSuccess(data) {
+          setMembersMatchResult({
+            isUsingAttributeWeights: data.isUsingAttributeWeights,
+            eventTypeRedirectUrl: data.eventTypeRedirectUrl,
+            contactOwnerEmail: data.contactOwnerEmail,
+            teamMembersMatchingAttributeLogic: data.result
+              ? data.result.users
+              : data.result,
+            perUserData: data.result ? data.result.perUserData : null,
+            checkedFallback: data.checkedFallback,
+            mainWarnings: data.mainWarnings,
+            fallbackWarnings: data.fallbackWarnings,
+          });
+        },
+        onError(e) {
+          if (e instanceof TRPCClientError) {
+            showToast(e.message, "error");
+          } else {
+            showToast(t("something_went_wrong"), "error");
+          }
+        },
+      }
+    );
 
   return (
     <div>
@@ -203,10 +245,15 @@ export const TestForm = ({
         {!showResults ? (
           <>
             {isDialog ? (
-              <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+              <DialogHeader
+                title={t("test_routing_form")}
+                subtitle={t("test_preview_description")}
+              />
             ) : !showRRData ? (
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-emphasis text-xl font-semibold">{t("preview")}</h3>
+                <h3 className="text-emphasis text-xl font-semibold">
+                  {t("preview")}
+                </h3>
                 <div className="flex items-center gap-1">
                   <Button
                     color="secondary"
@@ -215,7 +262,8 @@ export const TestForm = ({
                     variant="icon"
                     StartIcon="external-link"
                     data-testid="open-form-in-new-tab"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("open_in_new_tab")}</span>
                   </Button>
                   <Button
@@ -223,10 +271,17 @@ export const TestForm = ({
                     onClick={resetForm}
                     variant="icon"
                     StartIcon="refresh-cw"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
-                  <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
+                  <Button
+                    color="secondary"
+                    onClick={onClose}
+                    variant="icon"
+                    StartIcon="x"
+                    size="sm"
+                  >
                     <span className="sr-only">{t("close")}</span>
                   </Button>
                 </div>
@@ -251,10 +306,15 @@ export const TestForm = ({
         ) : (
           <>
             {isDialog ? (
-              <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+              <DialogHeader
+                title={t("test_routing_form")}
+                subtitle={t("test_preview_description")}
+              />
             ) : !showRRData ? (
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-emphasis text-xl font-semibold">{t("results")}</h3>
+                <h3 className="text-emphasis text-xl font-semibold">
+                  {t("results")}
+                </h3>
                 <div className="flex items-center gap-1">
                   <Button
                     color="secondary"
@@ -262,7 +322,8 @@ export const TestForm = ({
                     target="_blank"
                     variant="icon"
                     StartIcon="external-link"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("open_in_new_tab")}</span>
                   </Button>
                   <Button
@@ -270,7 +331,8 @@ export const TestForm = ({
                     onClick={resetForm}
                     variant="icon"
                     StartIcon="refresh-cw"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
                   <Button
@@ -279,7 +341,8 @@ export const TestForm = ({
                     variant="icon"
                     StartIcon="x"
                     size="sm"
-                    data-testid="close-results-button">
+                    data-testid="close-results-button"
+                  >
                     <span className="sr-only">{t("close")}</span>
                   </Button>
                 </div>
@@ -290,17 +353,28 @@ export const TestForm = ({
 
             {showRRData ? (
               <>
-                <Button color="secondary" onClick={resetForm} variant="icon" StartIcon="refresh-cw">
+                <Button
+                  color="secondary"
+                  onClick={resetForm}
+                  variant="icon"
+                  StartIcon="refresh-cw"
+                >
                   {t("reset_form")}
                 </Button>
-                <TeamMembersMatchResult membersMatchResult={membersMatchResult} />
+                <TeamMembersMatchResult
+                  membersMatchResult={membersMatchResult}
+                />
               </>
             ) : (
               <Results
                 chosenRoute={chosenRoute}
-                supportsTeamMembersMatchingLogic={supportsTeamMembersMatchingLogic}
+                supportsTeamMembersMatchingLogic={
+                  supportsTeamMembersMatchingLogic
+                }
                 membersMatchResult={membersMatchResult}
-                isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
+                isPending={
+                  findTeamMembersMatchingAttributeLogicMutation.isPending
+                }
               />
             )}
 
@@ -360,7 +434,8 @@ export const TestFormRenderer = ({
                   onClose();
                   setIsTestPreviewOpen(false);
                 }}
-                color="secondary">
+                color="secondary"
+              >
                 {t("close")}
               </Button>
               <Button onClick={onSubmit} disabled={!isValid}>

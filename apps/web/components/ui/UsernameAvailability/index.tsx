@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { RefCallback, ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
@@ -30,18 +30,28 @@ interface ICustomUsernameProps extends UsernameAvailabilityFieldProps {
   isPremium: boolean;
 }
 
-const PremiumTextfield = dynamic(() => import("./PremiumTextfield").then((m) => m.PremiumTextfield), {
-  ssr: false,
-});
-const UsernameTextfield = dynamic(() => import("./UsernameTextfield").then((m) => m.UsernameTextfield), {
-  ssr: false,
-});
+const PremiumTextfield = dynamic(
+  () => import("./PremiumTextfield").then((m) => m.PremiumTextfield),
+  {
+    ssr: false,
+  }
+);
+const UsernameTextfield = dynamic(
+  () => import("./UsernameTextfield").then((m) => m.UsernameTextfield),
+  {
+    ssr: false,
+  }
+);
 
 export const UsernameAvailability = (props: ICustomUsernameProps) => {
   const { isPremium, disabled, ...otherProps } = props;
-  const UsernameAvailabilityComponent = isPremium ? PremiumTextfield : UsernameTextfield;
+  const UsernameAvailabilityComponent = isPremium
+    ? PremiumTextfield
+    : UsernameTextfield;
   // PremiumTextfield uses `readonly` prop, UsernameTextfield uses `disabled` prop
-  const componentProps = isPremium ? { ...otherProps, readonly: disabled } : { ...otherProps, disabled };
+  const componentProps = isPremium
+    ? { ...otherProps, readonly: disabled }
+    : { ...otherProps, disabled };
   return <UsernameAvailabilityComponent {...componentProps} />;
 };
 
@@ -52,12 +62,18 @@ export const UsernameAvailabilityField = ({
 }: UsernameAvailabilityFieldProps) => {
   const searchParams = useSearchParams();
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
-  const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
-  const { username: usernameFromQuery, setQuery: setUsernameFromQuery } = useRouterQuery("username");
+  const [currentUsernameState, setCurrentUsernameState] = useState(
+    user.username || ""
+  );
+  const { username: usernameFromQuery, setQuery: setUsernameFromQuery } =
+    useRouterQuery("username");
   const { username: currentUsername, setQuery: setCurrentUsername } =
     searchParams?.get("username") && user.username === null
       ? { username: usernameFromQuery, setQuery: setUsernameFromQuery }
-      : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
+      : {
+          username: currentUsernameState || "",
+          setQuery: setCurrentUsernameState,
+        };
   const formMethods = useForm({
     defaultValues: {
       username: currentUsername,

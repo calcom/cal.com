@@ -89,7 +89,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: vi.fn(() => ({ t: (key: string) => key })),
 }));
 
-vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
+vi.mock("@calcom/web/modules/ee/organizations/context/provider", () => ({
   useOrgBranding: vi.fn(() => null),
 }));
 
@@ -265,10 +265,14 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
 
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("Thank you for submitting!");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
+        "Thank you for submitting!"
+      );
     });
 
     it("submits the form and shows test results for Event Type", async () => {
@@ -283,11 +287,19 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
-      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
-      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("Not needed");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
+        "john/30min"
+      );
+      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent(
+        "Yes"
+      );
+      expect(
+        screen.getByTestId("attribute-logic-fallback-matched")
+      ).toHaveTextContent("Not needed");
       // Skip the matching members check as it's giving issues
     });
 
@@ -309,11 +321,19 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
-      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
-      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("Not needed");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
+        "john/30min"
+      );
+      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent(
+        "Yes"
+      );
+      expect(
+        screen.getByTestId("attribute-logic-fallback-matched")
+      ).toHaveTextContent("Not needed");
       // Skip the matching members check as it's giving issues
     });
 
@@ -335,17 +355,27 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
 
       // Get all alerts without checking their specific count
       const alerts = screen.getAllByTestId("alert");
 
       // Verify that at least the main and fallback warnings are present
-      expect(alerts.some((alert) => alert.textContent?.includes("Main-Error-1"))).toBe(true);
-      expect(alerts.some((alert) => alert.textContent?.includes("Main-Error-2"))).toBe(true);
-      expect(alerts.some((alert) => alert.textContent?.includes("Fallback-Error-1"))).toBe(true);
-      expect(alerts.some((alert) => alert.textContent?.includes("Fallback-Error-2"))).toBe(true);
+      expect(
+        alerts.some((alert) => alert.textContent?.includes("Main-Error-1"))
+      ).toBe(true);
+      expect(
+        alerts.some((alert) => alert.textContent?.includes("Main-Error-2"))
+      ).toBe(true);
+      expect(
+        alerts.some((alert) => alert.textContent?.includes("Fallback-Error-1"))
+      ).toBe(true);
+      expect(
+        alerts.some((alert) => alert.textContent?.includes("Fallback-Error-2"))
+      ).toBe(true);
     });
 
     it("should not show warnings when there are no warnings", async () => {
@@ -366,7 +396,9 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
       screen.logTestingPlaygroundURL();
       const alerts = screen.queryAllByTestId("alert");
@@ -393,10 +425,16 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
-      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("No");
-      expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("Yes");
+      expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent(
+        "No"
+      );
+      expect(
+        screen.getByTestId("attribute-logic-fallback-matched")
+      ).toHaveTextContent("Yes");
       // Skip the matching members check as it's giving issues
     });
   });
@@ -415,10 +453,14 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
 
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("Thank you for submitting!");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
+        "Thank you for submitting!"
+      );
     });
 
     it("submits the form and shows test results for Event Type", async () => {
@@ -433,9 +475,13 @@ describe("TestFormDialog", () => {
           }}
         />
       );
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
+        "john/30min"
+      );
       // When we support showing matching route we can add this back
       // expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 2");
     });
@@ -461,13 +507,21 @@ describe("TestFormDialog", () => {
       );
 
       // Fill in the name field
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "Sales Team" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "Sales Team" },
+      });
       fireEvent.click(screen.getByText("submit"));
 
       // Verify the URL shows the substituted value, not the variable
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("/team/Sales%20Team/meeting");
-      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("/team/sales-team/meeting");
-      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("{name}");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
+        "/team/Sales%20Team/meeting"
+      );
+      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent(
+        "/team/sales-team/meeting"
+      );
+      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent(
+        "{name}"
+      );
     });
 
     it("should NOT substitute variables in external redirect URL", async () => {
@@ -490,12 +544,18 @@ describe("TestFormDialog", () => {
         />
       );
 
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
+      fireEvent.change(screen.getByTestId("form-field-name"), {
+        target: { value: "John Doe" },
+      });
       fireEvent.click(screen.getByText("submit"));
 
       // Verify the URL shows the variable as-is, without substitution
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("https://example.com/user/{name}");
-      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("john-doe");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
+        "https://example.com/user/{name}"
+      );
+      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent(
+        "john-doe"
+      );
     });
   });
 });

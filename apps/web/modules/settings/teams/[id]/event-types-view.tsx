@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { useCreateEventType } from "@calcom/web/modules/event-types/hooks/useCreateEventType";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +16,9 @@ type CreateTeamEventTypeProps = {
   permissions: { canCreateEventType: boolean };
 };
 
-export const CreateTeamEventType = ({ permissions }: CreateTeamEventTypeProps) => {
+export const CreateTeamEventType = ({
+  permissions,
+}: CreateTeamEventTypeProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -37,7 +39,8 @@ export const CreateTeamEventType = ({ permissions }: CreateTeamEventTypeProps) =
         type="submit"
         color="primary"
         className="w-full justify-center"
-        disabled={isPending}>
+        disabled={isPending}
+      >
         {t("finish")}
       </Button>
     );
@@ -48,10 +51,14 @@ export const CreateTeamEventType = ({ permissions }: CreateTeamEventTypeProps) =
     { enabled: !!teamId }
   );
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
+  const { form, createMutation, isManagedEventType } = useCreateEventType(
+    onSuccessMutation,
+    onErrorMutation
+  );
 
   const orgBranding = useOrgBranding();
-  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
+  const urlPrefix =
+    orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
     <TeamEventTypeForm
@@ -81,7 +88,8 @@ export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
       maxSteps={3}
       isOptionalCallback={() => {
         router.push(`/settings/teams/${teamId}/profile`);
-      }}>
+      }}
+    >
       {children}
     </WizardLayout>
   );

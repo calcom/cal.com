@@ -4,7 +4,11 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
+import type {
+  ImmutableTree,
+  BuilderProps,
+  Config,
+} from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -40,7 +44,7 @@ import type {
   AttributeRoutingConfig,
 } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -52,7 +56,10 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
+import {
+  SelectWithValidation as Select,
+  TextArea,
+} from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
@@ -84,7 +91,9 @@ function useEnsureEventTypeIdInRedirectUrlAction({
 }) {
   const routeActionValue = isRouter(route) ? undefined : route.action.value;
   const routeActionType = isRouter(route) ? undefined : route.action.type;
-  const routeActionEventTypeId = isRouter(route) ? undefined : route.action.eventTypeId;
+  const routeActionEventTypeId = isRouter(route)
+    ? undefined
+    : route.action.eventTypeId;
 
   useEffect(() => {
     if (isRouter(route)) {
@@ -99,19 +108,30 @@ function useEnsureEventTypeIdInRedirectUrlAction({
       return;
     }
 
-    const matchingOption = eventOptions.find((eventOption) => eventOption.value === routeActionValue);
+    const matchingOption = eventOptions.find(
+      (eventOption) => eventOption.value === routeActionValue
+    );
     if (!matchingOption) {
       return;
     }
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route, routeActionValue, routeActionType, routeActionEventTypeId]);
+  }, [
+    eventOptions,
+    setRoute,
+    route,
+    routeActionValue,
+    routeActionType,
+    routeActionEventTypeId,
+  ]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  return route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return (
+    route.queryValue.children1 && Object.keys(route.queryValue.children1).length
+  );
 };
 
 function getEmptyQueryValue() {
@@ -122,7 +142,8 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();
   const formFieldsQueryValue = getEmptyQueryValue() as FormFieldsQueryValue;
   const attributesQueryValue = getEmptyQueryValue() as AttributesQueryValue;
-  const fallbackAttributesQueryValue = getEmptyQueryValue() as AttributesQueryValue;
+  const fallbackAttributesQueryValue =
+    getEmptyQueryValue() as AttributesQueryValue;
 
   return {
     id: uuid,
@@ -174,11 +195,16 @@ const buildEventsData = ({
     });
 
     group.eventTypes.forEach((eventType) => {
-      if (eventType.teamId && eventType.schedulingType === SchedulingType.MANAGED) {
+      if (
+        eventType.teamId &&
+        eventType.schedulingType === SchedulingType.MANAGED
+      ) {
         return;
       }
       const uniqueSlug = `${group.profile.slug}/${eventType.slug}`;
-      const isRouteAlreadyInUse = isRouter(route) ? false : uniqueSlug === route.action.value;
+      const isRouteAlreadyInUse = isRouter(route)
+        ? false
+        : uniqueSlug === route.action.value;
 
       // If Event is already in use, we let it be so as to not break the existing setup
       if (!isRouteAlreadyInUse && !eventTypeValidInContext) {
@@ -186,7 +212,9 @@ const buildEventsData = ({
       }
 
       // Pass app data that works with routing forms
-      const eventTypeAppMetadata = getEventTypeAppMetadata(eventType.metadata as Prisma.JsonValue);
+      const eventTypeAppMetadata = getEventTypeAppMetadata(
+        eventType.metadata as Prisma.JsonValue
+      );
 
       eventTypesMap.set(eventType.id, {
         eventTypeAppMetadata,
@@ -217,12 +245,18 @@ const isValidAttributeIdForWeights = ({
   }
 
   return Object.values(jsonTree.children1).some((rule) => {
-    if (rule.type !== "rule" || rule?.properties?.field !== attributeIdForWeights) {
+    if (
+      rule.type !== "rule" ||
+      rule?.properties?.field !== attributeIdForWeights
+    ) {
       return false;
     }
 
     const values = rule.properties.value.flat();
-    return values.length === 1 && values.some((value: string) => isDynamicOperandField(value));
+    return (
+      values.length === 1 &&
+      values.some((value: string) => isDynamicOperandField(value))
+    );
   });
 };
 
@@ -234,7 +268,9 @@ const WeightedAttributesSelector = ({
 }: {
   attributes?: Attribute[];
   route: EditFormRoute;
-  eventTypeRedirectUrlSelectedOption: { isRRWeightsEnabled: boolean } | undefined;
+  eventTypeRedirectUrlSelectedOption:
+    | { isRRWeightsEnabled: boolean }
+    | undefined;
   setRoute: SetRoute;
 }) => {
   const [attributeIdForWeights, setAttributeIdForWeights] = useState(
@@ -258,21 +294,26 @@ const WeightedAttributesSelector = ({
       raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue) &&
       validatedQueryValue.children1
     ) {
-      const attributeIds = Object.values(validatedQueryValue.children1).map((rule) => {
-        if (rule.type === "rule" && rule?.properties?.field) {
-          if (
-            rule.properties.value.flat().length == 1 &&
-            rule.properties.value.flat().some((value) => isDynamicOperandField(value))
-          ) {
-            return rule.properties.field;
+      const attributeIds = Object.values(validatedQueryValue.children1).map(
+        (rule) => {
+          if (rule.type === "rule" && rule?.properties?.field) {
+            if (
+              rule.properties.value.flat().length == 1 &&
+              rule.properties.value
+                .flat()
+                .some((value) => isDynamicOperandField(value))
+            ) {
+              return rule.properties.field;
+            }
           }
         }
-      });
+      );
 
       attributesWithWeightsEnabled = attributes
         ? attributes.filter(
             (attribute) =>
-              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
+              attribute.isWeightsEnabled &&
+              attributeIds.find((attributeId) => attributeId === attribute.id)
           )
         : [];
     }
@@ -296,15 +337,21 @@ const WeightedAttributesSelector = ({
               <Icon name="globe" className="text-subtle h-4 w-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-emphasis ml-2 text-sm font-medium">{t("use_attribute_weights")}</span>
-              <span className="text-subtle ml-2 text-sm">{t("if_enabled_ignore_event_type_weights")}</span>
+              <span className="text-emphasis ml-2 text-sm font-medium">
+                {t("use_attribute_weights")}
+              </span>
+              <span className="text-subtle ml-2 text-sm">
+                {t("if_enabled_ignore_event_type_weights")}
+              </span>
             </div>
           </div>
           <Switch
             size="sm"
             checked={!!attributeIdForWeights}
             onCheckedChange={(checked) => {
-              const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
+              const attributeId = checked
+                ? attributesWithWeightsEnabled[0].id
+                : undefined;
               setAttributeIdForWeights(attributeId);
               onChangeAttributeIdForWeights(route, attributeId);
             }}
@@ -364,7 +411,10 @@ const Route = ({
   route: EditFormRoute;
   routes: EditFormRoute[];
   setRoute: SetRoute;
-  setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
+  setAttributeRoutingConfig: (
+    id: string,
+    attributeRoutingConfig: Partial<AttributeRoutingConfig>
+  ) => void;
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
   setRoutes: React.Dispatch<React.SetStateAction<EditFormRoute[]>>;
@@ -392,13 +442,21 @@ const Route = ({
   // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
   const eventTypePrefix =
     eventOptions.length !== 0
-      ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
+      ? eventOptions[0].value.substring(
+          0,
+          eventOptions[0].value.lastIndexOf("/") + 1
+        )
       : "";
 
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
     const isCustom =
-      !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
+      !isRouter(route) &&
+      !eventOptions.find(
+        (eventOption) => eventOption.value === route.action.value
+      );
+    return isCustom && !isRouter(route)
+      ? route.action.value.split("/").pop() ?? ""
+      : "";
   });
 
   useEnsureEventTypeIdInRedirectUrlAction({
@@ -419,7 +477,9 @@ const Route = ({
     });
   };
 
-  const setAttributeIdForWeights = (attributeIdForWeights: string | undefined) => {
+  const setAttributeIdForWeights = (
+    attributeIdForWeights: string | undefined
+  ) => {
     setRoute(route.id, {
       attributeIdForWeights,
     });
@@ -431,9 +491,12 @@ const Route = ({
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
     const jsonTree = QbUtils.getTree(immutableTree);
-    const attributeIdForWeights = isRouter(route) ? null : route.attributeIdForWeights;
+    const attributeIdForWeights = isRouter(route)
+      ? null
+      : route.attributeIdForWeights;
     const _isValidAttributeIdForWeights =
-      attributeIdForWeights && isValidAttributeIdForWeights({ attributeIdForWeights, jsonTree });
+      attributeIdForWeights &&
+      isValidAttributeIdForWeights({ attributeIdForWeights, jsonTree });
 
     if (attributeIdForWeights && !_isValidAttributeIdForWeights) {
       setAttributeIdForWeights(undefined);
@@ -442,7 +505,9 @@ const Route = ({
     setRoute(route.id, {
       attributesQueryBuilderState: { tree: immutableTree, config: config },
       attributesQueryValue: jsonTree as AttributesQueryValue,
-      attributeIdForWeights: _isValidAttributeIdForWeights ? attributeIdForWeights : undefined,
+      attributeIdForWeights: _isValidAttributeIdForWeights
+        ? attributeIdForWeights
+        : undefined,
     });
   };
 
@@ -453,7 +518,10 @@ const Route = ({
   ) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
-      fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
+      fallbackAttributesQueryBuilderState: {
+        tree: immutableTree,
+        config: config,
+      },
       fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,
     });
   };
@@ -486,7 +554,8 @@ const Route = ({
           }}
           isLabelEditable={false}
           label={route.name ?? `Route ${index + 1}`}
-          className="mb-6">
+          className="mb-6"
+        >
           <div className="-mt-3">
             <Link href={`${appUrl}/route-builder/${route.id}`}>
               <Badge variant="gray">
@@ -494,7 +563,9 @@ const Route = ({
               </Badge>
             </Link>
             <p className="text-subtle mt-2 text-sm">
-              Fields available in <span className="font-bold">{route.name}</span> will be added to this form.
+              Fields available in{" "}
+              <span className="font-bold">{route.name}</span> will be added to
+              this form.
             </p>
           </div>
         </FormCard>
@@ -502,18 +573,26 @@ const Route = ({
     );
   }
 
-  const shouldShowFormFieldsQueryBuilder = (route.isFallback && hasRules(route)) || !route.isFallback;
+  const shouldShowFormFieldsQueryBuilder =
+    (route.isFallback && hasRules(route)) || !route.isFallback;
   const eventTypeRedirectUrlOptions =
     eventOptions.length !== 0
-      ? [{ label: t("custom"), value: "custom", eventTypeId: 0, isRRWeightsEnabled: false }].concat(
-          eventOptions
-        )
+      ? [
+          {
+            label: t("custom"),
+            value: "custom",
+            eventTypeId: 0,
+            isRRWeightsEnabled: false,
+          },
+        ].concat(eventOptions)
       : [];
 
   const eventTypeRedirectUrlSelectedOption =
     eventOptions.length !== 0 && route.action.value !== ""
       ? eventOptions.find(
-          (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
+          (eventOption) =>
+            eventOption.value === route.action.value &&
+            !customEventTypeSlug.length
         ) || {
           label: t("custom"),
           value: "custom",
@@ -528,7 +607,9 @@ const Route = ({
         <div className="border-subtle rounded-lg border p-1">
           <Icon name="zap" className="text-subtle h-4 w-4" />
         </div>
-        <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
+        <span className="text-emphasis ml-2 text-sm font-medium">
+          Conditions
+        </span>
       </div>
       <Query
         {...withRaqbSettingsAndWidgets({
@@ -548,25 +629,33 @@ const Route = ({
     </div>
   ) : null;
 
-  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
-    ? withRaqbSettingsAndWidgets({
-        config: attributesQueryBuilderConfig,
-        configFor: ConfigFor.Attributes,
-      })
-    : null;
+  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets =
+    attributesQueryBuilderConfig
+      ? withRaqbSettingsAndWidgets({
+          config: attributesQueryBuilderConfig,
+          configFor: ConfigFor.Attributes,
+        })
+      : null;
 
   const attributesQueryBuilder =
     // team member attributes are only available for organization teams
-    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm && isOrganization ? (
+    route.action?.type === RouteActionType.EventTypeRedirectUrl &&
+    isTeamForm &&
+    isOrganization ? (
       <div className="mt-4">
         {/* TODO: */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
-        "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
+        "salesforce" in
+          eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
           <div className="mt-4 px-2.5">
             <DynamicAppComponent
               componentMap={routingFormAppComponents}
               slug="salesforce"
-              appData={eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata["salesforce"]}
+              appData={
+                eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata[
+                  "salesforce"
+                ]
+              }
               route={route}
               setAttributeRoutingConfig={setAttributeRoutingConfig}
             />
@@ -582,32 +671,36 @@ const Route = ({
               And connect with specific team members
             </span>
           </div>
-          {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
-            <Query
-              {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
-              value={route.attributesQueryBuilderState.tree}
-              onChange={(immutableTree, attributesQueryBuilderConfig) => {
-                onChangeTeamMembersQuery(
-                  route,
-                  immutableTree,
-                  attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
-                );
-              }}
-              renderBuilder={renderBuilder}
-            />
-          )}
+          {route.attributesQueryBuilderState &&
+            attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
+              <Query
+                {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
+                value={route.attributesQueryBuilderState.tree}
+                onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                  onChangeTeamMembersQuery(
+                    route,
+                    immutableTree,
+                    attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                  );
+                }}
+                renderBuilder={renderBuilder}
+              />
+            )}
         </div>
       </div>
     ) : null;
 
   const fallbackAttributesQueryBuilder =
-    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
+    route.action?.type === RouteActionType.EventTypeRedirectUrl &&
+    isTeamForm ? (
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="border-subtle rounded-lg border p-1">
             <Icon name="blocks" className="text-subtle h-4 w-4" />
           </div>
-          <span className="text-emphasis ml-2 text-sm font-medium">Fallback</span>
+          <span className="text-emphasis ml-2 text-sm font-medium">
+            Fallback
+          </span>
         </div>
         {route.fallbackAttributesQueryBuilderState &&
           attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
@@ -634,7 +727,9 @@ const Route = ({
       collapsible={cardOptions?.collapsible}
       moveUp={moveUp}
       moveDown={moveDown}
-      label={route.name ?? (route.isFallback ? "Otherwise" : `Route ${index + 1}`)}
+      label={
+        route.name ?? (route.isFallback ? "Otherwise" : `Route ${index + 1}`)
+      }
       isLabelEditable={!route.isFallback}
       onLabelChange={(label) => {
         setRoute(route.id, { name: label });
@@ -649,12 +744,14 @@ const Route = ({
                 setRoutes(newRoutes);
               },
             }
-      }>
+      }
+    >
       <div
         className={classNames(
           "cal-query-builder-card w-full gap-2 p-2",
           route.isFallback && "bg-cal-muted border-subtle rounded-xl  border"
-        )}>
+        )}
+      >
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
           <div>
@@ -669,7 +766,9 @@ const Route = ({
                     isDisabled={disabled}
                     className="data-testid-select-routing-action block w-full grow"
                     required
-                    value={RoutingPages.find((page) => page.value === route.action?.type)}
+                    value={RoutingPages.find(
+                      (page) => page.value === route.action?.type
+                    )}
                     onChange={(item) => {
                       if (!item) {
                         return;
@@ -702,7 +801,9 @@ const Route = ({
                       }}
                       value={route.action.value}
                       onChange={(e) => {
-                        setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                        setRoute(route.id, {
+                          action: { ...route.action, value: e.target.value },
+                        });
                       }}
                     />
                   ) : route.action?.type === "externalRedirectUrl" ? (
@@ -716,7 +817,9 @@ const Route = ({
                       labelSrOnly
                       value={route.action.value}
                       onChange={(e) => {
-                        setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                        setRoute(route.id, {
+                          action: { ...route.action, value: e.target.value },
+                        });
                       }}
                       placeholder="https://example.com"
                     />
@@ -744,7 +847,11 @@ const Route = ({
                             setCustomEventTypeSlug("");
                           } else {
                             setRoute(route.id, {
-                              action: { ...route.action, value: "custom", eventTypeId: 0 },
+                              action: {
+                                ...route.action,
+                                value: "custom",
+                                eventTypeId: 0,
+                              },
                               attributeRoutingConfig: {},
                             });
                             setCustomEventTypeSlug("");
@@ -754,7 +861,10 @@ const Route = ({
                       />
                       {eventOptions.length !== 0 &&
                       route.action.value !== "" &&
-                      (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
+                      (!eventOptions.find(
+                        (eventOption) =>
+                          eventOption.value === route.action.value
+                      ) ||
                         customEventTypeSlug.length) ? (
                         <>
                           <TextField
@@ -767,7 +877,10 @@ const Route = ({
                             onChange={(e) => {
                               setCustomEventTypeSlug(e.target.value);
                               setRoute(route.id, {
-                                action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                                action: {
+                                  ...route.action,
+                                  value: `${eventTypePrefix}${e.target.value}`,
+                                },
                               });
                             }}
                             placeholder="event-url"
@@ -775,9 +888,12 @@ const Route = ({
                           <div className="mt-2 ">
                             <p className="text-subtle text-xs">
                               {fieldIdentifiers.length
-                                ? t("field_identifiers_as_variables_with_example", {
-                                    variable: `{${fieldIdentifiers[0]}}`,
-                                  })
+                                ? t(
+                                    "field_identifiers_as_variables_with_example",
+                                    {
+                                      variable: `{${fieldIdentifiers[0]}}`,
+                                    }
+                                  )
                                 : t("field_identifiers_as_variables")}
                             </p>
                           </div>
@@ -795,7 +911,9 @@ const Route = ({
                   <div className="border-subtle rounded-lg border p-1">
                     <Icon name="arrow-right" className="text-subtle h-4 w-4" />
                   </div>
-                  <span className="text-emphasis ml-2 text-sm font-medium">Send booker to</span>
+                  <span className="text-emphasis ml-2 text-sm font-medium">
+                    Send booker to
+                  </span>
                 </div>
                 <div className="bg-cal-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
                   <div className="flex grow items-center gap-2">
@@ -804,7 +922,9 @@ const Route = ({
                       isDisabled={disabled}
                       className="data-testid-select-routing-action block w-full grow"
                       required
-                      value={RoutingPages.find((page) => page.value === route.action?.type)}
+                      value={RoutingPages.find(
+                        (page) => page.value === route.action?.type
+                      )}
                       onChange={(item) => {
                         if (!item) {
                           return;
@@ -837,7 +957,9 @@ const Route = ({
                         }}
                         value={route.action.value}
                         onChange={(e) => {
-                          setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                          setRoute(route.id, {
+                            action: { ...route.action, value: e.target.value },
+                          });
                         }}
                       />
                     ) : route.action?.type === "externalRedirectUrl" ? (
@@ -852,7 +974,9 @@ const Route = ({
                         labelSrOnly
                         value={route.action.value}
                         onChange={(e) => {
-                          setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                          setRoute(route.id, {
+                            action: { ...route.action, value: e.target.value },
+                          });
                         }}
                         placeholder="https://example.com"
                       />
@@ -880,7 +1004,11 @@ const Route = ({
                               setCustomEventTypeSlug("");
                             } else {
                               setRoute(route.id, {
-                                action: { ...route.action, value: "custom", eventTypeId: 0 },
+                                action: {
+                                  ...route.action,
+                                  value: "custom",
+                                  eventTypeId: 0,
+                                },
                                 attributeRoutingConfig: {},
                               });
                               setCustomEventTypeSlug("");
@@ -890,7 +1018,10 @@ const Route = ({
                         />
                         {eventOptions.length !== 0 &&
                         route.action.value !== "" &&
-                        (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
+                        (!eventOptions.find(
+                          (eventOption) =>
+                            eventOption.value === route.action.value
+                        ) ||
                           customEventTypeSlug.length) ? (
                           <>
                             <TextField
@@ -903,7 +1034,10 @@ const Route = ({
                               onChange={(e) => {
                                 setCustomEventTypeSlug(e.target.value);
                                 setRoute(route.id, {
-                                  action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                                  action: {
+                                    ...route.action,
+                                    value: `${eventTypePrefix}${e.target.value}`,
+                                  },
                                 });
                               }}
                               placeholder="event-url"
@@ -911,9 +1045,12 @@ const Route = ({
                             <div className="mt-2 ">
                               <p className="text-subtle text-xs">
                                 {fieldIdentifiers.length
-                                  ? t("field_identifiers_as_variables_with_example", {
-                                      variable: `{${fieldIdentifiers[0]}}`,
-                                    })
+                                  ? t(
+                                      "field_identifiers_as_variables_with_example",
+                                      {
+                                        variable: `{${fieldIdentifiers[0]}}`,
+                                      }
+                                    )
                                   : t("field_identifiers_as_variables")}
                               </p>
                             </div>
@@ -932,10 +1069,14 @@ const Route = ({
             <WeightedAttributesSelector
               attributes={attributes}
               route={route}
-              eventTypeRedirectUrlSelectedOption={eventTypeRedirectUrlSelectedOption}
+              eventTypeRedirectUrlSelectedOption={
+                eventTypeRedirectUrlSelectedOption
+              }
               setRoute={setRoute}
             />
-            {fallbackAttributesQueryBuilder ? <>{fallbackAttributesQueryBuilder}</> : null}
+            {fallbackAttributesQueryBuilder ? (
+              <>{fallbackAttributesQueryBuilder}</>
+            ) : null}
           </div>
         </div>
       </div>
@@ -957,7 +1098,10 @@ const buildState = <
   queryValue,
   config,
 }: T) => ({
-  tree: QbUtils.checkTree(QbUtils.loadTree(queryValue as JsonTree), config as unknown as Config),
+  tree: QbUtils.checkTree(
+    QbUtils.loadTree(queryValue as JsonTree),
+    config as unknown as Config
+  ),
   config,
 });
 
@@ -1020,11 +1164,13 @@ function useRoutes({
         }
 
         if (!r.attributesQueryValue) {
-          r.attributesQueryValue = getEmptyQueryValue() as LocalRoute["attributesQueryValue"];
+          r.attributesQueryValue =
+            getEmptyQueryValue() as LocalRoute["attributesQueryValue"];
         }
 
         if (!r.fallbackAttributesQueryValue) {
-          r.fallbackAttributesQueryValue = getEmptyQueryValue() as LocalRoute["fallbackAttributesQueryValue"];
+          r.fallbackAttributesQueryValue =
+            getEmptyQueryValue() as LocalRoute["fallbackAttributesQueryValue"];
         }
       });
       return _routes;
@@ -1103,7 +1249,8 @@ const useCreateRoute = ({
               })
             : null,
         fallbackAttributesQueryBuilderState:
-          attributesQueryBuilderConfig && newEmptyRoute.fallbackAttributesQueryValue
+          attributesQueryBuilderConfig &&
+          newEmptyRoute.fallbackAttributesQueryValue
             ? buildState({
                 queryValue: newEmptyRoute.fallbackAttributesQueryValue,
                 config: attributesQueryBuilderConfig,
@@ -1112,7 +1259,12 @@ const useCreateRoute = ({
       },
     ];
     setRoutes(newRoutes);
-  }, [routes, setRoutes, formFieldsQueryBuilderConfig, attributesQueryBuilderConfig]);
+  }, [
+    routes,
+    setRoutes,
+    formFieldsQueryBuilderConfig,
+    attributesQueryBuilderConfig,
+  ]);
 
   return createRoute;
 };
@@ -1133,7 +1285,9 @@ const Routes = ({
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
 
-  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
+  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(
+    hookForm.getValues()
+  );
   const attributesQueryBuilderConfig = attributes
     ? getQueryBuilderConfigForAttributes({
         attributes: attributes,
@@ -1184,7 +1338,10 @@ const Routes = ({
     setRoutes((routes) => {
       // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
 
-      return [...routes.filter((route) => route.id !== fallbackRoute!.id), fallbackRoute!];
+      return [
+        ...routes.filter((route) => route.id !== fallbackRoute!.id),
+        fallbackRoute!,
+      ];
     });
   }
 
@@ -1196,17 +1353,25 @@ const Routes = ({
     setRoutes(newRoutes);
   };
 
-  const setAttributeRoutingConfig = (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => {
+  const setAttributeRoutingConfig = (
+    id: string,
+    attributeRoutingConfig: Partial<AttributeRoutingConfig>
+  ) => {
     const existingRoute = routes.find((route) => route.id === id);
     if (!existingRoute) {
       throw new Error("Route not found");
     }
 
     const existingAttributeRoutingConfig =
-      "attributeRoutingConfig" in existingRoute ? existingRoute.attributeRoutingConfig : {};
+      "attributeRoutingConfig" in existingRoute
+        ? existingRoute.attributeRoutingConfig
+        : {};
 
     setRoute(id, {
-      attributeRoutingConfig: { ...existingAttributeRoutingConfig, ...attributeRoutingConfig },
+      attributeRoutingConfig: {
+        ...existingAttributeRoutingConfig,
+        ...attributeRoutingConfig,
+      },
     });
   };
 
@@ -1222,7 +1387,9 @@ const Routes = ({
 
   const fields = hookForm.getValues("fields");
 
-  const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
+  const fieldIdentifiers = fields
+    ? fields.map((field) => field.identifier ?? field.label)
+    : [];
 
   return (
     <div className="w-full py-4 lg:py-8">
@@ -1275,7 +1442,8 @@ const Routes = ({
             StartIcon="plus"
             className="mb-6"
             onClick={createRoute}
-            data-testid="add-route-button">
+            data-testid="add-route-button"
+          >
             {t("add_a_new_route")}
           </Button>
         )}

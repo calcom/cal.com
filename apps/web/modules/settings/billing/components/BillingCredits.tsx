@@ -7,7 +7,7 @@ import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -42,7 +42,13 @@ type CreditRowProps = {
   className?: string;
 };
 
-const CreditRow = ({ label, value, isBold = false, underline, className = "" }: CreditRowProps) => {
+const CreditRow = ({
+  label,
+  value,
+  isBold = false,
+  underline,
+  className = "",
+}: CreditRowProps) => {
   const numberFormatter = new Intl.NumberFormat();
   return (
     <div
@@ -54,13 +60,22 @@ const CreditRow = ({ label, value, isBold = false, underline, className = "" }: 
           ? "border-subtle border-b border-solid"
           : "mt-1",
         className
-      )}>
+      )}
+    >
       <span
-        className={classNames("text-sm", isBold ? "font-semibold" : "text-subtle font-medium leading-tight")}>
+        className={classNames(
+          "text-sm",
+          isBold ? "font-semibold" : "text-subtle font-medium leading-tight"
+        )}
+      >
         {label}
       </span>
       <span
-        className={classNames(`text-sm`, isBold ? "font-semibold" : "text-subtle font-medium leading-tight")}>
+        className={classNames(
+          `text-sm`,
+          isBold ? "font-semibold" : "text-subtle font-medium leading-tight"
+        )}
+      >
         {numberFormatter.format(value)}
       </span>
     </div>
@@ -73,7 +88,10 @@ const getMonthOptions = (): MonthOption[] => {
 
   let date = dayjs.utc();
   let count = 0;
-  while ((date.isAfter(minDate) || date.isSame(minDate, "month")) && count < 12) {
+  while (
+    (date.isAfter(minDate) || date.isSame(minDate, "month")) &&
+    count < 12
+  ) {
     const startDate = date.startOf("month");
     const endDate = date.endOf("month");
     options.push({
@@ -96,9 +114,12 @@ export default function BillingCredits() {
   const session = useSession();
   const orgBranding = useOrgBranding();
   const monthOptions = useMemo(() => getMonthOptions(), []);
-  const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
+  const [selectedMonth, setSelectedMonth] = useState<MonthOption>(
+    monthOptions[0]
+  );
   const [isDownloading, setIsDownloading] = useState(false);
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [showMemberInvitationModal, setShowMemberInvitationModal] =
+    useState(false);
   const utils = trpc.useUtils();
 
   const {
@@ -122,14 +143,18 @@ export default function BillingCredits() {
   const tokens = (pathname ?? "").split("/").filter(Boolean);
   const settingsIndex = tokens.indexOf("settings");
   const isOrgScopedPath =
-    settingsIndex >= 0 && ["organizations", "teams"].includes(tokens[settingsIndex + 1]);
+    settingsIndex >= 0 &&
+    ["organizations", "teams"].includes(tokens[settingsIndex + 1]);
 
-  const shouldRender = IS_SMS_CREDITS_ENABLED && !(orgId && !isOrgScopedPath && !orgBranding?.slug);
+  const shouldRender =
+    IS_SMS_CREDITS_ENABLED &&
+    !(orgId && !isOrgScopedPath && !orgBranding?.slug);
 
-  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
-    { teamId },
-    { enabled: shouldRender }
-  );
+  const { data: creditsData, isLoading } =
+    trpc.viewer.credits.getAllCredits.useQuery(
+      { teamId },
+      { enabled: shouldRender }
+    );
 
   if (!shouldRender) return null;
 
@@ -153,7 +178,9 @@ export default function BillingCredits() {
         endDate: selectedMonth.endDate,
       });
       if (result?.csvData) {
-        const filename = `credit-expense-log-${selectedMonth.value.toLowerCase().replace(" ", "-")}.csv`;
+        const filename = `credit-expense-log-${selectedMonth.value
+          .toLowerCase()
+          .replace(" ", "-")}.csv`;
         downloadAsCsv(result.csvData, filename);
       } else {
         showToast(t("error_downloading_expense_log"), "error");
@@ -175,15 +202,20 @@ export default function BillingCredits() {
   const totalCredits = creditsData.credits.totalMonthlyCredits ?? 0;
   const totalUsed = creditsData.credits.totalCreditsUsedThisMonth ?? 0;
 
-  const teamCreditsPercentageUsed = totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
+  const teamCreditsPercentageUsed =
+    totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
   const numberFormatter = new Intl.NumberFormat();
 
   return (
     <>
       <div className="bg-cal-muted border-muted mt-5 rounded-xl border p-1">
         <div className="flex flex-col gap-1 px-4 py-5">
-          <h2 className="text-default text-base font-semibold leading-none">{t("credits")}</h2>
-          <p className="text-subtle text-sm font-medium leading-tight">{t("view_and_manage_credits")}</p>
+          <h2 className="text-default text-base font-semibold leading-none">
+            {t("credits")}
+          </h2>
+          <p className="text-subtle text-sm font-medium leading-tight">
+            {t("view_and_manage_credits")}
+          </p>
         </div>
         <div className="bg-default border-muted flex w-full rounded-[10px] border px-5 py-4">
           <div className="w-full">
@@ -196,20 +228,33 @@ export default function BillingCredits() {
                     isBold={true}
                     underline="dashed"
                   />
-                  <CreditRow label={t("credits_used")} value={totalUsed} underline="solid" />
+                  <CreditRow
+                    label={t("credits_used")}
+                    value={totalUsed}
+                    underline="solid"
+                  />
                   <CreditRow
                     label={t("total_credits_remaining")}
                     value={creditsData.credits.totalRemainingMonthlyCredits}
                   />
                   <div className="mt-4">
-                    <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
+                    <ProgressBar
+                      color="green"
+                      percentageValue={100 - teamCreditsPercentageUsed}
+                    />
                   </div>
                   {/*750 credits per tip*/}
                   <div className="mt-4 flex flex-1 items-center justify-between">
                     <p className="text-subtle text-sm font-medium leading-tight">
-                      {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
+                      {orgSlug
+                        ? t("credits_per_tip_org")
+                        : t("credits_per_tip_teams")}
                     </p>
-                    <Button onClick={() => setShowMemberInvitationModal(true)} size="sm" color="secondary">
+                    <Button
+                      onClick={() => setShowMemberInvitationModal(true)}
+                      size="sm"
+                      color="secondary"
+                    >
                       {t("add_members_no_ellipsis")}
                     </Button>
                   </div>
@@ -233,8 +278,12 @@ export default function BillingCredits() {
                   <Label>{t("additional_credits")}</Label>
                   <div className="mb-2 flex items-center gap-1">
                     <p className="text-sm font-semibold leading-none">
-                      <span className="text-subtle font-medium">{t("current_balance")}</span>{" "}
-                      {numberFormatter.format(creditsData.credits.additionalCredits)}
+                      <span className="text-subtle font-medium">
+                        {t("current_balance")}
+                      </span>{" "}
+                      {numberFormatter.format(
+                        creditsData.credits.additionalCredits
+                      )}
                     </p>
                     <Tooltip content={t("view_additional_credits_expense_tip")}>
                       <Icon name="info" className="text-emphasis h-3 w-3" />
@@ -247,21 +296,36 @@ export default function BillingCredits() {
                     type="number"
                     {...register("quantity", {
                       required: t("error_required_field"),
-                      min: { value: 50, message: t("minimum_of_credits_required") },
+                      min: {
+                        value: 50,
+                        message: t("minimum_of_credits_required"),
+                      },
                       valueAsNumber: true,
                     })}
                     label=""
                     containerClassName="w-full -mt-1"
                     size="sm"
-                    onChange={(e) => setValue("quantity", Number(e.target.value))}
+                    onChange={(e) =>
+                      setValue("quantity", Number(e.target.value))
+                    }
                     min={50}
                     addOnSuffix={<>{t("credits")}</>}
                   />
-                  <Button color="secondary" target="_blank" size="sm" type="submit" data-testid="buy-credits">
+                  <Button
+                    color="secondary"
+                    target="_blank"
+                    size="sm"
+                    type="submit"
+                    data-testid="buy-credits"
+                  >
                     {t("buy")}
                   </Button>
                 </div>
-                {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
+                {errors.quantity && (
+                  <InputError
+                    message={errors.quantity.message ?? t("invalid_input")}
+                  />
+                )}
               </div>
             </form>
             <div className="-mx-5 mt-5">
@@ -285,7 +349,12 @@ export default function BillingCredits() {
                 </div>
               </div>
               <div className="mt-auto">
-                <Button onClick={handleDownload} loading={isDownloading} color="secondary" size="sm">
+                <Button
+                  onClick={handleDownload}
+                  loading={isDownloading}
+                  color="secondary"
+                  size="sm"
+                >
                   {t("download")}
                 </Button>
               </div>
@@ -302,7 +371,8 @@ export default function BillingCredits() {
                 key="Credit System"
                 className="underline underline-offset-2"
                 target="_blank"
-                href="https://cal.com/help/billing-and-usage/messaging-credits">
+                href="https://cal.com/help/billing-and-usage/messaging-credits"
+              >
                 Learn more
               </Link>,
             ]}

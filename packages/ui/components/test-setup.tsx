@@ -7,10 +7,14 @@ import { afterEach, expect, vi } from "vitest";
 global.React = React;
 
 vi.mock("framer-motion", () => ({
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   LazyMotion: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   m: {
-    span: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+    span: ({ children }: { children: React.ReactNode }) => (
+      <span>{children}</span>
+    ),
     div: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   },
   useReducedMotion: () => false,
@@ -30,10 +34,12 @@ vi.mock("@calcom/features/ee/organizations/hooks", () => ({
 }));
 
 vi.mock("react-sticky-box", () => ({
-  default: ({ children }: { children: React.ReactNode }) => <div data-testid="sticky-box">{children}</div>,
+  default: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sticky-box">{children}</div>
+  ),
 }));
 
-vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
+vi.mock("@calcom/web/modules/ee/organizations/context/provider", () => ({
   useOrgBranding() {
     return {};
   },

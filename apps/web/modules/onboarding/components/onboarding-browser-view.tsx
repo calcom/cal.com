@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,7 +32,9 @@ const getDisplayUrl = (
   }
 
   const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  return teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+  return teamSlug !== undefined
+    ? `${webappUrl}/team/${teamSlug || ""}`
+    : `${webappUrl}/${username || ""}`;
 };
 
 export const OnboardingBrowserView = ({
@@ -113,7 +115,9 @@ export const OnboardingBrowserView = ({
         </div>
         <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
-          <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}</p>
+          <p className="text-default truncate text-sm font-medium leading-tight">
+            {displayUrl}
+          </p>
         </div>
         <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
       </div>
@@ -130,7 +134,8 @@ export const OnboardingBrowserView = ({
             transition={{
               duration: 0.5,
               ease: "backOut",
-            }}>
+            }}
+          >
             {/* Profile Header */}
             <div className="border-subtle flex flex-col gap-4 border-b p-4">
               <div className="flex flex-col items-start gap-4">
@@ -148,7 +153,8 @@ export const OnboardingBrowserView = ({
                     className={classNames("text-sm leading-normal", {
                       "text-default": bio,
                       "text-subtle italic": !bio,
-                    })}>
+                    })}
+                  >
                     {bio || t("onboarding_browser_view_default_bio")}
                   </p>
                 </div>
@@ -163,17 +169,29 @@ export const OnboardingBrowserView = ({
                   <div className="flex items-center justify-between gap-3 px-5 py-4">
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <div className="flex items-center gap-1">
-                        <h3 className="text-default text-sm font-semibold leading-none">{event.title}</h3>
+                        <h3 className="text-default text-sm font-semibold leading-none">
+                          {event.title}
+                        </h3>
                         <div className="bg-emphasis flex h-4 items-center justify-center gap-1 rounded-md px-1">
-                          <Icon name={event.icon} className="text-emphasis h-3 w-3" />
+                          <Icon
+                            name={event.icon}
+                            className="text-emphasis h-3 w-3"
+                          />
                           <span className="text-emphasis text-xs font-medium leading-none">
                             {event.duration} {t("minute_timeUnit")}
                           </span>
                         </div>
                       </div>
-                      <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
+                      <p className="text-subtle text-sm font-medium leading-tight">
+                        {event.description}
+                      </p>
                     </div>
-                    <Button color="secondary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
+                    <Button
+                      color="secondary"
+                      size="sm"
+                      EndIcon="arrow-right"
+                      tabIndex={-1}
+                    >
                       {t("book_now")}
                     </Button>
                   </div>

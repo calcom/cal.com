@@ -7,7 +7,7 @@ import posthog from "posthog-js";
 import { useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,13 +18,18 @@ import classNames from "@calcom/ui/classNames";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import {
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import InviteLinkSettingsModal from "@calcom/web/modules/ee/teams/components/InviteLinkSettingsModal";
 
 import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
 
-type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
+type TeamMember =
+  RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
 const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
@@ -36,12 +41,19 @@ const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
     { enabled: session.status === "authenticated" }
   );
 
-  if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
+  if (session.status === "loading" || !teamQuery.data)
+    return <AddNewTeamMemberSkeleton />;
 
   return <AddNewTeamMembersForm teamId={teamId} isOrg={isOrg} />;
 };
 
-export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg?: boolean }) => {
+export const AddNewTeamMembersForm = ({
+  teamId,
+  isOrg,
+}: {
+  teamId: number;
+  isOrg?: boolean;
+}) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
 
@@ -52,16 +64,20 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isPending } = trpc.viewer.teams.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
-  const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
-    {
-      teamIdToExclude: teamId,
-      distinctUser: true,
-    },
-    {
-      enabled: orgBranding !== null,
-    }
+  const { data: team, isPending } = trpc.viewer.teams.get.useQuery(
+    { teamId, isOrg },
+    { enabled: !!teamId }
   );
+  const { data: orgMembersNotInThisTeam } =
+    trpc.viewer.organizations.getMembers.useQuery(
+      {
+        teamIdToExclude: teamId,
+        distinctUser: true,
+      },
+      {
+        enabled: orgBranding !== null,
+      }
+    );
 
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
     trpc.viewer.teams.listMembers.useInfiniteQuery(
@@ -79,7 +95,10 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
       }
     );
 
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as TeamMember[];
+  const flatData = useMemo(
+    () => data?.pages?.flatMap((page) => page.members) ?? [],
+    [data]
+  ) as TeamMember[];
   const totalFetched = flatData.length;
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
@@ -94,7 +113,10 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
   return (
     <>
       <div>
-        <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
+        <ul
+          className="border-subtle rounded-md border"
+          data-testid="pending-member-list"
+        >
           {flatData.map((member, index) => (
             <PendingMemberItem
               key={member.email}
@@ -111,7 +133,8 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
               color="minimal"
               loading={isFetchingNextPage}
               disabled={!hasNextPage}
-              onClick={() => fetchNextPage()}>
+              onClick={() => fetchNextPage()}
+            >
               {hasNextPage ? t("load_more_results") : t("no_more_results")}
             </Button>
           </div>
@@ -121,7 +144,11 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
           data-testid="new-member-button"
           StartIcon="plus"
           onClick={() => setMemberInviteModal(true)}
-          className={classNames("w-full justify-center", totalFetched > 0 && "mt-6")}>
+          className={classNames(
+            "w-full justify-center",
+            totalFetched > 0 && "mt-6"
+          )}
+        >
           {isOrg ? t("add_org_members") : t("add_team_member")}
         </Button>
       </div>
@@ -172,7 +199,8 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
             uri = `/settings/organizations/${teamId}/add-teams`;
           }
           router.push(uri);
-        }}>
+        }}
+      >
         {t("continue")}
       </Button>
     </>
@@ -198,7 +226,12 @@ const AddNewTeamMemberSkeleton = () => {
   );
 };
 
-const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number; isOrg?: boolean }) => {
+const PendingMemberItem = (props: {
+  member: TeamMember;
+  index: number;
+  teamId: number;
+  isOrg?: boolean;
+}) => {
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -224,43 +257,55 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         "flex items-center justify-between p-6 text-sm",
         index !== 0 && "border-subtle border-t"
       )}
-      data-testid="pending-member-item">
+      data-testid="pending-member-item"
+    >
       <div className="mr-4 flex max-w-full space-x-2 overflow-hidden rtl:space-x-reverse">
         <UserAvatar size="mdLg" user={member} />
         <div className="max-w-full overflow-hidden">
           <div className="flex space-x-1">
             <p>{member.name || member.email || t("team_member")}</p>
             {/* Assume that the first member of the team is the creator */}
-            {member.id === session.data?.user.id && <Badge variant="green">{t("you")}</Badge>}
+            {member.id === session.data?.user.id && (
+              <Badge variant="green">{t("you")}</Badge>
+            )}
             {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
-            {member.role === MembershipRole.MEMBER && <Badge variant="gray">{t("member")}</Badge>}
+            {member.role === MembershipRole.MEMBER && (
+              <Badge variant="gray">{t("member")}</Badge>
+            )}
 
-            {member.role === MembershipRole.ADMIN && <Badge variant="gray">{t("admin")}</Badge>}
-            {member.role === MembershipRole.OWNER && <Badge variant="gray">{t("owner")}</Badge>}
+            {member.role === MembershipRole.ADMIN && (
+              <Badge variant="gray">{t("admin")}</Badge>
+            )}
+            {member.role === MembershipRole.OWNER && (
+              <Badge variant="gray">{t("owner")}</Badge>
+            )}
           </div>
           {member.username ? (
             <p className="text-default truncate">{`${bookerUrl}/${member.username}`}</p>
           ) : (
-            <p className="text-default truncate">{t("not_on_cal", { appName: APP_NAME })}</p>
+            <p className="text-default truncate">
+              {t("not_on_cal", { appName: APP_NAME })}
+            </p>
           )}
         </div>
       </div>
-      {(member.role !== "OWNER" || isAdminOrOwner) && member.id !== session.data?.user.id && (
-        <Button
-          data-testid="remove-member-button"
-          StartIcon="trash-2"
-          variant="icon"
-          color="secondary"
-          className="h-[36px] w-[36px]"
-          onClick={() => {
-            removeMemberMutation.mutate({
-              teamIds: [teamId],
-              memberIds: [member.id],
-              isOrg: !!props.isOrg,
-            });
-          }}
-        />
-      )}
+      {(member.role !== "OWNER" || isAdminOrOwner) &&
+        member.id !== session.data?.user.id && (
+          <Button
+            data-testid="remove-member-button"
+            StartIcon="trash-2"
+            variant="icon"
+            color="secondary"
+            className="h-[36px] w-[36px]"
+            onClick={() => {
+              removeMemberMutation.mutate({
+                teamIds: [teamId],
+                memberIds: [member.id],
+                isOrg: !!props.isOrg,
+              });
+            }}
+          />
+        )}
     </li>
   );
 };

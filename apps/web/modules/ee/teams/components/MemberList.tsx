@@ -25,8 +25,13 @@ import {
   useColumnFilters,
   convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
-import { DataTableToolbar, DataTableFilters, DataTableWrapper, DataTableSelectionBar } from "~/data-table/components";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import {
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableWrapper,
+  DataTableSelectionBar,
+} from "~/data-table/components";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -68,7 +73,8 @@ interface Props {
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
 }
 
-export type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
+export type User =
+  RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
@@ -176,7 +182,10 @@ export default function MemberList(props: Props) {
 
 function MemberListContent(props: Props) {
   const { facetedTeamValues } = props;
-  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState(
+    "dynamicLink",
+    parseAsBoolean
+  );
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
 
@@ -278,14 +287,15 @@ function MemberListContent(props: Props) {
     },
   });
 
-  const resendInvitationMutation = trpc.viewer.teams.resendInvitation.useMutation({
-    onSuccess: () => {
-      showToast(t("invitation_resent"), "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const resendInvitationMutation =
+    trpc.viewer.teams.resendInvitation.useMutation({
+      onSuccess: () => {
+        showToast(t("invitation_resent"), "success");
+      },
+      onError: (error) => {
+        showToast(error.message, "error");
+      },
+    });
 
   // const ownersInTeam = () => {
   //   const { members } = props.team;
@@ -314,7 +324,9 @@ function MemberListContent(props: Props) {
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -351,12 +363,20 @@ function MemberListContent(props: Props) {
                 })}
               />
               <div data-testid={`member-${username}`}>
-                <div data-testid="member-name" className="text-emphasis text-sm font-medium leading-none">
+                <div
+                  data-testid="member-name"
+                  className="text-emphasis text-sm font-medium leading-none"
+                >
                   {memberName}
                 </div>
                 <div
-                  data-testid={accepted ? "member-email" : `email-${email.replace("@", "")}-pending`}
-                  className="text-subtle mt-1 text-sm leading-none">
+                  data-testid={
+                    accepted
+                      ? "member-email"
+                      : `email-${email.replace("@", "")}-pending`
+                  }
+                  className="text-subtle mt-1 text-sm leading-none"
+                >
                   {email}
                 </div>
               </div>
@@ -387,7 +407,8 @@ function MemberListContent(props: Props) {
                   className="text-xs"
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
-                  }}>
+                  }}
+                >
                   Pending
                 </Badge>
               )}
@@ -396,7 +417,8 @@ function MemberListContent(props: Props) {
                 variant={role === "MEMBER" ? "gray" : "blue"}
                 onClick={() => {
                   table.getColumn("role")?.setFilterValue([roleIdentifier]);
-                }}>
+                }}
+              >
                 {roleName}
               </Badge>
             </div>
@@ -434,7 +456,12 @@ function MemberListContent(props: Props) {
           const canImpersonate = props.permissions?.canImpersonate ?? false;
           const canResendInvitation = props.permissions?.canInvite ?? false;
           const editMode =
-            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+            [
+              canChangeRole,
+              canRemove,
+              canImpersonate,
+              canResendInvitation,
+            ].some(Boolean) && !isSelf;
 
           const impersonationMode =
             canImpersonate &&
@@ -445,7 +472,12 @@ function MemberListContent(props: Props) {
             <>
               {props.team.membership?.accepted && (
                 <div className="flex items-center justify-end">
-                  <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
+                  <ButtonGroup
+                    combined
+                    containerProps={{
+                      className: "border-default hidden md:flex",
+                    }}
+                  >
                     {/* TODO: bring availability back. right now its ugly and broken
                     <Tooltip
                       content={
@@ -477,7 +509,9 @@ function MemberListContent(props: Props) {
                           target="_blank"
                           href={`${user.bookerUrl}/${user.username}`}
                           color="secondary"
-                          className={classNames(!editMode ? "rounded-r-md" : "")}
+                          className={classNames(
+                            !editMode ? "rounded-r-md" : ""
+                          )}
                           variant="icon"
                           StartIcon="external-link"
                           disabled={!user.accepted}
@@ -509,7 +543,8 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="pencil">
+                                  StartIcon="pencil"
+                                >
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -528,7 +563,8 @@ function MemberListContent(props: Props) {
                                         },
                                       })
                                     }
-                                    StartIcon="lock">
+                                    StartIcon="lock"
+                                  >
                                     {t("impersonate")}
                                   </DropdownItem>
                                 </DropdownMenuItem>
@@ -546,7 +582,8 @@ function MemberListContent(props: Props) {
                                       language: i18n.language,
                                     });
                                   }}
-                                  StartIcon="send">
+                                  StartIcon="send"
+                                >
                                   {t("resend_invitation")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -565,7 +602,8 @@ function MemberListContent(props: Props) {
                                     })
                                   }
                                   color="destructive"
-                                  StartIcon="user-x">
+                                  StartIcon="user-x"
+                                >
                                   {t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -578,17 +616,25 @@ function MemberListContent(props: Props) {
                   <div className="flex md:hidden">
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                        <Button
+                          type="button"
+                          variant="icon"
+                          color="minimal"
+                          StartIcon="ellipsis"
+                        />
                       </DropdownMenuTrigger>
                       <DropdownMenuPortal>
                         <DropdownMenuContent>
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               disabled={!user.accepted}
-                              href={!user.accepted ? undefined : `/${user.username}`}
+                              href={
+                                !user.accepted ? undefined : `/${user.username}`
+                              }
                               target="_blank"
                               type="button"
-                              StartIcon="external-link">
+                              StartIcon="external-link"
+                            >
                               {t("view_public_page")}
                             </DropdownItem>
                           </DropdownMenuItem>
@@ -606,7 +652,8 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="pencil">
+                                  StartIcon="pencil"
+                                >
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -623,7 +670,8 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="user-x">
+                                  StartIcon="user-x"
+                                >
                                   {t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -644,7 +692,10 @@ function MemberListContent(props: Props) {
     return cols;
   }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
+  const flatData = useMemo(
+    () => data?.pages?.flatMap((page) => page.members) ?? [],
+    [data]
+  ) as User[];
 
   const table = useReactTable({
     data: flatData,
@@ -728,12 +779,14 @@ function MemberListContent(props: Props) {
                   props.setShowMemberInvitationModal(true);
                   posthog.capture("teams_add_new_members_button_clicked");
                 }}
-                data-testid="new-member-button">
+                data-testid="new-member-button"
+              >
                 {t("add")}
               </DataTableToolbar.CTA>
             )}
           </>
-        }>
+        }
+      >
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="bottom-[7.3rem]! md:bottom-32!">
             <DynamicLink table={table} domain={domain} />
@@ -748,13 +801,16 @@ function MemberListContent(props: Props) {
               <DataTableSelectionBar.Button
                 color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                icon="handshake">
+                icon="handshake"
+              >
                 {t("group_meeting")}
               </DataTableSelectionBar.Button>
             )}
             <EventTypesList table={table} teamId={props.team.id} />
             <DeleteBulkTeamMembers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+              users={table
+                .getSelectedRowModel()
+                .flatRows.map((row) => row.original)}
               onRemove={() => table.toggleAllPageRowsSelected(false)}
               isOrg={checkIsOrg(props.team)}
               teamId={props.team.id}
@@ -770,47 +826,56 @@ function MemberListContent(props: Props) {
             dispatch({
               type: "CLOSE_MODAL",
             })
-          }>
+          }
+        >
           <ConfirmationDialogContent
             variety="danger"
             title={t("remove_member")}
             confirmBtnText={t("confirm_remove_member")}
-            onConfirm={removeMember}>
+            onConfirm={removeMember}
+          >
             {t("remove_member_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
       )}
 
-      {state.impersonateMember.showModal && state.impersonateMember.user?.username && (
-        <Dialog
-          open={true}
-          onOpenChange={() =>
-            dispatch({
-              type: "CLOSE_MODAL",
-            })
-          }>
-          <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                await signIn("impersonation-auth", {
-                  username: state.impersonateMember.user?.email,
-                  teamId: props.team.id,
-                });
-                dispatch({
-                  type: "CLOSE_MODAL",
-                });
-              }}>
-              <DialogFooter showDivider className="mt-8">
-                <DialogClose color="secondary">{t("cancel")}</DialogClose>
-                <Button color="primary" type="submit">
-                  {t("impersonate")}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
+      {state.impersonateMember.showModal &&
+        state.impersonateMember.user?.username && (
+          <Dialog
+            open={true}
+            onOpenChange={() =>
+              dispatch({
+                type: "CLOSE_MODAL",
+              })
+            }
+          >
+            <DialogContent
+              type="creation"
+              title={t("impersonate")}
+              description={t("impersonation_user_tip")}
+            >
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  await signIn("impersonation-auth", {
+                    username: state.impersonateMember.user?.email,
+                    teamId: props.team.id,
+                  });
+                  dispatch({
+                    type: "CLOSE_MODAL",
+                  });
+                }}
+              >
+                <DialogFooter showDivider className="mt-8">
+                  <DialogClose color="secondary">{t("cancel")}</DialogClose>
+                  <Button color="primary" type="submit">
+                    {t("impersonate")}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       {state.teamAvailability.showModal && (
         <Dialog
           open={true}
@@ -818,9 +883,13 @@ function MemberListContent(props: Props) {
             dispatch({
               type: "CLOSE_MODAL",
             });
-          }}>
+          }}
+        >
           <DialogContent type="creation" size="md">
-            <TeamAvailabilityModal team={props.team} member={state.teamAvailability.user} />
+            <TeamAvailabilityModal
+              team={props.team}
+              member={state.teamAvailability.user}
+            />
           </DialogContent>
         </Dialog>
       )}

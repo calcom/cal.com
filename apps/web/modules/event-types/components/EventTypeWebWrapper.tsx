@@ -5,7 +5,7 @@ import { usePathname, useRouter as useAppRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
@@ -45,9 +45,13 @@ type EventPermissions = {
   };
 };
 
-const ManagedEventTypeDialog = dynamic(() => import("./dialogs/ManagedEventDialog"));
+const ManagedEventTypeDialog = dynamic(
+  () => import("./dialogs/ManagedEventDialog")
+);
 
-const AssignmentWarningDialog = dynamic(() => import("./dialogs/AssignmentWarningDialog"));
+const AssignmentWarningDialog = dynamic(
+  () => import("./dialogs/AssignmentWarningDialog")
+);
 
 const EventSetupTab = dynamic(
   () => import("./tabs/setup/EventSetupTabWebWrapper").then((mod) => mod),
@@ -55,10 +59,16 @@ const EventSetupTab = dynamic(
 );
 
 const EventAvailabilityTab = dynamic(() =>
-  import("./tabs/availability/EventAvailabilityTabWebWrapper").then((mod) => mod)
+  import("./tabs/availability/EventAvailabilityTabWebWrapper").then(
+    (mod) => mod
+  )
 );
 
-const EventTeamAssignmentTab = dynamic(() => import("./tabs/assignment/EventTeamAssignmentTabWebWrapper").then((mod) => mod));
+const EventTeamAssignmentTab = dynamic(() =>
+  import("./tabs/assignment/EventTeamAssignmentTabWebWrapper").then(
+    (mod) => mod
+  )
+);
 
 const EventLimitsTab = dynamic(() =>
   import("./tabs/limits/EventLimitsTabWebWrapper").then((mod) => mod)
@@ -80,7 +90,9 @@ const EventAppsTab = dynamic(() =>
   import("./tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
 );
 
-const EventWorkflowsTab = dynamic(() => import("./tabs/workflows/EventWorkflowsTab"));
+const EventWorkflowsTab = dynamic(
+  () => import("./tabs/workflows/EventWorkflowsTab")
+);
 
 const EventWebhooksTab = dynamic(() =>
   import("./tabs/webhooks/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
@@ -149,14 +161,18 @@ const EventTypeWeb = ({
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
+  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] =
+    useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
-  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
-  const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
-    extendsFeature: "EventType",
-    teamId: eventType.team?.id || eventType.parent?.teamId,
-  });
+  const { eventType, locationOptions, team, teamMembers, destinationCalendar } =
+    rest;
+  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] =
+    useState<ChildrenEventType[]>([]);
+  const { data: eventTypeApps, isPending: isPendingApps } =
+    trpc.viewer.apps.integrations.useQuery({
+      extendsFeature: "EventType",
+      teamId: eventType.team?.id || eventType.parent?.teamId,
+    });
 
   // Check workflow permissions
   const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
@@ -168,7 +184,8 @@ const EventTypeWeb = ({
         ...child,
         created: true,
       }));
-      currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
+      currentValues.assignAllTeamMembers =
+        currentValues.assignAllTeamMembers || false;
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
@@ -182,7 +199,12 @@ const EventTypeWeb = ({
           orgSlug: eventType.team.parent?.slug ?? null,
         });
       }
-      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
+      showToast(
+        t("event_type_updated_successfully", {
+          eventTypeTitle: eventType.title,
+        }),
+        "success"
+      );
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -196,10 +218,15 @@ const EventTypeWeb = ({
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
+        message = `${err.data.code}: ${t(
+          "error_event_type_unauthorized_update"
+        )}`;
       }
 
-      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
+      if (
+        err.data?.code === "PARSE_ERROR" ||
+        err.data?.code === "BAD_REQUEST"
+      ) {
         message = `${err.data.code}: ${t(err.message)}`;
       }
 
@@ -211,25 +238,29 @@ const EventTypeWeb = ({
     },
   });
 
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const { form, handleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: updateMutation.mutate,
+  });
   const slug = form.watch("slug") ?? eventType.slug;
 
-  const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
-    eventType: {
-      id,
-      teamId: eventType.teamId,
-      userId: eventType.userId,
-      parent: eventType.parent,
-      metadata: eventType.metadata,
-    },
-  });
+  const { data: allActiveWorkflows } =
+    trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+      eventType: {
+        id,
+        teamId: eventType.teamId,
+        userId: eventType.userId,
+        parent: eventType.parent,
+        metadata: eventType.metadata,
+      },
+    });
 
   const orgBranding = useOrgBranding();
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
-  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const permalink = `${bookerUrl}/${
+    team ? `team/${team.slug}` : eventType.users[0].username
+  }/${eventType.slug}`;
 
   const tabMap = {
     setup: (
@@ -279,7 +310,10 @@ const EventTypeWeb = ({
     ),
     workflows:
       allActiveWorkflows && canReadWorkflows ? (
-        <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
+        <EventWorkflowsTab
+          eventType={eventType}
+          workflows={allActiveWorkflows}
+        />
       ) : (
         <></>
       ),
@@ -299,7 +333,9 @@ const EventTypeWeb = ({
     onError: (url) => {
       setIsOpenAssignmentWarnDialog(true);
       setPendingRoute(url);
-      throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
+      throw new Error(
+        `Aborted route change to ${url} because none was assigned to team event`
+      );
     },
     onStart: (handleRouteChange) => {
       handleRouteChange(pathname || "");
@@ -414,7 +450,8 @@ const EventTypeWeb = ({
       isUpdating={updateMutation.isPending}
       isPlatform={false}
       tabName={tabName}
-      tabsNavigation={tabsNavigation}>
+      tabsNavigation={tabsNavigation}
+    >
       <>
         {slugExistsChildrenDialogOpen.length ? (
           <ManagedEventTypeDialog

@@ -1,6 +1,10 @@
 "use client";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,11 +13,15 @@ import type { ComponentProps } from "react";
 import React, { useEffect, useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
+import type { OrganizationBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/web/modules/feature-flags/hooks/useIsFeatureEnabledForTeam";
-import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  HOSTED_CAL_FEATURES,
+  IS_CALCOM,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -71,7 +79,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "push_notifications",
           href: "/settings/my-account/push-notifications",
-          trackingMetadata: { section: "my_account", page: "push_notifications" },
+          trackingMetadata: {
+            section: "my_account",
+            page: "push_notifications",
+          },
         },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
@@ -172,7 +183,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "privacy_and_security",
           href: "/settings/organizations/privacy",
-          trackingMetadata: { section: "organization", page: "privacy_and_security" },
+          trackingMetadata: {
+            section: "organization",
+            page: "privacy_and_security",
+          },
         },
         {
           name: "SSO",
@@ -326,7 +340,9 @@ const useTabs = ({
   permissions?: SettingsPermissions;
 }) => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
+  const { data: user } = trpc.viewer.me.get.useQuery({
+    includePasswordAdded: true,
+  });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -341,7 +357,9 @@ const useTabs = ({
         };
       } else if (tab.href === "/settings/organizations") {
         const newArray = (tab?.children ?? []).filter(
-          (child) => permissions?.canUpdateOrganization || !organizationAdminKeys.includes(child.name)
+          (child) =>
+            permissions?.canUpdateOrganization ||
+            !organizationAdminKeys.includes(child.name)
         );
 
         if (permissions?.canViewAttributes) {
@@ -357,7 +375,10 @@ const useTabs = ({
           newArray.push({
             name: "delegation_credential",
             href: "/settings/organizations/delegation-credential",
-            trackingMetadata: { section: "organization", page: "delegation_credential" },
+            trackingMetadata: {
+              section: "organization",
+              page: "delegation_credential",
+            },
           });
         }
 
@@ -367,7 +388,10 @@ const useTabs = ({
             newArray.push({
               name: "roles_and_permissions",
               href: "/settings/organizations/roles",
-              trackingMetadata: { section: "organization", page: "roles_and_permissions" },
+              trackingMetadata: {
+                section: "organization",
+                page: "roles_and_permissions",
+              },
             });
           }
 
@@ -415,7 +439,8 @@ const useTabs = ({
         return { ...tab, children: filtered };
       } else if (tab.href === "/settings/developer") {
         const filtered = tab?.children?.filter(
-          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "admin_api"
+          (childTab) =>
+            permissions?.canUpdateOrganization || childTab.name !== "admin_api"
         );
         return { ...tab, children: filtered };
       }
@@ -425,12 +450,20 @@ const useTabs = ({
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
       if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
-      if (tab.name === "other_teams" && !permissions?.canUpdateOrganization) return false;
+      if (tab.name === "other_teams" && !permissions?.canUpdateOrganization)
+        return false;
 
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, user, isDelegationCredentialEnabled, isPbacEnabled, permissions]);
+  }, [
+    isAdmin,
+    orgBranding,
+    user,
+    isDelegationCredentialEnabled,
+    isPbacEnabled,
+    permissions,
+  ]);
 
   return processTabsMemod;
 };
@@ -440,12 +473,18 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
     <Link
       href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
-      data-testid={`vertical-tab-${name}`}>
+      data-testid={`vertical-tab-${name}`}
+    >
       <Icon
         name="arrow-left"
         className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
       />
-      <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
+      <Skeleton
+        title={name}
+        as="p"
+        className="min-h-4 max-w-36 truncate"
+        loadingClassName="ms-3"
+      >
         {name}
       </Skeleton>
     </Link>
@@ -483,14 +522,22 @@ const TeamRolesNavItem = ({
     <VerticalTabItem
       name={t("roles_and_permissions")}
       href={`/settings/teams/${team.id}/roles`}
-      trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
+      trackingMetadata={{
+        section: "team",
+        page: "roles_and_permissions",
+        teamId: team.id,
+      }}
       textClassNames="px-3 text-emphasis font-medium text-sm"
       disableChevron
     />
   );
 };
 
-const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
+const TeamListCollapsible = ({
+  teamFeatures,
+}: {
+  teamFeatures?: Record<number, TeamFeatures>;
+}) => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
@@ -510,7 +557,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
       setTeamMenuState(teamStates);
       if (activeTeamId) {
         setTimeout(() => {
-          const teamTrigger = document.querySelector(`[aria-controls="team-content-${activeTeamId}"]`);
+          const teamTrigger = document.querySelector(
+            `[aria-controls="team-content-${activeTeamId}"]`
+          );
           teamTrigger?.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 100);
       }
@@ -538,7 +587,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     teamMenuOpen: open,
                   };
                   setTeamMenuState(newTeamMenuState);
-                }}>
+                }}
+              >
                 <CollapsibleTrigger asChild>
                   <button
                     className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
@@ -564,8 +614,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       }
                     }}
                     aria-label={`${team.name} ${
-                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
-                    }`}>
+                      teamMenuState[index].teamMenuOpen
+                        ? t("collapse_menu")
+                        : t("expand_menu")
+                    }`}
+                  >
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -591,12 +644,19 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     )}
                   </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="flex flex-col space-y-1" id={`team-content-${team.id}`}>
+                <CollapsibleContent
+                  className="flex flex-col space-y-1"
+                  id={`team-content-${team.id}`}
+                >
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
-                      trackingMetadata={{ section: "team", page: "profile", teamId: team.id }}
+                      trackingMetadata={{
+                        section: "team",
+                        page: "profile",
+                        teamId: team.id,
+                      }}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
                       className="px-2! me-5 h-7 w-auto"
                       disableChevron
@@ -605,7 +665,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                   <VerticalTabItem
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
-                    trackingMetadata={{ section: "team", page: "members", teamId: team.id }}
+                    trackingMetadata={{
+                      section: "team",
+                      page: "members",
+                      teamId: team.id,
+                    }}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     className="px-2! me-5 h-7 w-auto"
                     disableChevron
@@ -628,7 +692,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        trackingMetadata={{ section: "team", page: "appearance", teamId: team.id }}
+                        trackingMetadata={{
+                          section: "team",
+                          page: "appearance",
+                          teamId: team.id,
+                        }}
                         className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
@@ -639,7 +707,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
-                            trackingMetadata={{ section: "team", page: "billing", teamId: team.id }}
+                            trackingMetadata={{
+                              section: "team",
+                              page: "billing",
+                              teamId: team.id,
+                            }}
                             className="px-2! me-5 h-7 w-auto"
                             disableChevron
                           />
@@ -649,7 +721,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        trackingMetadata={{ section: "team", page: "settings", teamId: team.id }}
+                        trackingMetadata={{
+                          section: "team",
+                          page: "settings",
+                          teamId: team.id,
+                        }}
                         className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
@@ -701,9 +777,10 @@ const SettingsSidebarContainer = ({
     permissions,
   });
 
-  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
-  });
+  const { data: otherTeams } =
+    trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+      enabled: !!session.data?.user?.org,
+    });
 
   const searchParamsId = searchParams?.get("id");
   // Same as above but for otherTeams
@@ -716,7 +793,9 @@ const SettingsSidebarContainer = ({
       setOtherTeamMenuState(otherTeamStates);
       setTimeout(() => {
         // @TODO: test if this works for 2 dataset testids
-        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
+        const tabMembers = Array.from(
+          document.getElementsByTagName("a")
+        ).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
         tabMembers?.scrollIntoView({ behavior: "smooth" });
@@ -726,7 +805,10 @@ const SettingsSidebarContainer = ({
 
   return (
     <nav
-      style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
+      style={{
+        maxHeight: `calc(100vh - ${bannersHeight}px)`,
+        top: `${bannersHeight}px`,
+      }}
       className={classNames(
         "no-scrollbar bg-cal-muted stack-y-1 fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
@@ -734,7 +816,8 @@ const SettingsSidebarContainer = ({
           ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
-      aria-label={t("settings_navigation")}>
+      aria-label={t("settings_navigation")}
+    >
       <>
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
@@ -764,7 +847,8 @@ const SettingsSidebarContainer = ({
                         title={tab.name}
                         as="p"
                         className="text-subtle truncate text-sm font-medium leading-5"
-                        loadingClassName="ms-3">
+                        loadingClassName="ms-3"
+                      >
                         {t(tab.name)}
                       </Skeleton>
                     </div>
@@ -779,7 +863,9 @@ const SettingsSidebarContainer = ({
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
                           className={`px-2! h-7 w-fit ${
-                            tab.children && index === tab.children?.length - 1 && "mb-3!"
+                            tab.children &&
+                            index === tab.children?.length - 1 &&
+                            "mb-3!"
                           }`}
                           disableChevron
                         />
@@ -796,7 +882,10 @@ const SettingsSidebarContainer = ({
 
               {tab.name === "teams" && (
                 <React.Fragment key={tab.href}>
-                  <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
+                  <div
+                    data-testid="tab-teams"
+                    className={`${!tab.children?.length ? "mb-3" : ""}`}
+                  >
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
@@ -809,17 +898,22 @@ const SettingsSidebarContainer = ({
                           title={tab.name}
                           as="p"
                           className="text-subtle truncate text-sm font-medium leading-5"
-                          loadingClassName="ms-3">
+                          loadingClassName="ms-3"
+                        >
                           {t("my_teams")}
                         </Skeleton>
                       </div>
                     </Link>
                     <TeamListCollapsible teamFeatures={teamFeatures} />
-                    {(!orgBranding?.id || permissions?.canUpdateOrganization) && (
+                    {(!orgBranding?.id ||
+                      permissions?.canUpdateOrganization) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
-                        trackingMetadata={{ section: "team", page: "add_a_team" }}
+                        trackingMetadata={{
+                          section: "team",
+                          page: "add_a_team",
+                        }}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
                         className="px-2! me-5 h-7 w-auto"
                         icon="plus"
@@ -845,7 +939,8 @@ const SettingsSidebarContainer = ({
                           title={t("org_admin_other_teams")}
                           as="p"
                           className="text-subtle truncate text-sm font-medium leading-5"
-                          loadingClassName="ms-3">
+                          loadingClassName="ms-3"
+                        >
                           {t("org_admin_other_teams")}
                         </Skeleton>
                       </div>
@@ -856,72 +951,105 @@ const SettingsSidebarContainer = ({
                         if (!otherTeamMenuState[index]) {
                           return null;
                         }
-                        if (otherTeamMenuState.some((teamState) => teamState.teamId === otherTeam.id))
+                        if (
+                          otherTeamMenuState.some(
+                            (teamState) => teamState.teamId === otherTeam.id
+                          )
+                        )
                           return (
                             <Collapsible
                               className="cursor-pointer"
                               key={otherTeam.id}
                               open={otherTeamMenuState[index].teamMenuOpen}
                               onOpenChange={(open) => {
-                                const newOtherTeamMenuState = [...otherTeamMenuState];
+                                const newOtherTeamMenuState = [
+                                  ...otherTeamMenuState,
+                                ];
                                 newOtherTeamMenuState[index] = {
                                   ...newOtherTeamMenuState[index],
                                   teamMenuOpen: open,
                                 };
                                 setOtherTeamMenuState(newOtherTeamMenuState);
-                              }}>
+                              }}
+                            >
                               <CollapsibleTrigger asChild>
                                 <button
                                   className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                                   aria-controls={`other-team-content-${otherTeam.id}`}
-                                  aria-expanded={otherTeamMenuState[index].teamMenuOpen}
+                                  aria-expanded={
+                                    otherTeamMenuState[index].teamMenuOpen
+                                  }
                                   onClick={() => {
-                                    const newOtherTeamMenuState = [...otherTeamMenuState];
+                                    const newOtherTeamMenuState = [
+                                      ...otherTeamMenuState,
+                                    ];
                                     newOtherTeamMenuState[index] = {
                                       ...newOtherTeamMenuState[index],
-                                      teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                      teamMenuOpen:
+                                        !otherTeamMenuState[index].teamMenuOpen,
                                     };
-                                    setOtherTeamMenuState(newOtherTeamMenuState);
+                                    setOtherTeamMenuState(
+                                      newOtherTeamMenuState
+                                    );
                                   }}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" || e.key === " ") {
                                       e.preventDefault();
-                                      const newOtherTeamMenuState = [...otherTeamMenuState];
+                                      const newOtherTeamMenuState = [
+                                        ...otherTeamMenuState,
+                                      ];
                                       newOtherTeamMenuState[index] = {
                                         ...newOtherTeamMenuState[index],
-                                        teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                        teamMenuOpen:
+                                          !otherTeamMenuState[index]
+                                            .teamMenuOpen,
                                       };
-                                      setOtherTeamMenuState(newOtherTeamMenuState);
+                                      setOtherTeamMenuState(
+                                        newOtherTeamMenuState
+                                      );
                                     }
                                   }}
                                   aria-label={`${otherTeam.name} ${
                                     otherTeamMenuState[index].teamMenuOpen
                                       ? t("collapse_menu")
                                       : t("expand_menu")
-                                  }`}>
+                                  }`}
+                                >
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
+                                      <Icon
+                                        name="chevron-down"
+                                        className="h-4 w-4"
+                                      />
                                     ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
+                                      <Icon
+                                        name="chevron-right"
+                                        className="h-4 w-4"
+                                      />
                                     )}
                                   </div>
                                   {}
                                   {!otherTeam.parentId && (
                                     <Image
-                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
+                                      src={getPlaceholderAvatar(
+                                        otherTeam.logoUrl,
+                                        otherTeam.name
+                                      )}
                                       width={16}
                                       height={16}
                                       className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
-                                  <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
+                                  <p className="w-1/2 truncate leading-normal">
+                                    {otherTeam.name}
+                                  </p>
                                 </button>
                               </CollapsibleTrigger>
                               <CollapsibleContent
                                 className="flex flex-col space-y-1"
-                                id={`other-team-content-${otherTeam.id}`}>
+                                id={`other-team-content-${otherTeam.id}`}
+                              >
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
@@ -970,7 +1098,9 @@ const SettingsSidebarContainer = ({
   );
 };
 
-const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
+const MobileSettingsContainer = (props: {
+  onSideContainerOpen?: () => void;
+}) => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -978,13 +1108,19 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="bg-cal-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3">
-          <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
+          <Button
+            StartIcon="menu"
+            color="minimal"
+            variant="icon"
+            onClick={props.onSideContainerOpen}
+          >
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
-            onClick={() => router.back()}>
+            onClick={() => router.back()}
+          >
             <Icon name="arrow-left" className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
@@ -1043,11 +1179,18 @@ export default function SettingsLayoutAppDirClient({
       drawerState={state}
       MobileNavigationContainer={null}
       TopNavContainer={
-        <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
-      }>
+        <MobileSettingsContainer
+          onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)}
+        />
+      }
+    >
       <div className="*:flex-1 flex flex-1">
         <div
-          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+          className={classNames(
+            "mx-auto max-w-full justify-center lg:max-w-3xl",
+            rest.containerClassName
+          )}
+        >
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
@@ -1077,7 +1220,8 @@ const SidebarContainerElement = ({
       {sideContainerOpen && (
         <button
           onClick={() => setSideContainerOpen(false)}
-          className="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
+          className="fixed left-0 top-0 z-10 h-full w-full bg-black/50"
+        >
           <span className="sr-only">{t("hide_navigation")}</span>
         </button>
       )}

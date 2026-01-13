@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import {
   extractHostTimezone,
