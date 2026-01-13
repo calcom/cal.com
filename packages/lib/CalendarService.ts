@@ -115,23 +115,26 @@ const injectScheduleAgent = (iCalString: string): string => {
   let processedString = iCalString.replace(/METHOD:[^\r\n]+[\r\n]+/g, "");
 
   // Inject SCHEDULE-AGENT=CLIENT for both ORGANIZER and ATTENDEE properties
-  // This regex handles:
-  // - Properties with or without existing parameters
-  // - Both CRLF (\r\n) and LF (\n) line endings
-  // - Checks if SCHEDULE-AGENT already exists to avoid duplication
-  processedString = processedString.replace(
-    /(ORGANIZER|ATTENDEE)((?:;(?!SCHEDULE-AGENT)[^:]+)*)(:|;)/g,
-    (_match, property, params, delimiter) => {
-      // If SCHEDULE-AGENT already exists in params, don't add it again
-      if (params && params.includes("SCHEDULE-AGENT")) {
-        return `${property}${params}${delimiter}`;
+  // Process line by line to handle multiline iCalendar format
+  const lines = processedString.split(/\r?\n/);
+  const processedLines = lines.map((line) => {
+    // Match ORGANIZER or ATTENDEE property lines
+    if (/^(ORGANIZER|ATTENDEE)[;:]/.test(line)) {
+      // Check if SCHEDULE-AGENT already exists anywhere in the line
+      if (line.includes("SCHEDULE-AGENT")) {
+        return line; // Already has SCHEDULE-AGENT, don't modify
       }
-      // Add SCHEDULE-AGENT=CLIENT parameter
-      return `${property}${params};SCHEDULE-AGENT=CLIENT${delimiter}`;
+      // Find the position of the colon (value separator)
+      const colonIndex = line.indexOf(":");
+      if (colonIndex > 0) {
+        // Insert SCHEDULE-AGENT=CLIENT before the colon
+        return line.slice(0, colonIndex) + ";SCHEDULE-AGENT=CLIENT" + line.slice(colonIndex);
+      }
     }
-  );
+    return line;
+  });
 
-  return processedString;
+  return processedLines.join("\r\n");
 };
 
 export default abstract class BaseCalendarService implements Calendar {
