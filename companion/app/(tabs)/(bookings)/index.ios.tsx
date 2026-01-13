@@ -38,17 +38,19 @@ export default function Bookings() {
         type: "action",
         label: option.label,
         icon: {
-          name:
-            option.key === "upcoming"
-              ? "calendar.badge.clock"
+          name: isSelected
+            ? "checkmark.circle.fill"
+            : option.key === "upcoming"
+              ? "calendar"
               : option.key === "unconfirmed"
-                ? "calendar.badge.exclamationmark"
-                : option.key === "past"
-                  ? "calendar.badge.checkmark"
-                  : "calendar.badge.minus",
+                ? "questionmark.circle"
+                : option.key === "recurring"
+                  ? "repeat.circle"
+                  : option.key === "past"
+                    ? "checkmark.circle"
+                    : "xmark.circle",
           type: "sfSymbol",
         },
-        state: isSelected ? "on" : "off",
         onPress: () => {
           handleFilterChange(option.key);
         },
@@ -60,7 +62,7 @@ export default function Bookings() {
       label: currentFilterOption?.label || "Filter",
       labelStyle: {
         fontWeight: "600",
-        color: "#007AFF",
+        color: "#000000",
       },
       menu: {
         title: "Filter by Status",
@@ -121,7 +123,7 @@ export default function Bookings() {
       },
       labelStyle: {
         fontWeight: "600",
-        color: "#007AFF",
+        color: "#000000",
       },
       menu: {
         title: menuItems.length > 0 ? "Filter by Event Type" : "No Event Types",

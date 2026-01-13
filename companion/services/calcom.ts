@@ -184,6 +184,8 @@ export const getBookingParticipation = (
 
 // Module-level state (previously private static)
 let _userProfile: UserProfile | null = null;
+// In-flight promise to prevent concurrent /me API calls
+let _userProfilePromise: Promise<UserProfile> | null = null;
 
 /**
  * Set OAuth access token for authentication
@@ -288,31 +290,38 @@ async function updateUserProfile(updates: {
   }
 }
 
-// Get and cache user profile
+// Get and cache user profile with in-flight deduplication
+// This prevents multiple concurrent callers from each making a /me API call
 async function getUserProfile(): Promise<UserProfile> {
+  // Return cached profile if available
   if (_userProfile) {
     return _userProfile;
   }
 
-  _userProfile = await getCurrentUser();
-  return _userProfile;
-}
+  // If there's already an in-flight request, wait for it instead of making a new one
+  if (_userProfilePromise) {
+    return _userProfilePromise;
+  }
 
-// Get cached username or fetch if not available
-async function getUsername(): Promise<string> {
-  const profile = await getUserProfile();
-  return profile.username;
-}
+  // Create a new request and cache the promise to deduplicate concurrent calls
+  _userProfilePromise = getCurrentUser()
+    .then((profile) => {
+      _userProfile = profile;
+      _userProfilePromise = null;
+      return profile;
+    })
+    .catch((error) => {
+      _userProfilePromise = null;
+      throw error;
+    });
 
-// Build shareable link for event type
-async function buildEventTypeLink(eventTypeSlug: string): Promise<string> {
-  const username = await getUsername();
-  return `https://cal.com/${username}/${eventTypeSlug}`;
+  return _userProfilePromise;
 }
 
 // Clear cached profile (useful for logout)
 function clearUserProfile(): void {
   _userProfile = null;
+  _userProfilePromise = null;
 }
 
 // Test function for bookings API specifically
@@ -853,13 +862,13 @@ async function getTranscripts(bookingUid: string): Promise<BookingTranscript[]> 
 }
 
 async function getEventTypes(): Promise<EventType[]> {
-  // Get current user to extract username
+  // Get cached user profile to extract username (uses in-flight deduplication)
   let username: string | undefined;
   try {
-    const currentUser = await getCurrentUser();
+    const userProfile = await getUserProfile();
     // Extract username from response
-    if (currentUser?.username) {
-      username = currentUser.username;
+    if (userProfile?.username) {
+      username = userProfile.username;
     }
   } catch (_error) {}
 
@@ -1011,10 +1020,10 @@ async function getBookings(filters?: {
     }
   }
 
-  // Get current user to filter bookings
-  let currentUser: UserProfile | undefined;
+  // Get cached user profile to filter bookings (uses in-flight deduplication)
+  let userProfile: UserProfile | undefined;
   try {
-    currentUser = await getCurrentUser();
+    userProfile = await getUserProfile();
   } catch (_error) {
     return bookingsArray;
   }
@@ -1023,9 +1032,9 @@ async function getBookings(filters?: {
   let userId: number | undefined;
   let userEmail: string | undefined;
 
-  if (currentUser) {
-    userId = currentUser.id;
-    userEmail = currentUser.email;
+  if (userProfile) {
+    userId = userProfile.id;
+    userEmail = userProfile.email;
   }
 
   // Filter bookings to only show ones where the current user is participating
@@ -1219,6 +1228,7 @@ function sanitizePayload(payload: Record<string, unknown>): Record<string, unkno
     "slotInterval",
     "eventName",
     "timeZone",
+    "interfaceLanguage",
   ];
 
   for (const [key, value] of Object.entries(payload)) {
@@ -1641,6 +1651,12 @@ async function deleteEventTypePrivateLink(eventTypeId: number, linkId: number): 
   }
 }
 
+// Helper to get username
+async function getUsername(): Promise<string> {
+  const profile = await getUserProfile();
+  return profile.username;
+}
+
 // Export as object to satisfy noStaticOnlyClass rule
 export const CalComAPIService = {
   setAccessToken,
@@ -1651,7 +1667,6 @@ export const CalComAPIService = {
   updateUserProfile,
   getUserProfile,
   getUsername,
-  buildEventTypeLink,
   clearUserProfile,
   testRawBookingsAPI,
   deleteEventType,

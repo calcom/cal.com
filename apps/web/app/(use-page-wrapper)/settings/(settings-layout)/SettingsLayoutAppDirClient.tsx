@@ -97,6 +97,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/security/two-factor-auth",
           trackingMetadata: { section: "security", page: "2fa_auth" },
         },
+        {
+          name: "compliance",
+          href: "/settings/security/compliance",
+          trackingMetadata: { section: "security", page: "compliance" },
+        },
       ],
     },
     {
@@ -239,6 +244,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "lockedSMS",
           href: "/settings/admin/lockedSMS",
           trackingMetadata: { section: "admin", page: "locked_sms" },
+        },
+        {
+          name: "pbac_resource_blocklist",
+          href: "/settings/admin/blocklist",
+          trackingMetadata: { section: "admin", page: "blocklist" },
         },
         {
           name: "oAuth",
