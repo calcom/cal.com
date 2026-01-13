@@ -3,27 +3,31 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SWHMap } from "./__handler";
 import handler from "./_customer.subscription.updated";
 
-const prismaMock = {
+let prismaMock!: {
   teamBilling: {
-    findUnique: vi.fn(),
-    update: vi.fn(),
-  },
+    findUnique: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
   organizationBilling: {
-    findUnique: vi.fn(),
-    update: vi.fn(),
-  },
+    findUnique: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
   calAiPhoneNumber: {
-    update: vi.fn(),
-  },
+    update: ReturnType<typeof vi.fn>;
+  };
 };
 
-const findByStripeSubscriptionId = vi.fn().mockResolvedValue(null);
+let findByStripeSubscriptionId!: ReturnType<typeof vi.fn>;
 
-vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => ({
-  PrismaPhoneNumberRepository: class {
-    findByStripeSubscriptionId = findByStripeSubscriptionId;
-  },
-}));
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => {
+  findByStripeSubscriptionId = vi.fn().mockResolvedValue(null);
+
+  return {
+    PrismaPhoneNumberRepository: class {
+      findByStripeSubscriptionId = findByStripeSubscriptionId;
+    },
+  };
+});
 
 vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
   getBillingProviderService: () => ({
@@ -35,9 +39,25 @@ vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
   }),
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  default: prismaMock,
-}));
+vi.mock("@calcom/prisma", () => {
+  prismaMock = {
+    teamBilling: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    organizationBilling: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    calAiPhoneNumber: {
+      update: vi.fn(),
+    },
+  };
+
+  return {
+    default: prismaMock,
+  };
+});
 
 describe("customer.subscription.updated webhook", () => {
   beforeEach(() => {
