@@ -280,7 +280,7 @@ export class BookingsController_2024_08_13 {
     const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
-      orgId: profile?.organizationId,
+      orgId: profile?.organizationId ?? undefined,
     });
 
     return {

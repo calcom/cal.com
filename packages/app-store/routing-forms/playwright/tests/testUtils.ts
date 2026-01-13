@@ -46,7 +46,7 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   // Verify all Options of SelectBox
   const { optionsInUi: types } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
+    ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
     page
   );
 
