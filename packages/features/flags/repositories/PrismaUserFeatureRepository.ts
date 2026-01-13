@@ -10,8 +10,6 @@ export interface IPrismaUserFeatureRepository {
     userId: number,
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, FeatureState>>>;
-  checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
-  checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean>;
   checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   upsert(userId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<UserFeatures>;
@@ -60,26 +58,6 @@ export class PrismaUserFeatureRepository implements IPrismaUserFeatureRepository
     }
 
     return result;
-  }
-
-  async checkIfUserHasFeature(userId: number, slug: string): Promise<boolean> {
-    const userFeature = await this.findByUserIdAndFeatureId(userId, slug);
-
-    if (userFeature) {
-      return userFeature.enabled;
-    }
-
-    return this.checkIfUserBelongsToTeamWithFeature(userId, slug);
-  }
-
-  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
-    const userFeature = await this.findByUserIdAndFeatureId(userId, slug);
-
-    if (userFeature) {
-      return userFeature.enabled;
-    }
-
-    return this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId, slug);
   }
 
   async checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean> {
