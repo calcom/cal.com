@@ -1,6 +1,8 @@
 version: 1
 checksums:
   76a1ee1ae6f7c2f515beace0bc21adc7:
+    configure_your_webhook: 06d812c96c4044447ef7f5daccfaff0c
+    select_whatsapp_template: fe2229611d56bcd4e4c368bc9a6a5ddd
     workflow_status: 9c9a2f8324d3f698ec2d788f43bd4849
     workflow_reminders: afd5d3684ba7c3aa74712e4dfb439281
     pw_check_least_char: 142d03d1e2ad95e34ca82bb7f4b3f0ef
@@ -988,7 +990,7 @@ checksums:
     light_brand_color: 210e6a3c6ac8369157a7b03738b06305
     dark_brand_color: 716c3c455e99967e6db557899f889d51
     booking_page_banner: 48c89e0ea00b9834ccc713ff69fc3f2a
-    booking_page_banner_description: 302e2870b4410722a5724608ffd8ccb0
+    booking_page_banner_description: a21f90b5a16e777ef487f95ca5ef8569
     light_event_type_color: 6144591373599b4d1fc43f354c81680c
     dark_event_type_color: 2a620447632a5238af304040cb605f41
     file_not_named: 42e93dfbf3037148e169df7f873bb536
@@ -1669,15 +1671,15 @@ checksums:
     check_for_recordings: 366ab3e9e0ddf3206c927e1fbd27ab87
     adding_events_to: 8c41ca72fb6fd3f021255e23b0dde540
     follow_system_preferences: 931ceddd99fbf2cc3807d5cf721b08df
-    enable_custom_branding: 58a2250090d36465be2da0d366203603
+    custom_brand_logo_and_favicon: f4dc7d2c23011b4148e6321c2fc2e54d
     custom_brand_colors: e1fe163c753c111e90761411ddeb934c
-    custom_brand_logo: 5332f570536a2cc7573bf6281ac1f05d
-    custom_brand_logo_description: 96f8d9fe9f5cfbda8e1662ef3909f7bc
-    custom_brand_favicon: b94a49f281bcc2a330c97d3bd9b5719c
-    custom_brand_favicon_description: 9ba07fedadb3482d774b1e58bbf82f44
+    brand_logo: 7d36f7f5339c959f4b96493aa6cd0606
+    brand_logo_description: 96f8d9fe9f5cfbda8e1662ef3909f7bc
+    brand_favicon: fb4e7dede43d3dfddb3821f3ed007ec3
+    brand_favicon_description: 9ba07fedadb3482d774b1e58bbf82f44
     customize_your_brand_colors: 0d3c40f05de858f1a9fda50761de3cd0
     pro: 682b3c9feab30112b4454cb5bb7974b1
-    removes_cal_branding: 2f3ab978b8d13b1a02078ebdfe40b59c
+    removes_cal_branding: c75a2a47f0ae9cb1e2eb12300b993541
     instant_meeting_with_title: fd9f8c4e32200465ef3faf1859de9192
     profile_picture: 982f611801ab04620bb2b4cc399d8dd3
     upload: 4a6c84aa16db0f4e5697f49b45257bc7
@@ -1791,7 +1793,7 @@ checksums:
     appearance_team_description: c0bdc572130cace267631a4583cf434c
     appearance_org_description: 892e1cef53ef0212348ff06d6a330b39
     only_owner_change: 9ad83ffe8518183e751b6a83b0bfd9c5
-    team_disable_cal_branding_description: 7cd8a15bd27dcdac17ccfbb4523fb739
+    team_disable_cal_branding_description: 0c22612e77f69cdae6cbdc0fe78d5c47
     invited_by_team: 3423e3d8db47a0d68d5c82faccc2db4f
     token_invalid_expired: 08c33b2288a77b5cf72c32cd2be89d8a
     view_booking: 7cf5f429ec2460d57e91d54916ad960c
@@ -3596,6 +3598,8 @@ checksums:
     team_brand_colors_description: e3eea97e9ea48ed1b9f3a7ce1b43c0a1
     team_brand_color_light: 0b9f636864d7e6dde891508e00cd2e82
     team_brand_color_dark: 65f79be0108048f786c3e39430ccb67c
+    custom_branding: dccb2766844e8ad097f1a1a30112dd92
+    custom_branding_description: 1873bdd4d9c433e3b08749e2a63e6401
     disable_cal_id_branding: b00aa30770ee2ecfa29681b3b3d4eb9d
     remove_cal_id_branding: 9d084c45444719532fcabda42f1c8f4d
     team_settings_user_impersonation_title: 89512fa88f3567c908091c9ced9cf213
@@ -3605,6 +3609,7 @@ checksums:
     team_settings_limit_booking_frequency_title: 9e7c30057423c4db72b34b39cc156aa2
     team_settings_limit_booking_frequency_description: 52c7d4f06e9a51455b97acdd3d460ebe
     team_settings_updated_successfully: 486f4d7b8336d7968a92faee376b5076
+    only_admin_can_see_members_of_team: 8fb5fde66321f4efbb0c3259fac11fd2
     view_member_public_page: 63eaab579f632abcfef7fad943aa70cf
     edit_team_member: eee7f39ff90b18852afc1671f21fbaa9
     resend_invite_to_team_member: dda6c4c5da3bfe8ce4fde23c53e3b74e
@@ -3695,7 +3700,7 @@ checksums:
     share_on_social_platforms: 233df4269fe1a816a83cc647a59de8eb
     coming_soon: c9ce7bf24d51d515fb285af41004b193
     social_profiles: 26b5b0f8a3167ee279c37119b2cb350b
-    social_profiles_description: 89cffa35cb4790f993e70ce030b0bf19
+    social_profiles_description: 015f39ea7d7e79b0e14ae7fa26a1228a
     linkedin: f29b78f253094277c2e9ef79d10b5e4f
     facebook: ac8afe226a7424849c247e6a9d566f64
     twitter: ba3d4aed69a50759b53a0b7c319a3ad9

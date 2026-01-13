@@ -9,7 +9,7 @@ import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentRem
 import { handleBookingExportEvent } from "@calcom/trpc/server/routers/viewer/bookings/export.handler";
 import { handleCalendlyImportEvent } from "@calcom/web/pages/api/import/calendly";
 
-import { whatsappReminderScheduled, cancelWhatsappReminder } from "./whatsapp-reminder-scheduled";
+import { whatsappReminderScheduled } from "./whatsapp-reminder-scheduled";
 
 export const inngestClient = new Inngest({
   id: INNGEST_ID,
@@ -88,17 +88,6 @@ const handleWhatsappReminderScheduled = inngestClient.createFunction(
   whatsappReminderScheduled
 );
 
-const handleCancelWhatsappReminder = inngestClient.createFunction(
-  {
-    id: `whatsapp-reminder-cancelled-${key}`,
-    name: "Cancel WhatsApp Reminder",
-  },
-  {
-    event: `whatsapp/reminder.cancelled-${key}`,
-  },
-  cancelWhatsappReminder
-);
-
 const handleRazorpayAppRevoked = inngestClient.createFunction(
   {
     id: `razorpay-app-revoked-${key}`,
@@ -108,6 +97,7 @@ const handleRazorpayAppRevoked = inngestClient.createFunction(
   { event: `razorpay/app.revoked-${key}` },
   appRevokedHandler
 );
+
 // Inngest function for handling PAYMENT_LINK_PAID event
 const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
   {

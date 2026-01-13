@@ -48,6 +48,18 @@ function getIconParamsFromMetadata(metadata: any): IconParams {
   return iconParams || { icon: "calendar", color: "#6B7280" };
 }
 
+function stripHtmlTags(html: string): string {
+  if (typeof window !== "undefined") {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  }
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+}
+
 export type PageProps = inferSSRProps<typeof getCalIdServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: PageProps) {
   useBrandColors({
@@ -85,6 +97,10 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
   const teamName = team.name || t("nameless_team");
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
+  const BIO_CHAR_LIMIT = 250;
+  const bioPlainText = stripHtmlTags(team.safeBio || "");
+  const isBioLong = bioPlainText.length > BIO_CHAR_LIMIT;
 
   const teamOrOrgIsPrivate = team.isPrivate;
 
@@ -267,11 +283,51 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
           </h1>
           {!isBioEmpty && (
             <>
-              <div
-                className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]"
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: team.safeBio }}
-              />
+              <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
+                {isBioLong && !isBioExpanded ? (
+                  <div className="relative inline-block w-full">
+                    <div
+                      className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
+                    />
+                    <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
+                      <button
+                        onClick={() => setIsBioExpanded(!isBioExpanded)}
+                        className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
+                        type="button">
+                        Read more
+                      </button>
+                    </div>
+                    <div className="mt-2 flex w-full justify-center md:hidden">
+                      <button
+                        onClick={() => setIsBioExpanded(!isBioExpanded)}
+                        className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+                        type="button">
+                        Read more
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div
+                      className="overflow-visible"
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
+                    />
+                    {isBioLong && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setIsBioExpanded(!isBioExpanded)}
+                          className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+                          type="button">
+                          Read less
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
