@@ -10,6 +10,7 @@ export interface IBillingProviderService {
     subscriptionId: string;
     subscriptionItemId: string;
     membershipCount: number;
+    prorationBehavior?: "none" | "create_prorations" | "always_invoice";
   }): Promise<void>;
   handleEndTrial(subscriptionId: string): Promise<void>;
 
@@ -85,6 +86,8 @@ export interface IBillingProviderService {
   finalizeInvoice(invoiceId: string): Promise<void>;
 
   getPaymentIntentFailureReason(paymentIntentId: string): Promise<string | null>;
+
+  hasDefaultPaymentMethod(args: { customerId: string; subscriptionId?: string }): Promise<boolean>;
 
   // Subscription queries
   getSubscription(subscriptionId: string): Promise<{

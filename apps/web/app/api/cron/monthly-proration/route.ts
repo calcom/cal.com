@@ -1,11 +1,11 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-
+import process from "node:process";
+import { MonthlyProrationService } from "@calcom/features/ee/billing/service/proration/MonthlyProrationService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { MonthlyProrationService } from "@calcom/features/ee/billing/service/proration/MonthlyProrationService";
 import { subMonths } from "date-fns";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["monthly-proration-cron"] });
 
@@ -23,12 +23,19 @@ async function getHandler(request: NextRequest) {
     return NextResponse.json({ message: "Monthly proration disabled" });
   }
 
+  const requestedMonthKey = request.nextUrl.searchParams.get("monthKey");
+  const monthKeyPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
+  if (requestedMonthKey && !monthKeyPattern.test(requestedMonthKey)) {
+    return NextResponse.json({ message: "Invalid monthKey format. Use YYYY-MM." }, { status: 400 });
+  }
+
   const now = new Date();
   const startOfCurrentMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const previousMonthUtc = subMonths(startOfCurrentMonthUtc, 1);
-  const monthKey = `${previousMonthUtc.getUTCFullYear()}-${String(
+  const defaultMonthKey = `${previousMonthUtc.getUTCFullYear()}-${String(
     previousMonthUtc.getUTCMonth() + 1
   ).padStart(2, "0")}`;
+  const monthKey = requestedMonthKey || defaultMonthKey;
 
   log.info(`Processing monthly prorations for ${monthKey}`);
 

@@ -139,7 +139,7 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async handleSubscriptionUpdate(args: Parameters<IBillingProviderService["handleSubscriptionUpdate"]>[0]) {
-    const { subscriptionId, subscriptionItemId, membershipCount } = args;
+    const { subscriptionId, subscriptionItemId, membershipCount, prorationBehavior } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
       (sub) => sub.id === subscriptionItemId
@@ -147,6 +147,7 @@ export class StripeBillingService implements IBillingProviderService {
     if (!subscriptionQuantity) throw new Error("Subscription not found");
     await this.stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],
+      ...(prorationBehavior ? { proration_behavior: prorationBehavior } : {}),
     });
   }
 
@@ -282,6 +283,33 @@ export class StripeBillingService implements IBillingProviderService {
       log.warn("Failed to retrieve payment intent failure reason", { paymentIntentId, error });
       return null;
     }
+  }
+
+  async hasDefaultPaymentMethod(args: Parameters<IBillingProviderService["hasDefaultPaymentMethod"]>[0]) {
+    const { customerId, subscriptionId } = args;
+    const subscription = subscriptionId ? await this.stripe.subscriptions.retrieve(subscriptionId) : null;
+
+    const subscriptionDefault = subscription
+      ? typeof subscription.default_payment_method === "string"
+        ? subscription.default_payment_method
+        : subscription.default_payment_method?.id
+      : null;
+
+    if (subscriptionDefault) {
+      return true;
+    }
+
+    const customer = await this.stripe.customers.retrieve(customerId);
+    if (customer.deleted) {
+      return false;
+    }
+
+    const customerDefault =
+      typeof customer.invoice_settings?.default_payment_method === "string"
+        ? customer.invoice_settings.default_payment_method
+        : customer.invoice_settings?.default_payment_method?.id;
+
+    return Boolean(customerDefault);
   }
 
   async getSubscription(subscriptionId: string) {

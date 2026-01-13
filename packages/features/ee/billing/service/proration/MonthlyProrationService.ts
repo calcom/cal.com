@@ -211,10 +211,15 @@ export class MonthlyProrationService {
       },
     });
 
+    const hasDefaultPaymentMethod = await this.billingService.hasDefaultPaymentMethod({
+      customerId: proration.customerId,
+      subscriptionId: proration.subscriptionId,
+    });
+
     const { invoiceId } = await this.billingService.createInvoice({
       customerId: proration.customerId,
       autoAdvance: true,
-      collectionMethod: "charge_automatically",
+      collectionMethod: hasDefaultPaymentMethod ? "charge_automatically" : "send_invoice",
       metadata: {
         type: "monthly_proration",
         prorationId: proration.id,
@@ -225,7 +230,7 @@ export class MonthlyProrationService {
 
     const updatedProration = await this.prorationRepository.updateProrationStatus(
       proration.id,
-      "INVOICE_CREATED",
+      hasDefaultPaymentMethod ? "INVOICE_CREATED" : "PENDING",
       {
         invoiceItemId,
         invoiceId,
@@ -273,6 +278,7 @@ export class MonthlyProrationService {
         subscriptionId,
         subscriptionItemId,
         membershipCount: quantity,
+        prorationBehavior: "none",
       });
     } catch (error) {
       this.logger.error(`Failed to update subscription ${subscriptionId} quantity to ${quantity}:`, error);

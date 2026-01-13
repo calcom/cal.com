@@ -1,13 +1,9 @@
-import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
-import { Plan, SubscriptionStatus } from "../repository/billing/IBillingRepository";
-
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IBillingRepository } from "../repository/billing/IBillingRepository";
+import { Plan, SubscriptionStatus } from "../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
 import { TeamBillingPublishResponseStatus } from "../service/teams/ITeamBillingService";
@@ -23,6 +19,14 @@ vi.mock("@calcom/lib/constants", async () => {
 
 vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
   purchaseTeamOrOrgSubscription: vi.fn(),
+}));
+
+const shouldApplyMonthlyProration = vi.fn().mockResolvedValue(false);
+
+vi.mock("../service/billingPeriod/BillingPeriodService", () => ({
+  BillingPeriodService: class {
+    shouldApplyMonthlyProration = shouldApplyMonthlyProration;
+  },
 }));
 const mockTeam = {
   id: 1,
@@ -65,6 +69,7 @@ describe("TeamBillingService", () => {
       finalizeInvoice: vi.fn(),
       getSubscription: vi.fn(),
       getPaymentIntentFailureReason: vi.fn(),
+      hasDefaultPaymentMethod: vi.fn(),
     } as IBillingProviderService;
 
     mockTeamBillingDataRepository = {
@@ -160,6 +165,7 @@ describe("TeamBillingService", () => {
         paymentId: "cs_789",
         paymentRequired: false,
       });
+      shouldApplyMonthlyProration.mockResolvedValue(false);
 
       await teamBillingServiceNotOrg.updateQuantity();
 
@@ -168,6 +174,30 @@ describe("TeamBillingService", () => {
         subscriptionItemId: "si_456",
         membershipCount: 10,
       });
+    });
+
+    it("should skip subscription updates when monthly proration applies", async () => {
+      const mockTeamNotOrg = {
+        ...mockTeam,
+        isOrganization: false,
+      };
+      const teamBillingServiceNotOrg = new TeamBillingService({
+        team: mockTeamNotOrg,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+      prismaMock.membership.count.mockResolvedValue(10);
+      vi.spyOn(teamBillingServiceNotOrg, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: "http://checkout.url",
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+      shouldApplyMonthlyProration.mockResolvedValue(true);
+
+      await teamBillingServiceNotOrg.updateQuantity();
+
+      expect(mockBillingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
     });
   });
 

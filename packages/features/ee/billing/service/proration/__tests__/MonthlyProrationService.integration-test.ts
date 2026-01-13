@@ -41,6 +41,7 @@ const mockBillingService: IBillingProviderService = {
   getSubscriptions: vi.fn().mockResolvedValue(null),
   updateCustomer: vi.fn().mockResolvedValue(undefined),
   getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
+  hasDefaultPaymentMethod: vi.fn().mockResolvedValue(true),
 } as IBillingProviderService;
 
 describe("MonthlyProrationService Integration Tests", () => {
@@ -365,6 +366,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       subscriptionId: proration!.subscriptionId,
       subscriptionItemId: proration!.subscriptionItemId,
       membershipCount: proration!.seatsAtEnd,
+      prorationBehavior: "none",
     });
   });
 
