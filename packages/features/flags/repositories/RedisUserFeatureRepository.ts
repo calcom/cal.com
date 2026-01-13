@@ -22,7 +22,7 @@ export interface IRedisUserFeatureRepository {
   ): Promise<void>;
   findAutoOptInByUserId(userId: number): Promise<boolean | null>;
   setAutoOptInByUserId(userId: number, enabled: boolean, ttlMs?: number): Promise<void>;
-  invalidateByUserId(userId: number): Promise<void>;
+  invalidateByUserIdAndFeatureId(userId: number, featureId: string): Promise<void>;
   invalidateAutoOptIn(userId: number): Promise<void>;
 }
 
@@ -96,8 +96,8 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     await this.redisService.set(this.getAutoOptInKey(userId), enabled, { ttl: ttlMs ?? this.ttlMs });
   }
 
-  async invalidateByUserId(userId: number): Promise<void> {
-    await this.redisService.del(this.getAutoOptInKey(userId));
+  async invalidateByUserIdAndFeatureId(userId: number, featureId: string): Promise<void> {
+    await this.redisService.del(this.getByUserIdAndFeatureIdKey(userId, featureId));
   }
 
   async invalidateAutoOptIn(userId: number): Promise<void> {

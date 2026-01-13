@@ -73,13 +73,13 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
     assignedBy: string
   ): Promise<UserFeatures> {
     const result = await this.deps.prismaRepo.upsert(userId, featureId, enabled, assignedBy);
-    await this.deps.redisRepo.invalidateByUserId(userId);
+    await this.deps.redisRepo.invalidateByUserIdAndFeatureId(userId, featureId);
     return result;
   }
 
   async delete(userId: number, featureId: FeatureId): Promise<void> {
     await this.deps.prismaRepo.delete(userId, featureId);
-    await this.deps.redisRepo.invalidateByUserId(userId);
+    await this.deps.redisRepo.invalidateByUserIdAndFeatureId(userId, featureId);
   }
 
   async findAutoOptInByUserId(userId: number): Promise<boolean> {

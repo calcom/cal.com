@@ -24,7 +24,7 @@ export interface IRedisTeamFeatureRepository {
   ): Promise<void>;
   findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean> | null>;
   setAutoOptInByTeamIds(data: Record<number, boolean>, teamIds: number[], ttlMs?: number): Promise<void>;
-  invalidateByTeamId(teamId: number): Promise<void>;
+  invalidateByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<void>;
   invalidateAutoOptIn(teamIds: number[]): Promise<void>;
 }
 
@@ -118,7 +118,8 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     await this.redisService.set(this.getAutoOptInKey(teamIds), data, { ttl: ttlMs ?? this.ttlMs });
   }
 
-  async invalidateByTeamId(teamId: number): Promise<void> {
+  async invalidateByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<void> {
+    await this.redisService.del(this.getByTeamIdAndFeatureIdKey(teamId, featureId));
     await this.redisService.del(this.getEnabledByTeamIdKey(teamId));
   }
 

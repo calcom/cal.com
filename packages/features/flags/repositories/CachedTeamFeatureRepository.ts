@@ -87,13 +87,13 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
     assignedBy: string
   ): Promise<TeamFeatures> {
     const result = await this.deps.prismaRepo.upsert(teamId, featureId, enabled, assignedBy);
-    await this.deps.redisRepo.invalidateByTeamId(teamId);
+    await this.deps.redisRepo.invalidateByTeamIdAndFeatureId(teamId, featureId);
     return result;
   }
 
   async delete(teamId: number, featureId: FeatureId): Promise<void> {
     await this.deps.prismaRepo.delete(teamId, featureId);
-    await this.deps.redisRepo.invalidateByTeamId(teamId);
+    await this.deps.redisRepo.invalidateByTeamIdAndFeatureId(teamId, featureId);
   }
 
   async findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean>> {
