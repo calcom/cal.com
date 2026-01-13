@@ -50,8 +50,10 @@ function createUserBlockedWarningFn(t: TFunction): (feature: NormalizedFeature) 
       case "feature_org_disabled":
         return t("feature_blocked_by_org_warning");
       case "feature_all_teams_disabled":
+      case "feature_any_team_disabled":
         return t("feature_blocked_by_team_warning");
       case "feature_no_explicit_enablement":
+      case "feature_user_only_not_allowed":
         return t("feature_no_explicit_enablement_warning");
       default:
         return null;
