@@ -155,7 +155,11 @@ export default abstract class BaseCalendarService implements Calendar {
       const { error, value: iCalString } = createEvent({
         uid,
 startInputType: "local",
-start: dayjs(event.startTime).toArray().slice(0, 6) as DateArray,
+start: dayjs(event.startTime)
+  .toArray()
+  .slice(0, 6)
+  .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+
 
         duration: getDuration(event.startTime, event.endTime),
         title: event.title,
@@ -249,7 +253,11 @@ attendees: this.getAttendees(event).map((a) => ({
 
   //  FIX TIMEZONE (NO UTC FORCING)
   startInputType: "local",
-  start: dayjs(event.startTime).toArray().slice(0, 6) as DateArray,
+ start: dayjs(event.startTime)
+  .toArray()
+  .slice(0, 6)
+  .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+
 
   duration: getDuration(event.startTime, event.endTime),
   title: event.title,
