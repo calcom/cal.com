@@ -136,10 +136,16 @@ export type GetUserAvailabilityInitialData = {
   eventType?: EventType;
   currentSeats?: CurrentSeats;
   rescheduleUid?: string | null;
-  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title" | "status"> & {
     eventType: Pick<
       PrismaEventType,
-      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+      | "id"
+      | "beforeEventBuffer"
+      | "afterEventBuffer"
+      | "title"
+      | "seatsPerTimeSlot"
+      | "requiresConfirmation"
+      | "requiresConfirmationWillBlockSlot"
     > | null;
     _count?: {
       seatsReferences: number;
