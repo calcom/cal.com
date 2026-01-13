@@ -1,7 +1,16 @@
+import {
+  CALENDARS_QUEUE,
+  DEFAULT_CALENDARS_JOB,
+  DefaultCalendarsJobDataType,
+} from "@/ee/calendars/processors/calendars.processor";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { UsersRepository } from "@/modules/users/users.repository";
+import { InjectQueue } from "@nestjs/bull";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Queue } from "bull";
 
 import { TeamService } from "@calcom/platform-libraries";
 
@@ -14,10 +23,15 @@ export const MANAGED_USER_AND_MANAGED_ORG_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_E
 
 @Injectable()
 export class OrganizationsMembershipService {
+  private logger = new Logger("OrganizationsMembershipService");
+
   constructor(
     private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
     private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService,
-    private readonly oAuthClientsRepository: OAuthClientRepository
+    private readonly oAuthClientsRepository: OAuthClientRepository,
+    private readonly delegationCredentialRepository: OrganizationsDelegationCredentialRepository,
+    private readonly usersRepository: UsersRepository,
+    @InjectQueue(CALENDARS_QUEUE) private readonly calendarsQueue: Queue
   ) {}
 
   async getOrgMembership(organizationId: number, membershipId: number) {
@@ -103,7 +117,42 @@ export class OrganizationsMembershipService {
   async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
     await this.canUserBeAddedToOrg(data.userId, organizationId);
     const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data);
+
+    // If the org has delegation credentials for the user's email domain, ensure default calendars are set
+    await this.ensureDefaultCalendarsForDelegationCredential(organizationId, data.userId);
+
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
+  }
+
+  private async ensureDefaultCalendarsForDelegationCredential(organizationId: number, userId: number) {
+    try {
+      const user = await this.usersRepository.findById(userId);
+      if (!user?.email) {
+        return;
+      }
+
+      const emailDomain = `@${user.email.split("@")[1]}`;
+
+      const delegationCredential = await this.delegationCredentialRepository.findEnabledByOrgIdAndDomain(
+        organizationId,
+        emailDomain
+      );
+
+      if (!delegationCredential) {
+        return;
+      }
+
+      await this.calendarsQueue.add(
+        DEFAULT_CALENDARS_JOB,
+        { userId } satisfies DefaultCalendarsJobDataType,
+        { jobId: `${DEFAULT_CALENDARS_JOB}_${userId}`, removeOnComplete: true }
+      );
+    } catch (err) {
+      this.logger.error(
+        err,
+        `Could not ensure default calendars for user with id: ${userId} in org with id: ${organizationId}`
+      );
+    }
   }
 
   async canUserBeAddedToOrg(userId: number, orgId: number) {
