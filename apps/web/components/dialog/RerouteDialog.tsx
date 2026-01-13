@@ -12,10 +12,7 @@ import FormInputFields, {
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import type {
-  FormResponse,
-  LocalRoute,
-} from "@calcom/app-store/routing-forms/types/types";
+import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { useBookerUrl } from "@calcom/web/modules/bookings/hooks/useBookerUrl";
@@ -23,24 +20,14 @@ import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type {
-  EventType,
-  User,
-  Team,
-  Attendee,
-  Booking as PrismaBooking,
-} from "@calcom/prisma/client";
+import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Button } from "@calcom/ui/components/button";
-import {
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-} from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -51,23 +38,16 @@ const enum ReroutingStatusEnum {
   REROUTING_FAILED = "failed",
 }
 
-type ResponseWithForm =
-  RouterOutputs["viewer"]["appRoutingForms"]["getResponseWithFormFields"];
+type ResponseWithForm = RouterOutputs["viewer"]["appRoutingForms"]["getResponseWithFormFields"];
 
-type BookingToReroute = Pick<
-  PrismaBooking,
-  "metadata" | "responses" | "id" | "uid" | "title" | "status"
-> & {
+type BookingToReroute = Pick<PrismaBooking, "metadata" | "responses" | "id" | "uid" | "title" | "status"> & {
   routedFromRoutingFormReponse: {
     id: number;
   };
   startTime: string;
   metadata: z.infer<typeof bookingMetadataSchema>;
   attendees: Pick<Attendee, "locale" | "timeZone" | "email" | "name">[];
-  eventType: Pick<
-    EventType,
-    "length" | "schedulingType" | "title" | "id" | "slug"
-  > & {
+  eventType: Pick<EventType, "length" | "schedulingType" | "title" | "id" | "slug"> & {
     team: Pick<Team, "slug"> | null;
   };
   user: Pick<User, "id" | "name" | "email"> | null;
@@ -88,9 +68,7 @@ type RerouteDialogProps = {
 
 type ReroutingState =
   | {
-      type:
-        | "reschedule_to_same_event_new_tab"
-        | "reschedule_to_different_event_new_tab";
+      type: "reschedule_to_same_event_new_tab" | "reschedule_to_different_event_new_tab";
       /**
        * UID of the rescheduled booking
        */
@@ -129,10 +107,7 @@ function getEventTypeUrlsForTheChosenRoute({
 }: {
   form: ResponseWithForm["form"];
   currentResponse: FormResponse;
-  reroutingFormResponses: Record<
-    string,
-    Pick<FormResponse[keyof FormResponse], "value">
-  >;
+  reroutingFormResponses: Record<string, Pick<FormResponse[keyof FormResponse], "value">>;
   teamMemberIdsMatchingAttributeLogic: number[] | null;
   chosenRoute: LocalRoute | null;
   booking: TeamEventTypeBookingToReroute;
@@ -143,8 +118,7 @@ function getEventTypeUrlsForTheChosenRoute({
   }
 
   const formFields = form.fields || [];
-  const routedFromRoutingFormReponseId =
-    booking.routedFromRoutingFormReponse.id;
+  const routedFromRoutingFormReponseId = booking.routedFromRoutingFormReponse.id;
 
   const allURLSearchParams = getUrlSearchParamsToForwardForReroute({
     formResponse: currentResponse,
@@ -157,11 +131,7 @@ function getEventTypeUrlsForTheChosenRoute({
     reroutingFormResponses,
   });
 
-  const eventFullSlug = substituteVariables(
-    chosenRoute.action.value,
-    currentResponse,
-    formFields
-  );
+  const eventFullSlug = substituteVariables(chosenRoute.action.value, currentResponse, formFields);
   const eventBookingAbsoluteUrl = getAbsoluteEventTypeRedirectUrl({
     form,
     eventTypeRedirectUrl: eventFullSlug,
@@ -192,9 +162,7 @@ function isBookingTimeslotInPast(booking: BookingToReroute) {
   return dayjs(booking.startTime).isBefore(dayjs());
 }
 
-const useReroutingState = ({
-  isOpenDialog,
-}: Pick<RerouteDialogProps, "isOpenDialog">) => {
+const useReroutingState = ({ isOpenDialog }: Pick<RerouteDialogProps, "isOpenDialog">) => {
   const [value, setValue] = useState<ReroutingState | null>(null);
   const state = value;
 
@@ -248,11 +216,7 @@ const gotoBookingPage = ({
   router.push(`/booking/${booking.uid}?cal.rerouting=true`);
 };
 
-const useEventListeners = ({
-  reroutingState,
-}: {
-  reroutingState: ReturnType<typeof useReroutingState>;
-}) => {
+const useEventListeners = ({ reroutingState }: { reroutingState: ReturnType<typeof useReroutingState> }) => {
   const router = useRouter();
   const { t } = useLocale();
   const messageListener = useCallback(
@@ -261,10 +225,7 @@ const useEventListeners = ({
         return;
       }
       const calEventData = event.data.data;
-      showToast(
-        t("rerouted_booking_successfully_redirecting_to_booking_page"),
-        "success"
-      );
+      showToast(t("rerouted_booking_successfully_redirecting_to_booking_page"), "success");
       if (!calEventData.uid) {
         console.error("Booking UID is not there");
         throw new Error(t("something_went_wrong"));
@@ -327,20 +288,15 @@ const NewRoutingManager = ({
         // We don't want to reroute to the same user who booked the booking
         return id !== booking.user?.id;
       }) || null;
-  const routedFromRoutingFormReponseId =
-    booking.routedFromRoutingFormReponse.id;
+  const routedFromRoutingFormReponseId = booking.routedFromRoutingFormReponse.id;
 
   const bookingEventType = booking.eventType;
 
   // Provide a reason for rescheduling that can be customized by user in the future
   // const rescheduleReason = "Rerouted";
-  const isRoundRobinScheduling =
-    bookingEventType.schedulingType === SchedulingType.ROUND_ROBIN;
+  const isRoundRobinScheduling = bookingEventType.schedulingType === SchedulingType.ROUND_ROBIN;
   const reroutingFormResponses = Object.fromEntries(
-    Object.entries(currentResponse).map(([key, response]) => [
-      key,
-      { value: response.value },
-    ])
+    Object.entries(currentResponse).map(([key, response]) => [key, { value: response.value }])
   );
 
   const chosenEventUrls = getEventTypeUrlsForTheChosenRoute({
@@ -368,23 +324,17 @@ const NewRoutingManager = ({
     );
 
   // isPending of the query is true even if enabled=false and no request was sent. So, identify if the request is actually in progress
-  const isChosenEventTypeRequestInProgress = enableChosenEventTypeQuery
-    ? isChosenEventTypePending
-    : false;
+  const isChosenEventTypeRequestInProgress = enableChosenEventTypeQuery ? isChosenEventTypePending : false;
 
   const chosenEventType = chosenEventTypeData?.eventType;
 
   const currentBookingEventFullSlug = getFullSlugForEvent(booking.eventType);
-  const isReroutingToDifferentEvent =
-    currentBookingEventFullSlug !== chosenEventUrls?.eventFullSlug;
+  const isReroutingToDifferentEvent = currentBookingEventFullSlug !== chosenEventUrls?.eventFullSlug;
 
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
     onSuccess: (booking) => {
-      showToast(
-        t("rerouted_booking_successfully_redirecting_to_booking_page"),
-        "success"
-      );
+      showToast(t("rerouted_booking_successfully_redirecting_to_booking_page"), "success");
       if (!booking.uid) {
         console.error("Booking UID is not there");
         throw new Error(t("something_went_wrong"));
@@ -426,11 +376,8 @@ const NewRoutingManager = ({
     <div className="bg-cal-muted flex flex-col stack-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("new_routing_status")}</h2>
       <div className="flex flex-col stack-y-2">
-        {reroutingState.status ===
-          ReroutingStatusEnum.REROUTING_NOT_INITIATED && reroutingPreview()}
-        {(reroutingState.status ===
-          ReroutingStatusEnum.REROUTING_NOT_INITIATED ||
-          !isReroutingInNewTab) &&
+        {reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED && reroutingPreview()}
+        {(reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED || !isReroutingInNewTab) &&
           reroutingCTAs()}
         {isReroutingInNewTab && newTabReroutingStatus()}
       </div>
@@ -438,17 +385,9 @@ const NewRoutingManager = ({
   );
 
   function rescheduleToSameTimeslotOfEvent({
-    eventType: {
-      id: eventTypeId,
-      slug: eventTypeSlug,
-      team: eventTypeTeam,
-      length: eventTypeLength,
-    },
+    eventType: { id: eventTypeId, slug: eventTypeSlug, team: eventTypeTeam, length: eventTypeLength },
   }: {
-    eventType: Pick<
-      TeamEventTypeBookingToReroute["eventType"],
-      "id" | "slug" | "length"
-    > & {
+    eventType: Pick<TeamEventTypeBookingToReroute["eventType"], "id" | "slug" | "length"> & {
       team: {
         slug: string | null;
       } | null;
@@ -609,58 +548,41 @@ const NewRoutingManager = ({
 
   function reroutingPreview() {
     if (chosenRoute.action.type === RouteActionType.CustomPageMessage) {
-      return (
-        <span className="text-attention">
-          {t("reroute_preview_custom_message")}
-        </span>
-      );
+      return <span className="text-attention">{t("reroute_preview_custom_message")}</span>;
     }
     if (chosenRoute.action.type === RouteActionType.ExternalRedirectUrl) {
       return (
         <span className="text-attention">
-          {t("reroute_preview_external_redirect", {
-            externalUrl: chosenRoute.action.value,
-          })}
+          {t("reroute_preview_external_redirect", { externalUrl: chosenRoute.action.value })}
         </span>
       );
     }
     if (chosenRoute.action.type === RouteActionType.EventTypeRedirectUrl) {
       // Computed value for eventTypeSlugToRedirect
       const eventTypeSlugToRedirect =
-        chosenRoute.action.type === RouteActionType.EventTypeRedirectUrl
-          ? chosenRoute.action.value
-          : null;
+        chosenRoute.action.type === RouteActionType.EventTypeRedirectUrl ? chosenRoute.action.value : null;
 
       if (!eventTypeSlugToRedirect) {
-        console.error(
-          "Event type slug to redirect must be there if action is EventTypeRedirectUrl"
-        );
+        console.error("Event type slug to redirect must be there if action is EventTypeRedirectUrl");
         throw new Error(t("something_went_wrong"));
       }
       return (
         <div className="flex flex-col stack-y-2">
-          <span
-            className="text-default"
-            data-testid="reroute-preview-event-type"
-          >
+          <span className="text-default" data-testid="reroute-preview-event-type">
             <span className="font-semibold">{t("event_type")}:</span>{" "}
             <a
               className="underline"
               target="_blank"
               href={`${bookerUrl}/${eventTypeSlugToRedirect}`}
               rel="noreferrer"
-              data-testid="test-routing-result"
-            >
+              data-testid="test-routing-result">
               {eventTypeSlugToRedirect}
             </a>
           </span>
           <span className="text-default" data-testid="reroute-preview-hosts">
             <Tooltip content="Includes fixed hosts always and assumes that all the team members mentioned here are assigned to the event">
               <span className="font-semibold">
-                {isRoundRobinScheduling
-                  ? t("reroute_preview_possible_host")
-                  : t("hosts")}
-                :
+                {isRoundRobinScheduling ? t("reroute_preview_possible_host") : t("hosts")}:
               </span>
             </Tooltip>{" "}
             {bookingHosts()}
@@ -672,9 +594,7 @@ const NewRoutingManager = ({
     function bookingHosts() {
       if (teamMembersMatchingAttributeLogic.isPending) return t("loading");
 
-      const hostEmails = teamMembersMatchingAttributeLogic.data
-        ?.map((member) => member.email)
-        .join(", ");
+      const hostEmails = teamMembersMatchingAttributeLogic.data?.map((member) => member.email).join(", ");
       return hostEmails || t("no_matching_members");
     }
     return null;
@@ -685,23 +605,15 @@ const NewRoutingManager = ({
       // There are no actions to perform if the new chosen route isn't an event type redirect
       return null;
     }
-    const shouldDisableCTAs =
-      teamMembersMatchingAttributeLogic.isPending ||
-      createBookingMutation.isPending;
+    const shouldDisableCTAs = teamMembersMatchingAttributeLogic.isPending || createBookingMutation.isPending;
     return (
       <div className="flex flex-col gap-2">
         {!isReroutingToDifferentEvent ? (
-          <Button
-            onClick={rescheduleSameEventInNewTab}
-            disabled={shouldDisableCTAs}
-          >
+          <Button onClick={rescheduleSameEventInNewTab} disabled={shouldDisableCTAs}>
             {t("reschedule_with_different_timeslot")}
           </Button>
         ) : (
-          <Button
-            onClick={rescheduleDifferentEventInNewTab}
-            disabled={shouldDisableCTAs}
-          >
+          <Button onClick={rescheduleDifferentEventInNewTab} disabled={shouldDisableCTAs}>
             {t("reschedule_to_the_new_event_with_different_timeslot")}
           </Button>
         )}
@@ -709,19 +621,14 @@ const NewRoutingManager = ({
           <Button
             disabled={shouldDisableCTAs}
             loading={createBookingMutation.isPending}
-            onClick={rescheduleToSameTimeslotOfSameEvent}
-          >
+            onClick={rescheduleToSameTimeslotOfSameEvent}>
             {t("reschedule_with_same_timeslot")}
           </Button>
         ) : (
           <Button
             disabled={shouldDisableCTAs}
-            loading={
-              createBookingMutation.isPending ||
-              isChosenEventTypeRequestInProgress
-            }
-            onClick={rescheduleToSameTimeslotOfChosenEvent}
-          >
+            loading={createBookingMutation.isPending || isChosenEventTypeRequestInProgress}
+            onClick={rescheduleToSameTimeslotOfChosenEvent}>
             {t("reschedule_with_same_timeslot_of_new_event")}
           </Button>
         )}
@@ -740,8 +647,7 @@ const NewRoutingManager = ({
           <a
             href="javascript:void(0)"
             className="text-attention underline"
-            onClick={() => reroutingState.value?.reschedulerWindow?.focus()}
-          >
+            onClick={() => reroutingState.value?.reschedulerWindow?.focus()}>
             tab
           </a>
         </span>
@@ -753,10 +659,7 @@ const NewRoutingManager = ({
 const CurrentRoutingStatus = ({
   booking,
 }: {
-  booking: Pick<
-    TeamEventTypeBookingToReroute,
-    "eventType" | "user" | "attendees"
-  >;
+  booking: Pick<TeamEventTypeBookingToReroute, "eventType" | "user" | "attendees">;
 }) => {
   const fullSlug = getFullSlugForEvent(booking.eventType);
   const { t } = useLocale();
@@ -764,40 +667,25 @@ const CurrentRoutingStatus = ({
   if (!fullSlug) return null;
   return (
     <div className="bg-cal-muted flex flex-col stack-y-3 rounded-md p-4 text-sm">
-      <h2 className="text-emphasis font-medium">
-        {t("current_routing_status")}
-      </h2>
+      <h2 className="text-emphasis font-medium">{t("current_routing_status")}</h2>
       <div className="flex flex-col stack-y-2">
-        <span
-          className="text-default"
-          data-testid="current-routing-status-event-type"
-        >
+        <span className="text-default" data-testid="current-routing-status-event-type">
           <span className="font-semibold">{t("event_type")}:</span>{" "}
           <a
             className="underline"
             target="_blank"
             href={`${bookerUrl}/${fullSlug}`}
             rel="noreferrer"
-            data-testid="test-routing-result"
-          >
+            data-testid="test-routing-result">
             {fullSlug}
           </a>
         </span>
-        <span
-          className="text-default"
-          data-testid="current-routing-status-organizer"
-        >
-          <span className="font-semibold">{t("organizer")}:</span>{" "}
-          <span>{booking.user.email}</span>
+        <span className="text-default" data-testid="current-routing-status-organizer">
+          <span className="font-semibold">{t("organizer")}:</span> <span>{booking.user.email}</span>
         </span>
-        <span
-          className="text-default"
-          data-testid="current-routing-status-attendees"
-        >
+        <span className="text-default" data-testid="current-routing-status-attendees">
           <span className="font-semibold">{t("attendees")}:</span>{" "}
-          <span>
-            {booking.attendees.map((attendee) => attendee.email).join(", ")}
-          </span>
+          <span>{booking.attendees.map((attendee) => attendee.email).join(", ")}</span>
         </span>
       </div>
     </div>
@@ -840,8 +728,7 @@ const RerouteDialogContentAndFooter = ({
     return <div className="mb-8">{formResponseFetchError.message}</div>;
   }
 
-  if (!responseWithForm)
-    return <div className="mb-8">{t("something_went_wrong")}</div>;
+  if (!responseWithForm) return <div className="mb-8">{t("something_went_wrong")}</div>;
 
   return (
     <RerouteDialogContentAndFooterWithFormResponse
@@ -865,10 +752,8 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   const form = responseWithForm.form;
   const { t } = useLocale();
   const router = useRouter();
-  const [responseFromOrganizer, setResponseFromOrganizer] =
-    useState<FormResponse>({});
-  const isResponseFromOrganizerUnpopulated =
-    Object.keys(responseFromOrganizer).length === 0;
+  const [responseFromOrganizer, setResponseFromOrganizer] = useState<FormResponse>({});
+  const isResponseFromOrganizerUnpopulated = Object.keys(responseFromOrganizer).length === 0;
   const currentResponse = isResponseFromOrganizerUnpopulated
     ? responseWithForm.response
     : responseFromOrganizer;
@@ -878,10 +763,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
     isOpenDialog,
   });
 
-  const [
-    teamMembersMatchingAttributeLogic,
-    setTeamMembersMatchingAttributeLogic,
-  ] = useState<
+  const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
     | {
         id: number;
         name: string | null;
@@ -891,15 +773,11 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   >([]);
 
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation(
-      {
-        onSuccess(data) {
-          setTeamMembersMatchingAttributeLogic(
-            data.result ? data.result.users : data.result
-          );
-        },
-      }
-    );
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
+      onSuccess(data) {
+        setTeamMembersMatchingAttributeLogic(data.result ? data.result.users : data.result);
+      },
+    });
 
   function verifyRoute() {
     // Reset all states
@@ -928,8 +806,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
         <Link
           className="text-emphasis text-semibold font-cal mb-4 flex underline"
           href={`/apps/routing-forms/form-edit/${form.id}`}
-          target="_blank"
-        >
+          target="_blank">
           {form.name}
         </Link>
         <FormInputFields
@@ -945,8 +822,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
               chosenRoute={chosenRoute}
               booking={booking}
               teamMembersMatchingAttributeLogic={{
-                isPending:
-                  findTeamMembersMatchingAttributeLogicMutation.isPending,
+                isPending: findTeamMembersMatchingAttributeLogicMutation.isPending,
                 data: teamMembersMatchingAttributeLogic,
               }}
               reroutingState={reroutingState}
@@ -970,11 +846,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
           <Button
             onClick={verifyRoute}
             data-testid="verify-new-route-button"
-            disabled={
-              reroutingState.status ===
-              ReroutingStatusEnum.REROUTING_IN_PROGRESS
-            }
-          >
+            disabled={reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS}>
             {t("verify_new_route")}
           </Button>
         </DialogFooter>
@@ -987,8 +859,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
           <Button
             onClick={() => {
               setIsOpenDialog(false);
-            }}
-          >
+            }}>
             {t("close")}
           </Button>
         </DialogFooter>
@@ -998,11 +869,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   }
 };
 
-export const RerouteDialog = ({
-  isOpenDialog,
-  setIsOpenDialog,
-  booking,
-}: RerouteDialogProps) => {
+export const RerouteDialog = ({ isOpenDialog, setIsOpenDialog, booking }: RerouteDialogProps) => {
   const { t } = useLocale();
   const bookingEventType = booking.eventType;
 
@@ -1036,11 +903,8 @@ export const RerouteDialog = ({
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent preventCloseOnOutsideClick enableOverflow>
-        <DialogHeader
-          title={t("reroute_booking")}
-          subtitle={t("reroute_booking_description")}
-        />
+      <DialogContent preventCloseOnOutsideClick  enableOverflow>
+        <DialogHeader title={t("reroute_booking")} subtitle={t("reroute_booking_description")} />
         <RerouteDialogContentAndFooter
           booking={teamEventTypeBooking}
           isOpenDialog={isOpenDialog}
