@@ -1,29 +1,3 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { Locales } from "@/lib/enums/locales";
-import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import {
-  CreateManagedUserData,
-  CreateManagedUserOutput,
-} from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
-import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
-import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
 import {
   CAL_API_VERSION_HEADER,
   SUCCESS_STATUS,
@@ -40,6 +14,31 @@ import {
   GetBookingsOutput_2024_08_13,
 } from "@calcom/platform-types";
 import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { Locales } from "@/lib/enums/locales";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
+import {
+  CreateManagedUserData,
+  CreateManagedUserOutput,
+} from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UsersModule } from "@/modules/users/users.module";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 
@@ -356,7 +355,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const firstManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getFirstManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const firstManagedUserBookings: BookingOutput_2024_08_13[] = firstManagedUserBookingsResponseBody.data;
       expect(firstManagedUserBookings.length).toEqual(firstManagedUserBookingsCount);
 
@@ -369,7 +368,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const secondManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getSecondManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const secondManagedUserBookings: BookingOutput_2024_08_13[] =
         secondManagedUserBookingsResponseBody.data;
       expect(secondManagedUserBookings.length).toEqual(secondManagedUserBookingsCount);
@@ -408,7 +407,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const firstManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getFirstManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const firstManagedUserBookings: BookingOutput_2024_08_13[] = firstManagedUserBookingsResponseBody.data;
       expect(firstManagedUserBookings.length).toEqual(firstManagedUserBookingsCount);
 
@@ -421,7 +420,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const secondManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getSecondManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const secondManagedUserBookings: BookingOutput_2024_08_13[] =
         secondManagedUserBookingsResponseBody.data;
       expect(secondManagedUserBookings.length).toEqual(secondManagedUserBookingsCount);
@@ -435,7 +434,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const thirdManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getThirdManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const thirdManagedUserBookings: BookingOutput_2024_08_13[] = thirdManagedUserBookingsResponseBody.data;
       expect(thirdManagedUserBookings.length).toEqual(thirdManagedUserBookingsCount);
     });
@@ -473,7 +472,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const firstManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getFirstManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const firstManagedUserBookings: BookingOutput_2024_08_13[] = firstManagedUserBookingsResponseBody.data;
       expect(firstManagedUserBookings.length).toEqual(firstManagedUserBookingsCount);
 
@@ -486,7 +485,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const secondManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getSecondManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const secondManagedUserBookings: BookingOutput_2024_08_13[] =
         secondManagedUserBookingsResponseBody.data;
       expect(secondManagedUserBookings.length).toEqual(secondManagedUserBookingsCount);
@@ -525,7 +524,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const firstManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getFirstManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const firstManagedUserBookings: BookingOutput_2024_08_13[] = firstManagedUserBookingsResponseBody.data;
       expect(firstManagedUserBookings.length).toEqual(firstManagedUserBookingsCount);
 
@@ -538,7 +537,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const secondManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getSecondManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const secondManagedUserBookings: BookingOutput_2024_08_13[] =
         secondManagedUserBookingsResponseBody.data;
       expect(secondManagedUserBookings.length).toEqual(secondManagedUserBookingsCount);
@@ -552,7 +551,7 @@ describe("Managed user bookings 2024-08-13", () => {
       const thirdManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getThirdManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const thirdManagedUserBookings: BookingOutput_2024_08_13[] = thirdManagedUserBookingsResponseBody.data;
       expect(thirdManagedUserBookings.length).toEqual(thirdManagedUserBookingsCount);
     });
@@ -568,7 +567,7 @@ describe("Managed user bookings 2024-08-13", () => {
 
       const thirdManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const thirdManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
         thirdManagedUserAttendeeBookingsResponseBody.data;
       expect(thirdManagedUserBookingsCount).toEqual(2);
@@ -584,7 +583,7 @@ describe("Managed user bookings 2024-08-13", () => {
 
       const thirdManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const thirdManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
         thirdManagedUserAttendeeBookingsResponseBody.data;
       expect(thirdManagedUserBookingsCount).toEqual(2);
@@ -600,7 +599,7 @@ describe("Managed user bookings 2024-08-13", () => {
 
       const secondManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const secondManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
         secondManagedUserAttendeeBookingsResponseBody.data;
       expect(secondManagedUserBookingsCount).toEqual(4);
@@ -616,11 +615,96 @@ describe("Managed user bookings 2024-08-13", () => {
 
       const secondManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const secondManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
         secondManagedUserAttendeeBookingsResponseBody.data;
       expect(secondManagedUserBookingsCount).toEqual(4);
       expect(secondManagedUserAttendeeBookings.length).toEqual(secondManagedUserBookingsCount);
+    });
+  });
+
+  describe("displayEmail fields", () => {
+    it("should return displayEmail without CUID suffix for host", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 10, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "External Attendee",
+          email: "external-display-email-test@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // Host email should have CUID, displayEmail should not
+      expect(bookingData.hosts[0].email).toEqual(firstManagedUser.user.email);
+      expect(bookingData.hosts[0].displayEmail).toEqual(firstManagedUserEmail);
+    });
+
+    it("should return displayEmail without CUID suffix for attendee", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 10, 30, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: secondManagedUser.user.name!,
+          email: secondManagedUser.user.email,
+          timeZone: secondManagedUser.user.timeZone,
+          language: secondManagedUser.user.locale,
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // Attendee email should have CUID, displayEmail should not
+      expect(bookingData.attendees[0].email).toEqual(secondManagedUser.user.email);
+      expect(bookingData.attendees[0].displayEmail).toEqual(secondManagedUserEmail);
+
+      // bookingFieldsResponses should also have displayEmail
+      expect(bookingData.bookingFieldsResponses.email).toEqual(secondManagedUser.user.email);
+      expect(bookingData.bookingFieldsResponses.displayEmail).toEqual(secondManagedUserEmail);
+    });
+
+    it("should return displayGuests without CUID suffix", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 11, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "External Attendee",
+          email: "external-display-guests-test@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        guests: [secondManagedUser.user.email],
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // guests should have CUID, displayGuests should not
+      expect(bookingData.bookingFieldsResponses.guests).toContain(secondManagedUser.user.email);
+      expect(bookingData.bookingFieldsResponses.displayGuests).toContain(secondManagedUserEmail);
     });
   });
 

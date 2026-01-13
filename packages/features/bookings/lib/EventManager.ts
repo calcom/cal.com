@@ -677,13 +677,24 @@ export default class EventManager {
     const shouldUpdateBookingReferences =
       !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
-    if (evt.requiresConfirmation && !skipDeleteEventsAndMeetings) {
-      log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
-      // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
-      await this.deleteEventsAndMeetings({
-        event: { ...event, destinationCalendar: previousHostDestinationCalendar },
-        bookingReferences: booking.references,
-      });
+    if (evt.requiresConfirmation) {
+      if (!skipDeleteEventsAndMeetings) {
+        log.debug(
+          "RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking"
+        );
+        // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
+        await this.deleteEventsAndMeetings({
+          event: {
+            ...event,
+            destinationCalendar: previousHostDestinationCalendar,
+          },
+          bookingReferences: booking.references,
+        });
+      } else {
+        log.debug(
+          "RescheduleRequiresConfirmation: Skipping deletion of Event and Meeting due to skipDeleteEventsAndMeetings flag"
+        );
+      }
     } else {
       if (changedOrganizer) {
         if (!skipDeleteEventsAndMeetings) {
