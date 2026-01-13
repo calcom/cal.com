@@ -10,6 +10,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { OnboardingCard } from "~/onboarding/components/OnboardingCard";
 import { OnboardingLayout } from "~/onboarding/components/OnboardingLayout";
@@ -94,8 +95,12 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
       logo: teamLogo || null,
     });
 
-    // Create the team (will handle payment redirect if needed)
-    await createTeam();
+    try {
+      await createTeam();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t("something_went_wrong");
+      showToast(message, "error");
+    }
   };
 
   const handleCancel = () => {

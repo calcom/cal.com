@@ -12,6 +12,32 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { useOnboardingStore, type Invite } from "~/onboarding/store/onboarding-store";
 
+/**
+ * Parse a CSV line handling quoted fields that may contain commas.
+ * Example: '"Name, Inc",admin' -> ['Name, Inc', 'admin']
+ */
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current.trim());
+  return result;
+}
+
 type CSVUploadModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -74,7 +100,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
         return;
       }
 
-      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+      const headers = parseCSVLine(lines[0]).map((h) => h.toLowerCase());
       const emailIndex = headers.indexOf("email");
       const roleIndex = headers.indexOf("role");
 
@@ -87,7 +113,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
       const parsedInvites = lines
         .slice(1)
         .map((line) => {
-          const values = line.split(",").map((v) => v.trim());
+          const values = parseCSVLine(line);
           return {
             email: values[emailIndex]?.trim(),
             role: (roleIndex !== -1 ? values[roleIndex]?.trim().toUpperCase() : "MEMBER") as
