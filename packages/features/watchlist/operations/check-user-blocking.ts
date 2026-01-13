@@ -87,8 +87,10 @@ export async function getBlockedUsersMap<T extends BlockableUser>(
   users: T[],
   organizationId?: number | null
 ): Promise<CheckUserBlockingResult> {
-  // Filter out users with empty/invalid emails
-  const validUsers = users.filter((u) => u.email && u.email.trim().length > 0);
+  // Map to trim emails first, then filter out empty/invalid ones
+  const validUsers = users
+    .map((u) => ({ ...u, email: u.email?.trim() ?? "" }))
+    .filter((u) => u.email.length > 0);
 
   if (validUsers.length === 0) {
     return { blockingMap: new Map(), blockedCount: 0, lockedCount: 0, watchlistBlockedCount: 0 };
@@ -98,9 +100,9 @@ export async function getBlockedUsersMap<T extends BlockableUser>(
   let lockedCount = 0;
 
   // First pass: check locked users (immediate block, no DB needed)
-  const nonLockedUsers: T[] = [];
+  const nonLockedUsers: (typeof validUsers)[number][] = [];
   for (const user of validUsers) {
-    const normalizedEmail = user.email.trim().toLowerCase();
+    const normalizedEmail = user.email.toLowerCase();
 
     if (user.locked) {
       blockingMap.set(normalizedEmail, { isBlocked: true, reason: "locked" });

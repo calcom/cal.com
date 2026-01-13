@@ -1,33 +1,30 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
-import { AuthModule } from "@/modules/auth/auth.module";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { generateSecret } from "@calcom/platform-libraries";
+import type { Membership, Team, User } from "@calcom/prisma/client";
+import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
-import * as nextAuthJwt from "next-auth/jwt";
-import * as request from "supertest";
+import { getToken } from "next-auth/jwt";
+import request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuth2ClientRepositoryFixture } from "test/fixtures/repository/oauth2-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { generateSecret } from "@calcom/platform-libraries";
-import type { Membership, Team, User } from "@calcom/prisma/client";
-import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
+import { AuthModule } from "@/modules/auth/auth.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 // Mock next-auth/jwt getToken for ApiAuthStrategy NEXT_AUTH authentication
 jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
-const mockGetToken = nextAuthJwt.getToken as jest.MockedFunction<typeof nextAuthJwt.getToken>;
+const mockGetToken = getToken as jest.MockedFunction<typeof getToken>;
 
 describe("OAuth2 Controller Endpoints", () => {
   describe("User Not Authenticated", () => {
@@ -140,12 +137,12 @@ describe("OAuth2 Controller Endpoints", () => {
           .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
           .expect(200);
 
-                expect(response.body.status).toBe("success");
-                expect(response.body.data.id).toBe(testClientId);
-                expect(response.body.data.name).toBe("Test OAuth Client");
-                expect(response.body.data.redirectUri).toBe(testRedirectUri);
-                expect(response.body.data.type).toBe(OAuthClientType.CONFIDENTIAL);
-                expect(response.body.data.clientSecret).toBeUndefined();
+        expect(response.body.status).toBe("success");
+        expect(response.body.data.id).toBe(testClientId);
+        expect(response.body.data.name).toBe("Test OAuth Client");
+        expect(response.body.data.redirectUri).toBe(testRedirectUri);
+        expect(response.body.data.type).toBe(OAuthClientType.CONFIDENTIAL);
+        expect(response.body.data.clientSecret).toBeUndefined();
       });
 
       it("should return 404 for non-existent client ID", async () => {
