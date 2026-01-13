@@ -258,6 +258,10 @@
                     "message": "features package should not import from trpc to avoid circular dependencies."
                   },
                   {
+                    "group": ["@calcom/trpc/react", "@calcom/trpc/react/**"],
+                    "message": "features package should not import from @calcom/trpc/react. Use @calcom/trpc/server/router-types for RouterOutputs/RouterInputs types instead."
+                  },
+                  {
                     "group": ["@calcom/web", "@calcom/web/**"],
                     "message": "features package should not import from @calcom/web to avoid circular dependencies."
                   },

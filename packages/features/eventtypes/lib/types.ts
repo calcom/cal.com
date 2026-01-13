@@ -11,7 +11,7 @@ import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
+import type { RouterOutputs, RouterInputs } from "@calcom/trpc/server/router-types";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
