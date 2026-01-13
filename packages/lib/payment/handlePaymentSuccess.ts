@@ -122,11 +122,6 @@ export async function handlePaymentSuccess(
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  console.log("DEBUG: ", {
-    1: !isConfirmed,
-    2: areEmailsEnabled,
-  });
-
   if (!isConfirmed) {
     if (!requiresConfirmation) {
       await handleConfirmation({
