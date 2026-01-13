@@ -108,10 +108,6 @@ const OAuthClientsView = () => {
     setSubmittedClient(null);
   };
 
-  const handleCloseClientDialog = () => {
-    setSelectedClient(null);
-  };
-
   if (isLoading) {
     return <OAuthClientsSkeleton />;
   }
@@ -174,7 +170,7 @@ const OAuthClientsView = () => {
 
       <OAuthClientDetailsDialog
         open={Boolean(selectedClient)}
-        onOpenChange={(open) => !open && handleCloseClientDialog()}
+        onOpenChange={(open) => !open && setSelectedClient(null)}
         client={selectedClient}
         onUpdate={(values) => {
           updateClientMutation.mutate({
