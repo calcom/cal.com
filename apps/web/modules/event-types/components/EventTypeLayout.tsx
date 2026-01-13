@@ -1,3 +1,4 @@
+import { LoaderIcon } from "lucide-react";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -22,7 +23,6 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
@@ -287,7 +287,7 @@ function EventTypeSingleLayout({
       <Suspense
         fallback={
           <div className="flex h-64 items-center justify-center">
-            <Icon name="loader" className="h-5 w-5 animate-spin" />
+            <LoaderIcon className="h-5 w-5 animate-spin" />
           </div>
         }>
         <div className="flex flex-col xl:flex-row xl:space-x-6">

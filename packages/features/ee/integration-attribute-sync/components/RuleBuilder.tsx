@@ -1,10 +1,10 @@
+import { FilterIcon } from "lucide-react";
 import type { MultiValue, SingleValue } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { Button } from "@calcom/ui/components/button";
 import { Input, Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import {
   formatConditionValue,
@@ -440,7 +440,7 @@ export const RuleBuilder = ({
     <div className="bg-default border-subtle rounded-2xl border p-2">
       <div className="ml-2 flex items-center gap-0.5">
         <div className="border-subtle rounded-lg border p-1">
-          <Icon name="filter" className="text-subtle h-4 w-4" />
+          <FilterIcon className="text-subtle h-4 w-4" />
         </div>
         <span className="text-emphasis ml-2 text-sm font-medium">{t("attribute_sync_user_filter_rules")}</span>
       </div>

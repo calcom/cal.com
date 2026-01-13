@@ -1,5 +1,6 @@
 "use client";
 
+import { CopyIcon, PlusIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -24,7 +25,6 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import {
   BannerUploader,
   ImageUploader,
@@ -312,7 +312,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                     alt="calVideoLogo"
                     imageSrc={value}
                     fallback={
-                      <Icon name="plus" className="text-subtle h-6 w-6" />
+                      <PlusIcon className="text-subtle h-6 w-6" />
                     }
                     size="lg"
                   />
@@ -478,7 +478,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       aria-label="copy organization id"
                       onClick={() => handleCopy(value.toString())}
                     >
-                      <Icon name="copy" className="ml-1 h-4 w-4" />
+                      <CopyIcon className="ml-1 h-4 w-4" />
                     </Button>
                   </Tooltip>
                 }

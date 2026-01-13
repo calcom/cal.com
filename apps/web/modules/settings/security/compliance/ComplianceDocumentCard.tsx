@@ -1,9 +1,10 @@
 "use client";
 
+import { FileTextIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { ComplianceDocument } from "./compliance-documents";
@@ -38,7 +39,7 @@ export function ComplianceDocumentCard({ document, hasAccess }: ComplianceDocume
       )}>
       <div className="flex items-center gap-3">
         <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-lg">
-          <Icon name="file-text" className="text-default h-5 w-5" />
+          <FileTextIcon className="text-default h-5 w-5" />
         </div>
         <div>
           <p className="text-emphasis text-sm font-medium">{t(document.name)}</p>

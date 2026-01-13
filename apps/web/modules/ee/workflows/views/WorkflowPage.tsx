@@ -1,5 +1,6 @@
 "use client";
 
+import { PencilIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -34,7 +35,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -473,7 +473,7 @@ function WorkflowPage({
                       disabled={isPending}
                       onClick={() => setIsEditingName(true)}
                       CustomStartIcon={
-                        <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                        <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
                       }>
                       <span className="sr-only">{t("edit")}</span>
                     </Button>

@@ -1,6 +1,7 @@
+import { ExternalLinkIcon } from "lucide-react";
+
 import { JOIN_COMMUNITY } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import { UpgradeTeamsBadgeWebWrapper } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
@@ -37,8 +38,7 @@ export default function ContactMenuItem(props: ContactMenuItem) {
         className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition"
         rel="noreferrer">
         {t("community_support")}{" "}
-        <Icon
-          name="external-link"
+        <ExternalLinkIcon
           className="group-hover:text-subtle text-muted ml-1 mt-px h-4 w-4 shrink-0 ltr:mr-3"
         />
       </a>

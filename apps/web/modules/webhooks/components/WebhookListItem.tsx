@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 
 import { getWebhookVersionLabel, getWebhookVersionDocsUrl } from "@calcom/features/webhooks/lib/constants";
@@ -18,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
@@ -99,7 +99,7 @@ export default function WebhookListItem(props: {
               href={getWebhookVersionDocsUrl(webhook.version)}
               target="_blank"
               className="text-subtle hover:text-emphasis ml-1 flex items-center">
-              <Icon name="external-link" className="h-4 w-4" />
+              <ExternalLinkIcon className="h-4 w-4" />
             </Link>
           </Tooltip>
         </div>
