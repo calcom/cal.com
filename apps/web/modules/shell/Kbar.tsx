@@ -172,7 +172,7 @@ function useImpersonationActions(): void {
         name: t("user_impersonation_heading"),
         shortcut: ["i", "m"],
         keywords: "impersonate user admin",
-        section: "Admin",
+        section: "admin",
       },
     ];
 
