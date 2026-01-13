@@ -59,7 +59,7 @@ export default defineConfig({
   publicDir: "extension/public",
   outDir: ".output",
   manifest: {
-    name: "Cal.com Companion",
+    name: browserTarget === "safari" ? "Cal.com" : "Cal.com Companion",
     version: "1.7.5",
     description: "Your calendar companion for quick booking and scheduling",
     permissions: [
