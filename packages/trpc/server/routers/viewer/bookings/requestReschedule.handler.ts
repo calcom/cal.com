@@ -133,6 +133,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
   const usersToPeopleType = (users: PersonAttendeeCommonFields[], selectedLanguage: TFunction): Person[] => {
     return users?.map((user) => {
       return {
+        id: user.id,
         email: user.email || "",
         name: user.name || "",
         username: user?.username || "",
@@ -274,6 +275,11 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
       smsReminderNumber: bookingToReschedule.smsReminderNumber,
     }),
     cancelledBy: user.email,
+    eventTypeId: bookingToReschedule.eventTypeId,
+    length: bookingToReschedule.eventType?.length ?? null,
+    iCalSequence: bookingToReschedule.iCalSequence + 1,
+    eventTitle: bookingToReschedule.eventType?.title ?? null,
+    requestReschedule: true,
   });
 
   // Send webhook

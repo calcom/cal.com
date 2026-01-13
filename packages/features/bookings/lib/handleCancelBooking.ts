@@ -54,7 +54,12 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { buildActorEmail, getUniqueIdentifier, makeGuestActor, makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import {
+  buildActorEmail,
+  getUniqueIdentifier,
+  makeGuestActor,
+  makeUserActor,
+} from "@calcom/features/booking-audit/lib/makeActor";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -102,12 +107,17 @@ function getAuditActor({
       })
     );
     // Having fallback prefix makes it clear that we created guest actor from fallback logic
-    actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "fallback" }), actorType: "guest" });
-  }
-  else {
+    actorEmail = buildActorEmail({
+      identifier: getUniqueIdentifier({ prefix: "fallback" }),
+      actorType: "guest",
+    });
+  } else {
     // We can't trust cancelledByEmail and thus can't reuse it as is because it can be set anything by anyone. If we use that as guest actor, we could accidentally attribute the action to the wrong guest actor.
     // Having param prefix makes it clear that we created guest actor from query param and we still don't use the email as is.
-    actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "param" }), actorType: "guest" });
+    actorEmail = buildActorEmail({
+      identifier: getUniqueIdentifier({ prefix: "param" }),
+      actorType: "guest",
+    });
   }
 
   return makeGuestActor({ email: actorEmail, name: null });
@@ -141,10 +151,13 @@ async function handler(input: CancelBookingInput) {
   // Extract action source once for reuse
   const actionSource = input.actionSource ?? "UNKNOWN";
   if (actionSource === "UNKNOWN") {
-    log.warn("Booking cancellation with unknown actionSource", safeStringify({
-      bookingUid: bookingToDelete.uid,
-      userUuid,
-    }));
+    log.warn(
+      "Booking cancellation with unknown actionSource",
+      safeStringify({
+        bookingUid: bookingToDelete.uid,
+        userUuid,
+      })
+    );
   }
 
   const actorToUse = getAuditActor({
@@ -358,12 +371,12 @@ async function handler(input: CancelBookingInput) {
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-      team: {
-        name: bookingToDelete?.eventType?.team?.name || "Nameless",
-        members: teamMembers,
-        id: teamId,
-      },
-    }),
+        team: {
+          name: bookingToDelete?.eventType?.team?.name || "Nameless",
+          members: teamMembers,
+          id: teamId,
+        },
+      }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -404,6 +417,7 @@ async function handler(input: CancelBookingInput) {
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
       cancelledBy: cancelledBy,
+      requestReschedule: false,
     }).catch((e) => {
       logger.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
@@ -714,7 +728,7 @@ type BookingCancelServiceDependencies = {
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) { }
+  constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {
