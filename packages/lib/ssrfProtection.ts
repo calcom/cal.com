@@ -1,6 +1,5 @@
 import dns from "node:dns/promises";
-import net from "node:net";
-
+import ipaddr from "ipaddr.js";
 import logger from "@calcom/lib/logger";
 
 const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({ prefix: ["ssrf-protection"] });
@@ -12,27 +11,16 @@ const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({ prefix
  * access to internal networks and cloud metadata services
  */
 
-// Private IPv4 ranges (RFC1918 + special ranges)
-const PRIVATE_IPV4_PATTERNS: RegExp[] = [
-  /^127\./, // 127.0.0.0/8 loopback
-  /^10\./, // 10.0.0.0/8 private
-  /^172\.(1[6-9]|2\d|3[01])\./, // 172.16.0.0/12 private
-  /^192\.168\./, // 192.168.0.0/16 private
-  /^169\.254\./, // 169.254.0.0/16 link-local
-  /^0\./, // 0.0.0.0/8
-  /^100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7])\./, // 100.64.0.0/10 shared
-];
-
-// Private IPv6 patterns
-const PRIVATE_IPV6_PATTERNS: RegExp[] = [
-  /^::1$/i, // loopback
-  /^::$/i, // unspecified address
-  /^::ffff:/i, // IPv4-mapped (e.g., ::ffff:127.0.0.1)
-  /^fc/i, // unique local fc00::/7
-  /^fd/i, // unique local
-  /^fe80:/i, // link-local
-  /^2001:db8:/i, // documentation range
-];
+const BLOCKED_IP_RANGES: readonly string[] = [
+  "unspecified", // 0.0.0.0/8, ::/128
+  "loopback", // 127.0.0.0/8, ::1/128
+  "private", // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+  "linkLocal", // 169.254.0.0/16, fe80::/10
+  "uniqueLocal", // fc00::/7
+  "carrierGradeNat", // 100.64.0.0/10 (RFC 6598)
+  "reserved", // Documentation ranges (RFC 5737), etc.
+  "benchmarking", // 198.18.0.0/15 (RFC 2544)
+] as const;
 
 // Cloud metadata endpoints
 const BLOCKED_HOSTNAMES: string[] = [
@@ -52,12 +40,10 @@ const ERRORS = {
   NON_IMAGE_DATA_URL: "Non-image data URL",
 } as const;
 
-/** Normalize hostname: lowercase and remove trailing dot (FQDN format) */
 function normalizeHostname(hostname: string): string {
   return hostname.toLowerCase().replace(/\.$/, "");
 }
 
-/** Strip brackets from IPv6 addresses (e.g., [::1] -> ::1) */
 function stripIPv6Brackets(hostname: string): string {
   if (hostname.startsWith("[") && hostname.endsWith("]")) {
     return hostname.slice(1, -1);
@@ -65,34 +51,32 @@ function stripIPv6Brackets(hostname: string): string {
   return hostname;
 }
 
-// Extracts IPv4 from mapped address (e.g., ::ffff:127.0.0.1 -> 127.0.0.1)
-function extractIPv4FromMappedIPv6(ip: string): string | null {
-  const match = ip.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i);
-  if (match) {
-    return match[1];
-  }
-  return null;
-}
-
-/** Check if an IP address belongs to private/internal ranges (RFC1918, link-local, etc.) */
 export function isPrivateIP(ip: string): boolean {
-  const mappedIPv4 = extractIPv4FromMappedIPv6(ip);
-  if (mappedIPv4) {
-    return isPrivateIP(mappedIPv4);
-  }
+  const cleanIp = stripIPv6Brackets(ip);
 
-  if (PRIVATE_IPV4_PATTERNS.some((pattern) => pattern.test(ip))) {
+  if (!ipaddr.isValid(cleanIp)) {
     return true;
   }
 
-  if (PRIVATE_IPV6_PATTERNS.some((pattern) => pattern.test(ip))) {
+  try {
+    const addr = ipaddr.parse(cleanIp);
+
+    if (addr.kind() === "ipv6") {
+      const ipv6 = addr as ipaddr.IPv6;
+      if (ipv6.isIPv4MappedAddress()) {
+        const ipv4 = ipv6.toIPv4Address();
+        return BLOCKED_IP_RANGES.includes(ipv4.range());
+      }
+    }
+
+    return BLOCKED_IP_RANGES.includes(addr.range());
+  } catch {
+    // If parsing fails, treat as blocked for safety
     return true;
   }
-
-  return false;
 }
 
-/** Check if hostname is a blocked cloud metadata endpoint or localhost */
+// Check if hostname is a blocked cloud metadata endpoint or localhost
 export function isBlockedHostname(hostname: string): boolean {
   const normalized = normalizeHostname(hostname);
   return BLOCKED_HOSTNAMES.includes(normalized);
@@ -103,21 +87,11 @@ export interface SSRFValidationResult {
   error?: string;
 }
 
-export interface SSRFValidationOptions {
-  /** Allow HTTP URLs (default: false, only HTTPS allowed) */
-  allowHttp?: boolean;
-}
-
 /**
  * Core validation logic shared by sync and async versions
  * Returns SSRFValidationResult if validation completes, or { url } if DNS check is needed
  */
-function validateUrlCore(
-  urlString: string,
-  options: SSRFValidationOptions = {}
-): SSRFValidationResult | { url: URL } {
-  const { allowHttp = false } = options;
-
+function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL } {
   // Data URLs with image/* are safe (no network fetch)
   if (urlString.startsWith("data:image/")) {
     return { isValid: true };
@@ -134,8 +108,7 @@ function validateUrlCore(
     return { isValid: false, error: ERRORS.INVALID_URL };
   }
 
-  // Check protocol: HTTPS always allowed, HTTP only if allowHttp is true
-  if (url.protocol !== "https:" && !(allowHttp && url.protocol === "http:")) {
+  if (url.protocol !== "https:") {
     return { isValid: false, error: ERRORS.HTTPS_ONLY };
   }
 
@@ -143,9 +116,9 @@ function validateUrlCore(
     return { isValid: false, error: ERRORS.BLOCKED_HOSTNAME };
   }
 
-  // Strip brackets for IPv6 check (URL.hostname includes brackets, e.g., [::1])
+  // Check if hostname is an IP address and if it's private
   const hostnameForIPCheck = stripIPv6Brackets(url.hostname);
-  if (net.isIP(hostnameForIPCheck) !== 0 && isPrivateIP(hostnameForIPCheck)) {
+  if (ipaddr.isValid(hostnameForIPCheck) && isPrivateIP(hostnameForIPCheck)) {
     return { isValid: false, error: ERRORS.PRIVATE_IP };
   }
 
@@ -156,17 +129,14 @@ function validateUrlCore(
  * Async SSRF validation with DNS rebinding protection
  * Resolves hostname and checks all IPs against private ranges
  */
-export async function validateUrlForSSRF(
-  urlString: string,
-  options: SSRFValidationOptions = {}
-): Promise<SSRFValidationResult> {
-  const result = validateUrlCore(urlString, options);
+export async function validateUrlForSSRF(urlString: string): Promise<SSRFValidationResult> {
+  const result = validateUrlCore(urlString);
 
   if ("isValid" in result) {
     return result;
   }
 
-  // DNS rebinding protection: resolve ALL IPs and check each one
+  // DNS rebinding protection: resolve IPs and check each one
   try {
     const addresses = await dns.lookup(result.url.hostname, { all: true });
     for (const { address } of addresses) {
@@ -185,11 +155,8 @@ export async function validateUrlForSSRF(
  * Sync SSRF validation for Zod schemas (no DNS check)
  * Does not protect against DNS rebinding - use async version when possible
  */
-export function validateUrlForSSRFSync(
-  urlString: string,
-  options: SSRFValidationOptions = {}
-): SSRFValidationResult {
-  const result = validateUrlCore(urlString, options);
+export function validateUrlForSSRFSync(urlString: string): SSRFValidationResult {
+  const result = validateUrlCore(urlString);
 
   if ("isValid" in result) {
     return result;
@@ -198,7 +165,7 @@ export function validateUrlForSSRFSync(
   return { isValid: true };
 }
 
-/** Check if URL belongs to the same origin as the webapp (trusted internal URL) */
+// Check if URL belongs to the same origin as the webapp (trusted internal URL)
 export function isTrustedInternalUrl(url: string, webappUrl: string): boolean {
   try {
     return new URL(url).origin === new URL(webappUrl).origin;
@@ -207,7 +174,7 @@ export function isTrustedInternalUrl(url: string, webappUrl: string): boolean {
   }
 }
 
-/** Sanitize URL for logging - removes query params and credentials that may contain secrets */
+// Sanitize URL for logging - removes query params and credentials that may contain secrets
 function sanitizeUrlForLog(urlString: string): string {
   try {
     const url = new URL(urlString);
@@ -215,11 +182,11 @@ function sanitizeUrlForLog(urlString: string): string {
     return `${url.origin}${url.pathname}`.substring(0, 100);
   } catch {
     // If URL parsing fails, truncate and redact potential secrets
-    return urlString.substring(0, 50).replace(/[?#].*$/, "") + "...";
+    return `${urlString.substring(0, 50).replace(/[?#].*$/, "")}...`;
   }
 }
 
-/** Log blocked SSRF attempts for security monitoring and incident response */
+// Log blocked SSRF attempts for security monitoring and incident response
 export function logBlockedSSRFAttempt(url: string, reason: string, context?: Record<string, unknown>): void {
   log.warn("SSRF attempt blocked", {
     url: sanitizeUrlForLog(url),
