@@ -1,4 +1,4 @@
-import { CheckIcon, PencilIcon, PlusIcon, XIcon } from "lucide-react";
+import { CheckIcon, PencilIcon, PlusIcon, StarIcon, XIcon } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
@@ -126,7 +126,7 @@ const WriteToObjectSettings = ({
 
   return (
     <>
-      <Section.SubSectionHeader icon="star" labelFor="write-to-object-settings" title={optionLabel}>
+      <Section.SubSectionHeader icon={StarIcon} labelFor="write-to-object-settings" title={optionLabel}>
         <Switch
           checked={optionEnabled}
           onCheckedChange={optionSwitchOnChange}
