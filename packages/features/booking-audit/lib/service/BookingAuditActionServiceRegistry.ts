@@ -48,7 +48,7 @@ export class BookingAuditActionServiceRegistry {
 
     constructor() {
         const services: Array<[BookingAuditAction, IAuditActionService]> = [
-            ["CREATED", new CreatedAuditActionService()],
+            ["CREATED", new CreatedAuditActionService(deps)],
             ["CANCELLED", new CancelledAuditActionService()],
             ["RESCHEDULED", new RescheduledAuditActionService()],
             ["ACCEPTED", new AcceptedAuditActionService()],

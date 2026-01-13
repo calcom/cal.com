@@ -816,7 +816,8 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  const shouldServeCache = false;
+  // Use "booking" mode to bypass cache for booking confirmation
+  const calendarFetchMode = "booking" as const;
 
   tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
@@ -1023,7 +1024,7 @@ async function handler(
                   originalRescheduledBooking: originalRescheduledBooking ?? null,
                 },
                 tracingLogger,
-                shouldServeCache
+                calendarFetchMode
               );
             }
           }
@@ -1038,7 +1039,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           }
         }
@@ -1057,7 +1058,7 @@ async function handler(
               originalRescheduledBooking,
             },
             tracingLogger,
-            shouldServeCache
+            calendarFetchMode
           );
         } else {
           availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1086,7 +1087,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           } else {
             availableUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1199,7 +1200,7 @@ async function handler(
                       originalRescheduledBooking,
                     },
                     tracingLogger,
-                    shouldServeCache
+                    calendarFetchMode
                   );
                 }
               }
@@ -2889,66 +2890,69 @@ export class RegularBookingService implements IBookingService {
     tracingLogger: ReturnType<typeof distributedTracing.getTracingLogger>;
     attendeeSeatId: string | null;
   }) {
-    const bookingCreatedPayload = buildBookingCreatedPayload({
-      booking,
-      organizerUserId: organizerUser.id,
-      organizerUserUuid: organizerUser.uuid,
-      hashedLink,
-      isDryRun,
-      organizationId: eventOrganizationId,
-    });
+    try {
+      const bookingCreatedPayload = buildBookingCreatedPayload({
+        booking,
+        organizerUserId: organizerUser.id,
+        organizerUserUuid: organizerUser.uuid,
+        hashedLink,
+        isDryRun,
+        organizationId: eventOrganizationId,
+      });
 
-    const bookingEventHandler = this.deps.bookingEventHandler;
-    const bookerAttendeeId = booking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
-    const rescheduledByAttendeeId = booking.attendees?.find(
-      (attendee) => attendee.email === rescheduledBy
-    )?.id;
-    const rescheduledByUserUuid = booking.userEmail === rescheduledBy ? booking.userUuid : null;
-    const auditActor = getBookingAuditActorForNewBooking({
-      bookerAttendeeId: bookerAttendeeId ?? null,
-      actorUserUuid,
-      bookerEmail,
-      bookerName,
-      rescheduledBy: rescheduledBy
-        ? {
-            attendeeId: rescheduledByAttendeeId ?? null,
-            userUuid: rescheduledByUserUuid ?? null,
-            email: rescheduledBy,
-          }
-        : null,
-      logger: tracingLogger,
-    });
+      const bookingEventHandler = this.deps.bookingEventHandler;
+      const bookerAttendeeId = booking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+      const rescheduledByAttendeeId = booking.attendees?.find(
+        (attendee) => attendee.email === rescheduledBy
+      )?.id;
+      const rescheduledByUserUuid = booking.userEmail === rescheduledBy ? booking.userUuid : null;
+      const auditActor = getBookingAuditActorForNewBooking({
+        bookerAttendeeId: bookerAttendeeId ?? null,
+        actorUserUuid,
+        bookerEmail,
+        bookerName,
+        rescheduledBy: rescheduledBy
+          ? {
+              attendeeId: rescheduledByAttendeeId ?? null,
+              userUuid: rescheduledByUserUuid ?? null,
+              email: rescheduledBy,
+            }
+          : null,
+        logger: tracingLogger,
+      });
 
-    // For recurring bookings we fire the events in the RecurringBookingService
-    if (!isRecurringBooking) {
-      if (originalRescheduledBooking) {
-        const bookingRescheduledPayload: BookingRescheduledPayload = {
-          ...bookingCreatedPayload,
-          oldBooking: {
-            uid: originalRescheduledBooking.uid,
-            startTime: originalRescheduledBooking.startTime,
-            endTime: originalRescheduledBooking.endTime,
-          },
-        };
-        await bookingEventHandler.onBookingRescheduled({
-          payload: bookingRescheduledPayload,
-          actor: auditActor,
-          auditData: buildBookingRescheduledAuditData({
-            oldBooking: originalRescheduledBooking,
-            newBooking: booking,
-          }),
-          source: actionSource,
-          operationId: null,
-        });
-      } else {
-        await bookingEventHandler.onBookingCreated({
-          payload: bookingCreatedPayload,
-          actor: auditActor,
-          auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId }),
-          source: actionSource,
-          operationId: null,
-        });
+      if (!isRecurringBooking) {
+        if (originalRescheduledBooking) {
+          const bookingRescheduledPayload: BookingRescheduledPayload = {
+            ...bookingCreatedPayload,
+            oldBooking: {
+              uid: originalRescheduledBooking.uid,
+              startTime: originalRescheduledBooking.startTime,
+              endTime: originalRescheduledBooking.endTime,
+            },
+          };
+          await bookingEventHandler.onBookingRescheduled({
+            payload: bookingRescheduledPayload,
+            actor: auditActor,
+            auditData: buildBookingRescheduledAuditData({
+              oldBooking: originalRescheduledBooking,
+              newBooking: booking,
+            }),
+            source: actionSource,
+            operationId: null,
+          });
+        } else {
+          await bookingEventHandler.onBookingCreated({
+            payload: bookingCreatedPayload,
+            actor: auditActor,
+            auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId }),
+            source: actionSource,
+            operationId: null,
+          });
+        }
       }
+    } catch (error) {
+      tracingLogger.error("Error while firing booking events", safeStringify(error));
     }
   }
 

@@ -253,7 +253,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         return Promise.resolve(uuids.map((uuid) => DB.users[uuid]).filter(Boolean));
       }),
       findByIds: vi.fn().mockImplementation(({ ids }: { ids: number[] }) => {
-        // Find users by ID from DB.users (need to search by value)
         return Promise.resolve(
           Object.values(DB.users).filter((user) => ids.includes(user.id))
         );

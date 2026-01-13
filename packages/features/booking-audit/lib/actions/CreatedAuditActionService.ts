@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
@@ -21,6 +22,9 @@ const fieldsSchemaV1 = z.object({
     seatReferenceUid: z.string().nullish(),
 });
 
+type Deps = {
+    userRepository: UserRepository;
+};
 export class CreatedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "CREATED" as const;
@@ -36,7 +40,7 @@ export class CreatedAuditActionService implements IAuditActionService {
     public static readonly storedFieldsSchema = CreatedAuditActionService.fieldsSchemaV1;
     private helper: AuditActionServiceHelper<typeof CreatedAuditActionService.latestFieldsSchema, typeof CreatedAuditActionService.storedDataSchema>;
 
-    constructor() {
+    constructor(private readonly deps: Deps) {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
             latestFieldsSchema: CreatedAuditActionService.latestFieldsSchema,
@@ -62,21 +66,21 @@ export class CreatedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
-        const { fields } = this.parseStored(storedData);
-        return {
-            userUuids: fields.hostUserUuid ? [fields.hostUserUuid] : [],
-        };
-    }
+  getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
+    const { fields } = this.parseStored(storedData);
+    return {
+      userUuids: fields.hostUserUuid ? [fields.hostUserUuid] : [],
+    };
+  }
 
-    async getDisplayTitle({ storedData, dbStore }: GetDisplayTitleParams): Promise<TranslationWithParams> {
-        const { fields } = this.parseStored(storedData);
-        const hostUser = fields.hostUserUuid ? dbStore.getUserByUuid(fields.hostUserUuid) : null;
-        const hostName = hostUser?.name || "Unknown";
-        if (fields.seatReferenceUid) {
-            return { key: "booking_audit_action.created_with_seat", params: { host: hostName } };
-        }
-        return { key: "booking_audit_action.created", params: { host: hostName } };
+  async getDisplayTitle({ storedData, dbStore }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+    const { fields } = this.parseStored(storedData);
+    const hostUser = fields.hostUserUuid ? dbStore.getUserByUuid(fields.hostUserUuid) : null;
+    const hostName = hostUser?.name || "Unknown";
+    if (fields.seatReferenceUid) {
+      return { key: "booking_audit_action.created_with_seat", params: { host: hostName } };
+    }
+    return { key: "booking_audit_action.created", params: { host: hostName } };
     }
 
     getDisplayJson({

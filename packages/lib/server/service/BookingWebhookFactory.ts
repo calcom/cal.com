@@ -49,6 +49,11 @@ interface BaseWebhookPayload {
 interface CancelledEventPayload extends BaseWebhookPayload {
   cancelledBy: string;
   cancellationReason: string;
+  eventTypeId?: number | null;
+  length?: number | null;
+  iCalSequence?: number | null;
+  eventTitle?: string | null;
+  requestReschedule?: boolean;
 }
 
 export class BookingWebhookFactory {
@@ -122,6 +127,12 @@ export class BookingWebhookFactory {
       ...basePayload,
       cancelledBy: params.cancelledBy,
       cancellationReason: params.cancellationReason,
+      status: "CANCELLED" as const,
+      eventTypeId: params.eventTypeId ?? null,
+      length: params.length ?? null,
+      iCalSequence: params.iCalSequence ?? null,
+      eventTitle: params.eventTitle ?? null,
+      requestReschedule: params.requestReschedule ?? false,
     };
   }
 }

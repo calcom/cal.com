@@ -402,4 +402,29 @@ export class BookingEventHandlerService {
       operationId,
     });
   }
+
+  async onBulkBookingsRejected(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: RejectedAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+    context?: BookingAuditContext;
+  }) {
+    const { bookings, actor, organizationId, operationId, source, context } = params;
+    await this.bookingAuditProducerService.queueBulkRejectedAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
+      context,
+    });
+  }
 }

@@ -68,6 +68,7 @@ import {
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -1143,6 +1144,8 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
@@ -1176,6 +1179,8 @@ export class BookingsService_2024_08_13 {
         reason,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
