@@ -1,4 +1,4 @@
-import { ArrowRightIcon, LinkIcon } from "lucide-react";
+import { ArrowRightIcon, LinkIcon, PlusIcon, Trash2Icon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -93,8 +93,8 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading, 
         <Button
           color="minimal"
           size="sm"
-          StartIcon="trash-2"
-          onClick={onRemove}
+                    StartIcon={Trash2Icon}
+                    onClick={onRemove}
           disabled={isLoading}
           className="text-subtle hover:text-default"
           aria-label={t("remove")}
@@ -186,9 +186,9 @@ export const FieldMappingBuilder = ({
       <Button
         color="minimal"
         size="sm"
-        StartIcon="plus"
-        className="mt-2"
-        onClick={handleAddMapping}
+                StartIcon={PlusIcon}
+                className="mt-2"
+                onClick={handleAddMapping}
         disabled={isLoadingAttributes}>
         {t("attribute_sync_add_mapping")}
       </Button>

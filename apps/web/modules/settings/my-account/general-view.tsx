@@ -222,7 +222,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     {!watchedTzSchedules.length && (
                       <Button
                         color="secondary"
-                        StartIcon="calendar"
+                        StartIcon={CalendarIcon}
                         onClick={() => setIsTZScheduleOpen(true)}
                       >
                         {t("schedule_timezone_change")}

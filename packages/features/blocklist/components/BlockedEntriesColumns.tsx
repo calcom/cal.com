@@ -1,5 +1,6 @@
 "use client";
 
+import { EllipsisIcon, EyeIcon, TrashIcon } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
@@ -136,21 +137,21 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
           <div className="flex items-center justify-end">
             <Dropdown modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <DropdownItem type="button" StartIcon="eye" onClick={() => onViewDetails(entry)}>
-                    {t("view_details")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                {showDeleteOption && (
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      color="destructive"
-                      StartIcon="trash"
-                      onClick={() => onDelete(entry)}>
+                              <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <DropdownItem type="button" StartIcon={EyeIcon} onClick={() => onViewDetails(entry)}>
+                                  {t("view_details")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              {showDeleteOption && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    StartIcon={TrashIcon}
+                                    onClick={() => onDelete(entry)}>
                       {t("remove_from_blocklist")}
                     </DropdownItem>
                   </DropdownMenuItem>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLinkIcon } from "lucide-react";
+import { EllipsisIcon, ExternalLinkIcon, PencilIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 
 import { getWebhookVersionLabel, getWebhookVersionDocsUrl } from "@calcom/features/webhooks/lib/constants";
@@ -147,30 +147,30 @@ export default function WebhookListItem(props: {
             <Button
               className="hidden lg:flex"
               color="destructive"
-              StartIcon="trash"
-              variant="icon"
-              onClick={onDeleteWebhook}
-            />
-          )}
+                        StartIcon={TrashIcon}
+                        variant="icon"
+                        onClick={onDeleteWebhook}
+                      />
+                    )}
 
-          <Dropdown>
-            <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {props.permissions.canEditWebhook && (
-                <DropdownMenuItem>
-                  <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
-                    {t("edit")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              )}
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild>
+                        <Button className="lg:hidden" StartIcon={EllipsisIcon} variant="icon" color="secondary" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {props.permissions.canEditWebhook && (
+                          <DropdownMenuItem>
+                            <DropdownItem StartIcon={PencilIcon} color="secondary" onClick={props.onEditWebhook}>
+                              {t("edit")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        )}
 
-              <DropdownMenuSeparator />
+                        <DropdownMenuSeparator />
 
-              {props.permissions.canDeleteWebhook && (
-                <DropdownMenuItem>
-                  <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                        {props.permissions.canDeleteWebhook && (
+                          <DropdownMenuItem>
+                            <DropdownItem StartIcon={TrashIcon} color="destructive" onClick={onDeleteWebhook}>
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>

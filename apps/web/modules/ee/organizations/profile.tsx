@@ -1,6 +1,6 @@
 "use client";
 
-import { CopyIcon, PlusIcon } from "lucide-react";
+import { CopyIcon, PlusIcon, UploadIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -380,7 +380,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                           </div>
                           <Button
                             color="secondary"
-                            StartIcon="upload"
+                            StartIcon={UploadIcon}
                             onClick={() => {
                               // Trigger the BannerUploader dialog
                               const triggerButton = document.querySelector(

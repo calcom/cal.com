@@ -1,3 +1,4 @@
+import { CheckIcon, PencilIcon, PlusIcon, XIcon } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
@@ -309,33 +310,33 @@ const WriteToObjectSettings = ({
                       <>
                         <Button
                           size="sm"
-                          StartIcon="check"
-                          variant="icon"
-                          color="primary"
-                          onClick={() => saveEditing(key)}
-                        />
-                        <Button
-                          size="sm"
-                          StartIcon="x"
-                          variant="icon"
-                          color="secondary"
-                          onClick={() => cancelEditing(key)}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          size="sm"
-                          StartIcon="pencil"
-                          variant="icon"
-                          color="minimal"
-                          onClick={() => startEditing(key)}
-                        />
-                        <Button
-                          size="sm"
-                          StartIcon="x"
-                          variant="icon"
-                          color="minimal"
+                                              StartIcon={CheckIcon}
+                                              variant="icon"
+                                              color="primary"
+                                              onClick={() => saveEditing(key)}
+                                            />
+                                            <Button
+                                              size="sm"
+                                              StartIcon={XIcon}
+                                              variant="icon"
+                                              color="secondary"
+                                              onClick={() => cancelEditing(key)}
+                                            />
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Button
+                                              size="sm"
+                                              StartIcon={PencilIcon}
+                                              variant="icon"
+                                              color="minimal"
+                                              onClick={() => startEditing(key)}
+                                            />
+                                            <Button
+                                              size="sm"
+                                              StartIcon={XIcon}
+                                              variant="icon"
+                                              color="minimal"
                           onClick={() => {
                             const newObject = { ...writeToObjectData };
                             delete newObject[key];
@@ -454,9 +455,9 @@ const WriteToObjectSettings = ({
           </Section.SubSectionNested>
           <Button
             className="text-subtle mt-2 w-fit"
-            StartIcon="plus"
-            color="minimal"
-            size="sm"
+                        StartIcon={PlusIcon}
+                        color="minimal"
+                        size="sm"
             disabled={
               !(
                 newOnWriteToRecordEntry.field &&

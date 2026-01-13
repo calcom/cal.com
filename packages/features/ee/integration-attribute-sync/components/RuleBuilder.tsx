@@ -1,4 +1,4 @@
-import { FilterIcon } from "lucide-react";
+import { FilterIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import type { MultiValue, SingleValue } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -108,8 +108,8 @@ const ConditionComponent = ({
       <Button
         color="minimal"
         size="sm"
-        StartIcon="trash-2"
-        onClick={onRemove}
+                StartIcon={Trash2Icon}
+                onClick={onRemove}
         disabled={isLoading}
         className="text-subtle hover:text-default"
       />
@@ -484,9 +484,9 @@ export const RuleBuilder = ({
       <Button
         color="minimal"
         size="sm"
-        StartIcon="plus"
-        className="mt-2"
-        onClick={handleAddCondition}
+                StartIcon={PlusIcon}
+                className="mt-2"
+                onClick={handleAddCondition}
         disabled={isLoading}>
         {t("attribute_sync_add_condition")}
       </Button>

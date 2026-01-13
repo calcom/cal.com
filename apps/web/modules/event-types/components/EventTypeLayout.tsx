@@ -1,4 +1,4 @@
-import { LoaderIcon } from "lucide-react";
+import { CodeIcon, EllipsisIcon, ExternalLinkIcon, LinkIcon, LoaderIcon, TrashIcon } from "lucide-react";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -165,7 +165,7 @@ function EventTypeSingleLayout({
                       variant="icon"
                       href={permalink}
                       rel="noreferrer"
-                      StartIcon="external-link"
+                      StartIcon={ExternalLinkIcon}
                     />
                   </Tooltip>
                 )}
@@ -174,7 +174,7 @@ function EventTypeSingleLayout({
                   <Button
                     color="secondary"
                     variant="icon"
-                    StartIcon="link"
+                    StartIcon={LinkIcon}
                     tooltip={t("copy_link")}
                     tooltipSide="bottom"
                     tooltipOffset={4}
@@ -187,7 +187,7 @@ function EventTypeSingleLayout({
                 {!isPlatform && (
                   <EventTypeEmbedButton
                     embedUrl={encodeURIComponent(embedLink)}
-                    StartIcon="code"
+                    StartIcon={CodeIcon}
                     color="secondary"
                     variant="icon"
                     namespace={eventType.slug}
@@ -203,7 +203,7 @@ function EventTypeSingleLayout({
               <Button
                 color="destructive"
                 variant="icon"
-                StartIcon="trash"
+                StartIcon={TrashIcon}
                 tooltip={t("delete")}
                 tooltipSide="bottom"
                 tooltipOffset={4}
@@ -217,14 +217,14 @@ function EventTypeSingleLayout({
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon={EllipsisIcon} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   target="_blank"
                   type="button"
-                  StartIcon="external-link"
+                  StartIcon={ExternalLinkIcon}
                   href={permalink}
                   rel="noreferrer">
                   {t("preview")}
@@ -233,7 +233,7 @@ function EventTypeSingleLayout({
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
-                  StartIcon="link"
+                  StartIcon={LinkIcon}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -246,7 +246,7 @@ function EventTypeSingleLayout({
                   <DropdownItem
                     type="button"
                     color="destructive"
-                    StartIcon="trash"
+                    StartIcon={TrashIcon}
                     disabled={!hasPermsToDelete}
                     onClick={() => setDeleteDialogOpen(true)}>
                     {t("delete")}

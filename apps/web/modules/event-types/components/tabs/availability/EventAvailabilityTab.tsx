@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ExternalLinkIcon, GlobeIcon, UserIcon } from "lucide-react";
+import { ExternalLinkIcon, GlobeIcon, PlusIcon, UserIcon } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -480,9 +480,9 @@ const EventTypeSchedule = ({
           headline={t("create_availability_schedule")}
           description={t("no_schedules_created_yet")}
           className="w-full"
-          buttonRaw={<Button href="/availability" StartIcon="plus">
-            {t("create")}
-          </Button>}
+                    buttonRaw={<Button href="/availability" StartIcon={PlusIcon}>
+                      {t("create")}
+                    </Button>}
         />
     );
   }

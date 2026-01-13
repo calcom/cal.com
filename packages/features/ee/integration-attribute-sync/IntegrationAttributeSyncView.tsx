@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -96,7 +97,7 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
           onCancel={handleCancel}
         />
       )}
-      <Button StartIcon="plus" onClick={handleAddNewSync}>
+      <Button StartIcon={PlusIcon} onClick={handleAddNewSync}>
         {t("attribute_sync_add_new")}
       </Button>
     </>

@@ -1,4 +1,4 @@
-import { BuildingIcon, UserIcon, UsersIcon } from "lucide-react";
+import { BuildingIcon, LinkIcon, PaperclipIcon, UserIcon, UsersIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
 import type { FormEvent } from "react";
@@ -329,7 +329,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       importRef.current.click();
                     }
                   }}
-                  StartIcon="paperclip"
+                  StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
                   {t("upload_csv_file")}
                 </Button>
@@ -445,7 +445,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
-                  StartIcon="link"
+                  StartIcon={LinkIcon}
                   data-testid="copy-invite-link-button">
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>

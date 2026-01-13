@@ -77,11 +77,13 @@ import {
   ChevronDownIcon,
   CircleHelpIcon,
   CopyIcon,
+  EllipsisIcon,
   ExternalLinkIcon,
   GlobeIcon,
   InfoIcon,
   MailIcon,
   MessageSquareIcon,
+  MonitorIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PhoneIcon,
@@ -90,6 +92,7 @@ import {
   PlusIcon,
   SmartphoneIcon,
   Trash2Icon,
+  TrashIcon,
   XIcon,
 } from "lucide-react";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -1122,17 +1125,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           color="secondary"
                           className="rounded-[10px]"
                           disabled={props.readOnly}
-                          EndIcon="chevron-down"
-                        >
-                          {t("test_agent")}
+                                                  EndIcon={ChevronDownIcon}
+                                                >
+                                                  {t("test_agent")}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
                           <DropdownItem
                             type="button"
-                            StartIcon="phone"
-                            onClick={() => setIsTestAgentDialogOpen(true)}
+                                                        StartIcon={PhoneIcon}
+                                                        onClick={() => setIsTestAgentDialogOpen(true)}
                           >
                             {t("phone_call")}
                           </DropdownItem>
@@ -1140,8 +1143,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <DropdownMenuItem>
                           <DropdownItem
                             type="button"
-                            StartIcon="monitor"
-                            onClick={() => setIsWebCallDialogOpen(true)}
+                                                        StartIcon={MonitorIcon}
+                                                        onClick={() => setIsWebCallDialogOpen(true)}
                           >
                             {t("web_call")}
                           </DropdownItem>
@@ -1167,9 +1170,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         color="secondary"
                         onClick={() => setIsWebCallDialogOpen(true)}
                         disabled={props.readOnly}
-                        StartIcon="monitor"
-                      >
-                        {t("test_web_call")}
+                                              StartIcon={MonitorIcon}
+                                            >
+                                              {t("test_web_call")}
                       </Button>
                     </>
                   ) : null}
@@ -1179,8 +1182,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         type="button"
                         color="secondary"
                         variant="icon"
-                        StartIcon="ellipsis"
-                        className="rounded-[10px]"
+                                                StartIcon={EllipsisIcon}
+                                                className="rounded-[10px]"
                       />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -1189,17 +1192,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <DropdownMenuItem>
                             <DropdownItem
                               type="button"
-                              StartIcon="plus"
-                              disabled={props.readOnly}
-                              onClick={() => {
-                                setAgentConfigurationSheet((prev) => ({
-                                  ...prev,
-                                  open: true,
-                                  activeTab: "phoneNumber",
-                                }));
-                              }}
-                            >
-                              {t("connect_phone_number")}
+                                                          StartIcon={PlusIcon}
+                                                          disabled={props.readOnly}
+                                                          onClick={() => {
+                                                            setAgentConfigurationSheet((prev) => ({
+                                                              ...prev,
+                                                              open: true,
+                                                              activeTab: "phoneNumber",
+                                                            }));
+                                                          }}
+                                                        >
+                                                          {t("connect_phone_number")}
                             </DropdownItem>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
@@ -1207,9 +1210,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               type="button"
                               onClick={() => setIsWebCallDialogOpen(true)}
                               disabled={props.readOnly}
-                              StartIcon="monitor"
-                            >
-                              {t("test_web_call")}
+                                                          StartIcon={MonitorIcon}
+                                                        >
+                                                          {t("test_web_call")}
                             </DropdownItem>
                           </DropdownMenuItem>
                         </>
@@ -1217,15 +1220,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
-                          StartIcon="pencil"
-                          onClick={() =>
-                            setAgentConfigurationSheet({
-                              open: true,
-                              activeTab: "outgoingCalls",
-                            })
-                          }
-                        >
-                          {t("edit")}
+                                                  StartIcon={PencilIcon}
+                                                  onClick={() =>
+                                                    setAgentConfigurationSheet({
+                                                      open: true,
+                                                      activeTab: "outgoingCalls",
+                                                    })
+                                                  }
+                                                >
+                                                  {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -2014,10 +2017,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </Button>
               <Button
                 type="button"
-                StartIcon="trash"
-                color="destructive"
-                onClick={() => {
-                  const activePhoneNumbers = getActivePhoneNumbers(
+                                StartIcon={TrashIcon}
+                                color="destructive"
+                                onClick={() => {
+                                  const activePhoneNumbers = getActivePhoneNumbers(
                     agentData?.outboundPhoneNumbers?.map((phone) => ({
                       ...phone,
                       subscriptionStatus: phone.subscriptionStatus ?? undefined,
@@ -2115,10 +2118,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </Button>
               <Button
                 type="button"
-                StartIcon="trash"
-                color="destructive"
-                onClick={() => {
-                  // Proceed with deletion
+                                StartIcon={TrashIcon}
+                                color="destructive"
+                                onClick={() => {
+                                  // Proceed with deletion
                   const steps = form.getValues("steps");
                   const updatedSteps = steps
                     ?.filter((currStep) => currStep.id !== step.id)

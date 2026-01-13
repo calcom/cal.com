@@ -1,6 +1,6 @@
 "use client";
 
-import { FileTextIcon } from "lucide-react";
+import { DownloadIcon, FileTextIcon, LockIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -49,13 +49,13 @@ export function ComplianceDocumentCard({ document, hasAccess }: ComplianceDocume
 
       <div>
         {hasAccess ? (
-          <Button color="secondary" onClick={handleDownload} StartIcon="download">
-            {t("download")}
-          </Button>
-        ) : (
-          <Tooltip content={t("compliance_upgrade_tooltip")}>
-            <span>
-              <Button color="secondary" href="/settings/billing" StartIcon="lock">
+                  <Button color="secondary" onClick={handleDownload} StartIcon={DownloadIcon}>
+                    {t("download")}
+                  </Button>
+                ) : (
+                  <Tooltip content={t("compliance_upgrade_tooltip")}>
+                    <span>
+                      <Button color="secondary" href="/settings/billing" StartIcon={LockIcon}>
                 {t("upgrade_to_access")}
               </Button>
             </span>

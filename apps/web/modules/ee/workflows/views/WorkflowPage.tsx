@@ -1,6 +1,6 @@
 "use client";
 
-import { PencilIcon } from "lucide-react";
+import { ArrowLeftIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -439,8 +439,8 @@ function WorkflowPage({
                 color="secondary"
                 size="sm"
                 variant="icon"
-                StartIcon="arrow-left"
-                href="/workflows"
+                                StartIcon={ArrowLeftIcon}
+                                href="/workflows"
                 data-testid="go-back-button"
               />
               <div className="flex min-w-0 items-center leading-none">
@@ -498,8 +498,8 @@ function WorkflowPage({
                   color="destructive"
                   type="button"
                   size="sm"
-                  StartIcon="trash-2"
-                  data-testid="delete-button"
+                                    StartIcon={Trash2Icon}
+                                    data-testid="delete-button"
                   className="ml-3"
                   onClick={() => {
                     setDeleteDialogOpen(true);

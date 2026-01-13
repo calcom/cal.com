@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
@@ -27,7 +28,7 @@ export const NewApiKeyButton = () => {
   return (
     <Button
       color="secondary"
-      StartIcon="plus"
+      StartIcon={PlusIcon}
       size="sm"
       variant="fab"
       onClick={() => {

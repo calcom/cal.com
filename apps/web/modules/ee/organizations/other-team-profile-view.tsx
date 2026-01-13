@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2Icon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -293,7 +294,7 @@ const OtherTeamProfileView = () => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon="trash-2">
+              <Button color="destructive" className="border" StartIcon={Trash2Icon}>
                 {t("disband_team")}
               </Button>
             </DialogTrigger>
