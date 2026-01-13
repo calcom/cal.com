@@ -1,6 +1,6 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getOptInFeatureConfig, getOptInFeaturesForScope } from "../config";
+import { getOptInFeatureConfig, getOptInFeaturesForScope, isFeatureAllowedForScope } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 import type { OptInFeaturePolicy, OptInFeatureScope } from "../types";
@@ -242,6 +242,7 @@ export class FeatureOptInService implements IFeatureOptInService {
   /**
    * Set user's feature state.
    * Delegates to FeaturesRepository.setUserFeatureState.
+   * Throws an error if the feature is not scoped to "user".
    */
   async setUserFeatureState(
     input:
@@ -249,6 +250,11 @@ export class FeatureOptInService implements IFeatureOptInService {
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     const { userId, featureId, state } = input;
+
+    if (!isFeatureAllowedForScope(featureId, "user")) {
+      throw new Error(`Feature "${featureId}" is not available at the user scope`);
+    }
+
     if (state === "inherit") {
       await this.featuresRepository.setUserFeatureState({ userId, featureId, state });
     } else {
@@ -265,13 +271,20 @@ export class FeatureOptInService implements IFeatureOptInService {
   /**
    * Set team's feature state.
    * Delegates to FeaturesRepository.setTeamFeatureState.
+   * Throws an error if the feature is not scoped to the specified scope.
    */
   async setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
-      | { teamId: number; featureId: FeatureId; state: "inherit" }
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number; scope?: OptInFeatureScope }
+      | { teamId: number; featureId: FeatureId; state: "inherit"; scope?: OptInFeatureScope }
   ): Promise<void> {
     const { teamId, featureId, state } = input;
+    const scope = input.scope ?? "team";
+
+    if (!isFeatureAllowedForScope(featureId, scope)) {
+      throw new Error(`Feature "${featureId}" is not available at the ${scope} scope`);
+    }
+
     if (state === "inherit") {
       await this.featuresRepository.setTeamFeatureState({ teamId, featureId, state });
     } else {

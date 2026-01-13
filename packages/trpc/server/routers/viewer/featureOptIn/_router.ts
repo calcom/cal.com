@@ -133,6 +133,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "team",
       });
 
       return { success: true };
@@ -162,6 +163,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "org",
       });
 
       return { success: true };

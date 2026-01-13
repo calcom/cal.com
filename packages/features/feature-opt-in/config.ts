@@ -55,3 +55,13 @@ export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;
 export function getOptInFeaturesForScope(scope: OptInFeatureScope): OptInFeatureConfig[] {
   return OPT_IN_FEATURES.filter((f) => !f.scope || f.scope.includes(scope));
 }
+
+/**
+ * Check if a feature is allowed for a specific scope.
+ * Features without a scope field are allowed for all scopes.
+ */
+export function isFeatureAllowedForScope(slug: string, scope: OptInFeatureScope): boolean {
+  const config = getOptInFeatureConfig(slug);
+  if (!config) return false;
+  return !config.scope || config.scope.includes(scope);
+}

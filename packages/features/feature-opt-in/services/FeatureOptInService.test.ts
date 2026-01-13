@@ -5,13 +5,18 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 
 import { FeatureOptInService } from "./FeatureOptInService";
 
-// Mock the OPT_IN_FEATURES config
-vi.mock("../config", () => ({
-  OPT_IN_FEATURES: [
+vi.mock("../config", () => {
+  const mockFeatures = [
     { slug: "test-feature-1", titleI18nKey: "test_feature_1", descriptionI18nKey: "test_feature_1_desc" },
     { slug: "test-feature-2", titleI18nKey: "test_feature_2", descriptionI18nKey: "test_feature_2_desc" },
-  ],
-}));
+  ];
+  return {
+    OPT_IN_FEATURES: mockFeatures,
+    getOptInFeaturesForScope: () => mockFeatures,
+    isFeatureAllowedForScope: () => true,
+    getOptInFeatureConfig: (slug: string) => mockFeatures.find((f) => f.slug === slug),
+  };
+});
 
 describe("FeatureOptInService", () => {
   let mockFeaturesRepository: {
