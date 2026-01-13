@@ -24,7 +24,7 @@ type OAuthClientRow = RouterOutputs["viewer"]["oAuth"]["listClients"][number];
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createdClient, setCreatedClient] = useState<OAuthClientDetails | null>(null);
   const [selectedClient, setSelectedClient] = useState<OAuthClientDetails | null>(null);
 
@@ -93,7 +93,7 @@ export default function OAuthClientsAdminView() {
   };
 
   const handleCloseDialog = () => {
-    setShowAddDialog(false);
+    setShowCreateDialog(false);
     setCreatedClient(null);
   };
 
@@ -132,7 +132,7 @@ export default function OAuthClientsAdminView() {
       size="sm"
       variant="fab"
       data-testid="open-admin-oauth-client-create-dialog"
-      onClick={() => setShowAddDialog(true)}>
+      onClick={() => setShowCreateDialog(true)}>
       {t("new")}
     </Button>
   );
@@ -186,8 +186,8 @@ export default function OAuthClientsAdminView() {
       )}
 
       <OAuthClientCreateDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
         title={t("create_oauth_client")}
         submitLabel={t("create")}
         isSubmitting={addMutation.isPending}
