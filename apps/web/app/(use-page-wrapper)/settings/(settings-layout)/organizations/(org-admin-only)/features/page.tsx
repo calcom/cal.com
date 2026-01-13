@@ -23,7 +23,7 @@ export const generateMetadata = async (): Promise<Metadata> =>
 const Page = async () => {
   const session = await validateUserHasOrg();
 
-  const { canRead } = await getResourcePermissions({
+  const { canRead, canEdit } = await getResourcePermissions({
     userId: session.user.id,
     teamId: session.user.profile.organizationId,
     resource: Resource.FeatureOptIn,
@@ -42,7 +42,7 @@ const Page = async () => {
     return redirect("/settings/organizations/profile");
   }
 
-  return <OrganizationFeaturesView />;
+  return <OrganizationFeaturesView canEdit={canEdit} />;
 };
 
 export default Page;

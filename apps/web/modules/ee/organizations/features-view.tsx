@@ -8,7 +8,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useOrganizationFeatureOptIn } from "~/feature-opt-in/hooks";
 
-const OrganizationFeaturesView = (): ReactElement => {
+interface OrganizationFeaturesViewProps {
+  canEdit: boolean;
+}
+
+const OrganizationFeaturesView = ({ canEdit }: OrganizationFeaturesViewProps): ReactElement => {
   const { t } = useLocale();
   const featureOptIn = useOrganizationFeatureOptIn();
 
@@ -17,7 +21,7 @@ const OrganizationFeaturesView = (): ReactElement => {
       title={t("features")}
       description={t("feature_opt_in_org_description")}
       borderInShellHeader={true}>
-      <FeaturesSettings featureOptIn={featureOptIn} />
+      <FeaturesSettings featureOptIn={featureOptIn} canEdit={canEdit} />
     </SettingsHeader>
   );
 };

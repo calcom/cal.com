@@ -10,9 +10,10 @@ import { useTeamFeatureOptIn } from "~/feature-opt-in/hooks";
 
 interface TeamFeaturesViewProps {
   teamId: number;
+  canEdit: boolean;
 }
 
-const TeamFeaturesView = ({ teamId }: TeamFeaturesViewProps): ReactElement => {
+const TeamFeaturesView = ({ teamId, canEdit }: TeamFeaturesViewProps): ReactElement => {
   const { t } = useLocale();
   const featureOptIn = useTeamFeatureOptIn(teamId);
 
@@ -21,7 +22,7 @@ const TeamFeaturesView = ({ teamId }: TeamFeaturesViewProps): ReactElement => {
       title={t("features")}
       description={t("feature_opt_in_team_description")}
       borderInShellHeader={true}>
-      <FeaturesSettings featureOptIn={featureOptIn} />
+      <FeaturesSettings featureOptIn={featureOptIn} canEdit={canEdit} />
     </SettingsHeader>
   );
 };

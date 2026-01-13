@@ -17,6 +17,8 @@ import type { NormalizedFeature, UseFeatureOptInResult } from "../types";
 interface FeaturesSettingsProps {
   /** The hook result - can be from useUserFeatureOptIn, useTeamFeatureOptIn, or useOrganizationFeatureOptIn */
   featureOptIn: UseFeatureOptInResult;
+  /** Whether the user can edit the feature settings. If false, all toggles will be disabled. */
+  canEdit?: boolean;
 }
 
 interface ToggleOption {
@@ -59,6 +61,7 @@ function FeatureItem({
   isBlockedByHigherLevel,
   autoOptIn,
   setFeatureState,
+  canEdit,
   t,
 }: {
   feature: NormalizedFeature;
@@ -67,6 +70,7 @@ function FeatureItem({
   isBlockedByHigherLevel: (feature: NormalizedFeature) => boolean;
   autoOptIn: boolean;
   setFeatureState: (slug: string, state: FeatureState) => void;
+  canEdit: boolean;
   t: (key: string) => string;
 }): ReactElement | null {
   const config = getOptInFeatureConfig(feature.slug);
@@ -74,16 +78,17 @@ function FeatureItem({
   const blockedWarning = getBlockedWarning(feature);
   const enabledViaAutoOptInFlag = isEnabledViaAutoOptIn(feature, autoOptIn);
   const blockedByHigherLevel = isBlockedByHigherLevel(feature);
+  const isDisabled = blockedByHigherLevel || !canEdit;
 
   const finalToggleOptions = useMemo(() => {
-    if (!blockedByHigherLevel) {
+    if (!isDisabled) {
       return toggleOptions;
     }
     return toggleOptions.map((option) => ({
       ...option,
       disabled: true,
     }));
-  }, [toggleOptions, blockedByHigherLevel]);
+  }, [toggleOptions, isDisabled]);
 
   if (!config) return null;
 
@@ -126,7 +131,7 @@ function FeatureItem({
   );
 }
 
-export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps): ReactElement {
+export function FeaturesSettings({ featureOptIn, canEdit = true }: FeaturesSettingsProps): ReactElement {
   const { t } = useLocale();
   const {
     features,
@@ -164,6 +169,7 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps): React
                 isBlockedByHigherLevel={isBlockedByHigherLevel}
                 autoOptIn={autoOptIn}
                 setFeatureState={setFeatureState}
+                canEdit={canEdit}
                 t={t}
               />
             ))}
@@ -174,7 +180,7 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps): React
         toggleSwitchAtTheEnd={true}
         title={t("auto_opt_in_experimental")}
         description={autoOptInDescription}
-        disabled={isAutoOptInMutationPending}
+        disabled={isAutoOptInMutationPending || !canEdit}
         checked={autoOptIn}
         onCheckedChange={setAutoOptIn}
         switchContainerClassName="mt-6"
