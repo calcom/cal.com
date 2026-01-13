@@ -519,6 +519,75 @@ export const teamMetadataStrictSchema = baseTeamMetadataSchema
   .partial()
   .nullable();
 
+// Schema for booking page appearance customization (organization-only feature)
+export const bookingPageAppearanceSchema = z
+  .object({
+    // Typography
+    fontFamily: z.string().optional(),
+    headingFontFamily: z.string().optional(),
+    fontSize: z
+      .object({
+        base: z.string().optional(),
+        heading: z.string().optional(),
+        small: z.string().optional(),
+      })
+      .optional(),
+
+    // Border Radius
+    borderRadius: z
+      .object({
+        base: z.string().optional(),
+        button: z.string().optional(),
+        card: z.string().optional(),
+        input: z.string().optional(),
+      })
+      .optional(),
+
+    // Colors (extends existing brand colors)
+    colors: z
+      .object({
+        // Background colors
+        background: z.string().optional(),
+        backgroundMuted: z.string().optional(),
+
+        // Text colors
+        textPrimary: z.string().optional(),
+        textSecondary: z.string().optional(),
+        textMuted: z.string().optional(),
+
+        // Component-specific
+        buttonText: z.string().optional(),
+        calendarSelectedDay: z.string().optional(),
+        calendarAvailableDay: z.string().optional(),
+        timeslotBackground: z.string().optional(),
+        timeslotHover: z.string().optional(),
+
+        // Border colors
+        borderDefault: z.string().optional(),
+        borderSubtle: z.string().optional(),
+      })
+      .optional(),
+
+    // Spacing
+    spacing: z
+      .object({
+        containerPadding: z.string().optional(),
+        componentGap: z.string().optional(),
+      })
+      .optional(),
+
+    // Shadows
+    shadows: z
+      .object({
+        card: z.string().optional(),
+        button: z.string().optional(),
+      })
+      .optional(),
+  })
+  .nullable();
+
+export type BookingPageAppearance = z.infer<typeof bookingPageAppearanceSchema>;
+
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),

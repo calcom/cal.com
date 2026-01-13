@@ -13,6 +13,7 @@ import { attributesRouter } from "./attributes/_router";
 import { attributeSyncRouter } from "./attribute-sync/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
+import { bookingPageAppearanceRouter } from "./bookingPageAppearance/_router";
 import { bookingsRouter } from "./bookings/_router";
 import { calVideoRouter } from "./calVideo/_router";
 import { calendarsRouter } from "./calendars/_router";
@@ -52,6 +53,7 @@ export const viewerRouter = router({
   public: publicViewerRouter,
   auth: authRouter,
   deploymentSetup: deploymentSetupRouter,
+  bookingPageAppearance: bookingPageAppearanceRouter,
   bookings: bookingsRouter,
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
