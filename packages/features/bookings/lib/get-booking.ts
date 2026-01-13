@@ -1,9 +1,10 @@
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import slugify from "@calcom/lib/slugify";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 type BookingSelect = {
   description: true;
@@ -143,6 +144,11 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
     select: {
       id: true,
       userId: true,
+      user: {
+        select: {
+          organizationId: true,
+        },
+      },
       eventType: {
         select: {
           seatsPerTimeSlot: true,
@@ -218,19 +224,22 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
 
     const isUserIdInBooking = theBooking.userId === userId;
 
-    const isOrgAdmin =
-      userId &&
-      theBooking.userId &&
-      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+    let hasOrgAccess = false;
+    if (userId && theBooking.user?.organizationId) {
+      const permissionCheckService = new PermissionCheckService();
+      hasOrgAccess = await permissionCheckService.checkPermission({
         userId,
-        theBooking.userId
-      ));
+        teamId: theBooking.user.organizationId,
+        permission: "booking.readOrgBookings",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+    }
 
     if (
       !isOwnerOfBooking &&
       !isHostOfEventType &&
       !isUserIdInBooking &&
-      !isOrgAdmin
+      !hasOrgAccess
     )
       return null;
     hasOwnershipOnBooking = true;
