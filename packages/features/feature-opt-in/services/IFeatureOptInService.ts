@@ -1,13 +1,17 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 
+import type { EffectiveStateReason } from "../lib/computeEffectiveState";
+
+export type { EffectiveStateReason };
+
 export type ResolvedFeatureState = {
   featureId: FeatureId;
   globalEnabled: boolean;
-  orgState: FeatureState; // Raw state (before auto-opt-in transform)
-  teamStates: FeatureState[]; // Raw states
-  userState: FeatureState | undefined; // Raw state
+  orgState: FeatureState;
+  teamStates: FeatureState[];
+  userState: FeatureState | undefined;
   effectiveEnabled: boolean;
-  // Auto-opt-in flags for UI to show checkbox state
+  effectiveReason: EffectiveStateReason;
   orgAutoOptIn: boolean;
   teamAutoOptIns: boolean[];
   userAutoOptIn: boolean;
@@ -24,8 +28,8 @@ export interface IFeatureOptInService {
     ResolvedFeatureState[]
   >;
   listFeaturesForTeam(
-    input: { teamId: number }
-  ): Promise<{ featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState }[]>;
+    input: { teamId: number; parentOrgId?: number | null }
+  ): Promise<{ featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState; orgState: FeatureState }[]>;
   setUserFeatureState(
     input:
       | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
