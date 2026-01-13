@@ -18,9 +18,11 @@ export const FLAGS_DI_TOKENS = {
   REDIS_USER_FEATURE_REPOSITORY: Symbol("RedisUserFeatureRepository"),
   REDIS_USER_FEATURE_REPOSITORY_MODULE: Symbol("RedisUserFeatureRepositoryModule"),
 
-  // Services
-  FEATURE_SERVICE: Symbol("FeatureService"),
-  FEATURE_SERVICE_MODULE: Symbol("FeatureServiceModule"),
-  CACHED_FEATURE_SERVICE: Symbol("CachedFeatureService"),
-  CACHED_FEATURE_SERVICE_MODULE: Symbol("CachedFeatureServiceModule"),
+  // Cached repositories
+  CACHED_FEATURE_REPOSITORY: Symbol("CachedFeatureRepository"),
+  CACHED_FEATURE_REPOSITORY_MODULE: Symbol("CachedFeatureRepositoryModule"),
+  CACHED_TEAM_FEATURE_REPOSITORY: Symbol("CachedTeamFeatureRepository"),
+  CACHED_TEAM_FEATURE_REPOSITORY_MODULE: Symbol("CachedTeamFeatureRepositoryModule"),
+  CACHED_USER_FEATURE_REPOSITORY: Symbol("CachedUserFeatureRepository"),
+  CACHED_USER_FEATURE_REPOSITORY_MODULE: Symbol("CachedUserFeatureRepositoryModule"),
 };

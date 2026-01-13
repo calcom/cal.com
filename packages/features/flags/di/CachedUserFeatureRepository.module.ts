@@ -1,22 +1,22 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 
-import { CachedFeatureService } from "../services/CachedFeatureService";
+import { CachedUserFeatureRepository } from "../repositories/CachedUserFeatureRepository";
 import { moduleLoader as prismaUserFeatureRepositoryModuleLoader } from "./PrismaUserFeatureRepository.module";
 import { moduleLoader as redisUserFeatureRepositoryModuleLoader } from "./RedisUserFeatureRepository.module";
 import { FLAGS_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();
-const token = FLAGS_DI_TOKENS.CACHED_FEATURE_SERVICE;
-const moduleToken = FLAGS_DI_TOKENS.CACHED_FEATURE_SERVICE_MODULE;
+const token = FLAGS_DI_TOKENS.CACHED_USER_FEATURE_REPOSITORY;
+const moduleToken = FLAGS_DI_TOKENS.CACHED_USER_FEATURE_REPOSITORY_MODULE;
 
 const loadModule = bindModuleToClassOnToken({
   module: thisModule,
   moduleToken,
   token,
-  classs: CachedFeatureService,
+  classs: CachedUserFeatureRepository,
   depsMap: {
-    prismaUserFeatureRepo: prismaUserFeatureRepositoryModuleLoader,
-    redisUserFeatureRepo: redisUserFeatureRepositoryModuleLoader,
+    prismaRepo: prismaUserFeatureRepositoryModuleLoader,
+    redisRepo: redisUserFeatureRepositoryModuleLoader,
   },
 });
 
@@ -25,4 +25,4 @@ export const moduleLoader: ModuleLoader = {
   loadModule,
 };
 
-export type { CachedFeatureService };
+export type { CachedUserFeatureRepository };

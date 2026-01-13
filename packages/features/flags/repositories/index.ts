@@ -27,3 +27,21 @@ export {
   RedisUserFeatureRepository,
   type IRedisUserFeatureRepository,
 } from "./RedisUserFeatureRepository";
+
+export {
+  CachedFeatureRepository,
+  type ICachedFeatureRepository,
+  type ICachedFeatureRepositoryDeps,
+} from "./CachedFeatureRepository";
+
+export {
+  CachedTeamFeatureRepository,
+  type ICachedTeamFeatureRepository,
+  type ICachedTeamFeatureRepositoryDeps,
+} from "./CachedTeamFeatureRepository";
+
+export {
+  CachedUserFeatureRepository,
+  type ICachedUserFeatureRepository,
+  type ICachedUserFeatureRepositoryDeps,
+} from "./CachedUserFeatureRepository";
