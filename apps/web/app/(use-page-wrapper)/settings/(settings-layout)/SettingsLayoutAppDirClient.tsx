@@ -221,11 +221,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "license" },
         },
         {
-          name: "impersonation",
-          href: "/settings/admin/impersonation",
-          trackingMetadata: { section: "admin", page: "impersonation" },
-        },
-        {
           name: "apps",
           href: "/settings/admin/apps/calendar",
           trackingMetadata: { section: "admin", page: "apps" },
