@@ -3527,6 +3527,7 @@ __metadata:
     "@todesktop/client-core": "npm:1.20.0"
     "@types/accept-language-parser": "npm:1.5.2"
     "@types/async": "npm:3.2.15"
+    "@types/backblaze-b2": "npm:^1"
     "@types/bcryptjs": "npm:2.4.2"
     "@types/detect-port": "npm:1.3.2"
     "@types/dompurify": "npm:3.0.5"
@@ -3552,6 +3553,7 @@ __metadata:
     accept-language-parser: "npm:1.5.0"
     async: "npm:3.2.4"
     autoprefixer: "npm:10.4.19"
+    backblaze-b2: "npm:^1.7.1"
     bcp-47-match: "npm:2.0.3"
     bcryptjs: "npm:2.4.3"
     botid: "npm:1.5.7"
@@ -15249,6 +15251,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/backblaze-b2@npm:^1":
+  version: 1.5.6
+  resolution: "@types/backblaze-b2@npm:1.5.6"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/c1f2b445d213a300953091cd009ab9e3a09350f1d133cd664935e9f8ae38339403236c09cb1cfd7e8d04d93e6ef85f8a8d66e2290cf18c9ccecf08ef41efbea0
+  languageName: node
+  linkType: hard
+
 "@types/bcryptjs@npm:2.4.2":
   version: 2.4.2
   resolution: "@types/bcryptjs@npm:2.4.2"
@@ -17634,6 +17645,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios-retry@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "axios-retry@npm:4.5.0"
+  dependencies:
+    is-retry-allowed: "npm:^2.2.0"
+  peerDependencies:
+    axios: 0.x || 1.x
+  checksum: 10/39ed05248757387a44dde94255df8ad54088aece50574c6ce9a1cd02b9e40252f7390285cea54ded04e33a3a549e462d5bdacc8d3178221b7cd40e8aff09ba46
+  languageName: node
+  linkType: hard
+
 "axios@npm:1.13.2":
   version: 1.13.2
   resolution: "axios@npm:1.13.2"
@@ -17729,6 +17751,17 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.0.0
   checksum: 10/aa4ff2a8a728d9d698ed521e3461a109a1e66202b13d3494e41eea30729a5e7cc03b3a2d56c594423a135429c37bf63a9fa8b0b9ce275298be3095a88c69f6fb
+  languageName: node
+  linkType: hard
+
+"backblaze-b2@npm:^1.7.1":
+  version: 1.7.1
+  resolution: "backblaze-b2@npm:1.7.1"
+  dependencies:
+    axios: "npm:^1.9.0"
+    axios-retry: "npm:^4.5.0"
+    lodash: "npm:^4.17.21"
+  checksum: 10/b400b371cf1d852e963d079a88a7e92a80f3320cebd5f1046498f53e042396722fe1b7ab7f35d690a42aa5fd5c0a347a82cb380b295b61f96b41889feacfaeae
   languageName: node
   linkType: hard
 
