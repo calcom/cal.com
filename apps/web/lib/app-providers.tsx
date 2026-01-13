@@ -13,10 +13,7 @@ import { useSession } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
-import type {
-  AppProps as NextAppProps,
-  AppProps as NextJsAppProps,
-} from "next/app";
+import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import type { ParsedUrlQuery } from "node:querystring";
 import type { PropsWithChildren, ReactNode } from "react";
@@ -54,9 +51,7 @@ export type AppProps = Omit<
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
-    isBookingPage?:
-      | boolean
-      | ((arg: { router: NextAppProps["router"] }) => boolean);
+    isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
     getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
@@ -72,9 +67,7 @@ type AppPropsWithChildren = AppProps & {
 const getEmbedNamespace = (query: ParsedUrlQuery) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
-  return typeof window !== "undefined"
-    ? window.getEmbedNamespace()
-    : (query.embed as string) || null;
+  return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
 };
 
 const CustomI18nextProvider = (props: AppPropsWithChildren) => {
@@ -151,11 +144,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const embedNamespace = getEmbedNamespace(props.router.query);
   const isEmbedMode = typeof embedNamespace === "string";
 
-  const { key, ...themeProviderProps } = getThemeProviderProps({
-    props,
-    isEmbedMode,
-    embedNamespace,
-  });
+  const { key, ...themeProviderProps } = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
 
   return (
     <ThemeProvider key={key} {...themeProviderProps}>
@@ -223,15 +212,10 @@ function getThemeProviderProps({
     ? ThemeSupport.None
     : ThemeSupport.App;
 
-  const isBookingPageThemeSupportRequired =
-    themeSupport === ThemeSupport.Booking;
+  const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = props.themeBasis;
 
-  if (
-    !process.env.NEXT_PUBLIC_IS_E2E &&
-    (isBookingPageThemeSupportRequired || isEmbedMode) &&
-    !themeBasis
-  ) {
+  if (!process.env.NEXT_PUBLIC_IS_E2E && (isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
     console.warn(
       "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
     );
@@ -283,9 +267,7 @@ function useOrgBrandingValues() {
 
 function OrgBrandProvider({ children }: { children: React.ReactNode }) {
   const orgBrand = useOrgBrandingValues();
-  return (
-    <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>
-  );
+  return <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>;
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
@@ -303,8 +285,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
           themeBasis={props.pageProps.themeBasis}
           isThemeSupported={props.Component.isThemeSupported}
           isBookingPage={props.Component.isBookingPage || isBookingPage}
-          router={props.router}
-        >
+          router={props.router}>
           <NuqsAdapter {...nuqsParams}>
             <FeatureFlagsProvider>
               {_isBookingPage ? (

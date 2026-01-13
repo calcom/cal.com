@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { useBookerUrl } from "@calcom/web/modules/bookings/hooks/useBookerUrl";
+import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,11 +27,7 @@ const WebhooksView = ({ data }: Props) => {
   );
 };
 
-const WebhooksList = ({
-  webhooksByViewer,
-}: {
-  webhooksByViewer: WebhooksByViewer;
-}) => {
+const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer }) => {
   const { t } = useLocale();
   const router = useRouter();
   const { profiles, webhookGroups } = webhooksByViewer;
@@ -43,13 +39,8 @@ const WebhooksList = ({
     <SettingsHeader
       title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      CTA={
-        webhooksByViewer.webhookGroups.length > 0 ? (
-          <CreateNewWebhookButton />
-        ) : null
-      }
-      borderInShellHeader={false}
-    >
+      CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton /> : null}
+      borderInShellHeader={false}>
       {webhookGroups.length ? (
         <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
@@ -58,10 +49,7 @@ const WebhooksList = ({
                 <div className="items-centers flex">
                   <Avatar
                     alt={group.profile.image || ""}
-                    imageSrc={
-                      group.profile.image ||
-                      `${bookerUrl}/${group.profile.name}/avatar.png`
-                    }
+                    imageSrc={group.profile.image || `${bookerUrl}/${group.profile.name}/avatar.png`}
                     size="md"
                     className="inline-flex justify-center"
                   />
@@ -71,11 +59,7 @@ const WebhooksList = ({
                 </div>
               )}
               <div className="flex flex-col" key={group.profile.slug}>
-                <div
-                  className={classNames(
-                    "border-subtle mb-8 mt-3 rounded-lg border border-t"
-                  )}
-                >
+                <div className={classNames("border-subtle mb-8 mt-3 rounded-lg border border-t")}>
                   {group.webhooks.map((webhook, index) => (
                     <WebhookListItem
                       key={webhook.id}
@@ -86,9 +70,7 @@ const WebhooksList = ({
                         canDeleteWebhook: group?.metadata?.canDelete ?? false,
                       }}
                       onEditWebhook={() =>
-                        router.push(
-                          `${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`
-                        )
+                        router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
                       }
                     />
                   ))}
@@ -101,9 +83,7 @@ const WebhooksList = ({
         <EmptyScreen
           Icon="link"
           headline={t("create_your_first_webhook")}
-          description={t("create_your_first_webhook_description", {
-            appName: APP_NAME,
-          })}
+          description={t("create_your_first_webhook_description", { appName: APP_NAME })}
           className="mt-6 rounded-b-lg"
           buttonRaw={<CreateNewWebhookButton />}
           border={true}

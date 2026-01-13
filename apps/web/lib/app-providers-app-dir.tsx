@@ -37,9 +37,7 @@ export type AppProps = Omit<
 > & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
-    isBookingPage?:
-      | boolean
-      | ((arg: { router: NextAppProps["router"] }) => boolean);
+    isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -50,9 +48,7 @@ export type AppProps = Omit<
 const getEmbedNamespace = (searchParams: ReadonlyURLSearchParams) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
-  return typeof window !== "undefined"
-    ? window.getEmbedNamespace()
-    : searchParams.get("embed") ?? null;
+  return typeof window !== "undefined" ? window.getEmbedNamespace() : searchParams.get("embed") ?? null;
 };
 
 type CalcomThemeProps = Readonly<{
@@ -109,9 +105,7 @@ function useOrgBrandingValues() {
 
 function OrgBrandProvider({ children }: { children: React.ReactNode }) {
   const orgBrand = useOrgBrandingValues();
-  return (
-    <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>
-  );
+  return <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>;
 }
 
 const AppProviders = (props: PageWrapperProps) => {
@@ -127,8 +121,7 @@ const AppProviders = (props: PageWrapperProps) => {
         <CalcomThemeProvider
           nonce={props.nonce}
           isThemeSupported={isThemeSupported}
-          isBookingPage={props.isBookingPage || isBookingPage}
-        >
+          isBookingPage={props.isBookingPage || isBookingPage}>
           <NuqsAdapter {...nuqsParams}>
             <FeatureFlagsProvider>
               {props.isBookingPage || isBookingPage ? (

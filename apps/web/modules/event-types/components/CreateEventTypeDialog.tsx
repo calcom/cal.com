@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import CreateEventTypeForm from "@calcom/web/modules/event-types/components/CreateEventTypeForm";
-import { useCreateEventType } from "@calcom/web/modules/event-types/hooks/useCreateEventType";
+import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import type { EventType } from "@calcom/prisma/client";
@@ -13,11 +13,7 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import {
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-} from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { TeamEventTypeForm } from "@calcom/web/modules/ee/teams/components/TeamEventTypeForm";
 
@@ -68,11 +64,7 @@ const querySchema = z.object({
     .optional(),
 });
 
-export function CreateEventTypeDialog({
-  profileOptions,
-}: {
-  profileOptions: ProfileOption[];
-}) {
+export function CreateEventTypeDialog({ profileOptions }: { profileOptions: ProfileOption[] }) {
   const { t } = useLocale();
   const router = useRouter();
   const orgBranding = useOrgBranding();
@@ -81,16 +73,12 @@ export function CreateEventTypeDialog({
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
 
-  const teamProfile = profileOptions.find(
-    (profile) => profile.teamId === teamId
-  );
+  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
   const permissions = teamProfile?.permissions ?? { canCreateEventType: false };
 
   const onSuccessMutation = (eventType: EventType) => {
-    router.replace(
-      `/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`
-    );
+    router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
     showToast(
       t("event_type_created_successfully", {
         eventTypeTitle: eventType.title,
@@ -114,13 +102,9 @@ export function CreateEventTypeDialog({
     );
   };
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(
-    onSuccessMutation,
-    onErrorMutation
-  );
+  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
 
-  const urlPrefix =
-    orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
+  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   const { data: team } = trpc.viewer.teams.get.useQuery(
     { teamId: teamId ?? -1, isOrg: false },
@@ -130,22 +114,12 @@ export function CreateEventTypeDialog({
   return (
     <Dialog
       name="new"
-      clearQueryParamsOnClose={[
-        "eventPage",
-        "type",
-        "description",
-        "title",
-        "length",
-        "slug",
-        "locations",
-      ]}
-    >
+      clearQueryParamsOnClose={["eventPage", "type", "description", "title", "length", "slug", "locations"]}>
       <DialogContent
         type="creation"
         enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
-        description={t("new_event_type_to_book_description")}
-      >
+        description={t("new_event_type_to_book_description")}>
         {teamId ? (
           <TeamEventTypeForm
             teamSlug={team?.slug}

@@ -30,9 +30,7 @@ interface CreateANewTeamFormProps {
 export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
   const { inDialog, onCancel, slug, submitLabel, onSuccess } = props;
   const { t, isLocaleReady } = useLocale();
-  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(
-    null
-  );
+  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const orgBranding = useOrgBranding();
 
   const newTeamFormMethods = useForm<NewTeamFormValues>({
@@ -53,10 +51,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
 
     onError: (err) => {
       if (err.message === "team_url_taken") {
-        newTeamFormMethods.setError("slug", {
-          type: "custom",
-          message: t("url_taken"),
-        });
+        newTeamFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
       } else {
         setServerErrorMessage(err.message);
       }
@@ -69,21 +64,16 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
         disabled={createTeamMutation.isPending}
         color="secondary"
         onClick={onCancel}
-        className="w-full justify-center"
-      >
+        className="w-full justify-center">
         {t("cancel")}
       </Button>
       <Button
-        disabled={
-          newTeamFormMethods.formState.isSubmitting ||
-          createTeamMutation.isPending
-        }
+        disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
         color="primary"
         EndIcon="arrow-right"
         type="submit"
         className="w-full justify-center"
-        data-testid="continue-button"
-      >
+        data-testid="continue-button">
         {t(submitLabel)}
       </Button>
     </>
@@ -102,8 +92,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
             setServerErrorMessage(null);
             createTeamMutation.mutate(v);
           }
-        }}
-      >
+        }}>
         <div className="mb-8">
           {serverErrorMessage && (
             <div className="mb-4">
@@ -117,8 +106,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
             defaultValue=""
             rules={{
               required: t("must_enter_team_name"),
-              validate: (value) =>
-                value.trim().length > 0 || t("must_enter_team_name"),
+              validate: (value) => value.trim().length > 0 || t("must_enter_team_name"),
             }}
             render={({ field: { value } }) => (
               <>
@@ -134,14 +122,8 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                   defaultValue={value}
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
-                    if (
-                      newTeamFormMethods.formState.touchedFields["slug"] ===
-                      undefined
-                    ) {
-                      newTeamFormMethods.setValue(
-                        "slug",
-                        slugify(e?.target.value)
-                      );
+                    if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
+                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
                     }
                   }}
                   autoComplete="off"
@@ -164,21 +146,15 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                 label={t("team_url")}
                 addOnLeading={`${
                   orgBranding
-                    ? `${orgBranding.fullDomain
-                        .replace("https://", "")
-                        .replace("http://", "")}/`
+                    ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}/`
                     : `${subdomainSuffix()}/team/`
                 }`}
                 value={value}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue(
-                    "slug",
-                    slugify(e?.target.value, true).replace(/\./g, ""),
-                    {
-                      shouldTouch: true,
-                    }
-                  );
+                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true).replace(/\./g, ""), {
+                    shouldTouch: true,
+                  });
                   newTeamFormMethods.clearErrors("slug");
                 }}
               />

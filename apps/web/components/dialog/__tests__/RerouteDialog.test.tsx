@@ -54,17 +54,11 @@ vi.mock("@calcom/app-store/routing-forms/components/FormInputFields", () => ({
       <div data-testid="mock-form-input-fields">
         {form.fields?.map((field: any) => (
           <div key={field.id}>
-            <label data-testid={`mock-form-field-${field.id}-label`}>
-              {field.label}
-            </label>
-            <div data-testid={`mock-form-field-${field.id}-value`}>
-              {response[field.id]?.value}
-            </div>
+            <label data-testid={`mock-form-field-${field.id}-label`}>{field.label}</label>
+            <div data-testid={`mock-form-field-${field.id}-value`}>{response[field.id]?.value}</div>
           </div>
         ))}
-        <div data-testid="mock-form-field-disabled-fields-identifiers">
-          {disabledFields.join(", ")}
-        </div>
+        <div data-testid="mock-form-field-disabled-fields-identifiers">{disabledFields.join(", ")}</div>
         <button
           data-testid="mock-form-update-response-button"
           onClick={() =>
@@ -78,16 +72,13 @@ vi.mock("@calcom/app-store/routing-forms/components/FormInputFields", () => ({
                 value: "usa",
               },
             })
-          }
-        >
+          }>
           Test Update Response
         </button>
       </div>
     );
   }),
-  FormInputFieldsSkeleton: vi.fn(() => (
-    <div data-testid="mock-form-input-fields-skeleton" />
-  )),
+  FormInputFieldsSkeleton: vi.fn(() => <div data-testid="mock-form-input-fields-skeleton" />),
 }));
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
@@ -107,9 +98,7 @@ vi.mock("@calcom/web/lib/hooks/useRouterQuery", () => ({
 }));
 
 vi.mock("@calcom/ui/components/tooltip", () => ({
-  Tooltip: vi.fn(({ children }) => (
-    <div data-testid="mock-tooltip">{children}</div>
-  )),
+  Tooltip: vi.fn(({ children }) => <div data-testid="mock-tooltip">{children}</div>),
 }));
 
 vi.mock("@calcom/trpc/react", () => ({
@@ -256,13 +245,7 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }));
 
-async function mockMessageFromOpenedTab({
-  type,
-  data,
-}: {
-  type: string;
-  data: any;
-}) {
+async function mockMessageFromOpenedTab({ type, data }: { type: string; data: any }) {
   const messageReceivedPromise = new Promise<boolean>((resolve) => {
     window.addEventListener("message", () => {
       resolve(true);
@@ -288,10 +271,7 @@ async function expectEventTypeInfoInCurrentRouting({
 }) {
   const eventTypeEl = screen.getByTestId("current-routing-status-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  await expect(eventTypeEl.querySelector("a")).toHaveAttribute(
-    "href",
-    eventTypeHref
-  );
+  await expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
 }
 
 async function expectEventTypeInfoInReroutePreview({
@@ -303,26 +283,15 @@ async function expectEventTypeInfoInReroutePreview({
 }) {
   const eventTypeEl = screen.getByTestId("reroute-preview-event-type");
   expect(eventTypeEl).toHaveTextContent(eventTypeText);
-  await expect(eventTypeEl.querySelector("a")).toHaveAttribute(
-    "href",
-    eventTypeHref
-  );
+  await expect(eventTypeEl.querySelector("a")).toHaveAttribute("href", eventTypeHref);
 }
 
-function expectOrganizerInfoInCurrentRouting({
-  organizerText,
-}: {
-  organizerText: string;
-}) {
+function expectOrganizerInfoInCurrentRouting({ organizerText }: { organizerText: string }) {
   const organizerEl = screen.getByTestId("current-routing-status-organizer");
   expect(organizerEl).toHaveTextContent(organizerText);
 }
 
-function expectAttendeesInfoInCurrentRouting({
-  attendeesText,
-}: {
-  attendeesText: string;
-}) {
+function expectAttendeesInfoInCurrentRouting({ attendeesText }: { attendeesText: string }) {
   const attendeesEl = screen.getByTestId("current-routing-status-attendees");
   expect(attendeesEl).toHaveTextContent(attendeesText);
 }
@@ -331,19 +300,10 @@ const mockBooking = {
   id: 1,
   uid: "original-booking-uid",
   title: "Test Booking",
-  startTime: new Date(
-    new Date().setDate(new Date().getDate() + 1)
-  ).toISOString(),
+  startTime: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
   metadata: {},
   responses: {},
-  attendees: [
-    {
-      email: "attendee@example.com",
-      name: "Attendee",
-      timeZone: "UTC",
-      locale: "en",
-    },
-  ],
+  attendees: [{ email: "attendee@example.com", name: "Attendee", timeZone: "UTC", locale: "en" }],
   eventType: {
     id: 1,
     slug: "test-event",
@@ -373,11 +333,7 @@ describe("RerouteDialog", () => {
   test("renders the dialog when open", () => {
     render(
       <TooltipProvider>
-        <RerouteDialog
-          isOpenDialog={true}
-          setIsOpenDialog={mockSetIsOpenDialog}
-          booking={mockBooking}
-        />
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       </TooltipProvider>
     );
 
@@ -388,11 +344,7 @@ describe("RerouteDialog", () => {
   test("doesn't render the dialog when closed", () => {
     render(
       <TooltipProvider>
-        <RerouteDialog
-          isOpenDialog={false}
-          setIsOpenDialog={mockSetIsOpenDialog}
-          booking={mockBooking}
-        />
+        <RerouteDialog isOpenDialog={false} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       </TooltipProvider>
     );
 
@@ -402,11 +354,7 @@ describe("RerouteDialog", () => {
   test("displays current routing status", async () => {
     render(
       <TooltipProvider>
-        <RerouteDialog
-          isOpenDialog={true}
-          setIsOpenDialog={mockSetIsOpenDialog}
-          booking={mockBooking}
-        />
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       </TooltipProvider>
     );
     expect(screen.getByText("current_routing_status")).toBeInTheDocument();
@@ -427,11 +375,7 @@ describe("RerouteDialog", () => {
   test("verify_new_route button is enabled even when form fields are not filled", async () => {
     render(
       <TooltipProvider>
-        <RerouteDialog
-          isOpenDialog={true}
-          setIsOpenDialog={mockSetIsOpenDialog}
-          booking={mockBooking}
-        />
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       </TooltipProvider>
     );
     await expect(screen.getByText("verify_new_route")).toBeEnabled();
@@ -440,51 +384,29 @@ describe("RerouteDialog", () => {
   test("disabledFields are passed to FormInputFields with value ['email'] - email field is disabled", async () => {
     render(
       <TooltipProvider>
-        <RerouteDialog
-          isOpenDialog={true}
-          setIsOpenDialog={mockSetIsOpenDialog}
-          booking={mockBooking}
-        />
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       </TooltipProvider>
     );
-    expect(
-      screen.getByTestId("mock-form-field-disabled-fields-identifiers")
-    ).toHaveTextContent(/^email$/);
+    expect(screen.getByTestId("mock-form-field-disabled-fields-identifiers")).toHaveTextContent(/^email$/);
   });
 
   test("Expect form fields and name to be rendered", async () => {
     render(
       <TooltipProvider>
-        <RerouteDialog
-          isOpenDialog={true}
-          setIsOpenDialog={mockSetIsOpenDialog}
-          booking={mockBooking}
-        />
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       </TooltipProvider>
     );
     expect(screen.getByText("Test Form")).toBeInTheDocument();
-    expect(
-      screen.getByTestId("mock-form-field-company-size-label")
-    ).toHaveTextContent("Company Size");
-    expect(
-      screen.getByTestId("mock-form-field-company-size-value")
-    ).toHaveTextContent("small");
-    expect(
-      screen.getByTestId("mock-form-field-country-label")
-    ).toHaveTextContent("Country");
-    expect(
-      screen.getByTestId("mock-form-field-country-value")
-    ).toHaveTextContent("usa");
+    expect(screen.getByTestId("mock-form-field-company-size-label")).toHaveTextContent("Company Size");
+    expect(screen.getByTestId("mock-form-field-company-size-value")).toHaveTextContent("small");
+    expect(screen.getByTestId("mock-form-field-country-label")).toHaveTextContent("Country");
+    expect(screen.getByTestId("mock-form-field-country-value")).toHaveTextContent("usa");
   });
 
   test("cancel button closes the dialog", async () => {
     render(
       <TooltipProvider>
-        <RerouteDialog
-          isOpenDialog={true}
-          setIsOpenDialog={mockSetIsOpenDialog}
-          booking={mockBooking}
-        />
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
       </TooltipProvider>
     );
 
@@ -499,11 +421,7 @@ describe("RerouteDialog", () => {
       render(
         <SessionProvider session={mockSession}>
           <TooltipProvider>
-            <RerouteDialog
-              isOpenDialog={true}
-              setIsOpenDialog={mockSetIsOpenDialog}
-              booking={mockBooking}
-            />
+            <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
           </TooltipProvider>
         </SessionProvider>
       );
@@ -514,19 +432,11 @@ describe("RerouteDialog", () => {
         eventTypeHref: "https://cal.com/team/test-team/new-test-event",
       });
       await expect(screen.getByText("verify_new_route")).toBeEnabled();
-      expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent(
-        "reroute_preview_possible_host"
-      );
-      expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent(
-        "matching-user-1@example.com"
-      );
+      expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("reroute_preview_possible_host");
+      expect(screen.getByTestId("reroute-preview-hosts")).toHaveTextContent("matching-user-1@example.com");
 
-      expect(
-        screen.getByText("reschedule_to_the_new_event_with_different_timeslot")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText("reschedule_with_same_timeslot_of_new_event")
-      ).toBeInTheDocument();
+      expect(screen.getByText("reschedule_to_the_new_event_with_different_timeslot")).toBeInTheDocument();
+      expect(screen.getByText("reschedule_with_same_timeslot_of_new_event")).toBeInTheDocument();
     });
 
     describe("New tab rescheduling", () => {
@@ -552,13 +462,8 @@ describe("RerouteDialog", () => {
         });
 
         const rescheduleTabUrl = mockOpen.mock.calls[0][0] as unknown as string;
-        const rescheduleTabUrlObject = new URL(
-          rescheduleTabUrl,
-          "http://mockcal.com"
-        );
-        expect(
-          Object.fromEntries(rescheduleTabUrlObject.searchParams.entries())
-        ).toEqual(
+        const rescheduleTabUrlObject = new URL(rescheduleTabUrl, "http://mockcal.com");
+        expect(Object.fromEntries(rescheduleTabUrlObject.searchParams.entries())).toEqual(
           expect.objectContaining({
             rescheduleUid: mockBooking.uid,
             "cal.rerouting": "true",
@@ -630,17 +535,13 @@ function clickVerifyNewRouteButton() {
 
 function clickRescheduleToTheNewEventWithDifferentTimeslotButton() {
   act(() => {
-    fireEvent.click(
-      screen.getByText("reschedule_to_the_new_event_with_different_timeslot")
-    );
+    fireEvent.click(screen.getByText("reschedule_to_the_new_event_with_different_timeslot"));
   });
 }
 
 function clickRescheduleWithSameTimeslotOfChosenEventButton() {
   act(() => {
-    fireEvent.click(
-      screen.getByText("reschedule_with_same_timeslot_of_new_event")
-    );
+    fireEvent.click(screen.getByText("reschedule_with_same_timeslot_of_new_event"));
   });
 }
 
@@ -651,7 +552,5 @@ function expectToBeNavigatedToBookingPage({
     uid: string;
   };
 }) {
-  expect(mockRouter.push).toHaveBeenCalledWith(
-    `/booking/${booking.uid}?cal.rerouting=true`
-  );
+  expect(mockRouter.push).toHaveBeenCalledWith(`/booking/${booking.uid}?cal.rerouting=true`);
 }

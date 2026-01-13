@@ -30,28 +30,18 @@ interface ICustomUsernameProps extends UsernameAvailabilityFieldProps {
   isPremium: boolean;
 }
 
-const PremiumTextfield = dynamic(
-  () => import("./PremiumTextfield").then((m) => m.PremiumTextfield),
-  {
-    ssr: false,
-  }
-);
-const UsernameTextfield = dynamic(
-  () => import("./UsernameTextfield").then((m) => m.UsernameTextfield),
-  {
-    ssr: false,
-  }
-);
+const PremiumTextfield = dynamic(() => import("./PremiumTextfield").then((m) => m.PremiumTextfield), {
+  ssr: false,
+});
+const UsernameTextfield = dynamic(() => import("./UsernameTextfield").then((m) => m.UsernameTextfield), {
+  ssr: false,
+});
 
 export const UsernameAvailability = (props: ICustomUsernameProps) => {
   const { isPremium, disabled, ...otherProps } = props;
-  const UsernameAvailabilityComponent = isPremium
-    ? PremiumTextfield
-    : UsernameTextfield;
+  const UsernameAvailabilityComponent = isPremium ? PremiumTextfield : UsernameTextfield;
   // PremiumTextfield uses `readonly` prop, UsernameTextfield uses `disabled` prop
-  const componentProps = isPremium
-    ? { ...otherProps, readonly: disabled }
-    : { ...otherProps, disabled };
+  const componentProps = isPremium ? { ...otherProps, readonly: disabled } : { ...otherProps, disabled };
   return <UsernameAvailabilityComponent {...componentProps} />;
 };
 
@@ -62,18 +52,12 @@ export const UsernameAvailabilityField = ({
 }: UsernameAvailabilityFieldProps) => {
   const searchParams = useSearchParams();
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
-  const [currentUsernameState, setCurrentUsernameState] = useState(
-    user.username || ""
-  );
-  const { username: usernameFromQuery, setQuery: setUsernameFromQuery } =
-    useRouterQuery("username");
+  const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
+  const { username: usernameFromQuery, setQuery: setUsernameFromQuery } = useRouterQuery("username");
   const { username: currentUsername, setQuery: setCurrentUsername } =
     searchParams?.get("username") && user.username === null
       ? { username: usernameFromQuery, setQuery: setUsernameFromQuery }
-      : {
-          username: currentUsernameState || "",
-          setQuery: setCurrentUsernameState,
-        };
+      : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
     defaultValues: {
       username: currentUsername,

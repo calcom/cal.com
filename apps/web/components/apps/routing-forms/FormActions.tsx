@@ -8,10 +8,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
-import {
-  RoutingFormEmbedButton,
-  RoutingFormEmbedDialog,
-} from "@calcom/web/modules/embed/components/RoutingFormEmbed";
+import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/web/modules/embed/components/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,13 +50,8 @@ type RoutingForm = {
   fields?: FormField[];
 };
 
-export type NewFormDialogState = {
-  action: "new" | "duplicate";
-  target: string | null;
-} | null;
-export type SetNewFormDialogState = React.Dispatch<
-  React.SetStateAction<NewFormDialogState>
->;
+export type NewFormDialogState = { action: "new" | "duplicate"; target: string | null } | null;
+export type SetNewFormDialogState = React.Dispatch<React.SetStateAction<NewFormDialogState>>;
 
 function NewFormDialog({
   appUrl,
@@ -100,16 +92,10 @@ function NewFormDialog({
 
   const { register } = hookForm;
   return (
-    <Dialog
-      open={newFormDialogState !== null}
-      onOpenChange={(open) => !open && setNewFormDialogState(null)}
-    >
+    <Dialog open={newFormDialogState !== null} onOpenChange={(open) => !open && setNewFormDialogState(null)}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-1">
-          <h3
-            className="text-emphasis !font-cal text-semibold text-xl font-medium"
-            id="modal-title"
-          >
+          <h3 className="text-emphasis !font-cal text-semibold text-xl font-medium" id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
@@ -128,15 +114,9 @@ function NewFormDialog({
               teamId,
               duplicateFrom: formToDuplicate,
             });
-          }}
-        >
+          }}>
           <div className="mt-3 stack-y-5">
-            <TextField
-              label={t("title")}
-              required
-              placeholder={t("a_routing_form")}
-              {...register("name")}
-            />
+            <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
               <TextAreaField
                 id="description"
@@ -167,11 +147,7 @@ function NewFormDialog({
           </div>
           <DialogFooter showDivider className="mt-12">
             <DialogClose />
-            <Button
-              loading={mutation.isPending}
-              data-testid="add-form"
-              type="submit"
-            >
+            <Button loading={mutation.isPending} data-testid="add-form" type="submit">
               {t("continue")}
             </Button>
           </DialogFooter>
@@ -192,11 +168,7 @@ export const FormActionsDropdown = ({
   return (
     <dropdownCtx.Provider value={{ dropdown: true }}>
       <Dropdown>
-        <DropdownMenuTrigger
-          disabled={disabled}
-          data-testid="form-dropdown"
-          asChild
-        >
+        <DropdownMenuTrigger disabled={disabled} data-testid="form-dropdown" asChild>
           <Button
             type="button"
             variant="icon"
@@ -238,9 +210,7 @@ function Dialogs({
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
-        const filtered = previousValue.filtered.filter(
-          ({ form: { id } }) => id !== formId
-        );
+        const filtered = previousValue.filtered.filter(({ form: { id } }) => id !== formId);
         utils.viewer.appRoutingForms.forms.setData(
           {},
           {
@@ -285,8 +255,7 @@ function Dialogs({
             deleteMutation.mutate({
               id: deleteDialogFormId,
             });
-          }}
-        >
+          }}>
           <ul className="list-disc pl-3">
             <li> {t("delete_form_confirmation")}</li>
             <li> {t("delete_form_confirmation_2")}</li>
@@ -312,10 +281,7 @@ const actionsCtx = createContext({
     isPending: false,
   },
   toggle: {
-    onAction: (_arg: {
-      routingForm: RoutingForm | null;
-      checked: boolean;
-    }) => {},
+    onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
     isPending: false,
   },
 });
@@ -334,9 +300,7 @@ export function FormActionsProvider({
   setNewFormDialogState,
 }: FormActionsProviderProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(
-    null
-  );
+  const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
@@ -344,16 +308,10 @@ export function FormActionsProvider({
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
-        const formIndex = previousValue.filtered.findIndex(
-          ({ form: { id } }) => id === formId
-        );
+        const formIndex = previousValue.filtered.findIndex(({ form: { id } }) => id === formId);
         const previousListOfForms = [...previousValue.filtered];
 
-        if (
-          formIndex !== -1 &&
-          previousListOfForms[formIndex] &&
-          disabled !== undefined
-        ) {
+        if (formIndex !== -1 && previousListOfForms[formIndex] && disabled !== undefined) {
           previousListOfForms[formIndex].form.disabled = disabled;
         }
         utils.viewer.appRoutingForms.forms.setData(
@@ -415,8 +373,7 @@ export function FormActionsProvider({
               },
               isPending: toggleMutation.isPending,
             },
-          }}
-        >
+          }}>
           {children}
         </actionsCtx.Provider>
         <Dialogs
@@ -462,9 +419,7 @@ type FormActionProps<T> = {
   extraClassNames?: string;
 } & ButtonProps;
 
-export const FormAction = forwardRef(function FormAction<
-  T extends typeof Button
->(
+export const FormAction = forwardRef(function FormAction<T extends typeof Button>(
   props: FormActionProps<T>,
   forwardedRef: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
 ) {
@@ -476,31 +431,23 @@ export const FormAction = forwardRef(function FormAction<
     extraClassNames,
     ...additionalProps
   } = props;
-  const { appUrl, _delete, toggle, setNewFormDialogState } =
-    useContext(actionsCtx);
+  const { appUrl, _delete, toggle, setNewFormDialogState } = useContext(actionsCtx);
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
   const orgBranding = useOrgBranding();
 
   const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
-  let redirectUrl = `${orgBranding?.fullDomain ?? WEBSITE_URL}/router?form=${
-    routingForm?.id
-  }`;
+  let redirectUrl = `${orgBranding?.fullDomain ?? WEBSITE_URL}/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
-    redirectUrl += `&${getFieldIdentifier(
-      field
-    )}={Recalled_Response_For_This_Field}`;
+    redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
   });
 
   const { t } = useLocale();
   const actionData: Record<
     FormActionType,
-    ButtonProps & {
-      as?: React.ElementType;
-      render?: FormActionProps<unknown>["render"];
-    }
+    ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
   > = {
     preview: {
       href: formLink,
@@ -512,11 +459,7 @@ export const FormAction = forwardRef(function FormAction<
       },
     },
     duplicate: {
-      onClick: () =>
-        setNewFormDialogState?.({
-          action: "duplicate",
-          target: routingForm?.id ?? null,
-        }),
+      onClick: () => setNewFormDialogState?.({ action: "duplicate", target: routingForm?.id ?? null }),
     },
     embed: {
       as: RoutingFormEmbedButton,
@@ -547,13 +490,7 @@ export const FormAction = forwardRef(function FormAction<
         routingForm?.id
           ? dataTableQueryParamsSerializer({
               activeFilters: [
-                {
-                  f: "formId",
-                  v: {
-                    type: ColumnFilterType.SINGLE_SELECT,
-                    data: routingForm.id,
-                  },
-                },
+                { f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } },
               ],
             })
           : ""
@@ -576,16 +513,13 @@ export const FormAction = forwardRef(function FormAction<
             className={classNames(
               "sm:hover:bg-subtle self-center rounded-md p-2 transition hover:bg-gray-200",
               extraClassNames
-            )}
-          >
+            )}>
             <Switch
               data-testid="toggle-form-switch"
               disabled={!!disabled}
               checked={!routingForm.disabled}
               label={label}
-              onCheckedChange={(checked) =>
-                toggle.onAction({ routingForm, checked })
-              }
+              onCheckedChange={(checked) => toggle.onAction({ routingForm, checked })}
               labelOnLeading
             />
           </div>
@@ -611,11 +545,7 @@ export const FormAction = forwardRef(function FormAction<
   const Component = as || Button;
   if (!dropdown) {
     return (
-      <Component
-        data-testid={`form-action-${actionName}`}
-        ref={forwardedRef}
-        {...actionProps}
-      >
+      <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
         {children}
       </Component>
     );
@@ -629,8 +559,7 @@ export const FormAction = forwardRef(function FormAction<
           props.className,
           "text-default w-full transition-none",
           props.color === "destructive" && "border-0"
-        )}
-      >
+        )}>
         {children}
       </Component>
     </DropdownMenuItem>
