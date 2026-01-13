@@ -29,6 +29,7 @@ interface getEventTypeByIdProps {
   isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
+  userLocale?: string | null;
 }
 
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
@@ -40,6 +41,7 @@ export const getEventTypeById = async ({
   prisma,
   isTrpcCall = false,
   isUserOrganizationAdmin,
+  userLocale,
 }: getEventTypeByIdProps) => {
   const userSelect = {
     name: true,
@@ -187,17 +189,7 @@ export const getEventTypeById = async ({
 
   const currentUser = eventType.users.find((u) => u.id === userId);
 
-  // For team events, the current user might not be in eventType.users, so we need to fetch their locale directly
-  let userLocale = currentUser?.locale;
-  if (!userLocale) {
-    const requestingUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { locale: true },
-    });
-    userLocale = requestingUser?.locale ?? "en";
-  }
-
-  const t = await getTranslation(userLocale, "common");
+  const t = await getTranslation(userLocale ?? currentUser?.locale ?? "en", "common");
 
   if (!currentUser?.id && !eventType.teamId) {
     throw new TRPCError({
