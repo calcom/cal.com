@@ -1,6 +1,6 @@
 "use client";
 
-import { CopyIcon, PlusIcon, UploadIcon } from "lucide-react";
+import { CopyIcon, LinkIcon, PlusIcon, UploadIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -174,7 +174,7 @@ const OrgProfileView = ({
             </div>
             <div className="">
               <LinkIconButton
-                Icon="link"
+                Icon={LinkIcon}
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");

@@ -12,6 +12,8 @@ import {
   GitMergeIcon,
   LinkIcon,
   MailIcon,
+  MenuIcon,
+  MessageCircleIcon,
   PencilIcon,
   ShuffleIcon,
   TrashIcon,
@@ -328,16 +330,16 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                               </>
                             }>
                             <div className="flex flex-wrap gap-1">
-                              <Badge variant="gray" startIcon="menu">
-                                {fields.length} {fields.length === 1 ? "field" : "fields"}
-                              </Badge>
-                              <Badge variant="gray" startIcon="git-merge">
-                                {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
-                              </Badge>
-                              <Badge variant="gray" startIcon="message-circle">
-                                {form._count.responses}{" "}
-                                {form._count.responses === 1 ? "response" : "responses"}
-                              </Badge>
+                                                            <Badge variant="gray" startIcon={MenuIcon}>
+                                                              {fields.length} {fields.length === 1 ? "field" : "fields"}
+                                                            </Badge>
+                                                            <Badge variant="gray" startIcon={GitMergeIcon}>
+                                                              {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
+                                                            </Badge>
+                                                            <Badge variant="gray" startIcon={MessageCircleIcon}>
+                                                              {form._count.responses}{" "}
+                                                              {form._count.responses === 1 ? "response" : "responses"}
+                                                            </Badge>
                             </div>
                           </ListLinkItem>
                         </div>

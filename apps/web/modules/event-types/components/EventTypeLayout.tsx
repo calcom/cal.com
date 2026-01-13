@@ -1,4 +1,4 @@
-import { CodeIcon, EllipsisIcon, ExternalLinkIcon, LinkIcon, LoaderIcon, TrashIcon } from "lucide-react";
+import { CodeIcon, EllipsisIcon, ExternalLinkIcon, LinkIcon, LoaderIcon, TrashIcon, UsersIcon } from "lucide-react";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -105,7 +105,7 @@ function EventTypeSingleLayout({
         <div className="flex min-w-0 items-center">
           <span className="min-w-0 truncate">{eventType.title}</span>
           {eventType.team && (
-            <Badge className="ml-2 text-xs" variant="gray" startIcon="users">
+            <Badge className="ml-2 text-xs" variant="gray" startIcon={UsersIcon}>
               {eventType.team.name}
             </Badge>
           )}
