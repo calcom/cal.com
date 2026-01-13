@@ -11,13 +11,11 @@ import { type NavigationItemType } from "./navigation/NavigationItem";
 
 type BottomNavItemsProps = {
   publicPageUrl: string;
-  isAdmin: boolean;
   user: UserAuth | null | undefined;
 };
 
 export function useBottomNavItems({
   publicPageUrl,
-  isAdmin,
   user,
 }: BottomNavItemsProps): NavigationItemType[] {
   const { t } = useLocale();
@@ -72,14 +70,6 @@ export function useBottomNavItems({
           onClick: () => {
             posthog.capture("refer_and_earn_clicked");
           },
-        }
-      : null,
-
-    isAdmin
-      ? {
-          name: "impersonation",
-          href: "/settings/admin/impersonation",
-          icon: "lock",
         }
       : null,
     {

@@ -10,13 +10,18 @@ import {
   useMatches,
   useRegisterActions,
 } from "kbar";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
+import { getRecentImpersonations, addRecentImpersonation } from "@calcom/lib/recentImpersonations";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -64,7 +69,6 @@ const KBAR_ACTION_CONFIGS: ActionConfig[] = [
   { id: "teams", name: "teams", shortcut: ["t", "s"], keywords: "add manage modify team", href: "/settings/teams" },
   { id: "password", name: "change_password", section: "security", shortcut: ["c", "p"], keywords: "change modify password", href: "/settings/security/password" },
   { id: "two-factor", name: "two_factor_auth", section: "security", shortcut: ["t", "f", "a"], keywords: "two factor authentication", href: "/settings/security/two-factor-auth" },
-  { id: "impersonation", name: "user_impersonation_heading", section: "security", shortcut: ["u", "i"], keywords: "user impersonation", href: "/settings/security/impersonation" },
   { id: "license", name: "choose_a_license", section: "admin", shortcut: ["u", "l"], keywords: "license", href: "/auth/setup?step=1" },
   { id: "webhooks", name: "Webhooks", section: "developer", shortcut: ["w", "h"], keywords: "webhook automation", href: "/settings/developer/webhooks" },
   { id: "api-keys", name: "api_keys", section: "developer", shortcut: ["a", "p", "i"], keywords: "api keys", href: "/settings/developer/api-keys" },
@@ -124,6 +128,96 @@ function useEventTypesAction(): void {
   useRegisterActions(actions);
 }
 
+function useImpersonationActions(): void {
+  const session = useSession();
+  const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
+  const { t } = useLocale();
+
+  // Get current KBar state to detect when impersonation is active
+  const { searchQuery, currentRootActionId } = useKBar((state) => ({
+    searchQuery: state.searchQuery,
+    currentRootActionId: state.currentRootActionId,
+  }));
+
+  const isImpersonationActive = currentRootActionId === "impersonation-search";
+  const debouncedSearch = useDebounce(isImpersonationActive ? searchQuery : "", 300);
+
+  // Fetch users only when actively searching
+  const { data, isFetching } = trpc.viewer.admin.listPaginated.useQuery(
+    { limit: 10, searchTerm: debouncedSearch || undefined },
+    {
+      enabled: isAdmin && isImpersonationActive && debouncedSearch.length > 0,
+      staleTime: 30000,
+    }
+  );
+
+  // Get recent impersonations for quick access
+  const [recentImpersonations] = useState(() => getRecentImpersonations());
+
+  const handleImpersonate = useCallback((username: string) => {
+    addRecentImpersonation(username);
+    signIn("impersonation-auth", {
+      username: username.toLowerCase(),
+      callbackUrl: `${WEBAPP_URL}/event-types`,
+    });
+  }, []);
+
+  // Build actions based on current state
+  const actions: Action[] = useMemo(() => {
+    if (!isAdmin) return [];
+
+    const result: Action[] = [
+      {
+        id: "impersonation-search",
+        name: t("user_impersonation_heading"),
+        shortcut: ["i", "m"],
+        keywords: "impersonate user admin",
+        section: "Admin",
+      },
+    ];
+
+    if (!isImpersonationActive) return result;
+
+    // Show search results when searching
+    if (debouncedSearch && data?.rows?.length) {
+      result.push(
+        ...data.rows.map((user) => ({
+          id: `impersonate-${user.id}`,
+          name: user.username || user.email,
+          subtitle: user.email,
+          parent: "impersonation-search",
+          perform: () => handleImpersonate(user.username || user.email),
+        }))
+      );
+    }
+    // Show recent impersonations when not searching
+    else if (!debouncedSearch && recentImpersonations.length > 0) {
+      result.push(
+        ...recentImpersonations.map((item, i) => ({
+          id: `recent-${i}`,
+          name: item.username,
+          subtitle: t("recent"),
+          parent: "impersonation-search",
+          perform: () => handleImpersonate(item.username),
+        }))
+      );
+    }
+
+    // Show loading state
+    if (isFetching) {
+      result.push({
+        id: "loading",
+        name: t("searching"),
+        parent: "impersonation-search",
+      });
+    }
+
+    return result;
+  }, [isAdmin, isImpersonationActive, debouncedSearch, data, recentImpersonations, isFetching, t, handleImpersonate]);
+
+  useRegisterActions(actions, [actions]);
+}
+
 const KBarRoot = ({ children }: { children: ReactNode }): JSX.Element => {
   const router = useRouter();
   const actions = useMemo(() => buildKbarActions(router.push), [router.push]);
@@ -141,6 +235,7 @@ function CommandKey(): JSX.Element {
 const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
   useEventTypesAction();
+  useImpersonationActions();
 
   return (
     <KBarPortal>
