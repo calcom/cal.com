@@ -163,10 +163,7 @@ function UserListTableContent({
   facetedTeamValues,
   permissions,
 }: UserListTableProps): JSX.Element {
-  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState(
-    "dynamicLink",
-    parseAsBoolean
-  );
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
   const { t } = useLocale();
@@ -239,8 +236,7 @@ function UserListTableContent({
             },
             size: 120,
             accessorFn: (data: UserTableUser) =>
-              data.attributes?.find((attr) => attr.attributeId === attribute.id)
-                ?.value,
+              data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
             cell: ({ row }: CellContext<UserTableUser, unknown>) => {
               const attributeValues = row.original.attributes?.filter(
                 (attr) => attr.attributeId === attribute.id
@@ -295,18 +291,14 @@ function UserListTableContent({
         header: ({ table }: HeaderContext<UserTableUser, unknown>) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value: boolean | "indeterminate") =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
+            onCheckedChange={(value: boolean | "indeterminate") => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
           />
         ),
         cell: ({ row }: CellContext<UserTableUser, unknown>) => (
           <Checkbox
             checked={row.getIsSelected()}
-            onCheckedChange={(value: boolean | "indeterminate") =>
-              row.toggleSelected(!!value)
-            }
+            onCheckedChange={(value: boolean | "indeterminate") => row.toggleSelected(!!value)}
             aria-label="Select row"
             className="translate-y-[2px]"
           />
@@ -379,8 +371,7 @@ function UserListTableContent({
       },
       {
         id: "teams",
-        accessorFn: (data: UserTableUser) =>
-          data.teams.map((team) => team.name),
+        accessorFn: (data: UserTableUser) => data.teams.map((team) => team.name),
         header: t("teams"),
         size: 140,
         meta: {
@@ -430,9 +421,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }: CellContext<UserTableUser, unknown>) => (
-          <div>{row.original.lastActiveAt}</div>
-        ),
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "createdAt",
@@ -445,9 +434,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }: CellContext<UserTableUser, unknown>) => (
-          <div>{row.original.createdAt || ""}</div>
-        ),
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.createdAt || ""}</div>,
       },
       {
         id: "updatedAt",
@@ -460,9 +447,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }: CellContext<UserTableUser, unknown>) => (
-          <div>{row.original.updatedAt || ""}</div>
-        ),
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
         id: "completedOnboarding",
@@ -546,15 +531,7 @@ function UserListTableContent({
     ];
 
     return cols;
-  }, [
-    session?.user.id,
-    adminOrOwner,
-    domain,
-    attributes,
-    org?.canAdminImpersonate,
-    permissions,
-    t,
-  ]);
+  }, [session?.user.id, adminOrOwner, domain, attributes, org?.canAdminImpersonate, permissions, t]);
 
   const table = useReactTable({
     data: flatData,
@@ -578,42 +555,41 @@ function UserListTableContent({
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row: UserTableUser) => `${row.id}`,
-    getFacetedUniqueValues:
-      (_: unknown, columnId: string) => (): Map<FacetedValue, number> => {
-        if (facetedTeamValues) {
-          switch (columnId) {
-            case "role":
+    getFacetedUniqueValues: (_: unknown, columnId: string) => (): Map<FacetedValue, number> => {
+      if (facetedTeamValues) {
+        switch (columnId) {
+          case "role":
+            return convertFacetedValuesToMap(
+              facetedTeamValues.roles.map((role) => ({
+                label: role.name,
+                value: role.id,
+              }))
+            );
+          case "teams":
+            return convertFacetedValuesToMap(
+              facetedTeamValues.teams.map((team) => ({
+                label: team.name,
+                value: team.name,
+              }))
+            );
+          default: {
+            const attribute = facetedTeamValues.attributes.find(
+              (attr) => attr.id === columnId
+            );
+            if (attribute) {
               return convertFacetedValuesToMap(
-                facetedTeamValues.roles.map((role) => ({
-                  label: role.name,
-                  value: role.id,
-                }))
+                attribute?.options.map(({ value }) => ({
+                  label: value,
+                  value,
+                })) ?? []
               );
-            case "teams":
-              return convertFacetedValuesToMap(
-                facetedTeamValues.teams.map((team) => ({
-                  label: team.name,
-                  value: team.name,
-                }))
-              );
-            default: {
-              const attribute = facetedTeamValues.attributes.find(
-                (attr) => attr.id === columnId
-              );
-              if (attribute) {
-                return convertFacetedValuesToMap(
-                  attribute?.options.map(({ value }) => ({
-                    label: value,
-                    value,
-                  })) ?? []
-                );
-              }
-              return new Map();
             }
+            return new Map();
           }
         }
-        return new Map();
-      },
+      }
+      return new Map();
+    },
   });
 
   const utils = trpc.useUtils();
