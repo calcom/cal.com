@@ -2,7 +2,7 @@ import type { MutableRefObject } from "react";
 import { forwardRef } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
-import { useEmbedBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
+import { useEmbedBookerUrl } from "@calcom/web/modules/bookings/hooks/useBookerUrl";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui/components/form";
@@ -11,7 +11,10 @@ import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes } from "./EmbedCodes";
 import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
-import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
+import {
+  getApiNameForReactSnippet,
+  getApiNameForVanillaJsSnippet,
+} from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
 
@@ -30,7 +33,12 @@ export const tabs = [
     "data-testid": "HTML",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
+      {
+        embedType: EmbedType;
+        calLink: string;
+        previewState: PreviewState;
+        namespace: string;
+      }
     >(function EmbedHtml({ embedType, calLink, previewState, namespace }, ref) {
       const { t } = useLocale();
       const embedSnippetString = useGetEmbedSnippetString(namespace);
@@ -57,7 +65,9 @@ export const tabs = [
             readOnly
             value={`<!-- Cal ${embedType} embed code begins -->\n${
               embedType === "inline"
-                ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
+                ? `<div style="width:${getDimension(
+                    previewState.inline.width
+                  )};height:${getDimension(
                     previewState.inline.height
                   )};overflow:scroll" id="my-cal-inline-${namespace}"></div>\n`
                 : ""
@@ -74,7 +84,9 @@ export const tabs = [
   </script>
   <!-- Cal ${embedType} embed code ends -->`}
           />
-          <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
+          <p className="text-subtle hidden text-sm">
+            {t("need_help_embedding")}
+          </p>
         </>
       );
     }),
@@ -87,8 +99,16 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReact({ embedType, calLink, previewState, namespace }, ref) {
+      {
+        embedType: EmbedType;
+        calLink: string;
+        previewState: PreviewState;
+        namespace: string;
+      }
+    >(function EmbedReact(
+      { embedType, calLink, previewState, namespace },
+      ref
+    ) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
@@ -100,7 +120,9 @@ export const tabs = [
       }
       return (
         <>
-          <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
+          <small className="text-subtle flex py-2">
+            {t("create_update_react_component")}
+          </small>
           <TextArea
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
@@ -137,8 +159,16 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReactAtom({ embedType, calLink, previewState, namespace }, ref) {
+      {
+        embedType: EmbedType;
+        calLink: string;
+        previewState: PreviewState;
+        namespace: string;
+      }
+    >(function EmbedReactAtom(
+      { embedType, calLink, previewState, namespace },
+      ref
+    ) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
@@ -150,7 +180,9 @@ export const tabs = [
       }
       return (
         <>
-          <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
+          <small className="text-subtle flex py-2">
+            {t("create_update_react_component")}
+          </small>
           <TextArea
             data-testid={`${EmbedTabName.ATOM_REACT}`}
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
@@ -186,7 +218,12 @@ ${getEmbedTypeSpecificString({
     "data-testid": "Preview",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
+      {
+        calLink: string;
+        embedType: EmbedType;
+        previewState: PreviewState;
+        namespace: string;
+      }
     >(function Preview({ calLink, embedType }, ref) {
       const bookerUrl = useEmbedBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
@@ -258,7 +295,9 @@ const getEmbedTypeSpecificString = ({
     };
   }
   if (!frameworkCodes[embedType]) {
-    throw new Error(`Code not available for framework:${embedFramework} and embedType:${embedType}`);
+    throw new Error(
+      `Code not available for framework:${embedFramework} and embedType:${embedType}`
+    );
   }
 
   const codeGeneratorInput = {

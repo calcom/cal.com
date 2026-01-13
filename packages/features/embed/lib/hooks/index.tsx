@@ -1,4 +1,4 @@
-import { useEmbedBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
+import { useEmbedBookerUrl } from "@calcom/web/modules/bookings/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export const useEmbedTypes = () => {
@@ -15,14 +15,30 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
             fill="white"
           />
           <rect x="24" width="260" height="38.5" rx="6" fill="#F3F4F6" />
-          <rect x="24.5" y="51" width="139" height="163" rx="1.5" fill="#F8F8F8" />
-          <rect opacity="0.8" x="48" y="74.5" width="80" height="8" rx="6" fill="#F3F4F6" />
+          <rect
+            x="24.5"
+            y="51"
+            width="139"
+            height="163"
+            rx="1.5"
+            fill="#F8F8F8"
+          />
+          <rect
+            opacity="0.8"
+            x="48"
+            y="74.5"
+            width="80"
+            height="8"
+            rx="6"
+            fill="#F3F4F6"
+          />
           <rect x="48" y="86.5" width="48" height="4" rx="6" fill="#F3F4F6" />
           <rect x="49" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
           <rect x="61" y="99.5" width="6" height="6" rx="1" fill="#3E3E3E" />
@@ -71,9 +87,30 @@ export const useEmbedTypes = () => {
           <rect x="85" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
           <rect x="97" y="161.5" width="6" height="6" rx="1" fill="#3E3E3E" />
           <rect x="109" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-          <rect x="24.5" y="51" width="139" height="163" rx="6" stroke="#292929" />
-          <rect x="176" y="50.5" width="108" height="164" rx="6" fill="#F3F4F6" />
-          <rect x="24" y="226.5" width="260" height="38.5" rx="6" fill="#F3F4F6" />
+          <rect
+            x="24.5"
+            y="51"
+            width="139"
+            height="163"
+            rx="6"
+            stroke="#292929"
+          />
+          <rect
+            x="176"
+            y="50.5"
+            width="108"
+            height="164"
+            rx="6"
+            fill="#F3F4F6"
+          />
+          <rect
+            x="24"
+            y="226.5"
+            width="260"
+            height="38.5"
+            rx="6"
+            fill="#F3F4F6"
+          />
         </svg>
       ),
     },
@@ -88,17 +125,46 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
             fill="white"
           />
           <rect x="24" width="260" height="38.5" rx="6" fill="#F3F4F6" />
           <rect x="24" y="50.5" width="120" height="76" rx="6" fill="#F3F4F6" />
-          <rect x="24" y="138.5" width="120" height="76" rx="6" fill="#F3F4F6" />
-          <rect x="156" y="50.5" width="128" height="164" rx="6" fill="#F3F4F6" />
-          <rect x="24" y="226.5" width="260" height="38.5" rx="6" fill="#F3F4F6" />
-          <rect x="226" y="223.5" width="66" height="26" rx="6" fill="#292929" />
+          <rect
+            x="24"
+            y="138.5"
+            width="120"
+            height="76"
+            rx="6"
+            fill="#F3F4F6"
+          />
+          <rect
+            x="156"
+            y="50.5"
+            width="128"
+            height="164"
+            rx="6"
+            fill="#F3F4F6"
+          />
+          <rect
+            x="24"
+            y="226.5"
+            width="260"
+            height="38.5"
+            rx="6"
+            fill="#F3F4F6"
+          />
+          <rect
+            x="226"
+            y="223.5"
+            width="66"
+            height="26"
+            rx="6"
+            fill="#292929"
+          />
           <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
         </svg>
       ),
@@ -114,15 +180,38 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
             fill="white"
           />
-          <rect x="24" y="0.50293" width="260" height="24" rx="6" fill="#F3F4F6" />
-          <rect x="24" y="35" width="259" height="192" rx="5.5" fill="#F9FAFB" />
+          <rect
+            x="24"
+            y="0.50293"
+            width="260"
+            height="24"
+            rx="6"
+            fill="#F3F4F6"
+          />
+          <rect
+            x="24"
+            y="35"
+            width="259"
+            height="192"
+            rx="5.5"
+            fill="#F9FAFB"
+          />
           <g filter="url(#filter0_i_3223_14162)">
-            <rect opacity="0.8" x="40" y="99" width="24" height="24" rx="2" fill="#E5E7EB" />
+            <rect
+              opacity="0.8"
+              x="40"
+              y="99"
+              width="24"
+              height="24"
+              rx="2"
+              fill="#E5E7EB"
+            />
             <rect x="40" y="127" width="48" height="8" rx="1" fill="#E5E7EB" />
             <rect x="40" y="139" width="82" height="8" rx="1" fill="#E5E7EB" />
             <rect x="40" y="151" width="34" height="4" rx="1" fill="#E5E7EB" />
@@ -130,7 +219,15 @@ export const useEmbedTypes = () => {
           </g>
           <rect x="152" y="48" width="2" height="169" rx="2" fill="#E5E7EB" />
 
-          <rect opacity="0.8" x="176" y="84" width="80" height="8" rx="2" fill="#E5E7EB" />
+          <rect
+            opacity="0.8"
+            x="176"
+            y="84"
+            width="80"
+            height="8"
+            rx="2"
+            fill="#E5E7EB"
+          />
           <rect x="176" y="96" width="48" height="4" rx="1" fill="#E5E7EB" />
           <rect x="177" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
           <rect x="189" y="109" width="6" height="6" rx="1" fill="#0D121D" />
@@ -147,7 +244,14 @@ export const useEmbedTypes = () => {
           <rect x="261" y="123" width="6" height="6" rx="1" fill="#E5E7EB" />
           <rect x="177" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
           <rect x="189" y="135" width="6" height="6" rx="1" fill="#0D121D" />
-          <rect x="187.3" y="133.4" width="9" height="9" rx="1.5" stroke="#0D121D" />
+          <rect
+            x="187.3"
+            y="133.4"
+            width="9"
+            height="9"
+            rx="1.5"
+            stroke="#0D121D"
+          />
           <rect x="201" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
           <rect x="213" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
           <rect x="225" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
@@ -176,8 +280,22 @@ export const useEmbedTypes = () => {
           <rect x="213" y="171" width="6" height="6" rx="1" fill="#E5E7EB" />
           <rect x="225" y="171" width="6" height="6" rx="1" fill="#0D121D" />
           <rect x="237" y="171" width="6" height="6" rx="1" fill="#E5E7EB" />
-          <rect x="24" y="35" width="259" height="192" rx="5.5" stroke="#101010" />
-          <rect x="24" y="241.503" width="260" height="24" rx="6" fill="#F3F4F6" />
+          <rect
+            x="24"
+            y="35"
+            width="259"
+            height="192"
+            rx="5.5"
+            stroke="#101010"
+          />
+          <rect
+            x="24"
+            y="241.503"
+            width="260"
+            height="24"
+            rx="6"
+            fill="#F3F4F6"
+          />
         </svg>
       ),
     },
@@ -192,7 +310,8 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <g clip-path="url(#clip0_457_1339)">
             <rect width="308" height="265" rx="8" fill="white" />
             <rect width="308" height="18" rx="4" fill="#F3F4F6" />
@@ -210,7 +329,14 @@ export const useEmbedTypes = () => {
             <rect y="228" width="308" height="18" rx="4" fill="#F3F4F6" />
             <rect y="247" width="308" height="18" rx="4" fill="#F3F4F6" />
             <g clip-path="url(#clip1_457_1339)">
-              <rect x="107" y="64" width="189" height="189" rx="6" fill="white" />
+              <rect
+                x="107"
+                y="64"
+                width="189"
+                height="189"
+                rx="6"
+                fill="white"
+              />
               <g clip-path="url(#clip2_457_1339)">
                 <path
                   d="M124.671 75.5243C124.671 75.1018 124.325 74.756 123.902 74.756H117.756C117.334 74.756 116.988 75.1018 116.988 75.5243M124.671 75.5243V80.1341C124.671 80.5567 124.325 80.9024 123.902 80.9024H117.756C117.334 80.9024 116.988 80.5567 116.988 80.1341V75.5243M124.671 75.5243L120.829 78.2134L116.988 75.5243"
@@ -220,8 +346,22 @@ export const useEmbedTypes = () => {
                   stroke-linejoin="round"
                 />
               </g>
-              <rect x="130.049" y="75.5244" width="92.1951" height="4.60976" rx="2.30488" fill="#D1D5DB" />
-              <rect x="130.049" y="84.7439" width="55.3171" height="4.60976" rx="2.30488" fill="#E5E7EB" />
+              <rect
+                x="130.049"
+                y="75.5244"
+                width="92.1951"
+                height="4.60976"
+                rx="2.30488"
+                fill="#D1D5DB"
+              />
+              <rect
+                x="130.049"
+                y="84.7439"
+                width="55.3171"
+                height="4.60976"
+                rx="2.30488"
+                fill="#E5E7EB"
+              />
               <rect
                 opacity="0.8"
                 x="107"
@@ -231,26 +371,166 @@ export const useEmbedTypes = () => {
                 rx="0.576219"
                 fill="#E5E7EB"
               />
-              <rect x="116.219" y="113.555" width="92.1951" height="4.60976" rx="2.30488" fill="#D1D5DB" />
-              <rect x="116.219" y="122.774" width="42.6402" height="4.60976" rx="2.30488" fill="#E5E7EB" />
-              <rect x="116.219" y="136.604" width="55.3171" height="4.60976" rx="2.30488" fill="#D1D5DB" />
-              <rect x="116.719" y="145.171" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="142.073" y="145.171" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="167.427" y="145.171" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="192.781" y="145.171" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="218.134" y="145.171" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="116.219" y="160.805" width="55.3171" height="4.60976" rx="2.30488" fill="#D1D5DB" />
-              <rect x="116.719" y="169.372" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="142.073" y="169.372" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="167.427" y="169.372" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="192.781" y="169.372" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="218.134" y="169.372" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="116.219" y="185.006" width="55.3171" height="4.60976" rx="2.30488" fill="#D1D5DB" />
-              <rect x="116.719" y="193.573" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="142.073" y="193.573" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="167.427" y="193.573" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="192.781" y="193.573" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
-              <rect x="218.134" y="193.573" width="22.0488" height="5.91463" rx="2.95732" stroke="#9CA3AF" />
+              <rect
+                x="116.219"
+                y="113.555"
+                width="92.1951"
+                height="4.60976"
+                rx="2.30488"
+                fill="#D1D5DB"
+              />
+              <rect
+                x="116.219"
+                y="122.774"
+                width="42.6402"
+                height="4.60976"
+                rx="2.30488"
+                fill="#E5E7EB"
+              />
+              <rect
+                x="116.219"
+                y="136.604"
+                width="55.3171"
+                height="4.60976"
+                rx="2.30488"
+                fill="#D1D5DB"
+              />
+              <rect
+                x="116.719"
+                y="145.171"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="142.073"
+                y="145.171"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="167.427"
+                y="145.171"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="192.781"
+                y="145.171"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="218.134"
+                y="145.171"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="116.219"
+                y="160.805"
+                width="55.3171"
+                height="4.60976"
+                rx="2.30488"
+                fill="#D1D5DB"
+              />
+              <rect
+                x="116.719"
+                y="169.372"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="142.073"
+                y="169.372"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="167.427"
+                y="169.372"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="192.781"
+                y="169.372"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="218.134"
+                y="169.372"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="116.219"
+                y="185.006"
+                width="55.3171"
+                height="4.60976"
+                rx="2.30488"
+                fill="#D1D5DB"
+              />
+              <rect
+                x="116.719"
+                y="193.573"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="142.073"
+                y="193.573"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="167.427"
+                y="193.573"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="192.781"
+                y="193.573"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
+              <rect
+                x="218.134"
+                y="193.573"
+                width="22.0488"
+                height="5.91463"
+                rx="2.95732"
+                stroke="#9CA3AF"
+              />
               <rect
                 opacity="0.8"
                 x="107"
@@ -260,8 +540,20 @@ export const useEmbedTypes = () => {
                 rx="0.576219"
                 fill="#E5E7EB"
               />
-              <rect width="189" height="28.811" transform="translate(107 224.189)" fill="#F9FAFB" />
-              <rect x="116.219" y="233.985" width="23.0488" height="9.21951" rx="2.30488" fill="#9CA3AF" />
+              <rect
+                width="189"
+                height="28.811"
+                transform="translate(107 224.189)"
+                fill="#F9FAFB"
+              />
+              <rect
+                x="116.219"
+                y="233.985"
+                width="23.0488"
+                height="9.21951"
+                rx="2.30488"
+                fill="#9CA3AF"
+              />
               <rect
                 opacity="0.8"
                 x="141.573"
@@ -300,16 +592,35 @@ export const useEmbedTypes = () => {
               stroke-width="1.15244"
             />
           </g>
-          <rect x="0.5" y="0.5" width="307" height="264" rx="7.5" stroke="#E5E7EB" />
+          <rect
+            x="0.5"
+            y="0.5"
+            width="307"
+            height="264"
+            rx="7.5"
+            stroke="#E5E7EB"
+          />
           <defs>
             <clipPath id="clip0_457_1339">
               <rect width="308" height="265" rx="8" fill="white" />
             </clipPath>
             <clipPath id="clip1_457_1339">
-              <rect x="107" y="64" width="189" height="189" rx="6" fill="white" />
+              <rect
+                x="107"
+                y="64"
+                width="189"
+                height="189"
+                rx="6"
+                fill="white"
+              />
             </clipPath>
             <clipPath id="clip2_457_1339">
-              <rect width="9.21951" height="9.21951" fill="white" transform="translate(116.219 73.2195)" />
+              <rect
+                width="9.21951"
+                height="9.21951"
+                fill="white"
+                transform="translate(116.219 73.2195)"
+              />
             </clipPath>
           </defs>
         </svg>
