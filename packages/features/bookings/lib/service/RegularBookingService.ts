@@ -1341,13 +1341,11 @@ async function handler(
         locationBodyString = hostLocation.address || hostLocation.type;
         tracingLogger.info("Using per-host in-person location", {
           userId: organizerUser.id,
-          address: hostLocation.address,
         });
       } else if (hostLocation.type === "userPhone") {
         locationBodyString = hostLocation.phoneNumber || hostLocation.type;
         tracingLogger.info("Using per-host organizer phone location", {
           userId: organizerUser.id,
-          phoneNumber: hostLocation.phoneNumber,
         });
       } else if (hostLocation.type === "attendeeInPerson" || hostLocation.type === "phone") {
         locationBodyString = hostLocation.type;

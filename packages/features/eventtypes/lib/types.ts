@@ -31,7 +31,7 @@ export type HostLocation = {
   id?: number;
   userId: number;
   eventTypeId: number;
-  type: string;
+  type: EventLocationType["type"];
   credentialId?: number | null;
   link?: string | null;
   address?: string | null;
