@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/validations/membership";
 
@@ -25,7 +25,10 @@ import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/valida
 async function postHandler(req: NextApiRequest) {
   const data = membershipCreateBodySchema.parse(req.body);
   const args: Prisma.MembershipCreateArgs = {
-    data,
+    data: {
+      ...data,
+      bookingLimits: data.bookingLimits === null ? Prisma.JsonNull : data.bookingLimits,
+    },
   };
 
   await checkPermissions(req);
