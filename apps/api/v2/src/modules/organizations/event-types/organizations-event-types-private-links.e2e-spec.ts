@@ -1,5 +1,17 @@
-import { bootstrap } from "@/bootstrap";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { CreatePrivateLinkInput } from "@calcom/platform-types";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -8,19 +20,6 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { CreatePrivateLinkInput } from "@calcom/platform-types";
 
 describe("Organizations / Teams / Event Types / Private Links Endpoints", () => {
   let app: INestApplication;

@@ -88,7 +88,7 @@ export default function AvailabilityDetail() {
                       marginRight: -8,
                     }}
                   >
-                    <Ionicons name="ellipsis-horizontal-circle" size={24} color="#007AFF" />
+                    <Ionicons name="ellipsis-horizontal-circle" size={24} color="#000000" />
                   </TouchableOpacity>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
