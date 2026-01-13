@@ -1060,7 +1060,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
+    ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
     page
   );
 
@@ -1083,7 +1083,7 @@ async function addAllTypesOfFieldsAndSaveForm(
       identifier = "firstField";
     }
 
-    if (fieldTypeLabel === "Multiple Selection" || fieldTypeLabel === "Single Selection") {
+    if (fieldTypeLabel === "Multiple choice selection" || fieldTypeLabel === "Single-choice selection") {
       await page.fill(`[data-testid="fields.${nth}.options.0-input"]`, "123");
       await page.fill(`[data-testid="fields.${nth}.options.1-input"]`, "456");
       await page.fill(`[data-testid="fields.${nth}.options.2-input"]`, "789");
