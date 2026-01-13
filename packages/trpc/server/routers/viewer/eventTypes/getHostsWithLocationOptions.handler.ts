@@ -75,7 +75,6 @@ export const getHostsWithLocationOptionsHandler = async ({
   const hosts = await ctx.prisma.host.findMany({
     where: {
       eventTypeId,
-      isFixed: false,
     },
     select: {
       userId: true,
@@ -125,6 +124,8 @@ export const getHostsWithLocationOptionsHandler = async ({
     users: usersForEnrichment,
   });
 
+  const appMetadataBySlug = new Map(Object.values(appStoreMetadata).map((app) => [app.slug, app]));
+
   return hosts.map((host, index) => ({
     userId: host.userId,
     name: host.user.name,
@@ -133,9 +134,7 @@ export const getHostsWithLocationOptionsHandler = async ({
     defaultConferencingApp: userMetadata.parse(host.user.metadata)?.defaultConferencingApp ?? null,
     location: host.location,
     installedApps: enrichedUsers[index].credentials.map((cred) => {
-      const appMeta = cred.appId
-        ? Object.values(appStoreMetadata).find((app) => app.slug === cred.appId)
-        : null;
+      const appMeta = cred.appId ? appMetadataBySlug.get(cred.appId) : null;
       const locationData = appMeta?.appData?.location;
 
       return {

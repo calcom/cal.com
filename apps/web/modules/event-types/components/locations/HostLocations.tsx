@@ -318,17 +318,6 @@ const HostLocationRow = ({
     return hostData.installedApps.some((app) => app.appId === appSlug || app.type === currentLocation.type);
   }, [currentLocation, hostData]);
 
-  const matchingCredential = useMemo(() => {
-    if (!currentLocation?.type || !hostData) return null;
-    if (isStaticLocationType(currentLocation.type)) return null;
-    if (isCalVideo(currentLocation.type)) return null;
-
-    const appSlug = getAppSlugFromLocationType(currentLocation.type);
-    if (!appSlug) return null;
-
-    return hostData.installedApps.find((app) => app.appId === appSlug || app.type === currentLocation.type);
-  }, [currentLocation, hostData]);
-
   const displayName = hostData?.name || `User ${host.userId}`;
   const avatarUrl = hostData?.avatarUrl || "";
 
@@ -400,6 +389,12 @@ const HostLocationRow = ({
           {hostData?.email && <div className="text-subtle truncate text-xs">{hostData.email}</div>}
         </div>
         <div className="flex items-center gap-2">
+          {currentLocation && !hasAppInstalled && (
+            <Badge variant="orange" className="whitespace-nowrap">
+              <Icon name="triangle-alert" className="mr-1 h-3 w-3" />
+              {t("app_not_installed")}
+            </Badge>
+          )}
           <LocationSelect
             placeholder={t("select_location")}
             options={locationOptions}
@@ -410,16 +405,7 @@ const HostLocationRow = ({
             onChange={handleLocationSelect}
           />
           {hasOrganizerInput && currentLocation && (
-            <Button color="secondary" type="button" StartIcon="pencil" onClick={handleEditClick} />
-          )}
-          {currentLocation && !hasAppInstalled && (
-            <Badge variant="orange" className="whitespace-nowrap">
-              <Icon name="alert" className="mr-1 h-3 w-3" />
-              {t("app_not_installed")}
-            </Badge>
-          )}
-          {currentLocation && hasAppInstalled && matchingCredential && (
-            <Icon name="check" className="text-success h-4 w-4" />
+            <Button color="minimal" type="button" StartIcon="pencil" onClick={handleEditClick} />
           )}
         </div>
       </div>
@@ -481,7 +467,6 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
 
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
   const hosts = formMethods.watch("hosts");
-  const roundRobinHosts = hosts.filter((h) => !h.isFixed);
 
   const { data: hostsWithApps, isLoading } = trpc.viewer.eventTypes.getHostsWithLocationOptions.useQuery(
     { eventTypeId },
@@ -561,7 +546,6 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
     const eventLocationType = getEventLocationType(locationType);
 
     const updatedHosts = hosts.map((host) => {
-      if (host.isFixed) return host;
       const hostData = hostDataMap.get(host.userId);
       const credential = hostData?.installedApps.find(
         (app) => app.appId === getAppSlugFromLocationType(locationType) || app.type === locationType
@@ -614,7 +598,7 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
     setPendingMassApplyOption(null);
   };
 
-  if (roundRobinHosts.length === 0) {
+  if (hosts.length === 0) {
     return null;
   }
 
@@ -651,7 +635,7 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
                   <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
                 </div>
               ) : (
-                roundRobinHosts.map((host) => (
+                hosts.map((host) => (
                   <HostLocationRow
                     key={host.userId}
                     host={host}

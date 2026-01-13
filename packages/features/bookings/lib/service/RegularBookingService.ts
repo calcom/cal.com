@@ -13,7 +13,9 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { HostLocationRepository } from "@calcom/features/host/repositories/HostLocationRepository";
 import {
   eventTypeMetaDataSchemaWithTypedApps,
   eventTypeAppMetadataOptionalSchema,
@@ -605,9 +607,9 @@ async function handler(
     userId: userId ?? null,
     eventType: eventType
       ? {
-        seatsPerTimeSlot: eventType.seatsPerTimeSlot,
-        minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
-      }
+          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+          minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+        }
       : null,
   });
 
@@ -1259,7 +1261,7 @@ async function handler(
 
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
-    ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
+    ? (users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0])
     : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
@@ -1278,6 +1280,9 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
+  // Track credential ID for per-host locations
+  let perHostCredentialId: number | undefined = undefined;
+
   // Handle per-host custom locations for round-robin events
   if (
     eventType.enablePerHostLocations &&
@@ -1291,6 +1296,7 @@ async function handler(
       if (hostLocation.credentialId) {
         // Use host's configured location with their credential
         locationBodyString = hostLocation.type;
+        perHostCredentialId = hostLocation.credentialId;
         tracingLogger.info("Using per-host location", {
           userId: organizerUser.id,
           locationType: hostLocation.type,
@@ -1329,12 +1335,45 @@ async function handler(
           locationType: hostLocation.type,
         });
       } else {
-        // Host has a conferencing app location but no credential installed yet - fallback to Cal Video
-        locationBodyString = "integrations:daily";
-        tracingLogger.info("Host location configured but credential not found, falling back to Cal Video", {
-          userId: organizerUser.id,
-          requestedLocationType: hostLocation.type,
-        });
+        // Host has a conferencing app location but no credential - try to find one from allCredentials
+        const appMetaForLocation = Object.values(appStoreMetadata).find(
+          (app) => app.appData?.location?.type === hostLocation.type
+        );
+
+        if (appMetaForLocation) {
+          const matchingCredential = allCredentials.find((cred) => cred.type === appMetaForLocation.type);
+
+          if (matchingCredential) {
+            locationBodyString = hostLocation.type;
+            perHostCredentialId = matchingCredential.id;
+
+            // Link the credential to the HostLocation for future bookings
+            const hostLocationRepository = new HostLocationRepository(deps.prismaClient);
+            await hostLocationRepository.linkCredential({
+              userId: organizerUser.id,
+              eventTypeId: eventType.id,
+              credentialId: matchingCredential.id,
+            });
+
+            tracingLogger.info("Found and linked credential for per-host location", {
+              userId: organizerUser.id,
+              locationType: hostLocation.type,
+              credentialId: matchingCredential.id,
+            });
+          } else {
+            locationBodyString = "integrations:daily";
+            tracingLogger.info("No credential found for per-host location, falling back to Cal Video", {
+              userId: organizerUser.id,
+              requestedLocationType: hostLocation.type,
+            });
+          }
+        } else {
+          locationBodyString = "integrations:daily";
+          tracingLogger.info("Unknown location type, falling back to Cal Video", {
+            userId: organizerUser.id,
+            requestedLocationType: hostLocation.type,
+          });
+        }
       }
     }
   }
@@ -1436,12 +1475,16 @@ async function handler(
 
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
-  const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
-    ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
-    : getLocationValueForDB(locationBodyString, eventType.locations);
+  const { bookingLocation, conferenceCredentialId: eventTypeCredentialId } =
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+      ? {
+          bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+          conferenceCredentialId: undefined,
+        }
+      : getLocationValueForDB(locationBodyString, eventType.locations);
+
+  // Use per-host credential if available, otherwise fall back to event type credential
+  const conferenceCredentialId = perHostCredentialId ?? eventTypeCredentialId;
 
   tracingLogger.info("locationBodyString", locationBodyString);
   tracingLogger.info("event type locations", eventType.locations);
@@ -1563,7 +1606,7 @@ async function handler(
       platformBookingUrl,
     })
     .withOrganization(organizerOrganizationId)
-    .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
+    .withHashedLink(hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null)
     .build();
 
   if (!builtEvt) {
@@ -2109,14 +2152,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2180,7 +2223,7 @@ async function handler(
 
           const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
             ? googleCalResult.updatedEvent[0]?.hangoutLink
-            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+            : (googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink);
 
           if (googleHangoutLink) {
             results.push({
@@ -2210,7 +2253,7 @@ async function handler(
         }
         const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
           ? results[0]?.updatedEvent[0]
-          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+          : (results[0]?.updatedEvent ?? results[0]?.createdEvent);
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
@@ -2417,22 +2460,22 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingCreatedPayload = buildBookingCreatedPayload({
     booking,
     organizerUserId: organizerUser.id,
     // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
-    hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
+    hashedLink: hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null,
     isDryRun,
     organizationId: eventOrganizationId,
   });
 
   const bookingEventHandler = deps.bookingEventHandler;
   // TODO: Identify action source correctly
-  const actionSource = 'WEBAPP';
+  const actionSource = "WEBAPP";
   // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
   const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
 
@@ -2541,9 +2584,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2881,7 +2924,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
