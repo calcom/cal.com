@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "build": "nest build",
+    "build:docker": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-enums build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && yarn workspace @calcom/platform-libraries build && yarn workspace @calcom/trpc build:server",
     "format": "biome format --write src test",
     "start": "nest start",
     "dev:build:watch": "concurrently --names \"libraries,lru-fix,constants,enums,utils,types\" \"yarn _dev:build:watch:libraries\" \"yarn _dev:build:watch:libraries:lru-fix\" \"yarn _dev:build:watch:constants\" \"yarn _dev:build:watch:enums\" \"yarn _dev:build:watch:utils\" \"yarn _dev:build:watch:types\"",

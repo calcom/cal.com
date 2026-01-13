@@ -18,7 +18,7 @@ COPY . .
 
 RUN yarn install
 RUN yarn workspace @calcom/api-v2 run generate-schemas
-RUN yarn workspace @calcom/api-v2 run dev:build
+RUN yarn workspace @calcom/api-v2 run build:docker
 RUN yarn workspace @calcom/api-v2 run build
 
 EXPOSE 80
