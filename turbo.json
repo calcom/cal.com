@@ -318,7 +318,11 @@
     "STRIPE_PRICE_ID_ESSENTIALS",
     "WEB_APP_URL",
     "REDIS_URL",
-    "ENABLE_SLOTS_WORKERS"
+    "ENABLE_SLOTS_WORKERS",
+    "B2_APPLICATION_KEY_ID",
+    "B2_APPLICATION_KEY",
+    "B2_BUCKET_ID",
+    "B2_BUCKET_NAME"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
