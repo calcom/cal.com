@@ -147,7 +147,7 @@ export default function ProfileSheet() {
         }}
       >
         {/* Profile Header */}
-        <View className="mt-20 border-b border-gray-200 px-6">
+        <View className="mt-20 px-6">
           {isLoading ? (
             <View className="items-center py-8">
               <ActivityIndicator size="large" color="#000" />
