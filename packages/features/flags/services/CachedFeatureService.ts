@@ -1,6 +1,6 @@
 import type { IPrismaUserFeatureRepository } from "../repositories/PrismaUserFeatureRepository";
 import type { IRedisUserFeatureRepository } from "../repositories/RedisUserFeatureRepository";
-import type { IFeatureService } from "./FeatureService";
+import type { IFeatureService } from "./IFeatureService";
 
 export interface ICachedFeatureServiceDeps {
   prismaUserFeatureRepo: IPrismaUserFeatureRepository;

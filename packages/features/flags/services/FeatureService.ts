@@ -1,12 +1,8 @@
 import type { IPrismaUserFeatureRepository } from "../repositories/PrismaUserFeatureRepository";
+import type { IFeatureService } from "./IFeatureService";
 
 export interface IFeatureServiceDeps {
   prismaUserFeatureRepo: IPrismaUserFeatureRepository;
-}
-
-export interface IFeatureService {
-  checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
-  checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
 }
 
 /**
