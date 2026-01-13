@@ -20,9 +20,8 @@ export class OrganizationsMembershipService {
     private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
     private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService,
     private readonly oAuthClientsRepository: OAuthClientRepository,
-    private readonly usersRepository: UsersRepository,
-    @Optional()
-    private readonly delegationCredentialService?: OrganizationsDelegationCredentialService
+    @Optional() private readonly usersRepository?: UsersRepository,
+    @Optional() private readonly delegationCredentialService?: OrganizationsDelegationCredentialService
   ) {}
 
   async getOrgMembership(organizationId: number, membershipId: number) {
@@ -109,7 +108,7 @@ export class OrganizationsMembershipService {
     await this.canUserBeAddedToOrg(data.userId, organizationId);
     const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data);
 
-    if (this.delegationCredentialService) {
+    if (this.delegationCredentialService && this.usersRepository) {
       const user = await this.usersRepository.findById(data.userId);
       if (user?.email) {
         await this.delegationCredentialService.ensureDefaultCalendarsForUser(
