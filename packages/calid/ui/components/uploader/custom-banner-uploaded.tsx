@@ -306,8 +306,7 @@ export default function BannerUploader({
           loading={uploading}
           type="button"
           disabled={disabled}
-          data-testid={`open-upload-${target}-dialog`}
-          className="cursor-pointer py-1 text-sm">
+          data-testid={`open-upload-${target}-dialog`}>
           {buttonMsg}
         </Button>
       </DialogTrigger>

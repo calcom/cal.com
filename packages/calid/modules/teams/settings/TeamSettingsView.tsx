@@ -169,7 +169,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
           title={t("team_settings_private_team_title")}
           description={t("team_settings_private_team_description")}
           checked={enablePrivateTeam ?? false}
-          disabled={enablePrivateTeam === null}
+          disabled={enablePrivateTeam === null || !isAdmin}
           onCheckedChange={(enabled) => {
             handleEnablePrivateTeam(enabled);
           }}

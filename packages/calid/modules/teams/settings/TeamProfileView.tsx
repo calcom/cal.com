@@ -18,7 +18,7 @@ import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -53,31 +53,46 @@ interface TeamProfileViewProps {
   teamId: number;
 }
 
-export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
+function TeamProfileForm({
+  team,
+}: {
+  team: NonNullable<ReturnType<typeof trpc.viewer.calidTeams.get.useQuery>["data"]>;
+}) {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
   const [firstRender, setFirstRender] = useState(true);
   const [open, setOpen] = useState(false);
+  const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideTeamBranding ?? false);
 
   const form = useForm<TeamProfileFormData>({
     resolver: zodResolver(teamProfileSchema),
     defaultValues: {
-      id: 0,
-      name: "",
-      slug: "",
-      bio: "",
-      logo: null,
+      id: team.id || 0,
+      name: team.name || "",
+      slug: team.slug || "",
+      bio: team.bio || "",
+      logo: team.logoUrl || null,
     },
   });
 
+  const bannerFormMethods = useForm({
+    defaultValues: {
+      bannerUrl: team.bannerUrl || null,
+    },
+  });
+
+  const faviconFormMethods = useForm({
+    defaultValues: {
+      faviconUrl: team.faviconUrl || null,
+    },
+  });
+
+  const teamId = team.id;
   const isDisabled = form.formState.isSubmitting || !form.formState.isDirty;
 
-  const {
-    data: team,
-    isLoading,
-    error,
-  } = trpc.viewer.calidTeams.get.useQuery({ teamId }, { enabled: !!teamId });
+  const bioValue = form.watch("bio") || "";
+  const getText = React.useCallback(() => md.render(bioValue), [bioValue]);
 
   // Update team mutation
   const updateTeamMutation = trpc.viewer.calidTeams.update.useMutation({
@@ -94,6 +109,16 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
         bio: data?.bio || "",
         logo: data?.logoUrl || "",
       });
+
+      if (data?.bannerUrl !== undefined) {
+        bannerFormMethods.reset({ bannerUrl: data.bannerUrl });
+      }
+      if (data?.faviconUrl !== undefined) {
+        faviconFormMethods.reset({ faviconUrl: data.faviconUrl });
+      }
+      if (data?.hideTeamBranding !== undefined) {
+        setHideBrandingValue(data.hideTeamBranding);
+      }
     },
     onError: (error) => {
       triggerToast(error.message, "error");
@@ -103,7 +128,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
   const disbandTeamMutation = trpc.viewer.calidTeams.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.teams.list.invalidate();
-      triggerToast("team_disbanded_successfully", "success");
+      triggerToast(t("team_disbanded_successfully"), "success");
       router.push("/teams");
     },
     onError: (error) => {
@@ -121,18 +146,6 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
       triggerToast(error.message, "error");
     },
   });
-
-  useEffect(() => {
-    if (team) {
-      form.reset({
-        id: team.id,
-        name: team.name || "",
-        slug: team.slug || "",
-        bio: team.bio || "",
-        logo: team.logoUrl || "",
-      });
-    }
-  }, [team, form]);
 
   const disbandTeam = () => {
     if (!team) return;
@@ -155,14 +168,6 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
       logo: data.logo,
     });
   };
-
-  if (isLoading) {
-    return <SkeletonLoader />;
-  }
-
-  if (error || !team) {
-    router.push("/teams");
-  }
 
   return (
     <div className="flex w-full flex-col space-y-4">
@@ -240,11 +245,11 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
             <FormField
               control={form.control}
               name="bio"
-              render={({ field }) => (
+              render={() => (
                 <div className="space-y-2">
                   <Label>{t("team_profile_bio")}</Label>
                   <Editor
-                    getText={() => md.render(form.getValues("bio") || "")}
+                    getText={getText}
                     setText={(value: string) => {
                       form.setValue("bio", turndown(value), { shouldDirty: true });
                     }}
@@ -252,7 +257,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                     disableLists
                     firstRender={firstRender}
                     setFirstRender={setFirstRender}
-                    height="100px"
+                    height="120px"
                   />
                 </div>
               )}
@@ -311,7 +316,11 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
         ) : (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button color="destructive" StartIcon="log-out" data-testid="leave-team-button">
+              <Button
+                color="destructive"
+                StartIcon="log-out"
+                data-testid="leave-team-button"
+                className="bg-default text-destructive">
                 {t("leave_team")}
               </Button>
             </DialogTrigger>
@@ -323,7 +332,6 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
               </DialogHeader>
 
               <DialogFooter>
-                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"
@@ -332,6 +340,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                   }}>
                   {t("leave_team")}
                 </Button>
+                <DialogClose />
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -339,4 +348,25 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
       </div>
     </div>
   );
+}
+
+export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
+  const router = useRouter();
+
+  const {
+    data: team,
+    isLoading,
+    error,
+  } = trpc.viewer.calidTeams.get.useQuery({ teamId }, { enabled: !!teamId });
+
+  if (isLoading) {
+    return <SkeletonLoader />;
+  }
+
+  if (error || !team) {
+    router.push("/teams");
+    return null;
+  }
+
+  return <TeamProfileForm team={team} />;
 }

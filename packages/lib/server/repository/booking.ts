@@ -810,13 +810,13 @@ export class BookingRepository {
     bookerEmail,
     bookerPhoneNumber,
     startTime,
-    filterForUnconfirmed,
+    // filterForUnconfirmed,
   }: {
     eventTypeId: number;
     bookerEmail?: string;
     bookerPhoneNumber?: string;
     startTime: Date;
-    filterForUnconfirmed?: boolean;
+    // filterForUnconfirmed?: boolean;
   }) {
     return await this.prismaClient.booking.findFirst({
       where: {
@@ -828,7 +828,7 @@ export class BookingRepository {
           },
         },
         startTime,
-        status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
+        // status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
       },
       include: {
         attendees: true,

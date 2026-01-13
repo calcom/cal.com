@@ -1,4 +1,5 @@
 import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
+import type { DestinationCalendar, User, BookingSeat } from "@prisma/client";
 
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -9,6 +10,7 @@ import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRes
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 
 export type NewSeatedBookingObject = {
+  noPaymentRequired: boolean;
   rescheduleUid: string | undefined;
   reqBookingUid: string | undefined;
   eventType: NewBookingEventType;

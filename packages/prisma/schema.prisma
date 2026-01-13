@@ -2599,6 +2599,7 @@ model CalIdTeam {
   bookingFrequency     Json?
   filterSegments       FilterSegment[]
   bannerUrl            String?
+  faviconUrl           String?
   instantMeetingTokens InstantMeetingToken[]
 
   credentials              Credential[] // Teams can have credentials for integrations
@@ -2796,13 +2797,16 @@ model WhatsAppBusinessPhone {
   templates Json?
 
   wabaId        String
-  phoneNumberId String @unique
-  phoneNumber   String @unique
+  phoneNumberId String  @unique
+  displayName   String?
+  phoneNumber   String  @unique
 
   verificationPin String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  metadata Json?
 
   user       User?      @relation(fields: [userId], references: [id])
   calIdTeam  CalIdTeam? @relation(fields: [calIdTeamId], references: [id])
