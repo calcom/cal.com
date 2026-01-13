@@ -1,12 +1,11 @@
+import { TeamService } from "@calcom/platform-libraries";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { OrganizationMembershipOutput } from "@/modules/organizations/memberships/outputs/organization-membership.output";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable, NotFoundException, Optional } from "@nestjs/common";
-
-import { TeamService } from "@calcom/platform-libraries";
-
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";
 
@@ -20,11 +19,14 @@ export class OrganizationsMembershipService {
     private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
     private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService,
     private readonly oAuthClientsRepository: OAuthClientRepository,
-    @Optional() private readonly usersRepository?: UsersRepository,
-    @Optional() private readonly delegationCredentialService?: OrganizationsDelegationCredentialService
+    private readonly usersRepository: UsersRepository,
+    private readonly delegationCredentialService: OrganizationsDelegationCredentialService
   ) {}
 
-  async getOrgMembership(organizationId: number, membershipId: number) {
+  async getOrgMembership(
+    organizationId: number,
+    membershipId: number
+  ): Promise<OrganizationMembershipOutput> {
     const membership = await this.organizationsMembershipRepository.findOrgMembership(
       organizationId,
       membershipId
@@ -39,7 +41,7 @@ export class OrganizationsMembershipService {
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
-  async isOrgAdminOrOwner(organizationId: number, userId: number) {
+  async isOrgAdminOrOwner(organizationId: number, userId: number): Promise<boolean> {
     const membership = await this.organizationsMembershipRepository.findOrgMembershipByUserId(
       organizationId,
       userId
@@ -50,7 +52,10 @@ export class OrganizationsMembershipService {
     return membership.role === "ADMIN" || membership.role === "OWNER";
   }
 
-  async getOrgMembershipByUserId(organizationId: number, userId: number) {
+  async getOrgMembershipByUserId(
+    organizationId: number,
+    userId: number
+  ): Promise<OrganizationMembershipOutput> {
     const membership = await this.organizationsMembershipRepository.findOrgMembershipByUserId(
       organizationId,
       userId
@@ -64,7 +69,11 @@ export class OrganizationsMembershipService {
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
-  async getPaginatedOrgMemberships(organizationId: number, skip = 0, take = 250) {
+  async getPaginatedOrgMemberships(
+    organizationId: number,
+    skip = 0,
+    take = 250
+  ): Promise<OrganizationMembershipOutput[]> {
     const memberships = await this.organizationsMembershipRepository.findOrgMembershipsPaginated(
       organizationId,
       skip,
@@ -73,7 +82,10 @@ export class OrganizationsMembershipService {
     return this.organizationsMembershipOutputService.getOrgMembershipsOutput(memberships);
   }
 
-  async deleteOrgMembership(organizationId: number, membershipId: number) {
+  async deleteOrgMembership(
+    organizationId: number,
+    membershipId: number
+  ): Promise<OrganizationMembershipOutput> {
     // Get the membership first to get the userId
     const membership = await this.organizationsMembershipRepository.findOrgMembership(
       organizationId,
@@ -95,7 +107,11 @@ export class OrganizationsMembershipService {
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
-  async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
+  async updateOrgMembership(
+    organizationId: number,
+    membershipId: number,
+    data: UpdateOrgMembershipDto
+  ): Promise<OrganizationMembershipOutput> {
     const membership = await this.organizationsMembershipRepository.updateOrgMembership(
       organizationId,
       membershipId,
@@ -104,7 +120,10 @@ export class OrganizationsMembershipService {
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
-  async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
+  async createOrgMembership(
+    organizationId: number,
+    data: CreateOrgMembershipDto
+  ): Promise<OrganizationMembershipOutput> {
     await this.canUserBeAddedToOrg(data.userId, organizationId);
     const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data);
 
@@ -122,7 +141,7 @@ export class OrganizationsMembershipService {
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
-  async canUserBeAddedToOrg(userId: number, orgId: number) {
+  async canUserBeAddedToOrg(userId: number, orgId: number): Promise<boolean> {
     const [userOAuthClient, orgOAuthClients] = await Promise.all([
       this.oAuthClientsRepository.getByUserId(userId),
       this.oAuthClientsRepository.getByOrgId(orgId),
