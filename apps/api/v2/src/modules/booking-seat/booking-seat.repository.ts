@@ -85,6 +85,8 @@ export class BookingSeatRepository {
                 id: true,
                 slug: true,
                 seatsShowAttendees: true,
+                teamId: true,
+                userId: true,
               },
             },
           },
