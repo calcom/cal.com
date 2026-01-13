@@ -1,14 +1,7 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { checkOnboardingRedirect } from "@calcom/features/auth/lib/onboardingUtils";
+import { getUserEventGroupsData } from "@calcom/features/eventtypes/lib/getUserEventGroups";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { EventGroupBuilder } from "@calcom/trpc/server/routers/viewer/eventTypes/usecases/EventGroupBuilder";
-import { EventTypeGroupFilter } from "@calcom/trpc/server/routers/viewer/eventTypes/utils/EventTypeGroupFilter";
-import { ProfilePermissionProcessor } from "@calcom/trpc/server/routers/viewer/eventTypes/usecases/ProfilePermissionProcessor";
-import { TeamAccessUseCase } from "@calcom/trpc/server/routers/viewer/eventTypes/teamAccessUseCase";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -29,61 +22,7 @@ const getCachedEventGroups = unstable_cache(
       upIds?: string[] | undefined;
     }
   ) => {
-    const dependencies = {
-      membershipRepository: MembershipRepository,
-      profileRepository: ProfileRepository,
-      teamAccessUseCase: new TeamAccessUseCase(),
-    };
-
-    const eventGroupBuilder = new EventGroupBuilder(dependencies);
-    const { eventTypeGroups, teamPermissionsMap } = await eventGroupBuilder.buildEventGroups({
-      userId,
-      userUpId,
-      filters,
-    });
-
-    const filteredEventTypeGroups = new EventTypeGroupFilter(eventTypeGroups, teamPermissionsMap)
-      .has("eventType.read")
-      .get();
-
-    const profileProcessor = new ProfilePermissionProcessor();
-    const profiles = profileProcessor.processProfiles(eventTypeGroups, teamPermissionsMap);
-
-    const permissionCheckService = new PermissionCheckService();
-
-    const teamIdsToCheck = filteredEventTypeGroups
-      .map((group) => group.teamId)
-      .filter((teamId): teamId is number => teamId !== null && teamId !== undefined);
-
-    const teamPermissionChecks = teamIdsToCheck.map(async (teamId) => {
-      const canCreateEventType = await permissionCheckService.checkPermission({
-        userId,
-        teamId: teamId,
-        permission: "eventType.create",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      });
-      return {
-        teamId,
-        permissions: {
-          canCreateEventType,
-        },
-      };
-    });
-
-    const teamPermissionsArray = await Promise.all(teamPermissionChecks);
-    const teamPermissions = teamPermissionsArray.reduce(
-      (acc, item) => {
-        acc[item.teamId] = item.permissions;
-        return acc;
-      },
-      {} as Record<number, { canCreateEventType: boolean }>
-    );
-
-    return {
-      eventTypeGroups: filteredEventTypeGroups,
-      profiles,
-      teamPermissions,
-    };
+    return await getUserEventGroupsData({ userId, userUpId, filters });
   },
   ["viewer.eventTypes.getUserEventGroups"],
   { revalidate: 3600, tags: ["viewer.eventTypes.getUserEventGroups"] }

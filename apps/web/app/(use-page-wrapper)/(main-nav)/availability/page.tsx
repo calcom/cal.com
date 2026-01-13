@@ -31,41 +31,8 @@ export const generateMetadata = async () => {
 
 const getCachedAvailabilities = unstable_cache(
   async (userId: number) => {
-    const schedules = await prisma.schedule.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        id: true,
-        name: true,
-        availability: true,
-        timeZone: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
-
-    if (schedules.length === 0) {
-      return {
-        schedules: [],
-      };
-    }
-
-    let defaultScheduleId: number | null;
-    try {
-      const scheduleRepository = new ScheduleRepository(prisma);
-      defaultScheduleId = await scheduleRepository.getDefaultScheduleId(userId);
-    } catch {
-      defaultScheduleId = null;
-    }
-
-    return {
-      schedules: schedules.map((schedule) => ({
-        ...schedule,
-        isDefault: schedule.id === defaultScheduleId,
-      })),
-    };
+    const scheduleRepository = new ScheduleRepository(prisma);
+    return await scheduleRepository.getScheduleListWithDefault(userId);
   },
   ["viewer.availability.list"],
   { revalidate: 3600, tags: ["viewer.availability.list"] }

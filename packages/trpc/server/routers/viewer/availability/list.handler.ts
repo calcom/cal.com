@@ -14,51 +14,15 @@ export type GetAvailabilityListHandlerReturn = Awaited<ReturnType<typeof listHan
 export const listHandler = async ({ ctx }: ListOptions) => {
   const { user } = ctx;
 
-  const schedules = await prisma.schedule.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      name: true,
-      availability: true,
-      timeZone: true,
-    },
-    orderBy: {
-      id: "asc",
-    },
-  });
+  const scheduleRepository = new ScheduleRepository(prisma);
+  const result = await scheduleRepository.getScheduleListWithDefault(user.id);
 
-  if (schedules.length === 0) {
-    return {
-      schedules: [],
-    };
-  }
-
-  let defaultScheduleId: number | null;
-  try {
-    const scheduleRepository = new ScheduleRepository(prisma);
-    defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
-
-    if (!user.defaultScheduleId) {
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          defaultScheduleId,
-        },
-      });
+  if (result.schedules.length > 0 && !user.defaultScheduleId) {
+    const defaultSchedule = result.schedules.find((s) => s.isDefault);
+    if (defaultSchedule) {
+      await scheduleRepository.setupDefaultSchedule(user.id, defaultSchedule.id);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (error) {
-    defaultScheduleId = null;
   }
 
-  return {
-    schedules: schedules.map((schedule) => ({
-      ...schedule,
-      isDefault: schedule.id === defaultScheduleId,
-    })),
-  };
+  return result;
 };

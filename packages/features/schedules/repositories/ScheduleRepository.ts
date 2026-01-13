@@ -258,4 +258,41 @@ export class ScheduleRepository {
       },
     });
   }
+
+  async getScheduleListWithDefault(userId: number) {
+    const schedules = await this.prismaClient.schedule.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        availability: true,
+        timeZone: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+    if (schedules.length === 0) {
+      return {
+        schedules: [],
+      };
+    }
+
+    let defaultScheduleId: number | null;
+    try {
+      defaultScheduleId = await this.getDefaultScheduleId(userId);
+    } catch {
+      defaultScheduleId = null;
+    }
+
+    return {
+      schedules: schedules.map((schedule) => ({
+        ...schedule,
+        isDefault: schedule.id === defaultScheduleId,
+      })),
+    };
+  }
 }

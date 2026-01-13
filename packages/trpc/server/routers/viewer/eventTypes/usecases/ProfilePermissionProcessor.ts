@@ -1,15 +1,2 @@
-import type { TeamPermissions } from "../utils/permissionUtils";
-import {
-  createProfilesWithPermissions,
-  type EventTypeGroup,
-  type ProfileWithPermissions,
-} from "../utils/transformUtils";
-
-export class ProfilePermissionProcessor {
-  processProfiles(
-    eventTypeGroups: EventTypeGroup[],
-    teamPermissionsMap: Map<number, TeamPermissions>
-  ): ProfileWithPermissions[] {
-    return createProfilesWithPermissions(eventTypeGroups, teamPermissionsMap);
-  }
-}
+// Re-export from @calcom/features for backward compatibility
+export { ProfilePermissionProcessor } from "@calcom/features/eventtypes/lib/getUserEventGroups";
