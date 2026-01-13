@@ -68,10 +68,10 @@ export function getOptInFeaturesForScope(scope: OptInFeatureScope): OptInFeature
 /**
  * Check if a feature is allowed for a specific scope.
  * Features without a scope field are allowed for all scopes.
- * Features not in the config are allowed for all scopes (permissive by default).
+ * Features not in the config are NOT allowed (must be explicitly configured).
  */
 export function isFeatureAllowedForScope(slug: string, scope: OptInFeatureScope): boolean {
   const config = getOptInFeatureConfig(slug);
-  if (!config) return true;
+  if (!config) return false;
   return !config.scope || config.scope.includes(scope);
 }
