@@ -101,6 +101,39 @@ const getDuration = (start: string, end: string): DurationObject => ({
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
+/**
+ * Injects SCHEDULE-AGENT=CLIENT into ORGANIZER and ATTENDEE properties of an iCalendar string.
+ * This prevents CalDAV servers from sending duplicate invitation emails.
+ *
+ * @see RFC 6638 Section 7.1 - SCHEDULE-AGENT Parameter
+ * @param iCalString - The iCalendar string to process
+ * @returns The processed iCalendar string with SCHEDULE-AGENT injected
+ */
+const injectScheduleAgent = (iCalString: string): string => {
+  // First, remove METHOD:PUBLISH as required by RFC 4791 Section 4.1
+  // Calendar object resources in calendar collections MUST NOT specify the METHOD property
+  let processedString = iCalString.replace(/METHOD:[^\r\n]+[\r\n]+/g, "");
+
+  // Inject SCHEDULE-AGENT=CLIENT for both ORGANIZER and ATTENDEE properties
+  // This regex handles:
+  // - Properties with or without existing parameters
+  // - Both CRLF (\r\n) and LF (\n) line endings
+  // - Checks if SCHEDULE-AGENT already exists to avoid duplication
+  processedString = processedString.replace(
+    /(ORGANIZER|ATTENDEE)((?:;(?!SCHEDULE-AGENT)[^:]+)*)(:|;)/g,
+    (_match, property, params, delimiter) => {
+      // If SCHEDULE-AGENT already exists in params, don't add it again
+      if (params && params.includes("SCHEDULE-AGENT")) {
+        return `${property}${params}${delimiter}`;
+      }
+      // Add SCHEDULE-AGENT=CLIENT parameter
+      return `${property}${params};SCHEDULE-AGENT=CLIENT${delimiter}`;
+    }
+  );
+
+  return processedString;
+};
+
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
   private credentials: Record<string, string> = {};
@@ -137,7 +170,13 @@ export default abstract class BaseCalendarService implements Calendar {
       attendees.push(...mapAttendees(teamAttendeesWithoutCurrentUser));
     }
 
-    return attendees;
+    // Deduplicate attendees by email address to prevent duplicate invitations
+    // RFC 6638: Each unique email should only appear once in the attendee list
+    const uniqueAttendees = Array.from(
+      new Map(attendees.map((attendee) => [attendee.email?.toLowerCase(), attendee])).values()
+    );
+
+    return uniqueAttendees;
   }
 
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
@@ -187,8 +226,9 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              // Process iCalendar string to inject SCHEDULE-AGENT=CLIENT and remove METHOD property
+              // This prevents CalDAV servers (like Fastmail, Nextcloud) from sending duplicate invitations
+              iCalString: injectScheduleAgent(iCalString),
               headers: this.headers,
             })
           )
@@ -255,8 +295,9 @@ export default abstract class BaseCalendarService implements Calendar {
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
-              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              // Process iCalendar string to inject SCHEDULE-AGENT=CLIENT and remove METHOD property
+              // This ensures updates also prevent CalDAV servers from sending duplicate invitations
+              data: iCalString ? injectScheduleAgent(iCalString) : "",
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
@@ -375,7 +416,7 @@ export default abstract class BaseCalendarService implements Calendar {
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
-      if (!object || object.data == null || JSON.stringify(object.data) == "{}") return;
+      if (!object || object.data == null || JSON.stringify(object.data) === "{}") return;
       let vcalendar: ICAL.Component;
       try {
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
@@ -393,7 +434,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
-        const timezone = dtstart ? dtstart["timezone"] : undefined;
+        const timezone = dtstart?.timezone;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
         const isUTC = timezone === "Z";
 
