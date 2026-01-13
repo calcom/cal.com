@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisIcon, ExternalLinkIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { EllipsisIcon, ExternalLinkIcon, PencilIcon, TrashIcon, ZapIcon } from "lucide-react";
 import Link from "next/link";
 
 import { getWebhookVersionLabel, getWebhookVersionDocsUrl } from "@calcom/features/webhooks/lib/constants";
@@ -110,7 +110,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon="zap">
+                startIcon={ZapIcon}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}

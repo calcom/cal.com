@@ -1,4 +1,4 @@
-import { KeyIcon } from "lucide-react";
+import { KeyIcon, LinkIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
@@ -135,7 +135,7 @@ const IntegrationAttributeSyncCard = (
       <form onSubmit={form.handleSubmit(onFormSubmit)}>
         <FormCard
           label={formName}
-          leftIcon="link"
+          leftIcon={LinkIcon}
           collapsible={true}
           isLabelEditable={true}
           onLabelChange={(label) => {

@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-table";
 import classNames from "classnames";
 import {
+  ClockIcon,
   EllipsisIcon,
   ExternalLinkIcon,
   LockIcon,
@@ -477,7 +478,7 @@ function MemberListContent(props: Props) {
                         }
                         color="secondary"
                         variant="icon"
-                        StartIcon="clock"
+                        StartIcon={ClockIcon}
                       />
                     </Tooltip> */}
                     {!!user.accepted && (

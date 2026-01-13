@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { LinkIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
@@ -87,7 +87,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
             </>
           ) : (
             <EmptyScreen
-              Icon="link"
+              Icon={LinkIcon}
               headline={t("create_first_api_key")}
               description={t("create_first_api_key_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"

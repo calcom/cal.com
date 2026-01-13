@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ExternalLinkIcon, GlobeIcon, PlusIcon, UserIcon } from "lucide-react";
+import { ClockIcon, ExternalLinkIcon, GlobeIcon, PlusIcon, UserIcon } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -476,7 +476,7 @@ const EventTypeSchedule = ({
   if (schedulesQueryData.length === 0) {
     return (
         <EmptyScreen
-          Icon="clock"
+          Icon={ClockIcon}
           headline={t("create_availability_schedule")}
           description={t("no_schedules_created_yet")}
           className="w-full"

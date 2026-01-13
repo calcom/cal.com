@@ -1038,7 +1038,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <h2 className="text-emphasis text-sm font-medium leading-none">
                       {t("cal_ai_agent")}
                       <Badge
-                        startIcon="info"
+                        startIcon={InfoIcon}
                         className="ms-2 rounded-md"
                         variant="warning"
                       >
