@@ -254,7 +254,7 @@ export class CalComOAuthService {
         return;
       }
 
-      // Try Firefox/Safari browser.identity API (Promise-based)
+      // Try Firefox browser.identity API (Promise-based)
       if (typeof browser !== "undefined" && browser?.identity) {
         try {
           browser.identity
@@ -275,6 +275,8 @@ export class CalComOAuthService {
         }
       }
 
+      // Safari and other browsers without identity API use iframe-based postMessage flow
+      // The background script will handle Safari's native messaging with ASWebAuthenticationSession
       if (this.isRunningInIframe()) {
         this.requestOAuthViaPostMessage(authUrl, resolve, reject);
         return;
