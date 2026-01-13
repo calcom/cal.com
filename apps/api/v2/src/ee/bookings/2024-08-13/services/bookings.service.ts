@@ -70,6 +70,7 @@ import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-t
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
 import { makeUserActor } from "@calcom/platform-libraries/bookings";
+
 type CreatedBooking = {
   hosts: { id: number }[];
   uid: string;
