@@ -14,8 +14,10 @@ describe("CachedFeaturesRepository", () => {
   beforeEach(() => {
     mockRedis = new MockRedisService();
     spyRepository = new SpyFeaturesRepository();
-    cachedRepository = new CachedFeaturesRepository(spyRepository, mockRedis, {
-      cacheTtlMs: 60000,
+    cachedRepository = new CachedFeaturesRepository({
+      featuresRepository: spyRepository,
+      redisService: mockRedis,
+      options: { cacheTtlMs: 60000 },
     });
   });
 
@@ -620,13 +622,11 @@ describe("CachedFeaturesRepository", () => {
   describe("cache TTL", () => {
     it("should use custom TTL when provided", async () => {
       const customTtl = 30000;
-      const customCachedRepo = new CachedFeaturesRepository(
-        spyRepository,
-        mockRedis,
-        {
-          cacheTtlMs: customTtl,
-        }
-      );
+      const customCachedRepo = new CachedFeaturesRepository({
+        featuresRepository: spyRepository,
+        redisService: mockRedis,
+        options: { cacheTtlMs: customTtl },
+      });
       spyRepository.mockGlobalFeatureEnabled[
         "calendar-subscription-cache" as FeatureId
       ] = true;
@@ -639,10 +639,10 @@ describe("CachedFeaturesRepository", () => {
     });
 
     it("should use default TTL when not provided", async () => {
-      const defaultCachedRepo = new CachedFeaturesRepository(
-        spyRepository,
-        mockRedis
-      );
+      const defaultCachedRepo = new CachedFeaturesRepository({
+        featuresRepository: spyRepository,
+        redisService: mockRedis,
+      });
       spyRepository.mockGlobalFeatureEnabled[
         "calendar-subscription-sync" as FeatureId
       ] = true;

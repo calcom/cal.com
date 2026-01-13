@@ -7,6 +7,12 @@ import { type CacheEntry, FeaturesCacheEntries as KEYS } from "./features-cache-
 
 const DEFAULT_CACHE_TTL_MS: number = 24 * 60 * 60 * 1000; // 24 hours
 
+export type CachedFeaturesRepositoryDeps = {
+  featuresRepository: IFeaturesRepository;
+  redisService: IRedisService;
+  options?: { cacheTtlMs?: number };
+};
+
 /**
  * Caching proxy for FeaturesRepository using composite keys.
  *
@@ -23,14 +29,14 @@ const DEFAULT_CACHE_TTL_MS: number = 24 * 60 * 60 * 1000; // 24 hours
  * - Schema validation prevents returning corrupted cache data
  */
 export class CachedFeaturesRepository implements IFeaturesRepository {
+  private readonly featuresRepository: IFeaturesRepository;
+  private readonly redisService: IRedisService;
   private readonly cacheTtlMs: number;
 
-  constructor(
-    private readonly featuresRepository: IFeaturesRepository,
-    private readonly redisService: IRedisService,
-    options?: { cacheTtlMs?: number }
-  ) {
-    this.cacheTtlMs = options?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+  constructor(deps: CachedFeaturesRepositoryDeps) {
+    this.featuresRepository = deps.featuresRepository;
+    this.redisService = deps.redisService;
+    this.cacheTtlMs = deps.options?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
   }
 
   /**
