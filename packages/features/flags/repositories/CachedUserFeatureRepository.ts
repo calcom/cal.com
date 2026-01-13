@@ -34,13 +34,12 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
   async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null> {
     const cached = await this.deps.redisRepo.findByUserIdAndFeatureId(userId, featureId);
     if (cached !== null) {
-      const now = new Date();
-      return { userId, featureId, enabled: cached, assignedBy: "", assignedAt: now, updatedAt: now };
+      return cached;
     }
 
     const result = await this.deps.prismaRepo.findByUserIdAndFeatureId(userId, featureId);
     if (result) {
-      await this.deps.redisRepo.setByUserIdAndFeatureId(userId, featureId, result.enabled);
+      await this.deps.redisRepo.setByUserIdAndFeatureId(userId, featureId, result);
     }
     return result;
   }

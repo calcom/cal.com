@@ -35,13 +35,12 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
   async findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null> {
     const cached = await this.deps.redisRepo.findByTeamIdAndFeatureId(teamId, featureId);
     if (cached !== null) {
-      const now = new Date();
-      return { teamId, featureId, enabled: cached, assignedBy: "", assignedAt: now, updatedAt: now };
+      return cached;
     }
 
     const result = await this.deps.prismaRepo.findByTeamIdAndFeatureId(teamId, featureId);
     if (result) {
-      await this.deps.redisRepo.setByTeamIdAndFeatureId(teamId, featureId, result.enabled);
+      await this.deps.redisRepo.setByTeamIdAndFeatureId(teamId, featureId, result);
     }
     return result;
   }

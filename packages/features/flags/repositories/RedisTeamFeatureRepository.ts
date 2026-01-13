@@ -1,5 +1,8 @@
+import type { TeamFeatures } from "@calcom/prisma/client";
+
 import type { IRedisService } from "../../redis/IRedisService";
 import type { FeatureId, FeatureState, TeamFeatures as TeamFeaturesMap } from "../config";
+import { teamFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:team";
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -7,13 +10,8 @@ const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 export interface IRedisTeamFeatureRepository {
   findEnabledByTeamId(teamId: number): Promise<TeamFeaturesMap | null>;
   setEnabledByTeamId(teamId: number, features: TeamFeaturesMap, ttlMs?: number): Promise<void>;
-  findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<boolean | null>;
-  setByTeamIdAndFeatureId(
-    teamId: number,
-    featureId: FeatureId,
-    enabled: boolean,
-    ttlMs?: number
-  ): Promise<void>;
+  findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null>;
+  setByTeamIdAndFeatureId(teamId: number, featureId: FeatureId, data: TeamFeatures, ttlMs?: number): Promise<void>;
   findByTeamIdsAndFeatureIds(
     teamIds: number[],
     featureIds: FeatureId[]
@@ -65,17 +63,25 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     });
   }
 
-  async findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<boolean | null> {
-    return this.redisService.get<boolean>(this.getByTeamIdAndFeatureIdKey(teamId, featureId));
+  async findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null> {
+    const cached = await this.redisService.get<unknown>(this.getByTeamIdAndFeatureIdKey(teamId, featureId));
+    if (cached === null) {
+      return null;
+    }
+    const parsed = teamFeaturesSchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data as TeamFeatures;
   }
 
   async setByTeamIdAndFeatureId(
     teamId: number,
     featureId: FeatureId,
-    enabled: boolean,
+    data: TeamFeatures,
     ttlMs?: number
   ): Promise<void> {
-    await this.redisService.set(this.getByTeamIdAndFeatureIdKey(teamId, featureId), enabled, {
+    await this.redisService.set(this.getByTeamIdAndFeatureIdKey(teamId, featureId), data, {
       ttl: ttlMs ?? this.ttlMs,
     });
   }

@@ -1,17 +1,15 @@
+import type { UserFeatures } from "@calcom/prisma/client";
+
 import type { IRedisService } from "../../redis/IRedisService";
 import type { FeatureId, FeatureState } from "../config";
+import { userFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:user";
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface IRedisUserFeatureRepository {
-  findByUserIdAndFeatureId(userId: number, featureId: string): Promise<boolean | null>;
-  setByUserIdAndFeatureId(
-    userId: number,
-    featureId: string,
-    enabled: boolean,
-    ttlMs?: number
-  ): Promise<void>;
+  findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null>;
+  setByUserIdAndFeatureId(userId: number, featureId: string, data: UserFeatures, ttlMs?: number): Promise<void>;
   findByUserIdAndFeatureIds(
     userId: number,
     featureIds: FeatureId[]
@@ -47,17 +45,25 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     return `${CACHE_PREFIX}:autoOptIn:${userId}`;
   }
 
-  async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<boolean | null> {
-    return this.redisService.get<boolean>(this.getByUserIdAndFeatureIdKey(userId, featureId));
+  async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null> {
+    const cached = await this.redisService.get<unknown>(this.getByUserIdAndFeatureIdKey(userId, featureId));
+    if (cached === null) {
+      return null;
+    }
+    const parsed = userFeaturesSchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data as UserFeatures;
   }
 
   async setByUserIdAndFeatureId(
     userId: number,
     featureId: string,
-    enabled: boolean,
+    data: UserFeatures,
     ttlMs?: number
   ): Promise<void> {
-    await this.redisService.set(this.getByUserIdAndFeatureIdKey(userId, featureId), enabled, {
+    await this.redisService.set(this.getByUserIdAndFeatureIdKey(userId, featureId), data, {
       ttl: ttlMs ?? this.ttlMs,
     });
   }
