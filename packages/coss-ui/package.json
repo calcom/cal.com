@@ -1,0 +1,35 @@
+{
+  "name": "@coss/ui",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    "./styles.css": "./src/styles/globals.css",
+    "./lib/*": "./src/lib/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts"
+  },
+  "scripts": {
+    "lint": "biome lint src",
+    "lint:fix": "biome lint --write src",
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
+    "registry:pull": "ts-node ../../scripts/pull-coss-ui-components.ts"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.0.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "0.555.0",
+    "tailwind-merge": "3.4.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.10",
+    "ts-node": "10.9.2",
+    "tsc-absolute": "1.0.0",
+    "typescript": "5.9.3"
+  }
+}

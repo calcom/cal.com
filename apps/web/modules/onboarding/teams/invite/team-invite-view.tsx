@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
+import React, { useEffect } from "react";
 
 import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,13 +22,25 @@ type TeamInviteViewProps = {
 
 export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const flags = useFlags();
 
   const store = useOnboardingStore();
-  const { setTeamInvites, teamDetails } = store;
+  const { setTeamInvites, teamDetails, setTeamId } = store;
   const { createTeam, isSubmitting } = useCreateTeam();
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
+
+  // Read teamId from query params and store it (from payment callback)
+  useEffect(() => {
+    const teamIdParam = searchParams?.get("teamId");
+    if (teamIdParam) {
+      const teamId = parseInt(teamIdParam, 10);
+      if (!isNaN(teamId)) {
+        setTeamId(teamId);
+      }
+    }
+  }, [searchParams, setTeamId]);
 
   const googleWorkspaceEnabled = flags["google-workspace-directory"];
 
@@ -50,6 +63,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   };
 
   const handleSkip = async () => {
+    posthog.capture("onboarding_team_invite_skip_clicked");
     setTeamInvites([]);
     // Create the team without invites (will handle checkout redirect if needed)
     await createTeam(store);
@@ -68,7 +82,10 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
                 <Button
                   color="minimal"
                   className="rounded-[10px]"
-                  onClick={() => router.push("/onboarding/teams/details")}
+                  onClick={() => {
+                    posthog.capture("onboarding_team_invite_back_clicked");
+                    router.push("/onboarding/teams/details");
+                  }}
                   disabled={isSubmitting}>
                   {t("back")}
                 </Button>

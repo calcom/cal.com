@@ -13,6 +13,7 @@ export enum Resource {
   Availability = "availability",
   OutOfOffice = "ooo",
   Watchlist = "watchlist",
+  FeatureOptIn = "featureOptIn",
 }
 
 export enum CrudAction {
@@ -34,6 +35,9 @@ export enum CustomAction {
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
   Impersonate = "impersonate",
+  EditUsers = "editUsers",
+  ReadTeamAuditLogs = "readTeamAuditLogs",
+  ReadOrgAuditLogs = "readOrgAuditLogs",
 }
 
 export enum Scope {
@@ -316,6 +320,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_team_members",
+      dependsOn: ["team.read"],
       visibleWhen: {
         teamPrivacy: "public", // Only show for public teams
       },
@@ -480,6 +485,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_update_bookings",
       dependsOn: ["booking.read"],
     },
+    [CustomAction.ReadTeamAuditLogs]: {
+      description: "View team booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_team_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_team_booking_audit_logs",
+      scope: [Scope.Team],
+      dependsOn: ["booking.read"],
+    },
+    [CustomAction.ReadOrgAuditLogs]: {
+      description: "View organization booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_org_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_organization_booking_audit_logs",
+      scope: [Scope.Organization],
+      dependsOn: ["booking.read"],
+    },
   },
   [Resource.Insights]: {
     _resource: {
@@ -558,6 +579,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
       scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
+    },
+    [CustomAction.EditUsers]: {
+      description: "Edit user attributes",
+      category: "attributes",
+      i18nKey: "pbac_action_edit_users",
+      descriptionI18nKey: "pbac_desc_edit_user_attributes",
+      scope: [Scope.Organization],
+      dependsOn: [
+        "organization.read",
+        "organization.listMembers",
+        "organization.attributes.read",
+        "organization.attributes.update",
+        "organization.attributes.delete",
+        "organization.attributes.create",
+        "organization.changeMemberRole",
+      ],
     },
   },
   [Resource.RoutingForm]: {
@@ -730,6 +767,24 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_delete_watchlist_entries",
       scope: [Scope.Organization],
       dependsOn: ["watchlist.read"],
+    },
+  },
+  [Resource.FeatureOptIn]: {
+    _resource: {
+      i18nKey: "pbac_resource_feature_opt_in",
+    },
+    [CrudAction.Read]: {
+      description: "View feature opt-in settings",
+      category: "featureOptIn",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_feature_opt_in",
+    },
+    [CrudAction.Update]: {
+      description: "Manage feature opt-in settings",
+      category: "featureOptIn",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_feature_opt_in",
+      dependsOn: ["featureOptIn.read"],
     },
   },
 };

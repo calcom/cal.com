@@ -1,5 +1,5 @@
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -10,29 +10,6 @@ type ListOptions = {
 };
 
 export const listOwnedTeamsHandler = async ({ ctx }: ListOptions) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: ctx.user.id,
-    },
-    select: {
-      id: true,
-      teams: {
-        where: {
-          accepted: true,
-          role: {
-            in: [MembershipRole.OWNER, MembershipRole.ADMIN],
-          },
-        },
-        select: {
-          team: true,
-        },
-      },
-    },
-  });
-
-  return user?.teams
-    ?.filter((m) => {
-      return !m.team.isOrganization;
-    })
-    ?.map(({ team }) => team);
+  const teamRepository = new TeamRepository(prisma);
+  return await teamRepository.findOwnedTeamsByUserId({ userId: ctx.user.id });
 };

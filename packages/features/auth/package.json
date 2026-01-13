@@ -12,13 +12,13 @@
     "@calcom/prisma": "workspace:*",
     "@calcom/trpc": "workspace:*",
     "@calcom/ui": "workspace:*",
-    "bcryptjs": "^2.4.3",
-    "dub": "^0.59.1",
-    "handlebars": "^4.7.7",
-    "jose": "^4.13.1",
-    "lru-cache": "^9.0.3",
-    "next-auth": "^4.22.1",
-    "nodemailer": "^6.7.8",
-    "otplib": "^12.0.1"
+    "bcryptjs": "2.4.3",
+    "dub": "0.59.1",
+    "handlebars": "4.7.7",
+    "jose": "4.15.9",
+    "lru-cache": "9.0.3",
+    "next-auth": "4.24.13",
+    "nodemailer": "7.0.12",
+    "otplib": "12.0.1"
   }
 }

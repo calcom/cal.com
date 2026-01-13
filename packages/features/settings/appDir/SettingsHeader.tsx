@@ -76,7 +76,7 @@ export default function Header({
               )}
             </div>
           </div>
-          <div className={classNames("flex-shrink-0", ctaClassName)}>{CTA}</div>
+          <div className={classNames("shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
       <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>

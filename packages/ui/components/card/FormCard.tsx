@@ -103,6 +103,7 @@ export default function FormCard({
   badge,
   collapsible = true,
   leftIcon,
+  customActions,
   ...restProps
 }: {
   children: React.ReactNode;
@@ -117,9 +118,10 @@ export default function FormCard({
   badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
   leftIcon?: IconName;
   collapsible?: boolean;
+  customActions?: React.ReactNode;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
-    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-muted mb-2",
+    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-cal-muted mb-2",
     className
   );
 
@@ -135,7 +137,7 @@ export default function FormCard({
         {moveUp?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+            className="bg-default text-muted hover:text-emphasis invisible -ml-2 mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveUp?.fn()}>
             <Icon name="arrow-up" />
           </button>
@@ -143,7 +145,7 @@ export default function FormCard({
         {moveDown?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+            className="bg-default text-muted hover:text-emphasis invisible -ml-2 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveDown?.fn()}>
             <Icon name="arrow-down" />
           </button>
@@ -192,7 +194,8 @@ export default function FormCard({
               </Badge>
             )}
           </div>
-          <div>
+          <div className="flex items-center gap-2">
+            {customActions}
             <FormCardActions deleteField={deleteField} duplicateField={duplicateField} />
           </div>
         </div>

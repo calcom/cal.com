@@ -9,7 +9,7 @@ export default function TwoFactor({ center = true }) {
   const methods = useFormContext();
 
   return (
-    <div className={center ? "mx-auto !mt-0 max-w-sm" : "!mt-0 max-w-sm"}>
+    <div className={center ? "mx-auto mt-0! max-w-sm" : "mt-0! max-w-sm"}>
       <Label className="mt-4">{t("backup_code")}</Label>
 
       <p className="text-subtle mb-4 text-sm">{t("backup_code_instructions")}</p>

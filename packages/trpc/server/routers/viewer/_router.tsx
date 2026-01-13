@@ -1,6 +1,4 @@
-import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
-import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
 import { router } from "../../trpc";
 import app_RoutingForms from "../apps/routing-forms/_router";
@@ -12,6 +10,7 @@ import { aiVoiceAgentRouter } from "./aiVoiceAgent/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
 import { attributesRouter } from "./attributes/_router";
+import { attributeSyncRouter } from "./attribute-sync/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
@@ -24,9 +23,12 @@ import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
+import { featureOptInRouter } from "./featureOptIn/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { holidaysRouter } from "./holidays/_router";
 import { i18nRouter } from "./i18n/_router";
+import { insightsRouter } from "./insights/_router";
 import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { oooRouter } from "./ooo/_router";
@@ -39,6 +41,7 @@ import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
 import { travelSchedulesRouter } from "./travelSchedules/_router";
+import { userAdminRouter } from "./users/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
@@ -75,14 +78,17 @@ export const viewerRouter = router({
   // After that there would just one merge call here for all the apps.
   appRoutingForms: app_RoutingForms,
   features: featureFlagRouter,
+  featureOptIn: featureOptInRouter,
   users: userAdminRouter,
   oAuth: oAuthRouter,
   googleWorkspace: googleWorkspaceRouter,
   admin: adminRouter,
   attributes: attributesRouter,
+  attributeSync: attributeSyncRouter,
   routingForms: routingFormsRouter,
   credits: creditsRouter,
   ooo: oooRouter,
+  holidays: holidaysRouter,
   travelSchedules: travelSchedulesRouter,
   aiVoiceAgent: aiVoiceAgentRouter,
   phoneNumber: phoneNumberRouter,
