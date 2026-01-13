@@ -139,6 +139,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        enablePerHostLocations,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -228,6 +229,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        enablePerHostLocations,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -340,6 +342,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        enablePerHostLocations,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -432,6 +435,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        enablePerHostLocations,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -498,6 +502,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        enablePerHostLocations,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
