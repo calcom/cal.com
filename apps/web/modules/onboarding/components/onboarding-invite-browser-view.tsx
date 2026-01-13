@@ -165,7 +165,7 @@ export const OnboardingInviteBrowserView = ({
                     className="border-default mb-4 h-12 w-12 border-2"
                   />
                 )}
-                <h2 className="text-emphasis font-heading w-full text-left text-xl leading-tight">
+                <h2 className="text-emphasis font-cal w-full text-left text-xl font-semibold leading-tight">
                   {displayName}
                 </h2>
                 <p className="text-subtle text-left text-sm font-normal leading-tight">
