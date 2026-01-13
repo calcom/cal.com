@@ -65,18 +65,47 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
       email: true,
       username: true,
       name: true,
+      avatarUrl: true,
       timeZone: true,
       role: true,
+      createdDate: true,
+      emailVerified: true,
+      completedOnboarding: true,
+      twoFactorEnabled: true,
+      identityProvider: true,
       profiles: {
         select: {
           username: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      },
+      teams: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+              isOrganization: true,
+            },
+          },
         },
       },
       whitelistWorkflows: true,
+      _count: {
+        select: {
+          bookings: true,
+        },
+      },
     },
   });
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined;
   if (users && users.length > limit) {
     const nextItem = users.pop();
     nextCursor = nextItem?.id;
