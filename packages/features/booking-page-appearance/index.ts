@@ -10,3 +10,4 @@ export {
 } from "./lib/buildAppearanceCssVars";
 export { AppearanceEditor } from "./components/AppearanceEditor";
 export { AppearanceUpgradePrompt } from "./components/AppearanceUpgradePrompt";
+export { useBookingPageAppearance } from "./hooks/useBookingPageAppearance";

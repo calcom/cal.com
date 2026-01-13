@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { AppearanceEditor, AppearanceUpgradePrompt } from "@calcom/features/booking-page-appearance";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
@@ -208,8 +209,19 @@ const AppearanceView = ({
         </SectionBottomActions>
       </Form>
 
-      {isApartOfOrganization ? null : (
+      {isApartOfOrganization ? (
+        <div className="border-subtle mt-6 rounded-lg border p-6">
+          <div className="mb-4">
+            <p className="text-default text-base font-semibold">{t("booking_page_appearance")}</p>
+            <p className="text-subtle text-sm">{t("booking_page_appearance_description")}</p>
+          </div>
+          <AppearanceEditor isOrganization={true} />
+        </div>
+      ) : (
         <>
+          <div className="border-subtle mt-6 rounded-lg border p-6">
+            <AppearanceUpgradePrompt />
+          </div>
           <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
             <div>
               <p className="text-default text-base font-semibold">{t("theme")}</p>
