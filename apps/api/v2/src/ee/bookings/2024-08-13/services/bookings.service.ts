@@ -629,13 +629,30 @@ export class BookingsService_2024_08_13 {
         : false;
 
     const isRecurring = !!booking.recurringEventId;
-    const showAttendees = userIsEventTypeAdminOrOwner || !!booking.eventType?.seatsShowAttendees;
+    const seatsShowAttendees = !!booking.eventType?.seatsShowAttendees;
+    const showAllAttendees = userIsEventTypeAdminOrOwner || seatsShowAttendees;
 
-    if (isRecurring) {
-      return this.outputService.getOutputRecurringSeatedBooking(booking, showAttendees);
+    // When user is not admin and seatsShowAttendees is false, show only the attendee for this seatUid
+    if (!showAllAttendees) {
+      const seatAttendee = booking.attendees.find(
+        (attendee) => attendee.bookingSeat?.referenceUid === seatUid
+      );
+      const bookingWithFilteredAttendees = {
+        ...booking,
+        attendees: seatAttendee ? [seatAttendee] : [],
+      };
+
+      if (isRecurring) {
+        return this.outputService.getOutputRecurringSeatedBooking(bookingWithFilteredAttendees, true);
+      }
+      return this.outputService.getOutputSeatedBooking(bookingWithFilteredAttendees, true);
     }
 
-    return this.outputService.getOutputSeatedBooking(booking, showAttendees);
+    if (isRecurring) {
+      return this.outputService.getOutputRecurringSeatedBooking(booking, true);
+    }
+
+    return this.outputService.getOutputSeatedBooking(booking, true);
   }
 
   async getBookings(
