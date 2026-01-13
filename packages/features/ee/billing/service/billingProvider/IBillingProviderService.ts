@@ -83,6 +83,13 @@ export interface IBillingProviderService {
 
   finalizeInvoice(invoiceId: string): Promise<void>;
 
+  // Usage-based billing
+  createSubscriptionUsageRecord(args: {
+    subscriptionId: string;
+    action: "increment" | "set";
+    quantity: number;
+  }): Promise<void>;
+
   // Subscription queries
   getSubscription(subscriptionId: string): Promise<{
     items: Array<{

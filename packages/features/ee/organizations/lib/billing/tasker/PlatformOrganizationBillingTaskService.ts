@@ -1,0 +1,51 @@
+import type { IBillingProviderService } from "@calcom/features/ee/billing/service/billingProvider/IBillingProviderService";
+import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
+
+import type { PlatformOrganizationBillingRepository } from "./PlatformOrganizationBillingRepository";
+import type { PlatformOrganizationBillingTasks } from "./types";
+
+export interface IPlatformOrganizationBillingTaskServiceDependencies {
+  billingRepository: PlatformOrganizationBillingRepository;
+  billingProviderService: IBillingProviderService;
+}
+
+export class PlatformOrganizationBillingTaskService implements PlatformOrganizationBillingTasks {
+  constructor(
+    public readonly dependencies: { logger: ITaskerDependencies["logger"] } & IPlatformOrganizationBillingTaskServiceDependencies
+  ) {}
+
+  async incrementUsage(payload: Parameters<PlatformOrganizationBillingTasks["incrementUsage"]>[0]) {
+    const { userId } = payload;
+    const { billingRepository, billingProviderService, logger } = this.dependencies;
+
+    const team = await billingRepository.findPlatformOrgFromUserId(userId);
+    const teamId = team.id;
+    if (!team.id) {
+      logger.error(`User (${userId}) is not part of the platform organization (${teamId})`, {
+        teamId,
+        userId,
+      });
+      return;
+    }
+
+    const billingSubscription = await billingRepository.findBillingByTeamId(teamId);
+    if (!billingSubscription || !billingSubscription?.subscriptionId) {
+      logger.error(`Team ${teamId} did not have stripe subscription associated to it`, {
+        teamId,
+      });
+      return;
+    }
+
+    await billingProviderService.createSubscriptionUsageRecord({
+      subscriptionId: billingSubscription.subscriptionId,
+      action: "increment",
+      quantity: 1,
+    });
+
+    logger.info("Increased organization usage for subscription", {
+      subscriptionId: billingSubscription.subscriptionId,
+      teamId,
+      userId,
+    });
+  }
+}
