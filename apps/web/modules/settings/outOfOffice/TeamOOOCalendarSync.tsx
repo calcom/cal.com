@@ -51,7 +51,7 @@ export function TeamOOOCalendarSync() {
   const showUpgradeBadge = hasTeamPlan && !hasOrganization;
   const isDisabled = !hasOrganization || !isOrgAdminOrOwner;
 
-  if (!isOrgAdminOrOwner) {
+  if (!isOrgAdminOrOwner && !showUpgradeBadge) {
     return null;
   }
 
