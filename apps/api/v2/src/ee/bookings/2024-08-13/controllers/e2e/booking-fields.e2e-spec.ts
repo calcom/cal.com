@@ -1,16 +1,15 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import {
+  BookingOutput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  GetBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import type { Booking, EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -18,15 +17,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
-  CreateBookingInput_2024_08_13,
-  GetBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import { BookingOutput_2024_08_13 } from "@calcom/platform-types";
-import type { Booking, PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Booking fields", () => {
@@ -779,7 +778,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
             if (responseDataIsBooking(responseBody.data)) {
               // eslint-disable-next-line
-              // @ts-ignore
+              // @ts-expect-error
               const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
               expect(data.attendees[0].name).toEqual(`${splitName.firstName} ${splitName.lastName}`);
               expect(data.attendees[0].bookingFieldsResponses.name).toEqual(splitName);

@@ -1,16 +1,9 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { EmailService } from "@/modules/email/email.service";
-import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
-import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { AttributeOption, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -20,9 +13,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { User, Team, AttributeOption } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { EmailService } from "@/modules/email/email.service";
+import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
+import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Users Endpoints", () => {
   const bio = "I am a bio";
