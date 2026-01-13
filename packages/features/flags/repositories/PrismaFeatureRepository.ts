@@ -6,6 +6,7 @@ export interface IPrismaFeatureRepository {
   findAll(): Promise<Feature[]>;
   findBySlug(slug: FeatureId): Promise<Feature | null>;
   checkIfEnabledGlobally(slug: FeatureId): Promise<boolean>;
+  getFeatureFlagMap(): Promise<AppFlags>;
 }
 
 export class PrismaFeatureRepository implements IPrismaFeatureRepository {
