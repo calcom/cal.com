@@ -19,10 +19,12 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
     take,
     teamIds,
     integrations,
+    genericCalendarSuffixes,
   }: {
     take: number;
     teamIds: number[];
     integrations: string[];
+    genericCalendarSuffixes?: string[];
   }) {
     return this.prismaClient.selectedCalendar.findMany({
       where: {
@@ -36,6 +38,9 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
             },
           },
         },
+        AND: genericCalendarSuffixes?.map((suffix) => ({
+          NOT: { externalId: { endsWith: suffix } },
+        })),
       },
       take,
     });

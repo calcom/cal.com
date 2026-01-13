@@ -51,6 +51,7 @@ export const EventTypeListItem = ({
             title={item.title}
             username={item.users?.[0]?.username}
             slug={item.slug}
+            bookingUrl={item.bookingUrl}
           />
           <EventTypeDescription normalizedDescription={normalizedDescription} />
           <EventTypeBadges

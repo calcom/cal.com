@@ -1,18 +1,8 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import {
-  OAuthClientWebhooksOutputResponseDto,
-  OAuthClientWebhookOutputResponseDto,
-} from "@/modules/webhooks/outputs/oauth-client-webhook.output";
+import type { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -22,8 +12,17 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import type { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
+import { UserWithProfile } from "@/modules/users/users.repository";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
+import {
+  OAuthClientWebhookOutputResponseDto,
+  OAuthClientWebhooksOutputResponseDto,
+} from "@/modules/webhooks/outputs/oauth-client-webhook.output";
 
 describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;
