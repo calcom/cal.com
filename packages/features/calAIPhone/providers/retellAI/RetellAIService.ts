@@ -1,3 +1,4 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { TrackingData } from "@calcom/lib/tracking";
 
 import type {
@@ -38,10 +39,11 @@ export class RetellAIService {
   private voiceService: VoiceService;
 
   constructor(
-    private repository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface,
-    private phoneNumberRepository: PhoneNumberRepositoryInterface,
-    private transactionManager: TransactionInterface
+    repository: RetellAIRepository,
+    agentRepository: AgentRepositoryInterface,
+    phoneNumberRepository: PhoneNumberRepositoryInterface,
+    transactionManager: TransactionInterface,
+    permissionService: PermissionCheckService,
   ) {
     this.aiConfigurationService = new AIConfigurationService({ retellRepository: repository });
     this.agentService = new AgentService({
@@ -52,6 +54,7 @@ export class RetellAIService {
     this.billingService = new BillingService({
       phoneNumberRepository,
       retellRepository: repository,
+      permissionService,
     });
     this.callService = new CallService({
       retellRepository: repository,
@@ -62,6 +65,7 @@ export class RetellAIService {
       agentRepository,
       phoneNumberRepository,
       transactionManager,
+      permissionService,
     });
     this.voiceService = new VoiceService({ retellRepository: repository });
 

@@ -1,5 +1,7 @@
 import { vi } from "vitest";
 
+import type { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../../interfaces/TransactionInterface";
@@ -51,7 +53,7 @@ export const createMockCall = (overrides: Partial<RetellCall> = {}): RetellCall 
   ...overrides,
 });
 
-export const createMockDatabaseAgent = (overrides: any = {}) => ({
+export const createMockDatabaseAgent = (overrides: Record<string, unknown> = {}) => ({
   id: "db-agent-123",
   name: "Test Agent",
   providerAgentId: "agent-123",
@@ -63,7 +65,7 @@ export const createMockDatabaseAgent = (overrides: any = {}) => ({
   ...overrides,
 });
 
-export const createMockPhoneNumberRecord = (overrides: any = {}) => ({
+export const createMockPhoneNumberRecord = (overrides: Record<string, unknown> = {}) => ({
   id: 1,
   phoneNumber: "+1234567890",
   userId: 1,
@@ -79,7 +81,7 @@ export const createMockPhoneNumberRecord = (overrides: any = {}) => ({
 });
 
 // Helper for creating custom telephony phone number records
-export const createMockCustomTelephonyPhoneNumberRecord = (overrides: any = {}) =>
+export const createMockCustomTelephonyPhoneNumberRecord = (overrides: Record<string, unknown> = {}) =>
   createMockPhoneNumberRecord({ provider: "custom-telephony", ...overrides });
 
 // Repository Mock Factories
@@ -118,6 +120,7 @@ export const createMockAgentRepository = (): AgentRepositoryInterface & {
     findByIdWithCallAccess: vi.fn(),
     delete: vi.fn(),
     linkOutboundAgentToWorkflow: vi.fn(),
+    linkInboundAgentToWorkflow: vi.fn(),
   };
 };
 
@@ -128,11 +131,14 @@ export const createMockPhoneNumberRepository = (): PhoneNumberRepositoryInterfac
     createPhoneNumber: vi.fn(),
     findByPhoneNumberAndUserId: vi.fn(),
     findByPhoneNumberAndTeamId: vi.fn(),
+    findByPhoneNumber: vi.fn(),
+    findById: vi.fn(),
     deletePhoneNumber: vi.fn(),
     updateAgents: vi.fn(),
     updateSubscriptionStatus: vi.fn(),
     findByIdAndUserId: vi.fn(),
     findByIdWithTeamAccess: vi.fn(),
+    updateInboundAgentId: vi.fn(),
   };
 };
 
@@ -152,18 +158,31 @@ export const createMockTransactionManager = (): TransactionInterface & {
   };
 };
 
+export const createMockPermissionService = (): PermissionCheckService => {
+  return {
+    checkPermissions: vi.fn().mockResolvedValue(true),
+    checkPermission: vi.fn().mockResolvedValue(true),
+    getUserPermissions: vi.fn().mockResolvedValue([]),
+    getResourcePermissions: vi.fn().mockResolvedValue([]),
+    getTeamIdsWithPermission: vi.fn().mockResolvedValue([]),
+    getTeamIdsWithPermissions: vi.fn().mockResolvedValue([]),
+  } as unknown as PermissionCheckService;
+};
+
 // Common Test Setup Functions
 export const setupBasicMocks = () => {
   const mockRetellRepository = createMockRetellRepository();
   const mockAgentRepository = createMockAgentRepository();
   const mockPhoneNumberRepository = createMockPhoneNumberRepository();
   const mockTransactionManager = createMockTransactionManager();
+  const mockPermissionService = createMockPermissionService();
 
   return {
     mockRetellRepository,
     mockAgentRepository,
     mockPhoneNumberRepository,
     mockTransactionManager,
+    mockPermissionService,
   };
 };
 

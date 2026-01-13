@@ -18,10 +18,22 @@ import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 import type { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
+import type { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
 }));
+
+function createMockPermissionCheckService(): PermissionCheckService {
+  return {
+    checkPermissions: vi.fn().mockResolvedValue(true),
+    checkPermission: vi.fn().mockResolvedValue(true),
+    getUserPermissions: vi.fn().mockResolvedValue([]),
+    getResourcePermissions: vi.fn().mockResolvedValue([]),
+    getTeamIdsWithPermission: vi.fn().mockResolvedValue([]),
+    getTeamIdsWithPermissions: vi.fn().mockResolvedValue([]),
+  } as unknown as PermissionCheckService;
+}
 
 function createMockRetellAIService(overrides: Partial<RetellAIService> = {}): RetellAIService {
   const defaultMocks = {
@@ -56,6 +68,7 @@ describe("RetellAIPhoneServiceProvider", () => {
   let mockAgentRepository: AgentRepositoryInterface;
   let mockPhoneNumberRepository: PhoneNumberRepositoryInterface;
   let mockTransactionManager: TransactionInterface;
+  let mockPermissionService: PermissionCheckService;
   let provider: RetellAIPhoneServiceProvider;
   let mockService: RetellAIService;
 
@@ -114,15 +127,18 @@ describe("RetellAIPhoneServiceProvider", () => {
       executeInTransaction: vi.fn(),
     } as unknown as TransactionInterface;
 
+    // Create mock permission service
+    mockPermissionService = createMockPermissionCheckService();
+
     // Create a comprehensive mock service using helper function
     mockService = createMockRetellAIService();
 
-    // Pass the mock service as the 5th parameter to ensure it's used instead of creating a new one
     provider = new RetellAIPhoneServiceProvider(
       mockRepository,
       mockAgentRepository,
       mockPhoneNumberRepository,
       mockTransactionManager,
+      mockPermissionService,
       mockService
     );
   });
@@ -254,6 +270,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -287,6 +304,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -316,6 +334,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -345,6 +364,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -379,6 +399,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -430,6 +451,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -486,6 +508,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -524,6 +547,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -570,6 +594,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -601,6 +626,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
     });
@@ -664,6 +690,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         mockAgentRepository,
         mockPhoneNumberRepository,
         mockTransactionManager,
+        mockPermissionService,
         mockService
       );
 

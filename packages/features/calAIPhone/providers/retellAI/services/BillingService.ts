@@ -7,11 +7,12 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { MembershipRole, PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { TrackingData } from "@calcom/lib/tracking";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 const stripeErrorSchema = z.object({
   raw: z.object({
@@ -19,14 +20,17 @@ const stripeErrorSchema = z.object({
   }),
 });
 
+type Dependencies = {
+  phoneNumberRepository: PhoneNumberRepositoryInterface;
+  retellRepository: RetellAIRepository;
+  permissionService: PermissionCheckService;
+}
+
 export class BillingService {
   private logger = logger.getSubLogger({ prefix: ["BillingService"] });
   constructor(
-    private deps: {
-      phoneNumberRepository: PhoneNumberRepositoryInterface;
-      retellRepository: RetellAIRepository;
-    }
-  ) { }
+    private deps: Dependencies
+  ) {}
 
   async generatePhoneNumberCheckoutSession({
     userId,
@@ -41,6 +45,18 @@ export class BillingService {
     workflowId?: string;
     tracking?: TrackingData;
   }) {
+    if (teamId && !await this.deps.permissionService.checkPermission({
+      userId,
+      teamId,
+      permission: "phoneNumber.create",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    })) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to create phone numbers for team ${teamId}.`
+      });
+    }
+
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
     if (!phoneNumberPriceId) {
@@ -116,22 +132,33 @@ export class BillingService {
     userId: number;
     teamId?: number;
   }) {
-    // Find phone number with proper team authorization
-    const phoneNumber = teamId
-      ? await this.deps.phoneNumberRepository.findByIdWithTeamAccess({
-        id: phoneNumberId,
+    if (teamId && !await this.deps.permissionService.checkPermission({
+        userId,
         teamId,
-        userId,
-      })
-      : await this.deps.phoneNumberRepository.findByIdAndUserId({
-        id: phoneNumberId,
-        userId,
+        permission: "phoneNumber.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER]
+    })) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to delete phone numbers for team ${teamId}.`
       });
+    }
 
+    const phoneNumber = await this.deps.phoneNumberRepository.findById(phoneNumberId);
     if (!phoneNumber) {
       throw new HttpError({
         statusCode: 404,
-        message: "Phone number not found or you don't have permission to cancel it.",
+      });
+    }
+
+    // there is a phone number, but we're not sure if it belongs to the user id
+    if (
+      (!teamId && phoneNumber.userId !== userId) ||
+      (teamId && phoneNumber.teamId !== teamId)
+    ) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to delete phone number ${phoneNumber.phoneNumber}.`
       });
     }
 
