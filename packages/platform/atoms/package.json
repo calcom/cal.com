@@ -62,7 +62,7 @@
     "./dist/index.d.ts": "./dist/index.d.ts",
     "./globals.min.css": "./globals.min.css",
     "./hooks/booker/useBookingForm": "./hooks/booker/useBookingForm.ts",
-    "./hooks/booker/useLocalSet": "./hooks/booker/useLocalSet.ts",
+    "./hooks/booker/useLocalSet": "./hooks/booker/useLocalSet.tsx",
     "./hooks/booker/useBookerLayout": "./hooks/booker/useBookerLayout.ts",
     "./hooks/booker/useBookerTime": "./hooks/booker/useBookerTime.ts",
     "./hooks/booker/useAvailableTimeSlots": "./hooks/booker/useAvailableTimeSlots.ts",
