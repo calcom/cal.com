@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 
-import { useBookingLocation } from "@calcom/features/bookings/hooks";
+import { useBookingLocation } from "@calcom/web/modules/bookings/hooks/useBookingLocation";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -22,7 +22,12 @@ interface UseJoinableLocationParams {
  * - `provider`: Provider information (label, iconUrl, etc.)
  * - `isLocationURL`: Whether the location is a URL
  */
-export function useJoinableLocation({ location, metadata, bookingStatus, t }: UseJoinableLocationParams) {
+export function useJoinableLocation({
+  location,
+  metadata,
+  bookingStatus,
+  t,
+}: UseJoinableLocationParams) {
   const bookingMetadata = useMemo(() => {
     const parsedMetadata = bookingMetadataSchema.safeParse(metadata ?? null);
     return parsedMetadata.success ? parsedMetadata.data : null;
