@@ -473,6 +473,7 @@ export class TeamRepository {
       where: {
         slug,
         parentId: null,
+        isOrganization: true,
       },
       select: {
         id: true,
