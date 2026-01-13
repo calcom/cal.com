@@ -16,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["[whatsappQueueHandler]"] });
 
 /**
  * Fetches reminders that need to be scheduled via Inngest
- * These are reminders that were stored as "scheduled: false" and are now within the 7-day window
+ * These are reminders that were stored as "scheduled: false" and are now within the 20-minute window
  */
 const fetchPendingMessages = async () => {
   return prisma.calIdWorkflowReminder.findMany({
@@ -24,7 +24,7 @@ const fetchPendingMessages = async () => {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        lte: dayjs().add(20, "minute").toISOString(),
         gte: dayjs().toISOString(),
       },
       OR: [{ cancelled: null }, { cancelled: false }],
@@ -184,7 +184,7 @@ const executeCancellationProcess = async (): Promise<void> => {
       scheduled: true,
       cancelled: true,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        lte: dayjs().add(20, "minute").toISOString(),
         gte: dayjs().toISOString(),
       },
     },
@@ -253,7 +253,7 @@ const cleanupExpiredReminders = async (): Promise<void> => {
 /**
  * Main cron handler
  * This cron now primarily handles:
- * 1. Scheduling reminders that were stored for future (beyond 7 days) that are now within window
+ * 1. Scheduling reminders that were stored for future (beyond 20 minutes) that are now within window
  * 2. Processing cancellations for already-scheduled reminders
  * 3. Cleanup of old reminder records
  */

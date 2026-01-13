@@ -338,7 +338,7 @@ const processScheduledWhatsapp = async ({
 
   // Can only schedule at least 60 minutes in advance and at most 7 days in advance with inngest rest are handled via crons
 
-  if (!scheduledDate.isAfter(currentDate.add(7, "day"))) {
+  if (!scheduledDate.isAfter(currentDate.add(20, "minute"))) {
     await scheduleDelayedWhatsapp({
       eventTypeId,
       workflowId,
@@ -357,7 +357,7 @@ const processScheduledWhatsapp = async ({
       metaTemplateName,
       metaPhoneNumberId,
     });
-  } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
+  } else if (scheduledDate.isAfter(currentDate.add(20, "minute"))) {
     await storeFutureWhatsappReminder(uid, workflowStepId, scheduledDate, seatReferenceUid, evt);
   }
 };
