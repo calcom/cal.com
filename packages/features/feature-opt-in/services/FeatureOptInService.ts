@@ -1,5 +1,5 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 
 import { OPT_IN_FEATURES } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
@@ -11,7 +11,7 @@ import type { IFeatureOptInService, ResolvedFeatureState } from "./IFeatureOptIn
  * Computes effective states based on global, org, team, and user settings.
  */
 export class FeatureOptInService implements IFeatureOptInService {
-  constructor(private featuresRepository: FeaturesRepository) {}
+  constructor(private featuresRepository: IFeaturesRepository) {}
 
   /**
    * Core method: Resolve feature states for a user across all their teams.
