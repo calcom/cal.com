@@ -16,7 +16,7 @@ import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewe
 
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
 
-export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
+export type { QuickAvailabilityCheck, UseSlotsReturnType } from "@calcom/features/bookings/Booker/types";
 
 const useQuickAvailabilityChecks = ({
   eventTypeId,
@@ -75,7 +75,6 @@ const useQuickAvailabilityChecks = ({
   return quickAvailabilityChecks || cachedQuickAvailabilityChecksRef.current;
 };
 
-export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { id: number; length: number } | null) => {
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);

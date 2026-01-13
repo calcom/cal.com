@@ -13,7 +13,7 @@ import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { validateLayout } from "@calcom/features/bookings/Booker/utils/layout";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 
-export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
+export type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/types";
 
 export const useBookerLayout = (
   profileBookerLayouts: BookerEvent["profile"]["bookerLayouts"] | undefined | null

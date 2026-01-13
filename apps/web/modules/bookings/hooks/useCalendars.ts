@@ -9,7 +9,7 @@ import { useLocalSet } from "@calcom/atoms/hooks/booker/useLocalSet";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
-export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
+export type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/types";
 type UseCalendarsProps = {
   hasSession: boolean;
 };

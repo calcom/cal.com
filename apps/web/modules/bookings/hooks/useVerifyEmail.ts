@@ -13,7 +13,7 @@ export interface IUseVerifyEmailProps {
   name?: string | { firstName: string; lastname?: string };
   requiresBookerEmailVerification?: boolean;
 }
-export type UseVerifyEmailReturnType = ReturnType<typeof useVerifyEmail>;
+export type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/types";
 export const useVerifyEmail = ({
   email,
   name,

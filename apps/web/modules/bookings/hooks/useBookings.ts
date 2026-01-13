@@ -104,17 +104,11 @@ const getRescheduleBookingSuccessfulEventPayload = getBookingSuccessfulEventPayl
 export const getDryRunBookingSuccessfulEventPayload = getBaseBookingEventPayload;
 
 export const getDryRunRescheduleBookingSuccessfulEventPayload = getDryRunBookingSuccessfulEventPayload;
-export interface IUseBookingLoadingStates {
-  creatingBooking: boolean;
-  creatingRecurringBooking: boolean;
-  creatingInstantBooking: boolean;
-}
-
-export interface IUseBookingErrors {
-  hasDataErrors: boolean;
-  dataErrors: unknown;
-}
-export type UseBookingsReturnType = ReturnType<typeof useBookings>;
+export type {
+  IUseBookingLoadingStates,
+  IUseBookingErrors,
+  UseBookingsReturnType,
+} from "@calcom/features/bookings/Booker/types";
 
 const STORAGE_KEY = "instantBookingData";
 const COOLDOWN_STORAGE_KEY = "instantBookingCooldownByEvent";

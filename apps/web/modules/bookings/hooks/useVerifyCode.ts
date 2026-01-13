@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-export type UseVerifyCodeReturnType = ReturnType<typeof useVerifyCode>;
+export type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/types";
 
 type UseVerifyCodeProps = {
   onSuccess: (isVerified: boolean) => void;

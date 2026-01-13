@@ -25,7 +25,7 @@ export interface IUseBookingForm {
   clientId?: string;
 }
 
-export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
+export type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/types";
 
 export const useBookingForm = ({
   event,
