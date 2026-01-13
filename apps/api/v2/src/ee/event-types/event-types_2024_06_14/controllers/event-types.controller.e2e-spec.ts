@@ -635,6 +635,7 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.bookingUrl).toContain(`/${user.username}/${body.slug}`);
           expect(createdEventType.disableCancelling).toEqual({ disabled: true });
           expect(createdEventType.disableRescheduling).toEqual({ disabled: true });
           expect(createdEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(true);
@@ -731,6 +732,7 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
       expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
       expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
       expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
@@ -1551,6 +1553,7 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+      expect(fetchedEventType.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
     });
 
     it("system admin can access another user's event type by id", async () => {
@@ -2677,12 +2680,19 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.title).toEqual(body.title);
             secondCreatedEventType = responseBody.data;
 
-            const { id, title, slug, ...restFirst } = firstCreatedEventType;
-            const { id: id2, title: title2, slug: slug2, ...restSecond } = secondCreatedEventType;
+            const { id, title, slug, bookingUrl, ...restFirst } = firstCreatedEventType;
+            const {
+              id: id2,
+              title: title2,
+              slug: slug2,
+              bookingUrl: bookingUrl2,
+              ...restSecond
+            } = secondCreatedEventType;
             expect(restFirst).toEqual(restSecond);
             expect(id2).not.toEqual(id);
             expect(title2).not.toEqual(title);
             expect(slug2).not.toEqual(slug);
+            expect(bookingUrl2).not.toEqual(bookingUrl);
           });
       });
 
