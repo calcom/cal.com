@@ -214,6 +214,7 @@ export class MonthlyProrationService {
     const { invoiceId } = await this.billingService.createInvoice({
       customerId: proration.customerId,
       autoAdvance: true,
+      collectionMethod: "charge_automatically",
       metadata: {
         type: "monthly_proration",
         prorationId: proration.id,

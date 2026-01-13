@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 
-import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+import type { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 
 export interface IBillingProviderService {
   checkoutSessionIsPaid(paymentId: string): Promise<boolean>;
@@ -78,6 +78,7 @@ export interface IBillingProviderService {
   createInvoice(args: {
     customerId: string;
     autoAdvance: boolean;
+    collectionMethod?: "charge_automatically" | "send_invoice";
     metadata?: Record<string, string>;
   }): Promise<{ invoiceId: string }>;
 

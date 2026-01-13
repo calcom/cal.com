@@ -1,6 +1,5 @@
-import type Stripe from "stripe";
-
 import logger from "@calcom/lib/logger";
+import type Stripe from "stripe";
 
 import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { IBillingProviderService } from "./IBillingProviderService";
@@ -260,10 +259,11 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async createInvoice(args: Parameters<IBillingProviderService["createInvoice"]>[0]) {
-    const { customerId, autoAdvance, metadata } = args;
+    const { customerId, autoAdvance, collectionMethod, metadata } = args;
     const invoice = await this.stripe.invoices.create({
       customer: customerId,
       auto_advance: autoAdvance,
+      collection_method: collectionMethod,
       metadata,
     });
 
