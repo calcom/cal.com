@@ -25,16 +25,68 @@ export class BookingSeatRepository {
       where: {
         referenceUid,
       },
-      include: {
+      select: {
+        id: true,
+        referenceUid: true,
+        data: true,
+        metadata: true,
+        bookingId: true,
+        attendeeId: true,
         booking: {
-          include: {
+          select: {
+            id: true,
+            uid: true,
+            title: true,
+            description: true,
+            startTime: true,
+            endTime: true,
+            status: true,
+            location: true,
+            metadata: true,
+            cancellationReason: true,
+            fromReschedule: true,
+            rescheduled: true,
+            rescheduledBy: true,
+            noShowHost: true,
+            createdAt: true,
+            updatedAt: true,
+            rating: true,
+            iCalUID: true,
+            eventTypeId: true,
+            recurringEventId: true,
             attendees: {
-              include: {
-                bookingSeat: true,
+              select: {
+                name: true,
+                email: true,
+                timeZone: true,
+                locale: true,
+                phoneNumber: true,
+                noShow: true,
+                bookingSeat: {
+                  select: {
+                    id: true,
+                    referenceUid: true,
+                    data: true,
+                    metadata: true,
+                  },
+                },
               },
             },
-            user: true,
-            eventType: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                username: true,
+              },
+            },
+            eventType: {
+              select: {
+                id: true,
+                slug: true,
+                seatsShowAttendees: true,
+              },
+            },
           },
         },
       },
