@@ -138,8 +138,6 @@ export class EventTypesAtomService {
       input: { ...body, id: eventTypeId, bookingFields },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -168,8 +166,6 @@ export class EventTypesAtomService {
       input: { ...body, id: eventTypeId, bookingFields },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
