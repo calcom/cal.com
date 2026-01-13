@@ -3,11 +3,11 @@ import { Button } from "@calcom/ui/components/button";
 import { Input, Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
+import { getDefaultFieldMapping } from "@calcom/features/ee/integration-attribute-sync/lib/fieldMappingHelpers";
 import type {
   IFieldMappingFormState,
   IFieldMappingWithOptionalId,
-} from "../repositories/IIntegrationAttributeSyncRepository";
+} from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 
 type AttributeOptions = {
   label: string;

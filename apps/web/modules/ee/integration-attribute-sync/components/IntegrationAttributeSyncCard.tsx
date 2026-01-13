@@ -14,7 +14,7 @@ import {
   type IntegrationAttributeSync,
   type ISyncFormData,
   RuleOperatorEnum,
-} from "../repositories/IIntegrationAttributeSyncRepository";
+} from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 import { FieldMappingBuilder } from "./FieldMappingBuilder";
 import { RuleBuilder } from "./RuleBuilder";
 

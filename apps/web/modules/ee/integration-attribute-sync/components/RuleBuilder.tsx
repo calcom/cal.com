@@ -18,7 +18,7 @@ import {
   isArrayOperator,
   isTeamCondition,
   type TAttributeSyncRuleConditionWithId,
-} from "../lib/ruleHelpers";
+} from "@calcom/features/ee/integration-attribute-sync/lib/ruleHelpers";
 import {
   ConditionIdentifierEnum,
   type ConditionOperatorEnum,
@@ -27,7 +27,7 @@ import {
   type ITeamCondition,
   type RuleOperatorEnum,
   type TAttributeSyncRuleCondition,
-} from "../repositories/IIntegrationAttributeSyncRepository";
+} from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 
 const ensureConditionHasId = (condition: TAttributeSyncRuleCondition): TAttributeSyncRuleConditionWithId => {
   if ("_id" in condition && condition._id) {
