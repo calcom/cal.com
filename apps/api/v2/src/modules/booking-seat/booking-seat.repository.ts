@@ -36,7 +36,15 @@ export class BookingSeatRepository {
             },
           },
         },
-        attendee: true,
+        attendee: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+            noShow: true,
+          },
+        },
       },
     });
   }
