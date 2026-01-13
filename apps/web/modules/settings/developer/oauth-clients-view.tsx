@@ -103,9 +103,13 @@ const OAuthClientsView = () => {
     });
   };
 
-  const handleCloseDialog = () => {
+  const handleCloseCreateDialog = () => {
     setShowDialog(false);
     setSubmittedClient(null);
+  };
+
+  const handleCloseDetailsDialog = () => {
+    setSelectedClient(null);
   };
 
   if (isLoading) {
@@ -165,12 +169,12 @@ const OAuthClientsView = () => {
         resultClient={submittedClient}
         resultTitle={t("oauth_client_submitted")}
         resultDescription={t("oauth_client_submitted_description")}
-        onClose={handleCloseDialog}
+        onClose={handleCloseCreateDialog}
       />
 
       <OAuthClientDetailsDialog
         open={Boolean(selectedClient)}
-        onOpenChange={(open) => !open && setSelectedClient(null)}
+        onOpenChange={(open) => !open && handleCloseDetailsDialog()}
         client={selectedClient}
         onUpdate={(values) => {
           updateClientMutation.mutate({
