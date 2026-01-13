@@ -126,55 +126,52 @@ const getUtf8ByteLength = (str: string): number => {
 };
 
 /**
- * Extracts a substring by byte position in UTF-8 encoding.
- * This ensures we don't split multi-byte characters.
- *
- * @param str - The string to extract from
- * @param startByte - The starting byte position
- * @param maxBytes - The maximum number of bytes to extract
- * @returns The extracted substring
- */
-const substringByBytes = (str: string, startByte: number, maxBytes: number): string => {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder("utf-8");
-  const fullBytes = encoder.encode(str);
-
-  // Extract the byte range, ensuring we don't exceed array bounds
-  const endByte = Math.min(startByte + maxBytes, fullBytes.length);
-  const slice = fullBytes.slice(startByte, endByte);
-
-  return decoder.decode(slice);
-};
-
-/**
  * Folds iCalendar content lines per RFC 5545 Section 3.1.
  * Lines longer than 75 octets (bytes in UTF-8) should be folded by inserting CRLF followed by a space.
+ *
+ * This implementation iterates character-by-character to ensure we never split multi-byte
+ * UTF-8 sequences, which would corrupt the data.
  *
  * @param iCalString - The iCalendar string with potentially long lines
  * @returns The iCalendar string with lines properly folded
  */
 const foldLines = (iCalString: string): string => {
   const lines = iCalString.split(/\r?\n/);
-  const foldedLines = lines.map((line) => {
-    const byteLength = getUtf8ByteLength(line);
+  const encoder = new TextEncoder();
 
-    if (byteLength <= 75) {
+  const foldedLines = lines.map((line) => {
+    const lineBytes = encoder.encode(line);
+
+    if (lineBytes.length <= 75) {
       return line;
     }
 
     // Fold line at 75 octets by inserting CRLF + space
+    // We iterate character-by-character, accumulating bytes until we hit the limit
     const folded: string[] = [];
-    let currentByte = 0;
+    let currentSegment = "";
+    let currentByteCount = 0;
+    let isFirstSegment = true;
 
-    // First line gets 75 bytes
-    folded.push(substringByBytes(line, currentByte, 75));
-    currentByte += getUtf8ByteLength(folded[0]);
+    for (const char of line) {
+      const charBytes = encoder.encode(char).length;
+      const limit = isFirstSegment ? 75 : 74; // First line: 75 bytes, continuation: 74 bytes (space + 74)
 
-    // Continuation lines get 74 bytes (75 - 1 for the leading space)
-    while (currentByte < byteLength) {
-      const chunk = substringByBytes(line, currentByte, 74);
-      folded.push(" " + chunk);
-      currentByte += getUtf8ByteLength(chunk);
+      // If adding this character would exceed the limit, start a new segment
+      if (currentByteCount + charBytes > limit) {
+        folded.push(isFirstSegment ? currentSegment : " " + currentSegment);
+        currentSegment = char;
+        currentByteCount = charBytes;
+        isFirstSegment = false;
+      } else {
+        currentSegment += char;
+        currentByteCount += charBytes;
+      }
+    }
+
+    // Don't forget the last segment
+    if (currentSegment.length > 0) {
+      folded.push(isFirstSegment ? currentSegment : " " + currentSegment);
     }
 
     return folded.join("\r\n");
