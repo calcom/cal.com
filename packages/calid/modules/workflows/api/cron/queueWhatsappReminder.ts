@@ -204,14 +204,6 @@ const executeCancellationProcess = async (): Promise<void> => {
     try {
       if (!messageToCancel.referenceId) continue;
 
-      // Send cancellation event to Inngest
-      await inngestClient.send({
-        name: `whatsapp/reminder.cancelled-${key}`,
-        data: {
-          reminderId: messageToCancel.id,
-        },
-      });
-
       // Update database to reflect cancellation
       await prisma.calIdWorkflowReminder.update({
         where: { id: messageToCancel.id },

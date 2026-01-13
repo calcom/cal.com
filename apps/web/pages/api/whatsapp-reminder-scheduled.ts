@@ -59,6 +59,13 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         throw new NonRetriableError(`Booking ${data.bookingUid} was cancelled, skipping reminder`);
       }
 
+      if (
+        reminderRecord.booking?.status === "CANCELLED" &&
+        reminderRecord.workflowStep?.workflow.trigger !== "EVENT_CANCELLED"
+      ) {
+        throw new NonRetriableError(`Booking ${data.bookingUid} was cancelled, skipping reminder`);
+      }
+
       const workflowStep = reminderRecord.workflowStep;
 
       // Get Meta template name and phone number ID from workflow step
@@ -143,15 +150,4 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
     reminderId: data.reminderId,
     messageId: result.messageId,
   };
-};
-
-// Cancellation function
-export const cancelWhatsappReminder = async ({ event, step }) => {
-  const { reminderId } = event.data as { reminderId: number };
-
-  await step.run("mark-reminder-cancelled", async () => {
-    // Empty step does nothing, this is only useful sending the cancellation event to Inngest
-  });
-
-  return { success: true, reminderId };
 };
