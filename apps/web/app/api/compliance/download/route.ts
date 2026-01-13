@@ -68,7 +68,7 @@ export async function GET(request: Request) {
     // Redirect to the authorized download URL
     return NextResponse.redirect(downloadUrl, { status: 302 });
   } catch (error) {
-    console.error("Failed to get B2 download URL:", error);
+    console.error("Failed to get B2 download URL:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to generate download link" }, { status: 500 });
   }
 }
