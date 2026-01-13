@@ -2,9 +2,34 @@ import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalEventResponses } from "@calcom/types/Calendar";
+
+const HTML_ESCAPES: Record<string, string> = {
+  "&": "&amp;",
+  '"': "&quot;",
+  "'": "&#x27;",
+  "<": "&lt;",
+  ">": "&gt;",
+};
+
+export function escapeHtml(str: string): string {
+  return str.replace(/[&"'<>]/g, (char) => HTML_ESCAPES[char] || char);
+}
+
+export function isValidImageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url, WEBAPP_URL);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+export function sanitizeBrandColor(color: string | null | undefined): string {
+  return color && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color) ? color : "#292929";
+}
 
 export type WorkflowVariableResponses = Record<
   string,
@@ -86,6 +111,9 @@ export type VariablesType = {
   attendeeTimezone?: string;
   eventTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
+  orgLogoUrl?: string | null;
+  orgName?: string | null;
+  brandColor?: string | null;
 };
 
 // Replaces placeholders like {EVENT_NAME_VARIABLE} with {EVENT_NAME}
@@ -213,10 +241,26 @@ const customTemplate = (
     }
   });
 
+  // Apply branding variables - text version strips {ORG_LOGO}, HTML renders it as <img>
+  const textWithBranding = dynamicText
+    .replaceAll("{ORG_LOGO}", "")
+    .replaceAll("{ORG_NAME}", variables.orgName || "")
+    .replaceAll("{BRAND_COLOR}", sanitizeBrandColor(variables.brandColor));
+
+  const orgLogoHtml =
+    variables.orgLogoUrl && isValidImageUrl(variables.orgLogoUrl)
+      ? `<img src="${escapeHtml(variables.orgLogoUrl)}" alt="${escapeHtml(variables.orgName || "")}" style="max-height:60px;" />`
+      : "";
+
+  const htmlWithBranding = dynamicText
+    .replaceAll("{ORG_LOGO}", orgLogoHtml)
+    .replaceAll("{ORG_NAME}", escapeHtml(variables.orgName || ""))
+    .replaceAll("{BRAND_COLOR}", sanitizeBrandColor(variables.brandColor));
+
   const branding = !isBrandingDisabled ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 
-  const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}${branding}</body>`;
-  return { text: dynamicText, html: textHtml };
+  const textHtml = `<body style="white-space: pre-wrap;">${htmlWithBranding}${branding}</body>`;
+  return { text: textWithBranding, html: textHtml };
 };
 
 export default customTemplate;
