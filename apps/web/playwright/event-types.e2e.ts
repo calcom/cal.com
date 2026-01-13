@@ -380,7 +380,7 @@ test.describe("Event Types tests", () => {
         await page.locator("[data-testid=add-location]").click();
 
         const testPhoneInputValue2 = "9188888888";
-        await page.getByTestId("location-select-item-userPhone").click();
+        await page.getByTestId("location-select-item-userPhone").last().click();
         await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).waitFor();
         await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).fill(testPhoneInputValue2);
         await checkDisplayLocation(page);
