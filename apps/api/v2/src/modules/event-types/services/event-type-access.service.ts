@@ -7,6 +7,8 @@ import { Injectable } from "@nestjs/common";
 
 import type { EventType } from "@calcom/prisma/client";
 
+type EventTypeForAccessCheck = Pick<EventType, "id" | "teamId" | "userId">;
+
 @Injectable()
 export class EventTypeAccessService {
   constructor(
@@ -16,7 +18,10 @@ export class EventTypeAccessService {
     private readonly teamsRepository: TeamsRepository
   ) {}
 
-  async userIsEventTypeAdminOrOwner(authUser: ApiAuthGuardUser, eventType: EventType): Promise<boolean> {
+  async userIsEventTypeAdminOrOwner(
+    authUser: ApiAuthGuardUser,
+    eventType: EventType | EventTypeForAccessCheck
+  ): Promise<boolean> {
     const authUserId = authUser.id;
     const eventTypeId = eventType.id;
     const teamId = eventType.teamId;

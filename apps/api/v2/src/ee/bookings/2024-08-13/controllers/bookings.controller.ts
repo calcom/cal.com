@@ -8,6 +8,7 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { GetBookingSeatOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking-seat.output";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
@@ -208,6 +209,33 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Get("/:bookingUid/seats/:seatUid")
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get a booking seat",
+    description: `Get seat data for a specific seat within a seated booking.
+
+    If the event type has 'show attendees' disabled, you must authenticate as the event type owner, host, team admin or org admin/owner to view seat details.
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
+  })
+  async getBookingSeat(
+    @Param("bookingUid") bookingUid: string,
+    @Param("seatUid") seatUid: string,
+    @GetOptionalUser() user: AuthOptionalUser
+  ): Promise<GetBookingSeatOutput_2024_08_13> {
+    const seat = await this.bookingsService.getBookingSeat(bookingUid, seatUid, user);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: seat,
     };
   }
 

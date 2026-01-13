@@ -364,6 +364,47 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    describe("Get booking seat by seatUid", () => {
+      it("should get a specific seat by seatUid when seatsShowAttendees is enabled", async () => {
+        const seatUid = createdSeatedBooking.attendees[0].seatUid;
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${createdSeatedBooking.uid}/seats/${seatUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.seatUid).toEqual(seatUid);
+            expect(responseBody.data.name).toEqual(createdSeatedBooking.attendees[0].name);
+            expect(responseBody.data.email).toEqual(createdSeatedBooking.attendees[0].email);
+            expect(responseBody.data.timeZone).toEqual(createdSeatedBooking.attendees[0].timeZone);
+            expect(responseBody.data.language).toEqual(createdSeatedBooking.attendees[0].language);
+            expect(responseBody.data.bookingFieldsResponses).toBeDefined();
+          });
+      });
+
+      it("should return 404 when seatUid does not exist", async () => {
+        const nonExistentSeatUid = "non-existent-seat-uid";
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${createdSeatedBooking.uid}/seats/${nonExistentSeatUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(404);
+      });
+
+      it("should return 404 when seatUid does not belong to the booking", async () => {
+        const seatUid = createdSeatedBooking.attendees[0].seatUid;
+        const wrongBookingUid = "wrong-booking-uid";
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${wrongBookingUid}/seats/${seatUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(404);
+      });
+    });
+
     it("should not be able to reschedule seated booking if seatUid is not provided", async () => {
       const body = {
         start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),

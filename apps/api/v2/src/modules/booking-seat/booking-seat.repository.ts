@@ -16,4 +16,28 @@ export class BookingSeatRepository {
       },
     });
   }
+
+  async getByReferenceUidIncludeAttendee(referenceUid: string) {
+    return this.dbRead.prisma.bookingSeat.findUnique({
+      where: {
+        referenceUid,
+      },
+      include: {
+        booking: {
+          select: {
+            uid: true,
+            eventType: {
+              select: {
+                id: true,
+                teamId: true,
+                userId: true,
+                seatsShowAttendees: true,
+              },
+            },
+          },
+        },
+        attendee: true,
+      },
+    });
+  }
 }

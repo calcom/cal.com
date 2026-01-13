@@ -551,4 +551,42 @@ export class OutputBookingsService_2024_08_13 {
       },
     };
   }
+
+  getOutputSeatAttendee(seat: {
+    referenceUid: string;
+    data: unknown;
+    metadata: unknown;
+    attendee: {
+      name: string;
+      email: string;
+      timeZone: string;
+      locale: string | null;
+      noShow: boolean | null;
+    };
+  }) {
+    const { responses } = safeParse(seatedBookingDataSchema, seat.data, defaultSeatedBookingData, false);
+
+    const attendeeData = {
+      name: seat.attendee.name,
+      email: seat.attendee.email,
+      displayEmail: this.getDisplayEmail(seat.attendee.email),
+      timeZone: seat.attendee.timeZone,
+      language: seat.attendee.locale,
+      absent: !!seat.attendee.noShow,
+      seatUid: seat.referenceUid,
+      bookingFieldsResponses: {},
+    };
+
+    const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
+    attendeeParsed.bookingFieldsResponses = responses || {};
+    attendeeParsed.metadata = safeParse(
+      seatedBookingMetadataSchema,
+      seat.metadata,
+      defaultSeatedBookingMetadata,
+      false
+    );
+    delete attendeeParsed.bookingFieldsResponses.email;
+
+    return attendeeParsed;
+  }
 }

@@ -1219,4 +1219,33 @@ export class BookingsService_2024_08_13 {
       t: await getTranslation("en", "common"),
     });
   }
+
+  async getBookingSeat(bookingUid: string, seatUid: string, authUser: AuthOptionalUser) {
+    const seat = await this.bookingSeatRepository.getByReferenceUidIncludeAttendee(seatUid);
+
+    if (!seat) {
+      throw new NotFoundException(`Seat with uid=${seatUid} was not found`);
+    }
+
+    if (seat.booking.uid !== bookingUid) {
+      throw new NotFoundException(
+        `Seat with uid=${seatUid} does not belong to booking with uid=${bookingUid}`
+      );
+    }
+
+    const userIsEventTypeAdminOrOwner =
+      authUser && seat.booking.eventType
+        ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(authUser, seat.booking.eventType)
+        : false;
+
+    const showAttendees = userIsEventTypeAdminOrOwner || !!seat.booking.eventType?.seatsShowAttendees;
+
+    if (!showAttendees) {
+      throw new ForbiddenException(
+        `You do not have permission to view seat details. Either authenticate as the event type owner/host/team admin or enable 'show attendees' on the event type.`
+      );
+    }
+
+    return this.outputService.getOutputSeatAttendee(seat);
+  }
 }
