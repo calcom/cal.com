@@ -3786,7 +3786,7 @@
   "pbac_desc_view_routing_forms": "View routing forms",
   "pbac_desc_update_routing_forms": "Update routing forms",
   "pbac_desc_delete_routing_forms": "Delete routing forms",
-  "pbac_opt_in_title": "Enable Roles & Permissions for your organization",
+  "pbac_opt_in_title":"Enable Roles & Permissions for your organization",
   "pbac_opt_in_description": "Take control of your organization with customizable roles and granular permissions for your team members.",
   "pbac_opt_in_custom_roles_title": "Custom roles",
   "pbac_opt_in_custom_roles_desc": "Create custom roles tailored to your organization's unique workflow",
@@ -4284,5 +4284,8 @@
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
   "account_already_exists_please_login": "An account with this email already exists. Please log in to accept the invitation.",
   "unverified_email_oauth_error": "Please verify your email address before signing in with Google or SAML. Sign in with your password to resend the verification email.",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "pbac_resource_feature_opt_in": "Feature Opt-In",
+  "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
+  "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
