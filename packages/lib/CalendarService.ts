@@ -114,8 +114,41 @@ const unfoldLines = (iCalString: string): string => {
 };
 
 /**
+ * Gets the byte length of a string when encoded as UTF-8.
+ * This is needed because RFC 5545 specifies a limit of 75 octets (bytes), not characters.
+ *
+ * @param str - The string to measure
+ * @returns The number of bytes in the UTF-8 encoding of the string
+ */
+const getUtf8ByteLength = (str: string): number => {
+  // Use TextEncoder to get actual UTF-8 byte length
+  return new TextEncoder().encode(str).length;
+};
+
+/**
+ * Extracts a substring by byte position in UTF-8 encoding.
+ * This ensures we don't split multi-byte characters.
+ *
+ * @param str - The string to extract from
+ * @param startByte - The starting byte position
+ * @param maxBytes - The maximum number of bytes to extract
+ * @returns The extracted substring
+ */
+const substringByBytes = (str: string, startByte: number, maxBytes: number): string => {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder("utf-8");
+  const fullBytes = encoder.encode(str);
+
+  // Extract the byte range, ensuring we don't exceed array bounds
+  const endByte = Math.min(startByte + maxBytes, fullBytes.length);
+  const slice = fullBytes.slice(startByte, endByte);
+
+  return decoder.decode(slice);
+};
+
+/**
  * Folds iCalendar content lines per RFC 5545 Section 3.1.
- * Lines longer than 75 octets should be folded by inserting CRLF followed by a space.
+ * Lines longer than 75 octets (bytes in UTF-8) should be folded by inserting CRLF followed by a space.
  *
  * @param iCalString - The iCalendar string with potentially long lines
  * @returns The iCalendar string with lines properly folded
@@ -123,18 +156,25 @@ const unfoldLines = (iCalString: string): string => {
 const foldLines = (iCalString: string): string => {
   const lines = iCalString.split(/\r?\n/);
   const foldedLines = lines.map((line) => {
-    if (line.length <= 75) {
+    const byteLength = getUtf8ByteLength(line);
+
+    if (byteLength <= 75) {
       return line;
     }
+
     // Fold line at 75 octets by inserting CRLF + space
     const folded: string[] = [];
-    let remaining = line;
-    folded.push(remaining.substring(0, 75));
-    remaining = remaining.substring(75);
+    let currentByte = 0;
 
-    while (remaining.length > 0) {
-      folded.push(" " + remaining.substring(0, 74)); // 74 because of leading space
-      remaining = remaining.substring(74);
+    // First line gets 75 bytes
+    folded.push(substringByBytes(line, currentByte, 75));
+    currentByte += getUtf8ByteLength(folded[0]);
+
+    // Continuation lines get 74 bytes (75 - 1 for the leading space)
+    while (currentByte < byteLength) {
+      const chunk = substringByBytes(line, currentByte, 74);
+      folded.push(" " + chunk);
+      currentByte += getUtf8ByteLength(chunk);
     }
 
     return folded.join("\r\n");

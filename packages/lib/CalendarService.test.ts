@@ -489,6 +489,49 @@ describe("BaseCalendarService - CalDAV Duplicate Invitation Fix", () => {
       expect(iCalString).toContain("RSVP=TRUE");
       expect(iCalString).toContain("PARTSTAT=NEEDS-ACTION");
     });
+
+    it("should handle non-ASCII characters and fold by UTF-8 byte count, not character count", async () => {
+      const service = new TestCalendarService();
+
+      // Create a line with Unicode characters that exceed 75 bytes
+      // "中" = 3 bytes in UTF-8, so 25 of them = 75 bytes exactly
+      // Then add more to exceed the limit
+      const unicodeName = "中".repeat(30); // 90 bytes
+      const mockIcsOutput = `BEGIN:VCALENDAR\r\nORGANIZER;CN=${unicodeName}:mailto:test@example.com\r\nEND:VCALENDAR`;
+      vi.mocked(createIcsEvent).mockReturnValue({
+        error: null as unknown as Error,
+        value: mockIcsOutput,
+      });
+
+      const event = {
+        title: "Test Event",
+        startTime: "2023-01-01T10:00:00Z",
+        endTime: "2023-01-01T11:00:00Z",
+        organizer: { name: "Test", email: "test@example.com" },
+        attendees: [],
+      } as unknown as CalendarServiceEvent;
+
+      await service.createEvent(event, 1);
+
+      const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+      const iCalString = calledArg.iCalString;
+
+      // The line should be folded based on byte count, not character count
+      const lines = iCalString.split("\r\n");
+
+      // Find the ORGANIZER line(s)
+      const organizerLineIndex = lines.findIndex((line) => line.startsWith("ORGANIZER"));
+      expect(organizerLineIndex).toBeGreaterThanOrEqual(0);
+
+      // Next line should be a continuation (starts with space)
+      expect(lines[organizerLineIndex + 1]).toMatch(/^ /);
+
+      // Each line (including continuation) should not exceed 75 bytes
+      lines.forEach((line) => {
+        const byteLength = new TextEncoder().encode(line).length;
+        expect(byteLength).toBeLessThanOrEqual(75);
+      });
+    });
   });
 
   describe("Edge cases", () => {
