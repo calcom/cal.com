@@ -6,10 +6,17 @@ import type { Prisma } from "@calcom/prisma/client";
 
 export class PrismaAppRepository {
   static async seedApp(dirName: string, keys?: Prisma.InputJsonValue) {
-    const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
+    const appMetadataFn = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
+    
+    if (!appMetadataFn) {
+      throw new Error(`App ${dirName} not found`);
+    }
+
+    const module = await appMetadataFn();
+    const appMetadata = module.default || module.metadata;
 
     if (!appMetadata) {
-      throw new Error(`App ${dirName} not found`);
+      throw new Error(`App ${dirName} NOT Loaded`);
     }
 
     await prisma.app.create({

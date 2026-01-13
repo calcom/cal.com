@@ -47,14 +47,39 @@ import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
 type NonNullableVideoApiAdapter = NonNullable<VideoApiAdapter>;
-vi.mock("@calcom/app-store/calendar.services.generated", () => ({
-  CalendarServiceMap: {
-    googlecalendar: Promise.resolve({ default: vi.fn() }),
-    office365calendar: Promise.resolve({ default: vi.fn() }),
-    applecalendar: Promise.resolve({ default: vi.fn() }),
-    caldavcalendar: Promise.resolve({ default: vi.fn() }),
-  },
-}));
+vi.mock("@calcom/app-store/calendar.services.generated", () => {
+  const createMockServiceClass = (name: string) => {
+    // Create a mock class that can be instantiated with `new`
+    const MockService = vi.fn(function (this: any, credential: any) {
+      this.credential = credential;
+      this.createEvent = vi.fn().mockResolvedValue({
+        type: `${name}_calendar`,
+        uid: `${name}_uid`,
+        id: `${name}_id`,
+        iCalUID: `${name}_ical_uid`,
+        password: "MOCK_PASSWORD",
+        url: "https://mock-url.com",
+        additionalInfo: {},
+      });
+      this.updateEvent = vi.fn().mockResolvedValue({});
+      this.deleteEvent = vi.fn().mockResolvedValue({});
+      this.getAvailability = vi.fn().mockResolvedValue([]);
+      this.listCalendars = vi.fn().mockResolvedValue([]);
+      this.getCredentialId = vi.fn().mockReturnValue(credential?.id ?? -1);
+    }) as any;
+
+    return () => Promise.resolve({ default: MockService });
+  };
+
+  return {
+    CalendarServiceMap: {
+      googlecalendar: createMockServiceClass("google"),
+      office365calendar: createMockServiceClass("office365"),
+      applecalendar: createMockServiceClass("apple"),
+      caldavcalendar: createMockServiceClass("caldav"),
+    },
+  };
+});
 
 const mockVideoAdapterRegistry: Record<string, unknown> = {};
 
@@ -64,9 +89,9 @@ vi.mock("@calcom/app-store/video.adapters.generated", () => ({
     {
       get(target, prop) {
         if (typeof prop === "string" && mockVideoAdapterRegistry[prop]) {
-          return mockVideoAdapterRegistry[prop];
+          return () => mockVideoAdapterRegistry[prop];
         }
-        return Promise.resolve({ default: vi.fn() });
+        return () => Promise.resolve({ default: vi.fn() });
       },
     }
   ),
@@ -641,13 +666,13 @@ export async function addBookings(bookings: InputBooking[]) {
 
   await addBookingsToDb(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     allBookings.map((booking) => {
       const bookingCreate = booking;
       if (booking.references) {
         bookingCreate.references = {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           createMany: {
             data: booking.references,
           },
@@ -656,7 +681,7 @@ export async function addBookings(bookings: InputBooking[]) {
       if (booking.attendees) {
         bookingCreate.attendees = {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           createMany: {
             data: booking.attendees.map((attendee) => {
               if (attendee.bookingSeat) {
@@ -678,7 +703,7 @@ export async function addBookings(bookings: InputBooking[]) {
       if (booking?.user?.id) {
         bookingCreate.user = {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           connect: {
             id: booking.user.id,
           },
@@ -800,35 +825,125 @@ export async function addWorkflowReminders(workflowReminders: InputWorkflowRemin
 
 export async function addUsersToDb(users: InputUser[]) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
-  await prismock.user.createMany({
-    data: users,
-  });
-
-  // Create OutOfOfficeEntry for users with outOfOffice data
   for (const user of users) {
-    if (user.outOfOffice) {
+    const {
+      schedules,
+      credentials,
+      teams,
+      selectedCalendars,
+      destinationCalendar,
+      profiles,
+      outOfOffice,
+      secondaryEmails,
+      ...userData
+    } = user;
+
+    await prismock.user.create({
+      data: {
+        ...userData,
+        defaultScheduleId: user.defaultScheduleId ?? null,
+      },
+    });
+
+    if (schedules) {
+      for (const schedule of schedules) {
+        const createdSchedule = await prismock.schedule.create({
+          data: {
+            id: schedule.id,
+            name: schedule.name,
+            timeZone: schedule.timeZone,
+            userId: user.id,
+          },
+        });
+
+        if (schedule.availability) {
+          for (const avail of schedule.availability) {
+            await prismock.availability.create({
+              data: {
+                days: avail.days,
+                startTime: avail.startTime,
+                endTime: avail.endTime,
+                date: avail.date,
+                scheduleId: createdSchedule.id,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    if (credentials) {
+      for (const credential of credentials) {
+        await prismock.credential.create({
+          data: {
+            ...credential,
+            userId: user.id,
+          },
+        });
+      }
+    }
+
+    if (teams) {
+      const addedTeams = await addTeamsToDb(teams.map((t) => t.team));
+      for (let j = 0; j < teams.length; j++) {
+        await prismock.membership.create({
+          data: {
+            teamId: addedTeams[j].id,
+            userId: user.id,
+            ...teams[j].membership,
+          },
+        });
+      }
+    }
+
+    if (selectedCalendars) {
+      for (const cal of selectedCalendars) {
+        await prismock.selectedCalendar.create({
+          data: {
+            ...cal,
+            userId: user.id,
+          },
+        });
+      }
+    }
+
+    if (destinationCalendar) {
+      await prismock.destinationCalendar.create({
+        data: {
+          ...destinationCalendar,
+          userId: user.id,
+        },
+      });
+    }
+
+    if (profiles) {
+      for (const profile of profiles) {
+        await prismock.profile.create({
+          data: {
+            ...profile,
+            userId: user.id,
+          },
+        });
+      }
+    }
+
+    if (outOfOffice) {
       log.debug("Creating OutOfOfficeEntry for user", user.id);
-      for (const dateRange of user.outOfOffice.dateRanges) {
+      for (const dateRange of outOfOffice.dateRanges) {
         await prismock.outOfOfficeEntry.create({
           data: {
             uuid: uuidv4(),
             start: new Date(dateRange.start),
             end: new Date(dateRange.end),
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
+            userId: user.id,
           },
         });
       }
     }
-  }
 
-  for (const user of users) {
-    if (user.secondaryEmails) {
+    if (secondaryEmails) {
       log.debug("Creating SecondaryEmail entries for user", user.id);
-      for (const secondaryEmail of user.secondaryEmails) {
+      for (const secondaryEmail of secondaryEmails) {
         await prismock.secondaryEmail.create({
           data: {
             email: secondaryEmail.email,
@@ -903,83 +1018,7 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
 }
 
 export async function addUsers(users: InputUser[]) {
-  const prismaUsersCreate = [];
-  for (let i = 0; i < users.length; i++) {
-    const newUser = users[i];
-    const user = users[i];
-    if (user.schedules) {
-      newUser.schedules = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        createMany: {
-          data: user.schedules.map((schedule) => {
-            return {
-              ...schedule,
-              availability: {
-                createMany: {
-                  data: schedule.availability,
-                },
-              },
-            };
-          }),
-        },
-      };
-    }
-    if (user.credentials) {
-      newUser.credentials = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        createMany: {
-          data: user.credentials,
-        },
-      };
-    }
-
-    if (user.teams) {
-      const addedTeams = await addTeamsToDb(user.teams.map((team) => team.team));
-      newUser.teams = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        createMany: {
-          data: user.teams.map((team, index) => {
-            return {
-              teamId: addedTeams[index].id,
-              ...team.membership,
-            };
-          }),
-        },
-      };
-    }
-    if (user.selectedCalendars) {
-      newUser.selectedCalendars = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        createMany: {
-          data: user.selectedCalendars,
-        },
-      };
-    }
-    if (user.destinationCalendar) {
-      newUser.destinationCalendar = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        create: user.destinationCalendar,
-      };
-    }
-    if (user.profiles) {
-      newUser.profiles = {
-        // @ts-expect-error Not sure why this is not working
-        createMany: {
-          data: user.profiles,
-        },
-      };
-    }
-
-    prismaUsersCreate.push(newUser);
-  }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  return await addUsersToDb(prismaUsersCreate);
+  return await addUsersToDb(users);
 }
 
 async function addAppsToDb(apps: any[]) {
@@ -1461,9 +1500,12 @@ export const TestData = {
   },
   apps: {
     "google-calendar": {
-      ...appStoreMetadata.googlecalendar,
+      slug: "google-calendar",
+      dirName: "googlecalendar",
+      categories: ["calendar"],
+      enabled: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1472,9 +1514,12 @@ export const TestData = {
       },
     },
     "office365-calendar": {
-      ...appStoreMetadata.office365calendar,
+      slug: "office365-calendar",
+      dirName: "office365calendar",
+      categories: ["calendar"],
+      enabled: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1482,9 +1527,12 @@ export const TestData = {
       },
     },
     "google-meet": {
-      ...appStoreMetadata.googlevideo,
+      slug: "google-meet",
+      dirName: "googlevideo",
+      categories: ["conferencing"],
+      enabled: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1493,9 +1541,14 @@ export const TestData = {
       },
     },
     "daily-video": {
-      ...appStoreMetadata.dailyvideo,
+      slug: "daily-video",
+      dirName: "dailyvideo",
+      categories: ["conferencing"],
+      isGlobal: true,
+      isOAuth: false,
+      enabled: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1506,9 +1559,12 @@ export const TestData = {
       },
     },
     zoomvideo: {
-      ...appStoreMetadata.zoomvideo,
+      slug: "zoom",
+      dirName: "zoomvideo",
+      categories: ["conferencing"],
+      enabled: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1519,9 +1575,12 @@ export const TestData = {
       },
     },
     "stripe-payment": {
-      ...appStoreMetadata.stripepayment,
+      slug: "stripe",
+      dirName: "stripepayment",
+      categories: ["payment"],
+      enabled: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1718,7 +1777,7 @@ export function mockNoTranslations() {
   });
 }
 
-export const enum BookingLocations {
+export enum BookingLocations {
   CalVideo = "integrations:daily",
   ZoomVideo = "integrations:zoom",
   GoogleMeet = "integrations:google:meet",
@@ -1831,14 +1890,14 @@ export async function mockCalendar(
 
   const calendarServicePromise = CalendarServiceMap[calendarServiceKey];
   if (calendarServicePromise) {
-    const resolvedService = await calendarServicePromise;
+    const resolvedService = await calendarServicePromise();
     vi.mocked(resolvedService.default).mockImplementation(
       // @ts-expect-error - Mock implementation satisfies Calendar interface but TypeScript expects specific calendar service types
       function MockCalendarService(credential) {
         return {
-          createEvent: async function (
+          createEvent: async (
             ...rest: Parameters<Calendar["createEvent"]>
-          ): Promise<NewCalendarEventType> {
+          ): Promise<NewCalendarEventType> => {
             if (calendarData?.creationCrash) {
               throw new Error("MockCalendarService.createEvent fake error");
             }
@@ -1911,9 +1970,9 @@ export async function mockCalendar(
               });
             }
           },
-          updateEvent: async function (
+          updateEvent: async (
             ...rest: Parameters<Calendar["updateEvent"]>
-          ): Promise<NewCalendarEventType> {
+          ): Promise<NewCalendarEventType> => {
             if (calendarData?.updationCrash) {
               throw new Error("MockCalendarService.updateEvent fake error");
             }
@@ -2363,13 +2422,25 @@ const getMockAppStatus = ({
   success: number;
   overrideName?: string;
 }) => {
-  const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
-    return app.slug === slug;
-  });
-  if (!foundEntry) {
-    throw new Error("App not found for the slug");
+  // We cannot use appStoreMetadata directly anymore as it is lazy.
+  // But we can find the app by searching dirName which is usually the key
+  // However, getMockAppStatus is usually called with slugs like "google-calendar"
+  // For tests, we can just use the provided slug to construct a minimal app object
+  // since most tests only need appName and type.
+  const appMapping: Record<string, { name: string; type: string }> = {
+    "google-calendar": { name: "Google Calendar", type: "google_calendar" },
+    "office365-calendar": { name: "Office 365 Calendar", type: "office365_calendar" },
+    "google-meet": { name: "Google Meet", type: "google_video" },
+    "daily-video": { name: "Cal Video", type: "daily_video" },
+    "zoom": { name: "Zoom Video", type: "zoom_video" },
+    "stripe": { name: "Stripe", type: "stripe_payment" },
+  };
+
+  const foundApp = appMapping[slug as keyof typeof appMapping];
+  if (!foundApp) {
+    throw new Error(`App not found for the slug: ${slug}`);
   }
-  const foundApp = foundEntry[1];
+
   return {
     appName: overrideName ?? foundApp.name,
     type: foundApp.type,

@@ -92,8 +92,8 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => {
 
   return {
     CalendarServiceMap: {
-      googlecalendar: vi.importActual("@calcom/app-store/googlecalendar/lib/CalendarService"),
-      office365calendar: vi.importActual("@calcom/app-store/office365calendar/lib/CalendarService"),
+      googlecalendar: () => vi.importActual("@calcom/app-store/googlecalendar/lib/CalendarService"),
+      office365calendar: () => vi.importActual("@calcom/app-store/office365calendar/lib/CalendarService"),
     },
   };
 });

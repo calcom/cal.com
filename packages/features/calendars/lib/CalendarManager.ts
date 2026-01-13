@@ -287,6 +287,17 @@ export const getBusyCalendarTimes = async (
   return { success: true, data: results.reduce((acc, availability) => acc.concat(availability), []) };
 };
 
+export const ensureCalendarAdapter = async (calendar: any): Promise<Calendar | null> => {
+  if (!calendar) return null;
+  if (typeof calendar.createEvent === "function") {
+    return calendar;
+  }
+  if (calendar.credential) {
+    return await getCalendar(calendar.credential);
+  }
+  return null;
+};
+
 export const createEvent = async (
   credential: CredentialForCalendarService,
   originalEvent: CalendarEvent,
@@ -297,7 +308,7 @@ export const createEvent = async (
   const uid: string = getUid(formattedEvent);
   const calendar = await getCalendar(credential);
   let success = true;
-  let calError: string | undefined = undefined;
+  let calError: string | undefined ;
 
   log.debug(
     "Creating calendar event",
@@ -316,9 +327,11 @@ export const createEvent = async (
     ? externalId
     : undefined;
 
+  const adapter = await ensureCalendarAdapter(calendar);
+
   // TODO: Surface success/error messages coming from apps to improve end user visibility
-  const creationResult = calendar
-    ? await calendar
+  const creationResult = adapter
+    ? await adapter
         // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
         // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
         .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
@@ -389,9 +402,9 @@ export const updateEvent = async (
   const formattedEvent = formatCalEvent(rawCalEvent);
   const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  const adapter = await ensureCalendarAdapter(await getCalendar(credential));
   let success = false;
-  let calError: string | undefined = undefined;
+  let calError: string | undefined ;
   let calWarnings: string[] | undefined = [];
   log.debug(
     "Updating calendar event",
@@ -408,8 +421,8 @@ export const updateEvent = async (
     );
   }
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
-    calendar && bookingRefUid
-      ? await calendar
+    adapter && bookingRefUid
+      ? await adapter
           .updateEvent(bookingRefUid, calEvent, externalCalendarId)
           .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
             success = true;
@@ -480,8 +493,9 @@ export const deleteEvent = async ({
       event: getPiiFreeCalendarEvent(event),
     })
   );
-  if (calendar) {
-    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
+  const adapter = await ensureCalendarAdapter(await getCalendar(credential));
+  if (adapter) {
+    return adapter.deleteEvent(bookingRefUid, event, externalCalendarId);
   } else {
     log.error(
       "Could not do deleteEvent - No calendar adapter found",

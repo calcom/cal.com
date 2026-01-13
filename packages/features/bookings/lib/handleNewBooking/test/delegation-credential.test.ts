@@ -46,6 +46,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import process from "node:process";
 
 vi.mock("@calcom/app-store/calendar.services.generated", () => {
   class MockGoogleCalendarService {
@@ -143,8 +144,8 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => {
 
   return {
     CalendarServiceMap: {
-      googlecalendar: Promise.resolve({ default: MockGoogleCalendarService }),
-      office365calendar: Promise.resolve({ default: MockOffice365CalendarService }),
+      googlecalendar: () => Promise.resolve({ default: MockGoogleCalendarService }),
+      office365calendar: () => Promise.resolve({ default: MockOffice365CalendarService }),
     },
   };
 });
@@ -289,7 +290,7 @@ describe("handleNewBooking", () => {
           status: BookingStatus.ACCEPTED,
           references: [
             {
-              type: appStoreMetadata.googlecalendar.type,
+              type: "google_calendar",
               uid: "GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
@@ -467,7 +468,7 @@ describe("handleNewBooking", () => {
           status: BookingStatus.ACCEPTED,
           references: [
             {
-              type: appStoreMetadata.googlecalendar.type,
+              type: "google_calendar",
               uid: "GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
@@ -656,14 +657,14 @@ describe("handleNewBooking", () => {
           status: BookingStatus.ACCEPTED,
           references: [
             {
-              type: appStoreMetadata.dailyvideo.type,
+              type: "daily_video",
               uid: "MOCK_ID",
               meetingId: "MOCK_ID",
               meetingPassword: "MOCK_PASS",
               meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
             },
             {
-              type: appStoreMetadata.office365calendar.type,
+              type: "office365_calendar",
               uid: "OFFICE_365_CALENDAR_EVENT_ID",
               meetingId: "OFFICE_365_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
@@ -854,7 +855,7 @@ describe("handleNewBooking", () => {
           status: BookingStatus.ACCEPTED,
           references: [
             {
-              type: appStoreMetadata.dailyvideo.type,
+              type: "daily_video",
               uid: "MOCK_ID",
               meetingId: "MOCK_ID",
               meetingPassword: "MOCK_PASS",
@@ -1154,7 +1155,7 @@ describe("handleNewBooking", () => {
           location: BookingLocations.CalVideo,
           references: [
             {
-              type: appStoreMetadata.dailyvideo.type,
+              type: "daily_video",
               // Verify Delegation credential was not used
               delegationCredentialId: null,
             },
