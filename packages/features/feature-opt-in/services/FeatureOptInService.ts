@@ -1,5 +1,8 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+
 import { getOptInFeatureConfig, getOptInFeaturesForScope, isFeatureAllowedForScope } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
@@ -252,7 +255,10 @@ export class FeatureOptInService implements IFeatureOptInService {
     const { userId, featureId, state } = input;
 
     if (!isFeatureAllowedForScope(featureId, "user")) {
-      throw new Error(`Feature "${featureId}" is not available at the user scope`);
+      throw new ErrorWithCode(
+        ErrorCode.BadRequest,
+        `Feature "${featureId}" is not available at the user scope`
+      );
     }
 
     if (state === "inherit") {
@@ -282,7 +288,10 @@ export class FeatureOptInService implements IFeatureOptInService {
     const scope = input.scope ?? "team";
 
     if (!isFeatureAllowedForScope(featureId, scope)) {
-      throw new Error(`Feature "${featureId}" is not available at the ${scope} scope`);
+      throw new ErrorWithCode(
+        ErrorCode.BadRequest,
+        `Feature "${featureId}" is not available at the ${scope} scope`
+      );
     }
 
     if (state === "inherit") {
