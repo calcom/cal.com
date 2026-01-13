@@ -719,6 +719,7 @@
   "booking_reschedule_confirmation": "Replanifiez votre {{eventTypeTitle}} avec {{profileName}}",
   "in_person_meeting": "Rendez-vous en personne",
   "in_person": "En personne (adresse de l'organisateur)",
+  "in_person_category": "En personne",
   "link_meeting": "Rendez-vous avec lien",
   "phone_number": "Numéro de téléphone",
   "attendee_phone_number": "Numéro de téléphone du participant",
