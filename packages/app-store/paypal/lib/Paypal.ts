@@ -1,10 +1,11 @@
 import type { Prisma } from "@prisma/client";
-import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { HAS_STAGING_APPS, IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
 class Paypal {
@@ -160,8 +161,18 @@ class Paypal {
             },
           });
 
-          // Success will be marked by the handlePaymentSuccess, as it has the proper logic to handle success
-          await handlePaymentSuccess(payment.id, payment.bookingId, paymentData);
+          try {
+            // Success will be marked by the handlePaymentSuccess, as it has the proper logic to handle success
+            await handlePaymentSuccess(payment.id, payment.bookingId, paymentData);
+          } catch (e) {
+            if (e instanceof HttpCode) {
+              console.error("Paypal error handling payment success: ", e.message);
+            }
+            else if (e instanceof Error) {
+              console.error("Paypal error handling payment success: ", e.message);
+              throw e;
+            }
+          }
 
           return true;
         }
