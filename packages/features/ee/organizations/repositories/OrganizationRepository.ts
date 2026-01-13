@@ -531,4 +531,23 @@ export class OrganizationRepository {
 
     return org?.organizationSettings ?? null;
   }
+
+  async findPlatformOrgByUserId(userId: number) {
+    return this.prismaClient.team.findFirstOrThrow({
+      where: {
+        orgProfiles: {
+          some: {
+            userId: userId,
+          },
+        },
+        isPlatform: true,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        isPlatform: true,
+        isOrganization: true,
+      },
+    });
+  }
 }

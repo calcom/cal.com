@@ -14,19 +14,25 @@ export const incrementUsage = schemaTask({
     const { getBillingProviderService } = await import(
       "@calcom/features/ee/billing/di/containers/Billing"
     );
-
-    const { PlatformOrganizationBillingRepository } = await import("../PlatformOrganizationBillingRepository");
+    const { OrganizationRepository } = await import(
+      "@calcom/features/ee/organizations/repositories/OrganizationRepository"
+    );
+    const { PlatformBillingRepository } = await import(
+      "@calcom/features/ee/organizations/repositories/PlatformBillingRepository"
+    );
     const { PlatformOrganizationBillingTaskService } = await import(
       "../PlatformOrganizationBillingTaskService"
     );
 
     const triggerDevLogger = new TriggerDevLogger();
-    const billingRepository = new PlatformOrganizationBillingRepository(prisma);
+    const organizationRepository = new OrganizationRepository({ prismaClient: prisma });
+    const platformBillingRepository = new PlatformBillingRepository(prisma);
     const billingProviderService = getBillingProviderService();
 
     const billingTaskService = new PlatformOrganizationBillingTaskService({
       logger: triggerDevLogger,
-      billingRepository,
+      organizationRepository,
+      platformBillingRepository,
       billingProviderService,
     });
 
