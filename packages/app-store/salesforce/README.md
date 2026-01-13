@@ -1,5 +1,5 @@
 # Creating a Salesforce test org
-If you have the Salesforce CLI installed, you can create a test org using the following command `yarn scratch-org:create`
+You must have the [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) installed to create a test org. Once installed, you can create a test org using the following command `yarn scratch-org:create`
 
 This will create a scratch org with the configuration specified in the `project-scratch-def.json` file.
 
