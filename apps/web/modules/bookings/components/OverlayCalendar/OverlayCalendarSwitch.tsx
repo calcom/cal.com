@@ -35,11 +35,7 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
   }, [hasSession, switchEnabled, setContinueWithProvider, onStateChange]);
 
   return (
-    <div
-      className={classNames(
-        "hidden gap-2",
-        layout === "week_view" || layout === "column_view" ? "xl:flex" : "md:flex"
-      )}>
+    <div className="flex gap-2">
       <div className="flex items-center gap-2 pr-2">
         <Switch
           data-testid="overlay-calendar-switch"
