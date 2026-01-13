@@ -125,8 +125,8 @@ export async function createCRMEvent(payload: string): Promise<void> {
          throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
       }
 
-      const module = await appDataSchemaFn();
-      const appDataSchema = module.default || module.appDataSchema;
+      const module = typeof appDataSchemaFn === "function" ? await appDataSchemaFn() : appDataSchemaFn;
+      const appDataSchema = (module as any).default || (module as any).appDataSchema || module;
       const appParse = appDataSchema.safeParse(appData);
 
       if (!appParse.success) {

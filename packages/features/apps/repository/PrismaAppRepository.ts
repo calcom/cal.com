@@ -12,8 +12,8 @@ export class PrismaAppRepository {
       throw new Error(`App ${dirName} not found`);
     }
 
-    const module = await appMetadataFn();
-    const appMetadata = module.default || module.metadata;
+    const module = typeof appMetadataFn === "function" ? await appMetadataFn() : appMetadataFn;
+    const appMetadata = (module as any).default || (module as any).metadata || module;
 
     if (!appMetadata) {
       throw new Error(`App ${dirName} NOT Loaded`);
