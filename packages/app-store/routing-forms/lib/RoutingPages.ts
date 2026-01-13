@@ -3,15 +3,15 @@ import { RouteActionType } from "../zod";
 
 export const RoutingPages: { label: string; value: NonNullable<LocalRoute["action"]>["type"] }[] = [
   {
-    label: "Custom Page",
+    label: "Custom page",
     value: RouteActionType.CustomPageMessage,
   },
   {
-    label: "External Redirect",
+    label: "External redirect",
     value: RouteActionType.ExternalRedirectUrl,
   },
   {
-    label: "Event Redirect",
+    label: "Event redirect",
     value: RouteActionType.EventTypeRedirectUrl,
   },
 ];
