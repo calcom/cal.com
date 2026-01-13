@@ -69,7 +69,7 @@ export const featureOptInRouter = router({
       const hasPermission = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: input.teamId,
-        permission: "team.read",
+        permission: "featureOptIn.read",
         fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
 
@@ -102,7 +102,7 @@ export const featureOptInRouter = router({
     const hasPermission = await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: organizationId,
-      permission: "organization.read",
+      permission: "featureOptIn.read",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
@@ -168,7 +168,7 @@ export const featureOptInRouter = router({
       const hasPermission = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: input.teamId,
-        permission: "team.update",
+        permission: "featureOptIn.update",
         fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
 
@@ -221,7 +221,7 @@ export const featureOptInRouter = router({
       const hasPermission = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: organizationId,
-        permission: "organization.update",
+        permission: "featureOptIn.update",
         fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
 
