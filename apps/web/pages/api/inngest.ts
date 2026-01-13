@@ -165,7 +165,6 @@ export default serve({
     handleBookingExportFn,
     handleWhatsAppTemplateSyncFn,
     handleWhatsappReminderScheduled,
-    handleCancelWhatsappReminder,
     handleRazorpayPaymentLinkPaid,
     handleRazorpayAppRevoked,
     triggerBookingPaymentReminder,
