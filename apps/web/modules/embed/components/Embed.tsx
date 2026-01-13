@@ -18,14 +18,21 @@ import {
   useBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/web/modules/bookings/hooks/useEvent";
+import {
+  useEvent,
+  useScheduleForEvent,
+} from "@calcom/web/modules/bookings/hooks/useEvent";
 import DatePicker from "@calcom/web/modules/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components";
 import type { Slot } from "@calcom/web/modules/schedules/hooks/types";
 import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
-import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
+} from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
