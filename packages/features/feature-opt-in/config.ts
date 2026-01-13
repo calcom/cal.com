@@ -49,6 +49,22 @@ export function isOptInFeature(slug: string): slug is FeatureId {
 export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;
 
 /**
+ * Check if there are opt-in features available for a specific scope.
+ */
+export function hasOptInFeaturesForScope(scope: OptInFeatureScope): boolean {
+  return getOptInFeaturesForScope(scope).length > 0;
+}
+
+/** Whether there are opt-in features available for the user scope */
+export const HAS_USER_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("user"));
+
+/** Whether there are opt-in features available for the team scope */
+export const HAS_TEAM_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("team"));
+
+/** Whether there are opt-in features available for the org scope */
+export const HAS_ORG_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("org"));
+
+/**
  * Get opt-in features that are available for a specific scope.
  * Features without a scope field are available for all scopes.
  */
