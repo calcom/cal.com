@@ -2,7 +2,7 @@ import { FEATURE_OPT_IN_DI_TOKENS } from "@calcom/features/feature-opt-in/di/tok
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/services/FeatureOptInService";
 
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "../di";
-import { moduleLoader as cachedFeaturesRepositoryModuleLoader } from "./CachedFeaturesRepository";
+import { moduleLoader as featuresRepositoryModuleLoader } from "./FeaturesRepository";
 
 const thisModule = createModule();
 const token = FEATURE_OPT_IN_DI_TOKENS.FEATURE_OPT_IN_SERVICE;
@@ -13,7 +13,7 @@ const loadModule = bindModuleToClassOnToken({
   moduleToken,
   token,
   classs: FeatureOptInService,
-  dep: cachedFeaturesRepositoryModuleLoader,
+  dep: featuresRepositoryModuleLoader,
 });
 
 export const moduleLoader: ModuleLoader = {
