@@ -392,6 +392,7 @@ export class CalendarSubscriptionService {
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
       teamIds,
+      genericCalendarSuffixes: this.deps.adapterFactory.getGenericCalendarSuffixes(),
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
     await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));

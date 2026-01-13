@@ -10,10 +10,11 @@ import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUpdateLocation } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { safeLogError } from "@/utils/safeLogger";
 
 // Location types configuration
@@ -132,14 +133,14 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       const trimmedValue = inputValue.trim();
 
       if (!trimmedValue) {
-        Alert.alert("Error", "Please enter a location");
+        showErrorAlert("Error", "Please enter a location");
         return;
       }
 
       // Validate phone number format
       if (selectedType === "phone") {
         if (!trimmedValue.startsWith("+")) {
-          Alert.alert(
+          showErrorAlert(
             "Invalid Phone Number",
             "Phone number must include country code (e.g., +1 234-567-8900)"
           );
@@ -168,13 +169,12 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         },
         {
           onSuccess: () => {
-            Alert.alert("Success", "Location updated successfully", [
-              { text: "OK", onPress: onSuccess },
-            ]);
+            showSuccessAlert("Success", "Location updated successfully");
+            onSuccess();
           },
           onError: (error) => {
             safeLogError("[EditLocationScreen] Failed to update location:", error);
-            Alert.alert("Error", "Failed to update location. Please try again.");
+            showErrorAlert("Error", "Failed to update location. Please try again.");
           },
         }
       );
