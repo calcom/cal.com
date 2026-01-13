@@ -1,6 +1,7 @@
 "use client";
 
 import type { EmbedProps } from "app/WithEmbedSSR";
+import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 
 import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
@@ -24,11 +25,31 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl }: PageProps) {
+function Type({
+  slug,
+  user,
+  isEmbed,
+  booking,
+  isBrandingHidden,
+  eventData,
+  orgBannerUrl,
+  appearanceSSR,
+}: PageProps) {
   const searchParams = useSearchParams();
 
   return (
     <BookingPageErrorBoundary>
+      {appearanceSSR?.cssString && (
+        <Head>
+          <style
+            id="booking-page-appearance-ssr"
+            dangerouslySetInnerHTML={{ __html: appearanceSSR.cssString }}
+          />
+          {appearanceSSR.googleFontsUrl && (
+            <link rel="stylesheet" href={appearanceSSR.googleFontsUrl} />
+          )}
+        </Head>
+      )}
       <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
         <Booker
           username={user}

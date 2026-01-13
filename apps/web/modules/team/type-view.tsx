@@ -1,6 +1,7 @@
 "use client";
 
 import type { EmbedProps } from "app/WithEmbedSSR";
+import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 
 import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
@@ -37,11 +38,23 @@ function Type({
   crmRecordId,
   isEmbed,
   useApiV2,
+  appearanceSSR,
 }: PageProps) {
   const searchParams = useSearchParams();
 
   return (
     <BookingPageErrorBoundary>
+      {appearanceSSR?.cssString && (
+        <Head>
+          <style
+            id="booking-page-appearance-ssr"
+            dangerouslySetInnerHTML={{ __html: appearanceSSR.cssString }}
+          />
+          {appearanceSSR.googleFontsUrl && (
+            <link rel="stylesheet" href={appearanceSSR.googleFontsUrl} />
+          )}
+        </Head>
+      )}
       <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
         <Booker
           useApiV2={useApiV2}

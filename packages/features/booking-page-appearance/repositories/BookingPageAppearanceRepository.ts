@@ -124,4 +124,93 @@ export class BookingPageAppearanceRepository {
       },
     });
   }
+
+  async findEffectiveByUserId(userId: number): Promise<BookingPageAppearance | null> {
+    const user = await this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        bookingPageAppearance: true,
+      },
+    });
+
+    if (!user) return null;
+
+    const userAppearance = user.bookingPageAppearance as BookingPageAppearance | null;
+
+    const profile = await this.prismaClient.profile.findFirst({
+      where: { userId },
+      select: {
+        organization: {
+          select: {
+            id: true,
+            bookingPageAppearance: true,
+            organizationSettings: {
+              select: {
+                appearanceCascadePriority: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!profile?.organization) {
+      return userAppearance;
+    }
+
+    const org = profile.organization;
+    const orgAppearance = org.bookingPageAppearance as BookingPageAppearance | null;
+    const cascadePriority = org.organizationSettings?.appearanceCascadePriority;
+
+    if (!orgAppearance) {
+      return userAppearance;
+    }
+
+    if (cascadePriority === "USER_FIRST" && userAppearance) {
+      return userAppearance;
+    }
+
+    return orgAppearance;
+  }
+
+  /**
+   * Gets the effective appearance for a team event, considering organization cascade priority.
+   * This is used for SSR injection on team booking pages.
+   */
+  async findEffectiveByTeamId(teamId: number): Promise<BookingPageAppearance | null> {
+    const team = await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: {
+        bookingPageAppearance: true,
+        parent: {
+          select: {
+            id: true,
+            bookingPageAppearance: true,
+            organizationSettings: {
+              select: {
+                appearanceCascadePriority: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!team) return null;
+
+    const teamAppearance = team.bookingPageAppearance as BookingPageAppearance | null;
+    const org = team.parent;
+    const orgAppearance = org?.bookingPageAppearance as BookingPageAppearance | null;
+    const cascadePriority = org?.organizationSettings?.appearanceCascadePriority;
+
+    if (!org || !orgAppearance) {
+      return teamAppearance;
+    }
+
+    if (cascadePriority === "USER_FIRST" && teamAppearance) {
+      return teamAppearance;
+    }
+
+    return orgAppearance;
+  }
 }

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingPageAppearanceForTeam } from "@calcom/features/booking-page-appearance";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -142,6 +143,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  const appearanceData = await getBookingPageAppearanceForTeam(prisma, team.id);
+
   return {
     props: {
       useApiV2,
@@ -185,6 +188,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       crmAppSlug,
       crmRecordId,
       isSEOIndexable: allowSEOIndexing,
+      appearanceSSR: appearanceData.cssString
+        ? {
+            cssString: appearanceData.cssString,
+            googleFontsUrl: appearanceData.googleFontsUrl,
+          }
+        : undefined,
     },
   };
 };

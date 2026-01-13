@@ -5,6 +5,10 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
+import {
+  getBookingPageAppearanceForUser,
+  type BookingPageAppearanceSSRData,
+} from "@calcom/features/booking-page-appearance";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
@@ -30,6 +34,10 @@ type Props = {
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
   orgBannerUrl: null;
+  appearanceSSR?: {
+    cssString: string;
+    googleFontsUrl: string | null;
+  };
 };
 
 async function processReschedule({
@@ -266,6 +274,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       : false
     : user?.allowSEOIndexing;
 
+  const appearanceData = await getBookingPageAppearanceForUser(prisma, user.id);
+
   const props: Props = {
     eventData: eventData,
     user: username,
@@ -279,6 +289,12 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
+    appearanceSSR: appearanceData.cssString
+      ? {
+          cssString: appearanceData.cssString,
+          googleFontsUrl: appearanceData.googleFontsUrl,
+        }
+      : undefined,
   };
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({
