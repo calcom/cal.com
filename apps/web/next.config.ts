@@ -231,13 +231,6 @@ const nextConfig = (phase: string): NextConfig => {
     ],
     experimental: {
       optimizePackageImports: ["@calcom/ui"],
-      // Enable client-side router cache to reduce perceived loading time when navigating between routes
-      // dynamic: 30 seconds for dynamically rendered pages (default is 0)
-      // static: 300 seconds for statically rendered pages (default is 5 minutes)
-      staleTimes: {
-        dynamic: 30,
-        static: 300,
-      },
     },
     productionBrowserSourceMaps: true,
     transpilePackages: [
