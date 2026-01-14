@@ -47,13 +47,14 @@ type EventTypeUser = {
   id: number;
   name: string | null;
   username: string | null;
+  isPlatformManaged?: boolean;
   avatarUrl: string | null;
   brandColor: string | null;
   darkBrandColor: string | null;
   weekStart: string;
   metadata: Prisma.JsonValue;
   organizationId: number | null;
-  organization?: { slug: string | null } | null;
+  organization?: { slug: string | null; isPlatform?: boolean } | null;
   movedToProfile?: ProfileMinimal | null;
   profiles?: ProfileMinimal[];
 };
@@ -441,6 +442,11 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
+    // Managed users don't have public booking pages
+    if (user.isPlatformManaged) {
+      return "";
+    }
+
     const profile = this.usersService.getUserMainProfile(user);
     const username = profile?.username ?? user.username;
 
@@ -448,7 +454,9 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
-    const orgSlug = profile?.organization?.slug ?? null;
+    const org = profile?.organization;
+    // Don't use org subdomain for platform organizations - they don't have public-facing subdomains
+    const orgSlug = org && !org.isPlatform ? org.slug : null;
     const webAppUrl = this.configService.get<string>("app.baseUrl", "https://app.cal.com");
     const baseUrl = orgSlug ? getBookerBaseUrlSync(orgSlug) : webAppUrl;
     const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
