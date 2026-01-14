@@ -111,6 +111,29 @@ describe("OutputEventTypesService_2024_06_14", () => {
       expect(result).toBe("https://cal.com/dhairyashil/secret");
     });
 
+    it("should return empty string for managed users", () => {
+      const user = {
+        id: 1,
+        name: "Managed User",
+        username: "managed-user-abc123",
+        isPlatformManaged: true,
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organizationId: 1,
+        organization: { slug: "platform-org" },
+        movedToProfile: null,
+        profiles: [],
+      };
+      const slug = "30min";
+
+      const result = service.buildBookingUrl(user, slug);
+
+      expect(result).toBe("");
+    });
+
     it("should fall back to user username when profile has no username", () => {
       const user = {
         id: 1,
