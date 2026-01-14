@@ -49,6 +49,7 @@ export class OrganizationsDelegationCredentialRepository {
         domain,
         enabled: true,
       },
+      select: { id: true },
     });
   }
 }

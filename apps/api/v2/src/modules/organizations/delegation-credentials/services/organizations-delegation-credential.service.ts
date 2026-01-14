@@ -139,6 +139,11 @@ export class OrganizationsDelegationCredentialService {
         return;
       }
 
+      const existingJob = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${userId}`);
+      if (existingJob) {
+        await existingJob.remove();
+        this.logger.log(`Removed existing default calendar job for user with id: ${userId}`);
+      }
       this.logger.log(`Adding default calendar job for user with id: ${userId}`);
       await this.calendarsQueue.add(
         DEFAULT_CALENDARS_JOB,
