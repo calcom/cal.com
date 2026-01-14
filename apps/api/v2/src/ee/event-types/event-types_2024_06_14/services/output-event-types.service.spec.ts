@@ -86,7 +86,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       const user = {
         id: 1,
         name: "Dhairyashil Shinde",
-        username: "dhairyashil10101010-gmail-com",
+        username: "dhairyashil", // Public username
         avatarUrl: null,
         brandColor: null,
         darkBrandColor: null,
@@ -98,7 +98,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
         profiles: [
           {
             id: 100,
-            username: "dhairyashil",
+            username: "dhairyashil10101010-gmail-com", // Platform-generated username
             organizationId: 1,
             organization: { id: 1, slug: "gmail-platform-9041df0e", isPlatform: true },
           },
@@ -108,6 +108,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
 
       const result = service.buildBookingUrl(user, slug);
 
+      // Should use user.username (dhairyashil), not profile.username (dhairyashil10101010-gmail-com)
       expect(result).toBe("https://cal.com/dhairyashil/secret");
     });
 
