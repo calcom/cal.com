@@ -106,5 +106,8 @@ packages/**/.yarn/ci-cache/
 # AI
 .claude
 
+# Spec drafts (rough work, not ready for review)
+specs/**/_drafts/
+
 # trigger.dev
 .trigger
