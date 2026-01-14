@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import type { ReactNode } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { RegisterOptions, UseFormReturn } from "react-hook-form";
 
@@ -19,20 +18,18 @@ export const OAuthClientFormFields = ({
   form,
   logo,
   setLogo,
-  logoFooter,
-  isFormDisabled,
+  isClientReadOnly,
   isPkceLocked,
-  showLogoActions = true,
 }: {
   form: UseFormReturn<OAuthClientCreateFormValues>;
   logo: string;
   setLogo: Dispatch<SetStateAction<string>>;
-  logoFooter?: ReactNode;
-  isFormDisabled?: boolean;
+  isClientReadOnly?: boolean;
   isPkceLocked?: boolean;
-  showLogoActions?: boolean;
 }) => {
   const { t } = useLocale();
+  const isFormDisabled = Boolean(isClientReadOnly);
+  const allowUploadingLogo = !isFormDisabled;
 
   const redirectUriValidation: RegisterOptions<OAuthClientCreateFormValues, "redirectUri"> = useMemo(
     () => ({
@@ -144,7 +141,7 @@ export const OAuthClientFormFields = ({
               imageSrc={logo}
               size="lg"
             />
-            {showLogoActions ? (
+            {allowUploadingLogo ? (
               <ImageUploader
                 target="avatar"
                 id="avatar-upload"
@@ -159,7 +156,6 @@ export const OAuthClientFormFields = ({
               />
             ) : null}
           </div>
-          {showLogoActions && logoFooter ? <div className="pt-2">{logoFooter}</div> : null}
         </div>
       </div>
     </>

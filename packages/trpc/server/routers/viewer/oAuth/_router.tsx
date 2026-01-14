@@ -1,23 +1,22 @@
 import authedProcedure, { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 
 import { router } from "../../../trpc";
-import { ZAddClientInputSchema } from "./addClient.schema";
+import { ZCreateClientInputSchema } from "./createClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 import { ZGetClientInputSchema } from "./getClient.schema";
 import { ZListClientsInputSchema } from "./listClients.schema";
 import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClient.schema";
-import { ZUpdateClientInputSchema, ZUpdateClientStatusInputSchema } from "./updateClientStatus.schema";
+import { ZUpdateClientInputSchema } from "./updateClient.schema";
 import { ZDeleteClientInputSchema } from "./deleteClient.schema";
 
 type _OAuthRouterHandlerCache = {
   getClient?: typeof import("./getClient.handler").getClientHandler;
-  addClient?: typeof import("./addClient.handler").addClientHandler;
+  addClient?: typeof import("./createClient.handler").addClientHandler;
   generateAuthCode?: typeof import("./generateAuthCode.handler").generateAuthCodeHandler;
   submitClient?: typeof import("./submitClient.handler").submitClientHandler;
   listClients?: typeof import("./listClients.handler").listClientsHandler;
   listUserClients?: typeof import("./listUserClients.handler").listUserClientsHandler;
-  updateClient?: typeof import("./updateClientStatus.handler").updateClientStatusHandler;
-  updateClientStatus?: typeof import("./updateClientStatus.handler").updateClientStatusHandler;
+  updateClient?: typeof import("./updateClient.handler").updateClientStatusHandler;
   deleteClient?: typeof import("./deleteClient.handler").deleteClientHandler;
 };
 
@@ -30,8 +29,8 @@ export const oAuthRouter = router({
     });
   }),
 
-  addClient: authedAdminProcedure.input(ZAddClientInputSchema).mutation(async ({ ctx, input }) => {
-    const { addClientHandler } = await import("./addClient.handler");
+  addClient: authedAdminProcedure.input(ZCreateClientInputSchema).mutation(async ({ ctx, input }) => {
+    const { addClientHandler } = await import("./createClient.handler");
 
     return addClientHandler({
       ctx,
@@ -78,16 +77,7 @@ export const oAuthRouter = router({
   }),
 
   updateClient: authedProcedure.input(ZUpdateClientInputSchema).mutation(async ({ ctx, input }) => {
-    const { updateClientStatusHandler } = await import("./updateClientStatus.handler");
-
-    return updateClientStatusHandler({
-      ctx,
-      input,
-    });
-  }),
-
-  updateClientStatus: authedAdminProcedure.input(ZUpdateClientStatusInputSchema).mutation(async ({ ctx, input }) => {
-    const { updateClientStatusHandler } = await import("./updateClientStatus.handler");
+    const { updateClientStatusHandler } = await import("./updateClient.handler");
 
     return updateClientStatusHandler({
       ctx,

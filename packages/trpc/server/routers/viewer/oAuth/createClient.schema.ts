@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type TAddClientInputSchemaInput = {
+export type TCreateClientInputSchemaInput = {
   name: string;
   purpose: string;
   redirectUri: string;
@@ -9,7 +9,7 @@ export type TAddClientInputSchemaInput = {
   enablePkce?: boolean;
 };
 
-export type TAddClientInputSchema = {
+export type TCreateClientInputSchema = {
   name: string;
   purpose: string;
   redirectUri: string;
@@ -18,7 +18,7 @@ export type TAddClientInputSchema = {
   enablePkce: boolean;
 };
 
-export const ZAddClientInputSchema: z.ZodType<TAddClientInputSchema, z.ZodTypeDef, TAddClientInputSchemaInput> = z.object({
+export const ZCreateClientInputSchema: z.ZodType<TCreateClientInputSchema, z.ZodTypeDef, TCreateClientInputSchemaInput> = z.object({
   name: z.string(),
   purpose: z.string().min(1),
   redirectUri: z.string(),

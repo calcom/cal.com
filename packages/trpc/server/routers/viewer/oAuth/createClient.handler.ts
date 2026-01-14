@@ -1,13 +1,13 @@
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { TAddClientInputSchema } from "./addClient.schema";
+import type { TCreateClientInputSchema } from "./createClient.schema";
 
 type AddClientOptions = {
   ctx: {
     prisma: PrismaClient;
   };
-  input: TAddClientInputSchema;
+  input: TCreateClientInputSchema;
 };
 
 export const addClientHandler = async ({ ctx, input }: AddClientOptions) => {

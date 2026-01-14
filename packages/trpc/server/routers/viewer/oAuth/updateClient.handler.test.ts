@@ -5,7 +5,7 @@ import type { TFunction } from "i18next";
 import type { PrismaClient } from "@calcom/prisma";
 import { OAuthClientApprovalStatus, UserPermissionRole } from "@calcom/prisma/enums";
 
-import { updateClientStatusHandler } from "./updateClientStatus.handler";
+import { updateClientStatusHandler } from "./updateClient.handler";
 
 const mocks = vi.hoisted(() => {
   return {

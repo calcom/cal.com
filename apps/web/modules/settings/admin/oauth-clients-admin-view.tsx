@@ -52,7 +52,7 @@ export default function OAuthClientsAdminView() {
     },
   });
 
-  const updateStatusMutation = trpc.viewer.oAuth.updateClientStatus.useMutation({
+  const updateStatusMutation = trpc.viewer.oAuth.updateClient.useMutation({
     onSuccess: async (data) => {
       showToast(
         t("oauth_client_status_updated", { name: data.name, status: data.approvalStatus }),

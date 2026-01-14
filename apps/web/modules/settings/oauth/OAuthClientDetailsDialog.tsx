@@ -113,9 +113,6 @@ export const OAuthClientDetailsDialog = ({
   const canEdit = Boolean(onUpdate) && !isFormDisabled;
   const canDelete = Boolean(onDelete) && !showAdminActions;
 
-  const showApprove = Boolean(onApprove) && (approvalStatus === "PENDING" || approvalStatus === "REJECTED");
-  const showReject = Boolean(onReject) && (approvalStatus === "PENDING" || approvalStatus === "APPROVED");
-
   const handleConfirmReject = () => {
     if (!client) return;
 
@@ -130,6 +127,71 @@ export const OAuthClientDetailsDialog = ({
     setRejectionReason("");
     setShowRejectionReasonError(false);
   };
+
+  const clientId = client?.clientId;
+
+  const footerActions = (() => {
+    const closeButton = (
+      <DialogClose color="minimal" data-testid="oauth-client-details-close">
+        {t("close")}
+      </DialogClose>
+    );
+
+    if (showAdminActions) {
+      const canReject = Boolean(onReject) && (approvalStatus === "PENDING" || approvalStatus === "APPROVED");
+      const canApprove = Boolean(onApprove) && (approvalStatus === "PENDING" || approvalStatus === "REJECTED");
+
+      return (
+        <div className="flex w-full items-center justify-end gap-2">
+          {closeButton}
+          {canReject ? (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon="x"
+              data-testid="oauth-client-details-reject-trigger"
+              loading={isStatusChangePending}
+              className="not-disabled:hover:!bg-error not-disabled:hover:!text-white not-disabled:hover:!border-semantic-error"
+              onClick={() => {
+                setIsRejectConfirmOpen(true);
+                setRejectionReason("");
+                setShowRejectionReasonError(false);
+              }}>
+              {t("reject")}
+            </Button>
+          ) : null}
+          {canApprove ? (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon="check"
+              data-testid="oauth-client-details-approve-trigger"
+              loading={isStatusChangePending}
+              className="not-disabled:hover:!bg-cal-success not-disabled:hover:!text-white not-disabled:hover:!border-cal-success"
+              onClick={() => {
+                if (!clientId) return;
+                onApprove?.(clientId);
+              }}>
+              {t("approve")}
+            </Button>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (canEdit) {
+      return (
+        <div className="flex w-full items-center justify-end gap-2">
+          {closeButton}
+          <Button type="submit" loading={isUpdatePending} data-testid="oauth-client-details-save">
+            {t("save")}
+          </Button>
+        </div>
+      );
+    }
+
+    return <div className="flex w-full items-center justify-end">{closeButton}</div>;
+  })();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -193,93 +255,48 @@ export const OAuthClientDetailsDialog = ({
               form={form}
               logo={logo}
               setLogo={setLogo}
-              isFormDisabled={isFormDisabled}
+              isClientReadOnly={isFormDisabled}
               isPkceLocked
-              showLogoActions={!showAdminActions}
-              logoFooter={
-                canDelete ? (
-                  <>
-                    <Button
-                      type="button"
-                      color="destructive"
-                      StartIcon="trash"
-                      data-testid="oauth-client-details-delete-trigger"
-                      loading={isDeletePending}
-                      className="w-auto"
-                      onClick={() => setIsDeleteConfirmOpen(true)}>
-                      {t("delete_oauth_client")}
-                    </Button>
-                    <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-                      <ConfirmationDialogContent
-                        variety="danger"
-                        title={t("delete_oauth_client")}
-                        cancelBtnText={t("cancel")}
-                        isPending={isDeletePending}
-                        confirmBtn={
-                          <DialogClose
-                            data-testid="oauth-client-details-delete-confirm"
-                            color="primary"
-                            loading={isDeletePending}
-                            onClick={() => {
-                              if (!client) return;
-                              onDelete?.(client.clientId);
-                            }}>
-                            {isDeletePending ? t("deleting") : t("delete")}
-                          </DialogClose>
-                        }>
-                        <p className="mb-4">{t("confirm_delete_oauth_client")}</p>
-                      </ConfirmationDialogContent>
-                    </Dialog>
-                  </>
-                ) : null
-              }
             />
 
+            {canDelete ? (
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  color="destructive"
+                  StartIcon="trash"
+                  data-testid="oauth-client-details-delete-trigger"
+                  loading={isDeletePending}
+                  className="w-auto"
+                  onClick={() => setIsDeleteConfirmOpen(true)}>
+                  {t("delete_oauth_client")}
+                </Button>
+                <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+                  <ConfirmationDialogContent
+                    variety="danger"
+                    title={t("delete_oauth_client")}
+                    cancelBtnText={t("cancel")}
+                    isPending={isDeletePending}
+                    confirmBtn={
+                      <DialogClose
+                        data-testid="oauth-client-details-delete-confirm"
+                        color="primary"
+                        loading={isDeletePending}
+                        onClick={() => {
+                          if (!client) return;
+                          onDelete?.(client.clientId);
+                        }}>
+                        {isDeletePending ? t("deleting") : t("delete")}
+                      </DialogClose>
+                    }>
+                    <p className="mb-4">{t("confirm_delete_oauth_client")}</p>
+                  </ConfirmationDialogContent>
+                </Dialog>
+              </div>
+            ) : null}
+
             <DialogFooter className="mt-6">
-              {showAdminActions ? (
-                <div className="flex w-full items-center justify-end gap-2">
-                  <DialogClose color="minimal" data-testid="oauth-client-details-close">{t("close")}</DialogClose>
-                  {showReject ? (
-                    <Button
-                      type="button"
-                      color="primary"
-                      StartIcon="x"
-                      data-testid="oauth-client-details-reject-trigger"
-                      loading={isStatusChangePending}
-                      className="not-disabled:hover:!bg-error not-disabled:hover:!text-white not-disabled:hover:!border-semantic-error"
-                      onClick={() => {
-                        setIsRejectConfirmOpen(true);
-                        setRejectionReason("");
-                        setShowRejectionReasonError(false);
-                      }}>
-                      {t("reject")}
-                    </Button>
-                  ) : null}
-                  {showApprove ? (
-                    <Button
-                      type="button"
-                      color="primary"
-                      StartIcon="check"
-                      data-testid="oauth-client-details-approve-trigger"
-                      loading={isStatusChangePending}
-                      className="not-disabled:hover:!bg-cal-success not-disabled:hover:!text-white not-disabled:hover:!border-cal-success"
-                      onClick={() => onApprove?.(client.clientId)}>
-                      {t("approve")}
-                    </Button>
-                  ) : null}
-                </div>
-              ) : canEdit ? (
-                <div className="flex w-full items-center justify-end gap-2">
-                  <DialogClose color="minimal" data-testid="oauth-client-details-close">{t("close")}</DialogClose>
-                  <Button type="submit" loading={isUpdatePending} data-testid="oauth-client-details-save">
-                    {t("save")}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex w-full items-center justify-end">
-                  <DialogClose color="minimal" data-testid="oauth-client-details-close">{t("close")}</DialogClose>
-                </div>
-              )}
+              {footerActions}
             </DialogFooter>
 
             <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>

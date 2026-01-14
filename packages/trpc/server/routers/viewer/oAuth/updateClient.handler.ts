@@ -7,7 +7,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
 
-import type { TUpdateClientInputSchema } from "./updateClientStatus.schema";
+import type { TUpdateClientInputSchema } from "./updateClient.schema";
 
 type UpdateClientStatusOptions = {
   ctx: {
