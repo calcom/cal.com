@@ -298,7 +298,16 @@ export function AdvancedTab(props: AdvancedTabProps) {
           title="Requires confirmation"
           description="The booking needs to be manually confirmed before it is pushed to your calendar and a confirmation is sent."
           value={props.requiresConfirmation}
-          onValueChange={props.setRequiresConfirmation}
+          onValueChange={(value) => {
+            if (value && props.seatsEnabled) {
+              Alert.alert(
+                "Disable 'Offer seats' first",
+                "You need to:\n1. Disable 'Offer seats' and Save\n2. Then enable 'Requires confirmation' and Save again"
+              );
+              return;
+            }
+            props.setRequiresConfirmation(value);
+          }}
         />
         <SettingRow
           title="Booker email verification"
@@ -389,7 +398,16 @@ export function AdvancedTab(props: AdvancedTabProps) {
           title="Offer seats"
           description="Offer seats for booking. This automatically disables guest & opt-in bookings."
           value={props.seatsEnabled}
-          onValueChange={props.setSeatsEnabled}
+          onValueChange={(value) => {
+            if (value && props.requiresConfirmation) {
+              Alert.alert(
+                "Disable 'Requires confirmation' first",
+                "You need to:\n1. Disable 'Requires confirmation' and Save\n2. Then enable 'Offer seats' and Save again"
+              );
+              return;
+            }
+            props.setSeatsEnabled(value);
+          }}
           learnMoreUrl="https://cal.com/help/event-types/offer-seats"
           isLast
         />

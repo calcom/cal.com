@@ -591,17 +591,17 @@ export function LimitsTab(props: LimitsTabProps) {
               <View className="flex-1">
                 <Text className="mb-2 text-[17px] text-black">Within a date range</Text>
                 {props.futureBookingType === "range" ? (
-                  <View className="gap-2">
-                    <View>
-                      <Text className="mb-1 text-[13px] text-[#6D6D72]">Start date</Text>
+                  <View className="gap-3">
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px] text-[#6D6D72]">Start date</Text>
                       <LimitsTabDatePicker
                         value={props.rangeStartDate}
                         onChange={props.setRangeStartDate}
                         placeholder="Select start date"
                       />
                     </View>
-                    <View>
-                      <Text className="mb-1 text-[13px] text-[#6D6D72]">End date</Text>
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px] text-[#6D6D72]">End date</Text>
                       <LimitsTabDatePicker
                         value={props.rangeEndDate}
                         onChange={props.setRangeEndDate}
