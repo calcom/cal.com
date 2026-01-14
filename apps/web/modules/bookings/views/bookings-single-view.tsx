@@ -461,38 +461,47 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
-  const isValidBookingEmail = useCallback(
-    (email: string) => {
-      return (
-        bookingInfo?.attendees?.some((attendee) => attendee.email.toLowerCase() === email.toLowerCase()) ||
-        email.toLowerCase() === bookingInfo?.user?.email.toLowerCase()
-      );
-    },
-    [bookingInfo]
-  );
-
   const emailParam = useMemo(() => {
     return searchParams.get("email");
   }, [searchParams]);
 
-  useEffect(() => {
-    if (sessionStatus === "loading") return;
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
 
-    const needsVerification = !session && (!emailParam || !isValidBookingEmail(emailParam));
+  const { data: emailVerificationResult, isLoading: isVerifyingEmailParam } =
+    trpc.viewer.public.verifyBookingEmail.useQuery(
+      { bookingUid: bookingInfo.uid, email: emailParam ?? "" },
+      { enabled: !!emailParam && !session }
+    );
+
+  useEffect(() => {
+    if (emailVerificationResult?.isValid) {
+      setIsEmailVerified(true);
+    }
+  }, [emailVerificationResult]);
+
+  useEffect(() => {
+    if (sessionStatus === "loading" || isVerifyingEmailParam) return;
+
+    const needsVerification = !session && (!emailParam || !emailVerificationResult?.isValid);
 
     setShowVerificationDialog((prev) => {
       if (prev === needsVerification) return prev;
       return needsVerification;
     });
-  }, [session, sessionStatus, isValidBookingEmail, emailParam]);
+  }, [session, sessionStatus, emailParam, emailVerificationResult, isVerifyingEmailParam]);
 
   const updateSearchParams = useCallback(
-    async (email: string) => {
+    (email: string) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("email", email);
-      await router.replace(`?${params.toString()}`, { scroll: false });
+      router.replace(`?${params.toString()}`, { scroll: false });
     },
     [router, searchParams]
+  );
+
+  const verifyEmailMutation = trpc.viewer.public.verifyBookingEmail.useQuery(
+    { bookingUid: bookingInfo.uid, email: verificationEmail },
+    { enabled: false }
   );
 
   const handleVerification = async () => {
@@ -506,8 +515,10 @@ export default function Success(props: PageProps) {
 
     setIsVerifying(true);
     try {
-      if (isValidBookingEmail(verificationEmail)) {
-        await updateSearchParams(verificationEmail);
+      const result = await verifyEmailMutation.refetch();
+      if (result.data?.isValid) {
+        setIsEmailVerified(true);
+        updateSearchParams(verificationEmail);
         setShowVerificationDialog(false);
       } else {
         setVerificationError(t("verification_email_error"));
@@ -520,8 +531,8 @@ export default function Success(props: PageProps) {
   const showBookingInfo = useMemo(() => {
     if (session) return true;
     if (!emailParam) return false;
-    return isValidBookingEmail(emailParam);
-  }, [session, emailParam, isValidBookingEmail]);
+    return isEmailVerified || emailVerificationResult?.isValid;
+  }, [session, emailParam, isEmailVerified, emailVerificationResult]);
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
