@@ -7,6 +7,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useInitializeWeekStart } from "@calcom/features/bookings/Booker/components/hooks/useInitializeWeekStart";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { formatDateTime } from "@calcom/lib/dateTimeFormatter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button } from "@calcom/ui/components/button";
@@ -97,13 +98,14 @@ export function Header({
   const isSameYear = () => {
     return selectedDate.format("YYYY") === endDate.format("YYYY");
   };
-  const formattedMonth = new Intl.DateTimeFormat(i18n.language ?? "en", { month: "short" });
+  const formatMonthLabel = (date: Date) =>
+    formatDateTime(date, { locale: i18n.language ?? "en", month: "short" });
   const FormattedSelectedDateRange = () => {
     return (
       <h3 className="min-w-[150px] text-base font-semibold leading-4">
-        {formattedMonth.format(selectedDate.toDate())} {selectedDate.format("D")}
+        {formatMonthLabel(selectedDate.toDate())} {selectedDate.format("D")}
         {!isSameYear() && <span className="text-subtle">, {selectedDate.format("YYYY")} </span>}-{" "}
-        {!isSameMonth() && formattedMonth.format(endDate.toDate())} {endDate.format("D")},{" "}
+        {!isSameMonth() && formatMonthLabel(endDate.toDate())} {endDate.format("D")},{" "}
         <span className="text-subtle">
           {isSameYear() ? selectedDate.format("YYYY") : endDate.format("YYYY")}
         </span>
