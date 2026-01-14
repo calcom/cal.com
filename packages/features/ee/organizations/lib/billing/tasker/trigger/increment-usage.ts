@@ -22,7 +22,7 @@ export const incrementUsage: TaskWithSchema<typeof INCREMENT_USAGE_JOB_ID, typeo
       } catch (error) {
         if (error instanceof Error || error instanceof ErrorWithCode) logger.error(error.message);
         else logger.error("Unknown error in incrementUsage", { error });
-        return;
+        throw error;
       }
     },
   });
