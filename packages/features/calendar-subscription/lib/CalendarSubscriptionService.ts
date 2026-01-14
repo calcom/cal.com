@@ -273,6 +273,10 @@ export class CalendarSubscriptionService {
       metrics.count("calendar.subscription.events.fetch.error", 1, {
         attributes: { provider: selectedCalendar.integration },
       });
+      await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
+        syncErrorAt: new Date(),
+        syncErrorCount: { increment: 1 },
+      });
       throw err;
     }
 

@@ -2,6 +2,13 @@ import "../__mocks__/delegationCredential";
 
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
+vi.mock("@sentry/nextjs", () => ({
+  metrics: {
+    count: vi.fn(),
+    distribution: vi.fn(),
+  },
+}));
+
 import type { AdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
