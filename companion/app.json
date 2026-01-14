@@ -35,10 +35,6 @@
       "softwareKeyboardLayoutMode": "pan",
       "usesCleartextTraffic": false
     },
-    "notification": {
-      "icon": "./assets/icon.png",
-      "color": "#ffffff"
-    },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
@@ -60,13 +56,6 @@
           "backgroundColor": "#ffffff",
           "image": "./assets/splash-icon.png",
           "imageWidth": 200
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#ffffff"
         }
       ]
     ],
