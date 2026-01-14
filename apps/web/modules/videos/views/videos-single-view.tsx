@@ -522,7 +522,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
               <h4 className="text-base font-semibold text-black dark:text-white">
                 {t("sign_in_to_cal_com")}
               </h4>
-              <p className="text-sm text-[#6B7280] dark:text-gray-300">
+              <p className="text-sm text-gray-500 dark:text-gray-300">
                 {t("track_meetings_and_manage_schedule")}
               </p>
             </div>
