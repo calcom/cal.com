@@ -23,7 +23,7 @@ type UpdateClientStatusOptions = {
 type UpdateClientStatusOutput = {
   clientId: string;
   name: string;
-  purpose: string;
+  purpose: string | null;
   approvalStatus: OAuthClientApprovalStatus;
   redirectUri: string;
   websiteUrl: string | null;

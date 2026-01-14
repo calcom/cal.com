@@ -18,7 +18,7 @@ export const ZSubmitClientInputSchema = z.object({
 export const ZSubmitClientOutputSchema = z.object({
   clientId: z.string(),
   name: z.string(),
-  purpose: z.string(),
+  purpose: z.string().nullable(),
   clientSecret: z.string().optional(),
   redirectUri: z.string(),
   logo: z.string().nullable(),

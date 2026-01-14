@@ -7,7 +7,7 @@ import { BaseEmailHtml, CallToAction } from "../components";
 type AdminOAuthClientNotification = {
   language: TFunction;
   clientName: string;
-  purpose: string;
+  purpose: string | null;
   clientId: string;
   redirectUri: string;
   submitterEmail: string;
@@ -82,7 +82,7 @@ export const AdminOAuthClientNotificationEmail = ({
               }}>
               {language("purpose")}
             </td>
-            <td style={{ padding: "12px", borderBottom: "1px solid #e5e7eb" }}>{purpose}</td>
+            <td style={{ padding: "12px", borderBottom: "1px solid #e5e7eb" }}>{purpose ?? ""}</td>
           </tr>
           <tr style={{ lineHeight: "24px" }}>
             <td

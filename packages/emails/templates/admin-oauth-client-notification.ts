@@ -8,7 +8,7 @@ import BaseEmail from "./_base-email";
 export type OAuthClientNotification = {
   t: TFunction;
   clientName: string;
-  purpose: string;
+  purpose: string | null;
   clientId: string;
   redirectUri: string;
   submitterEmail: string;
@@ -45,6 +45,6 @@ export default class AdminOAuthClientNotification extends BaseEmail {
   protected getTextBody(): string {
     return `${this.input.t("hi_admin")}, ${this.input.t("admin_oauth_notification_email_title", { clientName: this.input.clientName })}
     ${this.input.t("admin_oauth_notification_email_body", { submitterEmail: this.input.submitterEmail })}
-    ${this.input.t("purpose")}: ${this.input.purpose}`.trim();
+    ${this.input.t("purpose")}: ${this.input.purpose ?? ""}`.trim();
   }
 }
