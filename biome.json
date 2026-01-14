@@ -179,7 +179,7 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts", "**/*.integration-test.ts"],
       "linter": {
         "rules": {
           "complexity": {
