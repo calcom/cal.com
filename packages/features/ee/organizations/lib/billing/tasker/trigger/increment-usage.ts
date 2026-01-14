@@ -1,6 +1,6 @@
-import { schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { logger, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
 import type { z } from "zod";
-
 import { platformBillingTaskConfig } from "./config";
 import { platformBillingTaskSchema } from "./schema";
 
@@ -17,6 +17,11 @@ export const incrementUsage: TaskWithSchema<typeof INCREMENT_USAGE_JOB_ID, typeo
       );
 
       const billingTaskService = getPlatformOrganizationBillingTaskService();
-      await billingTaskService.incrementUsage(payload);
+      try {
+        await billingTaskService.incrementUsage(payload);
+      } catch (error) {
+        if (error instanceof Error || error instanceof ErrorWithCode) logger.error(error.message);
+        else console.error(error);
+      }
     },
   });
