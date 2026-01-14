@@ -1,4 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { moduleLoader as membershipRepositoryModuleLoader } from "@calcom/features/users/di/MembershipRepository.module";
 
 import { AttributeSyncFieldMappingService } from "../services/AttributeSyncFieldMappingService";
 import { moduleLoader as attributeToUserRepositoryModuleLoader } from "./AttributeToUserRepository.module";
@@ -18,6 +19,7 @@ const loadModule = bindModuleToClassOnToken({
     attributeToUserRepository: attributeToUserRepositoryModuleLoader,
     attributeRepository: attributeRepositoryModuleLoader,
     attributeOptionRepository: attributeOptionRepositoryModuleLoader,
+    membershipRepository: membershipRepositoryModuleLoader,
   },
 });
 

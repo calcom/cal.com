@@ -8,7 +8,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
 
 const log = logger.getSubLogger({
@@ -19,6 +19,7 @@ interface IAttributeSyncFieldMappingServiceDeps {
   attributeToUserRepository: PrismaAttributeToUserRepository;
   attributeRepository: PrismaAttributeRepository;
   attributeOptionRepository: PrismaAttributeOptionRepository;
+  membershipRepository: MembershipRepository;
 }
 
 export class AttributeSyncFieldMappingService {
@@ -35,7 +36,7 @@ export class AttributeSyncFieldMappingService {
     syncFieldMappings: IFieldMapping[];
     integrationFields: Record<string, string>;
   }): Promise<void> {
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+    const membership = await this.deps.membershipRepository.findUniqueByUserIdAndTeamId({
       userId,
       teamId: organizationId,
     });
