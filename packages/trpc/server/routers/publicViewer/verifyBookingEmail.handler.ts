@@ -1,3 +1,4 @@
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { prisma } from "@calcom/prisma";
 
 import type { TVerifyBookingEmailInputSchema } from "./verifyBookingEmail.schema";
@@ -10,23 +11,8 @@ export const verifyBookingEmailHandler = async ({ input }: VerifyBookingEmailOpt
   const { bookingUid, email } = input;
   const normalizedEmail = email.toLowerCase();
 
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: bookingUid,
-    },
-    select: {
-      user: {
-        select: {
-          email: true,
-        },
-      },
-      attendees: {
-        select: {
-          email: true,
-        },
-      },
-    },
-  });
+  const bookingRepository = new BookingRepository(prisma);
+  const booking = await bookingRepository.findByUidIncludeUserEmailAndAttendeeEmails({ bookingUid });
 
   if (!booking) {
     return { isValid: false };
