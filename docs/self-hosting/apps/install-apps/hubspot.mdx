@@ -6,7 +6,7 @@ With our HubSpot integration you can sync data between Cal.com and your instance
 
 ## Basic functionality
 
-- On booking, we create a meeting record under a contact/company record
+- On booking, we create a meeting record under a contact record
 - On reschedule, we adjust the meeting record's dates
 - On cancellation, we cancel the meeting record
 
@@ -57,13 +57,13 @@ With our HubSpot integration you can sync data between Cal.com and your instance
 
 ## Event Type Options
 
-### On booking, add events on and new attendees as
+### Associate contacts with
 
-Choose which record to create HubSpot meetings under or if the attendee does not exist in HubSpot as the selected record, create a new record of the chosen type. We search for records based on the attendee email.
+Choose how to handle HubSpot records when creating meetings. Meetings are always created under contact records. We search for records based on the attendee email.
 
 **Options:**
-- **Contact** - Create meetings under contact records
-- **Company** - Create meetings under company records (matched by email domain)
+- **Contact** - Create meetings under contact records only
+- **Company** - Create meetings under contact records, and associate the contact with a company based on email domain
 
 ### Do not create new records for guests added to the booking
 
@@ -75,20 +75,12 @@ If this option is enabled, we will only handle creating meetings under the main 
 
 If the option is enabled, skip creating new contacts if they do not exist in HubSpot already. No meeting will be created if the contact doesn't exist.
 
-### Create event on contact, if it exists. Else fall back to company
-
-<Note>This option is available when "Company" is selected.</Note>
-
-If this option is enabled, we check if a contact already exists with the attendee's email. If it does, create the meeting on the contact record. If it does not exist, then we create the meeting on an existing company record (matched by email domain) or create a new company.
-
 ## Appendix
 
 ### How we match companies
 
-We determine if an attendee belongs to a company by extracting the email domain (e.g., `john@acme.com` → `acme.com`) and searching for a company with a matching `domain` property in HubSpot.
+We determine if an attendee belongs to a company by extracting the email domain (e.g., `john@acme.com` → `acme.com`) and searching for a company with a matching `domain` property in HubSpot. If no company exists with the matching domain, we automatically create a new company with that domain as both its name and domain property.
 
 ### Meeting association
 
-Meetings are associated with the appropriate record type:
-- For contacts: Uses `meeting_event_to_contact` association
-- For companies: Uses `meeting_event_to_company` association
+Meetings are always associated with contact records using the `meeting_event_to_contact` association. When the "Company" option is selected, contacts are additionally associated with companies using the `contact_to_company` association.

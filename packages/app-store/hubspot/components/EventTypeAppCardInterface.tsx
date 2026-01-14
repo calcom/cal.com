@@ -32,7 +32,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
   const createEventOn = getAppData("createEventOn") ?? HubspotRecordEnum.CONTACT;
   const skipContactCreation = getAppData("skipContactCreation") ?? false;
-  const checkForContact = getAppData("checkForContact") ?? false;
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
   const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
 
@@ -104,24 +103,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                 checked={skipContactCreation}
                 onCheckedChange={(checked) => {
                   setAppData("skipContactCreation", checked);
-                }}
-              />
-            </Section.SubSectionHeader>
-          </Section.SubSection>
-        ) : null}
-
-        {createEventOnSelectedOption.value === HubspotRecordEnum.COMPANY ? (
-          <Section.SubSection>
-            <Section.SubSectionHeader
-              icon="user-plus"
-              title={t("check_for_contact")}
-              labelFor="check-for-contact">
-              <Switch
-                size="sm"
-                labelOnLeading
-                checked={checkForContact}
-                onCheckedChange={(checked) => {
-                  setAppData("checkForContact", checked);
                 }}
               />
             </Section.SubSectionHeader>

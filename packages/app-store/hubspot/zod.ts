@@ -11,7 +11,6 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   ignoreGuests: z.boolean().optional(),
   createEventOn: z.nativeEnum(HubspotRecordEnum).default(HubspotRecordEnum.CONTACT).optional(),
   skipContactCreation: z.boolean().optional(),
-  checkForContact: z.boolean().optional(),
   onBookingWriteToEventObject: z.boolean().optional(),
   onBookingWriteToEventObjectFields: z.record(z.string(), writeToBookingEntry).optional(),
 });
