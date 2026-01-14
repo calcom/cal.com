@@ -112,7 +112,13 @@ export class PrismaAttributeRepository {
         },
       },
       include: {
-        options: true,
+        options: {
+          select: {
+            id: true,
+            value: true,
+            slug: true,
+          },
+        },
       },
     });
   }

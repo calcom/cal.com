@@ -341,7 +341,7 @@ export class CredentialRepository {
     value: Prisma.InputJsonValue;
     keyFields?: string[];
   }) {
-    const credential = await prisma.credential.findFirst({
+    const credential = await this.primaClient.credential.findFirst({
       where: {
         appId,
         key: {
@@ -352,9 +352,22 @@ export class CredentialRepository {
       select: {
         ...safeCredentialSelect,
         integrationAttributeSyncs: {
-          include: {
-            attributeSyncRule: true,
-            syncFieldMappings: true,
+          select: {
+            id: true,
+            attributeSyncRule: {
+              select: {
+                id: true,
+                rule: true,
+              },
+            },
+            syncFieldMappings: {
+              select: {
+                id: true,
+                integrationFieldName: true,
+                attributeId: true,
+                enabled: true,
+              },
+            },
           },
         },
         key: keyFields ? true : false,

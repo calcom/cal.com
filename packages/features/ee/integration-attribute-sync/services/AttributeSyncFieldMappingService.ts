@@ -243,15 +243,16 @@ export class AttributeSyncFieldMappingService {
       orgId,
     });
 
+    const optionLookup = new Map(
+      allOptions.map((o) => [`${o.attributeId}:${o.value.toLowerCase()}`, o])
+    );
+
     const assignments: Array<{ memberId: number; attributeOptionId: string }> =
       [];
 
     for (const newOption of optionsToCreate) {
-      const createdOption = allOptions.find(
-        (o) =>
-          o.attributeId === newOption.attributeId &&
-          o.value.toLowerCase() === newOption.value.toLowerCase()
-      );
+      const key = `${newOption.attributeId}:${newOption.value.toLowerCase()}`;
+      const createdOption = optionLookup.get(key);
 
       if (createdOption) {
         assignments.push({
