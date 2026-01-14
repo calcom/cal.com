@@ -4,7 +4,7 @@ import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
 
-import { Button } from "@calcom/ui/components/button";
+import { SlotSelectionModalHeader } from "./SlotSelectionModalHeader";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
@@ -107,16 +107,14 @@ const BookerComponent = ({
 
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
-  const [
-    isEnableTwoStepSlotSelectionVisible,
-    setIsEnableTwoStepSlotSelectionVisible,
-  ] = useBookerStoreContext(
-    (state) => [
-      state.isEnableTwoStepSlotSelectionVisible,
-      state.setIsEnableTwoStepSlotSelectionVisible,
-    ],
-    shallow
-  );
+  const [isSlotSelectionModalVisible, setIsSlotSelectionModalVisible] =
+    useBookerStoreContext(
+      (state) => [
+        state.isSlotSelectionModalVisible,
+        state.setIsSlotSelectionModalVisible,
+      ],
+      shallow
+    );
 
   const {
     shouldShowFormInDialog,
@@ -213,8 +211,8 @@ const BookerComponent = ({
   const scrolledToTimeslotsOnce = useRef(false);
   const embedUiConfig = useEmbedUiConfig();
   const scrollToTimeSlots = () => {
-    // Don't scroll if mobile and two step slot selection is enabled
-    if (isMobile && enableTwoStepSlotSelection) {
+    // Don't scroll if two step slot selection is enabled
+    if (enableTwoStepSlotSelection) {
       return;
     }
 
@@ -251,7 +249,7 @@ const BookerComponent = ({
 
   const onAvailableTimeSlotSelect = (time: string) => {
     setSelectedTimeslot(time);
-    setIsEnableTwoStepSlotSelectionVisible(false);
+    setIsSlotSelectionModalVisible(false);
   };
 
   updateEmbedBookerState({ bookerState, slotsQuery: schedule });
@@ -555,8 +553,8 @@ const BookerComponent = ({
                         scrollToTimeSlots={scrollToTimeSlots}
                         showNoAvailabilityDialog={showNoAvailabilityDialog}
                         onDateChange={() => {
-                          if (isMobile && enableTwoStepSlotSelection) {
-                            setIsEnableTwoStepSlotSelectionVisible(true);
+                          if (enableTwoStepSlotSelection) {
+                            setIsSlotSelectionModalVisible(true);
                           }
                         }}
                       />
@@ -596,58 +594,6 @@ const BookerComponent = ({
             </BookerSection>
 
             <BookerSection
-              key="two-step-slot-selection-modal"
-              area="main"
-              visible={isMobile && isEnableTwoStepSlotSelectionVisible}
-              className="border-subtle sticky top-0 -ml-px h-full md:border-l"
-              {...fadeInLeft}
-            >
-              <Dialog open={isMobile && isEnableTwoStepSlotSelectionVisible}>
-                <DialogContent
-                  type={undefined}
-                  enableOverflow
-                  className="[&_.modalsticky]:border-t-subtle [&_.modalsticky]:bg-default max-h-[80vh] pb-0 [&_.modalsticky]:sticky [&_.modalsticky]:bottom-0 [&_.modalsticky]:left-0 [&_.modalsticky]:right-0 [&_.modalsticky]:-mx-8 [&_.modalsticky]:border-t [&_.modalsticky]:px-8 [&_.modalsticky]:py-4"
-                >
-                  <Button
-                    color="minimal"
-                    StartIcon="arrow-left"
-                    className="mb-4 w-[40px]"
-                    onClick={() =>
-                      setIsEnableTwoStepSlotSelectionVisible(false)
-                    }
-                  ></Button>
-                  <AvailableTimeSlots
-                    onAvailableTimeSlotSelect={onAvailableTimeSlotSelect}
-                    customClassNames={
-                      customClassNames?.availableTimeSlotsCustomClassNames
-                    }
-                    extraDays={extraDays}
-                    limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                    schedule={schedule}
-                    isLoading={schedule.isPending}
-                    seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
-                    unavailableTimeSlots={unavailableTimeSlots}
-                    showAvailableSeatsCount={
-                      event.data?.seatsShowAvailabilityCount
-                    }
-                    event={event}
-                    loadingStates={loadingStates}
-                    renderConfirmNotVerifyEmailButtonCond={
-                      renderConfirmNotVerifyEmailButtonCond
-                    }
-                    isVerificationCodeSending={isVerificationCodeSending}
-                    onSubmit={onSubmit}
-                    skipConfirmStep={skipConfirmStep}
-                    shouldRenderCaptcha={shouldRenderCaptcha}
-                    watchedCfToken={watchedCfToken}
-                    confirmButtonDisabled={confirmButtonDisabled}
-                    confirmStepClassNames={customClassNames?.confirmStep}
-                  />
-                </DialogContent>
-              </Dialog>
-            </BookerSection>
-
-            <BookerSection
               key="enable-calendar"
               area="main"
               visible={layout === BookerLayouts.WEEK_VIEW}
@@ -666,7 +612,7 @@ const BookerComponent = ({
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}
               visible={
-                !(enableTwoStepSlotSelection && isMobile) &&
+                !enableTwoStepSlotSelection &&
                 ((layout !== BookerLayouts.WEEK_VIEW &&
                   bookerState === "selecting_time") ||
                   layout === BookerLayouts.COLUMN_VIEW)
@@ -797,6 +743,47 @@ const BookerComponent = ({
       >
         {EventBooker}
       </BookFormAsModal>
+      <Dialog open={isMobile && isSlotSelectionModalVisible}>
+        <DialogContent
+          type={undefined}
+          enableOverflow
+          className="fixed! inset-0! top-0! left-0! h-screen! max-h-screen! w-screen! max-w-none! translate-x-0! translate-y-0! rounded-none! m-0! px-8 pt-0 pb-8"
+        >
+          <SlotSelectionModalHeader
+            onClick={() => setIsSlotSelectionModalVisible(false)}
+            event={event.data}
+            isPlatform={isPlatform}
+            timeZones={timeZones}
+            selectedDate={selectedDate}
+          />
+          <AvailableTimeSlots
+            onAvailableTimeSlotSelect={onAvailableTimeSlotSelect}
+            customClassNames={
+              customClassNames?.availableTimeSlotsCustomClassNames
+            }
+            extraDays={extraDays}
+            limitHeight={layout === BookerLayouts.MONTH_VIEW}
+            schedule={schedule}
+            isLoading={schedule.isPending}
+            seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+            unavailableTimeSlots={unavailableTimeSlots}
+            showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
+            event={event}
+            loadingStates={loadingStates}
+            renderConfirmNotVerifyEmailButtonCond={
+              renderConfirmNotVerifyEmailButtonCond
+            }
+            isVerificationCodeSending={isVerificationCodeSending}
+            onSubmit={onSubmit}
+            skipConfirmStep={skipConfirmStep}
+            shouldRenderCaptcha={shouldRenderCaptcha}
+            watchedCfToken={watchedCfToken}
+            confirmButtonDisabled={confirmButtonDisabled}
+            confirmStepClassNames={customClassNames?.confirmStep}
+            hideAvailableTimesHeader
+          />
+        </DialogContent>
+      </Dialog>
       <Toaster position="bottom-right" />
     </>
   );
