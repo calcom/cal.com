@@ -5,6 +5,7 @@ import { PlatformBillingTaskerModule } from "@/lib/modules/platform-billing-task
 import { BillingProcessor } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingController } from "@/modules/billing/controllers/billing.controller";
+import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-in-billing-org";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BillingServiceCachingProxy } from "@/modules/billing/services/billing-service-caching-proxy";
@@ -46,6 +47,7 @@ import { UsersModule } from "@/modules/users/users.module";
     ManagedOrganizationsBillingService,
     OAuthClientRepository,
     BookingsRepository_2024_08_13,
+    IsUserInBillingOrg,
   ],
   exports: [BillingService, BillingRepository, ManagedOrganizationsBillingService],
   controllers: [BillingController],
