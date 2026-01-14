@@ -62,6 +62,8 @@ export const DI_TOKENS = {
   HOLIDAY_REPOSITORY_MODULE: Symbol("HolidayRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  PROFILE_REPOSITORY: Symbol("ProfileRepository"),
+  PROFILE_REPOSITORY_MODULE: Symbol("ProfileRepositoryModule"),
   MEMBERSHIP_SERVICE: Symbol("MembershipService"),
   MEMBERSHIP_SERVICE_MODULE: Symbol("MembershipServiceModule"),
   ASSIGNMENT_REASON_REPOSITORY: Symbol("AssignmentReasonRepository"),
