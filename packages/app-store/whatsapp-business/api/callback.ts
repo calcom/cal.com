@@ -19,10 +19,7 @@ import { getWhatsAppBusinessAppKeys } from "../lib/getWhatsAppBusinessAppKeys";
 // TYPES & CONSTANTS
 // ============================================================================
 
-const REQUIRED_WHATSAPP_SCOPES = [
-  "whatsapp_business_management",
-  "whatsapp_business_messaging",
-];
+const REQUIRED_WHATSAPP_SCOPES = ["whatsapp_business_management", "whatsapp_business_messaging"];
 const WEBHOOK_FIELDS = ["messages", "account_update"];
 
 type AuthMethod = "embedded" | "manual";
@@ -608,6 +605,7 @@ async function createPhoneRecord({
       templates,
       verificationPin: verificationPin ? String(verificationPin) : null,
       metadata: verificationToken ? { verification_token: verificationToken } : Prisma.JsonNull,
+      displayName: phoneData.verified_name,
     },
   });
 }
