@@ -12,7 +12,7 @@ export const platformBillingTaskConfig: PlatformBillingTask = {
   queue: platformBillingQueue,
   machine: "small-2x",
   retry: {
-    maxAttempts: 3,
+    maxAttempts: 1,
     factor: 1.8,
     minTimeoutInMs: 500,
     maxTimeoutInMs: 30_000,
