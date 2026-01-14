@@ -240,13 +240,9 @@ export const EditWeightsForAllTeamMembers = ({
           member.email.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .filter((member) => {
-        // When assignAllTeamMembers is false, only include members that exist in value array
-        return (
-          assignAllTeamMembers ||
-          value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10))
-        );
+        return value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10));
       });
-  }, [teamMembers, localWeights, searchQuery, assignAllTeamMembers, value]);
+  }, [teamMembers, localWeights, searchQuery, value]);
 
   return (
     <>
