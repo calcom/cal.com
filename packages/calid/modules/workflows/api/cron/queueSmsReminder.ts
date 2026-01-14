@@ -243,40 +243,39 @@ const executeCancellationProcess = async (): Promise<void> => {
   for (const messageToCancel of messagesToCancel) {
     if (messageToCancel.referenceId) {
       // const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
-      const twilioRequest = smsService.cancelSMS(messageToCancel.referenceId);
+      const smsProviderRequest = smsService.cancelSMS(messageToCancel.referenceId);
 
-      const workflowInsightUpdate = prisma.calIdWorkflowInsights
-        .updateMany({
-          where: {
-            msgId: messageToCancel.referenceId,
-            type: WorkflowMethods.SMS,
-            status: WorkflowStatus.QUEUED,
-          },
-          data: {
-            status: WorkflowStatus.CANCELLED,
-          },
+      const dbTransaction = prisma
+        .$transaction(async (tx) => {
+          if (messageToCancel.referenceId)
+            await tx.calIdWorkflowInsights.updateMany({
+              where: {
+                msgId: messageToCancel.referenceId,
+                type: WorkflowMethods.SMS,
+                status: WorkflowStatus.QUEUED,
+              },
+              data: {
+                status: WorkflowStatus.CANCELLED,
+              },
+            });
+
+          await tx.calIdWorkflowReminder.update({
+            where: {
+              id: messageToCancel.id,
+            },
+            data: {
+              referenceId: null,
+              scheduled: false,
+            },
+          });
         })
         .then(() => {
           console.log(
-            `Updated workflow insights for cancelled SMS with reference ID: ${messageToCancel.referenceId}`
+            `Cancelled SMS and updated workflow records for reference ID: ${messageToCancel.referenceId}`
           );
         });
 
-      const databaseUpdate = prisma.calIdWorkflowReminder
-        .update({
-          where: {
-            id: messageToCancel.id,
-          },
-          data: {
-            referenceId: null,
-            scheduled: false,
-          },
-        })
-        .then(() => {
-          console.log(`Cancelled SMS with reference ID: ${messageToCancel.referenceId}`);
-        });
-
-      cancellationTasks.push(twilioRequest, workflowInsightUpdate, databaseUpdate);
+      cancellationTasks.push(smsProviderRequest, dbTransaction);
     }
   }
 

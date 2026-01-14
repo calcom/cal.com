@@ -196,17 +196,6 @@ const executeImmediateNotification = async (
       undefined,
       undefined
     );
-    // await twilio.sendSMS(
-    //   phoneDestination,
-    //   textContent,
-    //   senderIdentifier,
-    //   userRef,
-    //   teamRef,
-    //   false,
-    //   undefined,
-    //   undefined,
-    //   { eventTypeId: eventTypeRef }
-    // );
     const msgId = msgRes.response.sid;
     if (msgId && eventTypeRef) {
       await createWorkflowInsight(msgId, eventTypeRef, bookingRef, seatRef, workflowId, workflowStepId);
@@ -256,7 +245,7 @@ const scheduleDelayedNotification = async (
     //   { eventTypeId: eventTypeRef }
     // );
 
-    if (scheduledMessage) {
+    if (scheduledMessage.response.sid) {
       await prisma.calIdWorkflowReminder.create({
         data: {
           bookingUid: bookingReference,
@@ -264,13 +253,13 @@ const scheduleDelayedNotification = async (
           method: WorkflowMethods.SMS,
           scheduledDate: dispatchTime.toDate(),
           scheduled: true,
-          referenceId: scheduledMessage.response?.sid || "",
+          referenceId: scheduledMessage.response.sid || "",
           seatReferenceId: seatReference,
         },
       });
       if (eventTypeRef) {
         await createWorkflowInsight(
-          scheduledMessage.sid,
+          scheduledMessage.response.sid,
           eventTypeRef,
           bookingReference,
           seatReference ?? undefined,
