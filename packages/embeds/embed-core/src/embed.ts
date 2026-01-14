@@ -1015,11 +1015,11 @@ class CalApi {
       el = existingEl as FloatingButton;
     }
     const dataset = el.dataset;
-    dataset["buttonText"] = buttonText;
-    dataset["hideButtonIcon"] = `${hideButtonIcon}`;
-    dataset["buttonPosition"] = `${buttonPosition}`;
-    dataset["buttonColor"] = `${buttonColor}`;
-    dataset["buttonTextColor"] = `${buttonTextColor}`;
+    dataset.buttonText = buttonText;
+    dataset.hideButtonIcon = `${hideButtonIcon}`;
+    dataset.buttonPosition = `${buttonPosition}`;
+    dataset.buttonColor = `${buttonColor}`;
+    dataset.buttonTextColor = `${buttonTextColor}`;
   }
 
   async modal({
