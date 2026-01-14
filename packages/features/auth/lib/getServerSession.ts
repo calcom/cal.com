@@ -66,7 +66,7 @@ export async function getServerSession(options: {
   });
 
   if (!userFromDb) {
-    log.debug("No user found");
+    log.warn("No user found for valid token", { userId });
     return null;
   }
 

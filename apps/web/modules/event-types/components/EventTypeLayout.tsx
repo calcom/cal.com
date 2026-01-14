@@ -8,6 +8,7 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { VerticalDivider } from "@calcom/ui/components/divider";
@@ -84,13 +85,11 @@ function EventTypeSingleLayout({
     formMethods,
   });
   const EventTypeTabs = tabsNavigation;
-  const permalink = `${bookerUrl}/${
-    team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
-  }/${eventType.slug}`;
+  const permalink = `${bookerUrl}/${team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
+    }/${eventType.slug}`;
 
-  const embedLink = `${
-    team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
-  }/${formMethods.getValues("slug")}`;
+  const embedLink = `${team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
+    }/${formMethods.getValues("slug")}`;
   const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
 
   const [Shell] = useMemo(() => {
@@ -102,7 +101,16 @@ function EventTypeSingleLayout({
     <Shell
       backPath={teamId ? `/event-types?teamId=${teamId}` : "/event-types"}
       title={`${eventType.title} | ${t("event_type")}`}
-      heading={eventType.title}
+      heading={
+        <div className="flex min-w-0 items-center">
+          <span className="min-w-0 truncate">{eventType.title}</span>
+          {eventType.team && (
+            <Badge className="ml-2 text-xs" variant="gray" startIcon="users">
+              {eventType.team.name}
+            </Badge>
+          )}
+        </div>
+      }
       CTA={
         <div className="flex items-center justify-end">
           {!formMethods.getValues("metadata")?.managedEventConfig && (
