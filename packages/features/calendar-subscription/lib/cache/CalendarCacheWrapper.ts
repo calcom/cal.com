@@ -158,12 +158,12 @@ export class CalendarCacheWrapper implements Calendar {
   }
 
   /**
-    * Retrieves availability with time zones, combining cache and live data.
-    *
-    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
-    * - Calendars **without** one of them → fetched directly from the original calendar.
-    * - Results are merged into a single array with `{ start, end, timeZone }` format.
-    */
+   * Retrieves availability with time zones, combining cache and live data.
+   *
+   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
+   * - Calendars **without** one of them → fetched directly from the original calendar.
+   * - Results are merged into a single array with `{ start, end, timeZone }` format.
+   */
   async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
 
