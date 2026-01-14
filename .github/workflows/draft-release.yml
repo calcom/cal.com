@@ -66,6 +66,7 @@ jobs:
         id: deploy-trigger
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          TRIGGER_DEV_PROJECT_REF: ${{ secrets.TRIGGER_DEV_PROJECT_REF }}
         run: |
           # The CLI outputs the version; id allows us to access outputs.deploymentVersion
           cd packages/features
