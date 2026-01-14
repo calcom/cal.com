@@ -3,7 +3,9 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { HAS_STAGING_APPS, IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
 class Paypal {
@@ -14,14 +16,15 @@ class Paypal {
   expiresAt: number | null = null;
 
   constructor(opts: { clientId: string; secretKey: string }) {
-    this.url = IS_PRODUCTION && !HAS_STAGING_APPS ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
+    this.url =
+      IS_PRODUCTION && !HAS_STAGING_APPS ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
     this.clientId = opts.clientId;
     this.secretKey = opts.secretKey;
   }
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
     await this.getAccessToken();
-    
+
     return fetch(`${this.url}${endpoint}`, {
       method: "get",
       ...init,
@@ -147,34 +150,35 @@ class Paypal {
             throw new Error("Payment not found");
           }
 
+          const paymentData = { ...(payment?.data as Record<string, string | number>), capture: result.id };
+
           await prisma.payment.update({
             where: {
               id: payment?.id,
             },
             data: {
-              success: true,
-              data: Object.assign(
-                {},
-                { ...(payment?.data as Record<string, string | number>), capture: result.id }
-              ) as unknown as Prisma.InputJsonValue,
+              data: Object.assign({}, paymentData) as unknown as Prisma.InputJsonValue,
             },
           });
 
-          // Update booking as paid
-          await prisma.booking.update({
-            where: {
-              id: payment.bookingId,
-            },
-            data: {
-              status: "ACCEPTED",
-            },
-          });
+          try {
+            // Success will be marked by the handlePaymentSuccess, as it has the proper logic to handle success
+            await handlePaymentSuccess(payment.id, payment.bookingId, paymentData);
+          } catch (e) {
+            if (e instanceof HttpCode) {
+              console.error("Paypal error handling payment success: ", e.message);
+            }
+            else if (e instanceof Error) {
+              console.error("Paypal error handling payment success: ", e.message);
+              throw e;
+            }
+          }
 
           return true;
         }
       }
     } catch (error) {
-      console.error(error);
+      console.error("Paypal capture order error: ", error);
       throw error;
     }
     return false;
