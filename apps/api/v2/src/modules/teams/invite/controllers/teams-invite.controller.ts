@@ -36,7 +36,7 @@ export class TeamsInviteController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @GetUser() user: UserWithProfile
   ): Promise<CreateInviteOutputDto> {
-    const result = await TeamService.createTeamInvite(teamId);
+    const result = await TeamService.createInvite(teamId);
     return { status: SUCCESS_STATUS, data: result };
   }
 }
