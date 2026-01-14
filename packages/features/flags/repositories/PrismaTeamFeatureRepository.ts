@@ -1,7 +1,7 @@
 import type { PrismaClient, TeamFeatures } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState, TeamFeatures as TeamFeaturesMap } from "../config";
+import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../config";
 
 export interface IPrismaTeamFeatureRepository {
   findByTeamId(teamId: number): Promise<TeamFeatures[]>;
@@ -153,10 +153,12 @@ export class PrismaTeamFeatureRepository implements IPrismaTeamFeatureRepository
   }
 
   async delete(teamId: number, featureId: FeatureId): Promise<void> {
-    await this.prismaClient.teamFeatures.deleteMany({
+    await this.prismaClient.teamFeatures.delete({
       where: {
-        teamId,
-        featureId,
+        teamId_featureId: {
+          teamId,
+          featureId,
+        },
       },
     });
   }

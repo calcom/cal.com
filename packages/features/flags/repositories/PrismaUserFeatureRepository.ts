@@ -1,7 +1,7 @@
 import type { PrismaClient, UserFeatures } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState } from "../config";
+import type { FeatureId } from "../config";
 
 export interface IPrismaUserFeatureRepository {
   findByUserId(userId: number): Promise<UserFeatures[]>;
@@ -25,10 +25,12 @@ export class PrismaUserFeatureRepository implements IPrismaUserFeatureRepository
   }
 
   async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null> {
-    return this.prismaClient.userFeatures.findFirst({
+    return this.prismaClient.userFeatures.findUnique({
       where: {
-        userId,
-        featureId,
+        userId_featureId: {
+          userId,
+          featureId,
+        },
       },
     });
   }
@@ -123,10 +125,12 @@ export class PrismaUserFeatureRepository implements IPrismaUserFeatureRepository
   }
 
   async delete(userId: number, featureId: FeatureId): Promise<void> {
-    await this.prismaClient.userFeatures.deleteMany({
+    await this.prismaClient.userFeatures.delete({
       where: {
-        userId,
-        featureId,
+        userId_featureId: {
+          userId,
+          featureId,
+        },
       },
     });
   }

@@ -44,21 +44,23 @@ describe("PrismaUserFeatureRepository", () => {
         updatedAt: new Date(),
       } as UserFeatures;
 
-      prismaMock.userFeatures.findFirst.mockResolvedValue(mockUserFeature);
+      prismaMock.userFeatures.findUnique.mockResolvedValue(mockUserFeature);
 
       const result = await repository.findByUserIdAndFeatureId(1, "test-feature");
 
-      expect(prismaMock.userFeatures.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.userFeatures.findUnique).toHaveBeenCalledWith({
         where: {
-          userId: 1,
-          featureId: "test-feature",
+          userId_featureId: {
+            userId: 1,
+            featureId: "test-feature",
+          },
         },
       });
       expect(result).toEqual(mockUserFeature);
     });
 
     it("should return null when user feature not found", async () => {
-      prismaMock.userFeatures.findFirst.mockResolvedValue(null);
+      prismaMock.userFeatures.findUnique.mockResolvedValue(null);
 
       const result = await repository.findByUserIdAndFeatureId(1, "nonexistent");
 
@@ -138,14 +140,16 @@ describe("PrismaUserFeatureRepository", () => {
 
   describe("delete", () => {
     it("should delete user feature", async () => {
-      prismaMock.userFeatures.deleteMany.mockResolvedValue({ count: 1 });
+      prismaMock.userFeatures.delete.mockResolvedValue({} as UserFeatures);
 
       await repository.delete(1, "test-feature" as FeatureId);
 
-      expect(prismaMock.userFeatures.deleteMany).toHaveBeenCalledWith({
+      expect(prismaMock.userFeatures.delete).toHaveBeenCalledWith({
         where: {
-          userId: 1,
-          featureId: "test-feature",
+          userId_featureId: {
+            userId: 1,
+            featureId: "test-feature",
+          },
         },
       });
     });

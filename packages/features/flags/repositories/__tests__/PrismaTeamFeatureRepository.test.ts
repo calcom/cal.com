@@ -205,14 +205,16 @@ describe("PrismaTeamFeatureRepository", () => {
 
   describe("delete", () => {
     it("should delete team feature", async () => {
-      prismaMock.teamFeatures.deleteMany.mockResolvedValue({ count: 1 });
+      prismaMock.teamFeatures.delete.mockResolvedValue({} as TeamFeatures);
 
       await repository.delete(1, "test-feature" as FeatureId);
 
-      expect(prismaMock.teamFeatures.deleteMany).toHaveBeenCalledWith({
+      expect(prismaMock.teamFeatures.delete).toHaveBeenCalledWith({
         where: {
-          teamId: 1,
-          featureId: "test-feature",
+          teamId_featureId: {
+            teamId: 1,
+            featureId: "test-feature",
+          },
         },
       });
     });
