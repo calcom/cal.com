@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
@@ -7,10 +5,11 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 
 const orgSelect = {
   id: true,
@@ -533,7 +532,7 @@ export class OrganizationRepository {
   }
 
   async findPlatformOrgByUserId(userId: number) {
-    return this.prismaClient.team.findFirstOrThrow({
+    return this.prismaClient.team.findFirst({
       where: {
         orgProfiles: {
           some: {
