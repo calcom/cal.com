@@ -25,10 +25,10 @@ const createMockRedisRepo = (): IRedisTeamFeatureRepository => ({
   setEnabledByTeamId: vi.fn(),
   findByTeamIdAndFeatureId: vi.fn(),
   setByTeamIdAndFeatureId: vi.fn(),
-  findAutoOptInByTeamIds: vi.fn(),
-  setAutoOptInByTeamIds: vi.fn(),
+  findAutoOptInByTeamId: vi.fn(),
+  setAutoOptInByTeamId: vi.fn(),
   invalidateByTeamIdAndFeatureId: vi.fn(),
-  invalidateAutoOptIn: vi.fn(),
+  invalidateAutoOptInByTeamId: vi.fn(),
 });
 
 describe("CachedTeamFeatureRepository", () => {
@@ -211,27 +211,41 @@ describe("CachedTeamFeatureRepository", () => {
   });
 
   describe("findAutoOptInByTeamIds", () => {
-    it("should return cached data when available", async () => {
-      const mockData = { 1: true, 2: false };
-      vi.mocked(mockRedisRepo.findAutoOptInByTeamIds).mockResolvedValue(mockData);
+    it("should return cached data when all teams are cached", async () => {
+      vi.mocked(mockRedisRepo.findAutoOptInByTeamId)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
 
       const result = await repository.findAutoOptInByTeamIds([1, 2]);
 
-      expect(mockRedisRepo.findAutoOptInByTeamIds).toHaveBeenCalledWith([1, 2]);
+      expect(mockRedisRepo.findAutoOptInByTeamId).toHaveBeenCalledTimes(2);
       expect(mockPrismaRepo.findAutoOptInByTeamIds).not.toHaveBeenCalled();
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({ 1: true, 2: false });
     });
 
-    it("should fetch from Prisma and cache when not in Redis", async () => {
-      const mockData = { 1: true, 2: false };
-      vi.mocked(mockRedisRepo.findAutoOptInByTeamIds).mockResolvedValue(null);
-      vi.mocked(mockPrismaRepo.findAutoOptInByTeamIds).mockResolvedValue(mockData);
+    it("should fetch from Prisma for cache misses and cache individual results", async () => {
+      vi.mocked(mockRedisRepo.findAutoOptInByTeamId)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(null);
+
+      vi.mocked(mockPrismaRepo.findAutoOptInByTeamIds).mockResolvedValue({ 2: false });
 
       const result = await repository.findAutoOptInByTeamIds([1, 2]);
 
-      expect(mockPrismaRepo.findAutoOptInByTeamIds).toHaveBeenCalledWith([1, 2]);
-      expect(mockRedisRepo.setAutoOptInByTeamIds).toHaveBeenCalledWith(mockData, [1, 2]);
-      expect(result).toEqual(mockData);
+      expect(mockRedisRepo.findAutoOptInByTeamId).toHaveBeenCalledTimes(2);
+      expect(mockPrismaRepo.findAutoOptInByTeamIds).toHaveBeenCalledWith([2]);
+      expect(mockRedisRepo.setAutoOptInByTeamId).toHaveBeenCalledWith(2, false);
+      expect(result).toEqual({ 1: true, 2: false });
+    });
+
+    it("should default to false for teams not found in database", async () => {
+      vi.mocked(mockRedisRepo.findAutoOptInByTeamId).mockResolvedValue(null);
+      vi.mocked(mockPrismaRepo.findAutoOptInByTeamIds).mockResolvedValue({});
+
+      const result = await repository.findAutoOptInByTeamIds([1]);
+
+      expect(mockRedisRepo.setAutoOptInByTeamId).toHaveBeenCalledWith(1, false);
+      expect(result).toEqual({ 1: false });
     });
   });
 
@@ -240,7 +254,7 @@ describe("CachedTeamFeatureRepository", () => {
       await repository.updateAutoOptIn(1, true);
 
       expect(mockPrismaRepo.updateAutoOptIn).toHaveBeenCalledWith(1, true);
-      expect(mockRedisRepo.invalidateAutoOptIn).toHaveBeenCalledWith([1]);
+      expect(mockRedisRepo.invalidateAutoOptInByTeamId).toHaveBeenCalledWith(1);
     });
   });
 });

@@ -5,15 +5,12 @@ import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../config";
 import { teamFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:team";
-const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_TTL_MS: number = 5 * 60 * 1000; // 5 minutes
 
 const KEY = {
   enabledByTeamId: (teamId: number) => `${CACHE_PREFIX}:enabled:${teamId}`,
   byTeamIdAndFeatureId: (teamId: number, featureId: string) => `${CACHE_PREFIX}:${teamId}:${featureId}`,
-  autoOptInByTeamIds: (teamIds: number[]) => {
-    const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
-    return `${CACHE_PREFIX}:autoOptIn:${sortedTeamIds}`;
-  },
+  autoOptInByTeamId: (teamId: number) => `${CACHE_PREFIX}:autoOptIn:${teamId}`,
 } as const;
 
 export interface IRedisTeamFeatureRepository {
@@ -21,10 +18,10 @@ export interface IRedisTeamFeatureRepository {
   setEnabledByTeamId(teamId: number, features: TeamFeaturesMap, ttlMs?: number): Promise<void>;
   findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null>;
   setByTeamIdAndFeatureId(teamId: number, featureId: FeatureId, data: TeamFeatures, ttlMs?: number): Promise<void>;
-  findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean> | null>;
-  setAutoOptInByTeamIds(data: Record<number, boolean>, teamIds: number[], ttlMs?: number): Promise<void>;
+  findAutoOptInByTeamId(teamId: number): Promise<boolean | null>;
+  setAutoOptInByTeamId(teamId: number, enabled: boolean, ttlMs?: number): Promise<void>;
   invalidateByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<void>;
-  invalidateAutoOptIn(teamIds: number[]): Promise<void>;
+  invalidateAutoOptInByTeamId(teamId: number): Promise<void>;
 }
 
 export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
@@ -66,16 +63,12 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     });
   }
 
-  async findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean> | null> {
-    return this.redisService.get<Record<number, boolean>>(KEY.autoOptInByTeamIds(teamIds));
+  async findAutoOptInByTeamId(teamId: number): Promise<boolean | null> {
+    return this.redisService.get<boolean>(KEY.autoOptInByTeamId(teamId));
   }
 
-  async setAutoOptInByTeamIds(
-    data: Record<number, boolean>,
-    teamIds: number[],
-    ttlMs?: number
-  ): Promise<void> {
-    await this.redisService.set(KEY.autoOptInByTeamIds(teamIds), data, { ttl: ttlMs ?? this.ttlMs });
+  async setAutoOptInByTeamId(teamId: number, enabled: boolean, ttlMs?: number): Promise<void> {
+    await this.redisService.set(KEY.autoOptInByTeamId(teamId), enabled, { ttl: ttlMs ?? this.ttlMs });
   }
 
   async invalidateByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<void> {
@@ -83,7 +76,7 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     await this.redisService.del(KEY.enabledByTeamId(teamId));
   }
 
-  async invalidateAutoOptIn(teamIds: number[]): Promise<void> {
-    await this.redisService.del(KEY.autoOptInByTeamIds(teamIds));
+  async invalidateAutoOptInByTeamId(teamId: number): Promise<void> {
+    await this.redisService.del(KEY.autoOptInByTeamId(teamId));
   }
 }

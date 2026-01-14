@@ -82,10 +82,9 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
 
     for (const { teamId, featureId, cached } of cachedResults) {
       if (cached !== null) {
-        if (!result[featureId]) {
-          result[featureId] = {};
-        }
-        result[featureId]![teamId] = cached;
+        const featureRecord = result[featureId] ?? {};
+        featureRecord[teamId] = cached;
+        result[featureId] = featureRecord;
       } else {
         cacheMisses.push({ teamId, featureId });
       }
@@ -105,10 +104,9 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
         cacheMisses.map(async ({ teamId, featureId }) => {
           const teamFeature = dbResultsMap.get(`${teamId}:${featureId}`);
           if (teamFeature) {
-            if (!result[featureId]) {
-              result[featureId] = {};
-            }
-            result[featureId]![teamId] = teamFeature;
+            const featureRecord = result[featureId] ?? {};
+            featureRecord[teamId] = teamFeature;
+            result[featureId] = featureRecord;
             await this.deps.redisRepo.setByTeamIdAndFeatureId(teamId, featureId, teamFeature);
           }
         })
@@ -139,18 +137,41 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
   }
 
   async findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean>> {
-    const cached = await this.deps.redisRepo.findAutoOptInByTeamIds(teamIds);
-    if (cached !== null) {
-      return cached;
+    const result: Record<number, boolean> = {};
+    const cacheMisses: number[] = [];
+
+    const cachedResults = await Promise.all(
+      teamIds.map(async (teamId) => {
+        const cached = await this.deps.redisRepo.findAutoOptInByTeamId(teamId);
+        return { teamId, cached };
+      })
+    );
+
+    for (const { teamId, cached } of cachedResults) {
+      if (cached !== null) {
+        result[teamId] = cached;
+      } else {
+        cacheMisses.push(teamId);
+      }
     }
 
-    const result = await this.deps.prismaRepo.findAutoOptInByTeamIds(teamIds);
-    await this.deps.redisRepo.setAutoOptInByTeamIds(result, teamIds);
+    if (cacheMisses.length > 0) {
+      const dbResults = await this.deps.prismaRepo.findAutoOptInByTeamIds(cacheMisses);
+
+      await Promise.all(
+        cacheMisses.map(async (teamId) => {
+          const enabled = dbResults[teamId] ?? false;
+          result[teamId] = enabled;
+          await this.deps.redisRepo.setAutoOptInByTeamId(teamId, enabled);
+        })
+      );
+    }
+
     return result;
   }
 
   async updateAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
     await this.deps.prismaRepo.updateAutoOptIn(teamId, enabled);
-    await this.deps.redisRepo.invalidateAutoOptIn([teamId]);
+    await this.deps.redisRepo.invalidateAutoOptInByTeamId(teamId);
   }
 }

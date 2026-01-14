@@ -120,34 +120,30 @@ describe("RedisTeamFeatureRepository", () => {
     });
   });
 
-  describe("findAutoOptInByTeamIds", () => {
-    it("should return cached auto opt-in data when found", async () => {
-      const mockData = { 1: true, 2: false };
+  describe("findAutoOptInByTeamId", () => {
+    it("should return cached auto opt-in value when found", async () => {
+      vi.mocked(mockRedisService.get).mockResolvedValue(true);
 
-      vi.mocked(mockRedisService.get).mockResolvedValue(mockData);
+      const result = await repository.findAutoOptInByTeamId(1);
 
-      const result = await repository.findAutoOptInByTeamIds([1, 2]);
-
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:autoOptIn:1,2");
-      expect(result).toEqual(mockData);
+      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:autoOptIn:1");
+      expect(result).toBe(true);
     });
 
-    it("should sort team IDs for consistent cache key", async () => {
+    it("should return null when not cached", async () => {
       vi.mocked(mockRedisService.get).mockResolvedValue(null);
 
-      await repository.findAutoOptInByTeamIds([3, 1, 2]);
+      const result = await repository.findAutoOptInByTeamId(1);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:autoOptIn:1,2,3");
+      expect(result).toBeNull();
     });
   });
 
-  describe("setAutoOptInByTeamIds", () => {
-    it("should cache auto opt-in data with sorted team IDs", async () => {
-      const mockData = { 1: true, 2: false };
+  describe("setAutoOptInByTeamId", () => {
+    it("should cache auto opt-in value for team", async () => {
+      await repository.setAutoOptInByTeamId(1, true);
 
-      await repository.setAutoOptInByTeamIds(mockData, [2, 1]);
-
-      expect(mockRedisService.set).toHaveBeenCalledWith("features:team:autoOptIn:1,2", mockData, {
+      expect(mockRedisService.set).toHaveBeenCalledWith("features:team:autoOptIn:1", true, {
         ttl: 5 * 60 * 1000,
       });
     });
@@ -163,11 +159,11 @@ describe("RedisTeamFeatureRepository", () => {
     });
   });
 
-  describe("invalidateAutoOptIn", () => {
-    it("should delete auto opt-in cache with sorted team IDs", async () => {
-      await repository.invalidateAutoOptIn([2, 1, 3]);
+  describe("invalidateAutoOptInByTeamId", () => {
+    it("should delete auto opt-in cache for team", async () => {
+      await repository.invalidateAutoOptInByTeamId(1);
 
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:team:autoOptIn:1,2,3");
+      expect(mockRedisService.del).toHaveBeenCalledWith("features:team:autoOptIn:1");
     });
   });
 });
