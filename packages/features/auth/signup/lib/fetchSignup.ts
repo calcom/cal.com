@@ -25,8 +25,26 @@ export type SignupResult =
   | { ok: false; status: number; error: SignupErrorResponse };
 
 export async function fetchSignup(data: SignupData, cfToken?: string): Promise<SignupResult> {
-  const searchParams = new URLSearchParams(window.location.search);
-  const url = searchParams.toString() ? `/api/auth/signup?${searchParams.toString()}` : "/api/auth/signup";
+  const allParams = new URLSearchParams(window.location.search);
+
+  const utmParams = new URLSearchParams();
+  const utmKeys = [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content",
+    "utm_id",
+    "utm_referral",
+    "landing_page",
+  ];
+
+  utmKeys.forEach((key) => {
+    const value = allParams.get(key);
+    if (value) utmParams.set(key, value);
+  });
+
+  const url = utmParams.toString() ? `/api/auth/signup?${utmParams.toString()}` : "/api/auth/signup";
 
   const response = await fetch(url, {
     method: "POST",
