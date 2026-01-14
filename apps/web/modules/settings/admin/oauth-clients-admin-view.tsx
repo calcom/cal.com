@@ -33,7 +33,7 @@ export default function OAuthClientsAdminView() {
     status: "APPROVED",
   });
 
-  const addMutation = trpc.viewer.oAuth.addClient.useMutation({
+  const addMutation = trpc.viewer.oAuth.createClient.useMutation({
     onSuccess: async (data) => {
       setCreatedClient({
         clientId: data.clientId,
