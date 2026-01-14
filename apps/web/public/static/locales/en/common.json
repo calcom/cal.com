@@ -1108,6 +1108,7 @@
   "add_input": "Add an input",
   "disable_notes": "Hide notes in calendar",
   "disable_notes_description": "For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email. <0>Learn more</0>",
+  "notes_hidden_by_organizer": "Notes have been hidden by the organizer",
   "requires_confirmation_description": "The booking needs to be manually confirmed before it is pushed to your calendar and a confirmation is sent. <0>Learn more</0>",
   "requires_confirmation_will_block_slot_description": "Unconfirmed bookings still block calendar slots.",
   "recurring_event": "Recurring event",
