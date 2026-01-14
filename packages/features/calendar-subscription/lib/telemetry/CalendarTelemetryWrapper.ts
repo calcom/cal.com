@@ -147,7 +147,7 @@ export class CalendarTelemetryWrapper implements Calendar {
     const totalFetchDurationMs = performance.now() - startTime;
 
     metrics.count("calendar.getAvailabilityWithTimeZones.calls", 1, {
-      tags: {
+      attributes: {
         cache: this.deps.cacheEnabled ? "on" : "off",
         calendarType: this.deps.calendarType,
         mode: String(this.deps.mode),
@@ -158,7 +158,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       "calendar.getAvailabilityWithTimeZones.duration_ms",
       totalFetchDurationMs,
       {
-        tags: {
+        attributes: {
           cache: this.deps.cacheEnabled ? "on" : "off",
           calendarType: this.deps.calendarType,
           mode: String(this.deps.mode),
@@ -170,7 +170,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       "calendar.getAvailabilityWithTimeZones.events_count",
       results?.length ?? 0,
       {
-        tags: {
+        attributes: {
           cache: this.deps.cacheEnabled ? "on" : "off",
           calendarType: this.deps.calendarType,
         },
