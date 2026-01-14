@@ -223,7 +223,12 @@ export class CalendarSubscriptionService {
   }> {
     const startTime = performance.now();
 
-    const result = {
+    const result: {
+      eventsFetched: number;
+      eventsCached: number;
+      eventsSynced: number;
+      propagationLagMs?: { avg: number; max: number; min: number; count: number };
+    } = {
       eventsFetched: 0,
       eventsCached: 0,
       eventsSynced: 0,
