@@ -19,7 +19,7 @@ export default async function handler(
 
   const {
     instanceUrl,
-    orgId,
+    sfdcOrgId,
     salesforceUserId,
     email,
     changedFields,
@@ -28,7 +28,7 @@ export default async function handler(
 
   log.info("Received user sync request", {
     instanceUrl,
-    orgId,
+    sfdcOrgId,
     salesforceUserId,
     email,
     changedFields,
@@ -60,10 +60,12 @@ export default async function handler(
     return res.status(400).json({ error: "Invalid credential ID" });
   }
 
-  const sfdcOrgId = new URL(salesforceCredentialId).pathname.split("/")[2];
+  const storedSfdcOrgId = new URL(salesforceCredentialId).pathname.split(
+    "/"
+  )[2];
 
-  if (sfdcOrgId !== orgId) {
-    log.error(`Mismatched orgId ${orgId} for credential ${credential.id}`);
+  if (storedSfdcOrgId !== sfdcOrgId) {
+    log.error(`Mismatched orgId ${sfdcOrgId} for credential ${credential.id}`);
     return res.status(400).json({ error: "Invalid org ID" });
   }
 
