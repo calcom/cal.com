@@ -1,5 +1,19 @@
-import { bootstrap } from "@/bootstrap";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { RoleService } from "@calcom/platform-libraries/pbac";
+import type { Team, User } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { FeaturesRepositoryFixture } from "test/fixtures/repository/features.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrgRoleInput } from "@/modules/organizations/roles/inputs/create-org-role.input";
@@ -12,21 +26,6 @@ import { UpdateOrgRoleOutput } from "@/modules/organizations/roles/outputs/updat
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { FeaturesRepositoryFixture } from "test/fixtures/repository/features.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { RoleService } from "@calcom/platform-libraries/pbac";
-import type { User, Team } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 describe("Organizations Roles Endpoints", () => {
   let app: INestApplication;
