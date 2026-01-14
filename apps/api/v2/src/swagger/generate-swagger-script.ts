@@ -1,5 +1,4 @@
 import "dotenv/config";
-import process from "node:process";
 
 import { bootstrap } from "../bootstrap";
 import { createNestApp } from "../main";

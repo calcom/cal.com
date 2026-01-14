@@ -15,7 +15,7 @@ import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { shadows } from "@/utils/shadows";
 
 // Generate time options (15-minute intervals)
@@ -181,8 +181,13 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         await CalComAPIService.updateSchedule(schedule.id, {
           overrides: newOverrides,
         });
-        Alert.alert("Success", successMessage, [{ text: "OK", onPress: onSuccess }]);
         setIsSaving(false);
+        if (Platform.OS === "web") {
+          showSuccessAlert("Success", successMessage);
+          onSuccess();
+        } else {
+          Alert.alert("Success", successMessage, [{ text: "OK", onPress: onSuccess }]);
+        }
       } catch {
         showErrorAlert("Error", "Failed to save override. Please try again.");
         setIsSaving(false);
@@ -229,20 +234,20 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     if (!schedule || isSaving) return;
 
     if (!selectedDate) {
-      Alert.alert("Error", "Please enter a date (YYYY-MM-DD format)");
+      showErrorAlert("Error", "Please enter a date (YYYY-MM-DD format)");
       return;
     }
 
     // Validate date format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(selectedDate)) {
-      Alert.alert("Error", "Please enter date in YYYY-MM-DD format");
+      showErrorAlert("Error", "Please enter date in YYYY-MM-DD format");
       return;
     }
 
     // Validate end time is after start time (only when not marking as unavailable)
     if (!isUnavailable && endTime <= startTime) {
-      Alert.alert("Error", "End time must be after start time");
+      showErrorAlert("Error", "End time must be after start time");
       return;
     }
 
@@ -376,7 +381,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         <Switch
           value={isUnavailable}
           onValueChange={setIsUnavailable}
-          trackColor={{ false: "#E5E5EA", true: "#FF3B30" }}
+          trackColor={{ false: "#E5E5EA", true: "#000000" }}
           thumbColor="#fff"
         />
       </View>

@@ -48,10 +48,10 @@ yarn vitest run path/to/file.test.ts
 yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
 
 # Integration test specific file
-yarn test path/to/file.integration-test.ts -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts
 
 # Integration test specific file + specific test
-yarn test path/to/file.integration-test.ts --testNamePattern="specific test name" -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts --testNamePattern="specific test name"
 
 # E2E test specific file
 PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts
@@ -190,6 +190,23 @@ import { Button } from "@calcom/ui/components/button";
 // Bad - Regular import for types, barrel imports
 import { User } from "@prisma/client";
 import { Button } from "@calcom/ui";
+```
+
+### API v2 Imports (apps/api/v2)
+
+When importing from `@calcom/features` or `@calcom/trpc` into `apps/api/v2`, **do not import directly** because the API v2 app's `tsconfig.json` doesn't have path mappings for these modules, which causes "module not found" errors.
+
+Instead, re-export from `packages/platform/libraries/index.ts` and import from `@calcom/platform-libraries`:
+
+```typescript
+// Step 1: In packages/platform/libraries/index.ts, add the export
+export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+
+// Step 2: In apps/api/v2, import from platform-libraries
+import { ProfileRepository } from "@calcom/platform-libraries";
+
+// Bad - Direct import causes module not found error in apps/api/v2
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 ```
 
 ## PR Checklist
