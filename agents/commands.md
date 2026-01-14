@@ -34,9 +34,9 @@
 
 ### Integration Tests
 
-- `yarn test -- --integrationTestsOnly` - Run integration tests (vitest)
-- `yarn test <filename> -- --integrationTestsOnly` - Run integration tests for specific file
-- `yarn test <filename> -t "<testName>" -- --integrationTestsOnly` - Run specific integration test by name for specific file
+- `VITEST_MODE=integration yarn test` - Run integration tests (vitest)
+- `VITEST_MODE=integration yarn test <filename>` - Run integration tests for specific file
+- `VITEST_MODE=integration yarn test <filename> -t "<testName>"` - Run specific integration test by name for specific file
 
 
 ### End-to-End Tests
@@ -73,7 +73,7 @@
 yarn vitest run packages/lib/some-file.test.ts
 
 # Integration test specific file
-yarn test routing-form-response-denormalized.integration-test.ts -- --integrationTestsOnly
+VITEST_MODE=integration yarn test routing-form-response-denormalized.integration-test.ts
 
 # E2E test specific file
 yarn e2e tests/booking-flow.e2e.ts

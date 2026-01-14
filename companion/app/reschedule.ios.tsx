@@ -2,11 +2,12 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { RescheduleScreenHandle } from "@/components/screens/RescheduleScreen";
 import RescheduleScreenComponent from "@/components/screens/RescheduleScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
 const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
@@ -34,13 +35,13 @@ export default function RescheduleIOS() {
       CalComAPIService.getBookingByUid(uid)
         .then(setBooking)
         .catch(() => {
-          Alert.alert("Error", "Failed to load booking details");
+          showErrorAlert("Error", "Failed to load booking details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);
