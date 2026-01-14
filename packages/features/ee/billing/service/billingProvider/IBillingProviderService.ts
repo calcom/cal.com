@@ -10,6 +10,7 @@ export interface IBillingProviderService {
     subscriptionId: string;
     subscriptionItemId: string;
     membershipCount: number;
+    prorationBehavior?: "none" | "create_prorations" | "always_invoice";
   }): Promise<void>;
   handleEndTrial(subscriptionId: string): Promise<void>;
 

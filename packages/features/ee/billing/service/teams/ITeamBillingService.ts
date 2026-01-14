@@ -4,6 +4,7 @@ import {
   SubscriptionStatus,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
+import type { ProrationBehavior } from "../perSeat/PerSeatBillingService";
 
 export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization">;
 export const TeamBillingPublishResponseStatus = {
@@ -21,7 +22,7 @@ export interface ITeamBillingService {
   cancel(): Promise<void>;
   publish(): Promise<TeamBillingPublishResponse>;
   downgrade(): Promise<void>;
-  updateQuantity(): Promise<void>;
+  updateQuantity(options?: { prorationBehavior?: ProrationBehavior }): Promise<void>;
   getSubscriptionStatus(): Promise<SubscriptionStatus | null>;
   endTrial(): Promise<boolean>;
   saveTeamBilling(args: IBillingRepositoryCreateArgs): Promise<void>;

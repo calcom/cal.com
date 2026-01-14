@@ -16,8 +16,9 @@ import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
-import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import type { ProrationBehavior } from "../perSeat/PerSeatBillingService";
 import {
   TeamBillingPublishResponseStatus,
   type ITeamBillingService,
@@ -142,7 +143,7 @@ export class TeamBillingService implements ITeamBillingService {
       this.logErrorFromUnknown(error);
     }
   }
-  async updateQuantity() {
+  async updateQuantity(options?: { prorationBehavior?: ProrationBehavior }) {
     try {
       await this.getOrgIfNeeded();
       const { id: teamId, metadata, isOrganization } = this.team;
@@ -150,25 +151,18 @@ export class TeamBillingService implements ITeamBillingService {
       const { url } = await this.checkIfTeamPaymentRequired();
       log.debug("updateQuantity", safeStringify({ url, team: this.team }));
 
-      /**
-       * If there's no pending checkout URL it means that this team has not been paid.
-       * We cannot update the subscription yet, this will be handled on publish/checkout.
-       *
-       * An organization can only be created if it is paid for and updateQuantity is called only when we have an organization.
-       * For some old organizations, it is possible that they aren't paid for yet, but then they wouldn't have been published as well(i.e. slug would be null and are unusable)
-       * So, we can safely assume go forward for organizations.
-       **/
       if (!url && !isOrganization) return;
 
-      // TODO: To be read from organizationOnboarding for Organizations later, but considering the fact that certain old organization won't have onboarding
       const { subscriptionId, subscriptionItemId } = metadata;
       const membershipCount = await prisma.membership.count({ where: { teamId } });
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
+
       await this.billingProviderService.handleSubscriptionUpdate({
         subscriptionId,
         subscriptionItemId,
         membershipCount,
+        prorationBehavior: options?.prorationBehavior,
       });
       log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
     } catch (error) {
