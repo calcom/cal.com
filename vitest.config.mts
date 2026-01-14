@@ -1,6 +1,12 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
+import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
+
+// Load .env file for integration tests (DATABASE_URL, etc.)
+// This is needed because Vitest 4.0 doesn't automatically load .env into process.env
+const env = loadEnv("", process.cwd(), "");
+Object.assign(process.env, env);
 
 const vitestMode = process.env.VITEST_MODE;
 // Support both new VITEST_MODE env var and legacy CLI flags for backwards compatibility
