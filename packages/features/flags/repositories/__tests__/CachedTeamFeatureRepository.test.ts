@@ -25,8 +25,6 @@ const createMockRedisRepo = (): IRedisTeamFeatureRepository => ({
   setEnabledByTeamId: vi.fn(),
   findByTeamIdAndFeatureId: vi.fn(),
   setByTeamIdAndFeatureId: vi.fn(),
-  findByTeamIdsAndFeatureIds: vi.fn(),
-  setByTeamIdsAndFeatureIds: vi.fn(),
   findAutoOptInByTeamIds: vi.fn(),
   setAutoOptInByTeamIds: vi.fn(),
   invalidateByTeamIdAndFeatureId: vi.fn(),
@@ -133,27 +131,49 @@ describe("CachedTeamFeatureRepository", () => {
   });
 
   describe("findByTeamIdsAndFeatureIds", () => {
-    it("should return cached data when available", async () => {
-      const mockData = { "feature-a": { 1: "enabled" } } as Partial<Record<FeatureId, Record<number, FeatureState>>>;
-      vi.mocked(mockRedisRepo.findByTeamIdsAndFeatureIds).mockResolvedValue(mockData);
+    it("should return cached data when all features are cached", async () => {
+      const mockTeamFeatureA = { teamId: 1, featureId: "feature-a", enabled: true } as TeamFeatures;
+
+      vi.mocked(mockRedisRepo.findByTeamIdAndFeatureId).mockResolvedValue(mockTeamFeatureA);
 
       const result = await repository.findByTeamIdsAndFeatureIds([1], ["feature-a" as FeatureId]);
 
-      expect(mockRedisRepo.findByTeamIdsAndFeatureIds).toHaveBeenCalledWith([1], ["feature-a"]);
+      expect(mockRedisRepo.findByTeamIdAndFeatureId).toHaveBeenCalledWith(1, "feature-a");
       expect(mockPrismaRepo.findByTeamIdsAndFeatureIds).not.toHaveBeenCalled();
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({ "feature-a": { 1: "enabled" } });
     });
 
-    it("should fetch from Prisma and cache when not in Redis", async () => {
-      const mockData = { "feature-a": { 1: "enabled" } } as Partial<Record<FeatureId, Record<number, FeatureState>>>;
-      vi.mocked(mockRedisRepo.findByTeamIdsAndFeatureIds).mockResolvedValue(null);
-      vi.mocked(mockPrismaRepo.findByTeamIdsAndFeatureIds).mockResolvedValue(mockData);
+    it("should fetch from Prisma for cache misses and cache individual results", async () => {
+      const mockTeamFeatureA = { teamId: 1, featureId: "feature-a", enabled: true } as TeamFeatures;
+      const mockTeamFeatureB = { teamId: 1, featureId: "feature-b", enabled: false } as TeamFeatures;
+
+      vi.mocked(mockRedisRepo.findByTeamIdAndFeatureId)
+        .mockResolvedValueOnce(mockTeamFeatureA)
+        .mockResolvedValueOnce(null);
+
+      vi.mocked(mockPrismaRepo.findByTeamIdsAndFeatureIds).mockResolvedValue([mockTeamFeatureB]);
+
+      const result = await repository.findByTeamIdsAndFeatureIds([1], [
+        "feature-a" as FeatureId,
+        "feature-b" as FeatureId,
+      ]);
+
+      expect(mockRedisRepo.findByTeamIdAndFeatureId).toHaveBeenCalledTimes(2);
+      expect(mockPrismaRepo.findByTeamIdsAndFeatureIds).toHaveBeenCalledWith([1], ["feature-b"]);
+      expect(mockRedisRepo.setByTeamIdAndFeatureId).toHaveBeenCalledWith(1, "feature-b", mockTeamFeatureB);
+      expect(result).toEqual({
+        "feature-a": { 1: "enabled" },
+        "feature-b": { 1: "disabled" },
+      });
+    });
+
+    it("should return empty nested object for features not found in database", async () => {
+      vi.mocked(mockRedisRepo.findByTeamIdAndFeatureId).mockResolvedValue(null);
+      vi.mocked(mockPrismaRepo.findByTeamIdsAndFeatureIds).mockResolvedValue([]);
 
       const result = await repository.findByTeamIdsAndFeatureIds([1], ["feature-a" as FeatureId]);
 
-      expect(mockPrismaRepo.findByTeamIdsAndFeatureIds).toHaveBeenCalledWith([1], ["feature-a"]);
-      expect(mockRedisRepo.setByTeamIdsAndFeatureIds).toHaveBeenCalledWith(mockData, [1], ["feature-a"]);
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({ "feature-a": {} });
     });
   });
 

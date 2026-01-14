@@ -69,25 +69,19 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
     if (cacheMisses.length > 0) {
       const dbResults = await this.deps.prismaRepo.findByUserIdAndFeatureIds(userId, cacheMisses);
 
+      const dbResultsMap = new Map(dbResults.map((uf) => [uf.featureId as FeatureId, uf]));
+
       await Promise.all(
         cacheMisses.map(async (featureId) => {
-          const state = dbResults[featureId];
-          result[featureId] = state ?? "inherit";
-
-          if (state && state !== "inherit") {
-            const userFeature = await this.deps.prismaRepo.findByUserIdAndFeatureId(userId, featureId);
-            if (userFeature) {
-              await this.deps.redisRepo.setByUserIdAndFeatureId(userId, featureId, userFeature);
-            }
+          const userFeature = dbResultsMap.get(featureId);
+          if (userFeature) {
+            result[featureId] = userFeature.enabled ? "enabled" : "disabled";
+            await this.deps.redisRepo.setByUserIdAndFeatureId(userId, featureId, userFeature);
+          } else {
+            result[featureId] = "inherit";
           }
         })
       );
-    }
-
-    for (const featureId of featureIds) {
-      if (!(featureId in result)) {
-        result[featureId] = "inherit";
-      }
     }
 
     return result;

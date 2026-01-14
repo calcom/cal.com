@@ -128,28 +128,28 @@ describe("PrismaTeamFeatureRepository", () => {
   });
 
   describe("findByTeamIdsAndFeatureIds", () => {
-    it("should return empty object when teamIds is empty", async () => {
+    it("should return empty array when teamIds is empty", async () => {
       const result = await repository.findByTeamIdsAndFeatureIds([], ["feature-a" as FeatureId]);
 
-      expect(result).toEqual({});
+      expect(result).toEqual([]);
       expect(prismaMock.teamFeatures.findMany).not.toHaveBeenCalled();
     });
 
-    it("should return empty object when featureIds is empty", async () => {
+    it("should return empty array when featureIds is empty", async () => {
       const result = await repository.findByTeamIdsAndFeatureIds([1, 2], []);
 
-      expect(result).toEqual({});
+      expect(result).toEqual([]);
       expect(prismaMock.teamFeatures.findMany).not.toHaveBeenCalled();
     });
 
-    it("should return feature states for teams", async () => {
+    it("should return full TeamFeatures objects for matching features", async () => {
       const mockTeamFeatures = [
-        { teamId: 1, featureId: "feature-a", enabled: true },
-        { teamId: 2, featureId: "feature-a", enabled: false },
-        { teamId: 1, featureId: "feature-b", enabled: true },
-      ];
+        { teamId: 1, featureId: "feature-a", enabled: true, assignedBy: "admin", assignedAt: new Date(), updatedAt: new Date() },
+        { teamId: 2, featureId: "feature-a", enabled: false, assignedBy: "admin", assignedAt: new Date(), updatedAt: new Date() },
+        { teamId: 1, featureId: "feature-b", enabled: true, assignedBy: "admin", assignedAt: new Date(), updatedAt: new Date() },
+      ] as TeamFeatures[];
 
-      prismaMock.teamFeatures.findMany.mockResolvedValue(mockTeamFeatures as unknown as TeamFeatures[]);
+      prismaMock.teamFeatures.findMany.mockResolvedValue(mockTeamFeatures);
 
       const result = await repository.findByTeamIdsAndFeatureIds(
         [1, 2],
@@ -161,12 +161,8 @@ describe("PrismaTeamFeatureRepository", () => {
           teamId: { in: [1, 2] },
           featureId: { in: ["feature-a", "feature-b"] },
         },
-        select: { teamId: true, featureId: true, enabled: true },
       });
-      expect(result).toEqual({
-        "feature-a": { 1: "enabled", 2: "disabled" },
-        "feature-b": { 1: "enabled" },
-      });
+      expect(result).toEqual(mockTeamFeatures);
     });
   });
 

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { TeamFeatures } from "@calcom/prisma/client";
 
 import type { IRedisService } from "../../../redis/IRedisService";
-import type { FeatureId, FeatureState, TeamFeatures as TeamFeaturesMap } from "../../config";
+import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../../config";
 import { RedisTeamFeatureRepository } from "../RedisTeamFeatureRepository";
 
 const createMockRedisService = (): IRedisService => ({
@@ -115,45 +115,6 @@ describe("RedisTeamFeatureRepository", () => {
       expect(mockRedisService.set).toHaveBeenCalledWith(
         "features:team:1:test-feature",
         mockTeamFeature,
-        { ttl: 5 * 60 * 1000 }
-      );
-    });
-  });
-
-  describe("findByTeamIdsAndFeatureIds", () => {
-    it("should return cached batch data when found", async () => {
-      const mockData = {
-        "feature-a": { 1: "enabled", 2: "disabled" },
-      } as Partial<Record<FeatureId, Record<number, FeatureState>>>;
-
-      vi.mocked(mockRedisService.get).mockResolvedValue(mockData);
-
-      const result = await repository.findByTeamIdsAndFeatureIds([1, 2], ["feature-a" as FeatureId]);
-
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:batch:1,2:feature-a");
-      expect(result).toEqual(mockData);
-    });
-
-    it("should sort team IDs and feature IDs for consistent cache key", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
-      await repository.findByTeamIdsAndFeatureIds([3, 1, 2], ["feature-b" as FeatureId, "feature-a" as FeatureId]);
-
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:batch:1,2,3:feature-a,feature-b");
-    });
-  });
-
-  describe("setByTeamIdsAndFeatureIds", () => {
-    it("should cache batch data with sorted keys", async () => {
-      const mockData = {
-        "feature-a": { 1: "enabled" },
-      } as Partial<Record<FeatureId, Record<number, FeatureState>>>;
-
-      await repository.setByTeamIdsAndFeatureIds(mockData, [2, 1], ["feature-b" as FeatureId, "feature-a" as FeatureId]);
-
-      expect(mockRedisService.set).toHaveBeenCalledWith(
-        "features:team:batch:1,2:feature-a,feature-b",
-        mockData,
         { ttl: 5 * 60 * 1000 }
       );
     });

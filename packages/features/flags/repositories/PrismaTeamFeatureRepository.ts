@@ -8,10 +8,7 @@ export interface IPrismaTeamFeatureRepository {
   findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null>;
   findEnabledByTeamId(teamId: number): Promise<TeamFeaturesMap | null>;
   findByFeatureIdWhereEnabled(featureId: FeatureId): Promise<number[]>;
-  findByTeamIdsAndFeatureIds(
-    teamIds: number[],
-    featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>>;
+  findByTeamIdsAndFeatureIds(teamIds: number[], featureIds: FeatureId[]): Promise<TeamFeatures[]>;
   checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean>;
   upsert(
     teamId: number,
@@ -81,34 +78,17 @@ export class PrismaTeamFeatureRepository implements IPrismaTeamFeatureRepository
     return rows.map((r) => r.teamId);
   }
 
-  async findByTeamIdsAndFeatureIds(
-    teamIds: number[],
-    featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>> {
+  async findByTeamIdsAndFeatureIds(teamIds: number[], featureIds: FeatureId[]): Promise<TeamFeatures[]> {
     if (teamIds.length === 0 || featureIds.length === 0) {
-      return {} as Partial<Record<FeatureId, Record<number, FeatureState>>>;
+      return [];
     }
 
-    const result: Partial<Record<FeatureId, Record<number, FeatureState>>> = {};
-    for (const featureId of featureIds) {
-      result[featureId] = {};
-    }
-
-    const teamFeatures = await this.prismaClient.teamFeatures.findMany({
+    return this.prismaClient.teamFeatures.findMany({
       where: {
         teamId: { in: teamIds },
         featureId: { in: featureIds },
       },
-      select: { teamId: true, featureId: true, enabled: true },
     });
-
-    for (const teamFeature of teamFeatures) {
-      const featureStates = result[teamFeature.featureId as FeatureId] ?? {};
-      featureStates[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
-      result[teamFeature.featureId as FeatureId] = featureStates;
-    }
-
-    return result;
   }
 
   async checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean> {

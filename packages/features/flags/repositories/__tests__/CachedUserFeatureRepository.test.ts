@@ -114,20 +114,13 @@ describe("CachedUserFeatureRepository", () => {
 
     it("should fetch from Prisma for cache misses and cache individual results", async () => {
       const mockUserFeatureA = { userId: 1, featureId: "feature-a", enabled: true } as UserFeatures;
+      const mockUserFeatureB = { userId: 1, featureId: "feature-b", enabled: false } as UserFeatures;
 
       vi.mocked(mockRedisRepo.findByUserIdAndFeatureId)
         .mockResolvedValueOnce(mockUserFeatureA)
         .mockResolvedValueOnce(null);
 
-      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue({
-        "feature-b": "disabled",
-      } as Partial<Record<FeatureId, FeatureState>>);
-
-      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureId).mockResolvedValue({
-        userId: 1,
-        featureId: "feature-b",
-        enabled: false,
-      } as UserFeatures);
+      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue([mockUserFeatureB]);
 
       const result = await repository.findByUserIdAndFeatureIds(1, [
         "feature-a" as FeatureId,
@@ -136,18 +129,16 @@ describe("CachedUserFeatureRepository", () => {
 
       expect(mockRedisRepo.findByUserIdAndFeatureId).toHaveBeenCalledTimes(2);
       expect(mockPrismaRepo.findByUserIdAndFeatureIds).toHaveBeenCalledWith(1, ["feature-b"]);
-      expect(mockRedisRepo.setByUserIdAndFeatureId).toHaveBeenCalled();
+      expect(mockRedisRepo.setByUserIdAndFeatureId).toHaveBeenCalledWith(1, "feature-b", mockUserFeatureB);
       expect(result).toEqual({
         "feature-a": "enabled",
         "feature-b": "disabled",
       });
     });
 
-    it("should return inherit for features not found in cache or database", async () => {
+    it("should return inherit for features not found in database", async () => {
       vi.mocked(mockRedisRepo.findByUserIdAndFeatureId).mockResolvedValue(null);
-      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue({
-        "feature-a": "inherit",
-      } as Partial<Record<FeatureId, FeatureState>>);
+      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue([]);
 
       const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId]);
 

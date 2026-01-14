@@ -66,13 +66,55 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
     teamIds: number[],
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>> {
-    const cached = await this.deps.redisRepo.findByTeamIdsAndFeatureIds(teamIds, featureIds);
-    if (cached !== null) {
-      return cached;
+    const result: Partial<Record<FeatureId, Record<number, FeatureState>>> = {};
+    const cacheMisses: Array<{ teamId: number; featureId: FeatureId }> = [];
+
+    const cacheKeys = teamIds.flatMap((teamId) =>
+      featureIds.map((featureId) => ({ teamId, featureId }))
+    );
+
+    const cachedResults = await Promise.all(
+      cacheKeys.map(async ({ teamId, featureId }) => {
+        const cached = await this.deps.redisRepo.findByTeamIdAndFeatureId(teamId, featureId);
+        return { teamId, featureId, cached };
+      })
+    );
+
+    for (const { teamId, featureId, cached } of cachedResults) {
+      if (cached !== null) {
+        if (!result[featureId]) {
+          result[featureId] = {};
+        }
+        result[featureId]![teamId] = cached.enabled ? "enabled" : "disabled";
+      } else {
+        cacheMisses.push({ teamId, featureId });
+      }
     }
 
-    const result = await this.deps.prismaRepo.findByTeamIdsAndFeatureIds(teamIds, featureIds);
-    await this.deps.redisRepo.setByTeamIdsAndFeatureIds(result, teamIds, featureIds);
+    if (cacheMisses.length > 0) {
+      const missedTeamIds = [...new Set(cacheMisses.map((m) => m.teamId))];
+      const missedFeatureIds = [...new Set(cacheMisses.map((m) => m.featureId))];
+
+      const dbResults = await this.deps.prismaRepo.findByTeamIdsAndFeatureIds(missedTeamIds, missedFeatureIds);
+
+      const dbResultsMap = new Map(
+        dbResults.map((tf) => [`${tf.teamId}:${tf.featureId}`, tf])
+      );
+
+      await Promise.all(
+        cacheMisses.map(async ({ teamId, featureId }) => {
+          const teamFeature = dbResultsMap.get(`${teamId}:${featureId}`);
+          if (!result[featureId]) {
+            result[featureId] = {};
+          }
+          if (teamFeature) {
+            result[featureId]![teamId] = teamFeature.enabled ? "enabled" : "disabled";
+            await this.deps.redisRepo.setByTeamIdAndFeatureId(teamId, featureId, teamFeature);
+          }
+        })
+      );
+    }
+
     return result;
   }
 

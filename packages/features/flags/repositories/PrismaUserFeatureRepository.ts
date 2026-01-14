@@ -6,10 +6,7 @@ import type { FeatureId, FeatureState } from "../config";
 export interface IPrismaUserFeatureRepository {
   findByUserId(userId: number): Promise<UserFeatures[]>;
   findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null>;
-  findByUserIdAndFeatureIds(
-    userId: number,
-    featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, FeatureState>>>;
+  findByUserIdAndFeatureIds(userId: number, featureIds: FeatureId[]): Promise<UserFeatures[]>;
   checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean>;
   checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   upsert(userId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<UserFeatures>;
@@ -36,28 +33,13 @@ export class PrismaUserFeatureRepository implements IPrismaUserFeatureRepository
     });
   }
 
-  async findByUserIdAndFeatureIds(
-    userId: number,
-    featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, FeatureState>>> {
-    const result: Partial<Record<FeatureId, FeatureState>> = {};
-    for (const featureId of featureIds) {
-      result[featureId] = "inherit";
-    }
-
-    const userFeatures = await this.prismaClient.userFeatures.findMany({
+  async findByUserIdAndFeatureIds(userId: number, featureIds: FeatureId[]): Promise<UserFeatures[]> {
+    return this.prismaClient.userFeatures.findMany({
       where: {
         userId,
         featureId: { in: featureIds },
       },
-      select: { featureId: true, enabled: true },
     });
-
-    for (const userFeature of userFeatures) {
-      result[userFeature.featureId as FeatureId] = userFeature.enabled ? "enabled" : "disabled";
-    }
-
-    return result;
   }
 
   async checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean> {

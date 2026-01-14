@@ -67,13 +67,13 @@ describe("PrismaUserFeatureRepository", () => {
   });
 
   describe("findByUserIdAndFeatureIds", () => {
-    it("should return feature states with inherit as default", async () => {
+    it("should return full UserFeatures objects for matching features", async () => {
       const mockUserFeatures = [
-        { featureId: "feature-a", enabled: true },
-        { featureId: "feature-b", enabled: false },
-      ];
+        { userId: 1, featureId: "feature-a", enabled: true, assignedBy: "admin", assignedAt: new Date(), updatedAt: new Date() },
+        { userId: 1, featureId: "feature-b", enabled: false, assignedBy: "admin", assignedAt: new Date(), updatedAt: new Date() },
+      ] as UserFeatures[];
 
-      prismaMock.userFeatures.findMany.mockResolvedValue(mockUserFeatures as unknown as UserFeatures[]);
+      prismaMock.userFeatures.findMany.mockResolvedValue(mockUserFeatures);
 
       const result = await repository.findByUserIdAndFeatureIds(1, [
         "feature-a" as FeatureId,
@@ -86,13 +86,16 @@ describe("PrismaUserFeatureRepository", () => {
           userId: 1,
           featureId: { in: ["feature-a", "feature-b", "feature-c"] },
         },
-        select: { featureId: true, enabled: true },
       });
-      expect(result).toEqual({
-        "feature-a": "enabled",
-        "feature-b": "disabled",
-        "feature-c": "inherit",
-      });
+      expect(result).toEqual(mockUserFeatures);
+    });
+
+    it("should return empty array when no features found", async () => {
+      prismaMock.userFeatures.findMany.mockResolvedValue([]);
+
+      const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId]);
+
+      expect(result).toEqual([]);
     });
   });
 
