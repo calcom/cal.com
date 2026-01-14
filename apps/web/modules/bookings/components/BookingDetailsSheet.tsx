@@ -466,7 +466,9 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-emphasis truncate text-sm leading-[1.2]">
-                  {booking.user.name || booking.user.email}
+                  {booking.eventType?.hideOrganizerEmail
+                    ? booking.user.name || t("organizer")
+                    : booking.user.name || booking.user.email}
                 </p>
                 <Badge variant="purple" size="sm" className="capitalize">
                   {t("host")}
