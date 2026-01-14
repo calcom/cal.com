@@ -64,7 +64,11 @@ describe("getServerErrorFromUnknown", () => {
     expect(result).toBeInstanceOf(HttpError);
     expect(result.statusCode).toBe(400);
     expect(result.message).toBe(stripeError.message);
-    expect(result.cause).toEqual(stripeError);
+    // Check that cause contains the essential properties (Vitest 4.0 uses stricter equality)
+    expect(result.cause).toMatchObject({
+      name: stripeError.name,
+      message: stripeError.message,
+    });
     expect(result.name).toBe("HttpError");
   });
 

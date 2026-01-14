@@ -33,8 +33,11 @@ const markGuestAsNoshowInBooking = async ({
         data: { noShow: true },
       });
     }
+
+    return await prisma.attendee.findMany({ where: { bookingId } });
   } catch (err) {
     log.error("Error marking guests as no show in booking", err);
+    return null;
   }
 };
 
@@ -45,6 +48,7 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
   const {
     webhook,
     booking,
+    hosts,
     hostsThatJoinedTheCall,
     didGuestJoinTheCall,
     guestsThatDidntJoinTheCall,
@@ -52,41 +56,50 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     participants,
   } = result;
 
+  const hostEmails = new Set(hosts.map((h) => h.email));
+
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
   const requireEmailForGuests = booking.eventType?.calVideoSettings?.requireEmailForGuests ?? false;
 
   if (requireEmailForGuests) {
     if (guestsThatDidntJoinTheCall.length > 0) {
-      await Promise.all([
-        sendWebhookPayload(
-          webhook,
-          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-          booking,
-          maxStartTime,
-          participants,
-          originalRescheduledBooking
-        ),
-        markGuestAsNoshowInBooking({
-          bookingId: booking.id,
-          hostsThatJoinedTheCall,
-          guestsThatDidntJoinTheCall,
-        }),
-      ]);
+      const updatedAttendees = await markGuestAsNoshowInBooking({
+        bookingId: booking.id,
+        hostsThatJoinedTheCall,
+        guestsThatDidntJoinTheCall,
+      });
+      const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
+      const bookingWithUpdatedData = updatedAttendees
+        ? { ...booking, attendees: updatedAttendees, guests }
+        : booking;
+      await sendWebhookPayload(
+        webhook,
+        WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        bookingWithUpdatedData,
+        maxStartTime,
+        participants,
+        originalRescheduledBooking
+      );
     }
   } else {
     if (!didGuestJoinTheCall) {
-      await Promise.all([
-        sendWebhookPayload(
-          webhook,
-          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-          booking,
-          maxStartTime,
-          participants,
-          originalRescheduledBooking
-        ),
-        markGuestAsNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall }),
-      ]);
+      const updatedAttendees = await markGuestAsNoshowInBooking({
+        bookingId: booking.id,
+        hostsThatJoinedTheCall,
+      });
+      const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
+      const bookingWithUpdatedData = updatedAttendees
+        ? { ...booking, attendees: updatedAttendees, guests }
+        : booking;
+      await sendWebhookPayload(
+        webhook,
+        WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        bookingWithUpdatedData,
+        maxStartTime,
+        participants,
+        originalRescheduledBooking
+      );
     }
   }
 }

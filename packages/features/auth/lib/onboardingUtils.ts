@@ -64,5 +64,19 @@ export async function checkOnboardingRedirect(
   // Determine which onboarding path to use
   const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
+  const pendingInvite = await prisma.membership.findFirst({
+    where: {
+      userId: userId,
+      accepted: false,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (pendingInvite && onboardingV3Enabled) {
+    return "/onboarding/personal/settings";
+  }
+
   return onboardingV3Enabled ? "/onboarding/getting-started" : "/getting-started";
 }

@@ -3,8 +3,8 @@ import type { TFunction } from "i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@calcom/prisma/client";
-import { CreationSource } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { CreationSource, BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
@@ -187,6 +187,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     platformOAuthClientId: null,
     time: null,
     timeUnit: null,
+    version: WebhookVersion.V_2021_10_20,
     ...webhook,
     platform: false,
   };

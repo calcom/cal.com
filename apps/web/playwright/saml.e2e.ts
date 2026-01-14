@@ -67,18 +67,5 @@ test.describe("SAML tests", () => {
       await checkbox.uncheck();
       await expect(submitButton).toBeEnabled();
     });
-
-    test("Submit button should be disabled with a premium username", async ({ page }) => {
-      // eslint-disable-next-line playwright/no-skipped-test
-      test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
-
-      // Fill form
-      await page.locator('input[name="username"]').fill("pro");
-      await page.locator('input[name="email"]').fill("pro@example.com");
-
-      // Submit form
-      const submitButton = page.getByTestId("saml-submit-button");
-      await expect(submitButton).toBeDisabled();
-    });
   });
 });

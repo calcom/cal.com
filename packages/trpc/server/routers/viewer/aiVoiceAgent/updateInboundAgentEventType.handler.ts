@@ -1,6 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { replaceEventTypePlaceholders } from "@calcom/features/calAIPhone/providers/retellAI/utils/promptUtils";
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
-import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 

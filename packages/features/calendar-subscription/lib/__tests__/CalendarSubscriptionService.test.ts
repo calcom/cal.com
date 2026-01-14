@@ -6,7 +6,7 @@ import type { AdapterFactory } from "@calcom/features/calendar-subscription/adap
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
+import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
 import { CalendarSubscriptionService } from "../CalendarSubscriptionService";
@@ -112,6 +112,12 @@ describe("CalendarSubscriptionService", () => {
     mockAdapterFactory = {
       get: vi.fn().mockReturnValue(mockAdapter),
       getProviders: vi.fn().mockReturnValue(["google_calendar", "office365_calendar"]),
+      getGenericCalendarSuffixes: vi.fn().mockReturnValue([
+        "@group.v.calendar.google.com",
+        "@group.calendar.google.com",
+        "@import.calendar.google.com",
+        "@resource.calendar.google.com",
+      ]),
     };
 
     mockSelectedCalendarRepository = {
@@ -385,6 +391,12 @@ describe("CalendarSubscriptionService", () => {
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
         teamIds: [1, 2, 3],
+        genericCalendarSuffixes: [
+          "@group.v.calendar.google.com",
+          "@group.calendar.google.com",
+          "@import.calendar.google.com",
+          "@resource.calendar.google.com",
+        ],
       });
       expect(subscribeSpy).toHaveBeenCalledWith(mockSelectedCalendar.id);
     });
@@ -411,6 +423,12 @@ describe("CalendarSubscriptionService", () => {
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
         teamIds: [10, 20],
+        genericCalendarSuffixes: [
+          "@group.v.calendar.google.com",
+          "@group.calendar.google.com",
+          "@import.calendar.google.com",
+          "@resource.calendar.google.com",
+        ],
       });
       expect(subscribeSpy).toHaveBeenCalledTimes(2);
       expect(subscribeSpy).toHaveBeenCalledWith("calendar-with-cache");
@@ -437,6 +455,12 @@ describe("CalendarSubscriptionService", () => {
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
         teamIds: [teamId],
+        genericCalendarSuffixes: [
+          "@group.v.calendar.google.com",
+          "@group.calendar.google.com",
+          "@import.calendar.google.com",
+          "@resource.calendar.google.com",
+        ],
       });
       expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).not.toHaveBeenCalledWith(
         expect.objectContaining({
@@ -463,6 +487,12 @@ describe("CalendarSubscriptionService", () => {
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
         teamIds: [],
+        genericCalendarSuffixes: [
+          "@group.v.calendar.google.com",
+          "@group.calendar.google.com",
+          "@import.calendar.google.com",
+          "@resource.calendar.google.com",
+        ],
       });
       expect(subscribeSpy).not.toHaveBeenCalled();
     });

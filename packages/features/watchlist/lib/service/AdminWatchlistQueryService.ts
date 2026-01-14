@@ -1,7 +1,10 @@
+import type {
+  ListBookingReportsFilters,
+  SystemBookingReportsFilters,
+} from "@calcom/features/bookingReport/repositories/IBookingReportRepository";
+import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import type { ListBookingReportsFilters } from "@calcom/lib/server/repository/bookingReport.interface";
-import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
+import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import type { WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
@@ -26,6 +29,7 @@ export interface ListBookingReportsInput {
   offset: number;
   searchTerm?: string;
   filters?: ListBookingReportsFilters;
+  systemFilters?: SystemBookingReportsFilters;
 }
 
 type Deps = {
@@ -116,17 +120,13 @@ export class AdminWatchlistQueryService {
       take: input.limit,
       searchTerm: input.searchTerm,
       filters: input.filters,
+      systemFilters: input.systemFilters,
     });
 
     return result;
   }
 
   async getPendingReportsCount(): Promise<number> {
-    return this.deps.prisma.bookingReport.count({
-      where: {
-        status: "PENDING",
-        watchlistId: null,
-      },
-    });
+    return this.deps.bookingReportRepo.countSystemPendingReports();
   }
 }

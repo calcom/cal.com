@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { BookingStatusChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Accepted Audit Action Service
@@ -15,8 +15,7 @@ const fieldsSchemaV1 = z.object({
     status: BookingStatusChangeSchema,
 });
 
-export class AcceptedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class AcceptedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "ACCEPTED" as const;
     private static dataSchemaV1 = z.object({
@@ -60,17 +59,14 @@ export class AcceptedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.accepted" };
     }
 
     getDisplayJson({
         storedData,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): AcceptedAuditDisplayData {
-        const { fields } = storedData;
+    }: GetDisplayJsonParams): AcceptedAuditDisplayData {
+        const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             previousStatus: fields.status.old ?? null,
             newStatus: fields.status.new ?? null,
