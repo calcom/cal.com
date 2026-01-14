@@ -19,6 +19,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+
 export { slugify } from "@calcom/lib/slugify";
 export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
@@ -141,3 +142,6 @@ export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 export { verifyCodeChallenge } from "@calcom/lib/pkce";
 export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 export { OAuthService } from "@calcom/features/oauth/services/OAuthService";
+
+export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+export type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";

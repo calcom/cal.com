@@ -3,7 +3,7 @@ import { RegularBookingService } from "@calcom/features/bookings/lib/service/Reg
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
 import { moduleLoader as checkBookingAndDurationLimitsModuleLoader } from "@calcom/features/di/modules/CheckBookingAndDurationLimits";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/Features";
+import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
 import { moduleLoader as luckyUserServiceModuleLoader } from "@calcom/features/di/modules/LuckyUser";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";

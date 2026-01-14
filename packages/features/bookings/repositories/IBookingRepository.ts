@@ -75,6 +75,18 @@ export interface IBookingRepository {
   countByRecurringEventId(params: { recurringEventId: string }): Promise<number>;
 
   /**
+   * Find pending bookings by recurring event ID
+   */
+  findPendingByRecurringEventId(params: {
+    recurringEventId: string;
+  }): Promise<{ uid: string; status: string }[]>;
+
+  /**
+   * Reject bookings by UIDs
+   */
+  rejectByUids(params: { uids: string[]; rejectionReason?: string }): Promise<BookingBatchUpdateResultDto>;
+
+  /**
    * Reject all pending bookings by recurring event ID
    */
   rejectAllPendingByRecurringEventId(params: {

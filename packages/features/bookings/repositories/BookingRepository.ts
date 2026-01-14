@@ -19,9 +19,26 @@ import type {
   BookingUpdateResultDto,
   BookingBatchUpdateResultDto,
 } from "@calcom/lib/dto/BookingDto";
+import type {
+  BookingWhereInput,
+  BookingUpdateData,
+  BookingWhereUniqueInput,
+} from "@calcom/lib/server/repository/dto/IBookingRepository";
 
 import type { IBookingRepository } from "./IBookingRepository";
 
+const workflowReminderSelect = {
+  id: true,
+  referenceId: true,
+  method: true,
+};
+
+const referenceSelect = {
+  uid: true,
+  type: true,
+  externalCalendarId: true,
+  credentialId: true,
+};
 type ManagedEventReassignmentCreateParams = {
   uid: string;
   userId: number;
@@ -151,8 +168,8 @@ const buildWhereClauseForActiveBookings = ({
       },
       ...(!includeNoShowInRRCalculation
         ? {
-          OR: [{ noShowHost: false }, { noShowHost: null }],
-        }
+            OR: [{ noShowHost: false }, { noShowHost: null }],
+          }
         : {}),
     },
     {
@@ -171,24 +188,24 @@ const buildWhereClauseForActiveBookings = ({
   ...(startDate || endDate
     ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
       ? {
-        createdAt: {
-          ...(startDate ? { gte: startDate } : {}),
-          ...(endDate ? { lte: endDate } : {}),
-        },
-      }
+          createdAt: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
       : {
-        startTime: {
-          ...(startDate ? { gte: startDate } : {}),
-          ...(endDate ? { lte: endDate } : {}),
-        },
-      }
+          startTime: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
     : {}),
   ...(virtualQueuesData
     ? {
-      routedFromRoutingFormReponse: {
-        chosenRouteId: virtualQueuesData.chosenRouteId,
-      },
-    }
+        routedFromRoutingFormReponse: {
+          chosenRouteId: virtualQueuesData.chosenRouteId,
+        },
+      }
     : {}),
 });
 
@@ -668,20 +685,20 @@ export class BookingRepository implements IBookingRepository {
 
     const currentBookingsAllUsersQueryThree = eventTypeId
       ? this.prismaClient.booking.findMany({
-        where: {
-          startTime: { lte: endDate },
-          endTime: { gte: startDate },
-          eventType: {
-            id: eventTypeId,
-            requiresConfirmation: true,
-            requiresConfirmationWillBlockSlot: true,
+          where: {
+            startTime: { lte: endDate },
+            endTime: { gte: startDate },
+            eventType: {
+              id: eventTypeId,
+              requiresConfirmation: true,
+              requiresConfirmationWillBlockSlot: true,
+            },
+            status: {
+              in: [BookingStatus.PENDING],
+            },
           },
-          status: {
-            in: [BookingStatus.PENDING],
-          },
-        },
-        select: bookingsSelect,
-      })
+          select: bookingsSelect,
+        })
       : [];
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([
@@ -1491,6 +1508,71 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.updateMany({
+      where: where,
+      data,
+    });
+  }
+
+  async update({ where, data }: { where: BookingWhereUniqueInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+    });
+  }
+
+  /**
+   * Update a booking and return it with workflow reminders and references
+   * Used during booking cancellation to update status and retrieve related data in one query
+   */
+  async updateIncludeWorkflowRemindersAndReferences({
+    where,
+    data,
+  }: {
+    where: BookingWhereUniqueInput;
+    data: BookingUpdateData;
+  }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
+      },
+    });
+  }
+
+  /**
+   * Find bookings with workflow reminders for cleanup during cancellation
+   * Used after bulk cancellation of recurring events
+   */
+  async findManyIncludeWorkflowRemindersAndReferences({ where }: { where: BookingWhereInput }) {
+    return await this.prismaClient.booking.findMany({
+      where,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
+      },
+    });
+  }
+
   async getBookingForCalEventBuilder(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: { id: bookingId },
@@ -1504,6 +1586,7 @@ export class BookingRepository implements IBookingRepository {
       select: selectStatementToGetBookingForCalEventBuilder,
     });
   }
+
   async findByIdIncludeDestinationCalendar(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
@@ -1671,6 +1754,8 @@ export class BookingRepository implements IBookingRepository {
             teamId: true,
             parentId: true,
             slug: true,
+            title: true,
+            length: true,
             hideOrganizerEmail: true,
             customReplyToEmail: true,
             bookingFields: true,
@@ -1695,6 +1780,7 @@ export class BookingRepository implements IBookingRepository {
         workflowReminders: true,
         responses: true,
         iCalUID: true,
+        iCalSequence: true,
       },
     });
   }
@@ -2063,6 +2149,7 @@ export class BookingRepository implements IBookingRepository {
         updatedAt: true,
         delegationCredentialId: true,
         domainWideDelegationCredentialId: true,
+        customCalendarReminder: true,
       },
     },
     references: {
@@ -2098,6 +2185,7 @@ export class BookingRepository implements IBookingRepository {
             updatedAt: true,
             delegationCredentialId: true,
             domainWideDelegationCredentialId: true,
+            customCalendarReminder: true,
           },
         },
         credentials: {
@@ -2184,6 +2272,7 @@ export class BookingRepository implements IBookingRepository {
             updatedAt: booking.destinationCalendar.updatedAt,
             delegationCredentialId: booking.destinationCalendar.delegationCredentialId,
             domainWideDelegationCredentialId: booking.destinationCalendar.domainWideDelegationCredentialId,
+            customCalendarReminder: booking.destinationCalendar.customCalendarReminder,
           }
         : null,
       references: booking.references.map((ref: {
@@ -2231,6 +2320,7 @@ export class BookingRepository implements IBookingRepository {
                   updatedAt: booking.user.destinationCalendar.updatedAt,
                   delegationCredentialId: booking.user.destinationCalendar.delegationCredentialId,
                   domainWideDelegationCredentialId: booking.user.destinationCalendar.domainWideDelegationCredentialId,
+                  customCalendarReminder: booking.user.destinationCalendar.customCalendarReminder,
                 }
               : null,
             credentials: booking.user.credentials.map((cred: {
@@ -2619,6 +2709,7 @@ export class BookingRepository implements IBookingRepository {
                   updatedAt: booking.user.destinationCalendar.updatedAt,
                   delegationCredentialId: booking.user.destinationCalendar.delegationCredentialId,
                   domainWideDelegationCredentialId: booking.user.destinationCalendar.domainWideDelegationCredentialId,
+                  customCalendarReminder: booking.user.destinationCalendar.customCalendarReminder,
                 }
               : null,
             locale: booking.user.locale,
@@ -2664,6 +2755,7 @@ export class BookingRepository implements IBookingRepository {
             updatedAt: booking.destinationCalendar.updatedAt,
             delegationCredentialId: booking.destinationCalendar.delegationCredentialId,
             domainWideDelegationCredentialId: booking.destinationCalendar.domainWideDelegationCredentialId,
+            customCalendarReminder: booking.destinationCalendar.customCalendarReminder,
           }
         : null,
       paid: booking.paid,
@@ -2730,6 +2822,47 @@ export class BookingRepository implements IBookingRepository {
     return result[0]?._count ?? 0;
   }
 
+  async findPendingByRecurringEventId({
+    recurringEventId,
+  }: {
+    recurringEventId: string;
+  }): Promise<{ uid: string; status: string }[]> {
+    return this.prismaClient.booking.findMany({
+      where: {
+        recurringEventId,
+        status: BookingStatus.PENDING,
+      },
+      select: {
+        uid: true,
+        status: true,
+      },
+    });
+  }
+
+  async rejectByUids({
+    uids,
+    rejectionReason,
+  }: {
+    uids: string[];
+    rejectionReason?: string;
+  }): Promise<BookingBatchUpdateResultDto> {
+    const result = await this.prismaClient.booking.updateMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      data: {
+        status: BookingStatus.REJECTED,
+        rejectionReason,
+      },
+    });
+
+    return {
+      count: result.count,
+    };
+  }
+
   async rejectAllPendingByRecurringEventId({
     recurringEventId,
     rejectionReason,
@@ -2782,7 +2915,13 @@ export class BookingRepository implements IBookingRepository {
     };
   }
 
-  async updateRecordedStatus({ bookingUid, isRecorded }: { bookingUid: string; isRecorded: boolean }): Promise<void> {
+  async updateRecordedStatus({
+    bookingUid,
+    isRecorded,
+  }: {
+    bookingUid: string;
+    isRecorded: boolean;
+  }): Promise<void> {
     await this.prismaClient.booking.update({
       where: { uid: bookingUid },
       data: { isRecorded },

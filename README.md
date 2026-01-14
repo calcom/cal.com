@@ -123,7 +123,7 @@ Here is what you need to be able to run Cal.com.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales)
+1. Clone the repo (or fork https://github.com/calcom/cal.com/fork). The code is licensed under [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE), which requires you to provide source code to users who interact with the software over a network. For commercial use without these requirements, [acquire a commercial license](https://cal.com/sales)
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -148,7 +148,7 @@ Here is what you need to be able to run Cal.com.
 
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use `openssl rand -base64 32` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:

@@ -17,4 +17,5 @@ export interface DestinationCalendarDto {
   updatedAt: Date | null;
   delegationCredentialId: string | null;
   domainWideDelegationCredentialId: string | null;
+  customCalendarReminder: number | null;
 }

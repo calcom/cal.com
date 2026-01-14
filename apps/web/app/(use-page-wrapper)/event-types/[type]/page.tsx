@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
+import { EventTypeWebWrapper } from "@calcom/web/modules/event-types/components/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getEventTypePermissions } from "@calcom/features/pbac/lib/event-type-permissions";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";

@@ -2,6 +2,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -26,12 +27,15 @@ import { prisma } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
+import { v4 as uuidv4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
-
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import logger from "@calcom/lib/logger";
 type ConfirmOptions = {
   ctx: {
     user: Pick<
@@ -40,10 +44,66 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  input: TConfirmInputSchema;
+  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor };
 };
 
+async function fireRejectionEvent({
+  actor,
+  organizationId,
+  actionSource,
+  rejectedBookings,
+  rejectionReason,
+  tracingLogger,
+}: {
+  actor: Actor;
+  organizationId: number | null;
+  rejectionReason: string | null;
+  actionSource: ValidActionSource;
+  rejectedBookings: {
+    uid: string;
+    oldStatus: BookingStatus;
+  }[];
+  tracingLogger: ISimpleLogger;
+}): Promise<void> {
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (rejectedBookings.length > 1) {
+      const operationId = uuidv4();
+      await bookingEventHandlerService.onBulkBookingsRejected({
+        bookings: rejectedBookings.map((booking) => ({
+          bookingUid: booking.uid,
+          auditData: {
+            rejectionReason,
+            status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
+          },
+        })),
+        actor,
+        organizationId,
+        operationId,
+        source: actionSource,
+      });
+    } else if (rejectedBookings.length === 1) {
+      const booking = rejectedBookings[0];
+      await bookingEventHandlerService.onBookingRejected({
+        bookingUid: booking.uid,
+        actor,
+        organizationId,
+        auditData: {
+          rejectionReason,
+          status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
+        },
+        source: actionSource,
+      });
+    }
+  } catch (error) {
+    tracingLogger.error("Error firing booking rejection event", safeStringify(error));
+  }
+}
+/**
+ * TODO: Convert it to a service as this fn is the single point of entry across trpc, magic-links, and API v2
+ */
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
+  const log = logger.getSubLogger({ prefix: ["confirmHandler"] });
   const {
     bookingId,
     recurringEventId,
@@ -51,6 +111,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     confirmed,
     emailsEnabled,
     platformClientParams,
+    actionSource,
+    actor,
   } = input;
 
   const bookingRepository = getBookingRepository();
@@ -152,8 +214,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     hideCalendarNotes: booking.eventType?.hideCalendarNotes,
@@ -232,16 +294,32 @@ const traceContext = {
       emailsEnabled,
       platformClientParams,
       traceContext,
+      actionSource,
+      actor,
     });
   } else {
     evt.rejectionReason = rejectionReason;
+    let rejectedBookings: {
+      uid: string;
+      oldStatus: BookingStatus;
+    }[] = [];
+
     if (recurringEventId) {
       // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
       // bookings as rejected.
-      await bookingRepository.rejectAllPendingByRecurringEventId({
+      const unconfirmedRecurringBookings = await bookingRepository.findPendingByRecurringEventId({
         recurringEventId,
+      });
+
+      await bookingRepository.rejectByUids({
+        uids: unconfirmedRecurringBookings.map((booking) => booking.uid),
         rejectionReason,
       });
+
+      rejectedBookings = unconfirmedRecurringBookings.map((recurringBooking) => ({
+        uid: recurringBooking.uid,
+        oldStatus: recurringBooking.status as BookingStatus,
+      }));
     } else {
       // handle refunds
       if (booking.payment.length) {
@@ -256,6 +334,13 @@ const traceContext = {
         bookingId,
         rejectionReason,
       });
+
+      rejectedBookings = [
+        {
+          uid: booking.uid,
+          oldStatus: booking.status,
+        },
+      ];
     }
 
     if (emailsEnabled) {
@@ -270,6 +355,15 @@ const traceContext = {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    await fireRejectionEvent({
+      actor,
+      actionSource,
+      organizationId: orgId ?? null,
+      rejectionReason: rejectionReason ?? null,
+      rejectedBookings,
+      tracingLogger: log,
+    });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
