@@ -65,7 +65,7 @@ export class InMemoryRedisService implements IRedisService {
       list = [];
       this.lists.set(key, list);
     }
-    list.unshift(...elements);
+    list.unshift(...[...elements].reverse());
     return list.length;
   }
 
