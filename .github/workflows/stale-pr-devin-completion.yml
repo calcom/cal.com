@@ -1,7 +1,7 @@
 name: Stale Community PR Devin Completion
 
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled]
   workflow_dispatch:
     inputs:
@@ -60,7 +60,6 @@ jobs:
 
             const isFork = pr.head.repo.fork || pr.head.repo.full_name !== pr.base.repo.full_name;
             const maintainerCanModify = pr.maintainer_can_modify;
-            const canProceed = !isFork || maintainerCanModify;
             const needsMaintainerAccess = isFork && !maintainerCanModify;
 
             const headRepoFullName = pr.head.repo.full_name;
@@ -74,7 +73,6 @@ jobs:
             core.setOutput('head_repo_full_name', headRepoFullName);
             core.setOutput('head_repo_clone_url', headRepoCloneUrl);
             core.setOutput('maintainer_can_modify', maintainerCanModify);
-            core.setOutput('can_proceed', canProceed);
             core.setOutput('needs_maintainer_access', needsMaintainerAccess);
 
             console.log(`PR #${prNumber}: "${pr.title}"`);
@@ -143,7 +141,6 @@ jobs:
             core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". A comment has been posted requesting access.`);
 
       - name: Create Devin session
-        if: steps.pr.outputs.can_proceed == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
