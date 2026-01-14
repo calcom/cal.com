@@ -114,7 +114,8 @@ export const EventTypeCalendarViewComponent = (
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   // Detect timezone changes and refresh slots when conditions are met
-  useTimezoneBasedSlotRefresh(event?.data, () => schedule.refetch());
+  const handleSlotRefresh = useCallback(() => schedule?.invalidate(), [schedule]);
+  useTimezoneBasedSlotRefresh(event?.data, handleSlotRefresh);
 
   const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
