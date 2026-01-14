@@ -4,7 +4,11 @@ import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 
 const env = loadEnv("", process.cwd(), "");
-Object.assign(process.env, env);
+for (const [key, value] of Object.entries(env)) {
+  if (process.env[key] === undefined) {
+    process.env[key] = value;
+  }
+}
 
 const vitestMode = process.env.VITEST_MODE;
 // Support both new VITEST_MODE env var and legacy CLI flags for backwards compatibility
