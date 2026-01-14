@@ -151,17 +151,16 @@ export class CalendarTelemetryWrapper implements Calendar {
         cache: this.deps.cacheEnabled ? "on" : "off",
         calendarType: this.deps.calendarType,
         mode: String(this.deps.mode),
-      },
+      }
     });
 
     metrics.distribution("calendar.getAvailabilityWithTimeZones.duration_ms", totalFetchDurationMs, {
-        attributes: {
-          cache: this.deps.cacheEnabled ? "on" : "off",
-          calendarType: this.deps.calendarType,
-          mode: String(this.deps.mode),
-        },
+      attributes: {
+        cache: this.deps.cacheEnabled ? "on" : "off",
+        calendarType: this.deps.calendarType,
+        mode: String(this.deps.mode),
       }
-    );
+    });
 
     metrics.distribution("calendar.getAvailabilityWithTimeZones.events_count", results?.length ?? 0, {
         attributes: {
