@@ -1,4 +1,4 @@
-name: PR Labeled
+name: Devin PR Conflict Resolver
 
 on:
   pull_request_target:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   resolve-conflicts:
-    name: Trigger Devin to Resolve Conflicts
+    name: Resolve PR Conflicts with Devin
     runs-on: blacksmith-2vcpu-ubuntu-2404
     # Only run when devin-conflict-resolution label is added, or on manual dispatch
     if: |

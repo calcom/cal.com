@@ -1,4 +1,4 @@
-name: PR Labeled
+name: Stale Community PR Devin Completion
 
 on:
   pull_request_target:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   complete-stale-pr:
-    name: Trigger Devin to Complete PR
+    name: Trigger Devin to Complete Stale Community PR
     # For labeled events: only run if 'stale' label was added
     # For workflow_dispatch: always run (we'll validate the PR in the steps)
     if: >
