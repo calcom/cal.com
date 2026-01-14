@@ -312,7 +312,7 @@ export function UserNotFoundView({ slug }: UserNotFoundViewProps) {
             <p className="text-default mb-8 text-lg md:text-xl">{t("claim_username_description")}</p>
 
             <div className="mb-2 flex w-full justify-center lg:justify-start">
-              <Link href="/auth/signup" target="_blank" className="w-full sm:w-auto">
+              <Link href="/signup" target="_blank" className="w-full sm:w-auto">
                 <Button
                   StartIcon="circle-check"
                   className="flex h-12 w-full justify-center gap-2 px-8 text-base font-semibold sm:w-auto">
