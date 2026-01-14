@@ -4,6 +4,7 @@ import type { ICachedTeamFeatureRepository } from "@calcom/features/flags/reposi
 import type { ICachedUserFeatureRepository } from "@calcom/features/flags/repositories/CachedUserFeatureRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import type { TeamFeatures, UserFeatures } from "@calcom/prisma/client";
 
 import { getOptInFeatureConfig, getOptInFeaturesForScope, isFeatureAllowedForScope } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
@@ -14,6 +15,18 @@ import type {
   IFeatureOptInService,
   ResolvedFeatureState,
 } from "./IFeatureOptInService";
+
+function teamFeatureToState(teamFeature: TeamFeatures | undefined): FeatureState {
+  if (!teamFeature) return "inherit";
+  if (teamFeature.enabled) return "enabled";
+  return "disabled";
+}
+
+function userFeatureToState(userFeature: UserFeatures | undefined): FeatureState {
+  if (!userFeature) return "inherit";
+  if (userFeature.enabled) return "enabled";
+  return "disabled";
+}
 
 export interface IFeatureOptInServiceDeps {
   featureRepo: ICachedFeatureRepository;
@@ -41,9 +54,9 @@ type ListFeaturesForTeamResult = {
   orgState: FeatureState;
 };
 
-function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
+function getOrgState(orgId: number | null, teamStatesById: Record<number, TeamFeatures>): FeatureState {
   if (orgId !== null) {
-    return teamStatesById[orgId] ?? "inherit";
+    return teamFeatureToState(teamStatesById[orgId]);
   }
   return "inherit";
 }
@@ -64,11 +77,11 @@ function getTeamIdsToQuery(teamId: number, parentOrgId: number | null | undefine
 
 function getOrgStateForTeam(
   parentOrgId: number | null | undefined,
-  teamStates: Record<string, Record<number, FeatureState>>,
+  teamStates: Partial<Record<FeatureId, Record<number, TeamFeatures>>>,
   slug: FeatureId
 ): FeatureState {
   if (parentOrgId) {
-    return teamStates[slug]?.[parentOrgId] ?? "inherit";
+    return teamFeatureToState(teamStates[slug]?.[parentOrgId]);
   }
   return "inherit";
 }
@@ -143,8 +156,8 @@ export class FeatureOptInService implements IFeatureOptInService {
     orgId: number | null,
     teamIds: number[],
     globalEnabledMap: Map<string, boolean>,
-    allTeamStates: Record<string, Record<number, FeatureState>>,
-    userStates: Record<string, FeatureState>,
+    allTeamStates: Partial<Record<FeatureId, Record<number, TeamFeatures>>>,
+    userStates: Partial<Record<FeatureId, UserFeatures>>,
     teamsAutoOptIn: Record<number, boolean>,
     userAutoOptIn: boolean
   ): ResolvedFeatureState {
@@ -152,8 +165,8 @@ export class FeatureOptInService implements IFeatureOptInService {
     const teamStatesById = allTeamStates[featureId] ?? {};
 
     const orgState = getOrgState(orgId, teamStatesById);
-    const teamStates = teamIds.map((teamId) => teamStatesById[teamId] ?? "inherit");
-    const userState = userStates[featureId] ?? "inherit";
+    const teamStates = teamIds.map((teamId) => teamFeatureToState(teamStatesById[teamId]));
+    const userState = userFeatureToState(userStates[featureId]);
     const orgAutoOptIn = getOrgAutoOptIn(orgId, teamsAutoOptIn);
     const teamAutoOptIns = teamIds.map((teamId) => teamsAutoOptIn[teamId] ?? false);
 
@@ -241,7 +254,7 @@ export class FeatureOptInService implements IFeatureOptInService {
     const results = scopedFeatures.map((config) => {
       const globalFeature = allFeatures.find((f) => f.slug === config.slug);
       const globalEnabled = globalFeature?.enabled ?? false;
-      const teamState = teamStates[config.slug]?.[teamId] ?? "inherit";
+      const teamState = teamFeatureToState(teamStates[config.slug]?.[teamId]);
       const orgState = getOrgStateForTeam(parentOrgId, teamStates, config.slug);
 
       return { featureId: config.slug, globalEnabled, teamState, orgState };
