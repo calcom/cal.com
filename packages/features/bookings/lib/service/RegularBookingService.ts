@@ -18,7 +18,6 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { HostLocationRepository } from "@calcom/features/host/repositories/HostLocationRepository";
 import {
@@ -48,6 +47,7 @@ import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/Sp
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -1312,88 +1312,23 @@ async function handler(
   ) {
     const organizerHost = eventType.hosts.find((host) => host.user.id === organizerUser.id);
     if (organizerHost?.location) {
-      const hostLocation = organizerHost.location;
-      // Check if the host has a valid credential for the location type
-      if (hostLocation.credentialId) {
-        // Use host's configured location with their credential
-        locationBodyString = hostLocation.type;
-        perHostCredentialId = hostLocation.credentialId;
-        tracingLogger.info("Using per-host location", {
-          userId: organizerUser.id,
-          locationType: hostLocation.type,
-          credentialId: hostLocation.credentialId,
-        });
-      } else if (hostLocation.type === "integrations:daily") {
-        // Cal Video doesn't need a credential
-        locationBodyString = hostLocation.type;
-        tracingLogger.info("Using per-host Cal Video location", {
-          userId: organizerUser.id,
-        });
-      } else if (hostLocation.link) {
-        // Static link type
-        locationBodyString = hostLocation.type;
-        organizerOrFirstDynamicGroupMemberDefaultLocationUrl = hostLocation.link;
-        tracingLogger.info("Using per-host link location", {
-          userId: organizerUser.id,
-          link: hostLocation.link,
-        });
-      } else if (hostLocation.type === "inPerson") {
-        locationBodyString = hostLocation.address || hostLocation.type;
-        tracingLogger.info("Using per-host in-person location", {
-          userId: organizerUser.id,
-        });
-      } else if (hostLocation.type === "userPhone") {
-        locationBodyString = hostLocation.phoneNumber || hostLocation.type;
-        tracingLogger.info("Using per-host organizer phone location", {
-          userId: organizerUser.id,
-        });
-      } else if (hostLocation.type === "attendeeInPerson" || hostLocation.type === "phone") {
-        locationBodyString = hostLocation.type;
-        tracingLogger.info("Using per-host attendee-provided location", {
-          userId: organizerUser.id,
-          locationType: hostLocation.type,
-        });
-      } else {
-        // Host has a conferencing app location but no credential - try to find one from allCredentials
-        const appMetaForLocation = Object.values(appStoreMetadata).find(
-          (app) => app.appData?.location?.type === hostLocation.type
-        );
+      const result = await BookingLocationService.getPerHostLocation({
+        hostLocation: organizerHost.location,
+        allCredentials,
+        eventTypeId: eventType.id,
+        userId: organizerUser.id,
+        prismaClient: deps.prismaClient,
+      });
 
-        if (appMetaForLocation) {
-          const matchingCredential = allCredentials.find((cred) => cred.type === appMetaForLocation.type);
+      locationBodyString = result.locationBodyString;
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl = result.organizerDefaultLocationUrl;
+      perHostCredentialId = result.perHostCredentialId;
 
-          if (matchingCredential) {
-            locationBodyString = hostLocation.type;
-            perHostCredentialId = matchingCredential.id;
-
-            // Link the credential to the HostLocation for future bookings
-            const hostLocationRepository = new HostLocationRepository(deps.prismaClient);
-            await hostLocationRepository.linkCredential({
-              userId: organizerUser.id,
-              eventTypeId: eventType.id,
-              credentialId: matchingCredential.id,
-            });
-
-            tracingLogger.info("Found and linked credential for per-host location", {
-              userId: organizerUser.id,
-              locationType: hostLocation.type,
-              credentialId: matchingCredential.id,
-            });
-          } else {
-            locationBodyString = "integrations:daily";
-            tracingLogger.info("No credential found for per-host location, falling back to Cal Video", {
-              userId: organizerUser.id,
-              requestedLocationType: hostLocation.type,
-            });
-          }
-        } else {
-          locationBodyString = "integrations:daily";
-          tracingLogger.info("Unknown location type, falling back to Cal Video", {
-            userId: organizerUser.id,
-            requestedLocationType: hostLocation.type,
-          });
-        }
-      }
+      tracingLogger.info("Using per-host location", {
+        userId: organizerUser.id,
+        locationType: result.locationBodyString,
+        credentialId: result.perHostCredentialId,
+      });
     }
   }
 

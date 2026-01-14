@@ -301,6 +301,22 @@ export const guessEventLocationType = (locationTypeOrValue: string | undefined |
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
+export const isStaticLocationType = (locationType: string): boolean => {
+  return Object.values(DefaultEventLocationTypeEnum).includes(locationType as DefaultEventLocationTypeEnum);
+};
+
+export const isCalVideoLocation = (locationType: string): boolean => {
+  return locationType === DailyLocationType;
+};
+
+export const getAppSlugFromLocationType = (locationType: string): string | null => {
+  const app = locationsFromApps.find((l) => l.type === locationType);
+  if (app && "slug" in app) {
+    return app.slug as string;
+  }
+  return null;
+};
+
 type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link" | "customLabel">;
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {

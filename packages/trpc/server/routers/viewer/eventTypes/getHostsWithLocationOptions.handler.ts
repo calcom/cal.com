@@ -1,8 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
-import { AppCategories } from "@calcom/prisma/enums";
+import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import type { PrismaClient } from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -72,46 +71,8 @@ export const getHostsWithLocationOptionsHandler = async ({
 
   const organizationId = eventType.team?.parentId ?? null;
 
-  const hosts = await ctx.prisma.host.findMany({
-    where: {
-      eventTypeId,
-    },
-    select: {
-      userId: true,
-      isFixed: true,
-      priority: true,
-      location: {
-        select: {
-          id: true,
-          type: true,
-          credentialId: true,
-          link: true,
-          address: true,
-          phoneNumber: true,
-        },
-      },
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          avatarUrl: true,
-          metadata: true,
-          credentials: {
-            where: {
-              app: {
-                categories: {
-                  hasSome: [AppCategories.conferencing, AppCategories.video],
-                },
-              },
-            },
-            select: credentialForCalendarServiceSelect,
-          },
-        },
-      },
-    },
-    orderBy: [{ user: { name: "asc" } }, { priority: "desc" }],
-  });
+  const hostRepository = new HostRepository(ctx.prisma);
+  const hosts = await hostRepository.findHostsWithLocationOptions(eventTypeId);
 
   const usersForEnrichment = hosts.map((host) => ({
     id: host.user.id,

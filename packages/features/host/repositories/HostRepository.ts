@@ -1,4 +1,6 @@
+import { AppCategories } from "@calcom/prisma/enums";
 import type { PrismaClient } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 export class HostRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -35,6 +37,49 @@ export class HostRepository {
           gte: startDate,
         },
       },
+    });
+  }
+
+  async findHostsWithLocationOptions(eventTypeId: number) {
+    return await this.prismaClient.host.findMany({
+      where: {
+        eventTypeId,
+      },
+      select: {
+        userId: true,
+        isFixed: true,
+        priority: true,
+        location: {
+          select: {
+            id: true,
+            type: true,
+            credentialId: true,
+            link: true,
+            address: true,
+            phoneNumber: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            metadata: true,
+            credentials: {
+              where: {
+                app: {
+                  categories: {
+                    hasSome: [AppCategories.conferencing, AppCategories.video],
+                  },
+                },
+              },
+              select: credentialForCalendarServiceSelect,
+            },
+          },
+        },
+      },
+      orderBy: [{ user: { name: "asc" } }, { priority: "desc" }],
     });
   }
 }

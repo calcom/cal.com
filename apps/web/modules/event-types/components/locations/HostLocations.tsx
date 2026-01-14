@@ -4,7 +4,12 @@ import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import { getEventLocationType } from "@calcom/app-store/locations";
+import {
+  getAppSlugFromLocationType,
+  getEventLocationType,
+  isCalVideoLocation,
+  isStaticLocationType,
+} from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
@@ -58,32 +63,6 @@ type HostLocationsProps = {
   locationOptions: TLocationOptions;
 };
 
-const getAppSlugFromLocationType = (locationType: string): string | null => {
-  if (locationType.startsWith("integrations:")) {
-    const parts = locationType.replace("integrations:", "").split(":");
-    if (parts[0] === "daily") return "daily-video";
-    if (parts[0] === "google") return "google-meet";
-    if (parts[0] === "zoom") return "zoom";
-    if (parts[0] === "teams") return "msteams";
-    if (parts[0] === "huddle01") return "huddle01";
-    if (parts[0] === "whereby") return "whereby";
-    if (parts[0] === "around") return "around";
-    if (parts[0] === "riverside") return "riverside";
-    if (parts[0] === "webex") return "webex";
-    return parts[0];
-  }
-  return null;
-};
-
-const isStaticLocationType = (locationType: string): boolean => {
-  const staticTypes = ["inPerson", "link", "userPhone", "phone", "attendeeInPerson", "somewhereElse"];
-  return staticTypes.includes(locationType);
-};
-
-const isCalVideo = (locationType: string): boolean => {
-  return locationType === "integrations:daily";
-};
-
 const getLocationFromOptions = (
   locationType: string,
   locationOptions: TLocationOptions
@@ -95,133 +74,34 @@ const getLocationFromOptions = (
   return undefined;
 };
 
-type HostLocationDialogProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  locationOption: LocationOption | null;
-  onSave: (location: HostLocation) => void;
-  hostUserId: number;
-  hostData?: HostWithLocationOptions;
-  initialValue?: string;
-};
-
-const HostLocationDialog = ({
-  isOpen,
-  onClose,
-  locationOption,
-  onSave,
-  hostUserId,
-  hostData,
-  initialValue,
-}: HostLocationDialogProps) => {
-  const { t } = useLocale();
-  const eventLocationType = locationOption ? getEventLocationType(locationOption.value) : null;
-
-  const [inputValue, setInputValue] = useState(initialValue || "");
-
-  useEffect(() => {
-    if (isOpen) {
-      setInputValue(initialValue || "");
-    }
-  }, [isOpen, initialValue]);
-
-  const handleSave = () => {
-    if (!locationOption || !eventLocationType) return;
-
-    const credential = hostData?.installedApps.find(
-      (app) =>
-        app.appId === getAppSlugFromLocationType(locationOption.value) || app.type === locationOption.value
-    );
-
-    const location: HostLocation = {
-      userId: hostUserId,
-      eventTypeId: 0,
-      type: locationOption.value,
-      credentialId: credential?.credentialId ?? null,
-    };
-
-    if (eventLocationType.organizerInputType === "text") {
-      if (eventLocationType.defaultValueVariable === "link") {
-        location.link = inputValue;
-      } else if (eventLocationType.defaultValueVariable === "address") {
-        location.address = inputValue;
-      }
-    } else if (eventLocationType.organizerInputType === "phone") {
-      location.phoneNumber = inputValue;
-    }
-
-    onSave(location);
-    setInputValue("");
-    onClose();
-  };
-
-  const handleClose = () => {
-    setInputValue("");
-    onClose();
-  };
-
-  if (!eventLocationType) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent>
-        <DialogHeader title={t("set_location")} />
-        <div className="space-y-4">
-          <div>
-            <Label className="text-default mb-1 block text-sm font-medium">
-              {t(eventLocationType.messageForOrganizer || "")}
-            </Label>
-            {eventLocationType.organizerInputType === "phone" ? (
-              <PhoneInput
-                value={inputValue}
-                onChange={(val) => setInputValue(val || "")}
-                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-              />
-            ) : (
-              <TextField
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-                type="text"
-              />
-            )}
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" color="secondary" onClick={handleClose}>
-            {t("cancel")}
-          </Button>
-          <Button type="button" onClick={handleSave} disabled={!inputValue}>
-            {t("save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-type MassApplyLocationDialogProps = {
+type LocationInputDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   locationOption: LocationOption | null;
   onSave: (inputValue: string) => void;
+  title: string;
+  saveButtonText: string;
+  initialValue?: string;
 };
 
-const MassApplyLocationDialog = ({
+const LocationInputDialog = ({
   isOpen,
   onClose,
   locationOption,
   onSave,
-}: MassApplyLocationDialogProps) => {
+  title,
+  saveButtonText,
+  initialValue = "",
+}: LocationInputDialogProps) => {
   const { t } = useLocale();
   const eventLocationType = locationOption ? getEventLocationType(locationOption.value) : null;
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(initialValue);
 
   useEffect(() => {
     if (isOpen) {
-      setInputValue("");
+      setInputValue(initialValue);
     }
-  }, [isOpen]);
+  }, [isOpen, initialValue]);
 
   const handleSave = () => {
     onSave(inputValue);
@@ -239,7 +119,7 @@ const MassApplyLocationDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent>
-        <DialogHeader title={t("set_location_for_all_hosts")} />
+        <DialogHeader title={t(title)} />
         <div className="space-y-4">
           <div>
             <Label className="text-default mb-1 block text-sm font-medium">
@@ -266,7 +146,7 @@ const MassApplyLocationDialog = ({
             {t("cancel")}
           </Button>
           <Button type="button" onClick={handleSave} disabled={!inputValue}>
-            {t("apply_to_all")}
+            {t(saveButtonText)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -309,7 +189,7 @@ const HostLocationRow = ({
   const hasAppInstalled = useMemo(() => {
     if (!currentLocation?.type) return true;
     if (isStaticLocationType(currentLocation.type)) return true;
-    if (isCalVideo(currentLocation.type)) return true;
+    if (isCalVideoLocation(currentLocation.type)) return true;
     if (!hostData) return true;
 
     const appSlug = getAppSlugFromLocationType(currentLocation.type);
@@ -370,7 +250,33 @@ const HostLocationRow = ({
     });
   };
 
-  const handleDialogSave = (location: HostLocation) => {
+  const handleDialogSave = (inputValue: string) => {
+    if (!pendingLocationOption) return;
+
+    const eventLocationType = getEventLocationType(pendingLocationOption.value);
+    const credential = hostData?.installedApps.find(
+      (app) =>
+        app.appId === getAppSlugFromLocationType(pendingLocationOption.value) ||
+        app.type === pendingLocationOption.value
+    );
+
+    const location: HostLocation = {
+      userId: host.userId,
+      eventTypeId: 0,
+      type: pendingLocationOption.value,
+      credentialId: credential?.credentialId ?? null,
+    };
+
+    if (eventLocationType?.organizerInputType === "text") {
+      if (eventLocationType.defaultValueVariable === "link") {
+        location.link = inputValue;
+      } else if (eventLocationType.defaultValueVariable === "address") {
+        location.address = inputValue;
+      }
+    } else if (eventLocationType?.organizerInputType === "phone") {
+      location.phoneNumber = inputValue;
+    }
+
     onLocationChange(host.userId, location);
     setPendingLocationOption(null);
   };
@@ -409,13 +315,13 @@ const HostLocationRow = ({
           )}
         </div>
       </div>
-      <HostLocationDialog
+      <LocationInputDialog
         isOpen={isDialogOpen}
         onClose={handleDialogClose}
         locationOption={pendingLocationOption}
         onSave={handleDialogSave}
-        hostUserId={host.userId}
-        hostData={hostData}
+        title="set_location"
+        saveButtonText="save"
         initialValue={currentLocationValue}
       />
     </>
@@ -651,11 +557,13 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
           </div>
         )}
       </div>
-      <MassApplyLocationDialog
+      <LocationInputDialog
         isOpen={isMassApplyDialogOpen}
         onClose={handleMassApplyDialogClose}
         locationOption={pendingMassApplyOption}
         onSave={handleMassApplyDialogSave}
+        title="set_location_for_all_hosts"
+        saveButtonText="apply_to_all"
       />
     </div>
   );
