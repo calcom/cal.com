@@ -68,7 +68,8 @@ jobs:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
         run: |
           # The CLI outputs the version; id allows us to access outputs.deploymentVersion
-          npx trigger.dev@latest deploy --skip-promotion
+          cd packages/features
+          npx trigger.dev@latest deploy --config  --skip-promotion
 
       - name: Bump version
         env:
