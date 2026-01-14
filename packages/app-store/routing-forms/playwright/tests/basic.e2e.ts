@@ -180,7 +180,7 @@ test.describe("Routing Forms", () => {
       await expectCurrentFormToHaveFields(page, createdFields, types);
 
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await page.waitForURL("/routing/route-builder/**");
+      await page.waitForURL("/routing/route-builder/**", { waitUntil: "domcontentloaded" });
 
       await page.click('[data-testid="add-route-button"]');
       await page.click('[data-testid="add-rule"]');
@@ -253,7 +253,7 @@ test.describe("Routing Forms", () => {
       const formId = await addForm(page);
       // Click desktop toggle group item
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await page.waitForURL("/routing/route-builder/**");
+      await page.waitForURL("/routing/route-builder/**", { waitUntil: "domcontentloaded" });
       await addNewRoute(page);
       await selectOption({
         selector: {
@@ -343,7 +343,7 @@ test.describe("Routing Forms", () => {
       await addShortTextFieldAndSaveForm({ page, formId });
 
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await page.waitForURL("/routing/route-builder/**");
+      await page.waitForURL("/routing/route-builder/**", { waitUntil: "domcontentloaded" });
       await addNewRoute(page);
       await selectFirstEventRedirectOption(page);
 
@@ -649,7 +649,7 @@ test.describe("Routing Forms", () => {
 
       // Click toggle group item
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await page.waitForURL("/routing/route-builder/**");
+      await page.waitForURL("/routing/route-builder/**", { waitUntil: "domcontentloaded" });
       await page.click('[data-testid="add-route-button"]');
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
@@ -740,7 +740,7 @@ test.describe("Routing Forms", () => {
       });
 
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await page.waitForURL("/routing/route-builder/**");
+      await page.waitForURL("/routing/route-builder/**", { waitUntil: "domcontentloaded" });
       await addNewRoute(page);
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
@@ -823,7 +823,7 @@ test.describe("Routing Forms", () => {
       });
 
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await page.waitForURL("/routing/route-builder/**");
+      await page.waitForURL("/routing/route-builder/**", { waitUntil: "domcontentloaded" });
       await addNewRoute(page);
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
@@ -870,7 +870,7 @@ test.describe("Routing Forms", () => {
         formId,
       });
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await page.waitForURL("/routing/route-builder/**");
+      await page.waitForURL("/routing/route-builder/**", { waitUntil: "domcontentloaded" });
       await addNewRoute(page);
       await selectOption({
         selector: {

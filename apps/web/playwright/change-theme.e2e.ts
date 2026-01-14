@@ -35,6 +35,7 @@ test.describe("Change App Theme Test", () => {
     const darkModeClass = await page.getAttribute("html", "class");
     expect(darkModeClass).toContain("light");
 
+    await page.waitForFunction(() => localStorage.getItem("app-theme") === "light", null, { timeout: 5000 });
     const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
     expect(themeValue).toBe("light");
   });
