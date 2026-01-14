@@ -64,6 +64,33 @@ function UserProfile({ user }: { user: UserDTO }) {
 2. **API → Application layer → Data layer**: Transform API DTOs through application layer and into data-specific DTOs
 3. All DTO conversions through Zod to ensure all data is validated before sending to user
 
+### DTO Location and Naming
+
+**Location**: All DTOs go in `packages/lib/dto/`
+
+**Naming conventions**:
+- Base entity: `{Entity}Dto` (e.g., `BookingDto`)
+- With relations: `{Entity}With{Relations}Dto` (e.g., `BookingWithAttendeesDto`)
+- For specific projections: `{Entity}For{Purpose}Dto` (e.g., `BookingForConfirmationDto`)
+- Avoid: `{Entity}Dto2`, `{Entity}DtoForHandler`, or other use-case-specific names
+
+**Enum/union pattern** - use string literal unions to stay ORM-agnostic:
+
+```typescript
+// Good - ORM-agnostic string literal union
+export type BookingStatusDto = "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING";
+
+// Bad - importing Prisma enum
+import { BookingStatus } from "@calcom/prisma/client";
+```
+
+**Type safety** - never use `as any` in DTO mapping functions. If types don't align, fix the mapping explicitly.
+
+### Prisma Boundaries
+
+- **Allowed**: `packages/prisma`, repository implementations (`packages/features/**/repositories/*Repository.ts`), and low-level data access infrastructure.
+- **Not allowed**: `packages/features/**` business logic (non-repository), `packages/trpc/**` handlers, `apps/web/**`, `apps/api/v2/**` services/controllers, and workflow/webhook/service layers.
+
 Yes, this requires more code. Yes, it's worth it. Explicit boundaries prevent the architectural erosion that creates long-term maintenance nightmares.
 
 Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
