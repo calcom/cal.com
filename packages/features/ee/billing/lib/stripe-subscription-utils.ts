@@ -11,9 +11,9 @@ export function extractBillingDataFromStripeSubscription(subscription: Stripe.Su
   const billingPeriod: BillingPeriod =
     subscription.items.data[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
 
-  const pricePerSeat = subscription.items.data[0]?.price.unit_amount;
+  const pricePerSeat = subscription.items.data[0]?.price.unit_amount ?? undefined;
 
-  const paidSeats = subscription.items.data[0]?.quantity;
+  const paidSeats = subscription.items.data[0]?.quantity ?? undefined;
 
   return {
     billingPeriod,

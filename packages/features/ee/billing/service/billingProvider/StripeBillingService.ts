@@ -260,11 +260,13 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async createInvoice(args: Parameters<IBillingProviderService["createInvoice"]>[0]) {
-    const { customerId, autoAdvance, collectionMethod, metadata } = args;
+    const { customerId, autoAdvance, collectionMethod, daysUntilDue, metadata } = args;
     const invoice = await this.stripe.invoices.create({
       customer: customerId,
       auto_advance: autoAdvance,
       collection_method: collectionMethod,
+      // days_until_due is required for send_invoice collection method
+      ...(collectionMethod === "send_invoice" && { days_until_due: daysUntilDue ?? 30 }),
       metadata,
     });
 
@@ -273,6 +275,22 @@ export class StripeBillingService implements IBillingProviderService {
 
   async finalizeInvoice(invoiceId: string) {
     await this.stripe.invoices.finalizeInvoice(invoiceId);
+  }
+
+  async voidInvoice(invoiceId: string) {
+    try {
+      const invoice = await this.stripe.invoices.retrieve(invoiceId);
+      // Can only void invoices that are open or uncollectible
+      if (invoice.status === "open" || invoice.status === "uncollectible") {
+        await this.stripe.invoices.voidInvoice(invoiceId);
+      } else if (invoice.status === "draft") {
+        // Delete draft invoices instead of voiding
+        await this.stripe.invoices.del(invoiceId);
+      }
+      // If paid or void, no action needed
+    } catch (error) {
+      log.warn("Failed to void invoice", { invoiceId, error });
+    }
   }
 
   async getPaymentIntentFailureReason(paymentIntentId: string) {

@@ -80,10 +80,13 @@ export interface IBillingProviderService {
     customerId: string;
     autoAdvance: boolean;
     collectionMethod?: "charge_automatically" | "send_invoice";
+    daysUntilDue?: number;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceId: string }>;
 
   finalizeInvoice(invoiceId: string): Promise<void>;
+
+  voidInvoice(invoiceId: string): Promise<void>;
 
   getPaymentIntentFailureReason(paymentIntentId: string): Promise<string | null>;
 
