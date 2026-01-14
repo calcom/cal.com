@@ -2,6 +2,7 @@ import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
+import { ZInvoicesSchema } from "./invoices.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
@@ -66,6 +67,10 @@ export const adminRouter = router({
     }),
   billingPortalLink: authedAdminProcedure.input(ZBillingPortalLinkSchema).mutation(async (opts) => {
     const { default: handler } = await import("./billingPortalLink.handler");
+    return handler(opts);
+  }),
+  invoices: authedAdminProcedure.input(ZInvoicesSchema).query(async (opts) => {
+    const { default: handler } = await import("./invoices.handler");
     return handler(opts);
   }),
   verifyWorkflows: authedAdminProcedure.input(ZAdminVerifyWorkflowsSchema).mutation(async (opts) => {
