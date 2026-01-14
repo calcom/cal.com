@@ -5,7 +5,7 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateInviteOutputDto } from "@/modules/teams/invite/outputs/invite.output";
-import { UserWithProfile } from "@/modules/users/users.repository";
+
 import {
   Controller,
   UseGuards,
@@ -33,8 +33,7 @@ export class TeamsInviteController {
   @ApiOperation({ summary: "Create team invite link" })
   @HttpCode(HttpStatus.OK)
   async createInvite(
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @GetUser() user: UserWithProfile
+    @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<CreateInviteOutputDto> {
     const result = await TeamService.createInvite(teamId);
     return { status: SUCCESS_STATUS, data: result };
