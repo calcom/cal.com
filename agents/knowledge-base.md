@@ -13,7 +13,8 @@ Development
 - Install dependencies: `yarn`
 - Set up environment:
   - Copy `.env.example` to `.env`
-  - Generate keys with `openssl rand -base64 32` for both `NEXTAUTH_SECRET` and `CALENDSO_ENCRYPTION_KEY`
+  - Generate NEXTAUTH_SECRET with `openssl rand -base64 32`
+  - Generate CALENDSO_ENCRYPTION_KEY with `openssl rand -base64 24` (must be 32 characters for AES256)
   - Configure Postgres database URL in `.env`
   - Set DATABASE_DIRECT_URL to the same value as DATABASE_URL
 
