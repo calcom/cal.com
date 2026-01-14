@@ -775,6 +775,7 @@ export default function Success(props: PageProps) {
 
                           return (
                             <Fragment key={field.name}>
+                              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
                               <div
                                 className="text-emphasis mt-4 font-medium"
                                 dangerouslySetInnerHTML={{

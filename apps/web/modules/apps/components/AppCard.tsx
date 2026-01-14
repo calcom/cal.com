@@ -127,6 +127,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
       <p
         className="text-default mt-2 grow text-sm"
         dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
