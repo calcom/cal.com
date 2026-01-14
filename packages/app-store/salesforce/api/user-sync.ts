@@ -131,5 +131,15 @@ export default async function handler(
     })
   );
 
+  const errors = results.filter(
+    (result): result is PromiseRejectedResult => result.status === "rejected"
+  );
+
+  if (errors.length > 0) {
+    log.error("Errors syncing user attributes", {
+      errors: errors.map((e) => e.reason),
+    });
+  }
+
   return res.status(200).json({ success: true });
 }
