@@ -70,6 +70,8 @@ export const DI_TOKENS = {
   ASSIGNMENT_REASON_REPOSITORY_MODULE: Symbol("AssignmentReasonRepositoryModule"),
   CREDENTIAL_REPOSITORY: Symbol("CredentialRepository"),
   CREDENTIAL_REPOSITORY_MODULE: Symbol("CredentialRepositoryModule"),
+  DESTINATION_CALENDAR_REPOSITORY: Symbol("DestinationCalendarRepository"),
+  DESTINATION_CALENDAR_REPOSITORY_MODULE: Symbol("DestinationCalendarRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   ORG_MEMBERSHIP_LOOKUP: Symbol("OrgMembershipLookup"),
