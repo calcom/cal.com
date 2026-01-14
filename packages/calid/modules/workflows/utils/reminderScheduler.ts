@@ -195,26 +195,28 @@ const executeStepLogic = async (
     const whatsappRecipient =
       stepConfig.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : stepConfig.sendTo;
 
-    await scheduleWhatsappReminder({
-      evt: eventData,
-      workflow: workflowConfig,
-      reminderPhone: whatsappRecipient,
-      triggerEvent: workflowConfig.trigger,
-      action: stepConfig.action as CalIdScheduleTextReminderAction,
-      timeSpan: {
-        time: workflowConfig.time,
-        timeUnit: workflowConfig.timeUnit,
-      },
-      message: stepConfig.reminderBody || "",
-      workflowStepId: stepConfig.id,
-      template: stepConfig.template,
-      userId: workflowConfig.userId,
-      calIdTeamId: workflowConfig.calIdTeamId,
-      isVerificationPending: stepConfig.numberVerificationPending,
-      seatReferenceUid,
-      metaTemplateName: stepConfig.metaTemplateName,
-      metaPhoneNumberId: stepConfig.metaTemplatePhoneNumberId,
-    });
+    if (whatsappRecipient) {
+      await scheduleWhatsappReminder({
+        evt: eventData,
+        workflow: workflowConfig,
+        reminderPhone: whatsappRecipient,
+        triggerEvent: workflowConfig.trigger,
+        action: stepConfig.action as CalIdScheduleTextReminderAction,
+        timeSpan: {
+          time: workflowConfig.time,
+          timeUnit: workflowConfig.timeUnit,
+        },
+        message: stepConfig.reminderBody || "",
+        workflowStepId: stepConfig.id,
+        template: stepConfig.template,
+        userId: workflowConfig.userId,
+        calIdTeamId: workflowConfig.calIdTeamId,
+        isVerificationPending: stepConfig.numberVerificationPending,
+        seatReferenceUid,
+        metaTemplateName: stepConfig.metaTemplateName,
+        metaPhoneNumberId: stepConfig.metaTemplatePhoneNumberId,
+      });
+    }
   }
 };
 
