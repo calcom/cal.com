@@ -119,10 +119,10 @@ const mockResponse: Record<
 describe("handleResponse", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(RoutingFormResponseRepository).mockImplementation(
+    vi.mocked(RoutingFormResponseRepository).mockImplementation(function () {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      () => mockRoutingFormResponseRepository as any
-    );
+      return mockRoutingFormResponseRepository as any;
+    });
   });
 
   it("should throw an Error for missing required fields", async () => {

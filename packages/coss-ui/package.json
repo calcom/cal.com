@@ -30,6 +30,6 @@
     "@biomejs/biome": "2.3.10",
     "ts-node": "10.9.2",
     "tsc-absolute": "1.0.0",
-    "typescript": "5.9.0-beta"
+    "typescript": "5.9.3"
   }
 }

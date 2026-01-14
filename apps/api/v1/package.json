@@ -18,10 +18,11 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit"
   },
   "devDependencies": {
+    "@calcom/testing": "workspace:*",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
     "node-mocks-http": "1.16.2",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "@calcom/app-store": "workspace:*",

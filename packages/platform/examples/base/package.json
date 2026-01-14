@@ -28,6 +28,6 @@
     "dotenv": "17.2.2",
     "postcss": "8.5.6",
     "tailwindcss": "4.1.17",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   }
 }

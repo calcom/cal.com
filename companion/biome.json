@@ -19,7 +19,10 @@
       "!**/dist",
       "!**/.output",
       "!**/*.d.ts",
-      "!**/bun.lock"
+      "!**/bun.lock",
+      "!**/android",
+      "!**/ios",
+      "!**/safari-extension"
     ]
   },
   "formatter": {

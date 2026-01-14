@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
@@ -61,7 +61,7 @@ describe("TeamService", () => {
       const mockTeamRepo = {
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
       } as Pick<TeamRepository, "deleteById">;
-      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo);
+      vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo; });
 
       const result = await TeamService.delete({ id: 1 });
 
