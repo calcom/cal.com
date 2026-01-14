@@ -2,7 +2,7 @@ name: Check types
 on:
   workflow_call:
 env:
-  NODE_OPTIONS: --max-old-space-size=4096
+  NODE_OPTIONS: --max-old-space-size=6144
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 permissions:
@@ -24,14 +24,11 @@ jobs:
           echo "::add-matcher::.github/matchers/tsc-absolute.json"
       - name: Run type check
         run: |
-          # Run type-check and capture output to detect OOM errors
-          # Turborepo bug: OOM-killed tasks are incorrectly marked as successful
-          # See: https://github.com/vercel/turbo/issues/4227
+          # Workaround for https://github.com/vercel/turbo/issues/4227
           set -o pipefail
           yarn type-check:ci 2>&1 | tee /tmp/type-check-output.log
           TYPE_CHECK_EXIT_CODE=${PIPESTATUS[0]}
           
-          # Check for OOM error pattern in output
           if grep -q "FATAL ERROR:.*heap.*out of memory" /tmp/type-check-output.log; then
             echo "::error::Type check failed due to out of memory error"
             exit 1
