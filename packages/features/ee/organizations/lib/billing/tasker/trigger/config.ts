@@ -5,7 +5,7 @@ type PlatformBillingTask = Pick<Parameters<typeof schemaTask>[0], "machine" | "r
 
 export const platformBillingQueue: Queue = queue({
   name: "platform-billing",
-  concurrencyLimit: 20,
+  concurrencyLimit: 5,
 });
 
 export const platformBillingTaskConfig: PlatformBillingTask = {
