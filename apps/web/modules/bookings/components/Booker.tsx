@@ -39,7 +39,11 @@ import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { BookerSection } from "./Section";
 import { NotFound } from "./Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "@calcom/features/bookings/Booker/config";
+import {
+  fadeInLeft,
+  getBookerSizeClassNames,
+  useBookerResizeAnimation,
+} from "@calcom/features/bookings/Booker/config";
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
@@ -224,12 +228,12 @@ const BookerComponent = ({
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
-      return !isTimeSlotAvailable({
-        scheduleData: schedule?.data ?? null,
-        slotToCheckInIso: slot,
-        quickAvailabilityChecks: slots.quickAvailabilityChecks,
-      });
-    })
+        return !isTimeSlotAvailable({
+          scheduleData: schedule?.data ?? null,
+          slotToCheckInIso: slot,
+          quickAvailabilityChecks: slots.quickAvailabilityChecks,
+        });
+      })
     : [];
 
   const slot = getQueryParam("slot");
@@ -344,7 +348,7 @@ const BookerComponent = ({
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
           "main",
           "text-default flex min-h-full w-full flex-col items-center",
-          layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 ",
+          layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 p-2",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
         )}>
@@ -417,27 +421,27 @@ const BookerComponent = ({
                     src={orgBannerUrl}
                   />
                 )}
-                  {!hideEventTypeDetails && (
-                    <EventMeta
-                      selectedTimeslot={selectedTimeslot}
-                      classNames={{
-                        eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                        eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                        eventMetaTimezoneSelect:
-                          customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                      }}
-                      event={event.data}
-                      isPending={event.isPending}
-                      isPlatform={isPlatform}
-                      isPrivateLink={!!hashedLink}
-                      locale={userLocale}
-                      timeZones={timeZones}
-                      roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
-                      hideEventTypeDetails={hideEventTypeDetails}
-                      variant={isTablet && layout === BookerLayouts.MONTH_VIEW ? "header" : "full"}>
-                      {eventMetaChildren}
-                    </EventMeta>
-                  )}
+                {!hideEventTypeDetails && (
+                  <EventMeta
+                    selectedTimeslot={selectedTimeslot}
+                    classNames={{
+                      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                      eventMetaTimezoneSelect:
+                        customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                    }}
+                    event={event.data}
+                    isPending={event.isPending}
+                    isPlatform={isPlatform}
+                    isPrivateLink={!!hashedLink}
+                    locale={userLocale}
+                    timeZones={timeZones}
+                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                    hideEventTypeDetails={hideEventTypeDetails}
+                    variant={isTablet && layout === BookerLayouts.MONTH_VIEW ? "header" : "full"}>
+                    {eventMetaChildren}
+                  </EventMeta>
+                )}
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
@@ -483,7 +487,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="sticky top-0 -ml-px h-full p-6 md:w-(--booker-main-width) md:border-l"
+              className="sticky top-0 -ml-px h-full p-6 lg:w-(--booker-main-width) lg:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
