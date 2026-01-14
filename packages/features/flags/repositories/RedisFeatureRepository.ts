@@ -69,7 +69,7 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data;
+    return parsed.data as AppFlags;
   }
 
   async setFeatureFlagMap(flags: AppFlags, ttlMs?: number): Promise<void> {

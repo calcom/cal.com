@@ -91,8 +91,8 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
     }
 
     if (cacheMisses.length > 0) {
-      const missedTeamIds = [...new Set(cacheMisses.map((m) => m.teamId))];
-      const missedFeatureIds = [...new Set(cacheMisses.map((m) => m.featureId))];
+      const missedTeamIds = Array.from(new Set(cacheMisses.map((m) => m.teamId)));
+      const missedFeatureIds = Array.from(new Set(cacheMisses.map((m) => m.featureId)));
 
       const dbResults = await this.deps.prismaRepo.findByTeamIdsAndFeatureIds(missedTeamIds, missedFeatureIds);
 

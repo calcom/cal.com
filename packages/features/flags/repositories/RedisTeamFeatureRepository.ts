@@ -39,7 +39,7 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data;
+    return parsed.data as TeamFeaturesMap;
   }
 
   async setEnabledByTeamId(teamId: number, features: TeamFeaturesMap, ttlMs?: number): Promise<void> {
