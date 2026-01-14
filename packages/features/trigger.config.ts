@@ -1,3 +1,4 @@
+import process from "node:process";
 import { defineConfig } from "@trigger.dev/sdk";
 import dotEnv from "dotenv";
 
@@ -8,7 +9,7 @@ export default defineConfig({
   project: process.env.TRIGGER_DEV_PROJECT_REF ?? "", // e.g., "proj_abc123"
 
   // Directories containing your tasks
-  dirs: ["./bookings/lib/tasker/trigger/notifications"], // Customize based on your project structure
+  dirs: ["./bookings/lib/tasker/trigger/notifications", "./ee/organizations/lib/billing/tasker/trigger"], // Customize based on your project structure
 
   // Retry configuration
   retries: {

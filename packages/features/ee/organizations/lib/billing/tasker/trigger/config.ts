@@ -1,9 +1,9 @@
-import { type schemaTask } from "@trigger.dev/sdk";
+import type { Queue, schemaTask } from "@trigger.dev/sdk";
 import { queue } from "@trigger.dev/sdk";
 
 type PlatformBillingTask = Pick<Parameters<typeof schemaTask>[0], "machine" | "retry" | "queue">;
 
-export const platformBillingQueue = queue({
+export const platformBillingQueue: Queue = queue({
   name: "platform-billing",
   concurrencyLimit: 20,
 });

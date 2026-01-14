@@ -1,6 +1,6 @@
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
-
+import type { TriggerOptions } from "@trigger.dev/sdk";
 import type { PlatformOrganizationBillingSyncTasker } from "./PlatformOrganizationBillingSyncTasker";
 import type { PlatformOrganizationBillingTriggerTasker } from "./PlatformOrganizationBillingTriggerTasker";
 import type { IPlatformOrganizationBillingTasker, PlatformOrganizationBillingTaskPayload } from "./types";
@@ -18,6 +18,7 @@ export class PlatformOrganizationBillingTasker extends Tasker<IPlatformOrganizat
 
   public async incrementUsage(data: {
     payload: PlatformOrganizationBillingTaskPayload;
+    options?: TriggerOptions;
   }): Promise<{ runId: string }> {
     const { payload } = data;
     let taskResponse: {
@@ -25,7 +26,7 @@ export class PlatformOrganizationBillingTasker extends Tasker<IPlatformOrganizat
     } = { runId: "task-not-found" };
 
     try {
-      taskResponse = await this.dispatch("incrementUsage", payload);
+      taskResponse = await this.dispatch("incrementUsage", payload, data.options);
 
       this.logger.info(`PlatformOrganizationBillingTasker incrementUsage success:`, taskResponse, {
         userId: payload.userId,
@@ -34,6 +35,52 @@ export class PlatformOrganizationBillingTasker extends Tasker<IPlatformOrganizat
       taskResponse = { runId: "task-failed" };
       this.logger.error(`PlatformOrganizationBillingTasker incrementUsage failed`, taskResponse, {
         userId: payload.userId,
+      });
+    }
+
+    return taskResponse;
+  }
+
+  public async cancelUsageIncrement(data: { payload: { bookingUid: string } }): Promise<{ runId: string }> {
+    const { payload } = data;
+    let taskResponse: {
+      runId: string;
+    } = { runId: "task-not-found" };
+
+    try {
+      taskResponse = await this.dispatch("cancelUsageIncrement", payload);
+
+      this.logger.info(`PlatformOrganizationBillingTasker cancelUsageIncrement success:`, taskResponse, {
+        bookingUid: payload.bookingUid,
+      });
+    } catch {
+      taskResponse = { runId: "task-failed" };
+      this.logger.error(`PlatformOrganizationBillingTasker cancelUsageIncrement failed`, taskResponse, {
+        bookingUid: payload.bookingUid,
+      });
+    }
+
+    return taskResponse;
+  }
+
+  public async rescheduleUsageIncrement(data: {
+    payload: { bookingUid: string };
+    options: { delay: NonNullable<TriggerOptions["delay"]> };
+  }): Promise<{ runId: string }> {
+    const { payload } = data;
+    let taskResponse: {
+      runId: string;
+    } = { runId: "task-not-found" };
+
+    try {
+      taskResponse = await this.dispatch("rescheduleUsageIncrement", payload, data.options);
+      this.logger.info(`PlatformOrganizationBillingTasker rescheduleUsageIncrement success:`, taskResponse, {
+        bookingUid: payload.bookingUid,
+      });
+    } catch {
+      taskResponse = { runId: "task-failed" };
+      this.logger.error(`PlatformOrganizationBillingTasker rescheduleUsageIncrement failed`, taskResponse, {
+        bookingUid: payload.bookingUid,
       });
     }
 

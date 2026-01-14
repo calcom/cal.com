@@ -1,3 +1,4 @@
+import { Module, Scope } from "@nestjs/common";
 import { Logger } from "@/lib/logger.bridge";
 import { PrismaPlatformBillingRepository } from "@/lib/repositories/prisma-platform-billing.repository";
 import { StripeBillingProviderService } from "@/lib/services/stripe-billing-provider.service";
@@ -8,7 +9,6 @@ import { PlatformBillingTriggerTaskerService } from "@/lib/services/tasker/platf
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
-import { Module, Scope } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, StripeModule, OrganizationsModule],
