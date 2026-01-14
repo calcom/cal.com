@@ -12,7 +12,6 @@ export class ModalBox extends EmbedElement {
     }
   };
 
-  // @ts-expect-error
   static get observedAttributes() {
     return ["state"];
   }
