@@ -3714,5 +3714,17 @@
   "choose_file": "Choose file",
   "drop_file_here_or": "Drop file here or",
   "file_limit": "File limit: {{max}}",
-  "uploading": "Uploading..."
+  "uploading": "Uploading...",
+  "username_still_available": "This username is still available!",
+  "claim": "Claim",
+  "before_someone_else_does": "before someone else does",
+  "claim_username_description": "Your professional scheduling link. Simple, memorable, and 100% yours.",
+  "claim_username_cta": "Claim Your Username — It's Free",
+  "claim_username_no_card_required": "No credit card required • Setup in 60 seconds",
+  "claim_username_instant_setup_title": "Instant setup",
+  "claim_username_instant_setup_description": "Go live in under a minute",
+  "claim_username_trusted_by_professionals_title": "100K+ Users",
+  "claim_username_trusted_by_professionals_description": "Trusted by professionals",
+  "claim_username_yours_forever_title": "Yours forever",
+  "claim_username_yours_forever_description": "Once claimed, it's locked"
 }

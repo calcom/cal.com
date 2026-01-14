@@ -6,7 +6,6 @@ import { Button } from "@calid/features/ui/components/button";
 import { Icon, SocialIcon, type IconName, type SocialIconName } from "@calid/features/ui/components/icon";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { z } from "zod";
@@ -22,6 +21,8 @@ import type { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-util
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
+
+import { UserNotFoundView } from "./user-not-found-view";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
   slug?: string;
@@ -48,47 +49,6 @@ function stripHtmlTags(html: string): string {
     .replace(/<[^>]*>/g, "")
     .replace(/&nbsp;/g, " ")
     .trim();
-}
-
-function UserNotFound(props: { slug: string }) {
-  const { slug } = props;
-  const { t } = useLocale();
-
-  return (
-    <>
-      <div className="flex min-h-screen flex-col items-center justify-center px-10 md:p-0">
-        <div className="bg-default dark:bg-emphasis w-full max-w-xl rounded-lg p-10 text-center shadow-lg">
-          <div className="flex flex-col items-center">
-            <h2 className="dark:text-emphasis mt-4 text-3xl font-semibold text-gray-800">
-              No man&apos;s land - Conquer it today!
-            </h2>
-            <p className="dark:text-default mt-4 text-lg text-gray-600">
-              Claim username <span className="font-semibold">{`'${slug}'`}</span> on{" "}
-              <span className="font-semibold">Cal ID</span> now before someone else does! 🗓️🔥
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <Link href="/auth/signup">
-              <Button color="primary" target="_blank">
-                {t("register_now")}
-              </Button>
-            </Link>
-          </div>
-
-          <div className="dark:text-default mt-6 text-base text-gray-500">
-            Or Lost your way? &nbsp;
-            <Link href="/auth/login" className="text-blue-600 hover:underline">
-              Log in to your personal space
-            </Link>
-          </div>
-        </div>
-        <div key="logo" className={classNames("mt-6 flex w-full justify-center [&_img]:h-[32px]")}>
-          <Branding />
-        </div>
-      </div>
-    </>
-  );
 }
 
 export function UserPage(props: PageProps) {
@@ -153,7 +113,7 @@ export function UserPage(props: PageProps) {
   }
 
   if (props.userNotFound) {
-    return <UserNotFound slug={props.slug ?? "User"} />;
+    return <UserNotFoundView slug={props.slug ?? "User"} />;
   }
 
   const handleEventTypeClick = async (type: (typeof eventTypes)[number]) => {
