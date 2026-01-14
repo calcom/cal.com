@@ -480,16 +480,16 @@ export async function getBookings({
               eb
                 .case()
                 .when("Booking.status", "=", "cancelled")
-                .then(BookingStatus["CANCELLED"])
+                .then(BookingStatus.CANCELLED)
                 .when("Booking.status", "=", "accepted")
-                .then(BookingStatus["ACCEPTED"])
+                .then(BookingStatus.ACCEPTED)
                 .when("Booking.status", "=", "rejected")
-                .then(BookingStatus["REJECTED"])
+                .then(BookingStatus.REJECTED)
                 .when("Booking.status", "=", "pending")
-                .then(BookingStatus["PENDING"])
+                .then(BookingStatus.PENDING)
                 .when("Booking.status", "=", "awaiting_host")
-                .then(BookingStatus["AWAITING_HOST"])
-                .else(BookingStatus["PENDING"])
+                .then(BookingStatus.AWAITING_HOST)
+                .else(BookingStatus.PENDING)
                 .end(), // End of CASE expression
               "varchar"
             )
@@ -539,11 +539,11 @@ export async function getBookings({
                     eb
                       .case()
                       .when("EventType.schedulingType", "=", "roundRobin")
-                      .then(SchedulingType["ROUND_ROBIN"])
+                      .then(SchedulingType.ROUND_ROBIN)
                       .when("EventType.schedulingType", "=", "collective")
-                      .then(SchedulingType["COLLECTIVE"])
+                      .then(SchedulingType.COLLECTIVE)
                       .when("EventType.schedulingType", "=", "managed")
-                      .then(SchedulingType["MANAGED"])
+                      .then(SchedulingType.MANAGED)
                       .else(null)
                       .end(),
                     "varchar" // Or 'text' - use the actual SQL data type
