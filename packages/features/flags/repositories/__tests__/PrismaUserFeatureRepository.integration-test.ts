@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { PrismaUserFeatureRepository } from "../PrismaUserFeatureRepository";
+
+type TestData = Awaited<ReturnType<typeof createTestData>>;
 
 async function createTestData() {
   const timestamp = Date.now();
@@ -92,11 +94,20 @@ async function createTestData() {
 }
 
 describe("PrismaUserFeatureRepository Integration Tests", () => {
+  let testData: TestData;
+  let repository: PrismaUserFeatureRepository;
+
+  beforeEach(async () => {
+    testData = await createTestData();
+    repository = new PrismaUserFeatureRepository(prisma);
+  });
+
+  afterEach(async () => {
+    await testData?.cleanup();
+  });
+
   describe("checkIfUserBelongsToTeamWithFeature", () => {
     it("should return true when user belongs to a team with the feature enabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -118,14 +129,9 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfUserBelongsToTeamWithFeature(testData.user.id, testData.featureId);
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
 
     it("should return false when user belongs to a team but feature is not enabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -138,14 +144,9 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfUserBelongsToTeamWithFeature(testData.user.id, testData.featureId);
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return false when user membership is not accepted", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -167,14 +168,9 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfUserBelongsToTeamWithFeature(testData.user.id, testData.featureId);
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return true when parent team has feature enabled (hierarchical lookup)", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -196,14 +192,9 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfUserBelongsToTeamWithFeature(testData.user.id, testData.featureId);
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
 
     it("should return true when grandparent team has feature enabled (deep hierarchical lookup)", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -225,27 +216,17 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfUserBelongsToTeamWithFeature(testData.user.id, testData.featureId);
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
 
     it("should return false when user does not belong to any team", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       const result = await repository.checkIfUserBelongsToTeamWithFeature(testData.user.id, testData.featureId);
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
   });
 
   describe("checkIfUserBelongsToTeamWithFeatureNonHierarchical", () => {
     it("should return true when user belongs to a team with the feature directly enabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -270,14 +251,9 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       );
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
 
     it("should return false when user belongs to a team but feature is not enabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -293,14 +269,9 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       );
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return false when only parent team has feature (non-hierarchical does not traverse)", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -325,14 +296,9 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       );
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return false when user membership is not accepted", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       await prisma.membership.create({
         data: {
           userId: testData.user.id,
@@ -357,22 +323,15 @@ describe("PrismaUserFeatureRepository Integration Tests", () => {
       );
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return false when user does not belong to any team", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaUserFeatureRepository(prisma);
-
       const result = await repository.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
         testData.user.id,
         testData.featureId
       );
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
   });
 });
