@@ -39,7 +39,7 @@ import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { BookerSection } from "./Section";
 import { NotFound } from "./Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { useTimezoneChangeDetection } from "@calcom/features/bookings/Booker/components/hooks/useTimezoneChangeDetection";
+import { useTimezoneBasedSlotRefresh } from "@calcom/features/bookings/Booker/components/hooks/useTimezoneBasedSlotRefresh";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "@calcom/features/bookings/Booker/config";
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
@@ -143,24 +143,7 @@ const BookerComponent = ({
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
 
   // Detect timezone changes and refresh slots when conditions are met
-  const eventDataForTimezoneDetection: {
-    restrictionScheduleId?: number | null;
-    useBookerTimezone?: boolean;
-  } | null = event?.data
-    ? {
-        restrictionScheduleId: event.data.restrictionScheduleId,
-        useBookerTimezone: event.data.useBookerTimezone,
-      }
-    : null;
-
-  const { shouldRefreshSlots } = useTimezoneChangeDetection(eventDataForTimezoneDetection);
-
-  // Refresh slots when timezone changes under specific conditions
-  useEffect(() => {
-    if (shouldRefreshSlots) {
-      schedule?.invalidate();
-    }
-  }, [shouldRefreshSlots, schedule]);
+  useTimezoneBasedSlotRefresh(event?.data, () => schedule?.invalidate());
 
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 

@@ -15,7 +15,7 @@ import {
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-import { useTimezoneChangeDetection } from "@calcom/features/bookings/Booker/components/hooks/useTimezoneChangeDetection";
+import { useTimezoneBasedSlotRefresh } from "@calcom/features/bookings/Booker/components/hooks/useTimezoneBasedSlotRefresh";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
@@ -311,23 +311,7 @@ const BookerPlatformWrapperComponent = (
   }, [schedule.data, schedule.isPending, schedule.error, onTimeslotsLoaded]);
 
   // Detect timezone changes and refresh slots when conditions are met
-  const eventDataForTimezoneDetection: {
-    restrictionScheduleId?: number | null;
-    useBookerTimezone?: boolean;
-  } | null = event?.data
-    ? {
-        restrictionScheduleId: event.data.restrictionScheduleId,
-        useBookerTimezone: event.data.useBookerTimezone,
-      }
-    : null;
-
-  const { shouldRefreshSlots } = useTimezoneChangeDetection(eventDataForTimezoneDetection);
-
-  useEffect(() => {
-    if (shouldRefreshSlots) {
-      schedule.refetch();
-    }
-  }, [shouldRefreshSlots, schedule]);
+  useTimezoneBasedSlotRefresh(event?.data, () => schedule.refetch());
 
   const bookerForm = useBookingForm({
     event: event?.data,
