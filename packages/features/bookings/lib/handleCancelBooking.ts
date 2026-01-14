@@ -150,7 +150,6 @@ async function handler(input: CancelBookingInput) {
   const userUuid = input.userUuid ?? null;
   const impersonatedByUserUuid = input.impersonatedByUserUuid ?? null;
 
-  // Build audit context for impersonation tracking
   const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
 
   // Extract action source once for reuse
