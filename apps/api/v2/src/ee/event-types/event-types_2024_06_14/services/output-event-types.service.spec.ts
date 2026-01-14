@@ -82,6 +82,35 @@ describe("OutputEventTypesService_2024_06_14", () => {
       expect(result).toBe("https://acme.cal.com/owner1/30min");
     });
 
+    it("should use cal.com for non-managed users in platform orgs", () => {
+      const user = {
+        id: 1,
+        name: "Dhairyashil Shinde",
+        username: "dhairyashil10101010-gmail-com",
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organizationId: 1,
+        organization: { slug: "gmail-platform-9041df0e" },
+        movedToProfile: null,
+        profiles: [
+          {
+            id: 100,
+            username: "dhairyashil",
+            organizationId: 1,
+            organization: { id: 1, slug: "gmail-platform-9041df0e", isPlatform: true },
+          },
+        ],
+      };
+      const slug = "secret";
+
+      const result = service.buildBookingUrl(user, slug);
+
+      expect(result).toBe("https://cal.com/dhairyashil/secret");
+    });
+
     it("should fall back to user username when profile has no username", () => {
       const user = {
         id: 1,
