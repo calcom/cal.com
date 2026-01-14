@@ -18,7 +18,7 @@ export class PlatformOrganizationBillingSyncTasker implements IPlatformOrganizat
   ): Promise<{ runId: string }> {
     const runId = `sync_${nanoid(10)}`;
     this.dependencies.logger.info(
-      "Delayed task are not supported in sync mode, did not increment usage",
+      "Delayed tasks are not supported in sync mode, did not increment usage",
       runId,
       payload
     );
@@ -30,7 +30,7 @@ export class PlatformOrganizationBillingSyncTasker implements IPlatformOrganizat
   ): Promise<{ runId: string }> {
     const runId = `sync_${nanoid(10)}`;
     this.dependencies.logger.info(
-      "Delayed task are not supported in sync mode, did not cancel usage increment",
+      "Delayed tasks are not supported in sync mode, did not cancel usage increment",
       runId,
       payload
     );
@@ -42,7 +42,7 @@ export class PlatformOrganizationBillingSyncTasker implements IPlatformOrganizat
   ): Promise<{ runId: string }> {
     const runId = `sync_${nanoid(10)}`;
     this.dependencies.logger.info(
-      "Delayed task are not supported in sync mode, did not reschedule usage increment",
+      "Delayed tasks are not supported in sync mode, did not reschedule usage increment",
       runId,
       payload
     );
