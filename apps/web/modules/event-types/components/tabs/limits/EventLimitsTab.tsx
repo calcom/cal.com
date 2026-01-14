@@ -418,6 +418,14 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     return currentValue !== null && !predefinedValues.includes(currentValue);
   });
 
+  // Sync slotIntervalCustomMode with form values when slotInterval changes (e.g., after form.reset)
+  const watchSlotInterval = formMethods.watch("slotInterval");
+  useEffect(() => {
+    const predefinedValues = [-1, ...PREDEFINED_SLOT_INTERVAL_MINUTES];
+    const isCustom = watchSlotInterval !== null && !predefinedValues.includes(watchSlotInterval);
+    setSlotIntervalCustomMode(isCustom);
+  }, [watchSlotInterval]);
+
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
   const offsetOriginalTime = new Date();
