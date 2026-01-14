@@ -13,6 +13,12 @@ import type {
 
 const log = logger.getSubLogger({ prefix: ["CalendarTelemetryWrapper"] });
 
+/**
+ * A wrapper to add telemetry to all calendar services.
+ * This provides consistent metrics for comparing performance between cached and non-cached calendar loading.
+ *
+ * @see Calendar
+ */
 export class CalendarTelemetryWrapper implements Calendar {
   constructor(
     private deps: {
@@ -26,9 +32,7 @@ export class CalendarTelemetryWrapper implements Calendar {
   ) {}
 
   getCredentialId?(): number {
-    return this.deps.originalCalendar.getCredentialId
-      ? this.deps.originalCalendar.getCredentialId()
-      : -1;
+    return this.deps.originalCalendar.getCredentialId ? this.deps.originalCalendar.getCredentialId() : -1;
   }
 
   createEvent(
@@ -186,10 +190,7 @@ export class CalendarTelemetryWrapper implements Calendar {
   }
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {
-    return (
-      this.deps.originalCalendar.fetchAvailabilityAndSetCache?.(selectedCalendars) ||
-      Promise.resolve()
-    );
+    return this.deps.originalCalendar.fetchAvailabilityAndSetCache?.(selectedCalendars) || Promise.resolve();
   }
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
