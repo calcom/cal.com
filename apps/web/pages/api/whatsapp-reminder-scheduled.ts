@@ -106,7 +106,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         seatReferenceUid: data.seatReferenceUid,
       });
 
-      if (!response.messageId) {
+      if (!response?.messageId) {
         throw new Error("Message sent acknowledgement missing messageId");
       }
 
@@ -145,9 +145,13 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
     }
   });
 
+  if (!result?.messageId) {
+    throw new NonRetriableError("WhatsApp reminder sending failed, no messageId returned");
+  }
+
   return {
     success: true,
-    reminderId: data.reminderId,
+    reminderId: data?.reminderId,
     messageId: result.messageId,
   };
 };

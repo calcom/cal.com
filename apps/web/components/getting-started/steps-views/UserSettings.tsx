@@ -107,6 +107,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     mutation.mutate({
       metadata: {
         currentOnboardingStep: "connected-calendar",
+        designation: selectedBusiness || undefined,
       },
       name: data.name,
       username: data.username,
