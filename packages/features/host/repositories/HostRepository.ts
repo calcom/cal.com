@@ -51,7 +51,7 @@ export class HostRepository {
     });
   }
 
-  async deleteByEventTypeAndUserIds(eventTypeId: number, userIds: number[]) {
+  async deleteByEventTypeAndUserIds({eventTypeId, userIds}: {eventTypeId: number, userIds: number[]}) {
     return await this.prismaClient.host.deleteMany({
       where: {
         eventTypeId,

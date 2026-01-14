@@ -9,8 +9,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
-import type { EventType as PrismaEventType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, EventType as PrismaEventType } from "@calcom/prisma/client";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -1864,24 +1864,24 @@ export class EventTypeRepository {
     return eventTypeResult;
   }
 
-  async findWithAssignAllTeamMembersIncludeHostsAndTeamMembers(schedulingTypes: string[]) {
-    return await this.prismaClient.eventType.findMany({
-      where: {
-        assignAllTeamMembers: true,
-        teamId: { not: null },
-        schedulingType: {
-          in: schedulingTypes as ("ROUND_ROBIN" | "COLLECTIVE")[],
-        },
-      },
+  async findAllOfTeamsBySchedulingTypeIncludeHostsAndTeamMembers({
+    filters,
+    limit,
+  }: {
+    filters: {
+      schedulingTypes: SchedulingType[];
+      assignAllTeamMembers?: boolean;
+    };
+    limit?: number;
+  }) {
+    const { schedulingTypes, assignAllTeamMembers } = filters;
+    return this.prismaClient.eventType.findMany({
+      where: { teamId: { not: null }, schedulingType: { in: schedulingTypes }, assignAllTeamMembers },
+      take: limit,
       select: {
         id: true,
-        teamId: true,
         schedulingType: true,
-        hosts: {
-          select: {
-            userId: true,
-          },
-        },
+        hosts: { select: { userId: true } },
         team: {
           select: {
             id: true,

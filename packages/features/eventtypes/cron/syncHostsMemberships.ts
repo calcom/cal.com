@@ -1,8 +1,8 @@
+import { validateRequest } from "@calcom/lib/cron";
+import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 
 import { HostRepository } from "../../host/repositories/HostRepository";
 import { EventTypeRepository } from "../repositories/eventTypeRepository";
@@ -10,17 +10,7 @@ import { SyncHostsMembershipsService, type SyncResult } from "../services/SyncHo
 
 const log = logger.getSubLogger({ prefix: ["cron/syncHostsMemberships"] });
 
-function validateRequest(request: NextRequest) {
-  const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
-
-  if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
-    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
-  }
-
-  return null;
-}
-
-function createSyncHostsMembershipsService() {
+function createSyncHostsMembershipsService(): SyncHostsMembershipsService {
   const eventTypeRepository = new EventTypeRepository(prisma);
   const hostRepository = new HostRepository(prisma);
   return new SyncHostsMembershipsService({
@@ -30,7 +20,7 @@ function createSyncHostsMembershipsService() {
   });
 }
 
-export async function handleSyncHostsMemberships(request: NextRequest) {
+export async function handleSyncHostsMemberships(request: NextRequest): Promise<NextResponse> {
   const authError = validateRequest(request);
   if (authError) {
     return authError;
