@@ -2989,10 +2989,11 @@ export class RegularBookingService implements IBookingService {
     bookingMeta?: CreateBookingMeta;
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
+    const bookingMeta = input.bookingMeta ?? {};
     return handler.bind(this)(
       {
         bookingData: input.bookingData,
-        ...input.bookingMeta,
+        ...bookingMeta,
       },
       this.deps,
       input.bookingDataSchemaGetter
