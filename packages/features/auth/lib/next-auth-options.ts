@@ -1202,6 +1202,7 @@ export const getOptions = ({
                       liFatId: tracking.linkedInAds.liFatId,
                       linkedInCampaignId: tracking.linkedInAds.campaignId,
                     }),
+                    ...(tracking.utmData && tracking.utmData),
                   },
                 });
                 await prisma.user.update({
