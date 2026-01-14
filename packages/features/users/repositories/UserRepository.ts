@@ -560,13 +560,6 @@ export class UserRepository {
     return updatedUser;
   }
 
-  async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
-    user,
-    upId,
-  }: {
-    user: T;
-    upId: UpId;
-  }) {
   async enrichUserWithTheProfile<
     T extends { username: string | null; id: number }
   >({ user, upId }: { user: T; upId: UpId }) {
