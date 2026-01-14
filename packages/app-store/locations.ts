@@ -310,9 +310,10 @@ export const isCalVideoLocation = (locationType: string): boolean => {
 };
 
 export const getAppSlugFromLocationType = (locationType: string): string | null => {
-  const app = locationsFromApps.find((l) => l.type === locationType);
-  if (app && "slug" in app) {
-    return app.slug as string;
+  for (const [, meta] of Object.entries(appStoreMetadata)) {
+    if (meta.appData?.location?.type === locationType) {
+      return meta.slug;
+    }
   }
   return null;
 };
