@@ -124,7 +124,13 @@
             "noNestedTernary": "warn"
           },
           "complexity": {
-            "noExcessiveLinesPerFunction": "warn"
+            "noExcessiveLinesPerFunction": {
+              "level": "warn",
+              "options": {
+                "maxLines": 100,
+                "skipBlankLines": true
+              }
+            }
           },
           "performance": {
             "noImgElement": "warn"
