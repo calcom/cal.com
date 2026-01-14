@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,8 +6,6 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { OAuthClientResultDialog } from "./OAuthClientResultDialog";
-import type { OAuthClientDetails } from "./OAuthClientDetailsDialog";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -23,24 +22,11 @@ export type OAuthClientCreateFormValues = {
   enablePkce: boolean;
 };
 
-type BaseOAuthClientCreateDialogContentProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  isSubmitting: boolean;
-  onSubmit: (values: OAuthClientCreateFormValues) => void;
-  onClose: () => void;
-  title: string;
-  description: string;
-  submitLabel: string;
-};
-
 export type OAuthClientCreateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isSubmitting: boolean;
   onSubmit: (values: OAuthClientCreateFormValues) => void;
-  resultClient: OAuthClientDetails | null;
-  clientSecretInfoKey?: string;
   onClose: () => void;
 };
 
@@ -49,50 +35,8 @@ export function OAuthClientCreateDialog({
   onOpenChange,
   isSubmitting,
   onSubmit,
-  resultClient,
-  clientSecretInfoKey,
   onClose,
 }: OAuthClientCreateDialogProps) {
-  const { t } = useLocale();
-
-  if (resultClient) {
-    return (
-      <OAuthClientResultDialog
-        open={open}
-        onOpenChange={onOpenChange}
-        title={t("oauth_client_submitted")}
-        description={t("oauth_client_submitted_description")}
-        resultClient={resultClient}
-        clientSecretInfoKey={clientSecretInfoKey}
-        onClose={onClose}
-      />
-    );
-  }
-
-  return (
-    <OAuthClientCreateDialogContent
-      open={open}
-      onOpenChange={onOpenChange}
-      isSubmitting={isSubmitting}
-      onSubmit={onSubmit}
-      onClose={onClose}
-      title={t("create_oauth_client")}
-      description={t("create_oauth_client_description")}
-      submitLabel={t("create")}
-    />
-  );
-}
-
-export function OAuthClientCreateDialogContent({
-  open,
-  onOpenChange,
-  isSubmitting,
-  onSubmit,
-  onClose,
-  title,
-  description,
-  submitLabel,
-}: BaseOAuthClientCreateDialogContentProps) {
   const { t } = useLocale();
   const [logo, setLogo] = useState("");
 
@@ -123,7 +67,11 @@ export function OAuthClientCreateDialogContent({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent enableOverflow type="creation" title={title} description={description}>
+      <DialogContent
+        enableOverflow
+        type="creation"
+        title={t("create_oauth_client")}
+        description={t("create_oauth_client_description")}>
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -143,7 +91,7 @@ export function OAuthClientCreateDialogContent({
           <DialogFooter>
             <DialogClose>{t("close")}</DialogClose>
             <Button type="submit" loading={isSubmitting} data-testid="oauth-client-create-submit">
-              {submitLabel}
+              {t("create")}
             </Button>
           </DialogFooter>
         </Form>
@@ -151,3 +99,4 @@ export function OAuthClientCreateDialogContent({
     </Dialog>
   );
 }
+

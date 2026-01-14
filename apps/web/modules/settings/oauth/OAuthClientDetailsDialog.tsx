@@ -7,17 +7,14 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Label, TextArea } from "@calcom/ui/components/form";
 
-import type { OAuthClientCreateFormValues } from "./OAuthClientCreateDialog";
+import type { OAuthClientCreateFormValues } from "./OAuthClientCreateModal";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
 export type OAuthClientDetails = {
@@ -32,151 +29,6 @@ export type OAuthClientDetails = {
   clientSecret?: string;
   isPkceEnabled?: boolean;
   clientType?: string;
-};
-
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "APPROVED":
-      return { variant: "success" as const, labelKey: "approved" as const };
-    case "REJECTED":
-      return { variant: "red" as const, labelKey: "rejected" as const };
-    case "PENDING":
-    default:
-      return { variant: "orange" as const, labelKey: "pending" as const };
-  }
-};
-
-export const OAuthClientDetailsContent = ({
-  client,
-  showRedirectUri = true,
-  showStatusBadge = true,
-  showStatusBadgeTopLeft = false,
-  showStatusNote = true,
-  clientSecretInfoKey = "oauth_client_client_secret_one_time_warning",
-}: {
-  client: OAuthClientDetails;
-  showRedirectUri?: boolean;
-  showStatusBadge?: boolean;
-  showStatusBadgeTopLeft?: boolean;
-  showStatusNote?: boolean;
-  clientSecretInfoKey?: string;
-}) => {
-  const { t } = useLocale();
-  const { copyToClipboard } = useCopy();
-
-  const approvalStatus = client.approvalStatus;
-
-  return (
-    <div className="space-y-4">
-      {showStatusBadge && showStatusBadgeTopLeft && approvalStatus ? (
-        <div className="flex items-center justify-start">
-          <Badge variant={getStatusBadgeVariant(approvalStatus).variant}>
-            {t(getStatusBadgeVariant(approvalStatus).labelKey)}
-          </Badge>
-        </div>
-      ) : null}
-      <div className="flex items-center gap-4">
-        <Avatar
-          alt={client.name}
-          imageSrc={client.logo || undefined}
-          fallback={<Icon name="key" className="text-subtle h-6 w-6" />}
-          size="lg"
-        />
-        <div>
-          <div className="text-emphasis font-medium">{client.name}</div>
-          {showRedirectUri ? (
-            <div className="text-subtle mt-1 space-y-1 text-sm">
-              {client.redirectUri ? (
-                <div>
-                  <span className="font-medium">{t("redirect_uri")}:</span> {client.redirectUri}
-                </div>
-              ) : null}
-              {client.websiteUrl ? (
-                <div>
-                  <span className="font-medium">{t("website_url")}:</span> {client.websiteUrl}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-          {showStatusBadge && !showStatusBadgeTopLeft && approvalStatus ? (
-            <Badge variant={getStatusBadgeVariant(approvalStatus).variant}>
-              {t(getStatusBadgeVariant(approvalStatus).labelKey)}
-            </Badge>
-          ) : null}
-        </div>
-      </div>
-
-      <div>
-        <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
-        <div className="flex">
-          <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-            {client.clientId}
-          </code>
-          <Tooltip side="top" content={t("copy_to_clipboard")}>
-            <Button
-              onClick={() => {
-                copyToClipboard(client.clientId, {
-                  onSuccess: () => showToast(t("client_id_copied"), "success"),
-                  onFailure: () => showToast(t("error"), "error"),
-                });
-              }}
-              type="button"
-              size="sm"
-              className="rounded-l-none"
-              StartIcon="clipboard">
-              {t("copy")}
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-
-      {client.clientSecret ? (
-        <div>
-          <div className="text-subtle mb-1 text-sm">{t("client_secret")}</div>
-          <div className="flex">
-            <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-              {client.clientSecret}
-            </code>
-            <Tooltip side="top" content={t("copy_to_clipboard")}>
-              <Button
-                onClick={() => {
-                  copyToClipboard(client.clientSecret ?? "", {
-                    onSuccess: () => showToast(t("client_secret_copied"), "success"),
-                    onFailure: () => showToast(t("error"), "error"),
-                  });
-                }}
-                type="button"
-                size="sm"
-                className="rounded-l-none"
-                StartIcon="clipboard">
-                {t("copy")}
-              </Button>
-            </Tooltip>
-          </div>
-          <Alert severity="warning" message={t(clientSecretInfoKey)} className="mt-3" />
-        </div>
-      ) : null}
-
-      {showStatusNote && approvalStatus === "APPROVED" ? (
-        <p className="text-subtle text-sm">{t("oauth_client_approved_note")}</p>
-      ) : null}
-
-      {showStatusNote && approvalStatus === "PENDING" ? (
-        <p className="text-subtle text-sm">{t("oauth_client_pending_approval")}</p>
-      ) : null}
-
-      {showStatusNote && approvalStatus === "REJECTED" ? (
-        <div className="space-y-2">
-          <p className="text-error text-sm">{t("oauth_client_rejected")}</p>
-          {client.rejectionReason ? (
-            <p className="text-subtle text-sm">
-              <span className="font-medium">{t("oauth_client_rejection_reason")}:</span> {client.rejectionReason}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
-  );
 };
 
 export const OAuthClientDetailsDialog = ({
@@ -472,4 +324,16 @@ export const OAuthClientDetailsDialog = ({
       </DialogContent>
     </Dialog>
   );
+};
+
+function getStatusBadgeVariant (status: string) {
+  switch (status) {
+    case "APPROVED":
+      return { variant: "success" as const, labelKey: "approved" as const };
+    case "REJECTED":
+      return { variant: "red" as const, labelKey: "rejected" as const };
+    case "PENDING":
+    default:
+      return { variant: "orange" as const, labelKey: "pending" as const };
+  }
 };

@@ -7,8 +7,8 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import type { OAuthClientCreateFormValues } from "../oauth/OAuthClientCreateDialog";
-import { OAuthClientCreateDialog } from "../oauth/OAuthClientCreateDialog";
+import type { OAuthClientCreateFormValues } from "../oauth/OAuthClientCreateModal";
+import { OAuthClientCreateFlow } from "../oauth/OAuthClientCreateFlow";
 import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
 import { NewOAuthClientButton } from "../oauth/NewOAuthClientButton";
@@ -147,12 +147,12 @@ const OAuthClientsView = () => {
         />
       )}
 
-      <OAuthClientCreateDialog
+      <OAuthClientCreateFlow
         open={showDialog}
         onOpenChange={setShowDialog}
         isSubmitting={submitMutation.isPending}
         onSubmit={handleSubmit}
-        resultClient={submittedClient}
+        createdClient={submittedClient}
         onClose={handleCloseCreateDialog}
       />
 

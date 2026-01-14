@@ -13,7 +13,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { OAuthClientCreateFormValues } from "./OAuthClientCreateDialog";
+import type { OAuthClientCreateFormValues } from "./OAuthClientCreateModal";
 
 export const OAuthClientFormFields = ({
   form,
