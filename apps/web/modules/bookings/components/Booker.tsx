@@ -612,7 +612,7 @@ const BookerComponent = ({
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}
               visible={
-                !enableTwoStepSlotSelection &&
+                !(enableTwoStepSlotSelection && isMobile) &&
                 ((layout !== BookerLayouts.WEEK_VIEW &&
                   bookerState === "selecting_time") ||
                   layout === BookerLayouts.COLUMN_VIEW)
