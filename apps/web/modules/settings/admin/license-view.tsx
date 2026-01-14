@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { IS_CALCOM, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
@@ -114,64 +114,66 @@ export default function LicenseView() {
         </div>
       </PanelCard>
 
-      <PanelCard title={t("admin_invoices_title")} subtitle={t("admin_invoices_description")}>
-        <div className="divide-subtle divide-y">
-          {invoicesQuery.isLoading && (
-            <div className="p-4">
-              <SkeletonText className="h-4 w-full" />
-              <SkeletonText className="mt-2 h-4 w-3/4" />
-              <SkeletonText className="mt-2 h-4 w-1/2" />
-            </div>
-          )}
-          {invoicesQuery.isError && (
-            <div className="text-subtle p-4 text-sm">{t("admin_invoices_error")}</div>
-          )}
-          {invoicesQuery.data?.invoices.length === 0 && (
-            <div className="text-subtle p-4 text-sm">{t("admin_invoices_empty")}</div>
-          )}
-          {invoicesQuery.data?.invoices.map((invoice) => (
-            <div key={invoice.id} className="flex items-center justify-between gap-4 p-4">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-emphasis text-sm font-medium">
-                    {invoice.number || invoice.id}
+      {IS_SELF_HOSTED && (
+        <PanelCard title={t("admin_invoices_title")} subtitle={t("admin_invoices_description")}>
+          <div className="divide-subtle divide-y">
+            {invoicesQuery.isLoading && (
+              <div className="p-4">
+                <SkeletonText className="h-4 w-full" />
+                <SkeletonText className="mt-2 h-4 w-3/4" />
+                <SkeletonText className="mt-2 h-4 w-1/2" />
+              </div>
+            )}
+            {invoicesQuery.isError && (
+              <div className="text-subtle p-4 text-sm">{t("admin_invoices_error")}</div>
+            )}
+            {invoicesQuery.data?.invoices.length === 0 && (
+              <div className="text-subtle p-4 text-sm">{t("admin_invoices_empty")}</div>
+            )}
+            {invoicesQuery.data?.invoices.map((invoice) => (
+              <div key={invoice.id} className="flex items-center justify-between gap-4 p-4">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-emphasis text-sm font-medium">
+                      {invoice.number || invoice.id}
+                    </span>
+                    <Badge variant={getStatusVariant(invoice.status)}>
+                      {invoice.status || t("unknown")}
+                    </Badge>
+                  </div>
+                  <span className="text-subtle text-xs">
+                    {formatDate(invoice.created)} &middot; {formatCurrency(invoice.amount_due, invoice.currency)}
                   </span>
-                  <Badge variant={getStatusVariant(invoice.status)}>
-                    {invoice.status || t("unknown")}
-                  </Badge>
                 </div>
-                <span className="text-subtle text-xs">
-                  {formatDate(invoice.created)} &middot; {formatCurrency(invoice.amount_due, invoice.currency)}
-                </span>
+                <div className="flex items-center gap-2">
+                  {invoice.hosted_invoice_url && (
+                    <Button
+                      color="secondary"
+                      size="sm"
+                      href={invoice.hosted_invoice_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      EndIcon="external-link">
+                      {t("view")}
+                    </Button>
+                  )}
+                  {invoice.invoice_pdf && (
+                    <Button
+                      color="minimal"
+                      size="sm"
+                      href={invoice.invoice_pdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      EndIcon="download">
+                      {t("download")}
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {invoice.hosted_invoice_url && (
-                  <Button
-                    color="secondary"
-                    size="sm"
-                    href={invoice.hosted_invoice_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    EndIcon="external-link">
-                    {t("view")}
-                  </Button>
-                )}
-                {invoice.invoice_pdf && (
-                  <Button
-                    color="minimal"
-                    size="sm"
-                    href={invoice.invoice_pdf}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    EndIcon="download">
-                    {t("download")}
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </PanelCard>
+            ))}
+          </div>
+        </PanelCard>
+      )}
     </div>
   );
 }
