@@ -33,16 +33,13 @@ beforeEach(() => {
 
 export const constantsScenarios = {
   enableTeamBilling: () => {
-    // @ts-expect-error - mockedConstants is typed as Partial but we need to set this value
     mockedConstants.IS_TEAM_BILLING_ENABLED = true;
   },
   setWebsiteUrl: (url: string) => {
-    // @ts-expect-error
     mockedConstants.WEBSITE_URL = url;
   },
   set: (envVariables: Record<string, string>) => {
     Object.entries(envVariables).forEach(([key, value]) => {
-      // @ts-expect-error
       mockedConstants[key] = value;
     });
   },

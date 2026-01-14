@@ -1,7 +1,6 @@
 import { vi } from "vitest";
 
 vi.mock("@calcom/lib/server/serviceAccountKey", async (importOriginal) => {
-  // @ts-expect-error
   const actual = await importOriginal<any>();
   return {
     ...actual,
