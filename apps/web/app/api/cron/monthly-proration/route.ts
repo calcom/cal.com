@@ -1,10 +1,8 @@
 import process from "node:process";
+import { getMonthlyProrationTasker } from "@calcom/features/ee/billing/di/tasker/MonthlyProrationTasker.container";
 import { formatMonthKey } from "@calcom/features/ee/billing/lib/month-key";
 import { MonthlyProrationTeamRepository } from "@calcom/features/ee/billing/repository/proration/MonthlyProrationTeamRepository";
 import { MONTHLY_PRORATION_BATCH_SIZE } from "@calcom/features/ee/billing/service/proration/tasker/constants";
-import { MonthlyProrationSyncTasker } from "@calcom/features/ee/billing/service/proration/tasker/MonthlyProrationSyncTasker";
-import { MonthlyProrationTasker } from "@calcom/features/ee/billing/service/proration/tasker/MonthlyProrationTasker";
-import { MonthlyProrationTriggerDevTasker } from "@calcom/features/ee/billing/service/proration/tasker/MonthlyProrationTriggerDevTasker";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -55,11 +53,7 @@ async function getHandler(request: NextRequest) {
     });
   }
 
-  const prorationTasker = new MonthlyProrationTasker({
-    logger: log,
-    asyncTasker: new MonthlyProrationTriggerDevTasker({ logger: log }),
-    syncTasker: new MonthlyProrationSyncTasker(log),
-  });
+  const prorationTasker = getMonthlyProrationTasker();
 
   const batches: number[][] = [];
   for (let index = 0; index < teamIdsList.length; index += MONTHLY_PRORATION_BATCH_SIZE) {
