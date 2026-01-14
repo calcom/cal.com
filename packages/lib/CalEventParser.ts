@@ -1,9 +1,8 @@
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
-import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
@@ -337,6 +336,31 @@ export const getRescheduleLink = ({
   return url.toString();
 };
 
+export const getEditDetailsLink = ({
+  calEvent,
+  attendee,
+}: {
+  calEvent: Parameters<typeof getUid>[0] &
+    Parameters<typeof getSeatReferenceId>[0] &
+    Pick<CalendarEvent, "bookerUrl" | "platformClientId">;
+  attendee: Person;
+}): string => {
+  // Platform bookings not supported for edit details for now
+  if (calEvent.platformClientId) {
+    return "";
+  }
+
+  const Uid = getUid(calEvent);
+  const seatReferenceUid = getSeatReferenceId(calEvent);
+
+  const editLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${Uid}`);
+  editLink.searchParams.append("email", attendee.email);
+  if (seatReferenceUid) {
+    editLink.searchParams.append("seatReferenceUid", seatReferenceUid);
+  }
+  return editLink.toString();
+};
+
 type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getWhat>[0] &
   Parameters<typeof getWhen>[0] &
@@ -473,5 +497,5 @@ export const getVideoCallUrlFromCalEvent = (
 };
 
 export const getVideoCallPassword = (calEvent: CalendarEvent): string => {
-  return isDailyVideoCall(calEvent) ? "" : calEvent?.videoCallData?.password ?? "";
+  return isDailyVideoCall(calEvent) ? "" : (calEvent?.videoCallData?.password ?? "");
 };

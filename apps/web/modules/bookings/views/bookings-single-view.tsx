@@ -1,14 +1,5 @@
 "use client";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import classNames from "classnames";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
-import { Toaster } from "sonner";
-import { z } from "zod";
-
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
@@ -21,8 +12,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
+import { CalendarLinkType, getCalendarLinks } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -39,7 +29,7 @@ import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
-import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
+import { getFirstShiftFlags, getTimeShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -55,8 +45,18 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import EditAttendeeDetails from "@calcom/web/components/booking/EditAttendeeDetails";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
+import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import classNames from "classnames";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Fragment, useEffect, useState } from "react";
+import { Toaster } from "sonner";
+import { z } from "zod";
 
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
@@ -164,6 +164,10 @@ export default function Success(props: PageProps) {
   );
   const { data: session } = useSession();
   const isHost = props.isLoggedInUserHost;
+
+  // Find the current attendee based on email param for edit functionality
+  const currentAttendee = email ? bookingInfo?.attendees.find((attendee) => attendee.email === email) : null;
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const [showUtmParams, setShowUtmParams] = useState(false);
 
@@ -869,6 +873,19 @@ export default function Success(props: PageProps) {
                                       {t("cancel")}
                                     </button>
                                   )}
+
+                                  {/* Edit Details - only for attendees (not hosts) */}
+                                  {!isHost && currentAttendee && !isBookingInPast && (
+                                    <>
+                                      <span className="mx-2">{t("or_lowercase")}</span>
+                                      <button
+                                        data-testid="edit-details"
+                                        className="text-default underline"
+                                        onClick={() => setIsEditMode(true)}>
+                                        {t("edit_details") || "Edit Details"}
+                                      </button>
+                                    </>
+                                  )}
                                 </>
                               </div>
                             </>
@@ -1112,6 +1129,22 @@ export default function Success(props: PageProps) {
           </div>
         </div>
       </main>
+
+      {/* Edit Attendee Details Modal */}
+      {currentAttendee && (
+        <EditAttendeeDetails
+          bookingUid={bookingInfo.uid}
+          attendee={{
+            email: currentAttendee.email,
+            name: currentAttendee.name,
+            phoneNumber: currentAttendee.phoneNumber,
+            timeZone: currentAttendee.timeZone,
+          }}
+          isOpen={isEditMode}
+          onClose={() => setIsEditMode(false)}
+        />
+      )}
+
       <Toaster position="bottom-right" />
     </div>
   );

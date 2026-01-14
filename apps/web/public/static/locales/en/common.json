@@ -4332,5 +4332,10 @@
   "pbac_resource_feature_opt_in": "Feature Opt-In",
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
   "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
+  "edit_details": "Edit Details",
+  "edit_your_details": "Edit your details",
+  "update_your_booking_information": "Update your booking information",
+  "details_updated_successfully": "Details updated successfully",
+  "no_changes_made": "No changes made",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

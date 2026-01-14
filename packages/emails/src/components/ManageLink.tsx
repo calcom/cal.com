@@ -1,6 +1,12 @@
-import { getBookingUrl, getCancelLink, getRescheduleLink } from "@calcom/lib/CalEventParser";
+import {
+  getBookingUrl,
+  getCancelLink,
+  getEditDetailsLink,
+  getRescheduleLink,
+} from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: Email component needs to handle localized links and logic in one place
 export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person }) {
   // Only the original attendee can make changes to the event
   // Guests cannot
@@ -8,19 +14,21 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   const cancelLink = getCancelLink(props.calEvent, props.attendee);
   const rescheduleLink = getRescheduleLink({ calEvent: props.calEvent, attendee: props.attendee });
   const bookingLink = getBookingUrl(props.calEvent);
+  const editDetailsLink = getEditDetailsLink({ calEvent: props.calEvent, attendee: props.attendee });
 
   const isOriginalAttendee = props.attendee.email === props.calEvent.attendees[0]?.email;
   const isOrganizer = props.calEvent.organizer.email === props.attendee.email;
   const hasCancelLink = Boolean(cancelLink) && !props.calEvent.disableCancelling;
   const hasRescheduleLink = Boolean(rescheduleLink) && !props.calEvent.disableRescheduling;
   const hasBookingLink = Boolean(bookingLink);
+  const hasEditDetailsLink = Boolean(editDetailsLink) && isOriginalAttendee && !isOrganizer;
   const isRecurringEvent = props.calEvent.recurringEvent;
   const shouldDisplayRescheduleLink = Boolean(hasRescheduleLink && !isRecurringEvent);
   const isTeamMember = props.calEvent.team?.members.some((member) => props.attendee.email === member.email);
 
   if (
     (isOriginalAttendee || isOrganizer || isTeamMember) &&
-    (hasCancelLink || (!isRecurringEvent && hasRescheduleLink) || hasBookingLink)
+    (hasCancelLink || (!isRecurringEvent && hasRescheduleLink) || hasBookingLink || hasEditDetailsLink)
   ) {
     return (
       <div
@@ -39,7 +47,9 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
             textAlign: "center",
             width: "100%",
           }}>
-          {(shouldDisplayRescheduleLink || hasCancelLink) && <>{t("need_to_make_a_change")}</>}
+          {(shouldDisplayRescheduleLink || hasCancelLink || hasEditDetailsLink) && (
+            <>{t("need_to_make_a_change")}</>
+          )}
           {shouldDisplayRescheduleLink && (
             <span>
               <a
@@ -52,7 +62,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
                 }}>
                 <>{t("reschedule")}</>
               </a>
-              {hasCancelLink && <>{t("or_lowercase")}</>}
+              {(hasCancelLink || hasEditDetailsLink) && <>{t("or_lowercase")}</>}
             </span>
           )}
           {hasCancelLink && (
@@ -62,16 +72,33 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
                 style={{
                   color: "#374151",
                   marginLeft: "5px",
+                  marginRight: hasEditDetailsLink ? "5px" : "0px",
                   textDecoration: "underline",
                 }}>
                 <>{t("cancel")}</>
+              </a>
+              {hasEditDetailsLink && <>{t("or_lowercase")}</>}
+            </span>
+          )}
+
+          {/* Edit Details link - only for original attendees, not organizers */}
+          {hasEditDetailsLink && (
+            <span>
+              <a
+                href={editDetailsLink}
+                style={{
+                  color: "#374151",
+                  marginLeft: "5px",
+                  textDecoration: "underline",
+                }}>
+                <>{t("edit_details") || "Edit Details"}</>
               </a>
             </span>
           )}
 
           {props.calEvent.platformClientId && hasBookingLink && (
             <span>
-              {(hasCancelLink || shouldDisplayRescheduleLink) && (
+              {(hasCancelLink || shouldDisplayRescheduleLink || hasEditDetailsLink) && (
                 <span
                   style={{
                     marginLeft: "5px",

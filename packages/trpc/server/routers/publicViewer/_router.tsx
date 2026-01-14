@@ -5,6 +5,7 @@ import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZSubmitRatingInputSchema } from "./submitRating.schema";
+import { ZUpdateAttendeeDetailsInputSchema } from "./updateAttendeeDetails.schema";
 
 // things that unauthenticated users can query about themselves
 export const publicViewerRouter = router({
@@ -22,6 +23,10 @@ export const publicViewerRouter = router({
   }),
   samlTenantProduct: publicProcedure.input(ZSamlTenantProductInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./samlTenantProduct.handler");
+    return handler(opts);
+  }),
+  updateAttendeeDetails: publicProcedure.input(ZUpdateAttendeeDetailsInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./updateAttendeeDetails.handler");
     return handler(opts);
   }),
   event,
