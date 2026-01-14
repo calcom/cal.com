@@ -1,15 +1,20 @@
+import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
+import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
-import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
-import { trpc } from "@calcom/trpc/react";
-
 import { useEventTypes } from "./useEventTypes";
 
-export function useFacetedUniqueValues() {
+interface UseFacetedUniqueValuesOptions {
+  canReadOthersBookings: boolean;
+}
+
+export function useFacetedUniqueValues({ canReadOthersBookings }: UseFacetedUniqueValuesOptions) {
   const eventTypes = useEventTypes();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery();
+  const { data: currentUser } = useMeQuery();
 
   return useCallback(
     (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
@@ -23,6 +28,16 @@ export function useFacetedUniqueValues() {
           }))
         );
       } else if (columnId === "userId") {
+        // For users without permission to read others' bookings, only show themselves
+        if (!canReadOthersBookings && currentUser) {
+          return convertFacetedValuesToMap([
+            {
+              label: currentUser.name || currentUser.email,
+              value: currentUser.id,
+            },
+          ]);
+        }
+        // For users with permission, show all team members
         return convertFacetedValuesToMap(
           (members || [])
             .map((member) => ({
@@ -34,6 +49,6 @@ export function useFacetedUniqueValues() {
       }
       return new Map<FacetedValue, number>();
     },
-    [eventTypes, teams, members]
+    [eventTypes, teams, members, canReadOthersBookings, currentUser]
   );
 }
