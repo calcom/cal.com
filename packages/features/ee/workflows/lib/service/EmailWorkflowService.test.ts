@@ -30,6 +30,10 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
+vi.mock("@calcom/emails/lib/generateIcsString", () => ({
+  default: vi.fn().mockReturnValue("mock-ics-content"),
+}));
+
 const mockWorkflowReminderRepository: Pick<WorkflowReminderRepository, "findByIdIncludeStepAndWorkflow"> = {
   findByIdIncludeStepAndWorkflow: vi.fn(),
 };
@@ -497,6 +501,85 @@ describe("EmailWorkflowService", () => {
           hideBranding: false,
         })
       ).rejects.toThrow("Either evt or formData must be provided");
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - ICS attachment", () => {
+    const mockBookingInfo = {
+      uid: "booking-123",
+      bookerUrl: "https://cal.com",
+      title: "Test Meeting",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: "h:mma",
+      },
+      attendees: [
+        {
+          name: "Attendee Name",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+    };
+
+    test("should NOT include ICS attachment for BOOKING_REQUESTED trigger even when includeCalendarEvent is true", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: true,
+        triggerEvent: WorkflowTriggerEvents.BOOKING_REQUESTED,
+      });
+
+      expect(result.attachments).toBeUndefined();
+    });
+
+    test("should include ICS attachment for BEFORE_EVENT trigger when includeCalendarEvent is true", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: true,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.attachments).toBeDefined();
+      expect(result.attachments).toHaveLength(1);
+      expect(result.attachments?.[0].filename).toBe("event.ics");
+      expect(result.attachments?.[0].contentType).toBe("text/calendar; charset=UTF-8; method=REQUEST");
+    });
+
+    test("should NOT include ICS attachment when includeCalendarEvent is false", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.attachments).toBeUndefined();
     });
   });
 });

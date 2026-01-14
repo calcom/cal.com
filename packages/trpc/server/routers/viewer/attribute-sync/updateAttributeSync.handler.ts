@@ -1,4 +1,8 @@
 import { getIntegrationAttributeSyncService } from "@calcom/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
+import {
+  DuplicateAttributeWithinSyncError,
+  DuplicateAttributeAcrossSyncsError,
+} from "@calcom/ee/integration-attribute-sync/services/IntegrationAttributeSyncService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -12,20 +16,50 @@ type UpdateAttributeSyncOptions = {
   input: ZUpdateAttributeSyncSchema;
 };
 
-const updateAttributeSyncHandler = async ({ ctx, input }: UpdateAttributeSyncOptions) => {
-  const currentUserOrgId = ctx.user.organizationId;
+const updateAttributeSyncHandler = async ({
+  ctx,
+  input,
+}: UpdateAttributeSyncOptions) => {
+  const org = ctx.user.organization;
+
+  if (!org?.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be part of an organization to use this feature",
+    });
+  }
+
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
   // Verify the sync exists and belongs to the user's organization
-  const integrationAttributeSync = await integrationAttributeSyncService.getById(input.id);
+  const integrationAttributeSync =
+    await integrationAttributeSyncService.getById(input.id);
 
   if (!integrationAttributeSync) throw new TRPCError({ code: "NOT_FOUND" });
 
-  if (integrationAttributeSync.organizationId !== currentUserOrgId) {
+  if (integrationAttributeSync.organizationId !== org.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  await integrationAttributeSyncService.updateIncludeRulesAndMappings(input);
+  try {
+    await integrationAttributeSyncService.updateIncludeRulesAndMappings(input);
+  } catch (error) {
+    if (error instanceof DuplicateAttributeWithinSyncError) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Each attribute can only be mapped once per sync. Please remove duplicate attribute mappings.",
+      });
+    }
+    if (error instanceof DuplicateAttributeAcrossSyncsError) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "This attribute is already mapped in another sync. Each attribute can only be synced from one source.",
+      });
+    }
+    throw error;
+  }
 };
 
 export default updateAttributeSyncHandler;

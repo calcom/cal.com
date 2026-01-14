@@ -11,14 +11,32 @@ import {
 
 type TFunction = (key: string) => string;
 
+// Unique ID generator for React keys
+export const generateConditionId = (): string => {
+  return crypto.randomUUID();
+};
+
+// Extended condition types with client-side ID for React keys
+export interface ITeamConditionWithId extends ITeamCondition {
+  _id: string;
+}
+
+export interface IAttributeConditionWithId extends IAttributeCondition {
+  _id: string;
+}
+
+export type TAttributeSyncRuleConditionWithId = ITeamConditionWithId | IAttributeConditionWithId;
+
 // Factory functions
-export const getDefaultTeamCondition = (): ITeamCondition => ({
+export const getDefaultTeamCondition = (): ITeamConditionWithId => ({
+  _id: generateConditionId(),
   identifier: ConditionIdentifierEnum.TEAM_ID,
   operator: ConditionOperatorEnum.IN,
   value: [],
 });
 
-export const getDefaultAttributeCondition = (): IAttributeCondition => ({
+export const getDefaultAttributeCondition = (): IAttributeConditionWithId => ({
+  _id: generateConditionId(),
   identifier: ConditionIdentifierEnum.ATTRIBUTE_ID,
   attributeId: "",
   operator: ConditionOperatorEnum.EQUALS,

@@ -72,6 +72,37 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
     return result?.syncFieldMappings || [];
   }
 
+  async getMappedAttributeIdsByOrganization(
+    organizationId: number,
+    excludeSyncId?: string
+  ): Promise<string[]> {
+    const result = await this.prismaClient.attributeSyncFieldMapping.findMany({
+      where: {
+        integrationAttributeSync: {
+          organizationId,
+          ...(excludeSyncId && { id: { not: excludeSyncId } }),
+        },
+      },
+      select: {
+        attributeId: true,
+      },
+      distinct: ["attributeId"],
+    });
+
+    return result.map((r) => r.attributeId);
+  }
+
+  async getAttributeIdsByOrganization(organizationId: number, attributeIds: string[]): Promise<string[]> {
+    const result = await this.prismaClient.attribute.findMany({
+      where: {
+        id: { in: attributeIds },
+        teamId: organizationId,
+      },
+      select: { id: true },
+    });
+    return result.map((r) => r.id);
+  }
+
   async create(params: IIntegrationAttributeSyncCreateParams) {
     const { name, organizationId, integration, credentialId, enabled, rule, syncFieldMappings } = params;
 

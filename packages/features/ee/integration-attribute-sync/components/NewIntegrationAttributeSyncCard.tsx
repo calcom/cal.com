@@ -27,7 +27,7 @@ const NewIntegrationAttributeSyncCard = (props: INewIntegrationAttributeSyncCard
 
   const onSubmit = (data: ISyncFormData) => {
     if (!data.credentialId) {
-      showToast(t("credential_required"), "error");
+      showToast(t("attribute_sync_credential_required"), "error");
       return;
     }
 

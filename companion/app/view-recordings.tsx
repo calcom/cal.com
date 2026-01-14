@@ -1,12 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import ViewRecordingsScreenComponent from "@/components/screens/ViewRecordingsScreen";
 import { CalComAPIService } from "@/services/calcom";
 import type { BookingRecording } from "@/services/types/bookings.types";
+import { showErrorAlert } from "@/utils/alerts";
 import { safeLogError } from "@/utils/safeLogger";
 
 export default function ViewRecordings() {
@@ -22,13 +23,13 @@ export default function ViewRecordings() {
         .then(setRecordings)
         .catch((error) => {
           safeLogError("Failed to load recordings:", error);
-          Alert.alert("Error", "Failed to load recordings");
+          showErrorAlert("Error", "Failed to load recordings");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);
