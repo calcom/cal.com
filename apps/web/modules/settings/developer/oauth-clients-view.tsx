@@ -15,17 +15,6 @@ import { NewOAuthClientButton } from "../oauth/NewOAuthClientButton";
 
 import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
-type SubmitClientMutationResult = {
-  clientId: string;
-  name: string;
-  purpose: string;
-  isPkceEnabled?: boolean;
-  clientSecret?: string;
-  redirectUri?: string;
-  logo?: string | null;
-  approvalStatus?: string;
-};
-
 const OAuthClientsView = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -35,14 +24,14 @@ const OAuthClientsView = () => {
 
   const { data: oAuthClients, isLoading } = trpc.viewer.oAuth.listUserClients.useQuery();
 
-  const submitMutation = trpc.viewer.oAuth.submitClient.useMutation({
-    onSuccess: async (data: SubmitClientMutationResult) => {
+  const submitMutation = trpc.viewer.oAuth.submitClientForReview.useMutation({
+    onSuccess: async (data) => {
       setSubmittedClient({
         clientId: data.clientId,
         name: data.name,
         purpose: data.purpose ?? "",
         clientSecret: data.clientSecret,
-        approvalStatus: data.approvalStatus ?? "PENDING",
+        approvalStatus: data.approvalStatus ?? "APPROVED",
         isPkceEnabled: data.isPkceEnabled,
       });
       showToast(t("oauth_client_submitted"), "success");

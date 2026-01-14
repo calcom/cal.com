@@ -34,5 +34,6 @@ export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
     clientType: client.clientType,
     clientSecret: client.clientSecret,
     isPkceEnabled: enablePkce,
+    approvalStatus: client.approvalStatus,
   };
 };

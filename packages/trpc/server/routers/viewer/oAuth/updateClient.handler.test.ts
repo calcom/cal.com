@@ -5,7 +5,7 @@ import type { TFunction } from "i18next";
 import type { PrismaClient } from "@calcom/prisma";
 import { OAuthClientApprovalStatus, UserPermissionRole } from "@calcom/prisma/enums";
 
-import { updateClientStatusHandler } from "./updateClient.handler";
+import { updateClientHandler } from "./updateClient.handler";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -47,7 +47,7 @@ vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: mocks.getTranslation,
 }));
 
-describe("updateClientStatusHandler", () => {
+describe("updateClientHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -109,7 +109,7 @@ describe("updateClientStatusHandler", () => {
       status: OAuthClientApprovalStatus.APPROVED,
     };
 
-    const result = await updateClientStatusHandler({ ctx, input });
+    const result = await updateClientHandler({ ctx, input });
 
     expect(prismaUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -201,7 +201,7 @@ describe("updateClientStatusHandler", () => {
       rejectionReason: REJECTION_REASON_RAW,
     };
 
-    await updateClientStatusHandler({ ctx, input });
+    await updateClientHandler({ ctx, input });
 
     expect(prismaUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -253,7 +253,7 @@ describe("updateClientStatusHandler", () => {
       rejectionReason: "nope",
     };
 
-    await expect(updateClientStatusHandler({ ctx, input })).rejects.toMatchObject({
+    await expect(updateClientHandler({ ctx, input })).rejects.toMatchObject({
       code: "FORBIDDEN",
       message: "Only admins can set a rejection reason",
     });
@@ -283,7 +283,7 @@ describe("updateClientStatusHandler", () => {
     };
 
     await expect(
-      updateClientStatusHandler({
+      updateClientHandler({
         ctx,
         input: {
           clientId: CLIENT_ID,
@@ -321,7 +321,7 @@ describe("updateClientStatusHandler", () => {
     };
 
     await expect(
-      updateClientStatusHandler({
+      updateClientHandler({
         ctx,
         input: {
           clientId: CLIENT_ID,
@@ -358,7 +358,7 @@ describe("updateClientStatusHandler", () => {
     };
 
     await expect(
-      updateClientStatusHandler({
+      updateClientHandler({
         ctx,
         input: {
           clientId: CLIENT_ID,
@@ -406,7 +406,7 @@ describe("updateClientStatusHandler", () => {
       } as unknown as PrismaClient,
     };
 
-    await updateClientStatusHandler({
+    await updateClientHandler({
       ctx,
       input: {
         clientId: CLIENT_ID,

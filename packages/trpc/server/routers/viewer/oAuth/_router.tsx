@@ -5,7 +5,7 @@ import { ZCreateClientInputSchema } from "./createClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 import { ZGetClientInputSchema } from "./getClient.schema";
 import { ZListClientsInputSchema } from "./listClients.schema";
-import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClient.schema";
+import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClientForReview.schema";
 import { ZUpdateClientInputSchema } from "./updateClient.schema";
 import { ZDeleteClientInputSchema } from "./deleteClient.schema";
 
@@ -36,13 +36,13 @@ export const oAuthRouter = router({
     });
   }),
 
-  submitClient: authedProcedure
+  submitClientForReview: authedProcedure
     .input(ZSubmitClientInputSchema)
     .output(ZSubmitClientOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { submitClientHandler } = await import("./submitClient.handler");
+      const { submitClientForReviewHandler } = await import("./submitClientForReview.handler");
 
-      return submitClientHandler({
+      return submitClientForReviewHandler({
         ctx,
         input,
       });
@@ -66,9 +66,9 @@ export const oAuthRouter = router({
   }),
 
   updateClient: authedProcedure.input(ZUpdateClientInputSchema).mutation(async ({ ctx, input }) => {
-    const { updateClientStatusHandler } = await import("./updateClient.handler");
+    const { updateClientHandler } = await import("./updateClient.handler");
 
-    return updateClientStatusHandler({
+    return updateClientHandler({
       ctx,
       input,
     });

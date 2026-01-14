@@ -9,7 +9,7 @@ import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
 
 import type { TUpdateClientInputSchema } from "./updateClient.schema";
 
-type UpdateClientStatusOptions = {
+type UpdateClientOptions = {
   ctx: {
     user: {
       id: number;
@@ -20,7 +20,7 @@ type UpdateClientStatusOptions = {
   input: TUpdateClientInputSchema;
 };
 
-type UpdateClientStatusOutput = {
+type UpdateClientOutput = {
   clientId: string;
   name: string;
   purpose: string | null;
@@ -31,10 +31,10 @@ type UpdateClientStatusOutput = {
   rejectionReason: string | null;
 };
 
-export const updateClientStatusHandler = async ({
+export const updateClientHandler = async ({
   ctx,
   input,
-}: UpdateClientStatusOptions): Promise<UpdateClientStatusOutput> => {
+}: UpdateClientOptions): Promise<UpdateClientOutput> => {
   const { clientId, status, rejectionReason, name, purpose, redirectUri, websiteUrl, logo } = input;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
