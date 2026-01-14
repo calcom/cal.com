@@ -301,6 +301,7 @@ export class CalendarSubscriptionService {
     const now = Date.now();
     const lagStats = this.calculatePropagationLag(events.items, now);
     if (lagStats) {
+      result.propagationLagMs = lagStats;
       metrics.distribution(
         "calendar.subscription.propagation_lag.avg_ms",
         lagStats.avg,

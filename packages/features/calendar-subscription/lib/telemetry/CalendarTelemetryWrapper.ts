@@ -58,6 +58,8 @@ export class CalendarTelemetryWrapper implements Calendar {
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
 
+    if (!selectedCalendars?.length) return [];
+
     log.debug("getAvailability", {
       dateFrom,
       dateTo,
@@ -66,8 +68,6 @@ export class CalendarTelemetryWrapper implements Calendar {
       cacheEnabled: this.deps.cacheEnabled,
       mode: this.deps.mode,
     });
-
-    if (!selectedCalendars?.length) return [];
 
     const startTime = performance.now();
 
@@ -123,6 +123,8 @@ export class CalendarTelemetryWrapper implements Calendar {
       return [];
     }
 
+    if (!selectedCalendars?.length) return [];
+
     log.debug("getAvailabilityWithTimeZones", {
       dateFrom,
       dateTo,
@@ -131,8 +133,6 @@ export class CalendarTelemetryWrapper implements Calendar {
       cacheEnabled: this.deps.cacheEnabled,
       mode: this.deps.mode,
     });
-
-    if (!selectedCalendars?.length) return [];
 
     const startTime = performance.now();
 

@@ -196,6 +196,7 @@ export class CalendarCacheWrapper implements Calendar {
 
       if (original?.length) results.push(...original);
 
+      metrics.count("calendar.cache.miss.timezone.calls", 1);
       metrics.distribution("calendar.cache.miss.timezone.duration_ms", originalDurationMs);
       metrics.distribution("calendar.cache.miss.timezone.events_count", original?.length ?? 0);
     }
