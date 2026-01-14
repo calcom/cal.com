@@ -205,6 +205,7 @@ export class MonthlyProrationService {
       description: `Additional ${proration.netSeatIncrease} seat${
         proration.netSeatIncrease > 1 ? "s" : ""
       } for ${proration.monthKey}`,
+      subscriptionId: proration.subscriptionId,
       metadata: {
         type: "monthly_proration",
         prorationId: proration.id,

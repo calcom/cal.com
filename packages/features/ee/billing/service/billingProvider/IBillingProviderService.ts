@@ -73,6 +73,7 @@ export interface IBillingProviderService {
     amount: number;
     currency: string;
     description: string;
+    subscriptionId?: string;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceItemId: string }>;
 

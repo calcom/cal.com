@@ -302,7 +302,11 @@ describe("MonthlyProrationService", () => {
           seatsAtEnd: 120,
         })
       );
-      expect(mockBillingService.createInvoiceItem).toHaveBeenCalled();
+      expect(mockBillingService.createInvoiceItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subscriptionId: "sub_999",
+        })
+      );
       expect(mockBillingService.createInvoice).toHaveBeenCalled();
     });
 

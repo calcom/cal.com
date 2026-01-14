@@ -247,12 +247,13 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async createInvoiceItem(args: Parameters<IBillingProviderService["createInvoiceItem"]>[0]) {
-    const { customerId, amount, currency, description, metadata } = args;
+    const { customerId, amount, currency, description, subscriptionId, metadata } = args;
     const invoiceItem = await this.stripe.invoiceItems.create({
       customer: customerId,
       amount,
       currency,
       description,
+      subscription: subscriptionId,
       metadata,
     });
 
