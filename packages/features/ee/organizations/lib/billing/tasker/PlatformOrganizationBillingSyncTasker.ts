@@ -14,26 +14,38 @@ export class PlatformOrganizationBillingSyncTasker implements IPlatformOrganizat
   ) {}
 
   async incrementUsage(
-    _payload: Parameters<IPlatformOrganizationBillingTasker["incrementUsage"]>[0]
+    payload: Parameters<IPlatformOrganizationBillingTasker["incrementUsage"]>[0]
   ): Promise<{ runId: string }> {
     const runId = `sync_${nanoid(10)}`;
-    console.log("Delayed task are not supported in sync mode, so we're just returning a runId", runId);
+    this.dependencies.logger.info(
+      "Delayed task are not supported in sync mode, did not increment usage",
+      runId,
+      payload
+    );
     return { runId };
   }
 
   async cancelUsageIncrement(
-    _payload: Parameters<IPlatformOrganizationBillingTasker["cancelUsageIncrement"]>[0]
+    payload: Parameters<IPlatformOrganizationBillingTasker["cancelUsageIncrement"]>[0]
   ): Promise<{ runId: string }> {
     const runId = `sync_${nanoid(10)}`;
-    console.log("Delayed task are not supported in sync mode, so we're just returning a runId", runId);
+    this.dependencies.logger.info(
+      "Delayed task are not supported in sync mode, did not cancel usage increment",
+      runId,
+      payload
+    );
     return { runId };
   }
 
   async rescheduleUsageIncrement(
-    _payload: Parameters<IPlatformOrganizationBillingTasker["rescheduleUsageIncrement"]>[0]
+    payload: Parameters<IPlatformOrganizationBillingTasker["rescheduleUsageIncrement"]>[0]
   ): Promise<{ runId: string }> {
     const runId = `sync_${nanoid(10)}`;
-    console.log("Delayed task are not supported in sync mode, so we're just returning a runId", runId);
+    this.dependencies.logger.info(
+      "Delayed task are not supported in sync mode, did not reschedule usage increment",
+      runId,
+      payload
+    );
     return { runId };
   }
 }

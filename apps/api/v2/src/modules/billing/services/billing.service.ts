@@ -34,7 +34,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
     private readonly usersRepository: UsersRepository,
-    private readonly PlatformBillingTasker: PlatformBillingTasker,
+    private readonly platformBillingTasker: PlatformBillingTasker,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
@@ -447,13 +447,13 @@ export class BillingService implements IBillingService, OnModuleDestroy {
 
     if (this.configService.get("enableAsyncTasker")) {
       if (fromReschedule) {
-        this.PlatformBillingTasker.rescheduleUsageIncrement({
+        this.platformBillingTasker.rescheduleUsageIncrement({
           payload: { bookingUid: uid },
           options: { delay: startTime },
         });
         return true;
       }
-      this.PlatformBillingTasker.incrementUsage({
+      this.platformBillingTasker.incrementUsage({
         payload: { userId },
         options: {
           delay: startTime,
@@ -496,7 +496,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
 
     if (this.configService.get("enableAsyncTasker")) {
-      await this.PlatformBillingTasker.cancelUsageIncrement({ payload: { bookingUid } });
+      await this.platformBillingTasker.cancelUsageIncrement({ payload: { bookingUid } });
       return true;
     }
 
