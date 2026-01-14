@@ -19,7 +19,7 @@ export default async function handler(
 
   const {
     instanceUrl,
-    sfdcOrgId,
+    orgId: sfdcOrgId,
     salesforceUserId,
     email,
     changedFields,
