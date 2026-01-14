@@ -46,7 +46,7 @@ export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: numb
     return cause;
   }
   if (typeof cause === "string") {
-    // @ts-ignore https://github.com/tc39/proposal-error-cause
+    // @ts-expect-error https://github.com/tc39/proposal-error-cause
     return new Error(cause, { cause });
   }
 
