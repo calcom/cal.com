@@ -130,6 +130,14 @@ export interface IIntegrationAttributeSyncRepository {
   getSyncFieldMappings(
     integrationAttributeSyncId: string
   ): Promise<AttributeSyncFieldMapping[]>;
+  getMappedAttributeIdsByOrganization(
+    organizationId: number,
+    excludeSyncId?: string
+  ): Promise<string[]>;
+  getAttributeIdsByOrganization(
+    organizationId: number,
+    attributeIds: string[]
+  ): Promise<string[]>;
   create(
     params: IIntegrationAttributeSyncCreateParams
   ): Promise<IntegrationAttributeSync>;
