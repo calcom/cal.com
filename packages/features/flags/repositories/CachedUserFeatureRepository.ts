@@ -48,13 +48,48 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
     userId: number,
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, FeatureState>>> {
-    const cached = await this.deps.redisRepo.findByUserIdAndFeatureIds(userId, featureIds);
-    if (cached !== null) {
-      return cached;
+    const result: Partial<Record<FeatureId, FeatureState>> = {};
+    const cacheMisses: FeatureId[] = [];
+
+    const cachedResults = await Promise.all(
+      featureIds.map(async (featureId) => {
+        const cached = await this.deps.redisRepo.findByUserIdAndFeatureId(userId, featureId);
+        return { featureId, cached };
+      })
+    );
+
+    for (const { featureId, cached } of cachedResults) {
+      if (cached !== null) {
+        result[featureId] = cached.enabled ? "enabled" : "disabled";
+      } else {
+        cacheMisses.push(featureId);
+      }
     }
 
-    const result = await this.deps.prismaRepo.findByUserIdAndFeatureIds(userId, featureIds);
-    await this.deps.redisRepo.setByUserIdAndFeatureIds(userId, featureIds, result);
+    if (cacheMisses.length > 0) {
+      const dbResults = await this.deps.prismaRepo.findByUserIdAndFeatureIds(userId, cacheMisses);
+
+      await Promise.all(
+        cacheMisses.map(async (featureId) => {
+          const state = dbResults[featureId];
+          result[featureId] = state ?? "inherit";
+
+          if (state && state !== "inherit") {
+            const userFeature = await this.deps.prismaRepo.findByUserIdAndFeatureId(userId, featureId);
+            if (userFeature) {
+              await this.deps.redisRepo.setByUserIdAndFeatureId(userId, featureId, userFeature);
+            }
+          }
+        })
+      );
+    }
+
+    for (const featureId of featureIds) {
+      if (!(featureId in result)) {
+        result[featureId] = "inherit";
+      }
+    }
+
     return result;
   }
 

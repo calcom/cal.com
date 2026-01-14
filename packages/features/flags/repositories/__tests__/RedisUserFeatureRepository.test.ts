@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { UserFeatures } from "@calcom/prisma/client";
 
 import type { IRedisService } from "../../../redis/IRedisService";
-import type { FeatureId, FeatureState } from "../../config";
 import { RedisUserFeatureRepository } from "../RedisUserFeatureRepository";
 
 const createMockRedisService = (): IRedisService => ({
@@ -102,54 +101,6 @@ describe("RedisUserFeatureRepository", () => {
         "features:user:1:test-feature",
         mockUserFeature,
         { ttl: 10000 }
-      );
-    });
-  });
-
-  describe("findByUserIdAndFeatureIds", () => {
-    it("should return cached batch data when found", async () => {
-      const mockData = {
-        "feature-a": "enabled",
-        "feature-b": "disabled",
-      } as Partial<Record<FeatureId, FeatureState>>;
-
-      vi.mocked(mockRedisService.get).mockResolvedValue(mockData);
-
-      const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId, "feature-b" as FeatureId]);
-
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:user:batch:1:feature-a,feature-b");
-      expect(result).toEqual(mockData);
-    });
-
-    it("should sort feature IDs for consistent cache key", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
-      await repository.findByUserIdAndFeatureIds(1, ["feature-c" as FeatureId, "feature-a" as FeatureId, "feature-b" as FeatureId]);
-
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:user:batch:1:feature-a,feature-b,feature-c");
-    });
-
-    it("should return null when not cached", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
-      const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId]);
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("setByUserIdAndFeatureIds", () => {
-    it("should cache batch data with sorted feature IDs", async () => {
-      const mockData = {
-        "feature-a": "enabled",
-      } as Partial<Record<FeatureId, FeatureState>>;
-
-      await repository.setByUserIdAndFeatureIds(1, ["feature-b" as FeatureId, "feature-a" as FeatureId], mockData);
-
-      expect(mockRedisService.set).toHaveBeenCalledWith(
-        "features:user:batch:1:feature-a,feature-b",
-        mockData,
-        { ttl: 5 * 60 * 1000 }
       );
     });
   });
