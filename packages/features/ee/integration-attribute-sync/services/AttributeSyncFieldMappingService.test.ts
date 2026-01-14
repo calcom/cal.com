@@ -1,17 +1,11 @@
 import type { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
 import type { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
 import { AttributeSyncFieldMappingService } from "./AttributeSyncFieldMappingService";
-
-vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: {
-    findUniqueByUserIdAndTeamId: vi.fn(),
-  },
-}));
 
 describe("AttributeSyncFieldMappingService", () => {
   let service: AttributeSyncFieldMappingService;
@@ -25,6 +19,9 @@ describe("AttributeSyncFieldMappingService", () => {
   let mockAttributeOptionRepository: {
     createMany: ReturnType<typeof vi.fn>;
     findMany: ReturnType<typeof vi.fn>;
+  };
+  let mockMembershipRepository: {
+    findUniqueByUserIdAndTeamId: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -44,10 +41,15 @@ describe("AttributeSyncFieldMappingService", () => {
       findMany: vi.fn(),
     };
 
+    mockMembershipRepository = {
+      findUniqueByUserIdAndTeamId: vi.fn(),
+    };
+
     service = new AttributeSyncFieldMappingService({
       attributeToUserRepository: mockAttributeToUserRepository as unknown as PrismaAttributeToUserRepository,
       attributeRepository: mockAttributeRepository as unknown as PrismaAttributeRepository,
       attributeOptionRepository: mockAttributeOptionRepository as unknown as PrismaAttributeOptionRepository,
+      membershipRepository: mockMembershipRepository as unknown as MembershipRepository,
     });
   });
 
@@ -58,7 +60,7 @@ describe("AttributeSyncFieldMappingService", () => {
     };
 
     it("should return early when no membership found", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue(null);
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue(null);
 
       await service.syncIntegrationFieldsToAttributes({
         ...baseParams,
@@ -74,7 +76,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should return early when no enabled mappings with matching integration fields", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -95,7 +97,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should sync SINGLE_SELECT attribute with matching option", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -139,7 +141,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should sync MULTI_SELECT attribute with multiple matching options", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -178,7 +180,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should handle case-insensitive option matching", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -212,7 +214,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should create new option for TEXT attribute when no matching option exists", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -254,7 +256,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should use existing option for TEXT attribute when matching option exists", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -289,7 +291,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should skip mapping when attribute not found", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -315,7 +317,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should skip non-matching options for SINGLE_SELECT attribute", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -357,7 +359,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should handle multiple mappings for different attributes", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -406,7 +408,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should only process enabled mappings", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -442,7 +444,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should handle SINGLE_SELECT with comma-separated value by taking first value only", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -479,7 +481,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should handle NUMBER attribute type", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
@@ -517,7 +519,7 @@ describe("AttributeSyncFieldMappingService", () => {
     });
 
     it("should clear old assignments even when field value is empty", async () => {
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockMembershipRepository.findUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 1,
         teamId: 100,
