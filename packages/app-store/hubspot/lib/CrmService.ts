@@ -583,15 +583,10 @@ export default class HubspotCalendarService implements CRM {
   }
 
   private async getContactOwnerId(contactId: string): Promise<string | null> {
-    try {
-      const contact = await this.hubspotClient.crm.contacts.basicApi.getById(contactId, [
-        "hubspot_owner_id",
-      ]);
-      return contact.properties.hubspot_owner_id ?? null;
-    } catch (error) {
-      this.log.error("Error fetching contact owner:", error);
-      return null;
-    }
+    const contact = await this.hubspotClient.crm.contacts.basicApi.getById(contactId, [
+      "hubspot_owner_id",
+    ]);
+    return contact.properties.hubspot_owner_id ?? null;
   }
 
   private async setContactOwnerIfAllowed(
@@ -604,9 +599,13 @@ export default class HubspotCalendarService implements CRM {
       return;
     }
 
-    const currentOwnerId = await this.getContactOwnerId(contactId);
-    if (!currentOwnerId) {
-      await this.setContactOwner(contactId, ownerId);
+    try {
+      const currentOwnerId = await this.getContactOwnerId(contactId);
+      if (!currentOwnerId) {
+        await this.setContactOwner(contactId, ownerId);
+      }
+    } catch (error) {
+      this.log.error("Error fetching contact owner, skipping owner update:", error);
     }
   }
 }
