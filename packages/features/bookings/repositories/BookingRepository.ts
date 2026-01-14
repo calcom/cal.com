@@ -2111,6 +2111,7 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
         ],
       },
       select: {
+        uid: true,
         startTime: true,
         endTime: true,
         title: true,

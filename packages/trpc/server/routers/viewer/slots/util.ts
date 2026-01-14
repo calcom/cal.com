@@ -826,9 +826,9 @@ export class AvailableSlotsService {
       dateTo,
     });
 
-    // Filter out the booking being rescheduled
+    // Filter out the booking being rescheduled to avoid blocking the current slot
     const busyTimes = guestBookings
-      .filter((booking) => booking.startTime && booking.endTime)
+      .filter((booking) => booking.uid !== rescheduleUid && booking.startTime && booking.endTime)
       .map((booking) => ({
         start: booking.startTime,
         end: booking.endTime,
