@@ -172,7 +172,7 @@ export function Header({
                 {/* Badge for active filters */}
                 {eventTypeFilterConfig.activeFilterCount > 0 && (
                   <View
-                    className="absolute -right-0.5 -top-0.5 items-center justify-center rounded-full bg-[#000000]"
+                    className="absolute -top-0.5 -right-0.5 items-center justify-center rounded-full bg-[#000000]"
                     style={{ width: 16, height: 16 }}
                   >
                     <Text className="text-[10px] font-bold text-white">

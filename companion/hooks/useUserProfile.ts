@@ -7,9 +7,9 @@
  * - Profile update mutations with cache invalidation
  */
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalComAPIService, UserProfile } from "../services/calcom";
-import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
+import { CalComAPIService, type UserProfile } from "@/services/calcom";
 
 /**
  * User profile update input type
