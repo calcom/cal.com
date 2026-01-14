@@ -39,7 +39,7 @@ export default function OAuthClientsAdminView() {
         clientId: data.clientId,
         clientSecret: data.clientSecret,
         name: data.name,
-        purpose: data.purpose,
+        purpose: data.purpose ?? "",
         approvalStatus: "APPROVED",
         redirectUri: data.redirectUri,
         logo: data.logo || null,

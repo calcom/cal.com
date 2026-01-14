@@ -40,7 +40,7 @@ const OAuthClientsView = () => {
       setSubmittedClient({
         clientId: data.clientId,
         name: data.name,
-        purpose: data.purpose,
+        purpose: data.purpose ?? "",
         clientSecret: data.clientSecret,
         approvalStatus: data.approvalStatus ?? "PENDING",
         isPkceEnabled: data.isPkceEnabled,
