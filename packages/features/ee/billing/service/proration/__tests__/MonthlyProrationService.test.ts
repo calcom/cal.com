@@ -100,6 +100,7 @@ const mockBillingService: IBillingProviderService = {
   updateCustomer: vi.fn().mockResolvedValue(undefined),
   getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
   hasDefaultPaymentMethod: vi.fn().mockResolvedValue(true),
+  voidInvoice: vi.fn().mockResolvedValue(undefined),
 } as IBillingProviderService;
 
 vi.mock("../../../repository/proration/MonthlyProrationTeamRepository", () => ({
@@ -239,6 +240,70 @@ describe("MonthlyProrationService", () => {
       expect(mockBillingService.createInvoiceItem).toHaveBeenCalled();
       expect(mockBillingService.createInvoice).toHaveBeenCalled();
       expect(mockBillingService.finalizeInvoice).toHaveBeenCalled();
+    });
+
+    it("should charge only for net additions when removals exist", async () => {
+      const subscriptionStart = new Date("2026-01-01");
+      const subscriptionEnd = new Date("2027-01-01");
+
+      const { SeatChangeTrackingService } = await import("../../seatTracking/SeatChangeTrackingService");
+      vi.spyOn(SeatChangeTrackingService.prototype, "getMonthlyChanges").mockResolvedValueOnce({
+        additions: 20,
+        removals: 10,
+        netChange: 10,
+      });
+      vi.spyOn(SeatChangeTrackingService.prototype, "markAsProcessed").mockResolvedValueOnce(10);
+
+      mockTeamRepository.getTeamWithBilling.mockResolvedValueOnce({
+        id: 1,
+        isOrganization: false,
+        memberCount: 120,
+        billing: {
+          id: "team-billing-999",
+          subscriptionId: "sub_999",
+          subscriptionItemId: "si_999",
+          customerId: "cus_999",
+          billingPeriod: "ANNUALLY",
+          pricePerSeat: 10000,
+          subscriptionStart,
+          subscriptionEnd,
+          paidSeats: 110,
+        },
+      });
+
+      mockProrationRepository.createProration.mockResolvedValueOnce({
+        id: "proration-999",
+        customerId: "cus_999",
+        proratedAmount: 25000,
+        netSeatIncrease: 10,
+        monthKey: "2026-01",
+        teamId: 1,
+        subscriptionId: "sub_999",
+        subscriptionItemId: "si_999",
+        seatsAtEnd: 120,
+      } as any);
+
+      mockProrationRepository.updateProrationStatus.mockResolvedValueOnce({
+        id: "proration-999",
+        status: "INVOICE_CREATED",
+      } as any);
+
+      await service.createProrationForTeam({
+        teamId: 1,
+        monthKey: "2026-01",
+      });
+
+      expect(mockProrationRepository.createProration).toHaveBeenCalledWith(
+        expect.objectContaining({
+          seatsAdded: 20,
+          seatsRemoved: 10,
+          netSeatIncrease: 10,
+          seatsAtStart: 110,
+          seatsAtEnd: 120,
+        })
+      );
+      expect(mockBillingService.createInvoiceItem).toHaveBeenCalled();
+      expect(mockBillingService.createInvoice).toHaveBeenCalled();
     });
 
     it("should send invoice when no default payment method exists", async () => {
