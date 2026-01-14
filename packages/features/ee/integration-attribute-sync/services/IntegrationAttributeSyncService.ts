@@ -215,6 +215,9 @@ export class IntegrationAttributeSyncService {
 
     const parsedRule = attributeSyncRuleSchema.parse(rule);
 
+    const teamIds = this.extractTeamIdsFromRule(parsedRule);
+    await this.validateTeamsBelongToOrg(teamIds, data.organizationId);
+
     const incomingMappingIds = new Set(
       syncFieldMappings.reduce((ids, mapping) => {
         if ("id" in mapping) ids.push(mapping.id);

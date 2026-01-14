@@ -5,7 +5,10 @@ import type { TeamRepository } from "@calcom/features/ee/teams/repositories/Team
 
 import { enabledAppSlugs } from "../constants";
 import type { IIntegrationAttributeSyncRepository } from "../repositories/IIntegrationAttributeSyncRepository";
-import { IntegrationAttributeSyncService } from "./IntegrationAttributeSyncService";
+import {
+  IntegrationAttributeSyncService,
+  UnauthorizedAttributeError,
+} from "./IntegrationAttributeSyncService";
 
 describe("IntegrationAttributeSyncService", () => {
   let service: IntegrationAttributeSyncService;
@@ -20,6 +23,9 @@ describe("IntegrationAttributeSyncService", () => {
     getAttributeIdsByOrganization: ReturnType<typeof vi.fn>;
     updateTransactionWithRuleAndMappings: ReturnType<typeof vi.fn>;
     deleteById: ReturnType<typeof vi.fn>;
+  };
+  let mockTeamRepository: {
+    findTeamsNotBelongingToOrgByIds: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -39,10 +45,15 @@ describe("IntegrationAttributeSyncService", () => {
       deleteById: vi.fn(),
     };
 
+    mockTeamRepository = {
+      findTeamsNotBelongingToOrgByIds: vi.fn(),
+    };
+
     service = new IntegrationAttributeSyncService({
       credentialRepository: mockCredentialRepository as unknown as CredentialRepository,
       integrationAttributeSyncRepository:
         mockIntegrationAttributeSyncRepository as unknown as IIntegrationAttributeSyncRepository,
+      teamRepository: mockTeamRepository as unknown as TeamRepository,
     });
   });
 
@@ -172,6 +183,7 @@ describe("IntegrationAttributeSyncService", () => {
       mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-1", "attr-2"]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
@@ -209,6 +221,7 @@ describe("IntegrationAttributeSyncService", () => {
         { id: "mapping-2", integrationFieldName: "field2", attributeId: "attr-2", enabled: true },
       ]);
       mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
@@ -246,6 +259,7 @@ describe("IntegrationAttributeSyncService", () => {
         { id: "mapping-3", integrationFieldName: "field3", attributeId: "attr-3", enabled: true },
       ]);
       mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
@@ -283,6 +297,7 @@ describe("IntegrationAttributeSyncService", () => {
         { id: "mapping-2", integrationFieldName: "field2", attributeId: "attr-2", enabled: true },
       ]);
       mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
@@ -413,6 +428,7 @@ describe("IntegrationAttributeSyncService", () => {
       mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-1", "attr-2"]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await expect(service.updateIncludeRulesAndMappings(formData)).resolves.not.toThrow();
     });
@@ -427,6 +443,7 @@ describe("IntegrationAttributeSyncService", () => {
       mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await expect(service.updateIncludeRulesAndMappings(formData)).resolves.not.toThrow();
     });
@@ -470,6 +487,8 @@ describe("IntegrationAttributeSyncService", () => {
           },
         };
 
+        mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
+        mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
         mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([{ id: 2 }, { id: 3 }]);
 
         await expect(service.updateIncludeRulesAndMappings(formData)).rejects.toThrow(
@@ -498,6 +517,8 @@ describe("IntegrationAttributeSyncService", () => {
           },
         };
 
+        mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
+        mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
 
@@ -522,6 +543,8 @@ describe("IntegrationAttributeSyncService", () => {
         };
 
         mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
+        mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
+        mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
 
