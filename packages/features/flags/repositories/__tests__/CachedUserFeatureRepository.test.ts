@@ -22,8 +22,6 @@ const createMockPrismaRepo = (): IPrismaUserFeatureRepository => ({
 const createMockRedisRepo = (): IRedisUserFeatureRepository => ({
   findByUserIdAndFeatureId: vi.fn(),
   setByUserIdAndFeatureId: vi.fn(),
-  findByUserIdAndFeatureIds: vi.fn(),
-  setByUserIdAndFeatureIds: vi.fn(),
   findAutoOptInByUserId: vi.fn(),
   setAutoOptInByUserId: vi.fn(),
   invalidateByUserIdAndFeatureId: vi.fn(),
@@ -93,27 +91,67 @@ describe("CachedUserFeatureRepository", () => {
   });
 
   describe("findByUserIdAndFeatureIds", () => {
-    it("should return cached data when available", async () => {
-      const mockData = { "feature-a": "enabled" } as Partial<Record<FeatureId, FeatureState>>;
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureIds).mockResolvedValue(mockData);
+    it("should return cached data when all features are cached", async () => {
+      const mockUserFeatureA = { userId: 1, featureId: "feature-a", enabled: true } as UserFeatures;
+      const mockUserFeatureB = { userId: 1, featureId: "feature-b", enabled: false } as UserFeatures;
 
-      const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId]);
+      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId)
+        .mockResolvedValueOnce(mockUserFeatureA)
+        .mockResolvedValueOnce(mockUserFeatureB);
 
-      expect(mockRedisRepo.findByUserIdAndFeatureIds).toHaveBeenCalledWith(1, ["feature-a"]);
+      const result = await repository.findByUserIdAndFeatureIds(1, [
+        "feature-a" as FeatureId,
+        "feature-b" as FeatureId,
+      ]);
+
+      expect(mockRedisRepo.findByUserIdAndFeatureId).toHaveBeenCalledTimes(2);
       expect(mockPrismaRepo.findByUserIdAndFeatureIds).not.toHaveBeenCalled();
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({
+        "feature-a": "enabled",
+        "feature-b": "disabled",
+      });
     });
 
-    it("should fetch from Prisma and cache when not in Redis", async () => {
-      const mockData = { "feature-a": "enabled" } as Partial<Record<FeatureId, FeatureState>>;
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureIds).mockResolvedValue(null);
-      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue(mockData);
+    it("should fetch from Prisma for cache misses and cache individual results", async () => {
+      const mockUserFeatureA = { userId: 1, featureId: "feature-a", enabled: true } as UserFeatures;
+
+      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId)
+        .mockResolvedValueOnce(mockUserFeatureA)
+        .mockResolvedValueOnce(null);
+
+      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue({
+        "feature-b": "disabled",
+      } as Partial<Record<FeatureId, FeatureState>>);
+
+      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureId).mockResolvedValue({
+        userId: 1,
+        featureId: "feature-b",
+        enabled: false,
+      } as UserFeatures);
+
+      const result = await repository.findByUserIdAndFeatureIds(1, [
+        "feature-a" as FeatureId,
+        "feature-b" as FeatureId,
+      ]);
+
+      expect(mockRedisRepo.findByUserIdAndFeatureId).toHaveBeenCalledTimes(2);
+      expect(mockPrismaRepo.findByUserIdAndFeatureIds).toHaveBeenCalledWith(1, ["feature-b"]);
+      expect(mockRedisRepo.setByUserIdAndFeatureId).toHaveBeenCalled();
+      expect(result).toEqual({
+        "feature-a": "enabled",
+        "feature-b": "disabled",
+      });
+    });
+
+    it("should return inherit for features not found in cache or database", async () => {
+      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId).mockResolvedValue(null);
+      vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue({
+        "feature-a": "inherit",
+      } as Partial<Record<FeatureId, FeatureState>>);
 
       const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId]);
 
-      expect(mockPrismaRepo.findByUserIdAndFeatureIds).toHaveBeenCalledWith(1, ["feature-a"]);
-      expect(mockRedisRepo.setByUserIdAndFeatureIds).toHaveBeenCalledWith(1, ["feature-a"], mockData);
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({ "feature-a": "inherit" });
     });
   });
 
