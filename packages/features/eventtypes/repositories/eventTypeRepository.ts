@@ -1863,4 +1863,41 @@ export class EventTypeRepository {
 
     return eventTypeResult;
   }
+
+  async findWithAssignAllTeamMembersIncludeHostsAndTeamMembers(schedulingTypes: string[]) {
+    return await this.prismaClient.eventType.findMany({
+      where: {
+        assignAllTeamMembers: true,
+        teamId: { not: null },
+        schedulingType: {
+          in: schedulingTypes as ("ROUND_ROBIN" | "COLLECTIVE")[],
+        },
+      },
+      select: {
+        id: true,
+        teamId: true,
+        schedulingType: true,
+        hosts: {
+          select: {
+            userId: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+            members: {
+              where: {
+                accepted: true,
+              },
+              select: {
+                id: true,
+                userId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
