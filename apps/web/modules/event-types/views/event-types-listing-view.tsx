@@ -1,21 +1,9 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { FC } from "react";
-import { memo, useEffect, useState } from "react";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/web/modules/embed/components/EventTypeEmbed";
-import { EventTypeDescription } from "@calcom/web/modules/event-types/components";
-import { DuplicateDialog } from "@calcom/web/modules/event-types/components/DuplicateDialog";
-import { InfiniteSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
-import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
+import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -25,8 +13,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { localStorage } from "@calcom/lib/webstorage";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -46,9 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Label, Switch, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
@@ -56,11 +41,23 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { CreateButton } from "@calcom/web/modules/ee/teams/components/createButton/CreateButton";
 import {
+  EventTypeEmbedButton,
+  EventTypeEmbedDialog,
+} from "@calcom/web/modules/embed/components/EventTypeEmbed";
+import { EventTypeDescription } from "@calcom/web/modules/event-types/components";
+import {
   CreateEventTypeDialog,
   type ProfileOption,
 } from "@calcom/web/modules/event-types/components/CreateEventTypeDialog";
-
+import { DuplicateDialog } from "@calcom/web/modules/event-types/components/DuplicateDialog";
+import { InfiniteSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { TRPCClientError } from "@trpc/client";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { FC } from "react";
+import { memo, useEffect, useState } from "react";
+import { z } from "zod";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -350,8 +347,8 @@ export const InfiniteEventTypeList = ({
           ? pageNo - 1
           : pageNo
         : index % LIMIT === LIMIT - 1
-        ? pageNo + 1
-        : pageNo;
+          ? pageNo + 1
+          : pageNo;
 
     const newIdx = (index + increment) % LIMIT;
     const newPositionEventType = newOrder[newPageNo].eventTypes[newIdx];
@@ -570,26 +567,48 @@ export const InfiniteEventTypeList = ({
                           />
                         )}
                         <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                          {!isManagedEventType && (
-                            <>
-                              {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
-                              <Tooltip
-                                content={
-                                  type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                                }>
-                                <div className="self-center rounded-md p-2">
-                                  <Switch
-                                    name="Hidden"
-                                    disabled={lockedByOrg}
-                                    checked={!type.hidden}
-                                    onCheckedChange={() => {
-                                      setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
-                                    }}
-                                  />
-                                </div>
-                              </Tooltip>
-                            </>
-                          )}
+                          {(() => {
+                            // For child managed events, check if hidden field is locked (not in unlockedFields)
+                            const isHiddenFieldLocked =
+                              isChildrenManagedEventType &&
+                              type.metadata?.managedEventConfig?.unlockedFields?.hidden === undefined;
+                            // Show toggle for: regular events, managed parent events, and child managed events
+                            // But disable for child managed events when locked
+                            const isDisabled =
+                              lockedByOrg || (isChildrenManagedEventType && isHiddenFieldLocked);
+
+                            return (
+                              <>
+                                {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
+                                {isChildrenManagedEventType && isHiddenFieldLocked && (
+                                  <Tooltip content={t("locked_fields_member_description")}>
+                                    <div className="flex items-center">
+                                      <Icon name="lock" className="text-subtle h-4 w-4" data-testid="lock" />
+                                    </div>
+                                  </Tooltip>
+                                )}
+                                <Tooltip
+                                  content={
+                                    isDisabled && isChildrenManagedEventType
+                                      ? t("locked_fields_member_description")
+                                      : type.hidden
+                                        ? t("show_eventtype_on_profile")
+                                        : t("hide_from_profile")
+                                  }>
+                                  <div className="self-center rounded-md p-2">
+                                    <Switch
+                                      name="Hidden"
+                                      disabled={isDisabled}
+                                      checked={!type.hidden}
+                                      onCheckedChange={() => {
+                                        setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                                      }}
+                                    />
+                                  </div>
+                                </Tooltip>
+                              </>
+                            );
+                          })()}
 
                           <ButtonGroup combined>
                             {!isManagedEventType && (

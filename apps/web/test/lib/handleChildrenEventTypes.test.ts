@@ -1,18 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
-import type { EventType, User, WorkflowsOnEventTypes } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { EventType, Prisma, User, WorkflowsOnEventTypes } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import { describe, expect, it, vi } from "vitest";
 
 // Helper to setup transaction mock that executes the callback with the prisma mock
 const setupTransactionMock = () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   prismaMock.$transaction.mockImplementation(async (callback) => {
     if (typeof callback === "function") {
       return await callback(prismaMock);
@@ -98,7 +96,7 @@ describe("handleChildrenEventTypes", () => {
 
     it("Returns message 'Missing event type'", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       prismaMock.eventType.findFirst.mockImplementation(() => {
         return new Promise((resolve) => {
           resolve(null);
@@ -125,7 +123,7 @@ describe("handleChildrenEventTypes", () => {
   describe("Happy paths", () => {
     it("Adds new users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -210,7 +208,7 @@ describe("handleChildrenEventTypes", () => {
 
     it("Updates old users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -325,7 +323,7 @@ describe("handleChildrenEventTypes", () => {
   describe("Slug conflicts", () => {
     it("Deletes existent event types for new users added", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -413,7 +411,7 @@ describe("handleChildrenEventTypes", () => {
     });
     it("Deletes existent event types for old users updated", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -659,6 +657,118 @@ describe("handleChildrenEventTypes", () => {
         data: [{ eventTypeId: 2, workflowId: 11 }],
         skipDuplicates: false,
       });
+    });
+  });
+
+  describe("Hidden field propagation", () => {
+    it("Propagates hidden value from parent to child when hidden is not in unlockedFields", async () => {
+      mockFindFirstEventType({
+        id: 1,
+        slug: "managed-event",
+        hidden: true,
+        schedulingType: SchedulingType.MANAGED,
+        metadata: {
+          managedEventConfig: {
+            unlockedFields: {},
+          },
+        },
+        locations: [],
+      });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
+        updatedEventType: { schedulingType: "MANAGED", slug: "managed-event" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: { hidden: true },
+      });
+
+      // When hidden is not in unlockedFields, the parent's hidden value should be propagated to child
+      // The update call should NOT include hidden in the data (it's inherited from parent)
+      expect(prismaMock.eventType.update).toHaveBeenCalled();
+      expect(result.oldUserIds).toEqual([4]);
+    });
+
+    it("Preserves child hidden value when hidden is in unlockedFields", async () => {
+      mockFindFirstEventType({
+        id: 1,
+        slug: "managed-event",
+        hidden: true,
+        schedulingType: SchedulingType.MANAGED,
+        metadata: {
+          managedEventConfig: {
+            unlockedFields: {
+              hidden: true,
+            },
+          },
+        },
+        locations: [],
+      });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
+        updatedEventType: { schedulingType: "MANAGED", slug: "managed-event" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: { hidden: true },
+      });
+
+      // When hidden IS in unlockedFields, the child's hidden value should be preserved
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            hidden: false,
+          }),
+        })
+      );
+      expect(result.oldUserIds).toEqual([4]);
+    });
+
+    it("Creates new child event with parent's hidden value", async () => {
+      setupTransactionMock();
+      mockFindFirstEventType({
+        id: 1,
+        slug: "managed-event",
+        hidden: true,
+        schedulingType: SchedulingType.MANAGED,
+        metadata: {
+          managedEventConfig: {
+            unlockedFields: {},
+          },
+        },
+        locations: [],
+        users: [],
+      });
+
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([{ id: 3, userId: 4 }]);
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
+        updatedEventType: { schedulingType: "MANAGED", slug: "managed-event" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify createManyAndReturn was called with parent's hidden value
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              hidden: true,
+            }),
+          ]),
+        })
+      );
     });
   });
 });
