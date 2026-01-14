@@ -22,7 +22,7 @@ export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
     logo,
     websiteUrl,
     enablePkce,
-    approvalStatus: "APPROVED",
+    status: "APPROVED",
   });
 
   return {
@@ -34,6 +34,6 @@ export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
     clientType: client.clientType,
     clientSecret: client.clientSecret,
     isPkceEnabled: enablePkce,
-    approvalStatus: client.approvalStatus,
+    status: client.status,
   };
 };

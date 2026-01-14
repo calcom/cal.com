@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TFunction } from "i18next";
 
 import type { PrismaClient } from "@calcom/prisma";
-import { OAuthClientApprovalStatus, UserPermissionRole } from "@calcom/prisma/enums";
+import { OAuthClientStatus, UserPermissionRole } from "@calcom/prisma/enums";
 
 import { updateClientHandler } from "./updateClient.handler";
 
@@ -62,7 +62,7 @@ describe("updateClientHandler", () => {
 
     mocks.getTranslation.mockResolvedValue(t);
 
-    mocks.findByClientId.mockResolvedValue({
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
@@ -70,11 +70,7 @@ describe("updateClientHandler", () => {
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
-      approvalStatus: "PENDING",
-    });
-
-    mocks.findByClientIdIncludeUser.mockResolvedValue({
-      clientId: CLIENT_ID,
+      status: "PENDING",
       user: {
         email: USER_EMAIL,
         name: USER_NAME,
@@ -85,7 +81,7 @@ describe("updateClientHandler", () => {
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      approvalStatus: "APPROVED",
+      status: "APPROVED",
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
@@ -106,7 +102,7 @@ describe("updateClientHandler", () => {
 
     const input = {
       clientId: CLIENT_ID,
-      status: OAuthClientApprovalStatus.APPROVED,
+      status: OAuthClientStatus.APPROVED,
     };
 
     const result = await updateClientHandler({ ctx, input });
@@ -115,7 +111,7 @@ describe("updateClientHandler", () => {
       expect.objectContaining({
         where: { clientId: input.clientId },
         data: {
-          approvalStatus: "APPROVED",
+          status: "APPROVED",
           rejectionReason: null,
         },
       })
@@ -135,7 +131,7 @@ describe("updateClientHandler", () => {
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      approvalStatus: "APPROVED",
+      status: "APPROVED",
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
@@ -153,7 +149,7 @@ describe("updateClientHandler", () => {
 
     mocks.getTranslation.mockResolvedValue(t);
 
-    mocks.findByClientId.mockResolvedValue({
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
@@ -161,11 +157,7 @@ describe("updateClientHandler", () => {
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
-      approvalStatus: "PENDING",
-    });
-
-    mocks.findByClientIdIncludeUser.mockResolvedValue({
-      clientId: CLIENT_ID,
+      status: "PENDING",
       user: {
         email: USER_EMAIL,
         name: USER_NAME,
@@ -176,7 +168,7 @@ describe("updateClientHandler", () => {
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      approvalStatus: "REJECTED",
+      status: "REJECTED",
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
@@ -197,7 +189,7 @@ describe("updateClientHandler", () => {
 
     const input = {
       clientId: CLIENT_ID,
-      status: OAuthClientApprovalStatus.REJECTED,
+      status: OAuthClientStatus.REJECTED,
       rejectionReason: REJECTION_REASON_RAW,
     };
 
@@ -207,7 +199,7 @@ describe("updateClientHandler", () => {
       expect.objectContaining({
         where: { clientId: input.clientId },
         data: {
-          approvalStatus: "REJECTED",
+          status: "REJECTED",
           rejectionReason: REJECTION_REASON_TRIMMED,
         },
       })
@@ -226,14 +218,16 @@ describe("updateClientHandler", () => {
   });
 
   it("throws FORBIDDEN when a non-admin attempts to set rejectionReason", async () => {
-    mocks.findByClientId.mockResolvedValue({
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
-      approvalStatus: "PENDING",
+      status: "PENDING",
+      user: null,
     });
 
     const ctx = {
@@ -260,14 +254,16 @@ describe("updateClientHandler", () => {
   });
 
   it("throws BAD_REQUEST when rejecting without a non-empty rejectionReason", async () => {
-    mocks.findByClientId.mockResolvedValue({
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
-      approvalStatus: "PENDING",
+      status: "PENDING",
+      user: null,
     });
 
     const ctx = {
@@ -287,7 +283,7 @@ describe("updateClientHandler", () => {
         ctx,
         input: {
           clientId: CLIENT_ID,
-          status: OAuthClientApprovalStatus.REJECTED,
+          status: OAuthClientStatus.REJECTED,
           rejectionReason: " ",
         },
       })
@@ -298,14 +294,16 @@ describe("updateClientHandler", () => {
   });
 
   it("throws FORBIDDEN when a non-admin attempts to update status", async () => {
-    mocks.findByClientId.mockResolvedValue({
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
-      approvalStatus: "PENDING",
+      status: "PENDING",
+      user: null,
     });
 
     const ctx = {
@@ -325,7 +323,7 @@ describe("updateClientHandler", () => {
         ctx,
         input: {
           clientId: CLIENT_ID,
-          status: OAuthClientApprovalStatus.APPROVED,
+          status: OAuthClientStatus.APPROVED,
         },
       })
     ).rejects.toMatchObject({
@@ -335,14 +333,16 @@ describe("updateClientHandler", () => {
   });
 
   it("throws FORBIDDEN when a non-owner, non-admin attempts to update client fields", async () => {
-    mocks.findByClientId.mockResolvedValue({
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
-      approvalStatus: "PENDING",
+      status: "PENDING",
+      user: null,
     });
 
     const ctx = {
@@ -371,8 +371,8 @@ describe("updateClientHandler", () => {
     });
   });
 
-  it("sets approvalStatus to PENDING when an owner edits a previously approved client (reapproval flow)", async () => {
-    mocks.findByClientId.mockResolvedValue({
+  it("sets status to PENDING when an owner edits a previously approved client (reapproval flow)", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
@@ -380,14 +380,15 @@ describe("updateClientHandler", () => {
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
-      approvalStatus: "APPROVED",
+      status: "APPROVED",
+      user: null,
     });
 
     const prismaUpdate = vi.fn().mockResolvedValue({
       clientId: CLIENT_ID,
       name: "My Client v2",
       purpose: CLIENT_PURPOSE,
-      approvalStatus: "PENDING",
+      status: "PENDING",
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
@@ -419,7 +420,7 @@ describe("updateClientHandler", () => {
         where: { clientId: CLIENT_ID },
         data: {
           name: "My Client v2",
-          approvalStatus: "PENDING",
+          status: "PENDING",
           rejectionReason: null,
         },
       })

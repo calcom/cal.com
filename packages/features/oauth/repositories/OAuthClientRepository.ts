@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import type { PrismaClient } from "@calcom/prisma";
-import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
+import type { OAuthClientStatus } from "@calcom/prisma/enums";
 
 export class OAuthClientRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -22,7 +22,7 @@ export class OAuthClientRepository {
         isTrusted: true,
         websiteUrl: true,
         rejectionReason: true,
-        approvalStatus: true,
+        status: true,
         userId: true,
         createdAt: true,
       },
@@ -54,7 +54,7 @@ export class OAuthClientRepository {
         websiteUrl: true,
         rejectionReason: true,
         isTrusted: true,
-        approvalStatus: true,
+        status: true,
         userId: true,
         createdAt: true,
         user: {
@@ -80,7 +80,7 @@ export class OAuthClientRepository {
         websiteUrl: true,
         rejectionReason: true,
         clientType: true,
-        approvalStatus: true,
+        status: true,
         userId: true,
         createdAt: true,
       },
@@ -88,9 +88,9 @@ export class OAuthClientRepository {
     });
   }
 
-  async findByUserIdAndStatus(userId: number, approvalStatus: OAuthClientApprovalStatus) {
+  async findByUserIdAndStatus(userId: number, status: OAuthClientStatus) {
     return this.prisma.oAuthClient.findMany({
-      where: { userId, approvalStatus },
+      where: { userId, status },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -106,7 +106,7 @@ export class OAuthClientRepository {
         websiteUrl: true,
         rejectionReason: true,
         clientType: true,
-        approvalStatus: true,
+        status: true,
         userId: true,
         createdAt: true,
         user: {
@@ -121,9 +121,9 @@ export class OAuthClientRepository {
     });
   }
 
-  async findByStatus(approvalStatus: OAuthClientApprovalStatus) {
+  async findByStatus(status: OAuthClientStatus) {
     return this.prisma.oAuthClient.findMany({
-      where: { approvalStatus },
+      where: { status },
       select: {
         clientId: true,
         redirectUri: true,
@@ -133,7 +133,7 @@ export class OAuthClientRepository {
         websiteUrl: true,
         rejectionReason: true,
         clientType: true,
-        approvalStatus: true,
+        status: true,
         userId: true,
         createdAt: true,
         user: {
@@ -156,9 +156,9 @@ export class OAuthClientRepository {
     websiteUrl?: string;
     enablePkce?: boolean;
     userId?: number;
-    approvalStatus: OAuthClientApprovalStatus;
+    status: OAuthClientStatus;
   }) {
-    const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, userId, approvalStatus } = data;
+    const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, userId, status } = data;
 
     const clientId = randomBytes(32).toString("hex");
 
@@ -179,7 +179,7 @@ export class OAuthClientRepository {
         clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
         logo,
         websiteUrl,
-        approvalStatus: approvalStatus,
+        status,
         clientSecret: hashedSecret,
         ...(userId && {
           user: {
@@ -198,14 +198,14 @@ export class OAuthClientRepository {
       clientType: client.clientType,
       clientSecret,
       isPkceEnabled: enablePkce,
-      approvalStatus: client.approvalStatus,
+      status: client.status,
     };
   }
 
-  async updateStatus(clientId: string, approvalStatus: OAuthClientApprovalStatus) {
+  async updateStatus(clientId: string, status: OAuthClientStatus) {
     return this.prisma.oAuthClient.update({
       where: { clientId },
-      data: { approvalStatus },
+      data: { status },
     });
   }
 

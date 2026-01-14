@@ -32,7 +32,7 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
     websiteUrl,
     enablePkce,
     userId,
-    approvalStatus: "PENDING",
+    status: "PENDING",
   });
 
   const t = await getTranslation("en", "common");
@@ -54,7 +54,7 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
     redirectUri: client.redirectUri,
     logo: client.logo,
     clientType: client.clientType,
-    approvalStatus: client.approvalStatus,
+    status: client.status,
     isPkceEnabled: enablePkce,
   };
 };

@@ -4,7 +4,7 @@ import type { TFunction } from "i18next";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import { submitClientHandler } from "./submitClient.handler";
+import { submitClientForReviewHandler } from "./submitClientForReview.handler";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -53,7 +53,7 @@ describe("submitClientHandler", () => {
       clientType: "CONFIDENTIAL",
       clientSecret: "plain-secret",
       isPkceEnabled: false,
-      approvalStatus: "PENDING",
+      status: "PENDING",
     };
 
     mocks.createOAuthClient.mockResolvedValue(createdClient);
@@ -77,7 +77,7 @@ describe("submitClientHandler", () => {
       enablePkce: false,
     };
 
-    const result = await submitClientHandler({ ctx, input });
+    const result = await submitClientForReviewHandler({ ctx, input });
 
     expect(mocks.createOAuthClient).toHaveBeenCalledWith({
       name: input.name,
@@ -87,7 +87,7 @@ describe("submitClientHandler", () => {
       websiteUrl: input.websiteUrl,
       enablePkce: input.enablePkce,
       userId: ctx.user.id,
-      approvalStatus: "PENDING",
+      status: "PENDING",
     });
 
     expect(mocks.sendAdminOAuthClientNotification).toHaveBeenCalledWith({
@@ -108,7 +108,7 @@ describe("submitClientHandler", () => {
       redirectUri: createdClient.redirectUri,
       logo: createdClient.logo,
       clientType: createdClient.clientType,
-      approvalStatus: createdClient.approvalStatus,
+      status: createdClient.status,
       isPkceEnabled: input.enablePkce,
     });
   });

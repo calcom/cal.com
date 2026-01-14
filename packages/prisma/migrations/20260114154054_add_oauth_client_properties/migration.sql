@@ -1,13 +1,16 @@
 -- CreateEnum
-CREATE TYPE "public"."OAuthClientApprovalStatus" AS ENUM ('pending', 'approved', 'rejected');
+CREATE TYPE "public"."OAuthClientStatus" AS ENUM ('pending', 'approved', 'rejected');
 
 -- AlterTable
-ALTER TABLE "public"."OAuthClient" ADD COLUMN     "approvalStatus" "public"."OAuthClientApprovalStatus" NOT NULL DEFAULT 'approved',
-ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ALTER TABLE "public"."OAuthClient" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN     "purpose" TEXT,
 ADD COLUMN     "rejectionReason" TEXT,
+ADD COLUMN     "status" "public"."OAuthClientStatus" NOT NULL DEFAULT 'approved',
 ADD COLUMN     "userId" INTEGER,
 ADD COLUMN     "websiteUrl" TEXT;
+
+-- CreateIndex
+CREATE INDEX "IntegrationAttributeSync_credentialId_idx" ON "public"."IntegrationAttributeSync"("credentialId");
 
 -- CreateIndex
 CREATE INDEX "OAuthClient_userId_idx" ON "public"."OAuthClient"("userId");

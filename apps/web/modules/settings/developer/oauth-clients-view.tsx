@@ -31,7 +31,7 @@ const OAuthClientsView = () => {
         name: data.name,
         purpose: data.purpose ?? "",
         clientSecret: data.clientSecret,
-        approvalStatus: data.approvalStatus ?? "APPROVED",
+        status: data.status ?? "APPROVED",
         isPkceEnabled: data.isPkceEnabled,
       });
       showToast(t("oauth_client_submitted"), "success");
@@ -67,7 +67,7 @@ const OAuthClientsView = () => {
           redirectUri: data.redirectUri,
           websiteUrl: data.websiteUrl,
           logo: data.logo,
-          approvalStatus: data.approvalStatus,
+          status: data.status,
           rejectionReason: data.rejectionReason,
         };
       });
@@ -121,7 +121,7 @@ const OAuthClientsView = () => {
             redirectUri: client.redirectUri,
             websiteUrl: client.websiteUrl,
             logo: client.logo,
-            approvalStatus: client.approvalStatus,
+            status: client.status,
             rejectionReason: client.rejectionReason,
             clientType: client.clientType,
           }))}

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
+import { OAuthClientStatus } from "@calcom/prisma/enums";
 
 export const ZListClientsInputSchema = z.object({
-  status: z.nativeEnum(OAuthClientApprovalStatus).optional(),
+  status: z.nativeEnum(OAuthClientStatus).optional(),
 });
 
 export type TListClientsInputSchema = z.infer<typeof ZListClientsInputSchema>;

@@ -61,7 +61,7 @@ type OAuthClientDbExpectations = {
   purpose?: string;
   redirectUri?: string;
   websiteUrl?: string | null;
-  approvalStatus?: string;
+  status?: string;
   clientType?: OAuthClientType;
   clientSecret?: string | null | TruthyExpectation;
   logo?: string | null | TruthyExpectation;
@@ -73,7 +73,7 @@ const oAuthClientSelect = {
   purpose: true,
   redirectUri: true,
   websiteUrl: true,
-  approvalStatus: true,
+  status: true,
   clientType: true,
   clientSecret: true,
   logo: true,
@@ -210,7 +210,7 @@ async function expectOAuthClientInDb(
   if (expected.purpose !== undefined) expect(dbClient.purpose).toBe(expected.purpose);
   if (expected.redirectUri !== undefined) expect(dbClient.redirectUri).toBe(expected.redirectUri);
   if (expected.websiteUrl !== undefined) expect(dbClient.websiteUrl).toBe(expected.websiteUrl);
-  if (expected.approvalStatus !== undefined) expect(dbClient.approvalStatus).toBe(expected.approvalStatus);
+  if (expected.status !== undefined) expect(dbClient.status).toBe(expected.status);
   if (expected.clientType !== undefined) expect(dbClient.clientType as OAuthClientType).toBe(expected.clientType);
 
   if (expected.clientSecret !== undefined) {
@@ -346,7 +346,7 @@ test.describe("OAuth client creation", () => {
       purpose,
       redirectUri,
       websiteUrl: null,
-      approvalStatus: "PENDING",
+      status: "PENDING",
       clientType: "CONFIDENTIAL",
       clientSecret: TRUTHY,
       logo: null,
@@ -396,7 +396,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
-      approvalStatus: "PENDING",
+      status: "PENDING",
       clientType: "CONFIDENTIAL",
       clientSecret: TRUTHY,
       logo: TRUTHY,
@@ -444,7 +444,7 @@ test.describe("OAuth client creation", () => {
       purpose,
       redirectUri,
       websiteUrl,
-      approvalStatus: "PENDING",
+      status: "PENDING",
       clientType: "CONFIDENTIAL",
       clientSecret: TRUTHY,
       logo: TRUTHY,
@@ -494,7 +494,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
-      approvalStatus: "PENDING",
+      status: "PENDING",
       clientType: "CONFIDENTIAL",
       clientSecret: TRUTHY,
       logo: TRUTHY,
@@ -540,7 +540,7 @@ test.describe("OAuth client creation", () => {
       purpose,
       redirectUri,
       websiteUrl,
-      approvalStatus: "PENDING",
+      status: "PENDING",
       clientType: "PUBLIC",
       clientSecret: null,
       logo: null,
@@ -590,7 +590,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
-      approvalStatus: "PENDING",
+      status: "PENDING",
       clientType: "PUBLIC",
       clientSecret: null,
       logo: TRUTHY,

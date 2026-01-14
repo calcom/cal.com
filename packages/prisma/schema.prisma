@@ -1773,28 +1773,28 @@ enum OAuthClientType {
   PUBLIC       @map("public")
 }
 
-enum OAuthClientApprovalStatus {
+enum OAuthClientStatus {
   PENDING  @map("pending")
   APPROVED @map("approved")
   REJECTED @map("rejected")
 }
 
 model OAuthClient {
-  clientId        String                    @id @unique
+  clientId        String            @id @unique
   redirectUri     String
   clientSecret    String?
-  clientType      OAuthClientType           @default(CONFIDENTIAL)
+  clientType      OAuthClientType   @default(CONFIDENTIAL)
   name            String
   purpose         String?
   logo            String?
   websiteUrl      String?
   rejectionReason String?
-  isTrusted       Boolean                   @default(false)
+  isTrusted       Boolean           @default(false)
   accessCodes     AccessCode[]
-  approvalStatus  OAuthClientApprovalStatus @default(APPROVED)
+  status          OAuthClientStatus @default(APPROVED)
   userId          Int?
-  user            User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt       DateTime                  @default(now())
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now())
 
   @@index([userId])
 }

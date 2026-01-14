@@ -40,7 +40,7 @@ export default function OAuthClientsAdminView() {
         clientSecret: data.clientSecret,
         name: data.name,
         purpose: data.purpose ?? "",
-        approvalStatus: data.approvalStatus ?? "APPROVED",
+        status: data.status ?? "APPROVED",
         redirectUri: data.redirectUri,
         logo: data.logo || null,
       });
@@ -55,7 +55,7 @@ export default function OAuthClientsAdminView() {
   const updateStatusMutation = trpc.viewer.oAuth.updateClient.useMutation({
     onSuccess: async (data) => {
       showToast(
-        t("oauth_client_status_updated", { name: data.name, status: data.approvalStatus }),
+        t("oauth_client_status_updated", { name: data.name, status: data.status }),
         "success"
       );
 
@@ -64,7 +64,7 @@ export default function OAuthClientsAdminView() {
         if (prev.clientId !== data.clientId) return prev;
         return {
           ...prev,
-          approvalStatus: data.approvalStatus,
+          status: data.status,
           rejectionReason: data.rejectionReason,
         };
       });

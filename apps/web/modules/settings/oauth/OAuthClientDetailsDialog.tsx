@@ -24,7 +24,7 @@ export type OAuthClientDetails = {
   redirectUri?: string;
   websiteUrl?: string | null;
   logo?: string | null;
-  approvalStatus?: string;
+  status?: string;
   rejectionReason?: string | null;
   clientSecret?: string;
   isPkceEnabled?: boolean;
@@ -106,7 +106,7 @@ export const OAuthClientDetailsDialog = ({
     });
   }, [client, form]);
 
-  const approvalStatus = client?.approvalStatus;
+  const status = client?.status;
 
   const showAdminActions = Boolean(onApprove) || Boolean(onReject);
   const isFormDisabled = showAdminActions;
@@ -138,8 +138,8 @@ export const OAuthClientDetailsDialog = ({
     );
 
     if (showAdminActions) {
-      const canReject = Boolean(onReject) && (approvalStatus === "PENDING" || approvalStatus === "APPROVED");
-      const canApprove = Boolean(onApprove) && (approvalStatus === "PENDING" || approvalStatus === "REJECTED");
+      const canReject = Boolean(onReject) && (status === "PENDING" || status === "APPROVED");
+      const canApprove = Boolean(onApprove) && (status === "PENDING" || status === "REJECTED");
 
       return (
         <div className="flex w-full items-center justify-end gap-2">
@@ -211,15 +211,15 @@ export const OAuthClientDetailsDialog = ({
                 logo: values.logo,
               });
             })}>
-            {approvalStatus ? (
+            {status ? (
               <div className="flex items-center justify-start">
-                <Badge variant={getStatusBadgeVariant(approvalStatus).variant}>
-                  {t(getStatusBadgeVariant(approvalStatus).labelKey)}
+                <Badge variant={getStatusBadgeVariant(status).variant}>
+                  {t(getStatusBadgeVariant(status).labelKey)}
                 </Badge>
               </div>
             ) : null}
 
-            {approvalStatus === "REJECTED" && client.rejectionReason ? (
+            {status === "REJECTED" && client.rejectionReason ? (
               <div className="text-subtle text-sm" data-testid="oauth-client-details-rejection-reason-display">
                 <span className="font-medium">{t("oauth_client_rejection_reason")}:</span> {client.rejectionReason}
               </div>

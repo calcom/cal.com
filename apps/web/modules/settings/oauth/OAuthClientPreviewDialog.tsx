@@ -40,7 +40,7 @@ export function OAuthClientPreviewDialog({
     onOpenChange(nextOpen);
   };
 
-  const showPendingBadge = client.approvalStatus === "PENDING";
+  const showPendingBadge = client.status === "PENDING";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

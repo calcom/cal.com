@@ -23,7 +23,7 @@ export const ZSubmitClientOutputSchema = z.object({
   redirectUri: z.string(),
   logo: z.string().nullable(),
   clientType: z.string(),
-  approvalStatus: z.string(),
+  status: z.string(),
   isPkceEnabled: z.boolean().optional(),
 });
 

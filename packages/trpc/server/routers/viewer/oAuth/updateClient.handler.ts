@@ -5,7 +5,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
+import type { OAuthClientStatus } from "@calcom/prisma/enums";
 
 import type { TUpdateClientInputSchema } from "./updateClient.schema";
 
@@ -24,7 +24,7 @@ type UpdateClientOutput = {
   clientId: string;
   name: string;
   purpose: string | null;
-  approvalStatus: OAuthClientApprovalStatus;
+  status: OAuthClientStatus;
   redirectUri: string;
   websiteUrl: string | null;
   logo: string | null;
@@ -37,7 +37,7 @@ export const updateClientHandler = async ({
 }: UpdateClientOptions): Promise<UpdateClientOutput> => {
   const {
     clientId,
-    status: requestedApprovalStatus,
+    status: requestedStatus,
     rejectionReason,
     name,
     purpose,
@@ -60,12 +60,12 @@ export const updateClientHandler = async ({
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can set a rejection reason" });
   }
 
-  if (requestedApprovalStatus === "REJECTED" && (!rejectionReason || rejectionReason.trim().length === 0)) {
+  if (requestedStatus === "REJECTED" && (!rejectionReason || rejectionReason.trim().length === 0)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Rejection reason is required" });
   }
 
   const isUpdatingFields = hasAnyFieldsChanged({ name, purpose, redirectUri, websiteUrl, logo });
-  const isUpdatingStatus = requestedApprovalStatus !== undefined;
+  const isUpdatingStatus = requestedStatus !== undefined;
 
   if (isUpdatingStatus && !isAdmin) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can update OAuth client status" });
@@ -92,10 +92,10 @@ export const updateClientHandler = async ({
     },
   });
 
-  const nextApprovalStatus = computeNextApprovalStatus({
-    requestedApprovalStatus: requestedApprovalStatus,
+  const nextStatus = computeNextStatus({
+    requestedStatus,
     triggersReapprovalForOwnerEdit: shouldTriggerReapprovalForOwnerEdit,
-    existingApprovalStatus: clientWithUser.approvalStatus,
+    currentStatus: clientWithUser.status,
   });
 
   const updateData = buildUpdateClientUpdateData({
@@ -104,10 +104,10 @@ export const updateClientHandler = async ({
     redirectUri,
     logo,
     websiteUrl,
-    requestedApprovalStatus,
+    requestedStatus,
     rejectionReason,
-    nextApprovalStatus,
-    existingApprovalStatus: clientWithUser.approvalStatus,
+    nextStatus,
+    currentStatus: clientWithUser.status,
   });
 
   const updatedClient = await ctx.prisma.oAuthClient.update({
@@ -117,7 +117,7 @@ export const updateClientHandler = async ({
       clientId: true,
       name: true,
       purpose: true,
-      approvalStatus: true,
+      status: true,
       redirectUri: true,
       websiteUrl: true,
       logo: true,
@@ -127,7 +127,7 @@ export const updateClientHandler = async ({
 
   await notifyOwnerAboutAdminReview({
     isAdmin,
-    requestedApprovalStatus,
+    requestedStatus,
     clientWithUser,
     updatedClient: {
       clientId: updatedClient.clientId,
@@ -140,7 +140,7 @@ export const updateClientHandler = async ({
     clientId: updatedClient.clientId,
     name: updatedClient.name,
     purpose: updatedClient.purpose,
-    approvalStatus: updatedClient.approvalStatus,
+    status: updatedClient.status,
     redirectUri: updatedClient.redirectUri,
     websiteUrl: updatedClient.websiteUrl,
     logo: updatedClient.logo,
@@ -194,20 +194,20 @@ function triggersReapprovalForOwnerEdit(params: {
   return false;
 }
 
-function computeNextApprovalStatus(params: {
-  requestedApprovalStatus: OAuthClientApprovalStatus | undefined;
+function computeNextStatus(params: {
+  requestedStatus: OAuthClientStatus | undefined;
   triggersReapprovalForOwnerEdit: boolean;
-  existingApprovalStatus: OAuthClientApprovalStatus;
-}): OAuthClientApprovalStatus {
-  const { requestedApprovalStatus, triggersReapprovalForOwnerEdit, existingApprovalStatus } = params;
-  if (requestedApprovalStatus !== undefined) return requestedApprovalStatus;
+  currentStatus: OAuthClientStatus;
+}): OAuthClientStatus {
+  const { requestedStatus, triggersReapprovalForOwnerEdit, currentStatus } = params;
+  if (requestedStatus !== undefined) return requestedStatus;
   if (triggersReapprovalForOwnerEdit) return "PENDING";
-  return existingApprovalStatus;
+  return currentStatus;
 }
 
 type NotifyOwnerAboutAdminReviewParams = {
   isAdmin: boolean;
-  requestedApprovalStatus: OAuthClientApprovalStatus | undefined;
+  requestedStatus: OAuthClientStatus | undefined;
   clientWithUser: Awaited<ReturnType<OAuthClientRepository["findByClientIdIncludeUser"]>> | null;
   updatedClient: {
     clientId: string;
@@ -217,14 +217,14 @@ type NotifyOwnerAboutAdminReviewParams = {
 };
 
 async function notifyOwnerAboutAdminReview(params: NotifyOwnerAboutAdminReviewParams) {
-  const { isAdmin, requestedApprovalStatus, clientWithUser, updatedClient, rejectionReason } = params;
+  const { isAdmin, requestedStatus, clientWithUser, updatedClient, rejectionReason } = params;
   if (!isAdmin) return;
-  if (requestedApprovalStatus !== "APPROVED" && requestedApprovalStatus !== "REJECTED") return;
+  if (requestedStatus !== "APPROVED" && requestedStatus !== "REJECTED") return;
   if (!clientWithUser?.user) return;
 
   const t = await getTranslation("en", "common");
 
-  if (requestedApprovalStatus === "APPROVED") {
+  if (requestedStatus === "APPROVED") {
     await sendOAuthClientApprovedNotification({
       t,
       userEmail: clientWithUser.user.email,
@@ -251,7 +251,7 @@ type UpdateOAuthClientData = {
   redirectUri?: string;
   logo?: string | null;
   websiteUrl?: string | null;
-  approvalStatus?: OAuthClientApprovalStatus;
+  status?: OAuthClientStatus;
   rejectionReason?: string | null;
 };
 
@@ -261,10 +261,10 @@ function buildUpdateClientUpdateData(params: {
   redirectUri: string | undefined;
   logo: string | null | undefined;
   websiteUrl: string | null | undefined;
-  requestedApprovalStatus: OAuthClientApprovalStatus | undefined;
+  requestedStatus: OAuthClientStatus | undefined;
   rejectionReason: string | undefined;
-  nextApprovalStatus: OAuthClientApprovalStatus;
-  existingApprovalStatus: OAuthClientApprovalStatus;
+  nextStatus: OAuthClientStatus;
+  currentStatus: OAuthClientStatus;
 }): UpdateOAuthClientData {
   const {
     name,
@@ -272,10 +272,10 @@ function buildUpdateClientUpdateData(params: {
     redirectUri,
     logo,
     websiteUrl,
-    requestedApprovalStatus,
+    requestedStatus,
     rejectionReason,
-    nextApprovalStatus,
-    existingApprovalStatus,
+    nextStatus,
+    currentStatus,
   } = params;
 
   const updateData: UpdateOAuthClientData = {};
@@ -285,13 +285,13 @@ function buildUpdateClientUpdateData(params: {
   if (redirectUri !== undefined) updateData.redirectUri = redirectUri;
   if (logo !== undefined) updateData.logo = logo;
   if (websiteUrl !== undefined) updateData.websiteUrl = websiteUrl;
-  if (nextApprovalStatus !== existingApprovalStatus) updateData.approvalStatus = nextApprovalStatus;
+  if (nextStatus !== currentStatus) updateData.status = nextStatus;
 
-  if (requestedApprovalStatus === "REJECTED") {
+  if (requestedStatus === "REJECTED") {
     updateData.rejectionReason = rejectionReason?.trim() ?? null;
-  } else if (requestedApprovalStatus !== undefined) {
+  } else if (requestedStatus !== undefined) {
     updateData.rejectionReason = null;
-  } else if (nextApprovalStatus !== existingApprovalStatus && nextApprovalStatus !== "REJECTED") {
+  } else if (nextStatus !== currentStatus && nextStatus !== "REJECTED") {
     updateData.rejectionReason = null;
   }
 

@@ -21,10 +21,10 @@ async function expectClientStatusInDb(
     .poll(async () => {
       const row = await prisma.oAuthClient.findUnique({
         where: { clientId },
-        select: { approvalStatus: true },
+        select: { status: true },
       });
 
-      return row?.approvalStatus ?? null;
+      return row?.status ?? null;
     })
     .toBe(status);
 }

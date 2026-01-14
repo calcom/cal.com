@@ -63,7 +63,7 @@ export const OAuthClientsList = ({
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {showStatus && client.approvalStatus ? getStatusBadge(client.approvalStatus, t) : null}
+            {showStatus && client.status ? getStatusBadge(client.status, t) : null}
             <Icon name="chevron-right" className="text-subtle h-5 w-5" />
           </div>
         </div>
