@@ -1,5 +1,7 @@
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
+import { FEATURE_OPT_IN_DI_TOKENS } from "@calcom/features/feature-opt-in/di/tokens";
+import { FLAGS_DI_TOKENS } from "@calcom/features/flags/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
 import { OAUTH_DI_TOKENS } from "@calcom/features/oauth/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
@@ -34,8 +36,8 @@ export const DI_TOKENS = {
   INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
   INSIGHTS_BOOKING_SERVICE: Symbol("InsightsBookingService"),
   INSIGHTS_BOOKING_SERVICE_MODULE: Symbol("InsightsBookingServiceModule"),
-  FEATURES_REPOSITORY: Symbol("FeaturesRepository"),
-  FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
+  ...FLAGS_DI_TOKENS,
+  ...FEATURE_OPT_IN_DI_TOKENS,
   CHECK_BOOKING_LIMITS_SERVICE: Symbol("CheckBookingLimitsService"),
   CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),

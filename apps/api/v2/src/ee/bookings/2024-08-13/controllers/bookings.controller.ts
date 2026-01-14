@@ -236,10 +236,9 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid/recordings")
-  // @Pbac(["booking.readRecordings"])
+  @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(BookingUidGuard)
-  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
@@ -254,16 +253,13 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: recordings,
-      message:
-        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
   @Get("/:bookingUid/transcripts")
-  // @Pbac(["booking.readRecordings"])
+  @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(BookingUidGuard)
-  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get Cal Video real time transcript download links for the booking",
@@ -282,8 +278,6 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: transcripts ?? [],
-      message:
-        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
