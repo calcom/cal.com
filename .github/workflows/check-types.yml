@@ -2,7 +2,7 @@ name: Check types
 on:
   workflow_call:
 env:
-  NODE_OPTIONS: --max-old-space-size=6144
+  NODE_OPTIONS: --max-old-space-size=12288
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 permissions:
@@ -22,16 +22,4 @@ jobs:
         run: |
           echo "::remove-matcher owner=tsc::"
           echo "::add-matcher::.github/matchers/tsc-absolute.json"
-      - name: Run type check
-        run: |
-          # Workaround for https://github.com/vercel/turbo/issues/4227
-          set -o pipefail
-          yarn type-check:ci 2>&1 | tee /tmp/type-check-output.log
-          TYPE_CHECK_EXIT_CODE=${PIPESTATUS[0]}
-          
-          if grep -q "FATAL ERROR:.*heap.*out of memory" /tmp/type-check-output.log; then
-            echo "::error::Type check failed due to out of memory error"
-            exit 1
-          fi
-          
-          exit $TYPE_CHECK_EXIT_CODE
+      - run: yarn type-check:ci
