@@ -1,8 +1,7 @@
 import { vi } from "vitest";
 
 vi.mock("@calcom/lib/server/serviceAccountKey", async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   const actual = await importOriginal<any>();
   return {
     ...actual,

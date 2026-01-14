@@ -43,7 +43,7 @@ export default function EmbedSnippet(url = EMBED_LIB_URL) {
           cal.ns = {};
           cal.q = cal.q || [];
 
-          //@ts-ignore
+          // @ts-expect-error
           d.head.appendChild(d.createElement("script")).src = A;
           cal.loaded = true;
         }
