@@ -60,9 +60,13 @@ export default async function handler(
     return res.status(400).json({ error: "Invalid credential ID" });
   }
 
-  const storedSfdcOrgId = new URL(salesforceCredentialId).pathname.split(
-    "/"
-  )[2];
+  let storedSfdcOrgId: string | undefined;
+  try {
+    storedSfdcOrgId = new URL(salesforceCredentialId).pathname.split("/")[2];
+  } catch {
+    log.error(`Invalid SFDC credential URL format for credential ${credential.id}`);
+    return res.status(400).json({ error: "Invalid credential format" });
+  }
 
   if (storedSfdcOrgId !== sfdcOrgId) {
     log.error(`Mismatched orgId ${sfdcOrgId} for credential ${credential.id}`);
