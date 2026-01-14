@@ -15,6 +15,11 @@ import { Icon } from "@calcom/ui/components/icon";
 import { EventDetails } from "./event-meta/Details";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+const LoadingState = () => {
+  const { t } = useLocale();
+  return <span className="text-default text-sm">{t("loading")}</span>;
+};
+
 const WebTimezoneSelect = dynamic(
   () =>
     import("@calcom/features/components/timezone-select").then(
@@ -22,7 +27,7 @@ const WebTimezoneSelect = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <span className="text-default text-sm">Loading...</span>,
+    loading: () => <LoadingState />,
   }
 );
 
