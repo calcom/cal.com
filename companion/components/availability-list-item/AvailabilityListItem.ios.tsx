@@ -71,8 +71,9 @@ export const AvailabilityListItem = ({
                 onPress={() => handleSchedulePress(schedule)}
                 className="mr-4 flex-1"
                 accessibilityRole="button"
+                style={{ minWidth: 0 }}
               >
-                <View>
+                <View style={{ flex: 1 }}>
                   <ScheduleName name={schedule.name} isDefault={schedule.isDefault} />
                   <AvailabilitySlots
                     availability={schedule.availability}
@@ -85,7 +86,7 @@ export const AvailabilityListItem = ({
               {/* Three dots menu - fixed hit target so it doesn't get squeezed off-screen */}
               <View
                 className="items-center justify-center rounded-lg border border-cal-border"
-                style={{ width: 32, height: 32 }}
+                style={{ width: 32, height: 32, flexShrink: 0 }}
               >
                 <Host matchContents>
                   <ContextMenu
