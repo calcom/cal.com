@@ -4328,11 +4328,11 @@
   "no_opt_in_features_available": "No opt-in features are currently available",
   "enabled_via_auto_opt_in": "Enabled via auto opt-in",
   "account_already_exists_please_login": "An account with this email already exists. Please log in to accept the invitation.",
-  "hubspot_set_organizer_as_owner": "Set organizer as contact owner",
-  "hubspot_overwrite_contact_owner": "Overwrite existing contact owner",
   "unverified_email_oauth_error": "Please verify your email address before signing in with Google or SAML. Sign in with your password to resend the verification email.",
   "pbac_resource_feature_opt_in": "Feature Opt-In",
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
   "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
+  "set_organizer_as_contact_owner": "Set organizer as contact owner",
+  "overwrite_existing_contact_owner": "Overwrite existing contact owner",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

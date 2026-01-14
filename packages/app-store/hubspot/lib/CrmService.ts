@@ -278,20 +278,27 @@ export default class HubspotCalendarService implements CRM {
     return confirmedCustomFieldInputs;
   }
 
-  private hubspotCreateMeeting = async (event: CalendarEvent) => {
+  private hubspotCreateMeeting = async (event: CalendarEvent, hubspotOwnerId?: string) => {
     const writeToMeetingRecord = await this.generateWriteToMeetingBody(event);
 
+    const properties: Record<string, string> = {
+      hs_timestamp: Date.now().toString(),
+      hs_meeting_title: event.title,
+      hs_meeting_body: this.getHubspotMeetingBody(event),
+      hs_meeting_location: getLocation(event),
+      hs_meeting_start_time: new Date(event.startTime).toISOString(),
+      hs_meeting_end_time: new Date(event.endTime).toISOString(),
+      hs_meeting_outcome: "SCHEDULED",
+      ...writeToMeetingRecord,
+    };
+
+    if (hubspotOwnerId) {
+      properties.hubspot_owner_id = hubspotOwnerId;
+      this.log.debug("hubspot:meeting:setting_owner", { hubspotOwnerId });
+    }
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
-      properties: {
-        hs_timestamp: Date.now().toString(),
-        hs_meeting_title: event.title,
-        hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation(event),
-        hs_meeting_start_time: new Date(event.startTime).toISOString(),
-        hs_meeting_end_time: new Date(event.endTime).toISOString(),
-        hs_meeting_outcome: "SCHEDULED",
-        ...writeToMeetingRecord,
-      },
+      properties,
     };
 
     return this.hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
@@ -405,27 +412,26 @@ export default class HubspotCalendarService implements CRM {
   async handleMeetingCreation(event: CalendarEvent, contacts: Contact[]) {
     const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
 
-    const meetingEvent = await this.hubspotCreateMeeting(event);
+    const organizerEmail = event.organizer.email;
+    this.log.debug("hubspot:meeting:fetching_owner");
+
+    const hubspotOwnerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
+
+    const meetingEvent = await this.hubspotCreateMeeting(event, hubspotOwnerId ?? undefined);
     if (meetingEvent) {
-      this.log.debug("meeting:creation:ok", { meetingId: meetingEvent.id });
+      this.log.debug("meeting:creation:ok", { meetingId: meetingEvent.id, hubspotOwnerId });
       const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });
 
+        const firstContact = contacts[0];
         const appOptions = this.getAppOptions();
-        if (appOptions?.setOrganizerAsOwner) {
-          const organizerEmail = event.organizer.email;
-          const ownerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
-          if (ownerId) {
-            const firstContact = contacts[0];
-            if (firstContact?.id) {
-              await this.maybeSetContactOwner(
-                firstContact.id,
-                ownerId,
-                appOptions?.overwriteContactOwner ?? false
-              );
-            }
-          }
+        if (hubspotOwnerId && firstContact?.id && appOptions?.setOrganizerAsOwner) {
+          await this.setContactOwnerIfAllowed(
+            firstContact.id,
+            hubspotOwnerId,
+            appOptions?.overwriteContactOwner ?? false
+          );
         }
 
         return Promise.resolve({
@@ -588,7 +594,7 @@ export default class HubspotCalendarService implements CRM {
     }
   }
 
-  private async maybeSetContactOwner(
+  private async setContactOwnerIfAllowed(
     contactId: string,
     ownerId: string,
     overwriteContactOwner: boolean

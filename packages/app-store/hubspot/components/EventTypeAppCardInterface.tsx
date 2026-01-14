@@ -78,7 +78,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
         <Section.SubSection>
           <Section.SubSectionHeader
             icon="user-check"
-            title={t("hubspot_set_organizer_as_owner")}
+            title={t("set_organizer_as_contact_owner")}
             labelFor="set-organizer-as-owner">
             <Switch
               size="sm"
@@ -97,7 +97,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           <Section.SubSection>
             <Section.SubSectionHeader
               icon="refresh-cw"
-              title={t("hubspot_overwrite_contact_owner")}
+              title={t("overwrite_existing_contact_owner")}
               labelFor="overwrite-contact-owner">
               <Switch
                 size="sm"
