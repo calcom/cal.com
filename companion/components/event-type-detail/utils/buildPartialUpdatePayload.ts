@@ -643,10 +643,12 @@ export function buildPartialUpdatePayload(
   }
 
   const originalRequiresConfirmation =
-    original.requiresConfirmation ||
+    original.requiresConfirmation === true ||
     (original.confirmationPolicy &&
-      !("disabled" in original.confirmationPolicy && original.confirmationPolicy.disabled));
-  if (currentState.requiresConfirmation !== originalRequiresConfirmation) {
+      !(
+        "disabled" in original.confirmationPolicy && original.confirmationPolicy.disabled === true
+      ));
+  if (currentState.requiresConfirmation !== !!originalRequiresConfirmation) {
     payload.requiresConfirmation = currentState.requiresConfirmation;
   }
 
