@@ -9,6 +9,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import type { z } from "zod";
+import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
 // import billing from "../..";
 import type {
   IBillingRepository,
@@ -172,10 +173,11 @@ export class TeamBillingService implements ITeamBillingService {
         return;
       }
 
-      await this.billingProviderService.handleSubscriptionUpdate({
+      await updateSubscriptionQuantity({
+        billingService: this.billingProviderService,
         subscriptionId,
         subscriptionItemId,
-        membershipCount,
+        quantity: membershipCount,
       });
       log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
     } catch (error) {

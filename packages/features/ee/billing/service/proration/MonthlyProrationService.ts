@@ -1,6 +1,9 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
+import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
+import { extractBillingDataFromStripeSubscription } from "../../lib/stripe-subscription-utils";
+import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
 import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
 import type { BillingInfo } from "../../repository/proration/MonthlyProrationTeamRepository";
 import { MonthlyProrationTeamRepository } from "../../repository/proration/MonthlyProrationTeamRepository";
@@ -140,11 +143,14 @@ export class MonthlyProrationService {
       return updatedProration;
     }
 
-    await this.updateSubscriptionQuantity(
-      proration.subscriptionId,
-      proration.subscriptionItemId,
-      proration.seatsAtEnd
-    );
+    await updateSubscriptionQuantity({
+      billingService: this.billingService,
+      subscriptionId: proration.subscriptionId,
+      subscriptionItemId: proration.subscriptionItemId,
+      quantity: proration.seatsAtEnd,
+      prorationBehavior: "none",
+      logger: this.logger,
+    });
 
     await this.teamRepository.updatePaidSeats(
       teamId,
@@ -211,12 +217,11 @@ export class MonthlyProrationService {
         proration.netSeatIncrease > 1 ? "s" : ""
       } for ${proration.monthKey}`,
       subscriptionId: proration.subscriptionId,
-      metadata: {
-        type: "monthly_proration",
+      metadata: buildMonthlyProrationMetadata({
         prorationId: proration.id,
-        teamId: proration.teamId.toString(),
+        teamId: proration.teamId,
         monthKey: proration.monthKey,
-      },
+      }),
     });
 
     let invoiceId: string | null = null;
@@ -227,10 +232,7 @@ export class MonthlyProrationService {
         autoAdvance: true,
         collectionMethod: hasDefaultPaymentMethod ? "charge_automatically" : "send_invoice",
         subscriptionId: proration.subscriptionId,
-        metadata: {
-          type: "monthly_proration",
-          prorationId: proration.id,
-        },
+        metadata: buildMonthlyProrationMetadata({ prorationId: proration.id }),
       });
 
       invoiceId = invoice.invoiceId;
@@ -268,34 +270,19 @@ export class MonthlyProrationService {
     const currentMemberCount = await this.teamRepository.getTeamMemberCount(proration.teamId);
     const seatsToApply = currentMemberCount ?? proration.seatsAtEnd;
 
-    await this.updateSubscriptionQuantity(
-      proration.subscriptionId,
-      proration.subscriptionItemId,
-      seatsToApply
-    );
+    await updateSubscriptionQuantity({
+      billingService: this.billingService,
+      subscriptionId: proration.subscriptionId,
+      subscriptionItemId: proration.subscriptionItemId,
+      quantity: seatsToApply,
+      prorationBehavior: "none",
+      logger: this.logger,
+    });
 
     const billingId = proration.teamBillingId || proration.organizationBillingId;
     if (billingId) {
       const isOrganization = !!proration.organizationBillingId;
       await this.teamRepository.updatePaidSeats(proration.teamId, isOrganization, billingId, seatsToApply);
-    }
-  }
-
-  private async updateSubscriptionQuantity(
-    subscriptionId: string,
-    subscriptionItemId: string,
-    quantity: number
-  ): Promise<void> {
-    try {
-      await this.billingService.handleSubscriptionUpdate({
-        subscriptionId,
-        subscriptionItemId,
-        membershipCount: quantity,
-        prorationBehavior: "none",
-      });
-    } catch (error) {
-      this.logger.error(`Failed to update subscription ${subscriptionId} quantity to ${quantity}:`, error);
-      throw error;
     }
   }
 
@@ -348,25 +335,21 @@ export class MonthlyProrationService {
         throw new Error(`Subscription ${billing.subscriptionId} not found`);
       }
 
-      const billingPeriod: "ANNUALLY" | "MONTHLY" =
-        subscription.items[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
+      const {
+        billingPeriod,
+        pricePerSeat: rawPricePerSeat,
+        paidSeats: rawPaidSeats,
+        subscriptionStart,
+        subscriptionEnd,
+        subscriptionTrialEnd,
+      } = extractBillingDataFromStripeSubscription(subscription);
 
-      const pricePerSeat = subscription.items[0]?.price.unit_amount ?? 0;
-
-      const subscriptionStart = subscription.current_period_start
-        ? new Date(subscription.current_period_start * 1000)
-        : null;
-
-      const subscriptionEnd = subscription.current_period_end
-        ? new Date(subscription.current_period_end * 1000)
-        : null;
-
+      const pricePerSeat = rawPricePerSeat ?? 0;
+      const paidSeats = rawPaidSeats ?? 0;
       const subscriptionItemId = subscription.items[0]?.id || billing.subscriptionItemId || "";
       const customerId = subscription.customer;
-      const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
       if (needsCreation) {
-        const paidSeats = subscription.items[0]?.quantity || 0;
         const billingData = {
           teamId,
           subscriptionId: billing.subscriptionId,

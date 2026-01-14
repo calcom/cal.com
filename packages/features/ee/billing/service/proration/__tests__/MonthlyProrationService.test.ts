@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
-
 import { MonthlyProrationService } from "../MonthlyProrationService";
 
 vi.mock("@calcom/prisma", () => ({
@@ -365,10 +365,7 @@ describe("MonthlyProrationService", () => {
         autoAdvance: true,
         collectionMethod: "send_invoice",
         subscriptionId: "sub_789",
-        metadata: {
-          type: "monthly_proration",
-          prorationId: "proration-789",
-        },
+        metadata: buildMonthlyProrationMetadata({ prorationId: "proration-789" }),
       });
       expect(mockProrationRepository.updateProrationStatus).toHaveBeenCalledWith("proration-789", "PENDING", {
         invoiceItemId: "ii_test_123",

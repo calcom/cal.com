@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
 import type { SWHMap } from "./__handler";
 import handler from "./_invoice.payment_failed";
 
@@ -31,10 +32,7 @@ describe("invoice.payment_failed webhook", () => {
         lines: {
           data: [
             {
-              metadata: {
-                type: "monthly_proration",
-                prorationId: "pr_123",
-              },
+              metadata: buildMonthlyProrationMetadata({ prorationId: "pr_123" }),
             },
           ],
         },

@@ -1,4 +1,5 @@
 import process from "node:process";
+import { formatMonthKey } from "@calcom/features/ee/billing/lib/month-key";
 import { MonthlyProrationService } from "@calcom/features/ee/billing/service/proration/MonthlyProrationService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
@@ -32,9 +33,7 @@ async function getHandler(request: NextRequest) {
   const now = new Date();
   const startOfCurrentMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const previousMonthUtc = subMonths(startOfCurrentMonthUtc, 1);
-  const defaultMonthKey = `${previousMonthUtc.getUTCFullYear()}-${String(
-    previousMonthUtc.getUTCMonth() + 1
-  ).padStart(2, "0")}`;
+  const defaultMonthKey = formatMonthKey(previousMonthUtc);
   const monthKey = requestedMonthKey || defaultMonthKey;
 
   log.info(`Processing monthly prorations for ${monthKey}`);

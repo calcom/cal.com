@@ -1,9 +1,9 @@
-import type { Logger } from "tslog";
-
+import { formatMonthKey } from "@calcom/features/ee/billing/lib/month-key";
 import { SeatChangeLogRepository } from "@calcom/features/ee/billing/repository/seatChangeLogs/SeatChangeLogRepository";
 import logger from "@calcom/lib/logger";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SeatChangeType } from "@calcom/prisma/enums";
+import type { Logger } from "tslog";
 
 const log = logger.getSubLogger({ prefix: ["SeatChangeTrackingService"] });
 
@@ -44,7 +44,7 @@ export class SeatChangeTrackingService {
       monthKey: providedMonthKey,
       operationId,
     } = params;
-    const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
+    const monthKey = providedMonthKey || formatMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
 
@@ -72,7 +72,7 @@ export class SeatChangeTrackingService {
       monthKey: providedMonthKey,
       operationId,
     } = params;
-    const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
+    const monthKey = providedMonthKey || formatMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
 
@@ -114,11 +114,5 @@ export class SeatChangeTrackingService {
     const { teamId, monthKey, prorationId } = params;
 
     return await this.repository.markAsProcessed({ teamId, monthKey, prorationId });
-  }
-
-  private calculateMonthKey(date: Date): string {
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
   }
 }

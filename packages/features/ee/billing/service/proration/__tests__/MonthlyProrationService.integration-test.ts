@@ -4,6 +4,7 @@ import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { createMemberships } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
 import { MonthlyProrationService } from "../MonthlyProrationService";
@@ -167,10 +168,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       autoAdvance: true,
       collectionMethod: "charge_automatically",
       subscriptionId: proration!.subscriptionId,
-      metadata: {
-        type: "monthly_proration",
-        prorationId: proration!.id,
-      },
+      metadata: buildMonthlyProrationMetadata({ prorationId: proration!.id }),
     });
 
     const seatChanges = await prisma.seatChangeLog.findMany({

@@ -1,6 +1,7 @@
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 
+import { findMonthlyProrationLineItem } from "../../lib/proration-utils";
 import { MonthlyProrationService } from "../../service/proration/MonthlyProrationService";
 import type { SWHMap } from "./__handler";
 
@@ -11,7 +12,7 @@ type Data = SWHMap["invoice.payment_failed"]["data"];
 const handler = async (data: Data) => {
   const invoice = data.object;
 
-  const prorationLineItem = invoice.lines.data.find((line) => line.metadata?.type === "monthly_proration");
+  const prorationLineItem = findMonthlyProrationLineItem(invoice.lines.data);
 
   if (!prorationLineItem) {
     return { success: true, message: "no proration line items in invoice" };
