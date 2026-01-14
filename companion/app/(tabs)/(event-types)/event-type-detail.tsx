@@ -177,6 +177,7 @@ export default function EventTypeDetail() {
   const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
+  const [bookingUrl, setBookingUrl] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
   const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
@@ -456,6 +457,7 @@ export default function EventTypeDetail() {
     if (eventType.description) setEventDescription(eventType.description);
     if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
     if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+    if (eventType.bookingUrl) setBookingUrl(eventType.bookingUrl);
 
     // Load schedule ID - this will be used by fetchSchedules to select the correct schedule
     if (eventType.scheduleId) {
@@ -945,29 +947,19 @@ export default function EventTypeDetail() {
   };
 
   const handlePreview = async () => {
-    const eventTypeSlug = eventSlug || "preview";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to generate preview link:", error);
-      showErrorAlert("Error", "Failed to generate preview link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await openInAppBrowser(link, "event type preview");
+    await openInAppBrowser(bookingUrl, "event type preview");
   };
 
   const handleCopyLink = async () => {
-    const eventTypeSlug = eventSlug || "event-link";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to copy link:", error);
-      showErrorAlert("Error", "Failed to copy link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await Clipboard.setStringAsync(link);
+    await Clipboard.setStringAsync(bookingUrl);
     showSuccessAlert("Success", "Link copied!");
   };
 
@@ -1279,7 +1271,10 @@ export default function EventTypeDetail() {
         {/* Tab Navigation Dropdown Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <AppPressable className="flex-row items-center gap-1 px-2 py-2">
+            <AppPressable
+              className="flex-row items-center gap-1 px-2 py-2"
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
               <Text className="text-[16px] font-semibold text-[#000000]" numberOfLines={1}>
                 {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
               </Text>
@@ -1433,6 +1428,7 @@ export default function EventTypeDetail() {
               onUpdateLocation={handleUpdateLocation}
               locationOptions={getLocationOptionsForDropdown()}
               conferencingLoading={conferencingLoading}
+              bookingUrl={bookingUrl}
             />
           ) : null}
 
@@ -2342,15 +2338,17 @@ export default function EventTypeDetail() {
                   <View className="bg-white pl-4">
                     <View
                       className="flex-row items-center justify-between pr-4"
-                      style={{ height: 44 }}
+                      style={{ height: 44, flexDirection: "row", alignItems: "center" }}
                     >
                       <Text className="text-[17px] text-black">Hidden</Text>
-                      <Switch
-                        value={isHidden}
-                        onValueChange={setIsHidden}
-                        trackColor={{ false: "#E5E5EA", true: "#000000" }}
-                        thumbColor="#FFFFFF"
-                      />
+                      <View style={{ justifyContent: "center", height: "100%" }}>
+                        <Switch
+                          value={isHidden}
+                          onValueChange={setIsHidden}
+                          trackColor={{ false: "#E5E5EA", true: "#000000" }}
+                          thumbColor="#FFFFFF"
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>

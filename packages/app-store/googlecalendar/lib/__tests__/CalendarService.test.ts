@@ -18,13 +18,10 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
+import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import CalendarService from "../CalendarService";
-import {
-  createMockJWTInstance,
-  createCredentialForCalendarService,
-} from "./utils";
-import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
+import { createMockJWTInstance } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -46,7 +43,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
   appId: "google-calendar",
   type: "google_calendar",
   key: {
-    access_token: "<INVALID_TOKEN>"
+    access_token: "<INVALID_TOKEN>",
   },
   user: {
     email: "user@example.com",
@@ -59,7 +56,6 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
 
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
-
     const calendarService = new CalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
@@ -460,6 +456,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 10,
         },
       ],
       iCalUID: "test-ical-uid@google.com",
@@ -634,6 +631,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 10,
         },
       ],
       calendarDescription: "Weekly team meeting",
@@ -671,5 +669,137 @@ describe("createEvent", () => {
     expect(insertCall.requestBody.recurrence).toEqual(["RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=10"]);
 
     log.info("createEvent recurring event test passed");
+  });
+
+  test("should use default reminders when no custom reminder is configured", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const mockGoogleEvent = {
+      id: "mock-event-default-reminder",
+      summary: "Test Meeting Default Reminder",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
+
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: mockGoogleEvent,
+    });
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
+
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-456",
+      title: "Test Meeting Default Reminder",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
+      },
+      attendees: [],
+      calendarDescription: "Test meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: null,
+        },
+      ],
+    };
+
+    // Mock the getReminderDuration method to return null (no custom reminder configured)
+    vi.spyOn(calendarService as any, "getReminderDuration").mockResolvedValue(null);
+
+    await calendarService.createEvent(testCalEvent, mockCredential.id);
+
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+
+    // When no custom reminder is configured, should use Google Calendar's default
+    expect(insertCall.requestBody.reminders).toEqual({
+      useDefault: true,
+    });
+
+    log.info("createEvent with default reminders test passed");
+  });
+
+  test("should handle 'just in time' reminder (0 minutes) correctly", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    // Mock the getReminderDuration method to return 0 (just in time)
+    vi.spyOn(calendarService as any, "getReminderDuration").mockResolvedValue(0);
+
+    const mockGoogleEvent = {
+      id: "mock-event-just-in-time",
+      summary: "Test Meeting Just In Time",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
+
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: mockGoogleEvent,
+    });
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
+
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-789",
+      title: "Test Meeting Just In Time",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
+      },
+      attendees: [],
+      calendarDescription: "Test meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 0,
+        },
+      ],
+    };
+
+    await calendarService.createEvent(testCalEvent, mockCredential.id);
+
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+
+    // When "just in time" (0 minutes) is configured, should override with 0-minute reminders
+    expect(insertCall.requestBody.reminders).toEqual({
+      useDefault: false,
+      overrides: [
+        { method: "popup", minutes: 0 },
+        { method: "email", minutes: 0 },
+      ],
+    });
+
+    log.info("createEvent with just in time reminders test passed");
   });
 });
