@@ -63,6 +63,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       description: true,
       customInputs: true,
       startTime: true,
+      createdAt: true,
       endTime: true,
       attendees: true,
       eventTypeId: true,
@@ -115,6 +116,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             select: {
               id: true,
               name: true,
+            },
+          },
+          calIdWorkflows: {
+            select: {
+              workflow: {
+                select: workflowSelect,
+              },
             },
           },
         },
@@ -249,6 +257,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         isPrismaObj(booking.user?.metadata) && booking.user?.metadata?.phoneNumber
           ? (booking.user?.metadata?.phoneNumber as string)
           : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(booking.user?.metadata) &&
+        typeof booking.user?.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (booking.user?.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     },
     attendees: attendeesList,
     location: booking.location ?? "",
@@ -331,10 +344,19 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   } else {
     evt.rejectionReason = rejectionReason;
 
+    // NOTE: Seated bookings can't require confirmation, so we don't need to handle attendee-wise refunds here.
+
     // Handle refunds
     if (!!booking.payment.length) {
+      const refundingAttendee: Pick<Attendee, "name" | "email" | "phoneNumber"> = {
+        name: booking.responses?.name,
+        email: booking.responses?.email,
+        phoneNumber: booking.responses?.attendeePhoneNumber,
+      };
+
       await processPaymentRefund({
         booking: booking,
+        attendee: refundingAttendee,
         teamId: booking.eventType?.calIdTeamId,
       });
     }

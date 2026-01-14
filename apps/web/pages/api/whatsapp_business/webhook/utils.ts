@@ -1,0 +1,129 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import getRawBody from "raw-body";
+
+import { META_WHATSAPP_PHONE_NUMBER_ID, META_WEBHOOK_VERIFICATION_CODE } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
+import { WorkflowStatus } from "@calcom/prisma/client";
+
+import { isPrismaObjOrUndefined } from "@lib/isPrismaObj";
+
+const log = logger.getSubLogger({ prefix: ["api/whatsapp_business/webhook/phone_number"] });
+
+// Map WhatsApp status to workflow status
+const statusMap: Record<string, WorkflowStatus> = {
+  sent: WorkflowStatus.DELIVERED,
+  delivered: WorkflowStatus.DELIVERED,
+  read: WorkflowStatus.READ,
+  failed: WorkflowStatus.FAILED,
+};
+
+export const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
+  if (req.method === "GET") {
+    const mode = req.query["hub.mode"];
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
+
+    const phoneNumberId = Array.isArray(req.query.phone_number_id)
+      ? req.query.phone_number_id[0]
+      : req.query.phone_number_id || null;
+
+    const whatsAppPhone =
+      phoneNumberId && phoneNumberId != META_WHATSAPP_PHONE_NUMBER_ID
+        ? await prisma.whatsAppBusinessPhone.findUnique({ where: { phoneNumberId } })
+        : null;
+
+    const verificationToken =
+      isPrismaObjOrUndefined(whatsAppPhone?.metadata)?.verification_token || META_WEBHOOK_VERIFICATION_CODE;
+
+    if (mode === "subscribe" && token === verificationToken) {
+      res.status(200).send(challenge);
+    } else {
+      res.status(403).end();
+    }
+  } else if (req.method === "POST") {
+    try {
+      const rawBody = await getRawBody(req);
+      const body = JSON.parse(rawBody.toString());
+
+      log.info("Received webhook:", JSON.stringify(body, null, 2));
+
+      // Validate webhook structure
+      if (body.object !== "whatsapp_business_account") {
+        log.warn("Invalid webhook object type");
+        return res.status(400).json({ error: "Invalid webhook object" });
+      }
+
+      // Process all entries
+      for (const entry of body.entry || []) {
+        for (const change of entry.changes || []) {
+          // Only process messages field
+          if (change.field !== "messages") {
+            continue;
+          }
+
+          const value = change.value;
+
+          // Handle status updates
+          if (value?.statuses && Array.isArray(value.statuses)) {
+            for (const statusUpdate of value.statuses) {
+              const msgId = statusUpdate.id;
+              const status = statusUpdate.status;
+
+              if (!msgId || !status) {
+                log.warn("Missing msgId or status in status update");
+                continue;
+              }
+
+              const mappedStatus = statusMap[status];
+              if (!mappedStatus) {
+                log.info(`Status '${status}' not mapped, skipping`);
+                continue;
+              }
+
+              // ONLY update existing workflow insights
+              log.info("Updating workflow insights for WhatsApp event", { msgId, status, mappedStatus });
+
+              const existingInsight = await prisma.calIdWorkflowInsights.findUnique({
+                where: { msgId },
+              });
+
+              if (!existingInsight) {
+                log.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+                console.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+                continue;
+              }
+
+              await prisma.calIdWorkflowInsights.update({
+                where: { msgId },
+                data: { status: mappedStatus },
+              });
+
+              log.info(`Successfully updated message ${msgId} to status ${mappedStatus}`);
+            }
+          }
+
+          // Handle incoming messages (optional - for logging/tracking)
+          if (value?.messages && Array.isArray(value.messages)) {
+            for (const message of value.messages) {
+              const msgId = message.id;
+              const from = message.from;
+              const messageType = message.type;
+
+              log.info(`Received incoming message: ${msgId} from ${from} type ${messageType}`);
+              // Add any logic here if you need to handle incoming messages
+            }
+          }
+        }
+      }
+
+      res.status(200).json({ success: true });
+    } catch (err) {
+      console.error("Error in /api/webhook/meta-whatsapp", err);
+      log.error("Error in /api/webhook/meta-whatsapp", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  } else {
+    res.status(405).json({ error: "Method not allowed" });
+  }
+};

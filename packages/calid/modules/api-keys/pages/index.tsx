@@ -43,7 +43,6 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
     setSelectedApiKey(null);
   };
 
-  console.log("API Keys Data:", data?.length);
   return (
     <>
       <SettingsHeader

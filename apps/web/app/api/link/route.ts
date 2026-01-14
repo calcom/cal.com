@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -101,10 +102,12 @@ async function handler(request: NextRequest) {
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(`${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(
+      `${WEBAPP_URL ?? url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`
+    );
   }
 
-  return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
+  return NextResponse.redirect(`${WEBAPP_URL ?? url.origin}/booking/${bookingUid}`);
 }
 
 export const GET = defaultResponderForAppDir(handler);

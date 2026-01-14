@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -29,9 +30,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const [showRTE, setShowRTE] = useState(false);
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
 
-  console.log("Responses are: ", responses);
-  console.log("props are: ", props);
-
   const defaultFields = [
     "name",
     "email",
@@ -47,19 +45,21 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const customFields = {};
 
-  if (responses && responses["attendeePhoneNumber"] !== undefined) {
-    customFields["Phone Number"] = responses["attendeePhoneNumber"];
-  }
-  for (const key in bookingFields) {
-    if (bookingFields[key]?.label && !defaultFields.includes(key)) {
-      // @ts-ignore
-      if (responses[bookingFields[key].name] !== undefined) {
-        customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+  if (responses) {
+    if (responses["attendeePhoneNumber"] !== undefined) {
+      customFields["Phone Number"] = responses["attendeePhoneNumber"];
+    }
+
+    for (const key in bookingFields) {
+      if (bookingFields[key]?.label && !defaultFields.includes(key)) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (responses[bookingFields[key].name] !== undefined) {
+          customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+        }
       }
     }
   }
-
-  console.log("Custom fields are: ", customFields);
 
   const isBookingInPast = new Date(props.endTime) < new Date();
   const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
@@ -67,6 +67,15 @@ export function BookingExpandedCard(props: BookingItemProps) {
     parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
   const [displayNotes, setDisplayNotes] = useState<string>(meetingNote || "");
   const [editingNotes, setEditingNotes] = useState<string>(meetingNote || "");
+
+  const hasMeetingNotesContent = (html: string | null | undefined): boolean => {
+    if (!html) return false;
+    const stripped = html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, "")
+      .trim();
+    return stripped.length > 0;
+  };
   const [showAttendeeDetails, setShowAttendeeDetails] = useState<string | null>(null);
   const [dialogPosition, setDialogPosition] = useState<{ top: number; left: number } | null>(null);
   const spanRefs = useRef<{ [key: string]: HTMLSpanElement | null }>({});
@@ -130,7 +139,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.phone as string | undefined;
+  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.attendeePhoneNumber as string | undefined;
   const openWhatsAppChat = (phoneNumber: string) => {
     const width = 800;
     const height = 600;
@@ -144,15 +153,10 @@ export function BookingExpandedCard(props: BookingItemProps) {
         `Hi, I'm running late by 5 minutes. I'll be there soon.`
       );
 
-      // this opens the whatsapp web instead of defaulting to whatsapp app (linux doesn't support app)
-      // const whatsappLink = `https://web.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
-
       const whatsappLink = `https://api.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
       return whatsappLink;
     };
-    //Generating the whatsapp link
     const url = generateWhatsAppLink(phoneNumber);
-    // Open the popup window with the provided URL and options
     window.open(url, "_blank", options);
   };
 
@@ -178,10 +182,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
           bookingUid={props.uid}
-          setDialog={() => setIsNoShowDialogOpen(false)}
+          closeNoShowDialog={() => setIsNoShowDialogOpen(false)}
           attendees={attendeeList}
-          setIsOpen={setIsNoShowDialogOpen}
-          isOpen={isNoShowDialogOpen}
         />
       )}
 
@@ -191,8 +193,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 lg:gap-8">
           <div className="space-y-4">
             <div>
-              <div className="text-foreground text-sm font-medium">{t("duration")}</div>
-              <div className="text-muted-foreground text-sm">
+              <h3 className="text-default text-sm font-medium">{t("duration")}</h3>
+              <div className="text-default text-sm">
                 {endTime && startTime
                   ? `${Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000)} min`
                   : "-"}
@@ -200,32 +202,37 @@ export function BookingExpandedCard(props: BookingItemProps) {
             </div>
 
             <div>
-              <div className="text-foreground text-sm font-medium">{t("invitee_details")}</div>
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <div className="flex min-w-0 items-center gap-2 overflow-auto">
-                  <span>{firstAttendee?.name}</span>
-                  <span>•</span>
-                  <span>{firstAttendee?.timeZone}</span>
-                  <span>•</span>
-                  <span className="break-all">{firstAttendee?.email}</span>
+              <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
+              <div className="text-default flex flex-wrap items-center gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="inline">•</span>
+                  <span className="truncate sm:max-w-[200px]">{firstAttendee?.name}</span>
                 </div>
-                <Button
-                  StartIcon="copy"
-                  color="minimal"
-                  variant="icon"
-                  size="xs"
-                  onClick={() => {
-                    copyToClipboard(firstAttendee?.email || "");
-                    triggerToast(t("email_copied"), "success");
-                  }}
-                  aria-label="Copy email"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="inline">•</span>
+                  <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee?.timeZone}</span>
+                </div>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="inline">•</span>
+                  <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee?.email}</span>
+                  <Button
+                    StartIcon="copy"
+                    color="minimal"
+                    variant="icon"
+                    size="xs"
+                    onClick={() => {
+                      copyToClipboard(firstAttendee?.email || "");
+                      triggerToast(t("email_copied"), "success");
+                    }}
+                    aria-label="Copy email"
+                  />
+                </div>
               </div>
             </div>
 
             {attendeeList?.length > 1 && (
               <div>
-                <div className="text-default text-sm font-medium">{t("attendees")}</div>
+                <h3 className="text-default text-sm font-medium">{t("attendees")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {attendeeList.slice(1).map((attendee, index) => {
                     const idKey = `${id}-${index}`;
@@ -268,17 +275,18 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
             {additionalNotes && (
               <div>
-                <div className="text-foreground text-sm font-medium">{t("additional_notes")}</div>
-                <div className="text-muted-foreground text-sm">{additionalNotes}</div>
+                <h3 className="text-default text-sm font-medium">{t("additional_notes")}</h3>
+                <div className="text-default text-sm">{additionalNotes}</div>
               </div>
             )}
 
-            {displayNotes && (
+            {hasMeetingNotesContent(displayNotes) && (
               <div>
-                <div className="text-foreground text-sm font-medium">{t("meeting_notes")}</div>
+                <h3 className="text-default text-sm font-medium">{t("meeting_notes")}</h3>
                 <div
-                  className="text-muted-foreground prose prose-sm max-w-none text-sm"
-                  dangerouslySetInnerHTML={{ __html: displayNotes }}
+                  className="text-default prose prose-sm max-w-none text-sm"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(displayNotes) }}
                 />
               </div>
             )}
@@ -287,15 +295,49 @@ export function BookingExpandedCard(props: BookingItemProps) {
               <div className="mt-2 space-y-3">
                 {Object.entries(customFields).map(([label, value], index) => (
                   <div className="flex flex-col justify-between" key={index}>
-                    <div className="text-foreground text-sm font-medium">{label}</div>
-                    <div className="text-muted-foreground text-sm">
-                      {Array.isArray(value)
-                        ? value.join(", ")
-                        : typeof value === "boolean"
-                        ? value
-                          ? "Yes"
-                          : "No"
-                        : value.toString()}
+                    <h3 className="text-default text-sm font-medium">{label}</h3>
+                    <div className="text-default text-sm">
+                      {(() => {
+                        const renderValue = (val: any) => {
+                          if (Array.isArray(val)) {
+                            if (val.length === 0) return null;
+                            if (typeof val[0] === "object" && val[0] !== null && "url" in val[0]) {
+                              return (
+                                <ul className="list-inside list-disc">
+                                  {val.map((item: any, i: number) => (
+                                    <li key={i}>
+                                      <a
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline">
+                                        {item.name || "Attachment"}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              );
+                            }
+                            return val.join(", ");
+                          }
+                          if (typeof val === "object" && val !== null && "url" in val) {
+                            return (
+                              <a
+                                href={val.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline">
+                                {val.name || "Attachment"}
+                              </a>
+                            );
+                          }
+                          if (typeof val === "boolean") {
+                            return val ? t("yes") : t("no");
+                          }
+                          return val.toString();
+                        };
+                        return renderValue(value);
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -321,7 +363,9 @@ export function BookingExpandedCard(props: BookingItemProps) {
                     e.stopPropagation();
                     handleMarkNoShow();
                   }}>
-                  {t("mark_as_no_show")}
+                  {attendeeList.length === 1 && attendeeList[0].noShow
+                    ? t("unmark_as_no_show")
+                    : t("mark_as_no_show")}
                 </Button>
               )}
               {attendeePhoneNo && (
@@ -394,19 +438,10 @@ export function BookingExpandedCard(props: BookingItemProps) {
   );
 }
 
-type NoShowAttendee = {
-  id: number | string;
-  email: string;
-  name?: string | null;
-  noShow?: boolean;
-};
-
 const NoShowAttendeesDialog = ({
   attendees,
   bookingUid,
-  setDialog,
-  setIsOpen,
-  isOpen,
+  closeNoShowDialog,
 }: {
   attendees: Array<{
     name: string;
@@ -417,9 +452,7 @@ const NoShowAttendeesDialog = ({
     timeZone?: string;
   }>;
   bookingUid: string;
-  setDialog: () => void;
-  setIsOpen: (open: boolean) => void;
-  isOpen: boolean;
+  closeNoShowDialog: () => void;
 }) => {
   const { t } = useLocale();
   const [noShowAttendees, setNoShowAttendees] = useState(
@@ -446,71 +479,79 @@ const NoShowAttendeesDialog = ({
       await utils.viewer.bookings.invalidate();
 
       setLoading(false);
-      setDialog();
+      closeNoShowDialog();
     },
     onError: (err) => {
       triggerToast(err.message, "error");
     },
   });
 
+  const toggleAttendee = (email: string) => {
+    setNoShowAttendees((prev) => prev.map((a) => (a.email === email ? { ...a, noShow: !a.noShow } : a)));
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={() => setDialog()}>
+      onClick={() => closeNoShowDialog()}>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        className="bg-default w-full max-w-md rounded-lg p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}>
-        <div className="bg-default w-full max-w-md rounded-lg p-6 shadow-xl">
-          <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
-          <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
+        <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
+        <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
 
-          <div className="mb-6 space-y-4">
-            {noShowAttendees.map((attendee, index) => (
-              <div key={index} className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-default flex h-7 w-7 items-center justify-center rounded-full">
-                    <span className="text-default text-sm font-medium">
-                      {(attendee.name || attendee?.email).charAt(0)}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium">{attendee?.name || attendee?.email}</span>
+        <div className="mb-6 space-y-4">
+          {noShowAttendees.map((attendee, index) => (
+            <div
+              key={index}
+              className="flex cursor-pointer items-center justify-between rounded-lg p-2 hover:bg-gray-50"
+              onClick={() => toggleAttendee(attendee.email)}>
+              <div className="flex items-center space-x-3">
+                <div className="bg-default flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
+                  <span className="text-default text-sm font-medium">
+                    {(attendee.name || attendee.email).charAt(0).toUpperCase()}
+                  </span>
                 </div>
-
-                <Checkbox
-                  key={attendee.email}
-                  checked={attendee.noShow}
-                  onCheckedChange={(checked) => {
-                    setNoShowAttendees((prev) =>
-                      prev.map((a) => (a.email === attendee.email ? { ...a, noShow: checked === true } : a))
-                    );
-                  }}
-                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{attendee.name || attendee.email}</span>
+                  {attendee.name && <span className="text-default text-xs">{attendee.email}</span>}
+                </div>
               </div>
-            ))}
-          </div>
 
-          <div className="flex justify-end space-x-3">
-            <Button color="secondary" onClick={() => setDialog(false)}>
-              Cancel
-            </Button>
-            <Button
-              loading={loading}
-              onClick={(e) => {
-                e.preventDefault();
-                setLoading(true);
-                noShowAttendees.forEach((attendee) => {
-                  const originalAttendee = attendees.find((e) => e.email === attendee.email);
-                  if (originalAttendee && originalAttendee.noShow !== attendee.noShow) {
-                    noShowMutation.mutate({
-                      bookingUid,
-                      attendees: [{ email: attendee.email, noShow: attendee.noShow }],
-                    });
-                  }
-                });
-              }}>
-              {t("mark_as_no_show")}
-            </Button>
-          </div>
+              <Checkbox
+                checked={attendee.noShow}
+                onCheckedChange={(checked) => {
+                  setNoShowAttendees((prev) =>
+                    prev.map((a) => (a.email === attendee.email ? { ...a, noShow: checked === true } : a))
+                  );
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <Button color="secondary" onClick={() => closeNoShowDialog()}>
+            Cancel
+          </Button>
+          <Button
+            loading={loading}
+            onClick={(e) => {
+              e.preventDefault();
+              setLoading(true);
+              noShowAttendees.forEach((attendee) => {
+                const originalAttendee = attendees.find((e) => e.email === attendee.email);
+                if (originalAttendee && originalAttendee.noShow !== attendee.noShow) {
+                  noShowMutation.mutate({
+                    bookingUid,
+                    attendees: [{ email: attendee.email, noShow: attendee.noShow }],
+                  });
+                }
+              });
+            }}>
+            {t("update_no_show_status")}
+          </Button>
         </div>
       </div>
     </div>

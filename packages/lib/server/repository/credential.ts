@@ -12,9 +12,10 @@ const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 type CredentialCreateInput = {
   type: string;
   key: any;
-  userId: number;
+  userId? : number | null;
   appId: string;
   delegationCredentialId?: string | null;
+  calIdTeamId?: number | null;
 };
 
 type CredentialUpdateInput = {

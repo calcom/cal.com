@@ -11,7 +11,7 @@ export interface NavTabProps {
 const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...props }: NavTabProps) {
   return (
     <div className="mb-4 max-w-full">
-      <nav className="no-scrollbar flex overflow-x-scroll border-b border-muted" aria-label="Tabs" {...props}>
+      <nav className="no-scrollbar border-muted flex overflow-x-scroll border-b" aria-label="Tabs" {...props}>
         {tabs.map((tab, idx) => (
           <HorizontalTabItem {...tab} key={idx} linkShallow={linkShallow} linkScroll={linkScroll} />
         ))}

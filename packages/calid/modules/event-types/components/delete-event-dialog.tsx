@@ -54,10 +54,10 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose />
           <Button color="destructive" onClick={onConfirm} loading={isDeleting}>
             {t("delete")}
           </Button>
+          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>

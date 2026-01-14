@@ -142,8 +142,7 @@ export default function ImageUploader({
           type="button"
           disabled={disabled}
           size={buttonSize}
-          data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
-          className="cursor-pointer px-2 py-2 text-sm">
+          data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}>
           {buttonMsg}
         </Button>
       </DialogTrigger>

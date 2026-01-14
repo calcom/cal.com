@@ -83,6 +83,8 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import type { RefundNotProcessableInput } from "./templates/payment-not-processable";
+import PaymentNotProcessableEmail from "./templates/payment-not-processable";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
@@ -116,7 +118,8 @@ const _sendScheduledEmailsAndSMS = async (
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
   attendeeEmailDisabled?: boolean,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  curAttendee?: Person // In some places passing proper responses like the payment success, passing original responses field isn't possible so we pass the current attendee to get their email or phone number
 ) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -133,23 +136,42 @@ const _sendScheduledEmailsAndSMS = async (
     }
   }
 
+  const attendeeInfo = {
+    email: curAttendee?.email ?? formattedCalEvent.responses?.email?.value,
+    phone: curAttendee?.phoneNumber ?? formattedCalEvent.responses?.attendeePhoneNumber?.value,
+  };
+
   if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
-      ...formattedCalEvent.attendees.map((attendee) => {
-        return sendEmail(
-          () =>
-            new AttendeeScheduledEmail(
-              {
-                ...formattedCalEvent,
-                ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
-                ...(eventNameObject && {
-                  title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
-                }),
-              },
-              attendee
-            )
-        );
-      })
+      ...(formattedCalEvent.seatsPerTimeSlot > 1 && !formattedCalEvent.seatsShowAttendees
+        ? [
+            formattedCalEvent.attendees.find((e) =>
+              e.email && attendeeInfo.email
+                ? e.email === attendeeInfo.email
+                : e.phoneNumber === attendeeInfo.phone
+            ),
+          ]
+        : [...formattedCalEvent.attendees]
+      )
+        .filter((a): a is Person => Boolean(a))
+        .map((attendee) => {
+          return sendEmail(
+            () =>
+              new AttendeeScheduledEmail(
+                {
+                  ...formattedCalEvent,
+                  ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
+                  ...(eventNameObject && {
+                    title: getEventName({
+                      ...eventNameObject,
+                      t: attendee.language.translate,
+                    }),
+                  }),
+                },
+                attendee
+              )
+          );
+        })
     );
   }
 
@@ -578,13 +600,17 @@ export const sendOrganizerRequestReminderEmail = async (
 
 export const sendAwaitingPaymentEmailAndSMS = async (
   calEvent: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  bookingSeatId?: number
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
+      if (bookingSeatId && attendee!.bookingSeat?.id !== bookingSeatId) {
+        return Promise.resolve();
+      }
       return sendEmail(() => new AttendeeAwaitingPaymentEmail(calEvent, attendee));
     })
   );
@@ -930,4 +956,8 @@ export const sendDelegationCredentialDisabledEmail = async ({
 
 export const sendBookingsExportEmail = async (bookingExportEmailprops: BookingExportEmailProps) => {
   await sendEmail(() => new BookingExportEmail(bookingExportEmailprops));
+};
+
+export const sendPaymentNotProcessableEmail = async (input: RefundNotProcessableInput) => {
+  await sendEmail(() => new PaymentNotProcessableEmail(input));
 };

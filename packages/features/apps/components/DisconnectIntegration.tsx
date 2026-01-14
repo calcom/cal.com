@@ -44,6 +44,7 @@ export default function DisconnectIntegration(props: {
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={() => mutation.mutate({ id: credentialId, ...(teamId ? { teamId } : {}) })}
+      teamId={teamId ?? undefined}
       isModalOpen={modalOpen}
       onModalOpen={() => setModalOpen((prevValue) => !prevValue)}
       disabled={disableDisconnect}

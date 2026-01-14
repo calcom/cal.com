@@ -119,8 +119,6 @@ export class CalIdWorkflowRepository {
       },
     });
 
-    console.log("Found verified number: ", verifiedNumbers)
-
     return verifiedNumbers;
   }
 
@@ -212,14 +210,8 @@ export class CalIdWorkflowRepository {
 
     // Build base WHERE clause for workflows accessible by the user
     const baseWhere: Prisma.CalIdWorkflowWhereInput = {
-      OR: [
-        { userId },
-        {
-          calIdTeam: {
-            members: { some: { userId, acceptedInvitation: true } },
-          },
-        },
-      ],
+      userId, // only workflows owned by the user
+      calIdTeamId: null, // only workflows not associated with any team
     };
 
     // Fetch all workflows (needed for totalCount)
@@ -275,8 +267,9 @@ export class CalIdWorkflowRepository {
       });
     }
     if (filters?.userIds?.length) {
+      //only showing the logged in user workflows
       where.OR?.push({
-        userId: { in: filters.userIds },
+        userId: userId,
         calIdTeamId: null,
       });
     }
@@ -385,8 +378,10 @@ export class CalIdWorkflowRepository {
       [x: string]: (id: number, referenceId: string | null) => void;
     } = {
       [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id, referenceId),
-      [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
-      [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
+      [WorkflowMethods.SMS]: (id, referenceId) =>
+        deleteScheduledSMSReminder(id, referenceId, WorkflowMethods.SMS),
+      [WorkflowMethods.WHATSAPP]: (id, referenceId) =>
+        deleteScheduledWhatsappReminder(id, referenceId, WorkflowMethods.WHATSAPP),
     };
 
     if (!remindersToDelete) return Promise.resolve();

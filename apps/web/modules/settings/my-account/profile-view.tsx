@@ -1,5 +1,6 @@
 "use client";
 
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import {
@@ -10,6 +11,7 @@ import {
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
 import { Form, FormField } from "@calid/features/ui/components/form";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { PasswordField } from "@calid/features/ui/components/input/input";
 import {
@@ -25,7 +27,6 @@ import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
-import { useMemo } from "react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -43,7 +44,6 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -81,8 +81,11 @@ export type FormValues = {
   secondaryEmails: Email[];
   metadata?: {
     phoneNumber?: string;
+    usePhoneForWhatsApp?: boolean;
+    headerUrl?: string | null;
   };
 };
+
 type Props = {
   user: RouterOutputs["viewer"]["me"]["calid_get"];
 };
@@ -165,6 +168,7 @@ const ProfileView = ({ user }: Props) => {
     triggerToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
+    await resetCrispSession();
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
@@ -230,7 +234,6 @@ const ProfileView = ({ user }: Props) => {
       username: user.username,
     };
 
-    console.log("Sent gtm event: ", gtmEvent);
     window.dataLayer.push(gtmEvent);
   };
 
@@ -280,6 +283,8 @@ const ProfileView = ({ user }: Props) => {
 
     metadata: {
       phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
+      usePhoneForWhatsApp: (isPrismaObjOrUndefined(user.metadata)?.usePhoneForWhatsApp as boolean) ?? false,
+      headerUrl: (isPrismaObjOrUndefined(user.metadata)?.headerUrl as string | null) ?? null,
     },
   };
 
@@ -558,6 +563,8 @@ const ProfileForm = ({
             { message: t("invalid_phone_number") }
           )
           .optional(),
+        usePhoneForWhatsApp: z.boolean().optional(),
+        headerUrl: z.union([z.string(), z.null()]).optional(),
       })
       .optional(),
   });
@@ -665,196 +672,223 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   const bioValue = formMethods.watch("bio") || "";
-  const renderedBio = useMemo(() => {
-    md.render(bioValue), [bioValue];
-  });
   const getText = React.useCallback(() => bioValue, [bioValue]);
 
+  // Watch phone number to conditionally show WhatsApp checkbox
+  const phoneNumber = formMethods.watch("metadata.phoneNumber");
+  const hasPhoneNumber = phoneNumber && phoneNumber.trim() !== "";
+
   return (
-    <Form form={formMethods} onSubmit={handleFormSubmit}>
-      <div className="border-default rounded-md border px-4 py-6 sm:px-6">
-        <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
-        <div className="flex items-center">
-          <FormField
-            control={formMethods.control}
-            name="avatarUrl"
-            render={({ field: { value, onChange } }) => {
-              const showRemoveAvatarButton = value !== null;
-              return (
-                <>
-                  <Avatar
-                    data-testid="profile-upload-avatar"
-                    imageSrc={getUserAvatarUrl({ avatarUrl: value })}
-                    size="lg"
-                    alt={user.name || "Nameless User"}
-                  />
-                  <div className="ms-4">
-                    <div className="flex gap-2">
-                      <ImageUploader
-                        target="avatar"
-                        id="avatar-upload"
-                        buttonMsg={t("upload_avatar")}
-                        handleAvatarChange={(newAvatar) => {
-                          onChange(newAvatar);
-                        }}
-                        buttonSize="lg"
-                        imageSrc={getUserAvatarUrl({ avatarUrl: value })}
-                        triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
-                      />
+    <div>
+      <Form form={formMethods} onSubmit={handleFormSubmit}>
+        <div className="border-default rounded-md border px-4 py-6 sm:px-6">
+          <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+          <div className="flex items-center">
+            <FormField
+              control={formMethods.control}
+              name="avatarUrl"
+              render={({ field: { value, onChange } }) => {
+                const showRemoveAvatarButton = value !== null;
+                return (
+                  <>
+                    <Avatar
+                      data-testid="profile-upload-avatar"
+                      imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                      size="lg"
+                      alt={user.name || "Nameless User"}
+                    />
+                    <div className="ms-4">
+                      <div className="flex gap-2">
+                        <ImageUploader
+                          target="avatar"
+                          id="avatar-upload"
+                          buttonMsg={t("upload_avatar")}
+                          handleAvatarChange={(newAvatar) => {
+                            onChange(newAvatar);
+                          }}
+                          buttonSize="lg"
+                          imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                          triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
+                        />
 
-                      {showRemoveAvatarButton && (
-                        <Button
-                          color="destructive"
-                          onClick={() => {
-                            onChange(null);
-                          }}>
-                          {t("remove")}
-                        </Button>
-                      )}
+                        {showRemoveAvatarButton && (
+                          <Button
+                            color="destructive"
+                            onClick={() => {
+                              onChange(null);
+                            }}>
+                            {t("remove")}
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
-              );
-            }}
-          />
-        </div>
-        {/* {extraField} */}
-
-        <div className="mt-6">
-          <UsernameAvailabilityField
-            control={formMethods.control}
-            onSuccessMutation={async () => {
-              triggerToast(t("settings_updated_successfully"), "success");
-              await utils.viewer.me.invalidate();
-              revalidateSettingsProfile();
-            }}
-            onErrorMutation={() => {
-              triggerToast(t("error_updating_settings"), "error");
-            }}
-          />
-        </div>
-
-        <div className="mt-6">
-          <TextField label={t("full_name")} {...formMethods.register("name")} />
-        </div>
-        <div className="mt-6">
-          <Label>{t("email")}</Label>
-          <div className="-mt-2 flex flex-wrap items-start gap-2">
-            <div className={secondaryEmailFields.length > 1 ? "grid w-full" : "flex-1"}>
-              {secondaryEmailFields.map((field, index) => (
-                <CustomEmailTextField
-                  key={field.itemId}
-                  formMethods={formMethods}
-                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
-                  emailVerified={Boolean(field.emailVerified)}
-                  emailPrimary={field.emailPrimary}
-                  dataTestId={`profile-form-email-${index}`}
-                  handleChangePrimary={() => {
-                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                      ...secondaryField,
-                      emailPrimary: cIndex === index,
-                    }));
-                    updateAllSecondaryEmailFields(fields);
-                  }}
-                  handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                  handleItemDelete={() => deleteSecondaryEmail(index)}
-                />
-              ))}
-            </div>
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              size="lg"
-              className="mt-2 h-[40px]"
-              onClick={() => handleAddSecondaryEmail()}
-              data-testid="add-secondary-email">
-              {t("add_email")}
-            </Button>
+                  </>
+                );
+              }}
+            />
           </div>
-        </div>
+          {/* {extraField} */}
 
-        <div className="mt-6">
-          <PhoneNumberField
-            getValue={phoneFieldHelpers.getValue}
-            setValue={phoneFieldHelpers.setValue}
-            getValues={formMethods.getValues}
-            defaultValues={defaultValues}
-            isRequired={false}
-            allowDelete={true}
-            hasExistingNumber={!!defaultValues.metadata.phoneNumber}
-            isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
-            errorMessage={formMethods.formState.errors.metadata?.phoneNumber?.message}
-            onDeleteNumber={handleDeleteNumber}
-            fieldName="metadata.phoneNumber"
-          />
-        </div>
-
-        <div className="mt-6">
-          <Label>{t("about")}</Label>
-          <Editor
-            getText={getText}
-            setText={(value: string) => {
-              formMethods.setValue("bio", turndown(value), { shouldDirty: true });
-            }}
-            excludedToolbarItems={["blockType"]}
-            disableLists
-            firstRender={firstRender}
-            setFirstRender={setFirstRender}
-            height="120px"
-          />
-        </div>
-        {usersAttributes && usersAttributes?.length > 0 && (
-          <div className="mt-6 flex flex-col">
-            <Label>{t("attributes")}</Label>
-            <div className="flex flex-col space-y-4">
-              {usersAttributes.map((attribute, index) => (
-                <>
-                  <DisplayInfo
-                    key={index}
-                    label={attribute.name}
-                    labelClassname="font-normal text-sm text-subtle"
-                    valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
-                    value={
-                      ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
-                        ? attribute.options[0].value
-                        : attribute.options.map((option) => option.value)
-                    }
-                  />
-                </>
-              ))}
-            </div>
-          </div>
-        )}
-        {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
-        so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
-        {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
           <div className="mt-6">
-            <Label>Connected accounts</Label>
-            <div className="flex items-center">
-              <span className="text-default text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
-              {user.identityProviderEmail && (
-                <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
-              )}
-              <div className="flex flex-1 justify-end">
-                <Button color="destructive" onClick={onDisconnect}>
-                  {t("disconnect")}
-                </Button>
+            <UsernameAvailabilityField
+              control={formMethods.control}
+              onSuccessMutation={async () => {
+                triggerToast(t("settings_updated_successfully"), "success");
+                await utils.viewer.me.invalidate();
+                revalidateSettingsProfile();
+              }}
+              onErrorMutation={() => {
+                triggerToast(t("error_updating_settings"), "error");
+              }}
+            />
+          </div>
+
+          <div className="mt-6">
+            <TextField label={t("full_name")} {...formMethods.register("name")} />
+          </div>
+          <div className="mt-6">
+            <Label>{t("email")}</Label>
+            <div className="-mt-2 flex flex-wrap items-start gap-2">
+              <div className={secondaryEmailFields.length > 1 ? "grid w-full" : "flex-1"}>
+                {secondaryEmailFields.map((field, index) => (
+                  <CustomEmailTextField
+                    key={field.itemId}
+                    formMethods={formMethods}
+                    formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                    errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                    emailVerified={Boolean(field.emailVerified)}
+                    emailPrimary={field.emailPrimary}
+                    dataTestId={`profile-form-email-${index}`}
+                    handleChangePrimary={() => {
+                      const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                        ...secondaryField,
+                        emailPrimary: cIndex === index,
+                      }));
+                      updateAllSecondaryEmailFields(fields);
+                    }}
+                    handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                    handleItemDelete={() => deleteSecondaryEmail(index)}
+                  />
+                ))}
+              </div>
+              <Button
+                color="secondary"
+                StartIcon="plus"
+                size="lg"
+                className="mt-2 h-[40px]"
+                onClick={() => handleAddSecondaryEmail()}
+                data-testid="add-secondary-email">
+                {t("add_email")}
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <PhoneNumberField
+              getValue={phoneFieldHelpers.getValue}
+              setValue={phoneFieldHelpers.setValue}
+              getValues={formMethods.getValues}
+              defaultValues={defaultValues}
+              isRequired={false}
+              allowDelete={true}
+              hasExistingNumber={!!defaultValues.metadata.phoneNumber}
+              isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+              errorMessage={formMethods.formState.errors.metadata?.phoneNumber?.message}
+              onDeleteNumber={handleDeleteNumber}
+              fieldName="metadata.phoneNumber"
+            />
+          </div>
+
+          {hasPhoneNumber && (
+            <div className="mt-4">
+              <FormField
+                control={formMethods.control}
+                name="metadata.usePhoneForWhatsApp"
+                render={({ field: { value, onChange } }) => (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={value ?? false}
+                      onCheckedChange={(checked) => onChange(!!checked)}
+                      id="usePhoneForWhatsApp"
+                    />
+                    <label
+                      htmlFor="usePhoneForWhatsApp"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      {t("use_this_phone_number_for_whatsapp") || "Use this phone number for WhatsApp?"}
+                    </label>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          <div className="mt-6">
+            <Label>{t("about")}</Label>
+            <Editor
+              getText={getText}
+              setText={(value: string) => {
+                formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+              }}
+              excludedToolbarItems={["blockType"]}
+              disableLists
+              firstRender={firstRender}
+              setFirstRender={setFirstRender}
+              height="120px"
+            />
+          </div>
+
+          {usersAttributes && usersAttributes?.length > 0 && (
+            <div className="mt-6 flex flex-col">
+              <Label>{t("attributes")}</Label>
+              <div className="flex flex-col space-y-4">
+                {usersAttributes.map((attribute, index) => (
+                  <>
+                    <DisplayInfo
+                      key={index}
+                      label={attribute.name}
+                      labelClassname="font-normal text-sm text-subtle"
+                      valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
+                      value={
+                        ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
+                          ? attribute.options[0].value
+                          : attribute.options.map((option) => option.value)
+                      }
+                    />
+                  </>
+                ))}
               </div>
             </div>
-          </div>
-        )}
-        <Button
-          loading={isPending}
-          disabled={isDisabled}
-          color="primary"
-          className="mt-4"
-          type="submit"
-          data-testid="profile-submit-button">
-          {t("update")}
-        </Button>
-      </div>
-    </Form>
+          )}
+          {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
+        so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
+          {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
+            <div className="mt-6">
+              <Label>Connected accounts</Label>
+              <div className="flex items-center">
+                <span className="text-default text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
+                {user.identityProviderEmail && (
+                  <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
+                )}
+                <div className="flex flex-1 justify-end">
+                  <Button color="destructive" onClick={onDisconnect}>
+                    {t("disconnect")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          <Button
+            loading={isPending}
+            disabled={isDisabled}
+            color="primary"
+            className="mt-4"
+            type="submit"
+            data-testid="profile-submit-button">
+            {t("update")}
+          </Button>
+        </div>
+      </Form>
+    </div>
   );
 };
 

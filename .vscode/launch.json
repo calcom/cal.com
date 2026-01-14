@@ -9,7 +9,7 @@
       "runtimeArgs": ["--inspect-brk", "${workspaceFolder}//node_modules/.bin/next", "dev"],
       "env": {
         "NODE_OPTIONS": "--inspect",
-        "PORT": "3001"
+        "PORT": "3001",
       },
       "cwd": "${workspaceFolder}/apps/web",
       "console": "integratedTerminal",

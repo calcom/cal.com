@@ -27,7 +27,7 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, RecurringEvent, Person } from "@calcom/types/Calendar";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
@@ -76,6 +76,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  curAttendee?: Person;
 }) {
   const {
     user,
@@ -110,7 +111,6 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
-  console.log("handleConfirmation results", safeStringify(results));
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
       errorCode: "BookingCreatingMeetingFailed",
@@ -151,7 +151,8 @@ export async function handleConfirmation(args: {
           undefined,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
-          eventTypeMetadata
+          eventTypeMetadata,
+          args.curAttendee
         );
       }
     } catch (error) {
@@ -281,6 +282,7 @@ export async function handleConfirmation(args: {
         rescheduleReason: updatedBookings[index].cancellationReason || null,
         metadata: { videoCallUrl: meetingUrl },
         eventType: {
+          id: booking.eventTypeId,
           slug: eventTypeSlug,
           schedulingType: updatedBookings[index].eventType?.schedulingType,
           hosts: updatedBookings[index].eventType?.hosts,
@@ -307,18 +309,25 @@ export async function handleConfirmation(args: {
           !emailsEnabled && Boolean(platformClientParams?.platformClientId)
         );
       }
+      const bookingResponse = isPrismaObjOrUndefined(updatedBookings[index]?.responses);
+      const attendeePhoneNumber = (bookingResponse?.attendeePhoneNumber ||
+        bookingResponse?.smsReminderNumber ||
+        bookingResponse?.phone ||
+        null) as string | null;
 
       await scheduleWorkflowReminders({
         workflows,
-        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        smsReminderNumber: attendeePhoneNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        seatReferenceUid: evt.attendeeSeatId,
       });
     }
   } catch (error) {
     // Silently fail
-    console.error(error);
+
+    console.error("error", error);
   }
 
   // Webhooks and scheduled triggers

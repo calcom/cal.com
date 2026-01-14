@@ -79,7 +79,7 @@ export function Header({
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
-      <div className="border-subtle flex w-full flex-row items-center gap-2 border-b pb-2 pl-10">
+      <div className="flex w-full flex-row items-center gap-2 pb-2 pl-10">
         {!isEmbed && (
           <Tooltip content={t("go_back")} side="bottom">
             <Button

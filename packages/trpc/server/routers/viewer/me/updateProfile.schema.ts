@@ -10,6 +10,7 @@ export const updateUserMetadataAllowedKeys = z.object({
   defaultBookerLayouts: bookerLayouts.optional(),
   currentOnboardingStep: z.string().optional(),
   phoneNumber: z.string().optional(),
+  designation: z.string().optional(),
 });
 
 export const ZUpdateProfileInputSchema = z.object({
@@ -55,6 +56,17 @@ export const ZUpdateProfileInputSchema = z.object({
 
   bannerUrl: z.string().nullable().optional(),
   faviconUrl: z.string().nullable().optional(),
+  socialProfiles: z
+    .object({
+      linkedin: z.string().optional(),
+      facebook: z.string().optional(),
+      twitter: z.string().optional(),
+      instagram: z.string().optional(),
+      youtube: z.string().optional(),
+      github: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

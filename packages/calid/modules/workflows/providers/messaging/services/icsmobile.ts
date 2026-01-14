@@ -358,7 +358,8 @@ export class IcsMobileSmsProvider implements SmsProvider {
       return {
         success: true,
         response: {
-          mid: firstResponse.mid,
+          // masking as sid to maintain consistency
+          sid: firstResponse.mid,
           to: firstResponse.to,
           from: firstResponse.from,
           smsgid: firstResponse.smsgid,

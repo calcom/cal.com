@@ -25,10 +25,10 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
     },
   });
 
-  if (!calIdTeam || calIdTeam?.isTeamPrivate) {
+  if (!calIdTeam) {
     throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not authorized to see members of this team",
+      code: "NOT_FOUND",
+      message: "Team not found",
     });
   }
 
@@ -46,12 +46,14 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
     });
   }
 
-  const isMemberAdminOrOwner = checkIfMemberAdminorOwner(calIdMembership?.role);
-  if (!isMemberAdminOrOwner) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not authorized to see members of this team",
-    });
+  if (calIdTeam.isTeamPrivate) {
+    const isMemberAdminOrOwner = checkIfMemberAdminorOwner(calIdMembership?.role);
+    if (!isMemberAdminOrOwner) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You are not authorized to see members of this team",
+      });
+    }
   }
 
   const whereCondition: Prisma.CalIdMembershipWhereInput = {

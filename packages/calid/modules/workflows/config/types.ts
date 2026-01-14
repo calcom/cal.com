@@ -42,6 +42,9 @@ export type CalIdWorkflowStep = {
   includeCalendarEvent: boolean;
   numberVerificationPending: boolean;
   numberRequired: boolean | null;
+
+  metaTemplateName: string | null;
+  metaTemplatePhoneNumberId: string | null;
 };
 
 // Workflow with relations
@@ -156,7 +159,7 @@ export type PartialCalIdWorkflowStep =
 
 export type PartialCalIdWorkflowReminder = Pick<
   CalIdWorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "seatReferenceId" | "referenceId"
 > & {
   booking: PartialBooking | null;
   workflowStep: PartialCalIdWorkflowStep;
@@ -167,16 +170,22 @@ export interface CalIdScheduleReminderArgs {
   evt: CalIdBookingInfo;
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: { time: number | null; timeUnit: TimeUnit | null };
-  template?: WorkflowTemplates;
+  template?: WorkflowTemplates | null;
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
   attendeeId?: number;
+  workflowId?: number;
 }
 
 export type CalIdScheduleEmailReminderAction = Extract<
   WorkflowActions,
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
+>;
+
+export type CalIdScheduleWhatsAppReminderAction = Extract<
+  WorkflowActions,
+  "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
 >;
 
 export type CalIdScheduleTextReminderAction = Extract<
@@ -192,6 +201,21 @@ export interface CalIdScheduleTextReminderArgs extends CalIdScheduleReminderArgs
   calIdTeamId?: number | null;
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
+  metaTemplateName?: string | null;
+  metaPhoneNumberId?: string | null;
+}
+
+export interface CalIdScheduleWhatsAppReminderArgs extends CalIdScheduleReminderArgs {
+  workflow: CalIdWorkflow;
+  reminderPhone: string;
+  message: string;
+  action: CalIdScheduleWhatsAppReminderAction;
+  userId?: number | null;
+  calIdTeamId?: number | null;
+  isVerificationPending?: boolean;
+  prisma?: PrismaClient;
+  metaTemplateName?: string | null;
+  metaPhoneNumberId?: string | null;
 }
 
 // -------------------- Booking Info --------------------

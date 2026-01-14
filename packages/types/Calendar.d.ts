@@ -42,6 +42,7 @@ export type Person = {
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
   phoneNumber?: string | null;
+  usePhoneForWhatsApp?: boolean | null;
 };
 
 export type TeamMember = {

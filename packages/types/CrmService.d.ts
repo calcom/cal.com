@@ -9,6 +9,7 @@ export interface CrmData {
 }
 
 export interface ContactCreateInput {
+  phoneNumber?: string;
   email: string;
   name: string;
 }

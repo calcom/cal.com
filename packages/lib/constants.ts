@@ -4,6 +4,9 @@ const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.e
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
 export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
+
+export const HAS_STAGING_APPS = process.env.HAS_STAGING_APPS || false;
+
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
 export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS || "";
@@ -18,8 +21,11 @@ export const WEBAPP_URL =
   RENDER_URL ||
   "http://localhost:3001";
 
+export const META_WEBHOOK_VERIFICATION_CODE = process.env.META_WEBHOOK_VERIFICATION_CODE;
+
 // OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
 // So for development purpose, we would stick to localhost only
+
 export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3001";
 
 /** @deprecated use `WEBAPP_URL` */
@@ -41,12 +47,12 @@ export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app")
   ? WEBAPP_URL
   : process.env.NEXT_PUBLIC_WEBSITE_URL || WEBAPP_URL;
 
-export const IS_CALCOM = true;
-// WEBAPP_URL &&
-// (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"))
+export const IS_CALCOM =
+  WEBAPP_URL &&
+  (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
@@ -273,3 +279,14 @@ export const DEMO_URL = "https://app.cal.id/manas/demo";
 export const IS_PROD_DOMAIN = WEBAPP_URL.includes("cal.id");
 
 export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+
+export const META_API_VERSION = process.env.META_WHATSAPP_API_VERSION || "v21.0";
+
+export const META_WHATSAPP_PHONE_NUMBER_ID = process.env.META_WHATSAPP_PHONE_NUMBER_ID || "";
+
+export const META_WHATSAPP_BUSINESS_APP_ID = process.env.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID || "";
+
+export const META_WHATSAPP_BUSINESS_APP_SECRET = process.env.META_WHATSAPP_BUSINESS_APP_SECRET || "";
+
+export const META_WHATSAPP_BUSINESS_CONFIG_ID =
+  process.env.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID || "";

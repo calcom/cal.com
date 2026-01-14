@@ -122,6 +122,7 @@ export const AppPage = ({
    */
   const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
   const availableForTeams = doesAppSupportTeamInstall({
+    slug,
     appCategories: categories,
     concurrentMeetings: concurrentMeetings,
     isPaid: !!paid,
@@ -181,7 +182,7 @@ export const AppPage = ({
 
       const appInstalledForAllTargets =
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? credentialsCount >= data.userAdminTeams.length
+          ? credentialsCount >= data.userAdminTeams.length + 1 /* for user cred */
           : credentialsCount > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
 
@@ -210,7 +211,8 @@ export const AppPage = ({
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
 
-  const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
+  const allowedMultipleInstalls =
+    (categories.indexOf("calendar") > -1 && variant !== "other") || slug === "whatsapp-business";
   useEffect(() => {
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });
@@ -326,6 +328,8 @@ export const AppPage = ({
           <>
             {existingCredentials.length > 1 ? (
               <MultiDisconnectIntegration
+                slug={slug}
+                categories={categories}
                 credentials={existingCredentials}
                 onSuccess={() => appDbQuery.refetch()}
               />
@@ -334,7 +338,7 @@ export const AppPage = ({
                 buttonProps={{ color: "secondary" }}
                 label={t("disconnect")}
                 credentialId={Number(existingCredentials[0].id)}
-                teamId={existingCredentials[0].teamId}
+                teamId={existingCredentials[0].calIdTeamId}
                 onSuccess={() => appDbQuery.refetch()}
               />
             )}

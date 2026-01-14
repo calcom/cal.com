@@ -26,11 +26,11 @@ export const getAppOnboardingUrl = async ({
     const { url } = await res.json();
     return url;
   }
+
   const params: { [key: string]: string | number | number[] } = { slug };
+
   if (!!calIdTeamId) {
     params.calIdTeamId = calIdTeamId;
-  } else if (!!teamId) {
-    params.teamId = teamId;
   }
   const query = stringify(params);
 

@@ -23,10 +23,12 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const utils = trpc.useUtils();
   const integrations = trpc.viewer.apps.calid_integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
-  const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
+  const teamsList = trpc.viewer.calidTeams.listOwnedTeams.useQuery(undefined, {
     refetchOnWindowFocus: false,
   });
+
   const teams = teamsList.data?.map((team) => ({ id: team.id, name: team.name }));
+
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     onSuccess: () => {
       utils.viewer.apiKeys.findKeyOfType.invalidate();

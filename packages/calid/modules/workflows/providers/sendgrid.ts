@@ -13,7 +13,7 @@ interface EmailConfiguration {
 }
 
 interface CustomParameters {
-  [property: string]: any;
+  msgId?: string;
 }
 
 const getEnvironmentConfig = (): EmailConfiguration | null => {
@@ -130,10 +130,9 @@ const executeEmailDelivery = (
     replyTo: emailData.replyTo || configuration.fromAddress,
     attachments: emailData.attachments,
     sendAt: emailData.sendAt,
-    ...(extraParameters && {
+    ...(extraParameters?.msgId && {
       customArgs: {
-        ...extraParameters,
-        msgId: uuidv4(),
+        msgId: extraParameters.msgId,
       },
     }),
   };

@@ -12,8 +12,8 @@ import Login from "~/auth/login-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => t("login"),
-    (t) => t("login"),
+    (t) => t("login_seo_title"),
+    (t) => t("login_seo_description"),
     undefined,
     undefined,
     "/auth/login"

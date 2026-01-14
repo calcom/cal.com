@@ -267,7 +267,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bookingLimits = bookingLimits;
   }
 
-  if (maxActiveBookingsPerBooker) {
+  if (maxActiveBookingsPerBooker || maxActiveBookingsPerBooker === null) {
     if (maxActiveBookingsPerBooker && maxActiveBookingsPerBooker < 1) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
     }
@@ -287,6 +287,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
 
     data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
+    if (maxActiveBookingsPerBooker === null) {
+      data.maxActiveBookingPerBookerOfferReschedule = false;
+    }
   }
 
   if (durationLimits) {
@@ -347,12 +350,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const _membershipRepo = new MembershipRepository(ctx.prisma);
 
   if (restrictionScheduleId) {
-    // Verify that the user owns the restriction schedule or is a team member
     const scheduleRepo = new ScheduleRepository(ctx.prisma);
     const restrictionSchedule = await scheduleRepo.findScheduleByIdForOwnershipCheck({
       scheduleId: restrictionScheduleId,
     });
-    // If the user doesn't own the schedule, check if they're a calIdTeam member
     if (restrictionSchedule?.userId !== ctx.user.id) {
       if (!currentCalIdTeamId || !restrictionSchedule) {
         throw new TRPCError({
@@ -394,7 +395,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (currentCalIdTeamId && hosts) {
-    // check if all hosts can be assigned (calIdTeam memberships that have accepted invite)
     const calIdTeamMemberIds = await ctx.prisma.calIdMembership.findMany({
       where: {
         calIdTeamId: currentCalIdTeamId,
@@ -406,15 +406,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
     const calIdTeamMemberIdList = calIdTeamMemberIds.map((member) => member.userId);
 
-    // guard against missing IDs, this may mean a member has just been removed
-    // or this request was forged.
     if (!hosts.every((host) => calIdTeamMemberIdList.includes(host.userId))) {
       throw new TRPCError({
         code: "FORBIDDEN",
+        message: "You are not authorized to update this event type",
       });
     }
 
-    // weights were already enabled or are enabled now
     const _isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
@@ -477,6 +475,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       select: {
         steps: true,
+        trigger: true,
       },
     });
 

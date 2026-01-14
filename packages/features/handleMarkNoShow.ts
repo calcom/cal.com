@@ -138,6 +138,9 @@ const handleMarkNoShow = async ({
     if (error instanceof Error) {
       logger.error(error.message);
     }
+    if (error instanceof HttpError) {
+      throw error;
+    }
     throw new HttpError({ statusCode: 500, message: "Failed to update no-show status" });
   }
 };

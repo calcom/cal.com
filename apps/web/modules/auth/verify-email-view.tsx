@@ -3,7 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Logo } from "@calid/features/ui/components/logo";
 import { triggerToast } from "@calid/features/ui/components/toast";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -112,10 +112,10 @@ function VerifyEmailPage() {
               </div>
 
               {/* Header */}
-              <h1 className="mb-2 text-2xl font-bold text-emphasis">{t("check_your_email")}</h1>
+              <h1 className="text-emphasis mb-2 text-2xl font-bold">{t("check_your_email")}</h1>
               <div className="mb-8 flex flex-col ">
-                <p className="mx-auto max-w-md text-default">We've sent a verification link to </p>
-                <span className="font-semibold text-emphasis">{session?.user?.email}</span>
+                <p className="text-default mx-auto max-w-md">We've sent a verification link to </p>
+                <span className="text-emphasis font-semibold">{session?.user?.email}</span>
               </div>
 
               {/* Action Buttons */}
@@ -124,7 +124,10 @@ function VerifyEmailPage() {
                 style={{ animationDelay: "200ms" }}>
                 <Button
                   color="secondary"
-                  onClick={() => router.back()}
+                  onClick={async () => {
+                    await signOut({ redirect: false });
+                    router.replace("/auth/signup");
+                  }}
                   className="btn-back justify-center rounded-lg border px-10 py-3 font-semibold">
                   <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path

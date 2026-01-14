@@ -1,4 +1,4 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
+import type { Booking, BookingSeat, Payment, PaymentOption, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
@@ -67,6 +67,7 @@ export class PaymentService implements IAbstractPaymentService {
     paymentOption: PaymentOption,
     bookerEmail: string,
     bookingUid: string,
+    bookingSeat?: BookingSeat["id"],
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
@@ -122,7 +123,7 @@ export class PaymentService implements IAbstractPaymentService {
           enabled: true,
         },
         metadata: {
-          identifier: "cal.com",
+          identifier: "Cal ID",
           bookingId,
           calAccountId: userId,
           calUsername: username,
@@ -153,6 +154,13 @@ export class PaymentService implements IAbstractPaymentService {
               id: bookingId,
             },
           },
+          bookingSeat: bookingSeat
+            ? {
+                connect: {
+                  id: bookingSeat,
+                },
+              }
+            : undefined,
           amount: payment.amount,
           currency: payment.currency,
           externalId: paymentIntent.id,

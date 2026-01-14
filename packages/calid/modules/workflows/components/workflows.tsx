@@ -76,23 +76,18 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   return (
     <div className="bg-default min-h-screen">
       {!hasWorkflows ? (
-        // Empty state
         <div className="mx-auto max-w-full">
-          {teamProfiles.length > 0 && (
-            <div className="mb-8">
-              <TeamsFilter profiles={teamProfiles} />
-            </div>
-          )}
+          <div className="mb-8">
+            <TeamsFilter profiles={teamProfiles} />
+          </div>
 
           <TemplatesContent templates={templates} onCreateWorkflow={handleWorkflowCreate} />
         </div>
       ) : (
         <div>
-          {teamProfiles.length > 0 && (
-            <div className="mb-8">
-              <TeamsFilter profiles={teamProfiles} />
-            </div>
-          )}
+          <div className="mb-8">
+            <TeamsFilter profiles={teamProfiles} />
+          </div>
           <TemplatesContent templates={templates} onCreateWorkflow={handleWorkflowCreate} />
           <WorkflowsList
             workflows={workflows}

@@ -10,7 +10,10 @@ import { Avatar } from "@calcom/ui/components/avatar";
 
 import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
 
-export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & { alreadyInstalled: boolean };
+export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & {
+  alreadyInstalled: boolean;
+  allowedMultipleInstalls?: boolean;
+};
 
 type AccountStepCardProps = {
   teams?: TTeams;
@@ -24,6 +27,7 @@ type AccountSelectorProps = {
   avatar?: string;
   name: string;
   alreadyInstalled: boolean;
+  allowedMultipleInstalls?: boolean;
   onClick?: () => void;
   loading: boolean;
   testId: string;
@@ -32,6 +36,7 @@ type AccountSelectorProps = {
 const AccountSelector: FC<AccountSelectorProps> = ({
   avatar,
   alreadyInstalled,
+  allowedMultipleInstalls,
   name,
   onClick,
   loading,
@@ -43,12 +48,12 @@ const AccountSelector: FC<AccountSelectorProps> = ({
     <div
       className={classNames(
         "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 rounded-md p-1",
-        (alreadyInstalled || loading) && "cursor-not-allowed",
+        ((alreadyInstalled && !allowedMultipleInstalls) || loading) && "cursor-not-allowed",
         selected && loading && "bg-muted animate-pulse"
       )}
       data-testid={testId}
       onClick={() => {
-        if (!alreadyInstalled && !loading && onClick) {
+        if ((!alreadyInstalled || allowedMultipleInstalls) && !loading && onClick) {
           setSelected(true);
           onClick();
         }
@@ -60,7 +65,18 @@ const AccountSelector: FC<AccountSelectorProps> = ({
       />
       <div className="text-md text-subtle pt-0.5 font-medium">
         {name}
-        {alreadyInstalled ? <span className="text-subtle ml-2 text-sm">({t("already_installed")})</span> : ""}
+        {alreadyInstalled && !allowedMultipleInstalls ? (
+          <span className="text-subtle ml-2 text-sm">({t("already_installed")})</span>
+        ) : (
+          ""
+        )}
+        {alreadyInstalled && allowedMultipleInstalls ? (
+          <span className="text-subtle ml-2 text-sm">
+            ({t("already_installed")}. {t("click_to_install_more")})
+          </span>
+        ) : (
+          ""
+        )}
       </div>
     </div>
   );
@@ -72,6 +88,8 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
   onSelect,
   loading,
   installableOnTeams,
+
+  noTeamsOnAccountsPage,
 }) => {
   const { t } = useLocale();
   return (
@@ -82,16 +100,19 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
           testId="install-app-button-personal"
           avatar={personalAccount.avatarUrl ?? ""}
           name={personalAccount.name ?? ""}
+          allowedMultipleInstalls={personalAccount.allowedMultipleInstalls}
           alreadyInstalled={personalAccount.alreadyInstalled}
           onClick={() => onSelect()}
           loading={loading}
         />
-        {installableOnTeams &&
+        {!noTeamsOnAccountsPage &&
+          installableOnTeams &&
           teams?.map((team) => (
             <AccountSelector
               key={team.id}
               testId={`install-app-button-team${team.id}`}
               alreadyInstalled={team.alreadyInstalled}
+              allowedMultipleInstalls={team.allowedMultipleInstalls}
               avatar={team.logoUrl ?? ""}
               name={team.name}
               onClick={() => onSelect(team.id)}

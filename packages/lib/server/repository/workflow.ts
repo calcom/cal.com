@@ -120,7 +120,7 @@ export class WorkflowRepository {
     }
     const verifiedNumbers = await prisma.verifiedNumber.findMany({
       where: {
-        OR: [{ userId }, { teamId }],
+        OR: [{ userId }, { calIdTeamId: teamId }],
       },
     });
 
@@ -402,8 +402,10 @@ export class WorkflowRepository {
       [x: string]: (id: number, referenceId: string | null) => void;
     } = {
       [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id, referenceId),
-      [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
-      [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
+      [WorkflowMethods.SMS]: (id, referenceId) =>
+        deleteScheduledSMSReminder(id, referenceId, WorkflowMethods.SMS),
+      [WorkflowMethods.WHATSAPP]: (id, referenceId) =>
+        deleteScheduledWhatsappReminder(id, referenceId, WorkflowMethods.WHATSAPP),
     };
 
     if (!remindersToDelete) return Promise.resolve();

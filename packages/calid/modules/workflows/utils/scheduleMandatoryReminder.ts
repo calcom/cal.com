@@ -54,7 +54,6 @@ export async function scheduleMandatoryReminder(
         includeCalendarEvent: false,
         isMandatoryReminder: true,
       };
-
       await scheduleEmailReminder(reminderConfiguration);
     }
   };

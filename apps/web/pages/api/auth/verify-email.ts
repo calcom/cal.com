@@ -180,7 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     identityProvider: user.identityProvider,
   });
 
-  return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
+  return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/home" : "/getting-started"}`);
 }
 
 export async function cleanUpVerificationTokens(id: number) {

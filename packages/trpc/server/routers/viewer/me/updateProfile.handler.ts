@@ -167,12 +167,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (
     input.bannerUrl &&
-    (
-      input.bannerUrl.startsWith("data:image/png;base64,") ||
+    (input.bannerUrl.startsWith("data:image/png;base64,") ||
       input.bannerUrl.startsWith("data:image/jpeg;base64,") ||
       input.bannerUrl.startsWith("data:image/jpg;base64,") ||
-      input.bannerUrl == "delete"
-    )
+      input.bannerUrl == "delete")
   ) {
     data.bannerUrl = await uploadLogo({
       logo: input.bannerUrl == "delete" ? "delete" : await resizeBase64Image(input.bannerUrl),
@@ -183,12 +181,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (
     input.faviconUrl &&
-    (
-      input.faviconUrl.startsWith("data:image/png;base64,") ||
+    (input.faviconUrl.startsWith("data:image/png;base64,") ||
       input.faviconUrl.startsWith("data:image/jpeg;base64,") ||
       input.faviconUrl.startsWith("data:image/jpg;base64,") ||
-      input.faviconUrl == "delete"
-    )
+      input.faviconUrl == "delete")
   ) {
     data.faviconUrl = await uploadLogo({
       logo: input.faviconUrl == "delete" ? "delete" : await resizeBase64Image(input.faviconUrl),

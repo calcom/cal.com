@@ -48,7 +48,7 @@ export type GetAllSchedulesByUserIdQueryType =
     >);
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
-type TeamMember = Pick<TeamMembers[number], "avatar" | "name" | "id">;
+type TeamMember = TeamMembers[number];
 
 export interface EventAvailabilityProps {
   eventType: EventTypeSetup;
@@ -157,7 +157,7 @@ const useCommonScheduleState = (initialScheduleId: number | null) => {
   const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(!initialScheduleId);
 
   const clearMainSchedule = useCallback(() => {
-    setValue("schedule", null, { shouldDirty: Boolean(initialScheduleId) });
+    setValue("schedule", null, { shouldDirty: true });
   }, [setValue, initialScheduleId]);
 
   const toggleScheduleState = useCallback(
@@ -196,10 +196,12 @@ const useScheduleDefaults = (
   restrictionScheduleId: number | null,
   isManagedEventType: boolean,
   eventType: EventTypeSetup,
-  formMethods: any
+  formMethods: any,
+  shouldSetDefaults: boolean
 ) => {
   // Set default main schedule
   useEffect(() => {
+    if (!shouldSetDefaults) return;
     if (schedulesData?.schedules && scheduleId !== 0 && !scheduleId) {
       let newValue;
       if (isManagedEventType) {
@@ -213,7 +215,7 @@ const useScheduleDefaults = (
         formMethods.setValue("schedule", newValue, { shouldDirty: true });
       }
     }
-  }, [scheduleId, schedulesData?.schedules, isManagedEventType, eventType.schedule, formMethods]);
+  }, [scheduleId, schedulesData?.schedules, isManagedEventType, eventType.schedule, formMethods, shouldSetDefaults]);
 
   // Set default restriction schedule
   useEffect(() => {
@@ -242,7 +244,7 @@ const TeamMemberSchedule = memo(
     const { data, isPending } = hostScheduleQuery({ userId: host.userId });
     const member = useMemo(() => {
       const foundMember = teamMembers.find((mem) => mem.user?.id === host.userId);
-      return foundMember;
+      return foundMember as any;
     }, [teamMembers, host.userId]);
 
     // Transform schedule data to options format
@@ -475,7 +477,8 @@ const ScheduleSelector = memo(
           name={fieldName}
           render={({ field: { onChange, value } }) => {
             // Extract the ID from the value if it's an object, otherwise use the value as is
-            const scheduleId = typeof value === "object" && value !== null ? value.id : value;
+            const scheduleId =
+              typeof value === "object" && value !== null ? (value as any).id : (value as any);
 
             // Convert options to the format expected by Select component
             const selectOptions = options.map((opt) => ({
@@ -719,7 +722,9 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
 
   // Extract the ID from the schedule value if it's an object, otherwise use the value as is
   const scheduleId =
-    typeof scheduleValue === "object" && scheduleValue !== null ? scheduleValue.id : scheduleValue;
+    typeof scheduleValue === "object" && scheduleValue !== null
+      ? (scheduleValue as any).id
+      : (scheduleValue as any);
 
   // Get field permissions manager for form field permissions
   const fieldPermissions = useFieldPermissions({
@@ -838,7 +843,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     restrictionScheduleId,
     fieldPermissions.isManagedEventType,
     eventType,
-    formMethods
+    formMethods,
+    !(isTeamEvent && useHostSchedulesForTeamEvent)
   );
 
   // Show loading state while schedules are being fetched

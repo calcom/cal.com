@@ -224,6 +224,10 @@ export const Handler = async ({ ctx, input }: Options) => {
         isPrismaObj(user.metadata) && user.metadata?.phoneNumber
           ? (user.metadata?.phoneNumber as string)
           : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(user.metadata) && typeof user.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (user.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     },
     hideOrganizerEmail: updatedBooking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,

@@ -18,6 +18,7 @@ const getUserBooking = async (uid: string) => {
       location: true,
       status: true,
       metadata: true,
+      paid: true,
       cancellationReason: true,
       cancelledBy: true,
       responses: true,
@@ -42,6 +43,16 @@ const getUserBooking = async (uid: string) => {
           email: true,
           timeZone: true,
           phoneNumber: true,
+          bookingSeat: {
+            select: {
+              payment: {
+                select: {
+                  success: true,
+                  refunded: true,
+                }
+              },
+            },
+          },
         },
         orderBy: {
           id: "asc",

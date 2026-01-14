@@ -13,6 +13,8 @@ import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import React, { useMemo, useState, useEffect } from "react";
 
 import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
@@ -126,6 +128,13 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   const cleanPublicUrl = publicUrl ? `${publicUrl}`.replace(/^https?:\/\//, "") : null;
 
   const displayUrl = isManagedEvent ? null : cleanPublicUrl;
+
+  let clean;
+  if (event.description) {
+    // Remove all href attributes, to prevent user from clicking links in the description.
+    const html = marked(event.description);
+    clean = DOMPurify.sanitize(html, { FORBID_ATTR: ["href"] });
+  }
 
   return (
     <>
@@ -275,10 +284,14 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                   </div>
                 )}
 
-                {event.description && (
-                  <p className="text-subtle mb-3 mr-20 line-clamp-2 text-sm sm:line-clamp-none">
-                    {event.description}
-                  </p>
+                {clean && (
+                  <div
+                    className="
+    text-subtle mb-3 mr-20 max-h-80
+    overflow-y-auto text-sm [&_a]:text-blue-600 [&_a]:underline
+  "
+                    dangerouslySetInnerHTML={{ __html: clean }}
+                  />
                 )}
 
                 <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">

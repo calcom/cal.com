@@ -25,7 +25,6 @@ import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/
 
 import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
-// Type definitions for better type safety
 type PartialCalIdWorkflowType = Pick<CalIdWorkflowType, "name" | "activeOn" | "steps" | "id" | "readOnly">;
 type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["calid_get"]["eventType"];
 
@@ -34,10 +33,6 @@ export interface EventWorkflowsProps {
   workflows: PartialCalIdWorkflowType[];
 }
 
-/**
- * Hook for managing field locking properties using useFieldPermissions
- * Returns disabled state, lock icon, and lock status for a given field
- */
 const useFieldLockProps = (
   fieldName: string,
   fieldPermissions: ReturnType<typeof useFieldPermissions>,
@@ -58,10 +53,6 @@ const useFieldLockProps = (
   );
 };
 
-/**
- * Individual workflow list item component
- * Displays workflow details, status, and toggle controls
- */
 const WorkflowListItem = React.memo(
   ({
     workflow,
@@ -79,7 +70,6 @@ const WorkflowListItem = React.memo(
     const { t } = useLocale();
     const utils = trpc.useUtils();
 
-    // Mutation for activating/deactivating workflows
     const activateEventTypeMutation = trpc.viewer.workflows.calid_activateEventType.useMutation({
       onSuccess: async () => {
         const offOn = isActive ? "off" : "on";
@@ -110,7 +100,6 @@ const WorkflowListItem = React.memo(
       },
     });
 
-    // Calculate recipients from workflow steps
     const sendToRecipients = useMemo(() => {
       const sendTo: Set<string> = new Set();
 
@@ -162,7 +151,6 @@ const WorkflowListItem = React.memo(
             : {}
         }>
         <div className="flex items-center">
-          {/* Workflow icon */}
           <div
             className={classNames(
               "mr-4 flex h-10 w-10 items-center justify-center rounded-full text-xs font-medium",
@@ -174,7 +162,6 @@ const WorkflowListItem = React.memo(
             )}
           </div>
 
-          {/* Workflow details */}
           <div className="grow">
             <div
               className={classNames(
@@ -188,14 +175,14 @@ const WorkflowListItem = React.memo(
                 "flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
                 isActive ? "text-default" : "text-muted"
               )}>
-              <span className="mr-1">{t("to")}:</span>
+              {/* TODO */}
+              {/* <span className="mr-1">{t("to")}:</span>
               {sendToRecipients.map((recipient, index) => (
                 <span key={index}>{`${index ? ", " : ""}${recipient}`}</span>
-              ))}
+              ))} */}
             </div>
           </div>
 
-          {/* Toggle switch */}
           <Tooltip
             content={
               isChildrenManagedEventType && fieldPermissions.isFieldLocked("workflows")
@@ -216,7 +203,6 @@ const WorkflowListItem = React.memo(
             </div>
           </Tooltip>
 
-          {/* Edit button */}
           {!workflow.readOnly && (
             <div className="flex-none">
               <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
@@ -248,12 +234,9 @@ const useProcessedWorkflows = (
   return useMemo(() => {
     if (!data?.workflows) return [];
 
-    // Process active workflows with enhanced properties
     const activeWorkflows: CalIdWorkflowType[] = workflows.map((workflowOnEventType) => {
       const dataWf = data.workflows?.find((wf) => wf.id === workflowOnEventType.id);
 
-      // For child managed event types, respect the unlocked state
-      // If the field is unlocked, workflows should be editable
       const isFieldUnlocked = !fieldPermissions.isFieldLocked("workflows");
       const shouldBeReadOnly = isChildrenManagedEventType && dataWf?.calIdTeamId && !isFieldUnlocked;
 
@@ -263,14 +246,12 @@ const useProcessedWorkflows = (
       } as CalIdWorkflowType;
     });
 
-    // Get available but inactive workflows
     const inactiveWorkflows: CalIdWorkflowType[] = data.workflows.filter(
       (workflow) =>
         (!workflow.calIdTeamId || eventType.calIdTeamId === workflow.calIdTeamId) &&
         !workflows.some((activeWf) => activeWf.id === workflow.id)
     );
 
-    // Combine workflows based on lock status
     return isLocked && !isManagedEventType ? activeWorkflows : [...activeWorkflows, ...inactiveWorkflows];
   }, [
     data?.workflows,
@@ -292,7 +273,6 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
   const router = useRouter();
   const formMethods = useFormContext<FormValues>();
 
-  // Initialize field permissions
   const fieldPermissions = useFieldPermissions({
     eventType,
     translate: t,
@@ -300,17 +280,14 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
   });
   const { isManagedEventType, isChildrenManagedEventType } = fieldPermissions;
 
-  // Get workflow field lock properties
   const workflowsLockProps = useFieldLockProps("workflows", fieldPermissions, t);
   const lockedText = workflowsLockProps.isLocked ? "locked" : "unlocked";
 
-  // Fetch available workflows
   const { data, isPending } = trpc.viewer.workflows.calid_list.useQuery({
     calIdTeamId: eventType.calIdTeamId || undefined,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
 
-  // Process and sort workflows
   const sortedWorkflows = useProcessedWorkflows(
     data,
     workflows,
@@ -321,10 +298,8 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
     fieldPermissions
   );
 
-  // Calculate active workflow count
   const activeWorkflowsCount = workflows.length;
 
-  // Mutation for creating new workflows
   const createMutation = trpc.viewer.workflows.calid_create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace(`/workflows/${workflow.id}?eventTypeId=${eventType.id}`);
@@ -342,14 +317,12 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
     },
   });
 
-  // Show loading state
   if (isPending) {
     return <SkeletonLoader />;
   }
 
   return (
     <>
-      {/* Permission Management Alert */}
       {(isManagedEventType || isChildrenManagedEventType) && (
         <Alert
           severity={workflowsLockProps.isLocked ? "neutral" : "info"}
@@ -376,7 +349,6 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
         />
       )}
 
-      {/* Workflows List or Empty State */}
       {sortedWorkflows.length > 0 ? (
         <div>
           <div className="space-y-4">
@@ -388,7 +360,6 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
               </Button>
             </div>
 
-            {/* Workflows List */}
             {sortedWorkflows.map((workflow) => (
               <WorkflowListItem
                 key={workflow.id}
@@ -402,7 +373,6 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
           </div>
         </div>
       ) : (
-        /* Empty State */
         <div className="pt-2 before:border-0">
           <BlankCard
             Icon="zap"

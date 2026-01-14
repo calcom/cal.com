@@ -7,6 +7,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.954.0",
     "@calcom/atoms": "*",
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",

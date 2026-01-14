@@ -25,7 +25,7 @@ function VerifyEmailChange(props: PageProps) {
       if (isLocaleReady) {
         showToast(t("verify_email_change_success_toast", { email: props.updatedEmail }), "success");
       }
-      router.push("/event-types");
+      router.push("/home");
     }
     if (props.updateSession) {
       updateSessionAndDisplayToast();

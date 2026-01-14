@@ -265,6 +265,8 @@ model Credential {
   calIdTeam              CalIdTeam?            @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
   calIdTeamId            Int?
 
+  whatsappBusinessPhone WhatsAppBusinessPhone[]
+
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
@@ -448,6 +450,11 @@ model User {
   calIdWorkflowReminders         CalIdWorkflowReminder[]       @relation("UserCalIdWorkflowReminders")
   bannerUrl                      String?
   faviconUrl                     String?
+  socialProfiles                 Json?
+  crispTokenId                   String?                       @unique
+
+  whatsappBusinessPhone WhatsAppBusinessPhone[]
+  calIdApiKeys          CalIdApiKey[]
 
   @@unique([email])
   @@unique([email, username])
@@ -864,6 +871,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   calIdWorkflowReminders       CalIdWorkflowReminder[]
+  calIdWorkflowInsights        CalIdWorkflowInsights[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1013,12 +1021,15 @@ model ReminderMail {
 }
 
 model Payment {
-  id            Int            @id @default(autoincrement())
-  uid           String         @unique
-  app           App?           @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId         String?
-  bookingId     Int
-  booking       Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  uid       String   @unique
+  app       App?     @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId     String?
+  bookingId Int
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  bookingSeatId Int?
+  bookingSeat   BookingSeat?   @relation(fields: [bookingSeatId], references: [id])
   amount        Int
   fee           Int
   currency      String
@@ -1211,6 +1222,7 @@ model App {
   payments    Payment[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+  CalIdApiKey CalIdApiKey[]
   enabled     Boolean         @default(false)
 
   @@index([enabled])
@@ -1564,21 +1576,27 @@ enum WorkflowMethods {
 }
 
 enum WorkflowStatus {
+  QUEUED
   DELIVERED
   READ
   FAILED
+  CANCELLED
 }
 
 model BookingSeat {
-  id           Int      @id @default(autoincrement())
-  referenceUid String   @unique
+  id           Int       @id @default(autoincrement())
+  referenceUid String    @unique
   bookingId    Int
-  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  attendeeId   Int      @unique
-  attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  booking      Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  attendeeId   Int       @unique
+  payment      Payment[]
+
+  attendee              Attendee                @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   /// @zod.custom(imports.bookingSeatDataSchema)
-  data         Json?
-  metadata     Json?
+  data                  Json?
+  metadata              Json?
+  calIdWorkflowInsights CalIdWorkflowInsights[]
+  createdAt             DateTime?               @default(now())
 
   @@index([bookingId])
   @@index([attendeeId])
@@ -2581,12 +2599,14 @@ model CalIdTeam {
   bookingFrequency     Json?
   filterSegments       FilterSegment[]
   bannerUrl            String?
+  faviconUrl           String?
   instantMeetingTokens InstantMeetingToken[]
 
   credentials              Credential[] // Teams can have credentials for integrations
   accessCodes              AccessCode[] // Teams can have OAuth access codes
   routingForms             App_RoutingForms_Form[] // Teams can own routing forms
   apiKeys                  ApiKey[] // Teams can have API keys for external access
+  calIdApiKeys             CalIdApiKey[]
   attributes               Attribute[] // Teams can define custom attributes
   roles                    Role[] // Teams can have custom roles
   features                 CalIdTeamFeatures[] // Teams can have feature flags enabled
@@ -2595,6 +2615,8 @@ model CalIdTeam {
   roundRobinResetInterval  RoundRobinResetInterval?  @default(MONTH)
   roundRobinTimestampBasis RoundRobinTimestampBasis? @default(CREATED_AT)
   internalNotePresets      InternalNotePreset[]
+
+  whatsappBusinessPhone WhatsAppBusinessPhone[]
 
   @@unique([slug])
 }
@@ -2641,21 +2663,26 @@ model CalIdTeamFeatures {
 // CalId Workflow Models - Duplicates of Workflow models with CalId prefix
 
 model CalIdWorkflowStep {
-  id                        Int                     @id @default(autoincrement())
+  id                        Int                @id @default(autoincrement())
   stepNumber                Int
   action                    WorkflowActions
   workflowId                Int
-  workflow                  CalIdWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflow                  CalIdWorkflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   sendTo                    String?
   reminderBody              String?
   emailSubject              String?
-  template                  WorkflowTemplates       @default(REMINDER)
+  template                  WorkflowTemplates? @default(REMINDER)
+  metaTemplateName          String?
+  metaTemplatePhoneNumberId String?
+  variableMapping           Json?
+
   workflowReminders         CalIdWorkflowReminder[]
   numberRequired            Boolean?
   sender                    String?
   numberVerificationPending Boolean                 @default(true)
   includeCalendarEvent      Boolean                 @default(false)
   verifiedAt                DateTime?
+  CalIdWorkflowInsights     CalIdWorkflowInsights[]
 
   @@index([workflowId])
 }
@@ -2734,15 +2761,21 @@ model CalIdWorkflowReminder {
 }
 
 model CalIdWorkflowInsights {
-  msgId       String          @unique
-  eventTypeId Int
-  eventType   EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  workflowId  Int?
-  workflow    CalIdWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  type        WorkflowMethods
-  status      WorkflowStatus
-  metadata    Json?
-  createdAt   DateTime        @default(now())
+  msgId                   String             @unique
+  eventTypeId             Int
+  eventType               EventType?         @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  workflowId              Int?
+  workflow                CalIdWorkflow?     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type                    WorkflowMethods
+  status                  WorkflowStatus
+  metadata                Json?
+  createdAt               DateTime           @default(now())
+  bookingUid              String?
+  booking                 Booking?           @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  bookingSeatReferenceUid String?
+  bookingSeat             BookingSeat?       @relation(fields: [bookingSeatReferenceUid], references: [referenceUid])
+  workflowStepId          Int?
+  workflowStep            CalIdWorkflowStep? @relation(fields: [workflowStepId], references: [id])
 }
 
 enum ServiceName {
@@ -2775,4 +2808,69 @@ enum RoundRobinResetInterval {
 enum RoundRobinTimestampBasis {
   CREATED_AT
   START_TIME
+}
+
+model WhatsAppBusinessPhone {
+  id           Int  @id @default(autoincrement())
+  userId       Int?
+  calIdTeamId  Int?
+  credentialId Int
+
+  templates Json?
+
+  wabaId        String
+  phoneNumberId String  @unique
+  displayName   String?
+  phoneNumber   String  @unique
+
+  verificationPin String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  metadata Json?
+
+  user       User?      @relation(fields: [userId], references: [id])
+  calIdTeam  CalIdTeam? @relation(fields: [calIdTeamId], references: [id])
+  credential Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([phoneNumberId])
+  @@index([wabaId])
+  @@index([credentialId])
+}
+
+model CalIdApiKey {
+  id         String           @id @unique @default(cuid())
+  userId     Int
+  note       String?
+  createdAt  DateTime         @default(now())
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  hashedKey  String           @unique()
+  user       User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app        App?             @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId      String?
+  rateLimits CalIdRateLimit[]
+  calIdTeam  CalIdTeam?       @relation(fields: [teamId], references: [id], onDelete: Cascade) // NEW
+  teamId     Int?
+
+  @@index([userId])
+  @@index([teamId])
+}
+
+model CalIdRateLimit {
+  id            String   @id @default(uuid())
+  name          String
+  calIdApiKeyId String
+  ttl           Int
+  limit         Int
+  blockDuration Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  calIdApiKey CalIdApiKey @relation(fields: [calIdApiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([calIdApiKeyId])
 }

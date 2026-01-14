@@ -103,11 +103,12 @@ import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
 import weather_in_your_calendar_config_json from "./weather_in_your_calendar/config.json";
 import webex_config_json from "./webex/config.json";
+import whatsapp_business_config_json from "./whatsapp-business/config.json";
 import whatsapp_config_json from "./whatsapp/config.json";
 import whereby_config_json from "./whereby/config.json";
 import { metadata as wipemycalother__metadata_ts } from "./wipemycalother/_metadata";
 import wordpress_config_json from "./wordpress/config.json";
-import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
+import zapier_config_json from "./zapier/config.json";
 import zoho_bigin_config_json from "./zoho-bigin/config.json";
 import zohocalendar_config_json from "./zohocalendar/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
@@ -216,10 +217,11 @@ export const appStoreMetadata = {
   weather_in_your_calendar: weather_in_your_calendar_config_json,
   webex: webex_config_json,
   whatsapp: whatsapp_config_json,
+  "whatsapp-business": whatsapp_business_config_json,
   whereby: whereby_config_json,
   wipemycalother: wipemycalother__metadata_ts,
   wordpress: wordpress_config_json,
-  zapier: zapier__metadata_ts,
+  zapier: zapier_config_json,
   "zoho-bigin": zoho_bigin_config_json,
   zohocalendar: zohocalendar_config_json,
   zohocrm: zohocrm_config_json,

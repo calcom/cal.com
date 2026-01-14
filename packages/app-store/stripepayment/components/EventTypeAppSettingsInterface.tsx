@@ -1,3 +1,4 @@
+// Stripe settings
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, useEffect } from "react";
 
@@ -8,7 +9,7 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { RadioField } from "@calcom/ui/components/radio";
+import { Radio, RadioField, RadioIndicator } from "@calcom/ui/components/radio";
 
 import {
   convertToSmallestCurrencyUnit,
@@ -174,12 +175,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                 <RadioField className="w-fit" value={RefundPolicy.ALWAYS} label={t("always")} id="always" />
                 <RadioField className="w-fit" value={RefundPolicy.NEVER} label={t("never")} id="never" />
                 <div className={classNames("text-default mb-2 flex flex-wrap items-center text-sm")}>
-                  <RadioGroup.Item
-                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2"
-                    value="days"
-                    id="days">
-                    <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-                  </RadioGroup.Item>
+                  <Radio value="days" id="days">
+                    <RadioIndicator />
+                  </Radio>
                   <div className="flex items-center">
                     <span className="me-2 ms-2">&nbsp;{t("if_cancelled")}</span>
                     <TextField

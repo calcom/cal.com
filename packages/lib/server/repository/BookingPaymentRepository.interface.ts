@@ -18,6 +18,7 @@ export interface CreatePaymentData {
   uid: string;
   app: { connect: { slug: string } };
   booking: { connect: { id: number } };
+  bookingSeat?: { connect: { id: number } };
   amount: number;
   fee: number;
   externalId: string;

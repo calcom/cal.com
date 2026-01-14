@@ -1,6 +1,5 @@
 import BottomNav from "@calid/features/ui/BottomNav";
 import { Logo } from "@calid/features/ui/components/logo";
-import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -55,13 +54,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           </Link>
           <Navigation isPlatformNavigation={isPlatformPages} />
         </div>
-        <div>
-          <div className="mb-3">
-            <ProductHuntBadge />
-          </div>
-
-          <BottomNav />
-        </div>
+        <BottomNav />
       </aside>
     </div>
   );

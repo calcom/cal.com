@@ -17,6 +17,16 @@ export const updateUserMetadataAllowedKeys = z.object({
       verified: z.boolean().optional(),
     })
     .optional(),
+  gettingStartedActions: z
+    .object({
+      viewPublicPage: z.boolean().optional(),
+      updateUsername: z.boolean().optional(),
+      addOrEditEvents: z.boolean().optional(),
+      setAvailability: z.boolean().optional(),
+      shareYourCalID: z.boolean().optional(),
+    })
+    .optional(),
+  usePhoneForWhatsApp: z.boolean().optional(),
 });
 
 export const ZCalIdUpdateProfileInputSchema = z.object({
@@ -58,6 +68,19 @@ export const ZCalIdUpdateProfileInputSchema = z.object({
         isDeleted: z.boolean().default(false),
       })
     )
+    .optional(),
+  bannerUrl: z.string().nullable().optional(),
+  faviconUrl: z.string().nullable().optional(),
+  socialProfiles: z
+    .object({
+      linkedin: z.string().optional(),
+      facebook: z.string().optional(),
+      twitter: z.string().optional(),
+      instagram: z.string().optional(),
+      youtube: z.string().optional(),
+      github: z.string().optional(),
+    })
+    .nullable()
     .optional(),
 });
 

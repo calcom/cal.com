@@ -1,3 +1,5 @@
+import { IS_PRODUCTION } from "./constants";
+
 export function captureAndStoreUtmParams() {
   if (typeof window === "undefined") return;
 
@@ -16,9 +18,13 @@ export function captureAndStoreUtmParams() {
   if (hasUtmParams) {
     // Store for 30 days
     const maxAge = 30 * 24 * 60 * 60; // 30 days in seconds
+
     document.cookie = `utm_params=${encodeURIComponent(
       JSON.stringify(utmParams)
-    )}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    )}; path=/; max-age=${maxAge}; SameSite=${IS_PRODUCTION ? "None" : "Lax"}${
+      IS_PRODUCTION ? "; Secure" : ""
+    }`;
+
     console.log("UTM parameters captured:", utmParams);
   }
 }

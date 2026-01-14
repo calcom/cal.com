@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/lib/EventManager";
+import isPrismaObj from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -64,6 +65,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       email: true,
       timeZone: true,
       locale: true,
+      metadata: true,
     },
   });
 
@@ -132,6 +134,14 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
+      phoneNumber:
+        isPrismaObj(organizer.metadata) && organizer.metadata?.phoneNumber
+          ? (organizer.metadata?.phoneNumber as string)
+          : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(organizer.metadata) && typeof organizer.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (organizer.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     },
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,

@@ -2,15 +2,15 @@ import {
   generateRecurringInstances,
   normalizeDateForComparison,
 } from "@calid/features/modules/teams/lib/recurrenceUtil";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import { sendCancelledReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
-import type { CalIdWorkflow, Prisma } from "@prisma/client";
+import type { Attendee, Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import bookingCancelPaymentHandler from "@calcom/app-store/_utils/payments/bookingCancelPaymentHandler";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -31,6 +31,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { sendMobileNotification } from "@calcom/lib/notifications";
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -50,6 +51,7 @@ import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { bookingToDeleteSelect, getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
+import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -62,7 +64,7 @@ type PlatformParams = {
   arePlatformEmailsEnabled?: boolean;
 };
 
-export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
+export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>> & { attendees: any };
 
 export type CancelBookingInput = {
   userId?: number;
@@ -246,6 +248,7 @@ async function handler(input: CancelBookingInput) {
     cancelledDates, //  Array of ISO date strings for specific instances to cancel
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
+
   const deleteType = cancelledDates && cancelledDates.length > 0 ? "instance" : "series";
   const {
     userId,
@@ -273,7 +276,7 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  if (bookingToDelete.eventType?.disableCancelling && bookingToDelete.eventType.owner?.id !== userId) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
@@ -439,12 +442,27 @@ async function handler(input: CancelBookingInput) {
   if (!!seatReferenceUid) {
     log.debug("Handling cancellation for seated event", { seatReferenceUid });
     const webhooks = await getWebhooks(subscriberOptions);
+
     const response = await cancelAttendeeSeat(
       { seatReferenceUid, bookingToDelete },
       { evt, eventTypeInfo, webhooks },
-      bookingToDelete.eventType?.metadata as EventTypeMetadata
+      bookingToDelete.eventType?.metadata as EventTypeMetadata,
+      teamId
     );
-    return response;
+
+    if (response) {
+      if (response.error) {
+        return response;
+      } else {
+        return {
+          success: true,
+          onlyRemovedAttendee: true,
+          bookingId: bookingToDelete.id,
+          bookingUid: bookingToDelete.uid,
+          message: "Attendee successfully removed.",
+        } satisfies HandleCancelBookingResponse;
+      }
+    }
   }
 
   // Handle workflows
@@ -454,16 +472,19 @@ async function handler(input: CancelBookingInput) {
     : null;
   const eventType = { ...bookingToDelete.eventType, workflows: eventTypeRelated };
 
-  const workflows: CalIdWorkflow[] = eventType?.workflows?.map(
-    (workflow) => workflow as CalIdWorkflow
-  );
+  const workflows: CalIdWorkflow[] = eventType?.workflows?.map((workflow) => workflow as CalIdWorkflow);
 
   if (workflows.length > 0) {
     await sendCancelledReminders({
       workflows: workflows as CalIdWorkflow[],
       smsReminderNumber: bookingToDelete.smsReminderNumber,
-      evt: { ...evt, metadata: bookingToDelete.metadata, eventType: { slug: eventType?.slug } },
+      evt: {
+        ...evt,
+        metadata: bookingToDelete.metadata,
+        eventType: { slug: eventType?.slug, id: bookingToDelete.eventTypeId },
+      },
       hideBranding: !!eventType?.owner?.hideBranding,
+      seatReferenceUid: evt.attendeeSeatId,
     });
     try {
     } catch (error) {
@@ -499,6 +520,7 @@ async function handler(input: CancelBookingInput) {
     eventType: {
       select: {
         id: true,
+        owner: true,
         recurringEvent: true,
         requiresConfirmation: true,
         metadata: true,
@@ -612,12 +634,20 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
     //Refund is handled below using bookingCancelPaymentHandler
-    // if (!!bookingToDelete.payment.length) {
-    //   await processPaymentRefund({
-    //     booking: bookingToDelete,
-    //     teamId,
-    //   });
-    // }
+
+    if (!!bookingToDelete.payment.length) {
+      const refundingAttendee: Pick<Attendee, "name" | "email" | "phoneNumber"> = {
+        name: bookingToDelete.responses?.name,
+        email: bookingToDelete.responses?.email,
+        phoneNumber: bookingToDelete.responses?.attendeePhoneNumber,
+      };
+
+      await processPaymentRefund({
+        booking: bookingToDelete,
+        teamId,
+        attendee: refundingAttendee,
+      });
+    }
   }
 
   /** TODO: Remove this without breaking functionality */
@@ -760,12 +790,16 @@ async function handler(input: CancelBookingInput) {
 
   try {
     if ((!platformClientId || (platformClientId && arePlatformEmailsEnabled)) && !fromApi) {
-      //passing updated recurringEvent for the case of recurring instance cancellation, so we can display the cancelled dates in the email
-      await sendCancelledEmailsAndSMS(
-        !!updatedRecurringEvent ? { ...evt, recurringEvent: updatedRecurringEvent } : evt,
-        { eventName: bookingToDelete?.eventType?.eventName },
-        bookingToDelete?.eventType?.metadata as EventTypeMetadata
-      );
+      // Send cancelled emails asynchronously via Inngest to improve cancellation response time
+      // Passing updated recurringEvent for the case of recurring instance cancellation, so we can display the cancelled dates in the email
+      await triggerBookingEmailsInngest({
+        calEvent: !!updatedRecurringEvent ? { ...evt, recurringEvent: updatedRecurringEvent } : evt,
+        eventNameObject: { eventName: bookingToDelete?.eventType?.eventName },
+        isHostConfirmationEmailsDisabled: false,
+        isAttendeeConfirmationEmailDisabled: false,
+        eventTypeMetadata: bookingToDelete?.eventType?.metadata as EventTypeMetadata,
+        emailType: "cancelled",
+      });
     }
   } catch (error) {
     log.error("Error deleting event", error);

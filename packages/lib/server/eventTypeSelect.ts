@@ -85,6 +85,7 @@ export const eventTypeSelect = {
       name: true,
     },
   },
+  captchaType: true,
 } satisfies Prisma.EventTypeSelect;
 
 // Create a separate select for schedule-related fields

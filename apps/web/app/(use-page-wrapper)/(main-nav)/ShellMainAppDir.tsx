@@ -18,7 +18,7 @@ export function ShellMainAppDir(props: ShellMainAppDirProps) {
         <div
           className={classNames(
             "bg-default sticky top-0 z-10 flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+            props.smallHeading ? "lg:mb-7" : "lg:mb-4"
           )}>
           <div className="flex flex-1 items-center">
             {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}
@@ -29,7 +29,7 @@ export function ShellMainAppDir(props: ShellMainAppDirProps) {
         </div>
       )}
       {props.afterHeading && <>{props.afterHeading}</>}
-      {props.CTA && <div className="mb-6 mt-4">{props.CTA}</div>}
+      {props.CTA && <div className="my-6">{props.CTA}</div>}
 
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}

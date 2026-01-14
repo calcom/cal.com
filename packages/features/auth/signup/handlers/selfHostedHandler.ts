@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
@@ -6,6 +7,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { IS_PREMIUM_USERNAME_ENABLED, SIGNUP_URL } from "@calcom/lib/constants";
 import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { sendUserToMakeWebhook } from "@calcom/lib/sendUserToWebhook";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
@@ -60,23 +62,14 @@ export default async function handler(body: Record<string, string>) {
     correctedUsername = userValidation.username;
   }
 
-  const { hash, salt } = await hashPasswordWithSalt(password);
+  const { hash, salt } = hashPasswordWithSalt(password);
+  const utmParams = await extractUtmInfo();
 
   if (foundToken && foundToken?.calIdTeamId) {
     const team = await prisma.calIdTeam.findUnique({
       where: {
         id: foundToken.calIdTeamId,
       },
-      // include: {
-      //   parent: {
-      //     select: {
-      //       id: true,
-      //       slug: true,
-      //       organizationSettings: true,
-      //     },
-      //   },
-      //   organizationSettings: true,
-      // },
     });
 
     if (team) {
@@ -90,6 +83,16 @@ export default async function handler(body: Record<string, string>) {
         }
       }
 
+      const existingUser = await prisma.user.findUnique({
+        where: { email: userEmail },
+        select: { metadata: true },
+      });
+
+      const mergedMetadata = {
+        ...(isPrismaObjOrUndefined(existingUser?.metadata) ?? {}),
+        ...(utmParams && { utm: utmParams }),
+      };
+
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
@@ -102,12 +105,14 @@ export default async function handler(body: Record<string, string>) {
           },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          ...(utmParams && { metadata: mergedMetadata }),
         },
         create: {
           username: correctedUsername,
           email: userEmail,
           password: { create: { hash, salt } },
           identityProvider: IdentityProvider.CAL,
+          ...(utmParams && { metadata: { utm: utmParams } }),
         },
       });
 
@@ -153,6 +158,17 @@ export default async function handler(body: Record<string, string>) {
         );
       }
     }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { metadata: true },
+    });
+
+    const mergedMetadata = {
+      ...(isPrismaObjOrUndefined(existingUser?.metadata) ?? {}),
+      ...(utmParams && { utm: utmParams }),
+    };
+
     await prisma.user.upsert({
       where: { email: userEmail },
       update: {
@@ -165,12 +181,14 @@ export default async function handler(body: Record<string, string>) {
         },
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
+        ...(utmParams && { metadata: mergedMetadata }),
       },
       create: {
         username: correctedUsername,
         email: userEmail,
         password: { create: { hash, salt } },
         identityProvider: IdentityProvider.CAL,
+        ...(utmParams && { metadata: { utm: utmParams } }),
       },
     });
 
@@ -186,4 +204,9 @@ export default async function handler(body: Record<string, string>) {
   }
 
   return NextResponse.json({ message: "Created user" }, { status: 201 });
+}
+async function extractUtmInfo() {
+  const cookieStore = await cookies();
+  const utmCookie = cookieStore.get("utm_params");
+  return utmCookie ? JSON.parse(decodeURIComponent(utmCookie.value)) : null;
 }

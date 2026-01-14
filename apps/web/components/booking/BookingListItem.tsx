@@ -29,6 +29,7 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -49,8 +50,10 @@ import { showToast } from "@calcom/ui/toast";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { BookingSeatsDialog } from "@components/booking/BookingSeatsDialog";
 import { CancelInstancesDialog } from "@components/booking/CancelInstancesDialog";
 import { RescheduleInstanceDialog } from "@components/booking/RescheduleInstanceDialog";
+import { WorkflowStatusDialog } from "@components/booking/WorkflowStatusDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -120,7 +123,7 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
 export default function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
-  const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { userTimeZone, userTimeFormat, userEmail, userId } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
@@ -133,6 +136,15 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
+  const [isWorkflowStatusDialogOpen, setIsWorkflowStatusDialogOpen] = useState(false);
+  // Check if booking has workflow insights
+  const hasWorkflowInsights =
+    parsedBooking.workflowInsights &&
+    Array.isArray(parsedBooking.workflowInsights) &&
+    parsedBooking.workflowInsights.length > 0;
+
+  // Check if booking is multi-seat
+  const isMultiSeat = booking.seatsReferences && booking.seatsReferences.length > 1;
 
   const attendeeList = booking.attendees.map((attendee) => {
     return {
@@ -250,6 +262,10 @@ export default function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
+  const hasTeam = booking.eventType?.calIdTeam?.id !== null;
+  const hasUserId = booking.eventType?.userId !== null;
+  const isUserOwner = booking.eventType?.userId === userId;
+
   const actionContext: BookingActionContext = {
     booking,
     isUpcoming,
@@ -265,7 +281,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     isTabUnconfirmed,
     isBookingFromRoutingForm,
     isDisabledCancelling,
-    isDisabledRescheduling,
+    isDisabledRescheduling: isDisabledRescheduling && hasUserId && !isUserOwner,
     isCalVideoLocation:
       !booking.location ||
       booking.location === "integrations:daily" ||
@@ -318,6 +334,7 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const [isCancelInstanceDialogOpen, setIsCancelInstanceDialogOpen] = useState(false);
+  const [isBookingSeatsDialogOpen, setIsBookingSeatsDialogOpen] = useState(false);
   const [isRescheduleInstanceDialogOpen, setIsRescheduleInstanceDialogOpen] = useState(false);
 
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
@@ -410,7 +427,6 @@ export default function BookingListItem(booking: BookingItemProps) {
         ? () => setChargeCardDialogIsOpen(true)
         : action.id === "no_show"
         ? () => {
-            console.log("No showing");
             if (attendeeList.length === 1) {
               const attendee = attendeeList[0];
               noShowMutation.mutate({
@@ -474,6 +490,9 @@ export default function BookingListItem(booking: BookingItemProps) {
       (date) => new Date(date).getTime() > new Date().getTime()
     );
 
+  const showBookingSeatsDialogButton =
+    isUpcoming && !isCancelled && !isRecurring && isConfirmed && booking.eventType.seatsPerTimeSlot > 1;
+
   return (
     <>
       {isNoShowDialogOpen && (
@@ -534,6 +553,17 @@ export default function BookingListItem(booking: BookingItemProps) {
           recurringEvent={parsedBooking.metadata?.recurringEvent as RecurringEvent}
         />
       )}
+
+      {showBookingSeatsDialogButton && (
+        <BookingSeatsDialog
+          isOpenDialog={isBookingSeatsDialogOpen}
+          setIsOpenDialog={setIsBookingSeatsDialogOpen}
+          bookingUid={booking.uid}
+          bookingSeats={booking.seatsReferences}
+          userTimeFormat={userTimeFormat ?? 24}
+        />
+      )}
+
       {showCancelOrModifyInstanceAction && (
         <RescheduleInstanceDialog
           isOpen={isRescheduleInstanceDialogOpen}
@@ -544,6 +574,14 @@ export default function BookingListItem(booking: BookingItemProps) {
           bookingUid={booking.uid}
           userTimeZone={userTimeZone ?? "UTC"}
           userTimeFormat={userTimeFormat ?? 24}
+        />
+      )}
+      {hasWorkflowInsights && (
+        <WorkflowStatusDialog
+          isOpenDialog={isWorkflowStatusDialogOpen}
+          setIsOpenDialog={setIsWorkflowStatusDialogOpen}
+          workflowInsights={parsedBooking.workflowInsights as any[]}
+          isMultiSeat={isMultiSeat}
         />
       )}
       {booking.paid && booking.payment[0] && (
@@ -662,15 +700,15 @@ export default function BookingListItem(booking: BookingItemProps) {
                     <div
                       title={title}
                       className={classNames(
-                        "text-emphasis flex w-full items-center gap-2 align-top text-base font-semibold leading-6"
+                        "text-emphasis flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 align-top text-base font-semibold leading-6"
                       )}>
                       <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
-                      <span className="align-center text-subtle text-xs font-medium">with</span>
-                      <span className="align-center !decoration-none text-default text-sm font-medium">
+                      <span className="text-subtle text-xs font-medium">with</span>
+                      <span className="!decoration-none text-default text-sm font-medium">
                         {attendeeList[0]?.name}
                       </span>
                       {attendeeList.length > 1 && (
-                        <span className="align-center text-default text-sm font-medium">
+                        <span className="text-default text-sm font-medium">
                           + {attendeeList.length - 1} more
                         </span>
                       )}
@@ -731,6 +769,19 @@ export default function BookingListItem(booking: BookingItemProps) {
                 <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
+                    {hasWorkflowInsights && !isRejected && (
+                      <Button
+                        color="secondary"
+                        StartIcon="zap"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsWorkflowStatusDialogOpen(true);
+                        }}
+                        className="flex items-center space-x-2"
+                        aria-label="View workflow status">
+                        <span>{t("workflow_status")}</span>
+                      </Button>
+                    )}
                     {!showCancelOrModifyInstanceAction && !!isCancelled && !isPending && !isRejected && (
                       <Button
                         color="secondary"
@@ -746,6 +797,15 @@ export default function BookingListItem(booking: BookingItemProps) {
                         onClick={() => setIsOpenCancellationDialog(true)}
                         className="flex items-center space-x-2">
                         <span>{t("cancel")}</span>
+                      </Button>
+                    )}
+
+                    {showBookingSeatsDialogButton && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsBookingSeatsDialogOpen(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("booking_seats")}</span>
                       </Button>
                     )}
 
@@ -884,10 +944,18 @@ const BookingItemBadges = ({
       {booking.paid && !booking.payment[0] ? (
         <Badge variant="orange">{t("error_collecting_card")}</Badge>
       ) : booking.paid ? (
-        <Badge variant="green" data-testid="paid_badge">
-          {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-        </Badge>
+        booking.paid &&
+        (isPrismaObjOrUndefined(booking.metadata)?.paymentStatus === "refunded" ? (
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="red" data-testid="refunded_badge">
+            {t("refunded")}
+          </Badge>
+        ) : (
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+            {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+          </Badge>
+        ))
       ) : null}
+
       {recurringDates !== undefined && (
         <div className="text-muted -mt-1 text-sm">
           <RecurringBookingsTooltip

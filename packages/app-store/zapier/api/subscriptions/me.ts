@@ -1,6 +1,6 @@
+import retrieveValidApiKey from "@calid/features/modules/api-keys/utils/retrieveValidApiKey";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "No API key provided" });
   }
 
-  const validKey = await findValidApiKey(apiKey, "zapier");
+  const validKey = await retrieveValidApiKey(apiKey, "zapier");
 
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });

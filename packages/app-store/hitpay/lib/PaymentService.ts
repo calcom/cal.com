@@ -1,4 +1,4 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
+import type { Booking, BookingSeat, Payment, PaymentOption, Prisma } from "@prisma/client";
 import axios from "axios";
 import qs from "qs";
 import { v4 as uuidv4 } from "uuid";
@@ -36,9 +36,11 @@ export class PaymentService implements IAbstractPaymentService {
     bookingId: Booking["id"],
     userId: Booking["userId"],
     username: string | null,
-    bookerName: string,
+    bookerName: string | null,
     paymentOption: PaymentOption,
-    bookerEmail: string
+    bookerEmail: string,
+    bookingUid: string,
+    bookingSeat?: BookingSeat["id"]
   ) {
     try {
       const booking: PaidBooking | null = await prisma.booking.findUnique({
@@ -153,6 +155,13 @@ export class PaymentService implements IAbstractPaymentService {
               id: bookingId,
             },
           },
+          bookingSeat: bookingSeat
+            ? {
+                connect: {
+                  id: bookingSeat,
+                },
+              }
+            : undefined,
           amount: parseFloat(data.amount.replace(/,/g, "")) * 100,
           externalId: data.id,
           currency: data.currency,

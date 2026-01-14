@@ -1,7 +1,7 @@
+import { generateSecureHash } from "@calid/features/modules/api-keys/utils/hashKey";
 import type { RatelimitResponse } from "@unkey/ratelimit";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
-import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import prisma from "@calcom/prisma";
 
@@ -10,7 +10,7 @@ import { handleAutoLock } from "../autoLock";
 // Mock the dependencies
 vi.mock("@calcom/features/redis/RedisService");
 vi.mock("@calcom/features/ee/api-keys/lib/apiKeys", () => ({
-  hashAPIKey: vi.fn((key) => `hashed_${key}`),
+  generateSecureHash: vi.fn((key) => `hashed_${key}`),
 }));
 vi.mock("@calcom/prisma", () => ({
   default: {
@@ -169,7 +169,7 @@ describe("autoLock", () => {
       const testApiKey = "test_api_key_123";
 
       // Mock API key lookup
-      vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
+      vi.mocked(prisma.calIdApiKey.findUnique).mockResolvedValue({
         hashedKey: `hashed_${testApiKey}`,
         user: { id: 456 },
       } as any);
@@ -181,7 +181,7 @@ describe("autoLock", () => {
       });
 
       // Verify the API key was hashed
-      expect(hashAPIKey).toHaveBeenCalledWith(testApiKey);
+      expect(generateSecureHash).toHaveBeenCalledWith(testApiKey);
 
       // Verify the associated user was locked
       expect(prisma.user.update).toHaveBeenCalledWith({
@@ -207,7 +207,7 @@ describe("autoLock", () => {
       const testApiKey = "test_api_key_123";
 
       // Mock API key lookup with no user
-      vi.mocked(prisma.apiKey.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.calIdApiKey.findUnique).mockResolvedValue(null);
 
       // Expect handleAutoLock to throw the error from lockUser
       await expect(async () => {

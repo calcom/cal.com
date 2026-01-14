@@ -1,3 +1,4 @@
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Icon } from "@calid/features/ui/components/icon";
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -29,7 +30,7 @@ declare global {
       init: (config: any) => void;
       open: () => void;
     };
-    openOneHashChat?: () => void;
+    openCrispChat?: () => void;
   }
 }
 
@@ -61,9 +62,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
     if (window.Plain) {
       window.Plain.open();
     }
-    // Open OneHash chat widget if available
-    if (window.openOneHashChat) {
-      window.openOneHashChat();
+    // Open Crisp chat widget if available
+    if (window.openCrispChat) {
+      window.openCrispChat();
     }
     setMenuOpen(false);
   };
@@ -153,6 +154,16 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     <DropdownItem
                       type="button"
                       CustomStartIcon={
+                        <Icon name="external-link" className="text-default h-4 w-4" aria-hidden="true" />
+                      }
+                      onClick={() => window.open(`${window.location.origin}/${user?.username}`, "_blank")}>
+                      {t("view_public_page")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      CustomStartIcon={
                         <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
                       }
                       href="/settings/my-account/out-of-office">
@@ -199,7 +210,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   type="button"
                   StartIcon="log-out"
                   aria-hidden="true"
-                  onClick={() => {
+                  onClick={async () => {
+                    await resetCrispSession();
                     signOut({ callbackUrl: "/auth/logout" });
                   }}>
                   {t("sign_out")}

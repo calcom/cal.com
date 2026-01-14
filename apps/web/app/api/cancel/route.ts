@@ -23,7 +23,7 @@ async function handler(req: NextRequest) {
     userId: session?.user?.id || -1,
   });
 
-  const statusCode = result.success ? 200 : 400;
+  const statusCode = result?.success ? 200 : 400;
 
   return NextResponse.json(result, { status: statusCode });
 }

@@ -67,7 +67,6 @@ export default function Signup({
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [passwordValue, setPasswordValue] = useState("");
   const [passwordStrength, setPasswordStrength] = useState({
     label: "",
     bars: 0,
@@ -95,7 +94,12 @@ export default function Signup({
   const {
     register,
     formState: { isSubmitting, errors, isSubmitSuccessful },
+    watch,
   } = formMethods;
+
+  const watchedEmail = watch("email");
+  const watchedPassword = watch("password");
+  const watchedCfToken = watch("cfToken");
 
   useEffect(() => {
     captureAndStoreUtmParams();
@@ -109,6 +113,10 @@ export default function Signup({
 
   // Password strength checker
   useEffect(() => {
+    if (!watchedPassword) {
+      setPasswordStrength({ label: "", bars: 0, textClass: "", barClass: "" });
+      return;
+    }
     const regex = {
       lower: /[a-z]/,
       upper: /[A-Z]/,
@@ -118,12 +126,12 @@ export default function Signup({
     };
 
     const checks = {
-      length: passwordValue.length >= 8,
-      hasLower: regex.lower.test(passwordValue),
-      hasUpper: regex.upper.test(passwordValue),
-      hasNumber: regex.number.test(passwordValue),
-      hasSpecial: regex.special.test(passwordValue),
-      noRepeat: !regex.repeat.test(passwordValue),
+      length: watchedPassword.length >= 7,
+      hasLower: regex.lower.test(watchedPassword),
+      hasUpper: regex.upper.test(watchedPassword),
+      hasNumber: regex.number.test(watchedPassword),
+      hasSpecial: regex.special.test(watchedPassword),
+      noRepeat: !regex.repeat.test(watchedPassword),
     };
 
     setPasswordChecks(checks);
@@ -144,13 +152,13 @@ export default function Signup({
     let level = strengthLevels.weak;
     if (checks.length && checks.noRepeat) {
       if (score >= 4) level = strengthLevels.strong;
-      else if (score >= 2) level = strengthLevels.acceptable;
+      else if (checks.hasLower && checks.hasLower && checks.hasNumber) level = strengthLevels.acceptable;
     }
 
-    if (passwordValue.length === 0) level = strengthLevels.empty;
+    if (watchedPassword.length === 0) level = strengthLevels.empty;
 
     setPasswordStrength(level);
-  }, [passwordValue]);
+  }, [watchedPassword]);
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
 
@@ -246,7 +254,7 @@ export default function Signup({
     setInWebView(isWebView());
   }, []);
 
-  const RequirementItem = ({ check, label }) => (
+  const RequirementItem = ({ check, label }: { check: boolean; label: string }) => (
     <p
       className={`flex items-center text-xs transition-all duration-300 ${
         check ? "text-green-600" : "text-gray-200"
@@ -263,7 +271,7 @@ export default function Signup({
           />
         </svg>
       ) : (
-        <span className="mr-2 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+        <span className="mr-2 h-1.5 w-1.5 rounded-full bg-gray-400" />
       )}
       {label}
     </p>
@@ -377,7 +385,7 @@ export default function Signup({
                         }}>
                         {t("continue_with_google")}
                       </Button>
-                      <span className="text-white absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold shadow">
+                      <span className="absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold text-white shadow">
                         ⭐ Popular
                       </span>
                     </div>
@@ -434,6 +442,7 @@ export default function Signup({
                       data-testid="signup-passwordfield"
                       prefixIcon="lock"
                       autoComplete="new-password"
+                      // disabled={!formMethods.getValues("email")}
                       label={t("password")}
                       variant="floating"
                       showStrengthMeter={true}
@@ -469,11 +478,10 @@ export default function Signup({
                     loading={loadingSubmitState}
                     disabled={
                       !!formMethods.formState.errors.email ||
-                      !formMethods.getValues("email") ||
-                      !formMethods.getValues("password") ||
-                      (CLOUDFLARE_SITE_ID &&
-                        !process.env.NEXT_PUBLIC_IS_E2E &&
-                        !formMethods.getValues("cfToken")) ||
+                      passwordStrength.bars < 2 ||
+                      !watchedEmail ||
+                      !watchedPassword ||
+                      (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watchedCfToken) ||
                       isSubmitting
                     }>
                     {t("create_account")}

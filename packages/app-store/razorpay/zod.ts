@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RefundPolicy } from "@calcom/lib/payment/types";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
@@ -30,6 +31,9 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     paymentOption: z.string().optional(),
     enabled: z.boolean().optional(),
     credentialId: z.number().optional(),
+    refundPolicy: z.nativeEnum(RefundPolicy).optional(),
+    refundDaysCount: z.number().optional(),
+    refundCountCalendarDays: z.boolean().optional(),
   })
 );
 export const appKeysSchema = z.object({});

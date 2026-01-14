@@ -75,13 +75,18 @@ export async function handlePaymentSuccess(
     select: {
       data: true,
       success: true,
+      bookingSeat: {
+        select: {
+          attendee: true,
+        },
+      },
     },
   });
 
   if (!existingPayment) {
     log.error(`Payment with id '${paymentId}' not found.`);
     throw new HttpCode({
-      statusCode: 404,
+      statusCode: 200,
       message: `Payment with id '${paymentId}' not found.`,
     });
   }
@@ -116,6 +121,7 @@ export async function handlePaymentSuccess(
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
+
   if (!isConfirmed) {
     if (!requiresConfirmation) {
       await handleConfirmation({
@@ -136,7 +142,14 @@ export async function handlePaymentSuccess(
     }
   } else if (areEmailsEnabled) {
     try {
-      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+      await sendScheduledEmailsAndSMS(
+        { ...evt },
+        undefined,
+        undefined,
+        undefined,
+        eventType.metadata,
+        existingPayment.bookingSeat?.attendee
+      );
     } catch (e) {
       log.error(`Error sending scheduled emails/SMS for bookingId ${booking.id}: ${e}`);
     }

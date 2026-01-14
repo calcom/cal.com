@@ -1,5 +1,6 @@
 "use client";
 
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Button } from "@calid/features/ui/components/button";
 import { StepCard } from "@calid/features/ui/components/card";
 import { Steps } from "@calid/features/ui/components/card";
@@ -102,7 +103,7 @@ const OnboardingPage = (props: PageProps) => {
   };
   const goToIndex = (index: number) => {
     if (index >= steps.length) {
-      router.push("/event-types");
+      router.push("/home");
       return;
     }
     const newStep = steps[index];
@@ -134,7 +135,7 @@ const OnboardingPage = (props: PageProps) => {
 
       await utils.viewer.me.get.refetch();
 
-      router.push("/event-types");
+      router.push("/home");
     },
     onError: () => {
       triggerToast(t("problem_saving_user_profile"), "error");
@@ -154,7 +155,21 @@ const OnboardingPage = (props: PageProps) => {
         email_address: data.email,
       };
 
-      console.log("Pushed gtm onboarding event: ", gtmEvent);
+      if (
+        typeof window !== "undefined" &&
+        window.cioanalytics &&
+        typeof window.cioanalytics.identify === "function"
+      ) {
+        try {
+          console.log("Identifying user with CIO Analytics:");
+          window.cioanalytics.identify({
+            id: data.id,
+            onboarding_completed: true,
+          });
+        } catch (error) {
+          console.error("Error identifying user with CIO Analytics:", error);
+        }
+      }
 
       if (!data.completedOnboarding) {
         window.dataLayer.push(gtmEvent);
@@ -266,7 +281,10 @@ const OnboardingPage = (props: PageProps) => {
             <Button
               color="minimal"
               data-testid="sign-out"
-              onClick={() => signOut({ callbackUrl: "/auth/logout" })}
+              onClick={async () => {
+                await resetCrispSession();
+                signOut({ callbackUrl: "/auth/logout" });
+              }}
               className="hover:text-emphasis mt-8 cursor-pointer border-none text-sm font-medium">
               {t("sign_out")}
             </Button>

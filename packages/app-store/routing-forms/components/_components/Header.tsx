@@ -119,7 +119,7 @@ const Actions = ({
           />
           <FormAction
             action="_delete"
-            variant="fab"
+            variant="icon"
             routingForm={form}
             size="xs"
             icon="trash"
@@ -234,9 +234,8 @@ export function Header({
 
   return (
     <div className="bg-default sticky top-0 z-10 flex w-full flex-col">
-      <div className="bg-default flex w-full flex-col lg:grid lg:grid-cols-3 lg:items-center">
-        {/* Left - Back button and title */}
-        <div className="border-muted flex items-center">
+      <div className="bg-default flex w-full flex-row flex-nowrap items-center justify-between gap-4">
+        <div className="border-muted flex min-w-0 items-center gap-3">
           <Link href={`${appUrl}`} data-testid="back-button">
             <Button
               type="button"
@@ -254,8 +253,6 @@ export function Header({
             </span>
           </div>
         </div>
-        <div className="flex" />
-
         <div className="flex items-center justify-end space-x-4">
           <Actions
             form={routingForm}

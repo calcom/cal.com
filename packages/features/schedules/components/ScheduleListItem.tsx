@@ -84,12 +84,12 @@ export function ScheduleListItem({
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="schedule-more"
+              StartIcon="ellipsis"
               variant="icon"
               color="minimal"
               type="button"
-              className="hover:bg-muted rounded-md transition-colors">
-              <Icon name="ellipsis" />
-            </Button>
+              className="hover:bg-muted rounded-md transition-colors"
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent className="min-w-40" align="end">
             {!schedule.isDefault && (

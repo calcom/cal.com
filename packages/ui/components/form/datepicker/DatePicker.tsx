@@ -1,9 +1,9 @@
+import { Button } from "@calid/features/ui/components/button";
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 
 import classNames from "@calcom/ui/classNames";
 
-import { Button } from "../../button/Button";
 import { Calendar } from "../date-range-picker/Calendar";
 
 type Props = {

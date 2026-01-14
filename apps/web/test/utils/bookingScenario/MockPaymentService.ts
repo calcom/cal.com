@@ -1,6 +1,6 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { Payment, Prisma, PaymentOption, Booking } from "@prisma/client";
+import type { Payment, Prisma, PaymentOption, Booking, BookingSeat } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
@@ -24,6 +24,7 @@ export function getMockPaymentService() {
     async create(
       payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
       bookingId: Booking["id"],
+      bookingSeat: BookingSeat["id"],
       userId: Booking["userId"],
       username: string | null,
       bookerName: string | null,

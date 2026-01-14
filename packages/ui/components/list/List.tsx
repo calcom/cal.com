@@ -81,7 +81,7 @@ export function ListItemAdvanced(props: ListItemAdvancedProps) {
   return (
     <div
       className={classNames(
-        "group flex w-full items-center justify-between px-3 py-5",
+        "group flex w-full items-center justify-between px-1 py-3",
         className,
         disabled ? "hover:bg-muted" : ""
       )}>
@@ -90,15 +90,15 @@ export function ListItemAdvanced(props: ListItemAdvancedProps) {
           "text-default flex-grow truncate",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
-        <div className="flex w-full flex-row items-center">
-          <h1 className="text-emphasis font-medium leading-none">{heading}</h1>
+        <div className="flex w-full min-w-0 flex-row items-center">
+          <h1 className="text-emphasis min-w-0 truncate font-medium leading-none">{heading}</h1>
           {props.headingTrailingItem && (
-            <span className="text-default ml-2 w-full px-2 pt-1 text-xs font-normal">
+            <span className="text-default ml-2 min-w-0 flex-1 px-2 pt-1 text-xs font-normal">
               {props.headingTrailingItem}
             </span>
           )}
           {disabled && (
-            <Badge data-testid="badge" variant="secondary" className="ml-2">
+            <Badge data-testid="badge" variant="secondary" className="ml-2 flex-shrink-0">
               {t("readonly")}
             </Badge>
           )}

@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
@@ -21,11 +23,13 @@ type RouterOutput = inferRouterOutputs<AppRouter>;
 type Credentials = RouterOutput["viewer"]["apps"]["calid_appCredentialsByType"]["credentials"];
 
 interface Props {
+  slug: string;
+  categories: string[];
   credentials: Credentials;
   onSuccess?: () => void;
 }
 
-export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
+export function MultiDisconnectIntegration({ slug, categories, credentials, onSuccess }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [credentialToDelete, setCredentialToDelete] = useState<{
@@ -34,6 +38,15 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
     name: string | null;
   } | null>(null);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+
+  const whatsappPhonesQueries = trpc.useQueries((t) =>
+    credentials.map((cred) =>
+      t.viewer.workflows.getWhatsAppPhoneNumbers({
+        credentialId: cred.id,
+      })
+    )
+  );
+  const whatsappPhones = whatsappPhonesQueries.flatMap((q) => q.data);
 
   const mutation = trpc.viewer.credentials.calid_delete.useMutation({
     onSuccess: () => {
@@ -50,6 +63,13 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
       await utils.viewer.apps.calid_integrations.invalidate();
     },
   });
+
+  const { data: connectedCalendarData, isPending: isConnectedCalendarQueryPending } =
+    categories.indexOf("calendar") !== -1
+      ? trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
+          enabled: true,
+        })
+      : {};
 
   const getUserDisplayName = (user: (typeof credentials)[number]["user"]) => {
     if (!user) return null;
@@ -76,17 +96,29 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                 type="button"
                 color="destructive"
                 className="hover:bg-subtle hover:text-emphasis w-full border-0"
-                StartIcon={cred.teamId ? "users" : "user"}
+                StartIcon={cred.calIdTeamId ? "users" : "user"}
                 onClick={() => {
                   setCredentialToDelete({
                     id: cred.id,
-                    teamId: cred.teamId,
-                    name: cred.team?.name || getUserDisplayName(cred.user) || null,
+                    teamId: cred.calIdTeamId,
+                    name: cred.calIdTeamId?.name || getUserDisplayName(cred.user) || null,
                   });
                   setConfirmationDialogOpen(true);
                 }}>
                 <div className="flex flex-col text-left">
-                  <span>{cred.team?.name || getUserDisplayName(cred.user) || t("unnamed")}</span>
+                  <span>{cred.calIdTeam?.name || cred.user.name || t("unnamed")}</span>
+                  {categories.indexOf("calendar") !== -1 && !isConnectedCalendarQueryPending && (
+                    <span>
+                      {connectedCalendarData?.connectedCalendars?.find((e) => e.credentialId === cred.id)
+                        ?.primary?.email || t("unnamed")}
+                    </span>
+                  )}
+                  {slug === "whatsapp-business" &&
+                    whatsappPhones.find((e) => e?.credentialId === cred.id) && (
+                      <span>
+                        {whatsappPhones.find((e) => e.credentialId === cred.id).phoneNumber || t("unnamed")}
+                      </span>
+                    )}
                 </div>
               </DropdownMenuItem>
             </DropdownMenuItem>

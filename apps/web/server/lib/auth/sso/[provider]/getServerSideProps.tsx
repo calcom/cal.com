@@ -29,7 +29,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({ req });
 
   const successDestination = session?.user.completedOnboarding
-    ? "/event-types"
+    ? "/home"
     : `/getting-started${usernameParam ? `?username=${usernameParam}` : ""}`;
 
   const { currentOrgDomain } = orgDomainConfig(context.req);

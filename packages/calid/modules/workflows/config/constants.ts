@@ -77,6 +77,29 @@ const DYNAMIC_TEXT_VARIABLES = [
   "event_end_time_in_attendee_timezone",
 ];
 
+const META_DYNAMIC_TEXT_VARIABLES = {
+  event_name: "event_name",
+  event_date: "event_date",
+  event_time: "event_time",
+  event_end_time: "event_end_time",
+  timezone: "timezone",
+  location: "location",
+  organizer_name: "organizer_name",
+  attendee_name: "attendee_name",
+  attendee_first_name: "attendee_first_name",
+  attendee_last_name: "attendee_last_name",
+  attendee_email: "attendee_email",
+  additional_notes: "additional_notes",
+  meeting_url: "meeting_url",
+  cancel_url: "cancel_url",
+  reschedule_url: "reschedule_url",
+  rating_url: "rating_url",
+  no_show_url: "no_show_url",
+  attendee_timezone: "attendee_timezone",
+  start_time_tz_booker: "event_start_time_in_attendee_timezone",
+  end_time_tz_booker: "event_end_time_in_attendee_timezone",
+};
+
 const FORMATTED_DYNAMIC_TEXT_VARIABLES = [
   "event_date_",
   "event_time_",
@@ -109,4 +132,5 @@ export {
   FORMATTED_DYNAMIC_TEXT_VARIABLES,
   TimeFormat,
   timeUnitLowerCase,
+  META_DYNAMIC_TEXT_VARIABLES,
 };

@@ -13,7 +13,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const apiKeyToDelete = await prisma.apiKey.findUnique({
+  const apiKeyToDelete = await prisma.calIdApiKey.findUnique({
     where: {
       id,
     },
@@ -24,7 +24,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
       id: ctx.user.id,
     },
     data: {
-      apiKeys: {
+      calIdApiKeys: {
         delete: {
           id,
         },

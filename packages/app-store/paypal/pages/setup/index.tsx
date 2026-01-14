@@ -84,7 +84,7 @@ export default function PayPalSetup() {
             <div>
               <p className="text-lgf text-default mt-5 font-bold">Getting started with Paypal APP</p>
               <p className="text-default font-semi mt-2">
-                Here in Cal.com we offer Paypal as one of our payment gateway. You can use your own Paypal
+                Here in Cal ID we offer Paypal as one of our payment gateway. You can use your own Paypal
                 Business account to receive payments from your customers enabling and setting up price and
                 currency for each of your event types.
               </p>

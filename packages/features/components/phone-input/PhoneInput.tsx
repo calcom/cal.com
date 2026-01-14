@@ -1,14 +1,21 @@
 "use client";
 
 import { isSupportedCountry } from "libphonenumber-js";
-import { useState, useEffect } from "react";
+import moment from "moment-timezone";
+import { useState, useEffect, useMemo } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 
+declare module "moment-timezone" {
+  interface MomentZone {
+    countries(): string[];
+  }
+}
 export type PhoneInputProps = {
   value?: string;
   id?: string;
@@ -134,8 +141,17 @@ function BasePhoneInputWeb({
 }
 
 const useDefaultCountry = () => {
-  const [defaultCountry, setDefaultCountry] = useState("us");
+  const { timezone } = useBookerTime();
+
+  const [defaultCountry, setDefaultCountry] = useState("in");
+
+  // Get country codes for the timezone using moment-timezone
+  const countryCodes = useMemo(() => moment.tz.zone(timezone)?.countries?.() || [], [timezone]);
+  // Only enable the query if there are multiple country codes or none found
+  const shouldFetchCountryCode = countryCodes.length !== 1;
+
   const query = trpc.viewer.public.countryCode.useQuery(undefined, {
+    enabled: shouldFetchCountryCode,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
@@ -143,6 +159,16 @@ const useDefaultCountry = () => {
 
   useEffect(
     function refactorMeWithoutEffect() {
+      // If we have exactly one country code from timezone, use it directly
+      if (countryCodes.length === 1) {
+        const countryCode = countryCodes[0];
+        isSupportedCountry(countryCode)
+          ? setDefaultCountry(countryCode.toLowerCase())
+          : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "in");
+        return;
+      }
+
+      // Otherwise, use the TRPC query result
       const data = query.data;
       if (!data?.countryCode) {
         return;
@@ -150,9 +176,9 @@ const useDefaultCountry = () => {
 
       isSupportedCountry(data?.countryCode)
         ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "in");
     },
-    [query.data]
+    [query.data, countryCodes]
   );
 
   return defaultCountry;

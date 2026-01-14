@@ -134,7 +134,6 @@ export const getBookerSizeClassNames = (
     }
     return className;
   };
-
   return [
     // Size settings are abstracted on their own lines purely for readability.
     // General sizes, used always
@@ -145,14 +144,14 @@ export const getBookerSizeClassNames = (
     // of a multi occurrence event. Also makes form less wide, which also looks better.
     layout === BookerLayouts.MONTH_VIEW &&
       bookerState === "booking" &&
-      `[--booker-main-width:420px] ${getBookerMetaClass("lg:[--booker-meta-width:340px]")}`,
+      `[--booker-main-width:420px] lg:[--booker-main-width:480px] ${getBookerMetaClass("lg:[--booker-meta-width:340px]")}`,
     // Smaller meta when not in booking view.
     layout === BookerLayouts.MONTH_VIEW &&
       bookerState !== "booking" &&
-      `[--booker-main-width:480px] ${getBookerMetaClass("lg:[--booker-meta-width:280px]")}`,
+      `[--booker-main-width:380px] lg:[--booker-main-width:480px] ${getBookerMetaClass("lg:[--booker-meta-width:280px]")}`,
     // Fullscreen view settings.
     layout !== BookerLayouts.MONTH_VIEW &&
-      `[--booker-main-width:480px] [--booker-meta-width:340px] ${getBookerMetaClass(
+      `[--booker-main-width:380px] lg:[--booker-main-width:480px] [--booker-meta-width:340px] ${getBookerMetaClass(
         "lg:[--booker-meta-width:424px]"
       )}`,
   ];

@@ -124,6 +124,7 @@
     "@next/third-parties": "^14.2.5",
     "@tiptap/extension-underline": "^2.3.0",
     "@vercel/functions": "^1.4.0",
+    "browser-image-compression": "^2.0.2",
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
     "eslint": "^8.34.0",

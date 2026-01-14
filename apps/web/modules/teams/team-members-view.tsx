@@ -48,7 +48,7 @@ export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProp
         )}
         {!canLoggedInUserSeeMembers && (
           <div className="border-subtle rounded-xl border p-6" data-testid="members-privacy-warning">
-            <h2 className="text-default">{t("only_admin_can_see_members_of_team")}</h2>
+            <h2 className="text-default text-sm">{t("only_admin_can_see_members_of_team")}</h2>
           </div>
         )}
         {showMemberInvitationModal && team && team.id && (

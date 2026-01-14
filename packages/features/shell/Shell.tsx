@@ -134,8 +134,8 @@ export function ShellMain(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "bg-default sticky top-0 z-10  mb-3 flex items-center md:mt-0"
-            // props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+            "bg-default sticky top-0 z-10 flex items-center md:mt-0",
+            props.smallHeading ? "mb-4 md:mb-7 lg:mb-7" : "mb-4 md:mb-4"
           )}>
           {!!props.backPath && (
             <Button

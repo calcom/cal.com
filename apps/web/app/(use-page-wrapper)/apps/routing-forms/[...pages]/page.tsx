@@ -17,7 +17,7 @@ const normalizePages = (pages: string[] | string | undefined) => {
 export const generateMetadata = async ({ params }: { params: Promise<{ pages: string[] }> }) => {
   const mainPage = normalizePages((await params).pages);
   return await _generateMetadata(
-    (t) => (mainPage === "routing-link" ? `Form | Cal.com Forms` : `${t("routing_forms")} | Cal.com Forms`),
+    (t) => (mainPage === "routing-link" ? `Form` : `${t("routing_forms")}`),
     () => "",
     undefined,
     undefined,

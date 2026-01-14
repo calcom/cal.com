@@ -19,6 +19,8 @@ export const ZCalIdUpdateInputSchema = z.object({
       sendTo: z.string().nullable(),
       reminderBody: z.string().nullable(),
       emailSubject: z.string().nullable(),
+      metaTemplateName: z.string().optional().nullable(),
+      metaTemplatePhoneNumberId: z.string().optional().nullable(),
       template: z.enum(WORKFLOW_TEMPLATES),
       numberRequired: z.boolean().nullable(),
       sender: z.string().nullable(),

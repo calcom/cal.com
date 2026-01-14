@@ -1,8 +1,11 @@
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-import type { CalIdWorkflow } from "../config/types";
-
-export function canDisableOrganizerNotifications(workflowSequence: CalIdWorkflow[]) {
+export function canDisableOrganizerNotifications(
+  workflowSequence: {
+    trigger: WorkflowTriggerEvents;
+    steps: { action: WorkflowActions }[];
+  }[]
+) {
   const discoveredMatch = workflowSequence.find((flow) => {
     const triggeredByNewBooking = flow.trigger === WorkflowTriggerEvents.NEW_EVENT;
     if (!triggeredByNewBooking) return false;
@@ -17,7 +20,12 @@ export function canDisableOrganizerNotifications(workflowSequence: CalIdWorkflow
   return !!discoveredMatch;
 }
 
-export function canDisableParticipantNotifications(workflowSequence: CalIdWorkflow[]) {
+export function canDisableParticipantNotifications(
+  workflowSequence: {
+    trigger: WorkflowTriggerEvents;
+    steps: { action: WorkflowActions }[];
+  }[]
+) {
   const validConfiguration = workflowSequence.find((flowDefinition) => {
     const isNewBookingTrigger = flowDefinition.trigger === WorkflowTriggerEvents.NEW_EVENT;
     if (!isNewBookingTrigger) {

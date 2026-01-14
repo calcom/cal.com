@@ -10,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "../icon/Icon";
 import { Label } from "../label";
 import { Tooltip } from "../tooltip";
-import { HintsOrErrors } from "./hint-or-errors";
 import type { InputProps, InputFieldProps, TextFieldProps } from "./types";
 
 export const inputStyles = cva(
@@ -169,6 +168,7 @@ export const InputField = forwardRef<
     min,
     max,
     onChange,
+    onInput,
     value,
     ...passThrough
   } = props;
@@ -222,7 +222,12 @@ export const InputField = forwardRef<
               className
             )}
             {...passThrough}
-            onChange={onChange}
+            onChange={(e) => {
+              onChange(e);
+            }}
+            onInput={(e) => {
+              onInput(e);
+            }}
             disabled={readOnly || disabled}
             ref={ref}
             onFocus={(e) => {
@@ -362,6 +367,7 @@ export const InputField = forwardRef<
             )}
             {...passThrough}
             onChange={onChange}
+            value={value}
             {...(type == "search" && {
               onChange: (e) => {
                 setInputValue(e.target.value);
@@ -537,7 +543,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
   const passwordChecks = useMemo((): PasswordChecks => {
     return {
-      length: passwordValue.length >= 8,
+      length: passwordValue.length >= 7,
       hasLower: /[a-z]/.test(passwordValue),
       hasUpper: /[A-Z]/.test(passwordValue),
       hasNumber: /[0-9]/.test(passwordValue),
@@ -559,7 +565,12 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
         barClass: "bg-green-500",
         containerState: "strong",
       };
-    } else if (passedChecks >= totalChecks * 0.6) {
+    } else if (
+      passwordChecks.hasLower &&
+      passwordChecks.hasUpper &&
+      passwordChecks.hasNumber &&
+      passwordChecks.length
+    ) {
       return {
         label: t("acceptable") || "Acceptable",
         bars: 2,
@@ -601,11 +612,12 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
   // Floating variant with custom container
   if (variant === "floating") {
-    const containerState = passwordValue && showStrengthColors
-      ? passwordStrength.containerState
-      : isFocused
-      ? "focused"
-      : "default";
+    const containerState =
+      passwordValue && showStrengthColors
+        ? passwordStrength.containerState
+        : isFocused
+        ? "focused"
+        : "default";
 
     return (
       <div className="w-full">
@@ -645,7 +657,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
             }}
             className={cn(
               prefixIcon ? "py-3 pl-10 pr-10" : "px-4 py-3 pr-10",
-              "bg-default font-medium text-default",
+              "bg-default text-default font-medium",
               props.className
             )}
           />
@@ -698,13 +710,13 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
         {showRequirements && (
           <div className="mt-2 space-y-1">
-            <RequirementItem check={passwordChecks.length} label="At least 8 characters" />
+            <RequirementItem check={passwordChecks.length} label={t("pw_check_least_char")} />
             <RequirementItem
               check={passwordChecks.hasLower && passwordChecks.hasUpper}
-              label="Mix of uppercase & lowercase"
+              label={t("pw_check_mix_case")}
             />
-            <RequirementItem check={passwordChecks.hasNumber} label="At least one number" />
-            <RequirementItem check={passwordChecks.hasSpecial} label="At least one special character" />
+            <RequirementItem check={passwordChecks.hasNumber} label={t("pw_check_number")} />
+            <RequirementItem check={passwordChecks.hasSpecial} label={t("pw_check_special_char")} />
           </div>
         )}
       </div>
@@ -763,13 +775,13 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
       {showRequirements && (
         <div className="mt-2 space-y-1">
-          <RequirementItem check={passwordChecks.length} label="At least 8 characters" />
+          <RequirementItem check={passwordChecks.length} label={t("pw_check_least_char")} />
           <RequirementItem
             check={passwordChecks.hasLower && passwordChecks.hasUpper}
-            label="Mix of uppercase & lowercase"
+            label={t("pw_check_mix_case")}
           />
-          <RequirementItem check={passwordChecks.hasNumber} label="At least one number" />
-          <RequirementItem check={passwordChecks.hasSpecial} label="At least one special character" />
+          <RequirementItem check={passwordChecks.hasNumber} label={t("pw_check_number")} />
+          <RequirementItem check={passwordChecks.hasSpecial} label={t("pw_check_special_char")} />
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
@@ -170,6 +171,20 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
     descriptionAsSafeHTML: markdownToSafeHTML(type.description || ""),
   }));
 
+  if (
+    processedEventTypes.length === 1 &&
+    processedEventTypes[0].schedulingType === "MANAGED" &&
+    /*search params doesn't have members*/ !context.query.members
+  ) {
+    // If the team has only one event type and it's managed, redirect to the event type page
+    return {
+      redirect: {
+        destination: `/team/${calIdTeam.slug}?members=1`,
+        permanent: false,
+      },
+    } as const;
+  }
+
   const processedMembers = !calIdTeam.isTeamPrivate
     ? calIdTeam.members.map((member) => {
         const profile = member.user.profiles?.[0];
@@ -227,6 +242,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       isValidOrgDomain: false,
       currentOrgDomain: null,
       isSEOIndexable: true,
+      headerUrl: (isPrismaObjOrUndefined(calIdTeam.metadata)?.headerUrl as string | null) ?? null,
     },
   } as const;
 };

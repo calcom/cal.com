@@ -11,7 +11,7 @@ jobs:
   i18n:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     name: Run i18n
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
     permissions:
       actions: write
       contents: write

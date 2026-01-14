@@ -167,7 +167,9 @@ export const FormActionsDropdown = ({
         <DropdownMenuTrigger disabled={disabled} data-testid="form-dropdown" asChild>
           <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">{children}</DropdownMenuContent>
+        <DropdownMenuContent className="min-w-40" align="end">
+          {children}
+        </DropdownMenuContent>
       </DropdownMenu>
     </dropdownCtx.Provider>
   );
@@ -430,7 +432,7 @@ export const FormLinkDisplay = ({ routingFormId }: { routingFormId?: string | nu
   const orgBranding = useOrgBranding();
   const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
 
-  return <div>{formLink}</div>;
+  return <div className="truncate">{formLink}</div>;
 };
 
 type FormActionProps<T> = {
@@ -623,7 +625,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
         <Component
           ref={forwardedRef}
           {...actionProps}
-          variant="fab"
+          variant="minimal"
           className={classNames(
             props.className,
             "w-full justify-start transition-none",

@@ -94,6 +94,7 @@ const executeStepLogic = async (
       calIdTeamId: workflowConfig.calIdTeamId,
       isVerificationPending: stepConfig.numberVerificationPending,
       seatReferenceUid,
+      workflowId: workflowConfig.id,
     });
 
     return;
@@ -155,9 +156,7 @@ const executeStepLogic = async (
           seatReferenceUid,
           includeCalendarEvent: stepConfig.includeCalendarEvent,
           attendeeId: participantId,
-          // verifiedAt: stepConfig.verifiedAt,
-          // userId: workflowConfig.userId,
-          // teamId: workflowConfig.teamId,
+          workflowId: workflowConfig.id,
         });
       });
 
@@ -180,6 +179,7 @@ const executeStepLogic = async (
         hideBranding,
         seatReferenceUid,
         includeCalendarEvent: stepConfig.includeCalendarEvent,
+        workflowId: workflowConfig.id,
         // verifiedAt: stepConfig.verifiedAt,
         // userId: workflowConfig.userId,
         // teamId: workflowConfig.teamId,
@@ -195,23 +195,28 @@ const executeStepLogic = async (
     const whatsappRecipient =
       stepConfig.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : stepConfig.sendTo;
 
-    await scheduleWhatsappReminder({
-      evt: eventData,
-      reminderPhone: whatsappRecipient,
-      triggerEvent: workflowConfig.trigger,
-      action: stepConfig.action as CalIdScheduleTextReminderAction,
-      timeSpan: {
-        time: workflowConfig.time,
-        timeUnit: workflowConfig.timeUnit,
-      },
-      message: stepConfig.reminderBody || "",
-      workflowStepId: stepConfig.id,
-      template: stepConfig.template,
-      userId: workflowConfig.userId,
-      calIdTeamId: workflowConfig.calIdTeamId,
-      isVerificationPending: stepConfig.numberVerificationPending,
-      seatReferenceUid,
-    });
+    if (whatsappRecipient) {
+      await scheduleWhatsappReminder({
+        evt: eventData,
+        workflow: workflowConfig,
+        reminderPhone: whatsappRecipient,
+        triggerEvent: workflowConfig.trigger,
+        action: stepConfig.action as CalIdScheduleTextReminderAction,
+        timeSpan: {
+          time: workflowConfig.time,
+          timeUnit: workflowConfig.timeUnit,
+        },
+        message: stepConfig.reminderBody || "",
+        workflowStepId: stepConfig.id,
+        template: stepConfig.template,
+        userId: workflowConfig.userId,
+        calIdTeamId: workflowConfig.calIdTeamId,
+        isVerificationPending: stepConfig.numberVerificationPending,
+        seatReferenceUid,
+        metaTemplateName: stepConfig.metaTemplateName,
+        metaPhoneNumberId: stepConfig.metaTemplatePhoneNumberId,
+      });
+    }
   }
 };
 
@@ -265,6 +270,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     }
 
     const stepIterator = workflowInstance.steps[Symbol.iterator]();
+
     let currentStep = stepIterator.next();
 
     while (!currentStep.done) {
@@ -288,10 +294,11 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
+  seatReferenceUid?: string;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { smsReminderNumber, evt: eventData, workflows, hideBranding } = args;
+  const { smsReminderNumber, evt: eventData, workflows, hideBranding, seatReferenceUid } = args;
 
   const hasWorkflows = workflows.length > 0;
 
@@ -318,6 +325,7 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         calendarEvent: eventData,
+        seatReferenceUid,
       });
 
       stepIndex++;

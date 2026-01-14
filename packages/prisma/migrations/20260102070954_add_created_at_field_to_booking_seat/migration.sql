@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "BookingSeat" ADD COLUMN     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;

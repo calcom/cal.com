@@ -4,7 +4,7 @@ import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 import { bookingStatusToText } from "../lib/bookingStatusToText";
 import type { HeaderRow } from "../lib/types";
@@ -15,12 +15,6 @@ const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.AWAITING_HOST]: 3,
   [BookingStatus.CANCELLED]: 4,
   [BookingStatus.REJECTED]: 5,
-};
-
-const workflowOrder: Record<WorkflowMethods, number> = {
-  [WorkflowMethods.EMAIL]: 1,
-  [WorkflowMethods.SMS]: 2,
-  [WorkflowMethods.WHATSAPP]: 3,
 };
 
 export const useInsightsFacetedUniqueValues = ({
@@ -114,9 +108,9 @@ export const useInsightsFacetedUniqueValues = ({
         );
       } else if (columnId === "workflowType") {
         return convertFacetedValuesToMap(
-          Object.keys(workflowOrder).map((type) => ({
-            value: workflowOrder[type as WorkflowMethods],
-            label: workflowTypeToText(type as WorkflowMethods),
+          Object.values(WorkflowMethods).map((value) => ({
+            value,
+            label: workflowTypeToText(value),
           }))
         );
       }

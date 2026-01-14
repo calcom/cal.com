@@ -30,7 +30,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   const props = await getData(context);
   if ((props.userMetadata as any).isProUser?.yearClaimed === 2) {
-    redirect("/event-types");
+    redirect("/home");
   }
   return (
     <Shell heading="Claim Pro" subtitle="Claim Cal ID's pro version for the next 2 years for free">

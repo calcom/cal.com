@@ -66,7 +66,10 @@ export const eventOwnerProcedure = authedProcedure
     })();
 
     if (!isAuthorized) {
-      throw new TRPCError({ code: "FORBIDDEN" });
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You are not authorized to update this event type",
+      });
     }
 
     const isAllowed = (function () {
@@ -78,7 +81,10 @@ export const eventOwnerProcedure = authedProcedure
     })();
 
     if (!isAllowed) {
-      throw new TRPCError({ code: "FORBIDDEN" });
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You are not authorized to update this event type",
+      });
     }
 
     return next();

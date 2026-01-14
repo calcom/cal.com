@@ -11,7 +11,7 @@ export async function checkPermissions(args: {
 }) {
   const { teamId, userId, role } = args;
   if (!teamId) return;
-  const team = await prisma.team.findFirst({
+  const team = await prisma.calIdTeam.findFirst({
     where: {
       id: teamId,
       members: {

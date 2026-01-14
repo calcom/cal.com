@@ -65,7 +65,7 @@ export class ApiKeyStrategy {
 
   private async getApiKeyFromHash(hashedKey: string): Promise<ApiKeyData | null> {
     try {
-      const apiKey = await this.prisma.apiKey.findFirst({
+      const apiKey = await this.prisma.calIdApiKey.findFirst({
         where: {
           hashedKey,
         },

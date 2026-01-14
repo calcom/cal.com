@@ -1,4 +1,4 @@
-import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
+import type { Payment, Prisma, Booking, BookingSeat, PaymentOption } from "@prisma/client";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -12,6 +12,7 @@ interface PaymentService {
   new (credentials: { key: Prisma.JsonValue }): IAbstractPaymentService;
 }
 
+// TODO: Refactor method signatures to use a single object parameter, to prevent wrong parameter ordering
 export interface IAbstractPaymentService {
   /* This method is for creating charges at the time of booking */
   create(
@@ -23,6 +24,7 @@ export interface IAbstractPaymentService {
     paymentOption: PaymentOption,
     bookerEmail: string,
     bookingUid: string,
+    bookingSeat?: BookingSeat["id"],
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
@@ -54,7 +56,8 @@ export interface IAbstractPaymentService {
       uid: string;
     },
     paymentData: Payment,
-    eventTypeMetadata?: EventTypeMetadata
+    eventTypeMetadata?: EventTypeMetadata,
+    bookingSeat?: BookingSeat["id"]
   ): Promise<void>;
   deletePayment(paymentId: Payment["id"]): Promise<boolean>;
   isSetupAlready(): boolean;

@@ -1,5 +1,6 @@
 "use client";
 
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import {
   DropdownMenu,
@@ -10,6 +11,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { AnimatePresence, motion } from "framer-motion";
+import { signOut } from "next-auth/react";
 import { useState } from "react";
 
 import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
@@ -89,6 +91,15 @@ export const Profile = ({ small }: ProfileProps) => {
           <Icon name="moon" className="mr-2 h-4 w-4" />
           {t("out_of_office")}
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => window.open(`${window.location.origin}/?from=app`, "_blank")}>
+          <Icon name="globe" className="mr-2 h-4 w-4" />
+          {t("go_to_website")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => window.open(`${window.location.origin}/${user?.username}`, "_blank")}>
+          <Icon name="external-link" className="mr-2 h-4 w-4" />
+          {t("view_public_page")}
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => window.open("https://roadmap.cal.id/", "_blank")}>
           <Icon name="map-pin" className="mr-2 h-4 w-4" />
           {t("visit_roadmap")}
@@ -129,7 +140,12 @@ export const Profile = ({ small }: ProfileProps) => {
           <Icon name="settings" className="mr-2 h-4 w-4" />
           {t("settings")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => (window.location.href = "/auth/logout")} color="destructive">
+        <DropdownMenuItem
+          onClick={async () => {
+            await resetCrispSession();
+            signOut({ callbackUrl: "/auth/logout" });
+          }}
+          color="destructive">
           <Icon name="log-out" className=" mr-2 h-4 w-4" />
           {t("sign_out")}
         </DropdownMenuItem>

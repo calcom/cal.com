@@ -2,7 +2,7 @@ import prisma from "@calcom/prisma";
 
 export class PrismaApiKeyRepository {
   static async findApiKeysFromUserId({ userId }: { userId: number }) {
-    return await prisma.apiKey.findMany({
+    return await prisma.calIdApiKey.findMany({
       where: {
         userId,
         OR: [

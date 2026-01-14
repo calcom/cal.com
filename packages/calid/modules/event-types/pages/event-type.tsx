@@ -238,12 +238,13 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       await utils.viewer.eventTypes.getByViewer.invalidate();
     },
     onError: (err) => {
-      console.log("Error occured during event type update:", err);
       let message = "";
       if (err instanceof HttpError) {
         message = `${err.statusCode}: ${err.message}`;
       } else if (err.data?.code === "UNAUTHORIZED") {
         message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
+      } else if (err.data?.code === "FORBIDDEN") {
+        message = t(err.message);
       } else if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
         message = `${err.data.code}: ${t(err.message)}`;
       } else if (err.data?.code === "INTERNAL_SERVER_ERROR") {

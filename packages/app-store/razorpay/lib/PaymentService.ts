@@ -1,4 +1,5 @@
-import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
+import type { Booking, BookingSeat, Payment, PaymentOption, Prisma } from "@prisma/client";
+import { AxiosError } from "axios";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
@@ -50,6 +51,7 @@ export class PaymentService implements IAbstractPaymentService {
     paymentOption: PaymentOption,
     bookerEmail: string,
     bookingUid: string,
+    bookingSeat?: BookingSeat["id"],
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string
@@ -86,6 +88,13 @@ export class PaymentService implements IAbstractPaymentService {
               id: bookingId,
             },
           },
+          bookingSeat: bookingSeat
+            ? {
+                connect: {
+                  id: bookingSeat,
+                },
+              }
+            : undefined,
           amount: payment.amount,
           externalId: paymentLinkRes.id, //Payment link id
           currency: payment.currency,
@@ -96,6 +105,7 @@ export class PaymentService implements IAbstractPaymentService {
               amount: paymentLinkRes.amount,
               account_id: paymentLinkRes.user_id,
               paymentLink: paymentLinkRes.short_url,
+              expireBy: paymentLinkRes.expire_by,
             }
           ) as unknown as Prisma.InputJsonValue,
           fee: 0,
@@ -110,8 +120,18 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
-      throw new Error(ErrorCode.PaymentCreationFailure);
+      if (error instanceof AxiosError) {
+        log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
+        log.error(
+          "Razorpay: Axios error while creating payment link",
+          bookingId,
+          safeStringify(error.response?.data)
+        );
+        throw new Error(ErrorCode.PaymentCreationFailure);
+      } else {
+        log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
+        throw new Error(ErrorCode.PaymentCreationFailure);
+      }
     }
   }
   async update(): Promise<Payment> {
@@ -124,19 +144,24 @@ export class PaymentService implements IAbstractPaymentService {
     if (!payment.externalId) throw new Error("Payment externalId not found");
     return payment.externalId as string;
   }
+
   private async getPaymentRefNo(where: Prisma.PaymentWhereInput) {
     const payment = await prisma.payment.findFirst({ where });
+
     if (!payment) throw new Error("Payment not found");
-    if (!payment.externalId) throw new Error("Payment externalId not found");
-    if (!payment) {
-      throw new Error("Payment not found");
+
+    if (payment.refunded) {
+      throw new Error("Payment is already refunded");
     }
+
+    if (!payment.externalId) throw new Error("Payment externalId not found");
 
     const paymentdata = isPrismaObjOrUndefined(payment.data);
 
     if (!paymentdata) {
       throw new Error("Payment data not found");
     }
+
     return paymentdata.paymentId as string;
   }
   async refund(paymentId: number): Promise<Payment> {
@@ -144,7 +169,6 @@ export class PaymentService implements IAbstractPaymentService {
       const paymentRefNo = await this.getPaymentRefNo({
         id: paymentId,
         success: true,
-        refunded: false,
       });
 
       const refundInitiated = await this.razorpay.initiateRefund(paymentRefNo as string);
@@ -181,7 +205,8 @@ export class PaymentService implements IAbstractPaymentService {
       uid: string;
     },
     paymentData: Payment,
-    eventTypeMetadata?: EventTypeMetadata
+    eventTypeMetadata?: EventTypeMetadata,
+    bookingSeat?: BookingSeat["id"]
   ): Promise<void> {
     const paymentLink = isPrismaObjOrUndefined(paymentData.data)?.paymentLink;
 
@@ -199,7 +224,8 @@ export class PaymentService implements IAbstractPaymentService {
           currency: paymentData.currency,
         },
       },
-      eventTypeMetadata
+      eventTypeMetadata,
+      bookingSeat
     );
   }
 

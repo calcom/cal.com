@@ -383,6 +383,31 @@ export const getEventTypeByIdForCalId = async ({
 
   const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
 
+  const baseBookingUrl = (rawEventType as any).calIdTeam
+    ? await getBookerBaseUrl((rawEventType as any).calIdTeam.parentId)
+    : rawEventType.owner
+    ? await getBookerBaseUrl(currentOrganizationId)
+    : WEBSITE_URL;
+
+  const eventChildren = childrenWithUserProfile.flatMap((ch) =>
+    ch.owner !== null
+      ? {
+          ...ch,
+          owner: {
+            ...ch.owner,
+            avatar: getUserAvatarUrl(ch.owner),
+            email: ch.owner.email,
+            name: ch.owner.name ?? "",
+            username: ch.owner.username ?? "",
+            membership:
+              (rawEventType as any).calIdTeam?.members.find((tm: any) => tm.user.id === ch.owner?.id)?.role ||
+              MembershipRole.MEMBER,
+          },
+          created: true,
+        }
+      : []
+  );
+
   const eventType = {
     ...restEventType,
     calIdTeamId: (rawEventType as any).calIdTeamId,
@@ -404,29 +429,15 @@ export const getEventTypeByIdForCalId = async ({
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
     users: rawEventType.users,
-    bookerUrl: (rawEventType as any).calIdTeam
-      ? await getBookerBaseUrl((rawEventType as any).calIdTeam.parentId)
-      : rawEventType.owner
-      ? await getBookerBaseUrl(currentOrganizationId)
-      : WEBSITE_URL,
-    children: childrenWithUserProfile.flatMap((ch) =>
-      ch.owner !== null
-        ? {
-            ...ch,
-            owner: {
-              ...ch.owner,
-              avatar: getUserAvatarUrl(ch.owner),
-              email: ch.owner.email,
-              name: ch.owner.name ?? "",
-              username: ch.owner.username ?? "",
-              membership:
-                (rawEventType as any).calIdTeam?.members.find((tm: any) => tm.user.id === ch.owner?.id)
-                  ?.role || MembershipRole.MEMBER,
-            },
-            created: true,
-          }
-        : []
-    ),
+    URL:
+      baseBookingUrl +
+      ((rawEventType as any).calIdTeam
+        ? `/team/${(rawEventType as any)?.calIdTeam?.slug}/`
+        : rawEventType?.users.length > 0
+        ? `/${rawEventType?.users[0].username}/`
+        : `/`) + `${rawEventType.slug}`,
+    bookerUrl: baseBookingUrl,
+    children: eventChildren,
   };
 
   // backwards compats

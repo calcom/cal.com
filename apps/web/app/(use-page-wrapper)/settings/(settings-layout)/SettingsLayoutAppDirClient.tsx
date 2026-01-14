@@ -40,7 +40,8 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "general", href: "/settings/my-account/general", icon: "settings" },
         { name: "calendars", href: "/settings/my-account/calendars", icon: "calendar" },
         { name: "conferencing", href: "/settings/my-account/conferencing", icon: "video" },
-        { name: "appearance", href: "/settings/my-account/appearance", icon: "paintbrush" },
+        { name: "appearance", href: "/settings/my-account/appearance", icon: "monitor" },
+        { name: "custom_branding", href: "/settings/my-account/custom-branding", icon: "paintbrush" },
         { name: "out_of_office", href: "/settings/my-account/out-of-office", icon: "clock-2" },
         { name: "push_notifications", href: "/settings/my-account/push-notifications", icon: "bell" },
       ],
@@ -224,7 +225,7 @@ const useTabs = ({
 const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
-      href="/event-types"
+      href="/home"
       className="hover:bg-emphasis todesktop:mt-10 [&[aria-current='page']]:bg-emphasis group-hover:text-default text-emphasis group flex h-6 max-h-6 w-full flex-row items-center rounded-md px-2 py-4 text-sm font-medium leading-4 transition [&[aria-current='page']]:text-white"
       data-testid={`vertical-tab-${name}`}>
       <Icon
