@@ -1,3 +1,4 @@
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { logger, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
 import type { z } from "zod";
 import { platformBillingTaskConfig } from "./config";
@@ -19,7 +20,7 @@ export const incrementUsage: TaskWithSchema<typeof INCREMENT_USAGE_JOB_ID, typeo
       try {
         await billingTaskService.incrementUsage(payload);
       } catch (error) {
-        if (error instanceof Error) logger.error(error.message);
+        if (error instanceof Error || error instanceof ErrorWithCode) logger.error(error.message);
         else logger.error("Unknown error in incrementUsage", { error });
         return;
       }
