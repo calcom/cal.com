@@ -55,8 +55,7 @@ test.describe("Change App Theme Test", () => {
     const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast2).toBeTruthy();
 
-    // Wait for localStorage to be updated after theme change instead of fixed 3s wait
-    await page.waitForFunction(() => localStorage.getItem("app-theme") !== null, { timeout: 5000 });
+    await page.waitForTimeout(3000);
     const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
     expect(themeValue).toBe("light");
 

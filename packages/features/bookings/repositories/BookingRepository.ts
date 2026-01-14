@@ -159,8 +159,8 @@ const buildWhereClauseForActiveBookings = ({
       },
       ...(!includeNoShowInRRCalculation
         ? {
-          OR: [{ noShowHost: false }, { noShowHost: null }],
-        }
+            OR: [{ noShowHost: false }, { noShowHost: null }],
+          }
         : {}),
     },
     {
@@ -179,24 +179,24 @@ const buildWhereClauseForActiveBookings = ({
   ...(startDate || endDate
     ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
       ? {
-        createdAt: {
-          ...(startDate ? { gte: startDate } : {}),
-          ...(endDate ? { lte: endDate } : {}),
-        },
-      }
+          createdAt: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
       : {
-        startTime: {
-          ...(startDate ? { gte: startDate } : {}),
-          ...(endDate ? { lte: endDate } : {}),
-        },
-      }
+          startTime: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
     : {}),
   ...(virtualQueuesData
     ? {
-      routedFromRoutingFormReponse: {
-        chosenRouteId: virtualQueuesData.chosenRouteId,
-      },
-    }
+        routedFromRoutingFormReponse: {
+          chosenRouteId: virtualQueuesData.chosenRouteId,
+        },
+      }
     : {}),
 });
 
@@ -345,7 +345,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
 };
 
 export class BookingRepository implements IBookingRepository {
-  constructor(private prismaClient: PrismaClient) { }
+  constructor(private prismaClient: PrismaClient) {}
 
   /**
    * Gets the fromReschedule field for a booking by UID
@@ -676,20 +676,20 @@ export class BookingRepository implements IBookingRepository {
 
     const currentBookingsAllUsersQueryThree = eventTypeId
       ? this.prismaClient.booking.findMany({
-        where: {
-          startTime: { lte: endDate },
-          endTime: { gte: startDate },
-          eventType: {
-            id: eventTypeId,
-            requiresConfirmation: true,
-            requiresConfirmationWillBlockSlot: true,
+          where: {
+            startTime: { lte: endDate },
+            endTime: { gte: startDate },
+            eventType: {
+              id: eventTypeId,
+              requiresConfirmation: true,
+              requiresConfirmationWillBlockSlot: true,
+            },
+            status: {
+              in: [BookingStatus.PENDING],
+            },
           },
-          status: {
-            in: [BookingStatus.PENDING],
-          },
-        },
-        select: bookingsSelect,
-      })
+          select: bookingsSelect,
+        })
       : [];
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([
@@ -1745,6 +1745,8 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
             teamId: true,
             parentId: true,
             slug: true,
+            title: true,
+            length: true,
             hideOrganizerEmail: true,
             customReplyToEmail: true,
             bookingFields: true,
@@ -1769,6 +1771,7 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
         workflowReminders: true,
         responses: true,
         iCalUID: true,
+        iCalSequence: true,
       },
     });
   }
@@ -1996,6 +1999,19 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
         startTime: true,
         endTime: true,
       },
+    });
+  }
+
+  async updateRecordedStatus({
+    bookingUid,
+    isRecorded,
+  }: {
+    bookingUid: string;
+    isRecorded: boolean;
+  }): Promise<void> {
+    await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { isRecorded },
     });
   }
 }

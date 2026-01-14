@@ -1,0 +1,212 @@
+name: E2E Report
+
+on:
+  workflow_run:
+    workflows: ["PR Update"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'The PR number to generate report for'
+        required: true
+        type: string
+
+jobs:
+  get-pr-info:
+    name: Get PR Info
+    runs-on: ubuntu-latest
+    # For workflow_run: only run if the triggering workflow failed
+    # For workflow_dispatch: always run (inputs are provided manually)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
+    permissions:
+      actions: read
+      pull-requests: read
+    outputs:
+      pr-number: ${{ steps.get-info.outputs.pr-number }}
+      head-branch: ${{ steps.get-info.outputs.head-branch }}
+      has-blob-reports: ${{ steps.get-info.outputs.has-blob-reports }}
+      source-run-id: ${{ steps.get-info.outputs.source-run-id }}
+      source-run-number: ${{ steps.get-info.outputs.source-run-number }}
+      source-run-attempt: ${{ steps.get-info.outputs.source-run-attempt }}
+      source-head-sha: ${{ steps.get-info.outputs.source-head-sha }}
+    steps:
+      - name: Get PR and run info
+        id: get-info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isDispatch = context.eventName === 'workflow_dispatch';
+            
+            if (isDispatch) {
+              // For workflow_dispatch: look up everything from PR number
+              const prNumber = context.payload.inputs.pr_number;
+              console.log('Looking up PR:', prNumber);
+              
+              // Get PR details
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: parseInt(prNumber)
+              });
+              
+              const headSha = pr.head.sha;
+              const headBranch = pr.head.ref;
+              console.log('PR head SHA:', headSha);
+              console.log('PR head branch:', headBranch);
+              
+              // Find the "PR Update" workflow
+              const { data: workflows } = await github.rest.actions.listRepoWorkflows({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+              const prUpdateWorkflow = workflows.workflows.find(w => w.name === 'PR Update');
+              if (!prUpdateWorkflow) {
+                core.setFailed('Could not find "PR Update" workflow');
+                return;
+              }
+              console.log('Found PR Update workflow ID:', prUpdateWorkflow.id);
+              
+              // Find the most recent completed run for this branch with blob-report artifacts
+              // We search by branch instead of SHA to handle cases where:
+              // 1. The PR was updated after E2E tests ran (artifacts exist for older SHA)
+              // 2. The current run for the SHA is still queued/in-progress
+              const { data: runs } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: prUpdateWorkflow.id,
+                branch: headBranch,
+                status: 'completed',
+                per_page: 20
+              });
+              
+              console.log('Found', runs.workflow_runs.length, 'completed runs for branch', headBranch);
+              
+              // Find a run with blob-report artifacts
+              let selectedRun = null;
+              let hasBlobReports = false;
+              
+              for (const run of runs.workflow_runs) {
+                console.log('Checking run', run.id, 'conclusion:', run.conclusion);
+                
+                const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: run.id
+                });
+                
+                const blobReports = artifacts.artifacts.filter(a => a.name.startsWith('blob-report-'));
+                if (blobReports.length > 0) {
+                  console.log('Found run with blob reports:', run.id, 'artifacts:', blobReports.map(a => a.name));
+                  selectedRun = run;
+                  hasBlobReports = true;
+                  break;
+                }
+              }
+              
+              if (!selectedRun) {
+                console.log('No runs found with blob-report artifacts');
+                core.setOutput('pr-number', prNumber);
+                core.setOutput('head-branch', headBranch);
+                core.setOutput('source-head-sha', headSha);
+                core.setOutput('has-blob-reports', 'false');
+                core.setOutput('source-run-id', '');
+                core.setOutput('source-run-number', '');
+                core.setOutput('source-run-attempt', '');
+                return;
+              }
+              
+              core.setOutput('pr-number', prNumber);
+              core.setOutput('head-branch', headBranch);
+              core.setOutput('source-head-sha', headSha);
+              core.setOutput('source-run-id', selectedRun.id.toString());
+              core.setOutput('source-run-number', selectedRun.run_number.toString());
+              core.setOutput('source-run-attempt', selectedRun.run_attempt.toString());
+              core.setOutput('has-blob-reports', 'true');
+              return;
+            }
+            
+            // For workflow_run: extract from payload
+            const workflowRun = context.payload.workflow_run;
+            const headSha = workflowRun.head_sha;
+            const headBranch = workflowRun.head_branch;
+            
+            console.log('Head SHA:', headSha);
+            console.log('Head Branch:', headBranch);
+            
+            // Set source run info
+            core.setOutput('source-run-id', workflowRun.id.toString());
+            core.setOutput('source-run-number', workflowRun.run_number.toString());
+            core.setOutput('source-run-attempt', workflowRun.run_attempt.toString());
+            core.setOutput('source-head-sha', headSha);
+            
+            // Check for blob report artifacts
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: workflowRun.id
+            });
+            
+            const blobReports = artifacts.artifacts.filter(a => a.name.startsWith('blob-report-'));
+            console.log('Found blob reports:', blobReports.map(a => a.name));
+            core.setOutput('has-blob-reports', blobReports.length > 0 ? 'true' : 'false');
+            
+            // Try to get PR number from workflow_run payload first
+            if (workflowRun.pull_requests && workflowRun.pull_requests.length > 0) {
+              const prNumber = workflowRun.pull_requests[0].number;
+              console.log('PR number from payload:', prNumber);
+              core.setOutput('pr-number', prNumber.toString());
+              core.setOutput('head-branch', headBranch);
+              return;
+            }
+            
+            // Fall back to API lookup
+            try {
+              const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: headSha
+              });
+              
+              if (prs.length === 0) {
+                console.log('No PRs found for commit');
+                core.setOutput('pr-number', '');
+                core.setOutput('head-branch', headBranch);
+                return;
+              }
+              
+              // Find open PR or use first one
+              const openPr = prs.find(pr => pr.state === 'open') || prs[0];
+              console.log('PR number from API:', openPr.number);
+              core.setOutput('pr-number', openPr.number.toString());
+              core.setOutput('head-branch', openPr.head.ref);
+            } catch (e) {
+              console.log('Error fetching PR:', e);
+              core.setOutput('pr-number', '');
+              core.setOutput('head-branch', headBranch);
+            }
+
+  merge-reports:
+    name: Merge reports
+    needs: [get-pr-info]
+    if: ${{ needs.get-pr-info.outputs.has-blob-reports == 'true' && needs.get-pr-info.outputs.pr-number != '' }}
+    uses: ./.github/workflows/merge-reports.yml
+    with:
+      source_run_id: ${{ needs.get-pr-info.outputs.source-run-id }}
+      source_run_number: ${{ needs.get-pr-info.outputs.source-run-number }}
+      source_run_attempt: ${{ needs.get-pr-info.outputs.source-run-attempt }}
+      source_head_sha: ${{ needs.get-pr-info.outputs.source-head-sha }}
+    # No secrets: inherit - merge-reports only needs the default GITHUB_TOKEN for artifact download
+
+  publish-report:
+    name: Publish HTML report
+    needs: [get-pr-info, merge-reports]
+    if: ${{ needs.get-pr-info.outputs.pr-number != '' }}
+    uses: ./.github/workflows/publish-report.yml
+    with:
+      head_branch: ${{ needs.get-pr-info.outputs.head-branch }}
+      source_run_id: ${{ needs.get-pr-info.outputs.source-run-id }}
+      source_run_number: ${{ needs.get-pr-info.outputs.source-run-number }}
+      source_run_attempt: ${{ needs.get-pr-info.outputs.source-run-attempt }}
+      pr_number: ${{ needs.get-pr-info.outputs.pr-number }}
+    secrets: inherit

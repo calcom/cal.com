@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import type { BookerEvent } from "@calcom/features/bookings/types";
+import type { BookerEventForAppData } from "@calcom/features/bookings/types.server";
 
 export type EventTypeApps = NonNullable<
   NonNullable<z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>>["apps"]
@@ -9,7 +9,7 @@ export type EventTypeApps = NonNullable<
 export type EventTypeAppsList = keyof EventTypeApps;
 
 export const getEventTypeAppData = <T extends EventTypeAppsList>(
-  eventType: Pick<BookerEvent, "price" | "currency" | "metadata">,
+  eventType: BookerEventForAppData,
   appId: T,
   forcedGet?: boolean
 ): EventTypeApps[T] => {
