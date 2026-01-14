@@ -11,6 +11,7 @@ import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByVie
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
+import { ZMassApplyHostLocationInputSchema } from "./massApplyHostLocation.schema";
 import { get } from "./procedures/get";
 import { createEventPbacProcedure } from "./util";
 
@@ -153,6 +154,17 @@ export const eventTypesRouter = router({
       const { getHostsWithLocationOptionsHandler } = await import("./getHostsWithLocationOptions.handler");
 
       return getHostsWithLocationOptionsHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  massApplyHostLocation: authedProcedure
+    .input(ZMassApplyHostLocationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { massApplyHostLocationHandler } = await import("./massApplyHostLocation.handler");
+
+      return massApplyHostLocationHandler({
         ctx,
         input,
       });

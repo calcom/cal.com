@@ -82,4 +82,63 @@ export class HostRepository {
       orderBy: [{ user: { name: "asc" } }, { priority: "desc" }],
     });
   }
+
+  async findHostsWithLocationOptionsPaginated({
+    eventTypeId,
+    cursor,
+    limit = 10,
+  }: {
+    eventTypeId: number;
+    cursor?: number;
+    limit?: number;
+  }) {
+    const hosts = await this.prismaClient.host.findMany({
+      where: {
+        eventTypeId,
+        ...(cursor && { userId: { gt: cursor } }),
+      },
+      take: limit + 1,
+      select: {
+        userId: true,
+        isFixed: true,
+        priority: true,
+        location: {
+          select: {
+            id: true,
+            type: true,
+            credentialId: true,
+            link: true,
+            address: true,
+            phoneNumber: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            metadata: true,
+            credentials: {
+              where: {
+                app: {
+                  categories: {
+                    hasSome: [AppCategories.conferencing, AppCategories.video],
+                  },
+                },
+              },
+              select: credentialForCalendarServiceSelect,
+            },
+          },
+        },
+      },
+      orderBy: [{ userId: "asc" }],
+    });
+
+    const hasMore = hosts.length > limit;
+    const items = hasMore ? hosts.slice(0, -1) : hosts;
+    const nextCursor = hasMore ? items[items.length - 1].userId : undefined;
+
+    return { items, nextCursor, hasMore };
+  }
 }

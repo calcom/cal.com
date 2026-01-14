@@ -17,6 +17,16 @@ type GetHostsWithLocationOptionsInput = {
   input: TGetHostsWithLocationOptionsInputSchema;
 };
 
+type HostFromRepository = Awaited<
+  ReturnType<HostRepository["findHostsWithLocationOptionsPaginated"]>
+>["items"][number];
+
+type EnrichedCredential = {
+  id: number;
+  appId: string | null;
+  type: string;
+};
+
 export type HostWithLocationOptions = {
   userId: number;
   name: string | null;
@@ -46,45 +56,16 @@ export type HostWithLocationOptions = {
   }[];
 };
 
-export const getHostsWithLocationOptionsHandler = async ({
-  ctx,
-  input,
-}: GetHostsWithLocationOptionsInput): Promise<HostWithLocationOptions[]> => {
-  const { eventTypeId } = input;
+export type GetHostsWithLocationOptionsResponse = {
+  hosts: HostWithLocationOptions[];
+  nextCursor: number | undefined;
+  hasMore: boolean;
+};
 
-  const eventType = await ctx.prisma.eventType.findUnique({
-    where: { id: eventTypeId },
-    select: {
-      id: true,
-      teamId: true,
-      team: {
-        select: {
-          parentId: true,
-        },
-      },
-    },
-  });
-
-  if (!eventType) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Event type not found" });
-  }
-
-  const organizationId = eventType.team?.parentId ?? null;
-
-  const hostRepository = new HostRepository(ctx.prisma);
-  const hosts = await hostRepository.findHostsWithLocationOptions(eventTypeId);
-
-  const usersForEnrichment = hosts.map((host) => ({
-    id: host.user.id,
-    email: host.user.email,
-    credentials: host.user.credentials,
-  }));
-
-  const enrichedUsers = await enrichUsersWithDelegationCredentials({
-    orgId: organizationId,
-    users: usersForEnrichment,
-  });
-
+export function transformHostsToResponse(
+  hosts: HostFromRepository[],
+  enrichedUsers: { credentials: EnrichedCredential[] }[]
+): HostWithLocationOptions[] {
   const appMetadataBySlug = new Map(Object.values(appStoreMetadata).map((app) => [app.slug, app]));
 
   return hosts.map((host, index) => ({
@@ -112,4 +93,49 @@ export const getHostsWithLocationOptionsHandler = async ({
       };
     }),
   }));
+}
+
+export const getHostsWithLocationOptionsHandler = async ({
+  ctx,
+  input,
+}: GetHostsWithLocationOptionsInput): Promise<GetHostsWithLocationOptionsResponse> => {
+  const { eventTypeId, cursor, limit } = input;
+
+  const eventType = await ctx.prisma.eventType.findUnique({
+    where: { id: eventTypeId },
+    select: {
+      id: true,
+      teamId: true,
+      team: { select: { parentId: true } },
+    },
+  });
+
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Event type not found" });
+  }
+
+  const organizationId = eventType.team?.parentId ?? null;
+  const hostRepository = new HostRepository(ctx.prisma);
+  const { items: hosts, nextCursor, hasMore } = await hostRepository.findHostsWithLocationOptionsPaginated({
+    eventTypeId,
+    cursor,
+    limit,
+  });
+
+  const usersForEnrichment = hosts.map((host) => ({
+    id: host.user.id,
+    email: host.user.email,
+    credentials: host.user.credentials,
+  }));
+
+  const enrichedUsers = await enrichUsersWithDelegationCredentials({
+    orgId: organizationId,
+    users: usersForEnrichment,
+  });
+
+  return {
+    hosts: transformHostsToResponse(hosts, enrichedUsers),
+    nextCursor,
+    hasMore,
+  };
 };
