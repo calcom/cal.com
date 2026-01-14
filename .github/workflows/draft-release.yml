@@ -55,6 +55,21 @@ jobs:
 
       - uses: ./.github/actions/yarn-install
 
+      # 1. Generate Prisma Client
+      # This is required so Trigger.dev can find the database types during bundling
+      - name: Generate Prisma Client
+        run: yarn prisma generate
+
+      # 2. Deploy Trigger.dev tasks
+      # We use --skip-promotion to get a version without making it live yet
+      - name: Deploy Trigger.dev
+        id: deploy-trigger
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+        run: |
+          # The CLI outputs the version; id allows us to access outputs.deploymentVersion
+          npx trigger.dev@latest deploy --skip-promotion
+
       - name: Bump version
         env:
           VERSION: ${{ inputs.next_version }}
@@ -62,6 +77,16 @@ jobs:
           cd apps/web
           yarn version "$VERSION"
 
+      # 3. Update .env.production files
+      # We inject the Trigger version into the apps so they stay in sync
+      - name: Update Env Files
+        run: |
+          VERSION="${{ steps.deploy-trigger.outputs.deploymentVersion }}"
+          echo "TRIGGER_VERSION=$VERSION" > apps/web/.env.production
+          echo "TRIGGER_VERSION=$VERSION" > apps/api/v2/.env.production
+          git add -f apps/web/.env.production apps/api/v2/.env.production
+
+      # 4. Commit everything together
       - name: Commit changes
         env:
           VERSION: ${{ inputs.next_version }}
@@ -73,5 +98,5 @@ jobs:
       - name: Draft release
         run: gh release create v$VERSION --generate-notes --draft
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           VERSION: ${{ inputs.next_version }}
