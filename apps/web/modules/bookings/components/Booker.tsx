@@ -39,7 +39,6 @@ import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { BookerSection } from "./Section";
 import { NotFound } from "./Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { useTimezoneBasedSlotRefresh } from "@calcom/features/bookings/Booker/components/hooks/useTimezoneBasedSlotRefresh";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "@calcom/features/bookings/Booker/config";
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
@@ -141,9 +140,6 @@ const BookerComponent = ({
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
-
-  // Detect timezone changes and refresh slots when conditions are met
-  useTimezoneBasedSlotRefresh(event?.data, () => schedule?.invalidate());
 
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 

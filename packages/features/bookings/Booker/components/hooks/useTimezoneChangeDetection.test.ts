@@ -4,6 +4,8 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { TimeFormat } from "@calcom/lib/timeFormat";
+
 import { useTimezoneChangeDetection } from "./useTimezoneChangeDetection";
 
 vi.mock("./useBookerTime", () => ({
@@ -16,7 +18,7 @@ const mockUseBookerTime = vi.mocked(useBookerTime);
 const mockTimezone = (tz: string) => {
   mockUseBookerTime.mockReturnValue({
     timezone: tz,
-    timeFormat: 24,
+    timeFormat: TimeFormat.TWENTY_FOUR_HOUR,
     timezoneFromBookerStore: tz,
     timezoneFromTimePreferences: tz,
   });

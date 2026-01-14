@@ -155,6 +155,9 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     useApiV2: props.useApiV2,
     bookerLayout,
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
+    // Pass timezone control flags to prevent unnecessary refetches
+    useBookerTimezone: event.data?.useBookerTimezone,
+    restrictionScheduleId: event.data?.restrictionScheduleId,
   });
   const bookings = useBookings({
     event,
