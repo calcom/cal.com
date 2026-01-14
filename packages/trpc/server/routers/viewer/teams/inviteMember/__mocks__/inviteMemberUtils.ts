@@ -47,7 +47,6 @@ export const inviteMemberutilsScenarios = {
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
-      // @ts-expect-error
       return inviteMemberUtilsMock.getOrgState.mockImplementation(actualImport.getOrgState);
     },
   },
@@ -55,7 +54,6 @@ export const inviteMemberutilsScenarios = {
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
-      // @ts-expect-error
       return inviteMemberUtilsMock.getUniqueInvitationsOrThrowIfEmpty.mockImplementation(
         actualImport.getUniqueInvitationsOrThrowIfEmpty
       );
@@ -86,7 +84,6 @@ export const inviteMemberutilsScenarios = {
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
-      // @ts-expect-error
       return inviteMemberUtilsMock.getOrgConnectionInfo.mockImplementation(actualImport.getOrgConnectionInfo);
     },
   },
