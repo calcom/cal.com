@@ -159,7 +159,7 @@ export const eventTypesRouter = router({
       });
     }),
 
-  massApplyHostLocation: authedProcedure
+  massApplyHostLocation: createEventPbacProcedure("eventType.update", [MembershipRole.ADMIN, MembershipRole.OWNER])
     .input(ZMassApplyHostLocationInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { massApplyHostLocationHandler } = await import("./massApplyHostLocation.handler");
