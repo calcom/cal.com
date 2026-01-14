@@ -219,7 +219,6 @@ export class BookingsController_2024_04_15 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
-          impersonatedByUserUuid: null,
         },
       });
       if (booking.userId && booking.uid && booking.startTime) {
@@ -276,7 +275,6 @@ export class BookingsController_2024_04_15 {
           platformCancelUrl: bookingRequest.platformCancelUrl,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
           platformBookingUrl: bookingRequest.platformBookingUrl,
-          impersonatedByUserUuid: null,
         });
         if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
@@ -350,7 +348,6 @@ export class BookingsController_2024_04_15 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           noEmail: bookingRequest.body.noEmail,
-          impersonatedByUserUuid: null,
         },
         creationSource: "API_V2",
       });

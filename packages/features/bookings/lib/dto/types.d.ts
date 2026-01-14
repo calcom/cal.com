@@ -40,7 +40,7 @@ export type CreateBookingMeta = {
   forcedSlug?: string;
   noEmail?: boolean;
   traceContext?: TraceContext;
-  impersonatedByUserUuid: string | null;
+  impersonatedByUserUuid?: string;
 } & PlatformParams;
 
 export type BookingHandlerInput = {
