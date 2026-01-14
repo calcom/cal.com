@@ -2,12 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
+import type { WebhookSubscriber } from "./dto/types";
 import { WebhookService } from "./WebhookService";
-import type { GetWebhooksReturnType } from "./getWebhooks";
 import getWebhooks from "./getWebhooks";
+import { WebhookVersion as WebhookVersionEnum } from "./interface/IWebhookRepository";
 
-vi.mock("./getWebhooks");
-vi.mock("./sendOrSchedulePayload");
+vi.mock("./getWebhooks", () => ({
+  default: vi.fn(),
+}));
+vi.mock("./sendOrSchedulePayload", () => ({
+  default: vi.fn(),
+}));
 
 vi.mock("@calcom/lib/logger", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/logger")>("@calcom/lib/logger");
@@ -37,7 +42,7 @@ describe("WebhookService", () => {
   });
 
   it("should initialize with options and webhooks", async () => {
-    const mockWebhooks: GetWebhooksReturnType = [
+    const mockWebhooks: WebhookSubscriber[] = [
       {
         id: "webhookId",
         subscriberUrl: "url",
@@ -47,6 +52,7 @@ describe("WebhookService", () => {
         eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
         timeUnit: "MINUTE",
         time: 5,
+        version: WebhookVersionEnum.V_2021_10_20,
       },
     ];
     vi.mocked(getWebhooks).mockResolvedValue(mockWebhooks);

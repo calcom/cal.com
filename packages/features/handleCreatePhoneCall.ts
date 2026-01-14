@@ -1,12 +1,12 @@
 import { PROMPT_TEMPLATES, LegacyRetellAIService } from "@calcom/features/calAIPhone";
-import { validatePhoneNumber } from "@calcom/features/calAIPhone/retellAIService";
 import { templateTypeEnum } from "@calcom/features/calAIPhone";
 import type { TCreatePhoneCallSchema } from "@calcom/features/calAIPhone";
+import { validatePhoneNumber } from "@calcom/features/calAIPhone/retellAIService";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 export const handleCreatePhoneCall = async ({
   user,
@@ -16,7 +16,7 @@ export const handleCreatePhoneCall = async ({
   input: TCreatePhoneCallSchema;
 }) => {
   if (!user?.profile?.organization) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not part of an organization" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "User is not part of an organization");
   }
 
   await checkRateLimitAndThrowError({

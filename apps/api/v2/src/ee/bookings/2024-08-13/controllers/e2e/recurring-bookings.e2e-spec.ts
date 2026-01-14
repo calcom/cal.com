@@ -1,17 +1,15 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import { AttendeeCancelledEmail, OrganizerCancelledEmail } from "@calcom/platform-libraries/emails";
+import type {
+  CancelBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
-import * as request from "supertest";
+import request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -19,15 +17,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import { AttendeeCancelledEmail, OrganizerCancelledEmail } from "@calcom/platform-libraries/emails";
-import {
-  CreateRecurringBookingInput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Creating recurring bookings", () => {
@@ -48,7 +46,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
     const maxRecurrenceCount = 3;
     let recurringEventTypeId: number;
     const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomString()}`;
-    let createdRecurringBooking: RecurringBookingOutput_2024_08_13[];
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -187,6 +184,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -208,6 +206,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -264,6 +263,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -286,6 +286,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -306,6 +307,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(thirdBooking.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,

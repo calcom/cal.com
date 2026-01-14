@@ -1,8 +1,5 @@
 import { CrudAction, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
-import {
-  PERMISSION_REGISTRY,
-  getPermissionsForScope,
-} from "@calcom/features/pbac/domain/types/permission-registry";
+import { getPermissionsForScope } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
   getTransitiveDependencies,
   getTransitiveDependents,
@@ -52,7 +49,8 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
       return permissions.includes("*.*") ? "all" : "none";
     }
 
-    const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
+    const scopedRegistry = getPermissionsForScope(scope);
+    const resourceConfig = scopedRegistry[resource as keyof typeof scopedRegistry];
     if (!resourceConfig) return "none";
 
     // Check if global all permissions (*.*) is present
@@ -111,7 +109,19 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
           allResourcePerms = Object.keys(resourceConfig)
             .filter((action) => !action.startsWith("_"))
             .map((action) => `${resource}.${action}`);
+
+          // Add the resource permissions
           newPermissions.push(...allResourcePerms);
+
+          // Add all transitive dependencies for each permission
+          allResourcePerms.forEach((perm) => {
+            const dependencies = getTransitiveDependencies(perm, scope);
+            dependencies.forEach((dep) => {
+              if (!newPermissions.includes(dep)) {
+                newPermissions.push(dep);
+              }
+            });
+          });
           break;
       }
 
@@ -132,15 +142,12 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
     // First, remove *.* since we're modifying individual permissions
     let newPermissions = currentPermissions.filter((p) => p !== "*.*");
 
-    // Parse the permission to get resource and action
-    const [resource, action] = permission.split(".");
-
     if (enabled) {
       // Add the requested permission
       newPermissions.push(permission);
 
       // Add all transitive dependencies
-      const dependencies = getTransitiveDependencies(permission);
+      const dependencies = getTransitiveDependencies(permission, scope);
       dependencies.forEach((dependency) => {
         if (!newPermissions.includes(dependency)) {
           newPermissions.push(dependency);
@@ -151,7 +158,7 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
       newPermissions = newPermissions.filter((p) => p !== permission);
 
       // Remove all transitive dependents
-      const dependents = getTransitiveDependents(permission);
+      const dependents = getTransitiveDependents(permission, scope);
       dependents.forEach((dependent) => {
         newPermissions = newPermissions.filter((p) => p !== dependent);
       });

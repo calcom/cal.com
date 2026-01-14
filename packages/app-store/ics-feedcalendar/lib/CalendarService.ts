@@ -9,6 +9,7 @@ import type {
   IntegrationCalendar,
   EventBusyDate,
   CalendarEvent,
+  GetAvailabilityParams,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -24,7 +25,7 @@ const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
     // integer validation as we can never be sure with ical.js
     if (!Number.isInteger(travelSeconds)) return 0;
     return travelSeconds;
-  } catch (e) {
+  } catch {
     return 0;
   }
 };
@@ -134,11 +135,8 @@ export default class ICSFeedCalendarService implements Calendar {
     return selectedCalendars[0].userId || null;
   };
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const startISOString = new Date(dateFrom).toISOString();
 
     const calendars = await this.fetchCalendars();
@@ -146,7 +144,7 @@ export default class ICSFeedCalendarService implements Calendar {
     const userId = this.getUserId(selectedCalendars);
     // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
-    const events: { start: string; end: string }[] = [];
+    const events: { start: string; end: string; title: string }[] = [];
 
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
@@ -159,7 +157,9 @@ export default class ICSFeedCalendarService implements Calendar {
         // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
         const event = new ICAL.Event(vevent);
+        const title = String(vevent.getFirstPropertyValue("summary"));
         const dtstartProperty = vevent.getFirstProperty("dtstart");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
 
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
@@ -198,7 +198,7 @@ export default class ICSFeedCalendarService implements Calendar {
             console.error("No timezone found");
           }
         }
-        
+
         let vtimezone = null;
         if (tzid) {
           const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");
@@ -263,6 +263,7 @@ export default class ICSFeedCalendarService implements Calendar {
               events.push({
                 start: currentStart.toISOString(),
                 end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
+                title,
               });
             }
           }
@@ -283,6 +284,7 @@ export default class ICSFeedCalendarService implements Calendar {
         return events.push({
           start: finalStartISO,
           end: finalEndISO,
+          title,
         });
       });
     });

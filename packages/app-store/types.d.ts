@@ -1,7 +1,7 @@
+import type { ConnectedApps } from "_utils/getConnectedApps";
 import type React from "react";
 import type { z } from "zod";
 
-import type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 import type { EventTypeFormMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { ButtonProps } from "@calcom/ui/components/button";
 
@@ -65,6 +65,7 @@ export type EventTypeAppCardComponentProps = {
     URL: string;
   };
   app: EventTypeAppCardApp;
+  onAppInstallSuccess: () => void;
   disabled?: boolean;
   LockedIcon?: JSX.Element | false;
   eventTypeFormMetadata?: z.infer<typeof EventTypeFormMetadataSchema>;

@@ -4,10 +4,12 @@ import { NextResponse } from "next/server";
 import { Retell } from "retell-sdk";
 import { z } from "zod";
 
+import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
+import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import { prisma } from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
@@ -18,9 +20,11 @@ const RetellWebhookSchema = z.object({
     .object({
       call_id: z.string(),
       agent_id: z.string().optional(),
-      from_number: z.string(),
-      to_number: z.string(),
-      direction: z.enum(["inbound", "outbound"]),
+      // Make phone fields optional for web calls
+      from_number: z.string().optional(),
+      to_number: z.string().optional(),
+      direction: z.enum(["inbound", "outbound"]).optional(),
+      call_type: z.string().optional(),
       call_status: z.string(),
       start_timestamp: z.number(),
       end_timestamp: z.number().optional(),
@@ -59,44 +63,29 @@ const RetellWebhookSchema = z.object({
     .passthrough(),
 });
 
-async function handleCallAnalyzed(callData: any) {
-  const { from_number, call_id, call_cost } = callData;
-  if (
-    !call_cost ||
-    typeof call_cost.total_duration_seconds !== "number" ||
-    !Number.isFinite(call_cost.total_duration_seconds) ||
-    call_cost.total_duration_seconds <= 0
-  ) {
-    log.error(
-      `Invalid or missing call_cost.total_duration_seconds for call ${call_id}: ${safeStringify(call_cost)}`
-    );
-    return;
-  }
+type RetellCallData = z.infer<typeof RetellWebhookSchema>["call"];
 
-  const phoneNumber = await PrismaPhoneNumberRepository.findByPhoneNumber({ phoneNumber: from_number });
-
-  if (!phoneNumber) {
-    log.error(`No phone number found for ${from_number}, cannot deduct credits`);
-    return;
-  }
-
-  // Support both personal and team phone numbers
-  const userId = phoneNumber.userId;
-  const teamId = phoneNumber.teamId;
-
-  if (!userId && !teamId) {
-    log.error(`Phone number ${from_number} has no associated user or team`);
-    return;
-  }
-
+async function chargeCreditsForCall({
+  userId,
+  teamId,
+  callCost,
+  callId,
+  callDuration,
+}: {
+  userId?: number;
+  teamId?: number;
+  callCost: number;
+  callId: string;
+  callDuration: number;
+}) {
   const rawRatePerMinute = process.env.CAL_AI_CALL_RATE_PER_MINUTE ?? "0.29";
   const ratePerMinute = Number.parseFloat(rawRatePerMinute);
   const safeRatePerMinute = Number.isFinite(ratePerMinute) && ratePerMinute > 0 ? ratePerMinute : 0.29;
 
-  const durationInMinutes = call_cost.total_duration_seconds / 60;
-  const callCost = durationInMinutes * safeRatePerMinute;
+  const durationInMinutes = callDuration / 60;
+  const calculatedCallCost = durationInMinutes * safeRatePerMinute;
   // Convert to cents and round up to ensure we don't undercharge
-  const creditsToDeduct = Math.ceil(callCost * 100);
+  const creditsToDeduct = Math.ceil(calculatedCallCost * 100);
 
   const creditService = new CreditService();
 
@@ -105,15 +94,22 @@ async function handleCallAnalyzed(callData: any) {
       userId: userId ?? undefined,
       teamId: teamId ?? undefined,
       credits: creditsToDeduct,
-      callDuration: call_cost.total_duration_seconds,
+      callDuration: callDuration,
       creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-      externalRef: `retell:${call_id}`,
+      externalRef: `retell:${callId}`,
     });
+
+    return {
+      success: true,
+      message: `Successfully charged ${creditsToDeduct} credits (${callDuration}s at $${safeRatePerMinute}/min) for ${
+        teamId ? `team:${teamId}` : ""
+      } ${userId ? `user:${userId}` : ""}, call ${callId}`,
+    };
   } catch (e) {
     log.error("Error charging credits for Retell AI call", {
       error: e,
-      call_id,
-      call_cost,
+      call_id: callId,
+      call_cost: callCost,
       userId,
       teamId,
     });
@@ -124,15 +120,89 @@ async function handleCallAnalyzed(callData: any) {
       }`,
     };
   }
+}
 
-  return {
-    success: true,
-    message: `Successfully charged ${creditsToDeduct} credits (${
-      call_cost.total_duration_seconds
-    }s at $${safeRatePerMinute}/min) for ${teamId ? `team:${teamId}` : ""} ${
-      userId ? `user:${userId}` : ""
-    }, call ${call_id}`,
-  };
+async function handleCallAnalyzed(callData: RetellCallData) {
+  const { from_number, call_id, call_cost, call_type, agent_id } = callData;
+
+  if (
+    !call_cost ||
+    typeof call_cost.total_duration_seconds !== "number" ||
+    !Number.isFinite(call_cost.total_duration_seconds) ||
+    call_cost.total_duration_seconds <= 0
+  ) {
+    log.info(
+      `Invalid or missing call_cost.total_duration_seconds for call ${call_id}: ${safeStringify(call_cost)}`
+    );
+    return {
+      success: true,
+      message: `Invalid or missing call_cost.total_duration_seconds for call ${call_id}`,
+    };
+  }
+
+  let userId: number | undefined;
+  let teamId: number | undefined;
+
+  // Handle web calls vs phone calls
+  if (call_type === "web_call" || !from_number) {
+    if (!agent_id) {
+      log.error(`Web call ${call_id} missing agent_id, cannot charge credits`);
+      return {
+        success: false,
+        message: `Web call ${call_id} missing agent_id, cannot charge credits`,
+      };
+    }
+
+    const agentRepo = new PrismaAgentRepository(prisma);
+    const agent = await agentRepo.findByProviderAgentId({
+      providerAgentId: agent_id,
+    });
+
+    if (!agent) {
+      log.error(`No agent found for providerAgentId ${agent_id}, call ${call_id}`);
+      return {
+        success: false,
+        message: `No agent found for providerAgentId ${agent_id}, call ${call_id}`,
+      };
+    }
+
+    userId = agent.userId ?? undefined;
+    teamId = agent.team?.parentId ?? agent.teamId ?? undefined;
+
+    log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
+  } else {
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    const phoneNumber = await phoneNumberRepo.findByPhoneNumber({
+      phoneNumber: from_number,
+    });
+
+    if (!phoneNumber) {
+      const msg = `No phone number found for ${from_number}, call ${call_id}`;
+      log.error(msg);
+      return { success: false, message: msg };
+    }
+
+    userId = phoneNumber.userId ?? undefined;
+    teamId = phoneNumber.team?.parentId ?? phoneNumber.teamId ?? undefined;
+
+    log.info(`Processing phone call ${call_id} from ${from_number}, user ${userId}, team ${teamId}`);
+  }
+
+  if (!userId && !teamId) {
+    log.error(`Call ${call_id} has no associated user or team`);
+    return {
+      success: false,
+      message: `Call ${call_id} has no associated user or team`,
+    };
+  }
+
+  return await chargeCreditsForCall({
+    userId,
+    teamId,
+    callCost: call_cost.combined_cost || 0,
+    callId: call_id,
+    callDuration: call_cost.total_duration_seconds,
+  });
 }
 
 /**
@@ -192,6 +262,8 @@ async function handler(request: NextRequest) {
   try {
     const payload = RetellWebhookSchema.parse(body);
     const callData = payload.call;
+
+    // Skip inbound calls (only for phone calls, web calls don't have direction)
     if (callData.direction === "inbound") {
       return NextResponse.json(
         {
@@ -202,7 +274,9 @@ async function handler(request: NextRequest) {
       );
     }
 
-    log.info(`Received Retell AI webhook: ${payload.event} for call ${callData.call_id}`);
+    log.info(`Received Retell AI webhook: ${payload.event} for call ${callData.call_id}`, {
+      call_id: callData.call_id,
+    });
 
     const result = await handleCallAnalyzed(callData);
 

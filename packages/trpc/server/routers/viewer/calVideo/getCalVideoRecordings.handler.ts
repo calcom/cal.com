@@ -1,4 +1,4 @@
-import { getRecordingsOfCalVideoByRoomName } from "@calcom/lib/videoClient";
+import { getRecordingsOfCalVideoByRoomName } from "@calcom/features/conferencing/lib/videoClient";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";

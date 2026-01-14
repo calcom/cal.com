@@ -61,7 +61,9 @@ const checkActiveBookingsLimit = async ({
 
   if (bookingsCount >= maxActiveBookingsPerBooker) {
     log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
-    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded);
+    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded, {
+      count: maxActiveBookingsPerBooker,
+    });
   }
 };
 

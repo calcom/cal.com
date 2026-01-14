@@ -5,7 +5,9 @@ import type { serverSideTranslations } from "next-i18next/serverSideTranslations
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
-import prisma, { readonlyPrisma } from "@calcom/prisma";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
+import { prisma, readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
@@ -50,6 +52,7 @@ export type GetSessionFn =
 export type InnerContext = CreateInnerContextOptions & {
   prisma: typeof prisma;
   insightsDb: typeof readonlyPrisma;
+  traceContext: TraceContext;
 };
 
 /**
@@ -62,10 +65,17 @@ export type InnerContext = CreateInnerContextOptions & {
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
 export async function createContextInner(opts: CreateInnerContextOptions): Promise<InnerContext> {
+  const traceContext = distributedTracing.createTrace("trpc_request", {
+    meta: {
+      userId: opts.session?.user?.id?.toString() || "anonymous",
+    },
+  });
+
   return {
     prisma,
     insightsDb: readonlyPrisma,
     ...opts,
+    traceContext,
   };
 }
 
@@ -87,7 +97,7 @@ export const createContext = async (
   // This type may not be accurate if this request is coming from SSG init but they both should satisfy the requirements of getIP.
   // TODO: @sean - figure out a way to make getIP be happy with trpc req. params
   const sourceIp = getIP(req as NextApiRequest);
-  const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
+  const session = sessionGetter ? await sessionGetter({ req, res }) : null;
   const contextInner = await createContextInner({ locale, session, sourceIp });
   return {
     ...contextInner,

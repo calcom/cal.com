@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
-import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
@@ -25,6 +24,7 @@ import type {
   CalendarEvent,
   CalendarEventType,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
   TeamMember,
@@ -353,17 +353,14 @@ export default abstract class BaseCalendarService implements Calendar {
     const allowedExtensions = ["eml", "ics"];
     const urlExtension = getFileExtension(url);
     if (!allowedExtensions.includes(urlExtension)) {
-      console.error(`Unsupported calendar object format: ${urlExtension}`);
+      logger.error(`Unsupported calendar object format: ${urlExtension}`);
       return false;
     }
     return true;
   };
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const startISOString = new Date(dateFrom).toISOString();
 
     const objects = await this.fetchObjectsWithOptionalExpand({
@@ -384,7 +381,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
         vcalendar = new ICAL.Component(jcalData);
       } catch (e) {
-        console.error("Error parsing calendar object: ", e);
+        logger.error("Error parsing calendar object: ", e);
         return;
       }
       const vevents = vcalendar.getAllSubcomponents("vevent");
@@ -425,10 +422,10 @@ export default abstract class BaseCalendarService implements Calendar {
               vcalendar.addSubcomponent(timezoneComp);
             } catch (e) {
               // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
-              console.log("error in adding vtimezone", e);
+              logger.warn("error in adding vtimezone", e);
             }
           } else {
-            console.error("No timezone found");
+            logger.warn("No timezone found");
           }
         }
 
@@ -448,7 +445,7 @@ export default abstract class BaseCalendarService implements Calendar {
         if (event.isRecurring()) {
           let maxIterations = 365;
           if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+            logger.warn(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
             return;
           }
 
@@ -501,7 +498,7 @@ export default abstract class BaseCalendarService implements Calendar {
             }
           }
           if (maxIterations <= 0) {
-            console.warn("could not find any occurrence for recurring event in 365 iterations");
+            logger.warn("Could not find any occurrence for recurring event in 365 iterations");
           }
           return;
         }
@@ -701,13 +698,14 @@ export default abstract class BaseCalendarService implements Calendar {
         });
       return events;
     } catch (reason) {
-      console.error(reason);
+      logger.error(reason);
       throw reason;
     }
   }
 
   private async getEventsByUID(uid: string): Promise<CalendarEventType[]> {
-    const events: Prisma.PromiseReturnType<typeof this.getEvents> = [];
+    type EventsType = Awaited<ReturnType<typeof this.getEvents>>;
+    const events: EventsType = [];
     const calendars = await this.listCalendars();
 
     for (const cal of calendars) {

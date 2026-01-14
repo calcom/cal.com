@@ -1,10 +1,4 @@
 import type { calendar_v3 } from "@googleapis/calendar";
-import type {
-  BookingSeat,
-  DestinationCalendar,
-  Prisma,
-  SelectedCalendar as _SelectedCalendar,
-} from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { TFunction } from "i18next";
 import type { Time } from "ical.js";
@@ -12,8 +6,13 @@ import type { Frequency } from "rrule";
 import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import type {
+  BookingSeat,
+  DestinationCalendar,
+  Prisma,
+  SelectedCalendar as _SelectedCalendar,
+} from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -36,6 +35,7 @@ export type Person = {
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
+  usernameInOrg?: string;
   id?: number;
   bookingId?: number | null;
   locale?: string | null;
@@ -57,6 +57,7 @@ export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
   source?: string | null;
+  timeZone?: string;
 };
 
 export type EventBusyDetails = EventBusyDate & {
@@ -65,7 +66,6 @@ export type EventBusyDetails = EventBusyDate & {
   userId?: number | null;
 };
 
-export type CalendarServiceType = typeof Calendar;
 export type AdditionalInfo = Record<string, unknown> & { calWarnings?: string[] };
 
 export type NewCalendarEventType = {
@@ -103,9 +103,9 @@ export type CalendarEventType = {
     isNegative: boolean;
   };
   organizer: string;
-  attendees: any[][];
+  attendees: unknown[][];
   recurrenceId: Time;
-  timezone: any;
+  timezone: string | object;
 };
 
 export type BatchResponse = {
@@ -164,6 +164,7 @@ export interface CalendarEvent {
   // Instead of sending this per event.
   // TODO: Links sent in email should be validated and automatically redirected to org domain or regular app. It would be a much cleaner way. Maybe use existing /api/link endpoint
   bookerUrl?: string;
+  hashedLink?: string | null;
   type: string;
   title: string;
   startTime: string;
@@ -223,6 +224,8 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
+  organizationId?: number | null;
+  hasOrganizerChanged?: boolean;
 }
 
 export interface EntryPoint {
@@ -254,6 +257,26 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 }
 
 /**
+ * Mode for calendar fetch operations to control caching behavior:
+ * - "slots": For getting actual calendar availability (uses cache when available)
+ * - "overlay": For getting overlay calendar availability (does not use cache)
+ * - "booking": For booking confirmation (does not use cache)
+ * - "none": For operations that don't use getAvailability (e.g., deleteEvent, listCalendars)
+ */
+export type CalendarFetchMode = "slots" | "overlay" | "booking" | "none";
+
+/**
+ * Parameters for getAvailability and getAvailabilityWithTimeZones methods
+ */
+export interface GetAvailabilityParams {
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: IntegrationCalendar[];
+  mode: CalendarFetchMode;
+  fallbackToPrimary?: boolean;
+}
+
+/**
  * null is to refer to user-level SelectedCalendar
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
@@ -278,42 +301,22 @@ export interface Calendar {
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 
-  getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean,
-    fallbackToPrimary?: boolean
-  ): Promise<EventBusyDate[]>;
+  getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
-  getAvailabilityWithTimeZones?(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    fallbackToPrimary?: boolean
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
+  getAvailabilityWithTimeZones?(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
   testDelegationCredentialSetup?(): Promise<boolean>;
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown>;
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void>;
 }
 
 /**
  * @see [How to inference class type that implements an interface](https://stackoverflow.com/a/64765554/6297100)
  */
-type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
+type Class<I, Args extends unknown[] = unknown[]> = new (...args: Args) => I;
 
 export type CalendarClass = Class<Calendar, [CredentialForCalendarService]>;
 

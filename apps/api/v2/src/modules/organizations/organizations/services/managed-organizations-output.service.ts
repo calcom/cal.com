@@ -2,7 +2,7 @@ import { ManagedOrganizationOutput } from "@/modules/organizations/organizations
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 
-import { Team } from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class ManagedOrganizationsOutputService {
