@@ -573,6 +573,21 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       },
     });
 
+    await bookingEventHandlerService.onBookingCancelled({
+      bookingUid: updatedBooking.uid,
+      actor: actorToUse,
+      organizationId: orgId ?? null,
+      source: actionSource,
+      auditData: {
+        cancellationReason: cancellationReason ?? null,
+        cancelledBy: cancelledBy ?? null,
+        status: {
+          old: bookingToDelete.status,
+          new: BookingStatus.CANCELLED,
+        },
+      },
+    });
+
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {
         await processPaymentRefund({
