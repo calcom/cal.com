@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { UserFeatures } from "@calcom/prisma/client";
 
+import { FakeRedisService } from "../../../redis/FakeRedisService";
 import type { FeatureId } from "../../config";
 import { CachedUserFeatureRepository } from "../CachedUserFeatureRepository";
 import type { IPrismaUserFeatureRepository } from "../PrismaUserFeatureRepository";
-import type { IRedisUserFeatureRepository } from "../RedisUserFeatureRepository";
+import { RedisUserFeatureRepository } from "../RedisUserFeatureRepository";
 
 const createMockPrismaRepo = (): IPrismaUserFeatureRepository => ({
   findByUserId: vi.fn(),
@@ -19,27 +20,20 @@ const createMockPrismaRepo = (): IPrismaUserFeatureRepository => ({
   updateAutoOptIn: vi.fn(),
 });
 
-const createMockRedisRepo = (): IRedisUserFeatureRepository => ({
-  findByUserIdAndFeatureId: vi.fn(),
-  setByUserIdAndFeatureId: vi.fn(),
-  findAutoOptInByUserId: vi.fn(),
-  setAutoOptInByUserId: vi.fn(),
-  invalidateByUserIdAndFeatureId: vi.fn(),
-  invalidateAutoOptIn: vi.fn(),
-});
-
 describe("CachedUserFeatureRepository", () => {
   let repository: CachedUserFeatureRepository;
   let mockPrismaRepo: IPrismaUserFeatureRepository;
-  let mockRedisRepo: IRedisUserFeatureRepository;
+  let redisService: FakeRedisService;
+  let redisRepo: RedisUserFeatureRepository;
 
   beforeEach(() => {
     vi.resetAllMocks();
     mockPrismaRepo = createMockPrismaRepo();
-    mockRedisRepo = createMockRedisRepo();
+    redisService = new FakeRedisService();
+    redisRepo = new RedisUserFeatureRepository(redisService);
     repository = new CachedUserFeatureRepository({
       prismaRepo: mockPrismaRepo,
-      redisRepo: mockRedisRepo,
+      redisRepo: redisRepo,
     });
   });
 
@@ -57,54 +51,79 @@ describe("CachedUserFeatureRepository", () => {
 
   describe("findByUserIdAndFeatureId", () => {
     it("should return cached data when available", async () => {
-      const mockUserFeature = { userId: 1, featureId: "test-feature", enabled: true } as UserFeatures;
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId).mockResolvedValue(mockUserFeature);
+      const mockUserFeature = {
+        userId: 1,
+        featureId: "test-feature",
+        enabled: true,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
+      await redisRepo.setByUserIdAndFeatureId(1, "test-feature" as FeatureId, mockUserFeature);
 
       const result = await repository.findByUserIdAndFeatureId(1, "test-feature");
 
-      expect(mockRedisRepo.findByUserIdAndFeatureId).toHaveBeenCalledWith(1, "test-feature");
       expect(mockPrismaRepo.findByUserIdAndFeatureId).not.toHaveBeenCalled();
       expect(result).toEqual(mockUserFeature);
     });
 
     it("should fetch from Prisma and cache when not in Redis", async () => {
-      const mockUserFeature = { userId: 1, featureId: "test-feature", enabled: true } as UserFeatures;
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId).mockResolvedValue(null);
+      const mockUserFeature = {
+        userId: 1,
+        featureId: "test-feature",
+        enabled: true,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
       vi.mocked(mockPrismaRepo.findByUserIdAndFeatureId).mockResolvedValue(mockUserFeature);
 
       const result = await repository.findByUserIdAndFeatureId(1, "test-feature");
 
       expect(mockPrismaRepo.findByUserIdAndFeatureId).toHaveBeenCalledWith(1, "test-feature");
-      expect(mockRedisRepo.setByUserIdAndFeatureId).toHaveBeenCalledWith(1, "test-feature", mockUserFeature);
       expect(result).toEqual(mockUserFeature);
+
+      const cachedResult = await redisRepo.findByUserIdAndFeatureId(1, "test-feature" as FeatureId);
+      expect(cachedResult).toEqual(mockUserFeature);
     });
 
     it("should not cache when not found in Prisma", async () => {
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId).mockResolvedValue(null);
       vi.mocked(mockPrismaRepo.findByUserIdAndFeatureId).mockResolvedValue(null);
 
       const result = await repository.findByUserIdAndFeatureId(1, "nonexistent");
 
-      expect(mockRedisRepo.setByUserIdAndFeatureId).not.toHaveBeenCalled();
       expect(result).toBeNull();
+      const cachedResult = await redisRepo.findByUserIdAndFeatureId(1, "nonexistent" as FeatureId);
+      expect(cachedResult).toBeNull();
     });
   });
 
   describe("findByUserIdAndFeatureIds", () => {
     it("should return cached data when all features are cached", async () => {
-      const mockUserFeatureA = { userId: 1, featureId: "feature-a", enabled: true } as UserFeatures;
-      const mockUserFeatureB = { userId: 1, featureId: "feature-b", enabled: false } as UserFeatures;
-
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId)
-        .mockResolvedValueOnce(mockUserFeatureA)
-        .mockResolvedValueOnce(mockUserFeatureB);
+      const mockUserFeatureA = {
+        userId: 1,
+        featureId: "feature-a",
+        enabled: true,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
+      const mockUserFeatureB = {
+        userId: 1,
+        featureId: "feature-b",
+        enabled: false,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
+      await redisRepo.setByUserIdAndFeatureId(1, "feature-a" as FeatureId, mockUserFeatureA);
+      await redisRepo.setByUserIdAndFeatureId(1, "feature-b" as FeatureId, mockUserFeatureB);
 
       const result = await repository.findByUserIdAndFeatureIds(1, [
         "feature-a" as FeatureId,
         "feature-b" as FeatureId,
       ]);
 
-      expect(mockRedisRepo.findByUserIdAndFeatureId).toHaveBeenCalledTimes(2);
       expect(mockPrismaRepo.findByUserIdAndFeatureIds).not.toHaveBeenCalled();
       expect(result).toEqual({
         "feature-a": mockUserFeatureA,
@@ -113,13 +132,23 @@ describe("CachedUserFeatureRepository", () => {
     });
 
     it("should fetch from Prisma for cache misses and cache individual results", async () => {
-      const mockUserFeatureA = { userId: 1, featureId: "feature-a", enabled: true } as UserFeatures;
-      const mockUserFeatureB = { userId: 1, featureId: "feature-b", enabled: false } as UserFeatures;
-
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId)
-        .mockResolvedValueOnce(mockUserFeatureA)
-        .mockResolvedValueOnce(null);
-
+      const mockUserFeatureA = {
+        userId: 1,
+        featureId: "feature-a",
+        enabled: true,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
+      const mockUserFeatureB = {
+        userId: 1,
+        featureId: "feature-b",
+        enabled: false,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
+      await redisRepo.setByUserIdAndFeatureId(1, "feature-a" as FeatureId, mockUserFeatureA);
       vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue([mockUserFeatureB]);
 
       const result = await repository.findByUserIdAndFeatureIds(1, [
@@ -127,17 +156,17 @@ describe("CachedUserFeatureRepository", () => {
         "feature-b" as FeatureId,
       ]);
 
-      expect(mockRedisRepo.findByUserIdAndFeatureId).toHaveBeenCalledTimes(2);
       expect(mockPrismaRepo.findByUserIdAndFeatureIds).toHaveBeenCalledWith(1, ["feature-b"]);
-      expect(mockRedisRepo.setByUserIdAndFeatureId).toHaveBeenCalledWith(1, "feature-b", mockUserFeatureB);
       expect(result).toEqual({
         "feature-a": mockUserFeatureA,
         "feature-b": mockUserFeatureB,
       });
+
+      const cachedResult = await redisRepo.findByUserIdAndFeatureId(1, "feature-b" as FeatureId);
+      expect(cachedResult).toEqual(mockUserFeatureB);
     });
 
     it("should return empty object for features not found in database", async () => {
-      vi.mocked(mockRedisRepo.findByUserIdAndFeatureId).mockResolvedValue(null);
       vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue([]);
 
       const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId]);
@@ -170,55 +199,79 @@ describe("CachedUserFeatureRepository", () => {
 
   describe("upsert", () => {
     it("should upsert via Prisma and invalidate cache", async () => {
-      const mockUserFeature = { userId: 1, featureId: "test-feature", enabled: true } as UserFeatures;
+      const mockUserFeature = {
+        userId: 1,
+        featureId: "test-feature",
+        enabled: true,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
+      await redisRepo.setByUserIdAndFeatureId(1, "test-feature" as FeatureId, mockUserFeature);
       vi.mocked(mockPrismaRepo.upsert).mockResolvedValue(mockUserFeature);
 
       const result = await repository.upsert(1, "test-feature" as FeatureId, true, "admin");
 
       expect(mockPrismaRepo.upsert).toHaveBeenCalledWith(1, "test-feature", true, "admin");
-      expect(mockRedisRepo.invalidateByUserIdAndFeatureId).toHaveBeenCalledWith(1, "test-feature");
       expect(result).toEqual(mockUserFeature);
+
+      const cachedResult = await redisRepo.findByUserIdAndFeatureId(1, "test-feature" as FeatureId);
+      expect(cachedResult).toBeNull();
     });
   });
 
   describe("delete", () => {
     it("should delete via Prisma and invalidate cache", async () => {
+      const mockUserFeature = {
+        userId: 1,
+        featureId: "test-feature",
+        enabled: true,
+        assignedBy: "admin",
+        assignedAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+      } as UserFeatures;
+      await redisRepo.setByUserIdAndFeatureId(1, "test-feature" as FeatureId, mockUserFeature);
+
       await repository.delete(1, "test-feature" as FeatureId);
 
       expect(mockPrismaRepo.delete).toHaveBeenCalledWith(1, "test-feature");
-      expect(mockRedisRepo.invalidateByUserIdAndFeatureId).toHaveBeenCalledWith(1, "test-feature");
+      const cachedResult = await redisRepo.findByUserIdAndFeatureId(1, "test-feature" as FeatureId);
+      expect(cachedResult).toBeNull();
     });
   });
 
   describe("findAutoOptInByUserId", () => {
     it("should return cached data when available", async () => {
-      vi.mocked(mockRedisRepo.findAutoOptInByUserId).mockResolvedValue(true);
+      await redisRepo.setAutoOptInByUserId(1, true);
 
       const result = await repository.findAutoOptInByUserId(1);
 
-      expect(mockRedisRepo.findAutoOptInByUserId).toHaveBeenCalledWith(1);
       expect(mockPrismaRepo.findAutoOptInByUserId).not.toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it("should fetch from Prisma and cache when not in Redis", async () => {
-      vi.mocked(mockRedisRepo.findAutoOptInByUserId).mockResolvedValue(null);
       vi.mocked(mockPrismaRepo.findAutoOptInByUserId).mockResolvedValue(false);
 
       const result = await repository.findAutoOptInByUserId(1);
 
       expect(mockPrismaRepo.findAutoOptInByUserId).toHaveBeenCalledWith(1);
-      expect(mockRedisRepo.setAutoOptInByUserId).toHaveBeenCalledWith(1, false);
       expect(result).toBe(false);
+
+      const cachedResult = await redisRepo.findAutoOptInByUserId(1);
+      expect(cachedResult).toBe(false);
     });
   });
 
   describe("updateAutoOptIn", () => {
     it("should update via Prisma and invalidate cache", async () => {
-      await repository.updateAutoOptIn(1, true);
+      await redisRepo.setAutoOptInByUserId(1, true);
 
-      expect(mockPrismaRepo.updateAutoOptIn).toHaveBeenCalledWith(1, true);
-      expect(mockRedisRepo.invalidateAutoOptIn).toHaveBeenCalledWith(1);
+      await repository.updateAutoOptIn(1, false);
+
+      expect(mockPrismaRepo.updateAutoOptIn).toHaveBeenCalledWith(1, false);
+      const cachedResult = await redisRepo.findAutoOptInByUserId(1);
+      expect(cachedResult).toBeNull();
     });
   });
 });
