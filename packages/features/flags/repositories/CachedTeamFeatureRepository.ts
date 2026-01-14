@@ -1,6 +1,6 @@
 import type { TeamFeatures } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState, TeamFeatures as TeamFeaturesMap } from "../config";
+import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../config";
 import type { IPrismaTeamFeatureRepository } from "./PrismaTeamFeatureRepository";
 import type { IRedisTeamFeatureRepository } from "./RedisTeamFeatureRepository";
 
@@ -17,7 +17,7 @@ export interface ICachedTeamFeatureRepository {
   findByTeamIdsAndFeatureIds(
     teamIds: number[],
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>>;
+  ): Promise<Partial<Record<FeatureId, Record<number, TeamFeatures>>>>;
   checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean>;
   upsert(teamId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<TeamFeatures>;
   delete(teamId: number, featureId: FeatureId): Promise<void>;
@@ -65,8 +65,8 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
   async findByTeamIdsAndFeatureIds(
     teamIds: number[],
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>> {
-    const result: Partial<Record<FeatureId, Record<number, FeatureState>>> = {};
+  ): Promise<Partial<Record<FeatureId, Record<number, TeamFeatures>>>> {
+    const result: Partial<Record<FeatureId, Record<number, TeamFeatures>>> = {};
     const cacheMisses: Array<{ teamId: number; featureId: FeatureId }> = [];
 
     const cacheKeys = teamIds.flatMap((teamId) =>
@@ -85,7 +85,7 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
         if (!result[featureId]) {
           result[featureId] = {};
         }
-        result[featureId]![teamId] = cached.enabled ? "enabled" : "disabled";
+        result[featureId]![teamId] = cached;
       } else {
         cacheMisses.push({ teamId, featureId });
       }
@@ -104,11 +104,11 @@ export class CachedTeamFeatureRepository implements ICachedTeamFeatureRepository
       await Promise.all(
         cacheMisses.map(async ({ teamId, featureId }) => {
           const teamFeature = dbResultsMap.get(`${teamId}:${featureId}`);
-          if (!result[featureId]) {
-            result[featureId] = {};
-          }
           if (teamFeature) {
-            result[featureId]![teamId] = teamFeature.enabled ? "enabled" : "disabled";
+            if (!result[featureId]) {
+              result[featureId] = {};
+            }
+            result[featureId]![teamId] = teamFeature;
             await this.deps.redisRepo.setByTeamIdAndFeatureId(teamId, featureId, teamFeature);
           }
         })

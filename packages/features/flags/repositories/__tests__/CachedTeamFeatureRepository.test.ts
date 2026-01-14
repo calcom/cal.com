@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { TeamFeatures } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState, TeamFeatures as TeamFeaturesMap } from "../../config";
+import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../../config";
 import { CachedTeamFeatureRepository } from "../CachedTeamFeatureRepository";
 import type { IPrismaTeamFeatureRepository } from "../PrismaTeamFeatureRepository";
 import type { IRedisTeamFeatureRepository } from "../RedisTeamFeatureRepository";
@@ -140,7 +140,7 @@ describe("CachedTeamFeatureRepository", () => {
 
       expect(mockRedisRepo.findByTeamIdAndFeatureId).toHaveBeenCalledWith(1, "feature-a");
       expect(mockPrismaRepo.findByTeamIdsAndFeatureIds).not.toHaveBeenCalled();
-      expect(result).toEqual({ "feature-a": { 1: "enabled" } });
+      expect(result).toEqual({ "feature-a": { 1: mockTeamFeatureA } });
     });
 
     it("should fetch from Prisma for cache misses and cache individual results", async () => {
@@ -162,18 +162,18 @@ describe("CachedTeamFeatureRepository", () => {
       expect(mockPrismaRepo.findByTeamIdsAndFeatureIds).toHaveBeenCalledWith([1], ["feature-b"]);
       expect(mockRedisRepo.setByTeamIdAndFeatureId).toHaveBeenCalledWith(1, "feature-b", mockTeamFeatureB);
       expect(result).toEqual({
-        "feature-a": { 1: "enabled" },
-        "feature-b": { 1: "disabled" },
+        "feature-a": { 1: mockTeamFeatureA },
+        "feature-b": { 1: mockTeamFeatureB },
       });
     });
 
-    it("should return empty nested object for features not found in database", async () => {
+    it("should return empty object for features not found in database", async () => {
       vi.mocked(mockRedisRepo.findByTeamIdAndFeatureId).mockResolvedValue(null);
       vi.mocked(mockPrismaRepo.findByTeamIdsAndFeatureIds).mockResolvedValue([]);
 
       const result = await repository.findByTeamIdsAndFeatureIds([1], ["feature-a" as FeatureId]);
 
-      expect(result).toEqual({ "feature-a": {} });
+      expect(result).toEqual({});
     });
   });
 

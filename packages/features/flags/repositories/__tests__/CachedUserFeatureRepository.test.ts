@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { UserFeatures } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState } from "../../config";
+import type { FeatureId } from "../../config";
 import { CachedUserFeatureRepository } from "../CachedUserFeatureRepository";
 import type { IPrismaUserFeatureRepository } from "../PrismaUserFeatureRepository";
 import type { IRedisUserFeatureRepository } from "../RedisUserFeatureRepository";
@@ -107,8 +107,8 @@ describe("CachedUserFeatureRepository", () => {
       expect(mockRedisRepo.findByUserIdAndFeatureId).toHaveBeenCalledTimes(2);
       expect(mockPrismaRepo.findByUserIdAndFeatureIds).not.toHaveBeenCalled();
       expect(result).toEqual({
-        "feature-a": "enabled",
-        "feature-b": "disabled",
+        "feature-a": mockUserFeatureA,
+        "feature-b": mockUserFeatureB,
       });
     });
 
@@ -131,18 +131,18 @@ describe("CachedUserFeatureRepository", () => {
       expect(mockPrismaRepo.findByUserIdAndFeatureIds).toHaveBeenCalledWith(1, ["feature-b"]);
       expect(mockRedisRepo.setByUserIdAndFeatureId).toHaveBeenCalledWith(1, "feature-b", mockUserFeatureB);
       expect(result).toEqual({
-        "feature-a": "enabled",
-        "feature-b": "disabled",
+        "feature-a": mockUserFeatureA,
+        "feature-b": mockUserFeatureB,
       });
     });
 
-    it("should return inherit for features not found in database", async () => {
+    it("should return empty object for features not found in database", async () => {
       vi.mocked(mockRedisRepo.findByUserIdAndFeatureId).mockResolvedValue(null);
       vi.mocked(mockPrismaRepo.findByUserIdAndFeatureIds).mockResolvedValue([]);
 
       const result = await repository.findByUserIdAndFeatureIds(1, ["feature-a" as FeatureId]);
 
-      expect(result).toEqual({ "feature-a": "inherit" });
+      expect(result).toEqual({});
     });
   });
 

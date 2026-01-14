@@ -1,6 +1,6 @@
 import type { UserFeatures } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState } from "../config";
+import type { FeatureId } from "../config";
 import type { IPrismaUserFeatureRepository } from "./PrismaUserFeatureRepository";
 import type { IRedisUserFeatureRepository } from "./RedisUserFeatureRepository";
 
@@ -15,7 +15,7 @@ export interface ICachedUserFeatureRepository {
   findByUserIdAndFeatureIds(
     userId: number,
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, FeatureState>>>;
+  ): Promise<Partial<Record<FeatureId, UserFeatures>>>;
   checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean>;
   checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   upsert(userId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<UserFeatures>;
@@ -47,8 +47,8 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
   async findByUserIdAndFeatureIds(
     userId: number,
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, FeatureState>>> {
-    const result: Partial<Record<FeatureId, FeatureState>> = {};
+  ): Promise<Partial<Record<FeatureId, UserFeatures>>> {
+    const result: Partial<Record<FeatureId, UserFeatures>> = {};
     const cacheMisses: FeatureId[] = [];
 
     const cachedResults = await Promise.all(
@@ -60,7 +60,7 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
 
     for (const { featureId, cached } of cachedResults) {
       if (cached !== null) {
-        result[featureId] = cached.enabled ? "enabled" : "disabled";
+        result[featureId] = cached;
       } else {
         cacheMisses.push(featureId);
       }
@@ -75,10 +75,8 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
         cacheMisses.map(async (featureId) => {
           const userFeature = dbResultsMap.get(featureId);
           if (userFeature) {
-            result[featureId] = userFeature.enabled ? "enabled" : "disabled";
+            result[featureId] = userFeature;
             await this.deps.redisRepo.setByUserIdAndFeatureId(userId, featureId, userFeature);
-          } else {
-            result[featureId] = "inherit";
           }
         })
       );
