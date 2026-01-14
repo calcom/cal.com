@@ -67,9 +67,9 @@ const createMockEventTypeWithoutTeam = (overrides: {
 };
 
 const mockEventTypeRepository: {
-  findAllOfTeamsBySchedulingTypeIncludeHostsAndTeamMembers: ReturnType<typeof vi.fn>;
+  findWithOutOfSyncHostsIncludeHostsAndTeamMembers: ReturnType<typeof vi.fn>;
 } = {
-  findAllOfTeamsBySchedulingTypeIncludeHostsAndTeamMembers: vi.fn().mockImplementation(() => {
+  findWithOutOfSyncHostsIncludeHostsAndTeamMembers: vi.fn().mockImplementation(() => {
     return Promise.resolve(DB.eventTypes);
   }),
 };
