@@ -1,6 +1,31 @@
 import { z } from "zod";
 
 const dateSchema = z.coerce.date();
+const optionalDateSchema = z.coerce.date().nullable();
+
+export const featureSchema = z.object({
+  slug: z.string(),
+  enabled: z.boolean(),
+  description: z.string().nullable(),
+  type: z.enum(["RELEASE", "EXPERIMENT", "OPERATIONAL", "PERMISSION", "KILL_SWITCH"]).nullable(),
+  stale: z.boolean().nullable(),
+  lastUsedAt: optionalDateSchema,
+  createdAt: optionalDateSchema,
+  updatedAt: optionalDateSchema,
+  updatedBy: z.number().nullable(),
+});
+
+export type CachedFeature = z.infer<typeof featureSchema>;
+
+export const featureArraySchema = z.array(featureSchema);
+
+export const appFlagsSchema = z.record(z.string(), z.boolean());
+
+export type CachedAppFlags = z.infer<typeof appFlagsSchema>;
+
+export const teamFeaturesMapSchema = z.record(z.string(), z.boolean());
+
+export type CachedTeamFeaturesMap = z.infer<typeof teamFeaturesMapSchema>;
 
 export const teamFeaturesSchema = z.object({
   teamId: z.number(),

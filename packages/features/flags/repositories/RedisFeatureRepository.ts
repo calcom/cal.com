@@ -2,6 +2,7 @@ import type { Feature } from "@calcom/prisma/client";
 
 import type { IRedisService } from "../../redis/IRedisService";
 import type { AppFlags, FeatureId } from "../config";
+import { appFlagsSchema, featureArraySchema, featureSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:global";
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -28,7 +29,15 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
   ) {}
 
   async findAll(): Promise<Feature[] | null> {
-    return this.redisService.get<Feature[]>(KEY.all());
+    const cached = await this.redisService.get<unknown>(KEY.all());
+    if (cached === null) {
+      return null;
+    }
+    const parsed = featureArraySchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data as Feature[];
   }
 
   async setAll(features: Feature[], ttlMs?: number): Promise<void> {
@@ -36,7 +45,15 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
   }
 
   async findBySlug(slug: FeatureId): Promise<Feature | null> {
-    return this.redisService.get<Feature>(KEY.bySlug(slug));
+    const cached = await this.redisService.get<unknown>(KEY.bySlug(slug));
+    if (cached === null) {
+      return null;
+    }
+    const parsed = featureSchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data as Feature;
   }
 
   async setBySlug(slug: FeatureId, feature: Feature, ttlMs?: number): Promise<void> {
@@ -44,7 +61,15 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
   }
 
   async getFeatureFlagMap(): Promise<AppFlags | null> {
-    return this.redisService.get<AppFlags>(KEY.flagMap());
+    const cached = await this.redisService.get<unknown>(KEY.flagMap());
+    if (cached === null) {
+      return null;
+    }
+    const parsed = appFlagsSchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data as AppFlags;
   }
 
   async setFeatureFlagMap(flags: AppFlags, ttlMs?: number): Promise<void> {

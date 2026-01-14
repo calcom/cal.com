@@ -2,7 +2,7 @@ import type { TeamFeatures } from "@calcom/prisma/client";
 
 import type { IRedisService } from "../../redis/IRedisService";
 import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../config";
-import { teamFeaturesSchema } from "./schemas";
+import { teamFeaturesMapSchema, teamFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:team";
 const DEFAULT_TTL_MS: number = 5 * 60 * 1000; // 5 minutes
@@ -31,7 +31,15 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
   ) {}
 
   async findEnabledByTeamId(teamId: number): Promise<TeamFeaturesMap | null> {
-    return this.redisService.get<TeamFeaturesMap>(KEY.enabledByTeamId(teamId));
+    const cached = await this.redisService.get<unknown>(KEY.enabledByTeamId(teamId));
+    if (cached === null) {
+      return null;
+    }
+    const parsed = teamFeaturesMapSchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data as TeamFeaturesMap;
   }
 
   async setEnabledByTeamId(teamId: number, features: TeamFeaturesMap, ttlMs?: number): Promise<void> {

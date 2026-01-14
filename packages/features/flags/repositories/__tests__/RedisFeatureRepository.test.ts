@@ -25,8 +25,28 @@ describe("RedisFeatureRepository", () => {
   describe("findAll", () => {
     it("should return cached features when found", async () => {
       const mockFeatures = [
-        { slug: "feature-a", enabled: true },
-        { slug: "feature-b", enabled: false },
+        {
+          slug: "feature-a",
+          enabled: true,
+          description: null,
+          type: "RELEASE",
+          stale: false,
+          lastUsedAt: null,
+          createdAt: new Date("2024-01-01"),
+          updatedAt: new Date("2024-01-01"),
+          updatedBy: null,
+        },
+        {
+          slug: "feature-b",
+          enabled: false,
+          description: null,
+          type: "RELEASE",
+          stale: false,
+          lastUsedAt: null,
+          createdAt: new Date("2024-01-01"),
+          updatedAt: new Date("2024-01-01"),
+          updatedBy: null,
+        },
       ] as Feature[];
 
       vi.mocked(mockRedisService.get).mockResolvedValue(mockFeatures);
@@ -70,7 +90,17 @@ describe("RedisFeatureRepository", () => {
 
   describe("findBySlug", () => {
     it("should return cached feature when found", async () => {
-      const mockFeature = { slug: "test-feature", enabled: true } as Feature;
+      const mockFeature = {
+        slug: "test-feature",
+        enabled: true,
+        description: null,
+        type: "RELEASE",
+        stale: false,
+        lastUsedAt: null,
+        createdAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+        updatedBy: null,
+      } as Feature;
 
       vi.mocked(mockRedisService.get).mockResolvedValue(mockFeature);
 
