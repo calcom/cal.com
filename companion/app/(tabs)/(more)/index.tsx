@@ -6,7 +6,6 @@ import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
-import { scheduleTestBookingReminder } from "@/services/bookingReminders";
 
 interface MoreMenuItem {
   name: string;
@@ -51,17 +50,6 @@ export default function More() {
     }
   };
 
-  const handleSendTestNotification = async () => {
-    try {
-      await scheduleTestBookingReminder();
-      Alert.alert("Scheduled", "Test notification scheduled for ~10 seconds from now.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("Failed to schedule test notification", message);
-      showErrorAlert("Error", "Failed to schedule test notification.");
-    }
-  };
-
   const menuItems: MoreMenuItem[] = [
     {
       name: "Apps",
@@ -93,15 +81,6 @@ export default function More() {
       isExternal: true,
       onPress: () => openInAppBrowser("https://go.cal.com/support", "Support"),
     },
-    ...(__DEV__ && Platform.OS !== "web"
-      ? ([
-          {
-            name: "Send test notification",
-            icon: "notifications-outline",
-            onPress: handleSendTestNotification,
-          },
-        ] satisfies MoreMenuItem[])
-      : []),
   ];
 
   return (

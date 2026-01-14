@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, type UserProfile } from "@/services/calcom";
@@ -55,12 +55,22 @@ export function Header({
   const insets = useSafeAreaInsets();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const fetchUserProfile = useCallback(async () => {
     try {
       const profile = await CalComAPIService.getUserProfile();
-      setUserProfile(profile);
-      setLoading(false);
+      if (isMountedRef.current) {
+        setUserProfile(profile);
+        setLoading(false);
+      }
     } catch (err) {
       console.error("Failed to fetch user profile");
       if (__DEV__) {
@@ -68,7 +78,9 @@ export function Header({
         const stack = err instanceof Error ? err.stack : undefined;
         console.debug("[Header] fetchUserProfile failed", { message, stack });
       }
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
