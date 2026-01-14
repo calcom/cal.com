@@ -22,9 +22,7 @@ export class CalendarCacheWrapper implements Calendar {
   ) {}
 
   getCredentialId?(): number {
-    return this.deps.originalCalendar.getCredentialId
-      ? this.deps.originalCalendar.getCredentialId()
-      : -1;
+    return this.deps.originalCalendar.getCredentialId ? this.deps.originalCalendar.getCredentialId() : -1;
   }
 
   createEvent(
@@ -47,6 +45,13 @@ export class CalendarCacheWrapper implements Calendar {
     return this.deps.originalCalendar.deleteEvent(uid, event, externalCalendarId);
   }
 
+  /**
+   * Retrieves availability combining cache and live sources.
+   *
+   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
+   * - Calendars **without** one of them → fetched directly from the original calendar.
+   * - Results are merged into a single array.
+   */
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
 
@@ -152,6 +157,13 @@ export class CalendarCacheWrapper implements Calendar {
     return results;
   }
 
+  /**
+    * Retrieves availability with time zones, combining cache and live data.
+    *
+    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
+    * - Calendars **without** one of them → fetched directly from the original calendar.
+    * - Results are merged into a single array with `{ start, end, timeZone }` format.
+    */
   async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
 
@@ -239,10 +251,7 @@ export class CalendarCacheWrapper implements Calendar {
   }
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {
-    return (
-      this.deps.originalCalendar.fetchAvailabilityAndSetCache?.(selectedCalendars) ||
-      Promise.resolve()
-    );
+    return this.deps.originalCalendar.fetchAvailabilityAndSetCache?.(selectedCalendars) || Promise.resolve();
   }
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
