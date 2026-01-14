@@ -1411,7 +1411,10 @@ export default function EventTypeDetail() {
           style={{
             flex: 1,
           }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 350 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: activeTab === "limits" || activeTab === "advanced" ? 280 : 200,
+          }}
           contentInsetAdjustmentBehavior="automatic"
         >
           {activeTab === "basics" ? (
