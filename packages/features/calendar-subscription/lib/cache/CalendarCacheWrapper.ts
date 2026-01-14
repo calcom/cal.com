@@ -89,21 +89,9 @@ export class CalendarCacheWrapper implements Calendar {
         }))
       );
 
-      metrics.count("calendar.cache.hit.calls", 1, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
-      metrics.distribution("calendar.cache.hit.duration_ms", cacheDurationMs, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
-      metrics.distribution("calendar.cache.hit.events_count", cached.length, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
+      metrics.count("calendar.cache.hit.calls", 1);
+      metrics.distribution("calendar.cache.hit.duration_ms", cacheDurationMs);
+      metrics.distribution("calendar.cache.hit.events_count", cached.length);
 
       log.info("Calendar cache fetch completed", {
         cachedCalendarCount: withSync.length,
@@ -128,22 +116,9 @@ export class CalendarCacheWrapper implements Calendar {
 
       results.push(...original);
 
-      metrics.count("calendar.cache.miss.calls", 1, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
-
-      metrics.distribution("calendar.cache.miss.duration_ms", originalDurationMs, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
-      metrics.distribution("calendar.cache.miss.events_count", original.length, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
+      metrics.count("calendar.cache.miss.calls", 1);
+      metrics.distribution("calendar.cache.miss.duration_ms", originalDurationMs);
+      metrics.distribution("calendar.cache.miss.events_count", original.length);
 
       log.info("Original calendar fetch completed", {
         originalCalendarCount: withoutSync.length,
@@ -201,21 +176,9 @@ export class CalendarCacheWrapper implements Calendar {
         }))
       );
 
-      metrics.count("calendar.cache.hit.timezone.calls", 1, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
-      metrics.distribution("calendar.cache.hit.timezone.duration_ms", cacheDurationMs, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
-      metrics.distribution("calendar.cache.hit.timezone.events_count", cached.length, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
+      metrics.count("calendar.cache.hit.timezone.calls", 1);
+      metrics.distribution("calendar.cache.hit.timezone.duration_ms", cacheDurationMs);
+      metrics.distribution("calendar.cache.hit.timezone.events_count", cached.length);
     }
 
     if (withoutSync.length) {
@@ -233,16 +196,8 @@ export class CalendarCacheWrapper implements Calendar {
 
       if (original?.length) results.push(...original);
 
-      metrics.distribution("calendar.cache.miss.timezone.duration_ms", originalDurationMs, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType
-        }
-      });
-      metrics.distribution("calendar.cache.miss.timezone.events_count", original?.length ?? 0, {
-        attributes: {
-          calendarType: this.deps.originalCalendar.calendarType,
-        }
-      });
+      metrics.distribution("calendar.cache.miss.timezone.duration_ms", originalDurationMs);
+      metrics.distribution("calendar.cache.miss.timezone.events_count", original?.length ?? 0);
     }
 
     metrics.distribution("calendar.getAvailabilityWithTimeZones.total_events_count", results.length);
