@@ -1,6 +1,5 @@
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { useCallback, useMemo } from "react";
-import { View } from "react-native";
 
 interface LimitsTabDatePickerProps {
   value: string;
@@ -26,14 +25,12 @@ export function LimitsTabDatePicker({ value, onChange }: LimitsTabDatePickerProp
   );
 
   return (
-    <View className="flex-row items-center rounded-lg bg-[#F2F2F7] px-3 py-2">
-      <Host matchContents>
-        <DatePicker
-          onDateChange={handleDateChange}
-          displayedComponents={["date"]}
-          selection={dateValue}
-        />
-      </Host>
-    </View>
+    <Host matchContents>
+      <DatePicker
+        onDateChange={handleDateChange}
+        displayedComponents={["date"]}
+        selection={dateValue}
+      />
+    </Host>
   );
 }
