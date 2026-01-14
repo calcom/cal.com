@@ -10,6 +10,8 @@
 "use client";
 
 import { DefaultSeo } from "next-seo";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import Head from "next/head";
 import Script from "next/script";
 
@@ -30,6 +32,15 @@ export interface CalPageWrapper {
   (props?: AppProps): JSX.Element;
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
+
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
+const calFont = localFont({
+  src: "../fonts/CalSans-SemiBold.woff2",
+  variable: "--font-cal",
+  preload: true,
+  display: "swap",
+  weight: "600",
+});
 
 function PageWrapper(props: AppProps) {
   const { Component, pageProps, err, router } = props;
@@ -76,6 +87,12 @@ function PageWrapper(props: AppProps) {
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
 
+      <style jsx global>{`
+        :root {
+          --font-sans: ${interFont.style.fontFamily};
+          --font-cal: ${calFont.style.fontFamily};
+        }
+      `}</style>
       <IconSprites />
 
       {getLayout(

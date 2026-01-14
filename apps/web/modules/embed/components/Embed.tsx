@@ -229,7 +229,7 @@ const ChooseEmbedTypesDialogContent = ({
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
         <h3
-          className="font-heading text-emphasis mb-2 text-2xl leading-none"
+          className="font-cal text-emphasis mb-2 text-2xl font-semibold leading-none"
           id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
@@ -1284,7 +1284,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       {/* Conditionally render EmbedTheme only if NOT React Atom */}
                       {embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
                         <Label className="mb-6">
-                          <div className="mb-2">EmbedTheme</div>
+                          <div className="mb-2">Embed theme</div>
                           <Select
                             className="w-full"
                             defaultValue={ThemeOptions[0]}
