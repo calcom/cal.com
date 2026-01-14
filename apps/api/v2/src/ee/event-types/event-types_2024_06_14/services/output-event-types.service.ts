@@ -47,6 +47,7 @@ type EventTypeUser = {
   id: number;
   name: string | null;
   username: string | null;
+  isPlatformManaged?: boolean;
   avatarUrl: string | null;
   brandColor: string | null;
   darkBrandColor: string | null;
@@ -438,6 +439,11 @@ export class OutputEventTypesService_2024_06_14 {
 
   buildBookingUrl(user: EventTypeUser | undefined, slug: string): string {
     if (!user) {
+      return "";
+    }
+
+    // Managed users don't have public booking pages
+    if (user.isPlatformManaged) {
       return "";
     }
 
