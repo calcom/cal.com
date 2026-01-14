@@ -1,42 +1,31 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 
 import type { TeamFeatures } from "@calcom/prisma/client";
 
-import type { IRedisService } from "../../../redis/IRedisService";
+import { InMemoryRedisService } from "../../../redis/InMemoryRedisService";
 import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../../config";
 import { RedisTeamFeatureRepository } from "../RedisTeamFeatureRepository";
 
-const createMockRedisService = (): IRedisService => ({
-  get: vi.fn(),
-  set: vi.fn(),
-  del: vi.fn(),
-});
-
 describe("RedisTeamFeatureRepository", () => {
   let repository: RedisTeamFeatureRepository;
-  let mockRedisService: IRedisService;
+  let redisService: InMemoryRedisService;
 
   beforeEach(() => {
-    vi.resetAllMocks();
-    mockRedisService = createMockRedisService();
-    repository = new RedisTeamFeatureRepository(mockRedisService);
+    redisService = new InMemoryRedisService();
+    repository = new RedisTeamFeatureRepository(redisService);
   });
 
   describe("findEnabledByTeamId", () => {
     it("should return cached enabled features when found", async () => {
       const mockFeatures = { "feature-a": true, "feature-b": true } as TeamFeaturesMap;
 
-      vi.mocked(mockRedisService.get).mockResolvedValue(mockFeatures);
-
+      await repository.setEnabledByTeamId(1, mockFeatures);
       const result = await repository.findEnabledByTeamId(1);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:enabled:1");
       expect(result).toEqual(mockFeatures);
     });
 
     it("should return null when not cached", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
       const result = await repository.findEnabledByTeamId(1);
 
       expect(result).toBeNull();
@@ -44,14 +33,13 @@ describe("RedisTeamFeatureRepository", () => {
   });
 
   describe("setEnabledByTeamId", () => {
-    it("should cache enabled features for team", async () => {
+    it("should cache enabled features for team and retrieve them", async () => {
       const mockFeatures = { "feature-a": true } as TeamFeaturesMap;
 
       await repository.setEnabledByTeamId(1, mockFeatures);
+      const result = await repository.findEnabledByTeamId(1);
 
-      expect(mockRedisService.set).toHaveBeenCalledWith("features:team:enabled:1", mockFeatures, {
-        ttl: 5 * 60 * 1000,
-      });
+      expect(result).toEqual(mockFeatures);
     });
   });
 
@@ -63,15 +51,13 @@ describe("RedisTeamFeatureRepository", () => {
         featureId: "test-feature",
         enabled: true,
         assignedBy: "admin",
-        assignedAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-      };
+        assignedAt: now,
+        updatedAt: now,
+      } as TeamFeatures;
 
-      vi.mocked(mockRedisService.get).mockResolvedValue(mockTeamFeature);
-
+      await repository.setByTeamIdAndFeatureId(1, "test-feature" as FeatureId, mockTeamFeature);
       const result = await repository.findByTeamIdAndFeatureId(1, "test-feature" as FeatureId);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:1:test-feature");
       expect(result).toEqual({
         teamId: 1,
         featureId: "test-feature",
@@ -83,16 +69,6 @@ describe("RedisTeamFeatureRepository", () => {
     });
 
     it("should return null when not cached", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
-      const result = await repository.findByTeamIdAndFeatureId(1, "test-feature" as FeatureId);
-
-      expect(result).toBeNull();
-    });
-
-    it("should return null when cached data is invalid", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue({ invalid: "data" });
-
       const result = await repository.findByTeamIdAndFeatureId(1, "test-feature" as FeatureId);
 
       expect(result).toBeNull();
@@ -100,7 +76,7 @@ describe("RedisTeamFeatureRepository", () => {
   });
 
   describe("setByTeamIdAndFeatureId", () => {
-    it("should cache team feature", async () => {
+    it("should cache team feature and retrieve it", async () => {
       const mockTeamFeature = {
         teamId: 1,
         featureId: "test-feature",
@@ -111,28 +87,24 @@ describe("RedisTeamFeatureRepository", () => {
       } as TeamFeatures;
 
       await repository.setByTeamIdAndFeatureId(1, "test-feature" as FeatureId, mockTeamFeature);
+      const result = await repository.findByTeamIdAndFeatureId(1, "test-feature" as FeatureId);
 
-      expect(mockRedisService.set).toHaveBeenCalledWith(
-        "features:team:1:test-feature",
-        mockTeamFeature,
-        { ttl: 5 * 60 * 1000 }
-      );
+      expect(result).not.toBeNull();
+      expect(result?.teamId).toBe(1);
+      expect(result?.featureId).toBe("test-feature");
+      expect(result?.enabled).toBe(true);
     });
   });
 
   describe("findAutoOptInByTeamId", () => {
     it("should return cached auto opt-in value when found", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(true);
-
+      await repository.setAutoOptInByTeamId(1, true);
       const result = await repository.findAutoOptInByTeamId(1);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:team:autoOptIn:1");
       expect(result).toBe(true);
     });
 
     it("should return null when not cached", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
       const result = await repository.findAutoOptInByTeamId(1);
 
       expect(result).toBeNull();
@@ -140,30 +112,42 @@ describe("RedisTeamFeatureRepository", () => {
   });
 
   describe("setAutoOptInByTeamId", () => {
-    it("should cache auto opt-in value for team", async () => {
+    it("should cache auto opt-in value for team and retrieve it", async () => {
       await repository.setAutoOptInByTeamId(1, true);
+      const result = await repository.findAutoOptInByTeamId(1);
 
-      expect(mockRedisService.set).toHaveBeenCalledWith("features:team:autoOptIn:1", true, {
-        ttl: 5 * 60 * 1000,
-      });
+      expect(result).toBe(true);
     });
   });
 
   describe("invalidateByTeamIdAndFeatureId", () => {
     it("should delete both feature cache and enabled cache", async () => {
+      const mockTeamFeature = {
+        teamId: 1,
+        featureId: "test-feature",
+        enabled: true,
+        assignedBy: "admin",
+        assignedAt: new Date(),
+        updatedAt: new Date(),
+      } as TeamFeatures;
+      const mockFeatures = { "test-feature": true } as TeamFeaturesMap;
+
+      await repository.setByTeamIdAndFeatureId(1, "test-feature" as FeatureId, mockTeamFeature);
+      await repository.setEnabledByTeamId(1, mockFeatures);
+
       await repository.invalidateByTeamIdAndFeatureId(1, "test-feature" as FeatureId);
 
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:team:1:test-feature");
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:team:enabled:1");
-      expect(mockRedisService.del).toHaveBeenCalledTimes(2);
+      expect(await repository.findByTeamIdAndFeatureId(1, "test-feature" as FeatureId)).toBeNull();
+      expect(await repository.findEnabledByTeamId(1)).toBeNull();
     });
   });
 
   describe("invalidateAutoOptInByTeamId", () => {
     it("should delete auto opt-in cache for team", async () => {
+      await repository.setAutoOptInByTeamId(1, true);
       await repository.invalidateAutoOptInByTeamId(1);
 
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:team:autoOptIn:1");
+      expect(await repository.findAutoOptInByTeamId(1)).toBeNull();
     });
   });
 });

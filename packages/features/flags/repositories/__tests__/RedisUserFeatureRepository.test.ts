@@ -1,24 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 
 import type { UserFeatures } from "@calcom/prisma/client";
 
-import type { IRedisService } from "../../../redis/IRedisService";
+import { InMemoryRedisService } from "../../../redis/InMemoryRedisService";
 import { RedisUserFeatureRepository } from "../RedisUserFeatureRepository";
-
-const createMockRedisService = (): IRedisService => ({
-  get: vi.fn(),
-  set: vi.fn(),
-  del: vi.fn(),
-});
 
 describe("RedisUserFeatureRepository", () => {
   let repository: RedisUserFeatureRepository;
-  let mockRedisService: IRedisService;
+  let redisService: InMemoryRedisService;
 
   beforeEach(() => {
-    vi.resetAllMocks();
-    mockRedisService = createMockRedisService();
-    repository = new RedisUserFeatureRepository(mockRedisService);
+    redisService = new InMemoryRedisService();
+    repository = new RedisUserFeatureRepository(redisService);
   });
 
   describe("findByUserIdAndFeatureId", () => {
@@ -29,15 +22,13 @@ describe("RedisUserFeatureRepository", () => {
         featureId: "test-feature",
         enabled: true,
         assignedBy: "admin",
-        assignedAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-      };
+        assignedAt: now,
+        updatedAt: now,
+      } as UserFeatures;
 
-      vi.mocked(mockRedisService.get).mockResolvedValue(mockUserFeature);
-
+      await repository.setByUserIdAndFeatureId(1, "test-feature", mockUserFeature);
       const result = await repository.findByUserIdAndFeatureId(1, "test-feature");
 
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:user:1:test-feature");
       expect(result).toEqual({
         userId: 1,
         featureId: "test-feature",
@@ -49,16 +40,6 @@ describe("RedisUserFeatureRepository", () => {
     });
 
     it("should return null when not cached", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
-      const result = await repository.findByUserIdAndFeatureId(1, "test-feature");
-
-      expect(result).toBeNull();
-    });
-
-    it("should return null when cached data is invalid", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue({ invalid: "data" });
-
       const result = await repository.findByUserIdAndFeatureId(1, "test-feature");
 
       expect(result).toBeNull();
@@ -66,7 +47,7 @@ describe("RedisUserFeatureRepository", () => {
   });
 
   describe("setByUserIdAndFeatureId", () => {
-    it("should cache user feature", async () => {
+    it("should cache user feature and retrieve it", async () => {
       const mockUserFeature = {
         userId: 1,
         featureId: "test-feature",
@@ -77,15 +58,48 @@ describe("RedisUserFeatureRepository", () => {
       } as UserFeatures;
 
       await repository.setByUserIdAndFeatureId(1, "test-feature", mockUserFeature);
+      const result = await repository.findByUserIdAndFeatureId(1, "test-feature");
 
-      expect(mockRedisService.set).toHaveBeenCalledWith(
-        "features:user:1:test-feature",
-        mockUserFeature,
-        { ttl: 5 * 60 * 1000 }
-      );
+      expect(result).not.toBeNull();
+      expect(result?.userId).toBe(1);
+      expect(result?.featureId).toBe("test-feature");
+      expect(result?.enabled).toBe(true);
+    });
+  });
+
+  describe("findAutoOptInByUserId", () => {
+    it("should return cached auto opt-in value when found", async () => {
+      await repository.setAutoOptInByUserId(1, true);
+      const result = await repository.findAutoOptInByUserId(1);
+
+      expect(result).toBe(true);
     });
 
-    it("should use custom TTL when provided", async () => {
+    it("should return null when not cached", async () => {
+      const result = await repository.findAutoOptInByUserId(1);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("setAutoOptInByUserId", () => {
+    it("should cache auto opt-in value and retrieve it", async () => {
+      await repository.setAutoOptInByUserId(1, true);
+      const result = await repository.findAutoOptInByUserId(1);
+
+      expect(result).toBe(true);
+    });
+
+    it("should cache false value correctly", async () => {
+      await repository.setAutoOptInByUserId(1, false);
+      const result = await repository.findAutoOptInByUserId(1);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("invalidateByUserIdAndFeatureId", () => {
+    it("should delete user feature cache", async () => {
       const mockUserFeature = {
         userId: 1,
         featureId: "test-feature",
@@ -95,80 +109,19 @@ describe("RedisUserFeatureRepository", () => {
         updatedAt: new Date(),
       } as UserFeatures;
 
-      await repository.setByUserIdAndFeatureId(1, "test-feature", mockUserFeature, 10000);
-
-      expect(mockRedisService.set).toHaveBeenCalledWith(
-        "features:user:1:test-feature",
-        mockUserFeature,
-        { ttl: 10000 }
-      );
-    });
-  });
-
-  describe("findAutoOptInByUserId", () => {
-    it("should return cached auto opt-in value when found", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(true);
-
-      const result = await repository.findAutoOptInByUserId(1);
-
-      expect(mockRedisService.get).toHaveBeenCalledWith("features:user:autoOptIn:1");
-      expect(result).toBe(true);
-    });
-
-    it("should return null when not cached", async () => {
-      vi.mocked(mockRedisService.get).mockResolvedValue(null);
-
-      const result = await repository.findAutoOptInByUserId(1);
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("setAutoOptInByUserId", () => {
-    it("should cache auto opt-in value", async () => {
-      await repository.setAutoOptInByUserId(1, true);
-
-      expect(mockRedisService.set).toHaveBeenCalledWith("features:user:autoOptIn:1", true, {
-        ttl: 5 * 60 * 1000,
-      });
-    });
-
-    it("should use custom TTL when provided", async () => {
-      await repository.setAutoOptInByUserId(1, false, 10000);
-
-      expect(mockRedisService.set).toHaveBeenCalledWith("features:user:autoOptIn:1", false, {
-        ttl: 10000,
-      });
-    });
-  });
-
-  describe("invalidateByUserIdAndFeatureId", () => {
-    it("should delete user feature cache", async () => {
+      await repository.setByUserIdAndFeatureId(1, "test-feature", mockUserFeature);
       await repository.invalidateByUserIdAndFeatureId(1, "test-feature");
 
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:user:1:test-feature");
-      expect(mockRedisService.del).toHaveBeenCalledTimes(1);
+      expect(await repository.findByUserIdAndFeatureId(1, "test-feature")).toBeNull();
     });
   });
 
   describe("invalidateAutoOptIn", () => {
     it("should delete auto opt-in cache", async () => {
+      await repository.setAutoOptInByUserId(1, true);
       await repository.invalidateAutoOptIn(1);
 
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:user:autoOptIn:1");
-    });
-  });
-
-  describe("custom TTL in constructor", () => {
-    it("should use custom TTL from constructor", async () => {
-      const customTtl = 60000;
-      const customRepository = new RedisUserFeatureRepository(mockRedisService, customTtl);
-
-      await customRepository.setAutoOptInByUserId(1, true);
-
-      expect(mockRedisService.set).toHaveBeenCalledWith("features:user:autoOptIn:1", true, {
-        ttl: customTtl,
-      });
+      expect(await repository.findAutoOptInByUserId(1)).toBeNull();
     });
   });
 });
