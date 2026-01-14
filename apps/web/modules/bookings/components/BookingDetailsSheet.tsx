@@ -472,7 +472,9 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
                   {t("host")}
                 </Badge>
               </div>
-              <p className="text-default truncate text-sm leading-[1.2]">{booking.user.email}</p>
+              {!booking.eventType?.hideOrganizerEmail && (
+                <p className="text-default truncate text-sm leading-[1.2]">{booking.user.email}</p>
+              )}
             </div>
           </div>
         )}

@@ -642,21 +642,30 @@ export default function Success(props: PageProps) {
                                   )}
                                 </div>
                               )}
-                              {bookingInfo?.attendees.map((attendee) => (
-                                <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                                  {attendee.name && (
-                                    <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
-                                  )}
-                                  {attendee.phoneNumber && (
-                                    <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                      {attendee.phoneNumber}
-                                    </p>
-                                  )}
-                                  {!isSmsCalEmail(attendee.email) && (
-                                    <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
-                                  )}
-                                </div>
-                              ))}
+                              {bookingInfo?.attendees.map((attendee) => {
+                                // Check if attendee is a team member/host (for round robin scenarios)
+                                const isTeamMemberOrHost =
+                                  eventType.hosts?.some((host) => host.user.email === attendee.email) ||
+                                  eventType.users?.some((user) => user.email === attendee.email);
+                                const shouldHideEmail =
+                                  bookingInfo.eventType?.hideOrganizerEmail && isTeamMemberOrHost;
+
+                                return (
+                                  <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+                                    {attendee.name && (
+                                      <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                                    )}
+                                    {attendee.phoneNumber && (
+                                      <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
+                                        {attendee.phoneNumber}
+                                      </p>
+                                    )}
+                                    {!isSmsCalEmail(attendee.email) && !shouldHideEmail && (
+                                      <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </>
                         )}
