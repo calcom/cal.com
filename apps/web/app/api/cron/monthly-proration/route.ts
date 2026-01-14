@@ -1,7 +1,12 @@
 import process from "node:process";
 import { formatMonthKey } from "@calcom/features/ee/billing/lib/month-key";
-import { MonthlyProrationService } from "@calcom/features/ee/billing/service/proration/MonthlyProrationService";
+import { MonthlyProrationTeamRepository } from "@calcom/features/ee/billing/repository/proration/MonthlyProrationTeamRepository";
+import { MONTHLY_PRORATION_BATCH_SIZE } from "@calcom/features/ee/billing/service/proration/tasker/constants";
+import { MonthlyProrationSyncTasker } from "@calcom/features/ee/billing/service/proration/tasker/MonthlyProrationSyncTasker";
+import { MonthlyProrationTasker } from "@calcom/features/ee/billing/service/proration/tasker/MonthlyProrationTasker";
+import { MonthlyProrationTriggerDevTasker } from "@calcom/features/ee/billing/service/proration/tasker/MonthlyProrationTriggerDevTasker";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { subMonths } from "date-fns";
@@ -36,14 +41,56 @@ async function getHandler(request: NextRequest) {
   const defaultMonthKey = formatMonthKey(previousMonthUtc);
   const monthKey = requestedMonthKey || defaultMonthKey;
 
-  log.info(`Processing monthly prorations for ${monthKey}`);
+  log.info(`Scheduling monthly proration tasks for ${monthKey}`);
 
-  const prorationService = new MonthlyProrationService();
-  const results = await prorationService.processMonthlyProrations({ monthKey });
+  const teamRepository = new MonthlyProrationTeamRepository(prisma);
+  const teamIdsList = await teamRepository.getAnnualTeamsWithSeatChanges(monthKey);
+
+  if (teamIdsList.length === 0) {
+    return NextResponse.json({
+      monthKey,
+      scheduledTeams: 0,
+      scheduledBatches: 0,
+      batchSize: MONTHLY_PRORATION_BATCH_SIZE,
+    });
+  }
+
+  const prorationTasker = new MonthlyProrationTasker({
+    logger: log,
+    asyncTasker: new MonthlyProrationTriggerDevTasker({ logger: log }),
+    syncTasker: new MonthlyProrationSyncTasker(log),
+  });
+
+  const batches: number[][] = [];
+  for (let index = 0; index < teamIdsList.length; index += MONTHLY_PRORATION_BATCH_SIZE) {
+    batches.push(teamIdsList.slice(index, index + MONTHLY_PRORATION_BATCH_SIZE));
+  }
+
+  log.info(`Scheduling ${teamIdsList.length} teams in ${batches.length} batches for ${monthKey}`);
+
+  const isAsyncTaskerEnabled =
+    ENABLE_ASYNC_TASKER && process.env.TRIGGER_SECRET_KEY && process.env.TRIGGER_API_URL;
+
+  if (isAsyncTaskerEnabled) {
+    await Promise.all(
+      batches.map((teamIds) =>
+        prorationTasker.processBatch({
+          monthKey,
+          teamIds,
+        })
+      )
+    );
+  } else {
+    for (const teamIds of batches) {
+      await prorationTasker.processBatch({ monthKey, teamIds });
+    }
+  }
 
   return NextResponse.json({
     monthKey,
-    processedTeams: results.length,
+    scheduledTeams: teamIdsList.length,
+    scheduledBatches: batches.length,
+    batchSize: MONTHLY_PRORATION_BATCH_SIZE,
   });
 }
 
