@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import prisma from "@calcom/prisma";
 
 import type { FeatureId } from "../../config";
 import { PrismaTeamFeatureRepository } from "../PrismaTeamFeatureRepository";
+
+type TestData = Awaited<ReturnType<typeof createTestData>>;
 
 async function createTestData() {
   const timestamp = Date.now();
@@ -87,11 +89,20 @@ async function createTestData() {
 }
 
 describe("PrismaTeamFeatureRepository Integration Tests", () => {
+  let testData: TestData;
+  let repository: PrismaTeamFeatureRepository;
+
+  beforeEach(async () => {
+    testData = await createTestData();
+    repository = new PrismaTeamFeatureRepository(prisma);
+  });
+
+  afterEach(async () => {
+    await testData?.cleanup();
+  });
+
   describe("checkIfTeamHasFeature", () => {
     it("should return true when team has feature directly enabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaTeamFeatureRepository(prisma);
-
       await prisma.teamFeatures.create({
         data: {
           teamId: testData.childTeam.id,
@@ -104,14 +115,9 @@ describe("PrismaTeamFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfTeamHasFeature(testData.childTeam.id, testData.featureId);
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
 
     it("should return false when team has feature directly disabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaTeamFeatureRepository(prisma);
-
       await prisma.teamFeatures.create({
         data: {
           teamId: testData.childTeam.id,
@@ -124,14 +130,9 @@ describe("PrismaTeamFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfTeamHasFeature(testData.childTeam.id, testData.featureId);
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return true when parent team has feature enabled (hierarchical lookup)", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaTeamFeatureRepository(prisma);
-
       await prisma.teamFeatures.create({
         data: {
           teamId: testData.parentTeam.id,
@@ -144,14 +145,9 @@ describe("PrismaTeamFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfTeamHasFeature(testData.childTeam.id, testData.featureId);
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
 
     it("should return true when grandparent team has feature enabled (deep hierarchical lookup)", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaTeamFeatureRepository(prisma);
-
       await prisma.teamFeatures.create({
         data: {
           teamId: testData.parentTeam.id,
@@ -164,36 +160,21 @@ describe("PrismaTeamFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfTeamHasFeature(testData.grandchildTeam.id, testData.featureId);
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
 
     it("should return false when no team in hierarchy has feature enabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaTeamFeatureRepository(prisma);
-
       const result = await repository.checkIfTeamHasFeature(testData.grandchildTeam.id, testData.featureId);
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return false for standalone team without feature", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaTeamFeatureRepository(prisma);
-
       const result = await repository.checkIfTeamHasFeature(testData.standaloneTeam.id, testData.featureId);
 
       expect(result).toBe(false);
-
-      await testData.cleanup();
     });
 
     it("should return true for standalone team with feature enabled", async () => {
-      const testData = await createTestData();
-      const repository = new PrismaTeamFeatureRepository(prisma);
-
       await prisma.teamFeatures.create({
         data: {
           teamId: testData.standaloneTeam.id,
@@ -206,8 +187,6 @@ describe("PrismaTeamFeatureRepository Integration Tests", () => {
       const result = await repository.checkIfTeamHasFeature(testData.standaloneTeam.id, testData.featureId);
 
       expect(result).toBe(true);
-
-      await testData.cleanup();
     });
   });
 });

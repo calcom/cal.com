@@ -11,7 +11,7 @@ export interface ICachedUserFeatureRepositoryDeps {
 
 export interface ICachedUserFeatureRepository {
   findByUserId(userId: number): Promise<UserFeatures[]>;
-  findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null>;
+  findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null>;
   findByUserIdAndFeatureIds(
     userId: number,
     featureIds: FeatureId[]
@@ -31,7 +31,7 @@ export class CachedUserFeatureRepository implements ICachedUserFeatureRepository
     return this.deps.prismaRepo.findByUserId(userId);
   }
 
-  async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null> {
+  async findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null> {
     const cached = await this.deps.redisRepo.findByUserIdAndFeatureId(userId, featureId);
     if (cached !== null) {
       return cached;

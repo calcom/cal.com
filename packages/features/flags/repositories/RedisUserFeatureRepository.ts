@@ -1,6 +1,7 @@
 import type { UserFeatures } from "@calcom/prisma/client";
 
 import type { IRedisService } from "../../redis/IRedisService";
+import type { FeatureId } from "../config";
 import { booleanSchema, userFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:user";
@@ -12,11 +13,11 @@ const KEY = {
 } as const;
 
 export interface IRedisUserFeatureRepository {
-  findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null>;
-  setByUserIdAndFeatureId(userId: number, featureId: string, data: UserFeatures, ttlMs?: number): Promise<void>;
+  findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null>;
+  setByUserIdAndFeatureId(userId: number, featureId: FeatureId, data: UserFeatures, ttlMs?: number): Promise<void>;
   findAutoOptInByUserId(userId: number): Promise<boolean | null>;
   setAutoOptInByUserId(userId: number, enabled: boolean, ttlMs?: number): Promise<void>;
-  invalidateByUserIdAndFeatureId(userId: number, featureId: string): Promise<void>;
+  invalidateByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<void>;
   invalidateAutoOptIn(userId: number): Promise<void>;
 }
 
@@ -26,7 +27,7 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     private ttlMs: number = DEFAULT_TTL_MS
   ) {}
 
-  async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null> {
+  async findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null> {
     const cached = await this.redisService.get<unknown>(KEY.byUserIdAndFeatureId(userId, featureId));
     if (cached === null) {
       return null;
@@ -40,7 +41,7 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
 
   async setByUserIdAndFeatureId(
     userId: number,
-    featureId: string,
+    featureId: FeatureId,
     data: UserFeatures,
     ttlMs?: number
   ): Promise<void> {
@@ -65,7 +66,7 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     await this.redisService.set(KEY.autoOptInByUserId(userId), enabled, { ttl: ttlMs ?? this.ttlMs });
   }
 
-  async invalidateByUserIdAndFeatureId(userId: number, featureId: string): Promise<void> {
+  async invalidateByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<void> {
     await this.redisService.del(KEY.byUserIdAndFeatureId(userId, featureId));
   }
 

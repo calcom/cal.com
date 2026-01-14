@@ -5,7 +5,7 @@ import type { FeatureId } from "../config";
 
 export interface IPrismaUserFeatureRepository {
   findByUserId(userId: number): Promise<UserFeatures[]>;
-  findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null>;
+  findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null>;
   findByUserIdAndFeatureIds(userId: number, featureIds: FeatureId[]): Promise<UserFeatures[]>;
   checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean>;
   checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
@@ -24,7 +24,7 @@ export class PrismaUserFeatureRepository implements IPrismaUserFeatureRepository
     });
   }
 
-  async findByUserIdAndFeatureId(userId: number, featureId: string): Promise<UserFeatures | null> {
+  async findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null> {
     return this.prismaClient.userFeatures.findUnique({
       where: {
         userId_featureId: {
