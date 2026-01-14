@@ -56,7 +56,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
               });
             }}>
             <div className="mb-5 mt-1">
-              <h2 className="font-heading text-emphasis text-xl tracking-wide">
+              <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
                 {t("directory_sync_configure")}
               </h2>
               <p className="mt-1 text-sm text-gray-500">{t("directory_sync_configure_description")}</p>

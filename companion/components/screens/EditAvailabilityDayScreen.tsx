@@ -7,7 +7,7 @@ import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { shadows } from "@/utils/shadows";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -325,9 +325,8 @@ export const EditAvailabilityDayScreen = forwardRef<
       await CalComAPIService.updateSchedule(schedule.id, {
         availability: fullAvailability,
       });
-      Alert.alert("Success", `${dayName} updated successfully`, [
-        { text: "OK", onPress: onSuccess },
-      ]);
+      showSuccessAlert("Success", `${dayName} updated successfully`);
+      onSuccess();
       setIsSaving(false);
     } catch {
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
@@ -365,7 +364,7 @@ export const EditAvailabilityDayScreen = forwardRef<
         <Switch
           value={isEnabled}
           onValueChange={handleToggle}
-          trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+          trackColor={{ false: "#E5E5EA", true: "#000000" }}
           thumbColor="#fff"
         />
       </View>
