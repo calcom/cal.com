@@ -1,10 +1,9 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Platform, StyleSheet } from "react-native";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 import { CalComLogo } from "./CalComLogo";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
 
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();
@@ -14,7 +13,7 @@ export function LoginScreen() {
     try {
       await loginWithOAuth();
     } catch (error) {
-      console.error("OAuth login error:", error);
+      console.error("OAuth login error");
       showErrorAlert(
         "Login Failed",
         error instanceof Error
@@ -43,7 +42,7 @@ export function LoginScreen() {
           disabled={loading}
           className="flex-row items-center justify-center rounded-2xl py-[18px]"
           style={[
-            { backgroundColor: loading ? "#9CA3AF" : "#111827" },
+            { backgroundColor: loading ? "#9CA3AF" : "#000000" },
             Platform.select({
               web: {
                 boxShadow: loading ? "none" : "0 4px 12px rgba(0, 0, 0, 0.2)",
@@ -66,7 +65,7 @@ export function LoginScreen() {
         <TouchableOpacity
           onPress={handleSignUp}
           className="mt-3 items-center justify-center py-1"
-          style={{ cursor: "pointer" } as any}
+          style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
           activeOpacity={0.7}
         >
           <View>

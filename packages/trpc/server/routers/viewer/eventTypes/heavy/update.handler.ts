@@ -240,7 +240,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }),
     description: newDescription,
     title: newTitle,
-    bookingFields,
+    bookingFields:
+      bookingFields === null ? Prisma.DbNull : (bookingFields as Prisma.InputJsonValue | undefined),
     maxActiveBookingsPerBooker,
     isRRWeightsEnabled,
     rrSegmentQueryValue:

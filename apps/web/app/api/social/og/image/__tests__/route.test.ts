@@ -6,14 +6,14 @@ import { getOGImageVersion } from "@calcom/lib/OgImages";
 import { GET } from "../route";
 
 vi.mock("next/og", () => ({
-  ImageResponse: vi.fn().mockImplementation(() => ({
+  ImageResponse: vi.fn().mockImplementation(function() { return {
     body: new ReadableStream({
       start(controller) {
         controller.enqueue(new Uint8Array([1, 2, 3, 4]));
         controller.close();
       },
     }),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/lib/OgImages", async (importOriginal) => {
@@ -102,8 +102,11 @@ describe("GET /api/social/og/image", () => {
   });
 
   describe("Server errors (500 Internal Server Error)", () => {
-    test("returns 500 when font loading fails", async () => {
-      vi.mocked(global.fetch).mockRejectedValue(new Error("Font loading failed"));
+    test("returns 500 when ImageResponse throws", async () => {
+      const { ImageResponse } = await import("next/og");
+      vi.mocked(ImageResponse).mockImplementation(function () {
+        throw new Error("ImageResponse failed");
+      });
 
       const request = createNextRequest(
         "http://example.com/api/social/og/image?type=meeting&title=Test&meetingProfileName=John"

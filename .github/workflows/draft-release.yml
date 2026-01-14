@@ -71,9 +71,11 @@ jobs:
           npx trigger.dev@latest deploy --skip-promotion
 
       - name: Bump version
+        env:
+          VERSION: ${{ inputs.next_version }}
         run: |
           cd apps/web
-          yarn version ${{ inputs.next_version }}
+          yarn version "$VERSION"
 
       # 3. Update .env.production files
       # We inject the Trigger version into the apps so they stay in sync
@@ -86,9 +88,11 @@ jobs:
 
       # 4. Commit everything together
       - name: Commit changes
+        env:
+          VERSION: ${{ inputs.next_version }}
         run: |
           git add .
-          git commit -m "chore: release v${{ inputs.next_version }}"
+          git commit -m "chore: release v$VERSION"
           git push
 
       - name: Draft release

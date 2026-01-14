@@ -44,8 +44,9 @@ export class StripeBillingService implements IBillingProviderService {
     successUrl: string;
     cancelUrl: string;
     metadata?: Record<string, string>;
+    allowPromotionCodes?: boolean;
   }) {
-    const { priceId, quantity, successUrl, cancelUrl, metadata } = args;
+    const { priceId, quantity, successUrl, cancelUrl, metadata, allowPromotionCodes = true } = args;
 
     const session = await this.stripe.checkout.sessions.create({
       line_items: [{ price: priceId, quantity }],
@@ -53,6 +54,7 @@ export class StripeBillingService implements IBillingProviderService {
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: metadata,
+      allow_promotion_codes: allowPromotionCodes,
       invoice_creation: {
         enabled: true,
       },
@@ -240,5 +242,54 @@ export class StripeBillingService implements IBillingProviderService {
     }
 
     return status || SubscriptionStatus.ACTIVE;
+  }
+
+  async createInvoiceItem(args: Parameters<IBillingProviderService["createInvoiceItem"]>[0]) {
+    const { customerId, amount, currency, description, metadata } = args;
+    const invoiceItem = await this.stripe.invoiceItems.create({
+      customer: customerId,
+      amount,
+      currency,
+      description,
+      metadata,
+    });
+
+    return { invoiceItemId: invoiceItem.id };
+  }
+
+  async createInvoice(args: Parameters<IBillingProviderService["createInvoice"]>[0]) {
+    const { customerId, autoAdvance, metadata } = args;
+    const invoice = await this.stripe.invoices.create({
+      customer: customerId,
+      auto_advance: autoAdvance,
+      metadata,
+    });
+
+    return { invoiceId: invoice.id };
+  }
+
+  async finalizeInvoice(invoiceId: string) {
+    await this.stripe.invoices.finalizeInvoice(invoiceId);
+  }
+
+  async getSubscription(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    if (!subscription) return null;
+
+    return {
+      items: subscription.items.data.map((item) => ({
+        id: item.id,
+        quantity: item.quantity || 0,
+        price: {
+          unit_amount: item.price.unit_amount,
+          recurring: item.price.recurring,
+        },
+      })),
+      customer: subscription.customer as string,
+      status: subscription.status,
+      current_period_start: subscription.current_period_start,
+      current_period_end: subscription.current_period_end,
+      trial_end: subscription.trial_end,
+    };
   }
 }

@@ -67,8 +67,7 @@ export const useTabsNavigations = ({
 
   const activeWebhooksNumber = eventType.webhooks.filter((webhook) => webhook.active).length;
 
-  const installedAppsNumber = eventTypeApps?.items.length || 0;
-
+  const installedAppsNumber = eventTypeApps?.items.filter((app) => app.isInstalled).length || 0;
   const enabledWorkflowsNumber = allActiveWorkflows ? allActiveWorkflows.length : 0;
 
   const eventTypeId = formMethods.getValues("id");
@@ -104,12 +103,11 @@ export const useTabsNavigations = ({
           ? formMethods.getValues("schedule") === null
             ? t("members_default_schedule")
             : isChildrenManagedEventType
-            ? `${
-                formMethods.getValues("scheduleName")
-                  ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                  : t(`default_schedule_name`)
+              ? `${formMethods.getValues("scheduleName")
+                ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
+                : t(`default_schedule_name`)
               }`
-            : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
+              : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
           : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`),
       "data-testid": "availability",
     });
@@ -119,9 +117,8 @@ export const useTabsNavigations = ({
         name: t("assignment"),
         href: `/event-types/${eventTypeId}?tabName=team`,
         icon: "users",
-        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
-          isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
-        }`,
+        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
+          }`,
         "data-testid": "assignment",
       });
     }

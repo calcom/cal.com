@@ -12,7 +12,7 @@ const getEnvNumber = (key: string, fallback: number): number => {
     return fallback;
   }
   const parsed = parseInt(value, 10);
-  return isNaN(parsed) ? fallback : parsed;
+  return Number.isNaN(parsed) ? fallback : parsed;
 };
 
 // Convert minutes to milliseconds

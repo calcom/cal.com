@@ -143,19 +143,14 @@ type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
 
 export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   const isLink = typeof href !== "undefined";
-  const ButtonOrLink = isLink ? "a" : "button";
-
-  const content = <ButtonOrLink {...props} />;
 
   if (isLink) {
-    return (
-      <Link href={href} legacyBehavior>
-        {content}
-      </Link>
-    );
+    // Strip ref from props when using Link (Link manages its own anchor element)
+    const { ref: _ref, ...linkProps } = props;
+    return <Link href={href} {...linkProps} />;
   }
 
-  return content;
+  return <button {...props} />;
 }
 
 export const DropdownItem = (props: DropdownItemProps) => {

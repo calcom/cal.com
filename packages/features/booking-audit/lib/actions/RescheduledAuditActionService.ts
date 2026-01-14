@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { StringChangeSchema } from "../common/changeSchemas";
+import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
 
@@ -11,8 +11,8 @@ import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams,
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-    startTime: StringChangeSchema,
-    endTime: StringChangeSchema,
+    startTime: NumberChangeSchema,
+    endTime: NumberChangeSchema,
     rescheduledToUid: StringChangeSchema,
 });
 
