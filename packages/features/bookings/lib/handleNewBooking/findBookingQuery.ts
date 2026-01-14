@@ -19,6 +19,7 @@ const _findBookingQuery = async (bookingId: number) => {
       metadata: true,
       user: {
         select: {
+          uuid: true,
           name: true,
           email: true,
           timeZone: true,
