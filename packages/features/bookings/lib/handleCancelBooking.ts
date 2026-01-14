@@ -573,21 +573,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       },
     });
 
-    await bookingEventHandlerService.onBookingCancelled({
-      bookingUid: updatedBooking.uid,
-      actor: actorToUse,
-      organizationId: orgId ?? null,
-      source: actionSource,
-      auditData: {
-        cancellationReason: cancellationReason ?? null,
-        cancelledBy: cancelledBy ?? null,
-        status: {
-          old: bookingToDelete.status,
-          new: BookingStatus.CANCELLED,
-        },
-      },
-    });
-
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {
         await processPaymentRefund({
@@ -728,7 +713,7 @@ type BookingCancelServiceDependencies = {
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) { }
+  constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {
