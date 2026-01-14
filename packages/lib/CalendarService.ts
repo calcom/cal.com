@@ -168,9 +168,17 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      // Add SCHEDULE-AGENT=CLIENT to prevent CalDAV servers from sending duplicate invitations
+      // This tells the CalDAV server that the client (Cal.com) is handling invitation emails
+      let modifiedICalString = iCalString;
+      modifiedICalString = modifiedICalString.replace(
+        /ATTENDEE;/g,
+        'ATTENDEE;SCHEDULE-AGENT=CLIENT;'
+      );
+
       const mainHostDestinationCalendar = event.destinationCalendar
         ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-          event.destinationCalendar[0]
+        event.destinationCalendar[0]
         : undefined;
 
       // We create the event directly on iCal
@@ -188,7 +196,7 @@ export default abstract class BaseCalendarService implements Calendar {
               },
               filename: `${uid}.ics`,
               // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              iCalString: modifiedICalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
           )
@@ -247,6 +255,16 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+
+      // Add SCHEDULE-AGENT=CLIENT to prevent CalDAV servers from sending duplicate invitations
+      let modifiedICalString = iCalString;
+      if (modifiedICalString) {
+        modifiedICalString = modifiedICalString.replace(
+          /ATTENDEE;/g,
+          'ATTENDEE;SCHEDULE-AGENT=CLIENT;'
+        );
+      }
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
@@ -645,9 +663,9 @@ export default abstract class BaseCalendarService implements Calendar {
         timeRange:
           dateFrom && dateTo
             ? {
-                start: dayjs(dateFrom).utc().format(TIMEZONE_FORMAT),
-                end: dayjs(dateTo).utc().format(TIMEZONE_FORMAT),
-              }
+              start: dayjs(dateFrom).utc().format(TIMEZONE_FORMAT),
+              end: dayjs(dateTo).utc().format(TIMEZONE_FORMAT),
+            }
             : undefined,
         headers: this.headers,
       });
