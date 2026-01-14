@@ -59,6 +59,7 @@ const mockTeamRepository = {
   getTeamWithBilling: vi.fn(),
   getAnnualTeamsWithSeatChanges: vi.fn(),
   updatePaidSeats: vi.fn(),
+  getTeamMemberCount: vi.fn(),
 };
 
 const mockProrationRepository = {
@@ -69,6 +70,7 @@ const mockProrationRepository = {
 
 const mockBillingService: IBillingProviderService = {
   createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
   finalizeInvoice: vi.fn().mockResolvedValue(undefined),
   getSubscription: vi.fn().mockResolvedValue({
@@ -108,6 +110,7 @@ vi.mock("../../../repository/proration/MonthlyProrationTeamRepository", () => ({
     getTeamWithBilling = mockTeamRepository.getTeamWithBilling;
     getAnnualTeamsWithSeatChanges = mockTeamRepository.getAnnualTeamsWithSeatChanges;
     updatePaidSeats = mockTeamRepository.updatePaidSeats;
+    getTeamMemberCount = mockTeamRepository.getTeamMemberCount;
   },
 }));
 
@@ -361,6 +364,7 @@ describe("MonthlyProrationService", () => {
         customerId: "cus_789",
         autoAdvance: true,
         collectionMethod: "send_invoice",
+        subscriptionId: "sub_789",
         metadata: {
           type: "monthly_proration",
           prorationId: "proration-789",
@@ -456,6 +460,7 @@ describe("MonthlyProrationService", () => {
       } as any);
 
       mockProrationRepository.updateProrationStatus.mockResolvedValueOnce(undefined);
+      mockTeamRepository.getTeamMemberCount.mockResolvedValueOnce(15);
 
       await service.handleProrationPaymentSuccess("proration-123");
 
@@ -465,9 +470,10 @@ describe("MonthlyProrationService", () => {
       expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
         subscriptionId: "sub_123",
         subscriptionItemId: "si_123",
-        membershipCount: 13,
+        membershipCount: 15,
         prorationBehavior: "none",
       });
+      expect(mockTeamRepository.updatePaidSeats).toHaveBeenCalledWith(1, false, "billing-123", 15);
     });
   });
 

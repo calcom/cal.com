@@ -10,6 +10,7 @@ import { MonthlyProrationService } from "../MonthlyProrationService";
 
 const mockBillingService: IBillingProviderService = {
   createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
   finalizeInvoice: vi.fn().mockResolvedValue(undefined),
   getSubscription: vi.fn().mockResolvedValue({
@@ -165,6 +166,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       customerId: billingCustomerId,
       autoAdvance: true,
       collectionMethod: "charge_automatically",
+      subscriptionId: proration!.subscriptionId,
       metadata: {
         type: "monthly_proration",
         prorationId: proration!.id,

@@ -247,12 +247,13 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async createInvoiceItem(args: Parameters<IBillingProviderService["createInvoiceItem"]>[0]) {
-    const { customerId, amount, currency, description, subscriptionId, metadata } = args;
+    const { customerId, amount, currency, description, subscriptionId, invoiceId, metadata } = args;
     const invoiceItem = await this.stripe.invoiceItems.create({
       customer: customerId,
       amount,
       currency,
       description,
+      invoice: invoiceId,
       subscription: subscriptionId,
       metadata,
     });
@@ -260,12 +261,28 @@ export class StripeBillingService implements IBillingProviderService {
     return { invoiceItemId: invoiceItem.id };
   }
 
+  async deleteInvoiceItem(invoiceItemId: string) {
+    await this.stripe.invoiceItems.del(invoiceItemId);
+  }
+
   async createInvoice(args: Parameters<IBillingProviderService["createInvoice"]>[0]) {
-    const { customerId, autoAdvance, collectionMethod, daysUntilDue, metadata } = args;
+    const {
+      customerId,
+      autoAdvance,
+      collectionMethod,
+      daysUntilDue,
+      pendingInvoiceItemsBehavior,
+      subscriptionId,
+      metadata,
+    } = args;
     const invoice = await this.stripe.invoices.create({
       customer: customerId,
       auto_advance: autoAdvance,
       collection_method: collectionMethod,
+      ...(pendingInvoiceItemsBehavior && !subscriptionId
+        ? { pending_invoice_items_behavior: pendingInvoiceItemsBehavior }
+        : {}),
+      subscription: subscriptionId,
       // days_until_due is required for send_invoice collection method
       ...(collectionMethod === "send_invoice" && { days_until_due: daysUntilDue ?? 30 }),
       metadata,

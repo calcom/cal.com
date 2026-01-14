@@ -198,6 +198,11 @@ export class MonthlyProrationService {
   }) {
     const amountInCents = Math.round(proration.proratedAmount);
 
+    const hasDefaultPaymentMethod = await this.billingService.hasDefaultPaymentMethod({
+      customerId: proration.customerId,
+      subscriptionId: proration.subscriptionId,
+    });
+
     const { invoiceItemId } = await this.billingService.createInvoiceItem({
       customerId: proration.customerId,
       amount: amountInCents,
@@ -214,33 +219,40 @@ export class MonthlyProrationService {
       },
     });
 
-    const hasDefaultPaymentMethod = await this.billingService.hasDefaultPaymentMethod({
-      customerId: proration.customerId,
-      subscriptionId: proration.subscriptionId,
-    });
+    let invoiceId: string | null = null;
 
-    const { invoiceId } = await this.billingService.createInvoice({
-      customerId: proration.customerId,
-      autoAdvance: true,
-      collectionMethod: hasDefaultPaymentMethod ? "charge_automatically" : "send_invoice",
-      metadata: {
-        type: "monthly_proration",
-        prorationId: proration.id,
-      },
-    });
+    try {
+      const invoice = await this.billingService.createInvoice({
+        customerId: proration.customerId,
+        autoAdvance: true,
+        collectionMethod: hasDefaultPaymentMethod ? "charge_automatically" : "send_invoice",
+        subscriptionId: proration.subscriptionId,
+        metadata: {
+          type: "monthly_proration",
+          prorationId: proration.id,
+        },
+      });
 
-    await this.billingService.finalizeInvoice(invoiceId);
+      invoiceId = invoice.invoiceId;
 
-    const updatedProration = await this.prorationRepository.updateProrationStatus(
-      proration.id,
-      hasDefaultPaymentMethod ? "INVOICE_CREATED" : "PENDING",
-      {
-        invoiceItemId,
-        invoiceId,
+      await this.billingService.finalizeInvoice(invoiceId);
+
+      return await this.prorationRepository.updateProrationStatus(
+        proration.id,
+        hasDefaultPaymentMethod ? "INVOICE_CREATED" : "PENDING",
+        {
+          invoiceItemId,
+          invoiceId,
+        }
+      );
+    } catch (error) {
+      if (invoiceId) {
+        await this.billingService.voidInvoice(invoiceId);
+      } else {
+        await this.billingService.deleteInvoiceItem(invoiceItemId);
       }
-    );
-
-    return updatedProration;
+      throw error;
+    }
   }
 
   async handleProrationPaymentSuccess(prorationId: string) {
@@ -253,21 +265,19 @@ export class MonthlyProrationService {
       chargedAt: new Date(),
     });
 
+    const currentMemberCount = await this.teamRepository.getTeamMemberCount(proration.teamId);
+    const seatsToApply = currentMemberCount ?? proration.seatsAtEnd;
+
     await this.updateSubscriptionQuantity(
       proration.subscriptionId,
       proration.subscriptionItemId,
-      proration.seatsAtEnd
+      seatsToApply
     );
 
     const billingId = proration.teamBillingId || proration.organizationBillingId;
     if (billingId) {
       const isOrganization = !!proration.organizationBillingId;
-      await this.teamRepository.updatePaidSeats(
-        proration.teamId,
-        isOrganization,
-        billingId,
-        proration.seatsAtEnd
-      );
+      await this.teamRepository.updatePaidSeats(proration.teamId, isOrganization, billingId, seatsToApply);
     }
   }
 

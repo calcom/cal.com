@@ -65,6 +65,7 @@ describe("TeamBillingService", () => {
       getSubscriptions: vi.fn(),
       updateCustomer: vi.fn(),
       createInvoiceItem: vi.fn(),
+      deleteInvoiceItem: vi.fn(),
       createInvoice: vi.fn(),
       finalizeInvoice: vi.fn(),
       getSubscription: vi.fn(),

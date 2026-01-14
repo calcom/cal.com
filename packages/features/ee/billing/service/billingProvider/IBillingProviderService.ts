@@ -74,14 +74,19 @@ export interface IBillingProviderService {
     currency: string;
     description: string;
     subscriptionId?: string;
+    invoiceId?: string;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceItemId: string }>;
+
+  deleteInvoiceItem(invoiceItemId: string): Promise<void>;
 
   createInvoice(args: {
     customerId: string;
     autoAdvance: boolean;
     collectionMethod?: "charge_automatically" | "send_invoice";
     daysUntilDue?: number;
+    pendingInvoiceItemsBehavior?: "exclude" | "include";
+    subscriptionId?: string;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceId: string }>;
 
