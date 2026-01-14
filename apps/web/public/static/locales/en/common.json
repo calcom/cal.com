@@ -4274,7 +4274,7 @@
   "booking_history_description": "View the history of actions performed on this booking",
   "enable_custom_host_locations": "Enable custom host locations",
   "enable_custom_host_locations_description": "Allow each host to have their own meeting location",
-  "locations_disabled_per_host_enabled": "Locations are controlled per-host when custom host locations is enabled",
+  "locations_disabled_per_host_enabled": "Locations are controlled per-host when custom host locations are enabled",
   "host_locations": "Host Locations",
   "select_location": "Select location",
   "host_locations_fallback_description": "When a host doesn't have the selected app installed, Cal Video will be used as a fallback",

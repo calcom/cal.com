@@ -3,19 +3,18 @@
     Don't modify this file manually.
 **/
 export const CalendarServiceMap =
-  // process.env.NEXT_PUBLIC_IS_E2E === "1"
-  //   ? {}
-  //   :
-  {
-    applecalendar: import("./applecalendar/lib/CalendarService"),
-    caldavcalendar: import("./caldavcalendar/lib/CalendarService"),
-    exchange2013calendar: import("./exchange2013calendar/lib/CalendarService"),
-    exchange2016calendar: import("./exchange2016calendar/lib/CalendarService"),
-    exchangecalendar: import("./exchangecalendar/lib/CalendarService"),
-    feishucalendar: import("./feishucalendar/lib/CalendarService"),
-    googlecalendar: import("./googlecalendar/lib/CalendarService"),
-    "ics-feedcalendar": import("./ics-feedcalendar/lib/CalendarService"),
-    larkcalendar: import("./larkcalendar/lib/CalendarService"),
-    office365calendar: import("./office365calendar/lib/CalendarService"),
-    zohocalendar: import("./zohocalendar/lib/CalendarService"),
-  };
+  process.env.NEXT_PUBLIC_IS_E2E === "1"
+    ? {}
+    : {
+        applecalendar: import("./applecalendar/lib/CalendarService"),
+        caldavcalendar: import("./caldavcalendar/lib/CalendarService"),
+        exchange2013calendar: import("./exchange2013calendar/lib/CalendarService"),
+        exchange2016calendar: import("./exchange2016calendar/lib/CalendarService"),
+        exchangecalendar: import("./exchangecalendar/lib/CalendarService"),
+        feishucalendar: import("./feishucalendar/lib/CalendarService"),
+        googlecalendar: import("./googlecalendar/lib/CalendarService"),
+        "ics-feedcalendar": import("./ics-feedcalendar/lib/CalendarService"),
+        larkcalendar: import("./larkcalendar/lib/CalendarService"),
+        office365calendar: import("./office365calendar/lib/CalendarService"),
+        zohocalendar: import("./zohocalendar/lib/CalendarService"),
+      };
