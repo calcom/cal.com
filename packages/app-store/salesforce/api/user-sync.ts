@@ -44,7 +44,7 @@ export default async function handler(
   });
 
   if (!credential) {
-    log.error(`New credential found for ${instanceUrl}`);
+    log.error(`No credential found for ${instanceUrl}`);
     return res.status(400).json({ error: "Invalid instance URL" });
   }
 
