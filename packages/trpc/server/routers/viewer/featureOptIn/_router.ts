@@ -70,7 +70,7 @@ export const featureOptInRouter = router({
     const parentOrg = await teamRepository.findParentOrganizationByTeamId(input.teamId);
     const parentOrgId = parentOrg?.id ?? null;
 
-    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId });
+    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId, scope: "team" });
   }),
 
   /**
@@ -79,7 +79,8 @@ export const featureOptInRouter = router({
    */
   listForOrganization: createOrgPbacProcedure("featureOptIn.read").query(async ({ ctx }) => {
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
-    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId });
+    // Pass scope: "org" to filter features that are scoped to organizations
+    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId, scope: "org" });
   }),
 
   /**
@@ -133,6 +134,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "team",
       });
 
       return { success: true };
@@ -162,6 +164,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "org",
       });
 
       return { success: true };
