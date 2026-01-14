@@ -47,6 +47,8 @@
     "format:check": "biome format .",
     "check": "biome check --write .",
     "check:ci": "biome ci .",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "prepare": "cd .. && husky companion/.husky"
   },
   "dependencies": {

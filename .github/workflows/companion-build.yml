@@ -32,6 +32,10 @@ jobs:
         working-directory: companion
         run: bun install --frozen-lockfile
 
+      - name: Run tests
+        working-directory: companion
+        run: bun test
+
       - name: Build Expo web app
         working-directory: companion
         env:
