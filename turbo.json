@@ -286,6 +286,9 @@
     "TRIGGER_SECRET_KEY",
     "TRIGGER_API_URL",
     "TRIGGER_DEV_PROJECT_REF",
+    "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+    "TRIGGER_DEV_VERCEL_PROJECT_ID",
+    "TRIGGER_DEV_VERCEL_TEAM_ID",
     "ENABLE_ASYNC_TASKER",
     "STRIPE_ORG_PRODUCT_ID",
     "GOOGLE_ADS_ENABLED",
@@ -393,8 +396,10 @@
         "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "BUILD_STANDALONE",
         "NEXT_PUBLIC_API_HITPAY_PRODUCTION",
-        "NEXT_PUBLIC_API_HITPAY_SANDBOX"
-      ]
+        "NEXT_PUBLIC_API_HITPAY_SANDBOX",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/web#dx": {
       "cache": false,
@@ -418,8 +423,11 @@
         "LOG_LEVEL",
         "NEXTAUTH_SECRET",
         "USE_POOL",
-        "LOGGER_BRIDGE_LOG_LEVEL"
-      ]
+        "LOGGER_BRIDGE_LOG_LEVEL",
+        "REDIS_URL",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/ai#build": {
       "env": [
@@ -499,9 +507,28 @@
       "env": ["TRIGGER_DEV_PROJECT_REF"],
       "cache": false
     },
-    "deploy:trigger": {
+    "deploy:trigger:prod": {
       "inputs": ["./.env"],
-      "env": ["TRIGGER_DEV_PROJECT_REF"],
+      "env": [
+        "TRIGGER_DEV_PROJECT_REF",
+        "TRIGGER_API_URL",
+        "TRIGGER_SECRET_KEY",
+        "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+        "TRIGGER_DEV_VERCEL_PROJECT_ID",
+        "TRIGGER_DEV_VERCEL_TEAM_ID"
+      ],
+      "cache": false
+    },
+    "deploy:trigger:staging": {
+      "inputs": ["./.env"],
+      "env": [
+        "TRIGGER_DEV_PROJECT_REF",
+        "TRIGGER_API_URL",
+        "TRIGGER_SECRET_KEY",
+        "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+        "TRIGGER_DEV_VERCEL_PROJECT_ID",
+        "TRIGGER_DEV_VERCEL_TEAM_ID"
+      ],
       "cache": false
     },
     "dx": {

@@ -11,7 +11,11 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
-import { HAS_OPT_IN_FEATURES } from "@calcom/features/feature-opt-in/config";
+import {
+  HAS_ORG_OPT_IN_FEATURES,
+  HAS_TEAM_OPT_IN_FEATURES,
+  HAS_USER_OPT_IN_FEATURES,
+} from "@calcom/features/feature-opt-in/config";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
@@ -74,7 +78,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/my-account/push-notifications",
           trackingMetadata: { section: "my_account", page: "push_notifications" },
         },
-        ...(HAS_OPT_IN_FEATURES
+        ...(HAS_USER_OPT_IN_FEATURES
           ? [
               {
                 name: "features",
@@ -200,7 +204,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           isExternalLink: true,
           trackingMetadata: { section: "organization", page: "admin_api" },
         },
-        ...(HAS_OPT_IN_FEATURES
+        ...(HAS_ORG_OPT_IN_FEATURES
           ? [
               {
                 name: "features",
@@ -656,7 +660,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
-                      {HAS_OPT_IN_FEATURES && (
+                      {HAS_TEAM_OPT_IN_FEATURES && (
                         <VerticalTabItem
                           name={t("features")}
                           href={`/settings/teams/${team.id}/features`}
