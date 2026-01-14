@@ -2,7 +2,7 @@ import type { TeamFeatures } from "@calcom/prisma/client";
 
 import type { IRedisService } from "../../redis/IRedisService";
 import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../config";
-import { teamFeaturesMapSchema, teamFeaturesSchema } from "./schemas";
+import { booleanSchema, teamFeaturesMapSchema, teamFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:team";
 const DEFAULT_TTL_MS: number = 5 * 60 * 1000; // 5 minutes
@@ -39,7 +39,7 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data as TeamFeaturesMap;
+    return parsed.data;
   }
 
   async setEnabledByTeamId(teamId: number, features: TeamFeaturesMap, ttlMs?: number): Promise<void> {
@@ -57,7 +57,7 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data as TeamFeatures;
+    return parsed.data;
   }
 
   async setByTeamIdAndFeatureId(
@@ -72,7 +72,15 @@ export class RedisTeamFeatureRepository implements IRedisTeamFeatureRepository {
   }
 
   async findAutoOptInByTeamId(teamId: number): Promise<boolean | null> {
-    return this.redisService.get<boolean>(KEY.autoOptInByTeamId(teamId));
+    const cached = await this.redisService.get<unknown>(KEY.autoOptInByTeamId(teamId));
+    if (cached === null) {
+      return null;
+    }
+    const parsed = booleanSchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data;
   }
 
   async setAutoOptInByTeamId(teamId: number, enabled: boolean, ttlMs?: number): Promise<void> {

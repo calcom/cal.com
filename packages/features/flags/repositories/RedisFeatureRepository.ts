@@ -37,7 +37,7 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data as Feature[];
+    return parsed.data;
   }
 
   async setAll(features: Feature[], ttlMs?: number): Promise<void> {
@@ -53,7 +53,7 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data as Feature;
+    return parsed.data;
   }
 
   async setBySlug(slug: FeatureId, feature: Feature, ttlMs?: number): Promise<void> {
@@ -69,7 +69,7 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data as AppFlags;
+    return parsed.data;
   }
 
   async setFeatureFlagMap(flags: AppFlags, ttlMs?: number): Promise<void> {

@@ -48,3 +48,5 @@ export const userFeaturesSchema = z.object({
 });
 
 export type CachedUserFeatures = z.infer<typeof userFeaturesSchema>;
+
+export const booleanSchema = z.boolean();

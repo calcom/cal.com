@@ -1,7 +1,7 @@
 import type { UserFeatures } from "@calcom/prisma/client";
 
 import type { IRedisService } from "../../redis/IRedisService";
-import { userFeaturesSchema } from "./schemas";
+import { booleanSchema, userFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:user";
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -35,7 +35,7 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
     if (!parsed.success) {
       return null;
     }
-    return parsed.data as UserFeatures;
+    return parsed.data;
   }
 
   async setByUserIdAndFeatureId(
@@ -50,7 +50,15 @@ export class RedisUserFeatureRepository implements IRedisUserFeatureRepository {
   }
 
   async findAutoOptInByUserId(userId: number): Promise<boolean | null> {
-    return this.redisService.get<boolean>(KEY.autoOptInByUserId(userId));
+    const cached = await this.redisService.get<unknown>(KEY.autoOptInByUserId(userId));
+    if (cached === null) {
+      return null;
+    }
+    const parsed = booleanSchema.safeParse(cached);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data;
   }
 
   async setAutoOptInByUserId(userId: number, enabled: boolean, ttlMs?: number): Promise<void> {
