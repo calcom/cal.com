@@ -2251,6 +2251,7 @@ export class BookingRepository implements IBookingRepository {
         ],
       },
       select: {
+        uid: true,
         startTime: true,
         endTime: true,
         title: true,
