@@ -13,17 +13,21 @@ export interface IPlatformOrganizationBillingTaskServiceDependencies {
 
 export class PlatformOrganizationBillingTaskService implements PlatformOrganizationBillingTasks {
   constructor(
-    public readonly dependencies: { logger: ITaskerDependencies["logger"] } & IPlatformOrganizationBillingTaskServiceDependencies
+    public readonly dependencies: {
+      logger: ITaskerDependencies["logger"];
+    } & IPlatformOrganizationBillingTaskServiceDependencies
   ) {}
 
-  async incrementUsage(payload: Parameters<PlatformOrganizationBillingTasks["incrementUsage"]>[0]): Promise<void> {
+  async incrementUsage(
+    payload: Parameters<PlatformOrganizationBillingTasks["incrementUsage"]>[0]
+  ): Promise<void> {
     const { userId } = payload;
     const { organizationRepository, platformBillingRepository, billingProviderService, logger } =
       this.dependencies;
 
     const team = await organizationRepository.findPlatformOrgByUserId(userId);
-    const teamId = team.id;
-    if (!team.id) {
+    const teamId = team?.id;
+    if (!teamId) {
       logger.error(`User (${userId}) is not part of the platform organization (${teamId})`, {
         teamId,
         userId,
