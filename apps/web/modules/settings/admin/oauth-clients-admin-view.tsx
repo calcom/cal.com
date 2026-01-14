@@ -33,7 +33,7 @@ export default function OAuthClientsAdminView() {
     status: "APPROVED",
   });
 
-  const addMutation = trpc.viewer.oAuth.createClient.useMutation({
+  const createMutation = trpc.viewer.oAuth.createClient.useMutation({
     onSuccess: async (data) => {
       setCreatedClient({
         clientId: data.clientId,
@@ -77,7 +77,7 @@ export default function OAuthClientsAdminView() {
   });
 
   const handleAddClient = (values: OAuthClientCreateFormValues) => {
-    addMutation.mutate({
+    createMutation.mutate({
       name: values.name,
       purpose: values.purpose,
       redirectUri: values.redirectUri,
@@ -166,7 +166,7 @@ export default function OAuthClientsAdminView() {
       <AdminOAuthClientCreateFlow
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
-        isSubmitting={addMutation.isPending}
+        isSubmitting={createMutation.isPending}
         onSubmit={handleAddClient}
         createdClient={createdClient}
         onClose={handleCloseDialog}

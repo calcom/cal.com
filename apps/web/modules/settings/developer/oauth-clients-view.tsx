@@ -24,7 +24,7 @@ const OAuthClientsView = () => {
 
   const { data: oAuthClients, isLoading } = trpc.viewer.oAuth.listUserClients.useQuery();
 
-  const submitMutation = trpc.viewer.oAuth.submitClientForReview.useMutation({
+  const submitForReviewMutation = trpc.viewer.oAuth.submitClientForReview.useMutation({
     onSuccess: async (data) => {
       setSubmittedClient({
         clientId: data.clientId,
@@ -80,7 +80,7 @@ const OAuthClientsView = () => {
   });
 
   const handleSubmit = (values: OAuthClientCreateFormValues) => {
-    submitMutation.mutate({
+    submitForReviewMutation.mutate({
       name: values.name,
       purpose: values.purpose,
       redirectUri: values.redirectUri,
@@ -139,7 +139,7 @@ const OAuthClientsView = () => {
       <OAuthClientCreateFlow
         open={showDialog}
         onOpenChange={setShowDialog}
-        isSubmitting={submitMutation.isPending}
+        isSubmitting={submitForReviewMutation.isPending}
         onSubmit={handleSubmit}
         createdClient={submittedClient}
         onClose={handleCloseCreateDialog}
