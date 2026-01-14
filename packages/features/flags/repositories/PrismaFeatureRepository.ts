@@ -1,4 +1,4 @@
-import type { PrismaClient, Feature } from "@calcom/prisma/client";
+import type { Feature, PrismaClient } from "@calcom/prisma/client";
 
 import type { AppFlags, FeatureId } from "../config";
 
@@ -25,12 +25,18 @@ export class PrismaFeatureRepository implements IPrismaFeatureRepository {
   }
 
   async checkIfEnabledGlobally(slug: FeatureId): Promise<boolean> {
-    const feature = await this.findBySlug(slug);
-    return Boolean(feature && feature.enabled);
+    const feature = await this.prismaClient.feature.findUnique({
+      where: { slug },
+      select: { enabled: true },
+    });
+    return Boolean(feature?.enabled);
   }
 
   async getFeatureFlagMap(): Promise<AppFlags> {
-    const flags = await this.findAll();
+    const flags = await this.prismaClient.feature.findMany({
+      orderBy: { slug: "asc" },
+      select: { slug: true, enabled: true },
+    });
     return flags.reduce((acc, flag) => {
       acc[flag.slug as FeatureId] = flag.enabled;
       return acc;
