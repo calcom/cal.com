@@ -63,7 +63,9 @@ export function getTrackingFromCookies(
 
   if (query && Object.keys(query).length > 0) {
     utmData = parseUtm(query);
-  } else if (cookies?.utm_data) {
+  }
+
+  if (!utmData && cookies?.utm_data) {
     try {
       utmData = parseUtm(JSON.parse(cookies.utm_data));
     } catch {
