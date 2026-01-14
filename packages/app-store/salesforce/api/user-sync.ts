@@ -53,7 +53,7 @@ export default async function handler(
     return res.status(400).json({ error: "Invalid credential ID" });
   }
 
-  const salesforceCredentialId = credential?.key?.id;
+  const salesforceCredentialId = (credential.key as { id?: string } | null)?.id;
 
   if (!salesforceCredentialId) {
     log.error(`Missing SFDC id for credential ${credential.id}`);
