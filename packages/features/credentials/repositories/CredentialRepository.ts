@@ -330,7 +330,7 @@ export class CredentialRepository {
     });
   }
 
-  async findByAppIdAndKeyValue<T>({
+  async findByAppIdAndKeyValue({
     appId,
     keyPath,
     value,
@@ -338,7 +338,7 @@ export class CredentialRepository {
   }: {
     appId: string;
     keyPath: string[];
-    value: T;
+    value: Prisma.InputJsonValue;
     keyFields?: string[];
   }) {
     const credential = await prisma.credential.findFirst({
