@@ -178,18 +178,23 @@ function triggersReapprovalForOwnerEdit(params: {
   if (isAdmin) return false;
   if (!isOwner) return false;
 
-  if (proposedUpdates.name !== undefined && proposedUpdates.name !== currentClient.name) return true;
+  if (proposedUpdates.name !== undefined && proposedUpdates.name !== currentClient.name) {
+    return true;
+  }
+
   if (
     proposedUpdates.logo !== undefined &&
     toNullableString(proposedUpdates.logo) !== toNullableString(currentClient.logo)
-  )
+  ) {
     return true;
+  }
+  
   if (
     proposedUpdates.websiteUrl !== undefined &&
     toNullableString(proposedUpdates.websiteUrl) !== toNullableString(currentClient.websiteUrl)
-  )
+  ) {
     return true;
-  if (proposedUpdates.redirectUri !== undefined && proposedUpdates.redirectUri !== currentClient.redirectUri) return true;
+  }
 
   return false;
 }

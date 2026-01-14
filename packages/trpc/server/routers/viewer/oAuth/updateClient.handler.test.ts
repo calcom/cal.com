@@ -429,4 +429,60 @@ describe("updateClientHandler", () => {
     expect(mocks.sendOAuthClientApprovedNotification).not.toHaveBeenCalled();
     expect(mocks.sendOAuthClientRejectedNotification).not.toHaveBeenCalled();
   });
+
+  it("does not set status to PENDING when an owner updates redirectUri", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      status: "APPROVED",
+      user: null,
+    });
+
+    const updatedRedirectUri = "https://example.com/new-callback";
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "APPROVED",
+      redirectUri: updatedRedirectUri,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        redirectUri: updatedRedirectUri,
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          redirectUri: updatedRedirectUri,
+        },
+      })
+    );
+  });
 });
