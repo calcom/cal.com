@@ -442,8 +442,8 @@ export type BookerStore = {
   /**
    * Whether the two-step slot selection modal/dialog is visible
    */
-  isEnableTwoStepSlotSelectionVisible: boolean;
-  setIsEnableTwoStepSlotSelectionVisible: (visible: boolean) => void;
+  isSlotSelectionModalVisible: boolean;
+  setIsSlotSelectionModalVisible: (visible: boolean) => void;
 };
 
 /**
@@ -754,11 +754,11 @@ export const createBookerStore = () =>
     isPlatform: false,
     allowUpdatingUrlParams: true,
     defaultPhoneCountry: null,
-    isEnableTwoStepSlotSelectionVisible: false,
-    setIsEnableTwoStepSlotSelectionVisible: (
-      isEnableTwoStepSlotSelectionVisible: boolean
+    isSlotSelectionModalVisible: false,
+    setIsSlotSelectionModalVisible: (
+      isSlotSelectionModalVisible: boolean
     ) => {
-      set({ isEnableTwoStepSlotSelectionVisible });
+      set({ isSlotSelectionModalVisible });
     },
   }));
 

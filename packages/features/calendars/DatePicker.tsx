@@ -17,7 +17,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
-import { useEnableTwoStepSlotSelection } from "@calcom/features/bookings/Booker/components/hooks/useEnableTwoStepSlotSelection";
+import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -180,7 +180,7 @@ const Days = ({
   periodData: PeriodData;
   isCompact?: boolean;
 }) => {
-  const enableTwoStepSlotSelection = useEnableTwoStepSlotSelection();
+  const enableTwoStepSlotSelection = useSlotsViewOnSmallScreen();
   const layout = useBookerStoreContext((state) => state.layout);
   const isMobile = layout === "mobile";
 
@@ -306,7 +306,7 @@ const Days = ({
 
   const useHandleInitialDateSelection = () => {
     // Don't auto-select date when two step slot selection is enabled on mobile
-    if (enableTwoStepSlotSelection && isMobile) {
+    if (enableTwoStepSlotSelection) {
       return;
     }
 

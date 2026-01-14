@@ -11,7 +11,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import { useEnableTwoStepSlotSelection } from "@calcom/features/bookings/Booker/components/hooks/useEnableTwoStepSlotSelection";
+import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
 
 import { extraDaysConfig } from "../../config";
 import type { BookerLayout } from "../../types";
@@ -102,7 +102,7 @@ export const useBookerLayout = (
     ? hideEventTypeDetailsParam === "true"
     : false;
 
-  const enableTwoStepSlotSelection = useEnableTwoStepSlotSelection();
+  const enableTwoStepSlotSelection = useSlotsViewOnSmallScreen();
 
   return {
     shouldShowFormInDialog,

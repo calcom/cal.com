@@ -1,10 +1,13 @@
 import { useIsEmbed, useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
-export const useEnableTwoStepSlotSelection = () => {
+export const useSlotsViewOnSmallScreen = () => {
   const isEmbed = useIsEmbed();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   const embedUiConfig = useEmbedUiConfig();
 
-  if (!isEmbed) return false;
+  if (!isEmbed || !isMobile) return false;
 
   return embedUiConfig.enableTwoStepSlotSelection ?? false;
 };
