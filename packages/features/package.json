@@ -10,6 +10,7 @@
     "lint": "biome lint .",
     "dev:trigger": "npx trigger.dev@latest dev --analyze",
     "deploy:trigger:prod": "npx trigger.dev@latest deploy --skip-promotion",
+    "deploy:trigger:ci": "trigger deploy --config ./trigger.config.ts --skip-promotion",
     "deploy:trigger:staging": "npx trigger.dev@latest deploy --env staging --skip-promotion"
   },
   "dependencies": {
@@ -21,7 +22,7 @@
     "@evyweb/ioctopus": "1.2.0",
     "@tanstack/react-table": "8.20.6",
     "@tanstack/react-virtual": "3.10.9",
-    "@trigger.dev/sdk": "4.1.2",
+    "@trigger.dev/sdk": "4.3.2",
     "@vercel/functions": "1.4.0",
     "city-timezones": "1.2.1",
     "class-variance-authority": "0.7.1",
@@ -48,6 +49,6 @@
     "@calcom/testing": "workspace:*",
     "@testing-library/react-hooks": "8.0.1",
     "@types/web-push": "3.6.3",
-    "trigger.dev": "4.3.1"
+    "trigger.dev": "4.3.2"
   }
 }
