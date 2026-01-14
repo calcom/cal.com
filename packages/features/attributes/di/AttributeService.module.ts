@@ -1,6 +1,10 @@
-import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import {
+  bindModuleToClassOnToken,
+  createModule,
+  type ModuleLoader,
+} from "@calcom/features/di/di";
 
-import { AttributeService } from "../services/attributeService";
+import { AttributeService } from "../services/AttributeService";
 import { moduleLoader as attributeToUserRepositoryModuleLoader } from "./AttributeToUserRepository.module";
 import { ATTRIBUTE_DI_TOKENS } from "./tokens";
 

@@ -9,7 +9,7 @@ import {
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import { getAttributeService } from "@calcom/features/attributes/di/AttributeService.container";
-import type { UserAttribute } from "@calcom/features/attributes/services/attributeService";
+import type { UserAttribute } from "@calcom/features/attributes/services/AttributeService";
 
 interface IAttributeSyncRuleServiceDeps {
   membershipRepository: MembershipRepository;
