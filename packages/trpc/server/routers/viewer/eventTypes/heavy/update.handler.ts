@@ -1,5 +1,3 @@
-import type { NextApiResponse, GetServerSidePropsContext } from "next";
-
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
@@ -21,20 +19,22 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import {
-  WorkflowTriggerEvents,
-  SchedulingType,
+  CreationSource,
   EventTypeAutoTranslatedField,
+  MembershipRole,
   RRTimestampBasis,
+  SchedulingType,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import {
-  ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
+  ensureUniqueBookingFields,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
@@ -472,8 +472,48 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (teamId && hosts) {
+    const invites = hosts.filter((host) => host.userId === 0 && host.email);
+
+    if (invites.length > 0) {
+      const { default: inviteMemberHandler } = await import("../../teams/inviteMember/inviteMember.handler");
+      const emailsToInvite = Array.from(new Set(invites.map((h) => h.email!).filter(Boolean)));
+
+      if (emailsToInvite.length) {
+        await inviteMemberHandler({
+          ctx: ctx as unknown as { user: NonNullable<TrpcSessionUser> },
+          input: {
+            teamId,
+            usernameOrEmail: emailsToInvite,
+            role: MembershipRole.MEMBER,
+            language: ctx.user.locale ?? "en",
+            creationSource: CreationSource.WEBAPP,
+          },
+        });
+
+        const invitedUsers = await ctx.prisma.user.findMany({
+          where: { email: { in: emailsToInvite } },
+          select: { id: true, email: true },
+        });
+
+        hosts.forEach((host) => {
+          if (host.userId === 0 && host.email) {
+            const user = invitedUsers.find((u) => u.email === host.email);
+            if (user) {
+              host.userId = user.id;
+            }
+          }
+        });
+      }
+    }
+
     // check if all hosts can be assigned (memberships that have accepted invite)
-    const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+    // We allow pending members too since we might have just invited them
+    const teamMembers = await ctx.prisma.membership.findMany({
+      where: { teamId },
+      select: { userId: true },
+    });
+    const teamMemberIds = teamMembers.map((m) => m.userId);
+
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
     // we let this pass through on organization sub-teams
@@ -499,10 +539,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       create: newHosts.map((host) => {
         return {
-          ...host,
+          // Explicitly map allowed fields, ignoring 'email' or other unexpected properties
+          userId: host.userId,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          scheduleId: host.scheduleId,
           groupId: host.groupId,
         };
       }),
@@ -601,7 +643,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
     // Make sure the secondary email id belongs to the current user and its a verified one
-    if (secondaryEmail && secondaryEmail.emailVerified) {
+    if (secondaryEmail?.emailVerified) {
       data.secondaryEmail = {
         connect: {
           id: secondaryEmailId,

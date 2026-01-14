@@ -1,26 +1,23 @@
-import { useMemo, type ComponentProps, type Dispatch, type SetStateAction } from "react";
-import { useFormContext } from "react-hook-form";
-import { Controller } from "react-hook-form";
-import type { Options } from "react-select";
-
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
-import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { Segment } from "@calcom/features/Segment";
 import type {
   FormValues,
   Host,
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
+import { Segment } from "@calcom/features/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { Label } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, SettingsToggle } from "@calcom/ui/components/form";
+import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { Options } from "react-select";
+import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
-import CheckedTeamSelect from "./CheckedTeamSelect";
 import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
+import CheckedTeamSelect from "./CheckedTeamSelect";
 
 interface IUserToValue {
   id: number | null;
@@ -75,38 +72,65 @@ const CheckedHostField = ({
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
+  const { t } = useLocale();
   return (
     <div className="flex flex-col rounded-md">
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          isOptionDisabled={(option) => {
+            const userId = parseInt(option.value, 10);
+            if (Number.isNaN(userId)) {
+              // It's an email, check if it's already in value (hosts)
+              return !!value.find((host) => host.email === option.value);
+            }
+            return !!value.find((host) => host.userId.toString() === option.value);
+          }}
           onChange={(options) => {
-            onChange &&
-              onChange(
-                options.map((option) => ({
+            onChange?.(
+              options.map((option) => {
+                const userId = parseInt(option.value, 10);
+                const isEmail = Number.isNaN(userId);
+
+                return {
                   isFixed,
-                  userId: parseInt(option.value, 10),
+                  userId: isEmail ? 0 : userId, // 0 for pending invites
+                  email: isEmail ? option.value : undefined,
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
-                }))
-              );
+                };
+              })
+            );
           }}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
               const option = options.find((member) => member.value === host.userId.toString());
-              if (!option) return acc;
 
-              acc.push({
-                ...option,
-                priority: host.priority ?? 2,
-                isFixed,
-                weight: host.weight ?? 100,
-                groupId: host.groupId,
-              });
+              if (option) {
+                acc.push({
+                  ...option,
+                  priority: host.priority ?? 2,
+                  isFixed,
+                  weight: host.weight ?? 100,
+                  groupId: host.groupId,
+                });
+                return acc;
+              }
+
+              if (host.userId === 0 && host.email) {
+                acc.push({
+                  label: `${host.email} (${t("invite")})`,
+                  value: host.email,
+                  avatar: "",
+                  priority: host.priority ?? 2,
+                  isFixed,
+                  weight: host.weight ?? 100,
+                  groupId: host.groupId,
+                });
+              }
 
               return acc;
             }, [] as CheckedSelectOption[])}
@@ -193,7 +217,7 @@ export type AddMembersWithSwitchProps = {
   customClassNames?: AddMembersWithSwitchCustomClassNames;
 };
 
-const enum AssignmentState {
+enum AssignmentState {
   TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE = "TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE",
   TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE = "TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE",
   ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE = "ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE",
