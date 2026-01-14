@@ -74,6 +74,7 @@
     "expo-haptics": "15.0.9-canary-20251230-fc48ddc",
     "expo-image": "3.1.0-canary-20251230-fc48ddc",
     "expo-linking": "8.0.12-canary-20251230-fc48ddc",
+    "expo-notifications": "1.0.0-canary-20251230-fc48ddc",
     "expo-router": "7.0.0-canary-20251230-fc48ddc",
     "expo-secure-store": "15.0.9-canary-20251230-fc48ddc",
     "expo-splash-screen": "31.0.14-canary-20251230-fc48ddc",

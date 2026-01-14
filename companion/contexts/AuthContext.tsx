@@ -8,6 +8,7 @@ import {
 import type { UserProfile } from "@/services/types/users.types";
 import { WebAuthService } from "@/services/webAuth";
 import { secureStorage } from "@/utils/storage";
+import { cancelAllBookingReminders, getBookingRemindersUserKey } from "@/services/bookingReminders";
 
 /**
  * Simplified user info stored in auth context
@@ -142,6 +143,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(async () => {
     try {
+      const remindersUserKey = getBookingRemindersUserKey(userInfo);
+      if (remindersUserKey) {
+        try {
+          await cancelAllBookingReminders(remindersUserKey);
+        } catch (error) {
+          const message = getErrorMessage(error);
+          console.warn("Failed to cancel booking reminders on logout", message);
+          if (__DEV__) {
+            console.debug("[AuthContext] cancel reminders failed", {
+              message,
+              stack: getErrorStack(error),
+            });
+          }
+        }
+      }
+
       await clearAuth();
       resetAuthState();
     } catch (error) {
@@ -151,7 +168,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.debug("[AuthContext] logout failed", { message, stack: getErrorStack(error) });
       }
     }
-  }, [clearAuth, resetAuthState]);
+  }, [clearAuth, resetAuthState, userInfo]);
 
   // Handle OAuth authentication
   const handleOAuthAuth = useCallback(
