@@ -12,7 +12,7 @@ import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { OAuthClientDetails } from "./OAuthClientDetailsDialog";
+import type { OAuthClientDetails } from "../view/OAuthClientDetailsDialog";
 
 export function OAuthClientPreviewDialog({
   open,

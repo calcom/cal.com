@@ -7,11 +7,12 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import type { OAuthClientCreateFormValues } from "../oauth/OAuthClientCreateModal";
-import { OAuthClientCreateFlow } from "../oauth/OAuthClientCreateFlow";
-import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/OAuthClientDetailsDialog";
+import type { OAuthClientCreateFormValues } from "../oauth/create/OAuthClientCreateModal";
+import { OAuthClientCreateDialog } from "../oauth/create/OAuthClientCreateModal";
+import { OAuthClientPreviewDialog } from "../oauth/create/OAuthClientPreviewDialog";
+import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
-import { NewOAuthClientButton } from "../oauth/NewOAuthClientButton";
+import { NewOAuthClientButton } from "../oauth/create/NewOAuthClientButton";
 
 import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
@@ -136,14 +137,24 @@ const OAuthClientsView = () => {
         />
       )}
 
-      <OAuthClientCreateFlow
-        open={showDialog}
-        onOpenChange={setShowDialog}
-        isSubmitting={submitForReviewMutation.isPending}
-        onSubmit={handleSubmit}
-        createdClient={submittedClient}
-        onClose={handleCloseCreateDialog}
-      />
+      {submittedClient ? (
+        <OAuthClientPreviewDialog
+          open={showDialog}
+          onOpenChange={setShowDialog}
+          title={t("oauth_client_submitted")}
+          description={t("oauth_client_submitted_description")}
+          client={submittedClient}
+          onClose={handleCloseCreateDialog}
+        />
+      ) : (
+        <OAuthClientCreateDialog
+          open={showDialog}
+          onOpenChange={setShowDialog}
+          isSubmitting={submitForReviewMutation.isPending}
+          onSubmit={handleSubmit}
+          onClose={handleCloseCreateDialog}
+        />
+      )}
 
       <OAuthClientDetailsDialog
         open={Boolean(selectedClient)}

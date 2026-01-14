@@ -8,7 +8,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { OAuthClientDetails } from "./OAuthClientDetailsDialog";
+import type { OAuthClientDetails } from "./view/OAuthClientDetailsDialog";
 
 const getStatusBadge = (status: string, t: (key: string) => string): ReactNode => {
   switch (status) {

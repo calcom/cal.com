@@ -14,7 +14,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Label, TextArea } from "@calcom/ui/components/form";
 
-import type { OAuthClientCreateFormValues } from "./OAuthClientCreateModal";
+import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
 export type OAuthClientDetails = {

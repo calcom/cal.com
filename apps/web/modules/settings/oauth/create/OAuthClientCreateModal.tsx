@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { OAuthClientFormFields } from "./OAuthClientFormFields";
+import { OAuthClientFormFields } from "../view/OAuthClientFormFields";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Button } from "@calcom/ui/components/button";
