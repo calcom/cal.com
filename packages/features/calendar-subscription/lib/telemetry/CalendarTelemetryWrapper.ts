@@ -154,10 +154,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       },
     });
 
-    metrics.distribution(
-      "calendar.getAvailabilityWithTimeZones.duration_ms",
-      totalFetchDurationMs,
-      {
+    metrics.distribution("calendar.getAvailabilityWithTimeZones.duration_ms", totalFetchDurationMs, {
         attributes: {
           cache: this.deps.cacheEnabled ? "on" : "off",
           calendarType: this.deps.calendarType,
@@ -166,10 +163,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       }
     );
 
-    metrics.distribution(
-      "calendar.getAvailabilityWithTimeZones.events_count",
-      results?.length ?? 0,
-      {
+    metrics.distribution("calendar.getAvailabilityWithTimeZones.events_count", results?.length ?? 0, {
         attributes: {
           cache: this.deps.cacheEnabled ? "on" : "off",
           calendarType: this.deps.calendarType,
