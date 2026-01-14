@@ -44,8 +44,7 @@ export class FloatingButton extends HTMLElement {
   // Button added here triggers the modal on click. So, it has to have the same data attributes as the modal target as well
   dataset!: DOMStringMap & FloatingButtonDataset & ModalTargetDatasetProps;
   buttonWrapperStyleDisplay!: HTMLElement["style"]["display"];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+
   static get observedAttributes() {
     return dataAttributes;
   }

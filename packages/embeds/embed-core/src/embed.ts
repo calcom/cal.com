@@ -266,8 +266,7 @@ export class Cal {
       error(`Instruction ${method} not FOUND`);
     }
     try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore There can be any method which can have any number of arguments.
+      // @ts-expect-error There can be any method which can have any number of arguments.
       this.api[method](...args);
     } catch (e) {
       // Instead of throwing error, log and move forward in the queue
@@ -283,8 +282,7 @@ export class Cal {
 
     queue.splice(0);
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    /** @ts-ignore */ // We changed the definition of push here.
+    // @ts-expect-error We changed the definition of push here.
     queue.push = (instruction) => {
       this.processInstruction(instruction);
     };
@@ -363,8 +361,7 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    // @ts-ignore TS2802: URLSearchParams iteration requires downlevelIteration
     for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }
@@ -1565,8 +1562,7 @@ window.addEventListener("message", (e) => {
   if (!actionManager) {
     throw new Error(`Unhandled Action ${parsedAction}`);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   actionManager.fire(parsedAction.type, detail.data);
 });
 
