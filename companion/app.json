@@ -5,7 +5,7 @@
     "scheme": "expo-wxt-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/cal-icon-transparent.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -36,7 +36,7 @@
       "usesCleartextTraffic": false
     },
     "notification": {
-      "icon": "./assets/cal-icon-transparent.png",
+      "icon": "./assets/icon.png",
       "color": "#ffffff"
     },
     "web": {
@@ -65,7 +65,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/cal-icon-transparent.png",
+          "icon": "./assets/icon.png",
           "color": "#ffffff"
         }
       ]
