@@ -82,13 +82,7 @@ export default async function handler(
     return res.status(400).json({ error: "Invalid user" });
   }
 
-  // TODO: If introducing mutliple orgs for a single user, then we need to handle that here
-  if (user.profiles.length === 0) {
-    log.error(`User ${user.id} is not a part of an organization`);
-    return res.status(400).json({ error: "Invalid user" });
-  }
-
-  const organizationId = user.profiles[0].organizationId;
+  const organizationId = credential.teamId;
 
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
