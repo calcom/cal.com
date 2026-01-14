@@ -135,4 +135,80 @@ describe("OrganizationsDelegationCredentialService", () => {
       expect(mockQueue.add).not.toHaveBeenCalled();
     });
   });
+
+  describe("ensureDefaultCalendarsForUser", () => {
+    const userId = 123;
+    const userEmail = "user@example.com";
+
+    beforeEach(() => {
+      (mockRepository.findEnabledByOrgIdAndDomain as jest.Mock) = jest.fn();
+      jest.spyOn(Logger.prototype, "warn").mockImplementation();
+    });
+
+    it("adds calendar job when delegation credential exists for user domain", async () => {
+      (mockRepository.findEnabledByOrgIdAndDomain as jest.Mock).mockResolvedValue({
+        id: "cred-1",
+        domain: "@example.com",
+        enabled: true,
+      });
+
+      await service.ensureDefaultCalendarsForUser(orgId, userId, userEmail);
+
+      expect(mockRepository.findEnabledByOrgIdAndDomain).toHaveBeenCalledWith(orgId, "@example.com");
+      expect(mockQueue.add).toHaveBeenCalledWith(
+        DEFAULT_CALENDARS_JOB,
+        { userId },
+        { jobId: `${DEFAULT_CALENDARS_JOB}_${userId}`, removeOnComplete: true }
+      );
+    });
+
+    it("does not add job when no delegation credential exists for domain", async () => {
+      (mockRepository.findEnabledByOrgIdAndDomain as jest.Mock).mockResolvedValue(null);
+
+      await service.ensureDefaultCalendarsForUser(orgId, userId, userEmail);
+
+      expect(mockRepository.findEnabledByOrgIdAndDomain).toHaveBeenCalledWith(orgId, "@example.com");
+      expect(mockQueue.add).not.toHaveBeenCalled();
+    });
+
+    it("returns early and logs warning for invalid email without @ symbol", async () => {
+      const warnSpy = jest.spyOn(Logger.prototype, "warn");
+
+      await service.ensureDefaultCalendarsForUser(orgId, userId, "invalidemail");
+
+      expect(warnSpy).toHaveBeenCalledWith(`Invalid email format for user ${userId}: missing domain`);
+      expect(mockRepository.findEnabledByOrgIdAndDomain).not.toHaveBeenCalled();
+      expect(mockQueue.add).not.toHaveBeenCalled();
+    });
+
+    it("returns early for email with @ but no domain part", async () => {
+      const warnSpy = jest.spyOn(Logger.prototype, "warn");
+
+      await service.ensureDefaultCalendarsForUser(orgId, userId, "user@");
+
+      expect(warnSpy).toHaveBeenCalledWith(`Invalid email format for user ${userId}: missing domain`);
+      expect(mockRepository.findEnabledByOrgIdAndDomain).not.toHaveBeenCalled();
+      expect(mockQueue.add).not.toHaveBeenCalled();
+    });
+
+    it("does not throw when repository fails", async () => {
+      (mockRepository.findEnabledByOrgIdAndDomain as jest.Mock).mockRejectedValue(
+        new Error("Database error")
+      );
+
+      await expect(service.ensureDefaultCalendarsForUser(orgId, userId, userEmail)).resolves.toBeUndefined();
+      expect(mockQueue.add).not.toHaveBeenCalled();
+    });
+
+    it("does not throw when queue.add fails", async () => {
+      (mockRepository.findEnabledByOrgIdAndDomain as jest.Mock).mockResolvedValue({
+        id: "cred-1",
+        domain: "@example.com",
+        enabled: true,
+      });
+      mockQueue.add.mockRejectedValue(new Error("Queue error"));
+
+      await expect(service.ensureDefaultCalendarsForUser(orgId, userId, userEmail)).resolves.toBeUndefined();
+    });
+  });
 });
