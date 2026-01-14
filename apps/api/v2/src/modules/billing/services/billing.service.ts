@@ -455,7 +455,11 @@ export class BillingService implements IBillingService, OnModuleDestroy {
       }
       this.PlatformBillingTasker.incrementUsage({
         payload: { userId },
-        options: { delay: startTime, tags: [`platform.billing.usage.${uid}`] },
+        options: {
+          delay: startTime,
+          tags: [`platform.billing.usage.${uid}`],
+          idempotencyKey: `platform.billing.usage.${uid}-${userId}`,
+        },
       });
       return true;
     }
