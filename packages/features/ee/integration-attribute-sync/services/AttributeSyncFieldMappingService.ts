@@ -10,6 +10,7 @@ import { PrismaAttributeRepository } from "@calcom/features/attributes/repositor
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
+import type { AttributeType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({
   prefix: ["[AttributeSyncFieldMappingService]"],
@@ -121,7 +122,7 @@ export class AttributeSyncFieldMappingService {
       {
         id: string;
         name: string;
-        type: string;
+        type: AttributeType;
         options: { id: string; value: string; slug: string }[];
       }
     >;
