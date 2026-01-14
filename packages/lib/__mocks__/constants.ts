@@ -40,6 +40,7 @@ export const constantsScenarios = {
   },
   set: (envVariables: Record<string, string>) => {
     Object.entries(envVariables).forEach(([key, value]) => {
+      // @ts-expect-error - dynamic key access on Partial type
       mockedConstants[key] = value;
     });
   },
