@@ -708,14 +708,14 @@ describe("HubspotCalendarService", () => {
 
       await service.createEvent(event, contacts);
 
-      // Verify contact owner was set (not meeting owner)
+      // Verify contact owner was set
       expect(mockHubspotClient.crm.contacts.basicApi.update).toHaveBeenCalledWith("contact-1", {
         properties: { hubspot_owner_id: "owner-123" },
       });
 
-      // Verify meeting was created without hubspot_owner_id
+      // Verify meeting was created with hubspot_owner_id (meeting owner is always set from organizer)
       const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
-      expect(createCall.properties.hubspot_owner_id).toBeUndefined();
+      expect(createCall.properties.hubspot_owner_id).toBe("owner-123");
     });
     it("should create meeting successfully when owner lookup fails due to missing scope", async () => {
       mockAppOptions({});
