@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { shallow } from "zustand/shallow";
 
 import {
@@ -114,7 +114,7 @@ export const EventTypeCalendarViewComponent = (
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   // Detect timezone changes and refresh slots when conditions are met
-  const handleSlotRefresh = useCallback(() => schedule?.invalidate(), [schedule]);
+  const handleSlotRefresh = useCallback(() => schedule.refetch(), [schedule]);
   useTimezoneBasedSlotRefresh(event?.data, handleSlotRefresh);
 
   const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
