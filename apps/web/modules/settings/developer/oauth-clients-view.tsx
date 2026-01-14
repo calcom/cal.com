@@ -19,7 +19,7 @@ import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 const OAuthClientsView = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const [showDialog, setShowDialog] = useState(false);
+  const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [submittedClient, setSubmittedClient] = useState<OAuthClientDetails | null>(null);
   const [selectedClient, setSelectedClient] = useState<OAuthClientDetails | null>(null);
 
@@ -92,7 +92,7 @@ const OAuthClientsView = () => {
   };
 
   const handleCloseCreateDialog = () => {
-    setShowDialog(false);
+    setIsCreatingClient(false);
     setSubmittedClient(null);
   };
 
@@ -105,7 +105,7 @@ const OAuthClientsView = () => {
   }
 
   const newOAuthClientButton = (
-    <NewOAuthClientButton dataTestId="open-oauth-client-create-dialog" onClick={() => setShowDialog(true)} />
+    <NewOAuthClientButton dataTestId="open-oauth-client-create-dialog" onClick={() => setIsCreatingClient(true)} />
   );
 
   return (
@@ -139,8 +139,8 @@ const OAuthClientsView = () => {
 
       {submittedClient ? (
         <OAuthClientPreviewDialog
-          open={showDialog}
-          onOpenChange={setShowDialog}
+          open={isCreatingClient}
+          onOpenChange={setIsCreatingClient}
           title={t("oauth_client_submitted")}
           description={t("oauth_client_submitted_description")}
           client={submittedClient}
@@ -148,8 +148,8 @@ const OAuthClientsView = () => {
         />
       ) : (
         <OAuthClientCreateDialog
-          open={showDialog}
-          onOpenChange={setShowDialog}
+          open={isCreatingClient}
+          onOpenChange={setIsCreatingClient}
           isSubmitting={submitForReviewMutation.isPending}
           onSubmit={handleSubmit}
           onClose={handleCloseCreateDialog}

@@ -20,7 +20,7 @@ import { NewOAuthClientButton } from "../oauth/create/NewOAuthClientButton";
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [createdClient, setCreatedClient] = useState<OAuthClientDetails | null>(null);
   const [selectedClient, setSelectedClient] = useState<OAuthClientDetails | null>(null);
 
@@ -89,7 +89,7 @@ export default function OAuthClientsAdminView() {
   };
 
   const handleCloseDialog = () => {
-    setShowCreateDialog(false);
+    setIsCreatingClient(false);
     setCreatedClient(null);
   };
 
@@ -112,7 +112,7 @@ export default function OAuthClientsAdminView() {
   const newOAuthClientButton = (
     <NewOAuthClientButton
       dataTestId="open-admin-oauth-client-create-dialog"
-      onClick={() => setShowCreateDialog(true)}
+      onClick={() => setIsCreatingClient(true)}
     />
   );
 
@@ -166,8 +166,8 @@ export default function OAuthClientsAdminView() {
 
       {createdClient ? (
         <OAuthClientPreviewDialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
+          open={isCreatingClient}
+          onOpenChange={setIsCreatingClient}
           title={t("oauth_client_created")}
           description={t("oauth_client_created_description")}
           client={createdClient}
@@ -175,8 +175,8 @@ export default function OAuthClientsAdminView() {
         />
       ) : (
         <OAuthClientCreateDialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
+          open={isCreatingClient}
+          onOpenChange={setIsCreatingClient}
           isSubmitting={createMutation.isPending}
           onSubmit={handleAddClient}
           onClose={handleCloseDialog}
