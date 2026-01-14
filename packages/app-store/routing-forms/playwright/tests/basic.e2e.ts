@@ -271,11 +271,11 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstField=456&Test-Field-Number=456&Test-Field-Single-Selection=456&Test-Field-Multiple-Selection=456&Test-Field-Multiple-Selection=789&Test-Field-Phone=456&Test-Field-Email=456@example.com";
+        "firstField=456&Test-Field-Number=456&Test-Field-Single-choice-selection=456&Test-Field-Multiple-choice-selection=456&Test-Field-Multiple-choice-selection=789&Test-Field-Phone=456&Test-Field-Email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
-      await page.fill('[data-testid="form-field-Test-Field-Long-Text"]', "manual-fill");
+      await page.fill('[data-testid="form-field-Test-Field-Long-text"]', "manual-fill");
 
       await expect(page.locator('[data-testid="form-field-firstField"]')).toHaveValue("456");
       await expect(page.locator('[data-testid="form-field-Test-Field-Number"]')).toHaveValue("456");
@@ -301,9 +301,9 @@ test.describe("Routing Forms", () => {
 
       // All other params come from prefill URL
       expect(url.searchParams.get("Test-Field-Number")).toBe("456");
-      expect(url.searchParams.get("Test-Field-Long-Text")).toBe("manual-fill");
-      expect(url.searchParams.get("Test-Field-Multiple-Selection")).toBe("456");
-      expect(url.searchParams.getAll("Test-Field-Multiple-Selection")).toMatchObject(["456", "789"]);
+      expect(url.searchParams.get("Test-Field-Long-text")).toBe("manual-fill");
+      expect(url.searchParams.get("Test-Field-Multiple-choice-selection")).toBe("456");
+      expect(url.searchParams.getAll("Test-Field-Multiple-choice-selection")).toMatchObject(["456", "789"]);
       expect(url.searchParams.get("Test-Field-Phone")).toBe("456");
       expect(url.searchParams.get("Test-Field-Email")).toBe("456@example.com");
     });
@@ -1060,7 +1060,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
+    ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
     page
   );
 
@@ -1083,7 +1083,7 @@ async function addAllTypesOfFieldsAndSaveForm(
       identifier = "firstField";
     }
 
-    if (fieldTypeLabel === "Multiple Selection" || fieldTypeLabel === "Single Selection") {
+    if (fieldTypeLabel === "Multiple choice selection" || fieldTypeLabel === "Single-choice selection") {
       await page.fill(`[data-testid="fields.${nth}.options.0-input"]`, "123");
       await page.fill(`[data-testid="fields.${nth}.options.1-input"]`, "456");
       await page.fill(`[data-testid="fields.${nth}.options.2-input"]`, "789");

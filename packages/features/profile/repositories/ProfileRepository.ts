@@ -911,6 +911,22 @@ export class ProfileRepository {
     });
   }
 
+  /**
+   * Returns the first organization ID the user belongs to, or null if none.
+   * Used for org-specific blocking on personal events.
+   *
+   * TODO: When we support checking against multiple orgs, update this to return
+   * all org IDs and check if user is blocked in ANY of them.
+   */
+  static async findFirstOrganizationIdForUser({ userId }: { userId: number }): Promise<number | null> {
+    const profile = await prisma.profile.findFirst({
+      where: { userId },
+      select: { organizationId: true },
+    });
+
+    return profile?.organizationId ?? null;
+  }
+
   static async findManyForOrg({ organizationId }: { organizationId: number }) {
     return await prisma.profile.findMany({
       where: {

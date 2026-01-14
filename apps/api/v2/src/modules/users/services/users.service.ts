@@ -1,6 +1,25 @@
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
+import type { User } from "@calcom/prisma/client";
+
+export type ProfileMinimal = {
+  id: number;
+  username?: string | null;
+  organizationId: number | null;
+  organization: {
+    id: number;
+    slug?: string | null;
+    isPlatform: boolean;
+  } | null;
+};
+
+export type UserWithProfileMinimal = {
+  organizationId?: number | null;
+  movedToProfile?: ProfileMinimal | null;
+  profiles?: ProfileMinimal[];
+};
+
 @Injectable()
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
@@ -20,7 +39,7 @@ export class UsersService {
     return usersFiltered;
   }
 
-  getUserMainProfile(user: UserWithProfile) {
+  getUserMainProfile(user: UserWithProfileMinimal): ProfileMinimal | undefined {
     return (
       user?.movedToProfile ||
       user.profiles?.find((p) => p.organizationId === user.organizationId) ||
@@ -28,8 +47,8 @@ export class UsersService {
     );
   }
 
-  getUserMainOrgId(user: UserWithProfile) {
-    return this.getUserMainProfile(user)?.organizationId ?? user.organizationId;
+  getUserMainOrgId(user: UserWithProfileMinimal): number | null {
+    return this.getUserMainProfile(user)?.organizationId ?? user.organizationId ?? null;
   }
 
   getUserProfileByOrgId(user: UserWithProfile, organizationId: number) {

@@ -44,6 +44,7 @@
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "@calcom/testing": "workspace:*",
     "@testing-library/react-hooks": "8.0.1",
     "@types/web-push": "3.6.3",
     "trigger.dev": "4.3.1"
