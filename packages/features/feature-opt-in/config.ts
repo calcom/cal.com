@@ -1,12 +1,17 @@
 import type { FeatureId } from "@calcom/features/flags/config";
-import type { OptInFeaturePolicy } from "./types";
+import type { OptInFeaturePolicy, OptInFeatureScope } from "./types";
 
 export interface OptInFeatureConfig {
   slug: FeatureId;
   titleI18nKey: string;
   descriptionI18nKey: string;
   policy: OptInFeaturePolicy;
+  /** Scopes where this feature can be configured. Defaults to all scopes if not specified. */
+  scope?: OptInFeatureScope[];
 }
+
+/** All available scopes for feature opt-in configuration */
+export const ALL_SCOPES: OptInFeatureScope[] = ["org", "team", "user"];
 
 /**
  * Features that appear in opt-in settings.
@@ -19,6 +24,7 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   //   titleI18nKey: "bookings_v3_title",
   //   descriptionI18nKey: "bookings_v3_description",
   //   policy: "permissive",
+  //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
   // },
 ];
 
@@ -41,3 +47,31 @@ export function isOptInFeature(slug: string): slug is FeatureId {
  * Check if there are any opt-in features available.
  */
 export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;
+
+/** Whether there are opt-in features available for the user scope */
+export const HAS_USER_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("user"));
+
+/** Whether there are opt-in features available for the team scope */
+export const HAS_TEAM_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("team"));
+
+/** Whether there are opt-in features available for the org scope */
+export const HAS_ORG_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("org"));
+
+/**
+ * Get opt-in features that are available for a specific scope.
+ * Features without a scope field are available for all scopes.
+ */
+export function getOptInFeaturesForScope(scope: OptInFeatureScope): OptInFeatureConfig[] {
+  return OPT_IN_FEATURES.filter((f) => !f.scope || f.scope.includes(scope));
+}
+
+/**
+ * Check if a feature is allowed for a specific scope.
+ * Features without a scope field are allowed for all scopes.
+ * Features not in the config are NOT allowed (must be explicitly configured).
+ */
+export function isFeatureAllowedForScope(slug: string, scope: OptInFeatureScope): boolean {
+  const config = getOptInFeatureConfig(slug);
+  if (!config) return false;
+  return !config.scope || config.scope.includes(scope);
+}

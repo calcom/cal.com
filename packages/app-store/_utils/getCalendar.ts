@@ -112,6 +112,7 @@ export const getCalendar = async (
       cacheSupported: isCacheSupported,
       cacheEnabled: useCache,
       credentialId: credential.id,
+      mode,
     });
   }
 
