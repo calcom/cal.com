@@ -6,10 +6,10 @@ interface StoredValue<T> {
 }
 
 /**
- * In-memory implementation of IRedisService for unit testing.
+ * Fake implementation of IRedisService for unit testing.
  * Unlike NoopRedisService which does nothing, this actually stores data in memory.
  */
-export class InMemoryRedisService implements IRedisService {
+export class FakeRedisService implements IRedisService {
   private store: Map<string, StoredValue<unknown>> = new Map();
   private lists: Map<string, unknown[]> = new Map();
 

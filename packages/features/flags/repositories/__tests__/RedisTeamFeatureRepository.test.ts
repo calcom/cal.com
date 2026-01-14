@@ -2,16 +2,16 @@ import { describe, it, expect, beforeEach } from "vitest";
 
 import type { TeamFeatures } from "@calcom/prisma/client";
 
-import { InMemoryRedisService } from "../../../redis/InMemoryRedisService";
+import { FakeRedisService } from "../../../redis/FakeRedisService";
 import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../../config";
 import { RedisTeamFeatureRepository } from "../RedisTeamFeatureRepository";
 
 describe("RedisTeamFeatureRepository", () => {
   let repository: RedisTeamFeatureRepository;
-  let redisService: InMemoryRedisService;
+  let redisService: FakeRedisService;
 
   beforeEach(() => {
-    redisService = new InMemoryRedisService();
+    redisService = new FakeRedisService();
     repository = new RedisTeamFeatureRepository(redisService);
   });
 
