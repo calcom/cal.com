@@ -1,7 +1,7 @@
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AttributeService } from "./attributeService";
+import { AttributeService } from "./AttributeService";
 
 describe("AttributeService", () => {
   let service: AttributeService;
@@ -17,13 +17,16 @@ describe("AttributeService", () => {
     };
 
     service = new AttributeService({
-      attributeToUserRepository: mockAttributeToUserRepository as unknown as PrismaAttributeToUserRepository,
+      attributeToUserRepository:
+        mockAttributeToUserRepository as unknown as PrismaAttributeToUserRepository,
     });
   });
 
   describe("getUsersAttributesByOrgMembershipId", () => {
     it("should return empty object when user has no attributes", async () => {
-      mockAttributeToUserRepository.findManyIncludeAttribute.mockResolvedValue([]);
+      mockAttributeToUserRepository.findManyIncludeAttribute.mockResolvedValue(
+        []
+      );
 
       const result = await service.getUsersAttributesByOrgMembershipId({
         userId: 1,
@@ -31,7 +34,9 @@ describe("AttributeService", () => {
       });
 
       expect(result).toEqual({});
-      expect(mockAttributeToUserRepository.findManyIncludeAttribute).toHaveBeenCalledWith({
+      expect(
+        mockAttributeToUserRepository.findManyIncludeAttribute
+      ).toHaveBeenCalledWith({
         member: { userId: 1, teamId: 100 },
       });
     });
