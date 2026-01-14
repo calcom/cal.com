@@ -24,12 +24,14 @@ jobs:
             const { owner, repo } = context.repo;
             const priorityLabels = ['High priority', 'Medium priority', 'Low priority'];
             
-            const { data: pulls } = await github.rest.pulls.list({
+            const pulls = await github.paginate(github.rest.pulls.list, {
               owner,
               repo,
               state: 'open',
               per_page: 100
             });
+            
+            console.log(`Fetched ${pulls.length} total open PRs`);
             
             const communityPRs = [];
             
