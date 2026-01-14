@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeftIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -34,7 +35,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -439,8 +439,8 @@ function WorkflowPage({
                 color="secondary"
                 size="sm"
                 variant="icon"
-                StartIcon="arrow-left"
-                href="/workflows"
+                                StartIcon={ArrowLeftIcon}
+                                href="/workflows"
                 data-testid="go-back-button"
               />
               <div className="flex min-w-0 items-center leading-none">
@@ -473,7 +473,7 @@ function WorkflowPage({
                       disabled={isPending}
                       onClick={() => setIsEditingName(true)}
                       CustomStartIcon={
-                        <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                        <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
                       }>
                       <span className="sr-only">{t("edit")}</span>
                     </Button>
@@ -498,8 +498,8 @@ function WorkflowPage({
                   color="destructive"
                   type="button"
                   size="sm"
-                  StartIcon="trash-2"
-                  data-testid="delete-button"
+                                    StartIcon={Trash2Icon}
+                                    data-testid="delete-button"
                   className="ml-3"
                   onClick={() => {
                     setDeleteDialogOpen(true);

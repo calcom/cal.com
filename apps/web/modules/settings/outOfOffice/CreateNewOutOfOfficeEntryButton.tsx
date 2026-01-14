@@ -1,6 +1,8 @@
 "use client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { PlusIcon } from "lucide-react";
+
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -33,7 +35,7 @@ const CreateNewOutOfOfficeEntryButton = ({
       color="primary"
       size={size ?? "base"}
       className="flex items-center justify-between px-2 md:px-4"
-      StartIcon="plus"
+      StartIcon={PlusIcon}
       onClick={onClick}
       data-testid={rest["data-testid"]}
       disabled={selectedTab === OutOfOfficeTab.TEAM && !hasTeamOOOAdminAccess}>

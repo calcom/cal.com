@@ -1,5 +1,6 @@
 "use client";
 
+import { EllipsisIcon, EyeIcon } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
@@ -135,11 +136,11 @@ export function usePendingReportsColumns<T extends BookingReport>({
           <div className="flex items-center justify-end">
             <Dropdown modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <DropdownItem type="button" StartIcon="eye" onClick={() => onViewDetails(entry)}>
+                              <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <DropdownItem type="button" StartIcon={EyeIcon} onClick={() => onViewDetails(entry)}>
                     {t("view_details")}
                   </DropdownItem>
                 </DropdownMenuItem>

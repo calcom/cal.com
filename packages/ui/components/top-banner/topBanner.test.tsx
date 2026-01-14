@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { ArrowDownIcon } from "lucide-react";
 
 import { TopBanner } from "./TopBanner";
 
@@ -21,7 +22,7 @@ describe("Tests for TopBanner component", () => {
   });
 
   test("Should render the default variant", async () => {
-    render(<TopBanner text="the banner test" icon="arrow-down" />);
+    render(<TopBanner text="the banner test" icon={ArrowDownIcon} />);
 
     const variant = await screen.findByTestId("variant-default");
     expect(variant).toBeInTheDocument();

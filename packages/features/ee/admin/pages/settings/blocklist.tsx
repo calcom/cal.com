@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusIcon } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -131,11 +132,11 @@ function SystemBlocklistContent() {
         </div>
         <div className="flex items-center gap-2">
           {activeView === "blocked" && (
-            <Button
-              color="primary"
-              StartIcon="plus"
-              onClick={() => setShowCreateModal(true)}
-            >
+                        <Button
+                          color="primary"
+                          StartIcon={PlusIcon}
+                          onClick={() => setShowCreateModal(true)}
+                        >
               {t("add")}
             </Button>
           )}

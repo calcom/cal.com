@@ -18,7 +18,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowDownIcon, ArrowUpIcon, CommandIcon, CornerDownLeftIcon, SearchIcon } from "lucide-react";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type ShortcutArrayType = {
@@ -133,7 +133,7 @@ const KBarRoot = ({ children }: { children: ReactNode }): JSX.Element => {
 
 function CommandKey(): JSX.Element {
   if (isMac) {
-    return <Icon name="command" className="h-3 w-3" />;
+    return <CommandIcon className="h-3 w-3" />;
   }
   return <>CTRL</>;
 }
@@ -146,18 +146,18 @@ const KBarContent = (): JSX.Element => {
     <KBarPortal>
       <KBarPositioner className="overflow-scroll">
         <KBarAnimator className="bg-default max-w-(--breakpoint-sm) z-10 w-full overflow-hidden rounded-md shadow-lg">
-          <div className="border-subtle flex items-center justify-center border-b">
-            <Icon name="search" className="text-default mx-3 h-4 w-4" />
-            <KBarSearch
+                    <div className="border-subtle flex items-center justify-center border-b">
+                      <SearchIcon className="text-default mx-3 h-4 w-4" />
+                      <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
               className="bg-default placeholder:text-subtle text-default w-full rounded-sm border-0 py-2.5 px-0 focus:ring-0 focus-visible:outline-none"
             />
           </div>
           <RenderResults />
-          <div className="text-subtle border-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
-            <Icon name="arrow-up" className="h-4 w-4" />
-            <Icon name="arrow-down" className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
-            <Icon name="corner-down-left" className="h-4 w-4" />
+                    <div className="text-subtle border-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
+                      <ArrowUpIcon className="h-4 w-4" />
+                      <ArrowDownIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
+                      <CornerDownLeftIcon className="h-4 w-4" />
             <span className="pr-2">{t("open")}</span>
             <CommandKey />
             <span className="pr-1">+ K </span>
@@ -190,7 +190,7 @@ const KBarTrigger = (): JSX.Element | null => {
         color="minimal"
         onClick={query.toggle}
         className="text-default hover:bg-subtle todesktop:hover:!bg-transparent lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md px-3 py-2 text-sm font-medium transition lg:px-2">
-        <Icon name="search" className="h-4 w-4 shrink-0 text-inherit" />
+        <SearchIcon className="h-4 w-4 shrink-0 text-inherit" />
       </button>
     </Tooltip>
   );

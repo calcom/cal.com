@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, CopyIcon, EllipsisIcon, ListFilterIcon, SquarePenIcon, Trash2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
 
@@ -13,7 +15,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@calcom/ui/components/dropdown";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "@calcom/features/data-table/hooks";
 import type {
@@ -27,7 +28,7 @@ import { DuplicateSegmentDialog } from "./DuplicateSegmentDialog";
 import { RenameSegmentDialog } from "./RenameSegmentDialog";
 
 type SubmenuItem = {
-  iconName: IconName;
+  Icon: LucideIcon;
   labelKey: string;
   onClick: (segment: CombinedFilterSegment) => void;
   isDestructive?: boolean;
@@ -50,7 +51,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
 
   const submenuItems: SubmenuItem[] = [
     {
-      iconName: "square-pen",
+      Icon: SquarePenIcon,
       labelKey: "rename",
       onClick: (segment) => {
         if (segment.type === "system") {
@@ -63,14 +64,14 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
       adminOnly: true,
     },
     {
-      iconName: "copy",
+      Icon: CopyIcon,
       labelKey: "duplicate",
       onClick: (segment) => setSegmentToDuplicate(segment),
       adminOnly: false,
       enabledForSystemSegment: true,
     },
     {
-      iconName: "trash-2",
+      Icon: Trash2Icon,
       labelKey: "delete",
       onClick: (segment) => {
         if (segment.type === "system") {
@@ -144,7 +145,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
 
   if (!isSegmentEnabled) {
     return (
-      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
+      <Button color="secondary" StartIcon={ListFilterIcon} EndIcon={ChevronDownIcon} disabled>
         {t("segment")}
       </Button>
     );
@@ -156,8 +157,8 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
         <DropdownMenuTrigger asChild>
           <Button
             color="secondary"
-            StartIcon="list-filter"
-            EndIcon="chevron-down"
+            StartIcon={ListFilterIcon}
+            EndIcon={ChevronDownIcon}
             data-testid="filter-segment-select">
             {selectedSegment?.name || (shortLabel ? t("saved") : t("saved_filters"))}
           </Button>
@@ -202,7 +203,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
                         }
                       }}>
                       {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
-                        <Icon name="check" className="ml-3 h-4 w-4" />
+                        <CheckIcon className="ml-3 h-4 w-4" />
                       )}
                       <span className="ml-3">{segment.name}</span>
                     </DropdownItemWithSubmenu>
@@ -256,7 +257,7 @@ function DropdownItemWithSubmenu({
         <Dropdown open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
-              StartIcon="ellipsis"
+              StartIcon={EllipsisIcon}
               variant="icon"
               color="minimal"
               className="rounded-full"
@@ -277,7 +278,7 @@ function DropdownItemWithSubmenu({
                 <DropdownMenuItem key={index}>
                   <DropdownItem
                     color={item.isDestructive ? "destructive" : undefined}
-                    StartIcon={item.iconName}
+                    StartIcon={item.Icon}
                     onClick={(event) => {
                       event.preventDefault();
                       item.onClick(segment);

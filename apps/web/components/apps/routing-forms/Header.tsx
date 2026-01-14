@@ -1,5 +1,19 @@
 "use client";
 
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  CodeIcon,
+  DownloadIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  LinkIcon,
+  MenuIcon,
+  PencilIcon,
+  SettingsIcon,
+  TrashIcon,
+  WaypointsIcon,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -9,7 +23,6 @@ import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/t
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "./FormActions";
@@ -98,7 +111,7 @@ const Actions = ({
             <Button
               color="secondary"
               type="button"
-              StartIcon="settings"
+              StartIcon={SettingsIcon}
               data-testid={isMobile ? "settings-button-mobile" : "settings-button"}
               onClick={() => {
                 setIsSettingsDialogOpen(true);
@@ -113,7 +126,7 @@ const Actions = ({
               type="button"
               rel="noreferrer"
               action="preview"
-              StartIcon="external-link">
+              StartIcon={ExternalLinkIcon}>
               {t("view_form")}
             </FormAction>
             <FormAction
@@ -122,7 +135,7 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button"
-              StartIcon="calendar">
+              StartIcon={CalendarIcon}>
               {t("routing_incomplete_booking_tab")}
             </FormAction>
             <FormAction
@@ -131,7 +144,7 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button"
-              StartIcon="link">
+              StartIcon={LinkIcon}>
               {t("copy_link_to_form")}
             </FormAction>
             <FormAction
@@ -141,7 +154,7 @@ const Actions = ({
               color="minimal"
               type="button"
               data-testid="download-responses"
-              StartIcon="download">
+              StartIcon={DownloadIcon}>
               {t("download_responses")}
             </FormAction>
             {form?.id && (
@@ -152,7 +165,7 @@ const Actions = ({
                 color="minimal"
                 type="button"
                 data-testid="view-responses"
-                StartIcon="eye">
+                StartIcon={EyeIcon}>
                 {t("view_responses")}
               </FormAction>
             )}
@@ -162,7 +175,7 @@ const Actions = ({
               color="minimal"
               type="button"
               className="w-full"
-              StartIcon="code">
+              StartIcon={CodeIcon}>
               {t("embed")}
             </FormAction>
             <DropdownMenuSeparator className="hidden sm:block" />
@@ -173,7 +186,7 @@ const Actions = ({
               type="button"
               color="destructive"
               disabled={!permissions.canDelete}
-              StartIcon="trash">
+              StartIcon={TrashIcon}>
               {t("delete")}
             </FormAction>
             <div className="block sm:hidden">
@@ -268,7 +281,7 @@ export function Header({
         <Button
           color="minimal"
           variant="icon"
-          StartIcon="arrow-left"
+          StartIcon={ArrowLeftIcon}
           href={`${appUrl}`}
           data-testid="back-button"
         />
@@ -297,9 +310,9 @@ export function Header({
                 variant="icon"
                 color="minimal"
                 onClick={() => setIsEditing(true)}
-                CustomStartIcon={
-                  <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
-                }>
+                                CustomStartIcon={
+                                  <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
+                                }>
                 <span className="sr-only">Edit</span>
               </Button>
             </div>
@@ -319,14 +332,14 @@ export function Header({
               {
                 value: "form-edit",
                 label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
-                iconLeft: <Icon name="menu" className="h-3 w-3" />,
-                dataTestId: "toggle-group-item-form-edit",
-              },
-              {
-                value: "route-builder",
-                label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
-                iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-              },
+                              iconLeft: <MenuIcon className="h-3 w-3" />,
+                              dataTestId: "toggle-group-item-form-edit",
+                            },
+                            {
+                              value: "route-builder",
+                              label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
+                              iconLeft: <WaypointsIcon className="h-3 w-3" />,
+                            },
             ]}
           />
         </div>
@@ -355,18 +368,18 @@ export function Header({
             {
               value: "form-edit",
               label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
-              iconLeft: <Icon name="menu" className="h-3 w-3" />,
-            },
-            {
-              value: "route-builder",
-              label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
-              iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-            },
-          ]}
-        />
-      </div>
+                    iconLeft: <MenuIcon className="h-3 w-3" />,
+                  },
+                  {
+                    value: "route-builder",
+                    label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
+                    iconLeft: <WaypointsIcon className="h-3 w-3" />,
+                  },
+                ]}
+              />
+            </div>
 
-      {/* Desktop layout - Actions in right column */}
+            {/* Desktop layout - Actions in right column */}
       <div className="border-muted hidden justify-end border-b px-3 py-3 lg:flex lg:px-4">
         <Actions
           form={routingForm}

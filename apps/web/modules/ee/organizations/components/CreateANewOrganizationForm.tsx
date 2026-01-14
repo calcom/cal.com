@@ -1,6 +1,8 @@
 "use client";
 
 import type { SessionContextValue } from "next-auth/react";
+import { ArrowRightIcon } from "lucide-react";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -356,7 +358,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           <Button
             loading={newOrganizationFormMethods.formState.isSubmitting || intentToCreateOrgMutation.isPending}
             color="primary"
-            EndIcon="arrow-right"
+            EndIcon={ArrowRightIcon}
             type="submit"
             form="createOrg"
             className="w-full justify-center">

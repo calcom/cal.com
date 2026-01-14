@@ -1,5 +1,6 @@
 "use client";
 
+import { LinkIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
@@ -84,14 +85,14 @@ function DelegationListItemActions({
             id: "edit",
             label: t("edit"),
             onClick: () => onEdit(delegation),
-            icon: "pencil",
+            icon: PencilIcon,
           },
           {
             id: "delete",
             label: t("delete"),
             disabled: true,
             onClick: () => onDelete(delegation.id),
-            icon: "trash",
+            icon: TrashIcon,
           },
         ]}
       />
@@ -383,7 +384,7 @@ function DelegationCredentialList() {
 
   const AddDwDButton = () => {
     return (
-      <Button type="button" color="secondary" StartIcon="plus" className="mt-6" onClick={onCreateClick}>
+      <Button type="button" color="secondary" StartIcon={PlusIcon} className="mt-6" onClick={onCreateClick}>
         {t("add_delegation_credential")}
       </Button>
     );
@@ -424,7 +425,7 @@ function DelegationCredentialList() {
         </>
       ) : (
         <EmptyScreen
-          Icon="link"
+          Icon={LinkIcon}
           headline={t("add_delegation_credential")}
           description={t("delegation_credential_description")}
           className="rounded-b-lg rounded-t-none border-t-0"

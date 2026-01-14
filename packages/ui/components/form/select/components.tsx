@@ -1,10 +1,10 @@
+import { CheckIcon, SparklesIcon } from "lucide-react";
 import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";
 
 import { Badge, CreditsBadge, UpgradeTeamsBadge } from "../../badge";
-import { Icon } from "../../icon";
 import type { SelectProps } from "./types";
 
 export const InputComponent = <
@@ -55,7 +55,7 @@ export const OptionComponent = <
       <div className="flex items-center justify-between">
         <span className="w-full" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {(props.data as unknown as ExtendedOption).isCalAi ? (
-            <Badge startIcon="sparkles" variant="purple" className="mr-1 hidden md:inline-flex">
+            <Badge startIcon={SparklesIcon} variant="purple" className="mr-1 hidden md:inline-flex">
               Cal.ai
             </Badge>
           ) : (
@@ -76,7 +76,7 @@ export const OptionComponent = <
         ) : (
           <></>
         )}
-        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
+        {props.isSelected && <CheckIcon className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
   );

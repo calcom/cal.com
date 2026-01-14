@@ -1,3 +1,4 @@
+import { BanIcon, CheckIcon, CircleXIcon, EyeIcon } from "lucide-react";
 import { describe, it, expect } from "vitest";
 
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -140,13 +141,13 @@ describe("Booking Actions", () => {
         id: "confirm",
         bookingUid: "booking-123",
         label: "confirm",
-        icon: "check",
+        icon: CheckIcon,
         disabled: false,
       });
       expect(actions[1]).toEqual({
         id: "reject",
         label: "reject",
-        icon: "ban",
+        icon: BanIcon,
         disabled: false,
       });
     });
@@ -180,7 +181,7 @@ describe("Booking Actions", () => {
       expect(action).toEqual({
         id: "cancel",
         label: "cancel_event",
-        icon: "circle-x",
+        icon: CircleXIcon,
         color: "destructive",
         disabled: false,
         bookingUid: "booking-123",
@@ -419,7 +420,7 @@ describe("Booking Actions", () => {
 
       const noShowAction = actions.find((a) => a.id === "no_show");
       expect(noShowAction?.label).toBe("unmark_as_no_show");
-      expect(noShowAction?.icon).toBe("eye");
+      expect(noShowAction?.icon).toBe(EyeIcon);
     });
   });
 

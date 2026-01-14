@@ -1,3 +1,5 @@
+import { TrashIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { ButtonProps } from "../button/Button";
@@ -32,7 +34,7 @@ export const DisconnectIntegrationComponent = ({
         <DialogTrigger asChild>
           <Button
             color={buttonProps?.color || "destructive"}
-            StartIcon={!trashIcon ? undefined : "trash"}
+            StartIcon={!trashIcon ? undefined : TrashIcon}
             size="base"
             variant={trashIcon && !label ? "icon" : "button"}
             disabled={isGlobal || disabled}

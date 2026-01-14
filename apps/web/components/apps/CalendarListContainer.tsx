@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarIcon, PlusIcon } from "lucide-react";
 import { useEffect, Suspense } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
@@ -70,7 +71,7 @@ const AddCalendarButton = () => {
   const { t } = useLocale();
   return (
     <>
-      <Button color="secondary" StartIcon="plus" href="/apps/categories/calendar">
+      <Button color="secondary" StartIcon={PlusIcon} href="/apps/categories/calendar">
         {t("add_calendar")}
       </Button>
     </>
@@ -165,7 +166,7 @@ export function CalendarListContainer({
         </>
       ) : (
         <EmptyScreen
-          Icon="calendar"
+          Icon={CalendarIcon}
           headline={t("no_category_apps", {
             category: t("calendar").toLowerCase(),
           })}

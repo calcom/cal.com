@@ -192,6 +192,30 @@ import { User } from "@prisma/client";
 import { Button } from "@calcom/ui";
 ```
 
+### Icons
+
+Use direct imports from `lucide-react` with the `Icon` suffix variant:
+
+```typescript
+// Good - Direct import with Icon suffix
+import { ChevronDownIcon, LinkIcon, CalendarIcon } from "lucide-react";
+
+<Button StartIcon={CalendarIcon}>Schedule</Button>
+<EmptyScreen Icon={LinkIcon} headline="No links" />
+```
+
+Do not use string-based icon names or the old Icon wrapper component:
+
+```typescript
+// Bad - String-based icon names (removed pattern)
+<Button StartIcon="calendar">Schedule</Button>
+<EmptyScreen Icon="link" headline="No links" />
+
+// Bad - Old Icon wrapper (removed)
+import { Icon } from "@calcom/ui/components/icon";
+<Icon name="calendar" />
+```
+
 ### API v2 Imports (apps/api/v2)
 
 When importing from `@calcom/features` or `@calcom/trpc` into `apps/api/v2`, **do not import directly** because the API v2 app's `tsconfig.json` doesn't have path mappings for these modules, which causes "module not found" errors.

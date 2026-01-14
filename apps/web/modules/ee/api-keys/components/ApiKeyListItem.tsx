@@ -1,3 +1,4 @@
+import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -75,12 +76,12 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
+            <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem type="button" onClick={onEditClick} StartIcon="pencil">
+              <DropdownItem type="button" onClick={onEditClick} StartIcon={PencilIcon}>
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
@@ -90,7 +91,7 @@ const ApiKeyListItem = ({
                 color="destructive"
                 disabled={deleteApiKey.isPending}
                 onClick={() => setDeleteDialogOpen(true)}
-                StartIcon="trash"
+                StartIcon={TrashIcon}
                 className="rounded-t-none">
                 {t("delete") as string}
               </DropdownItem>

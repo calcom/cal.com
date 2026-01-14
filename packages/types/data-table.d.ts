@@ -1,4 +1,4 @@
-import type { IconName } from "@calcom/ui/components/icon/icon-names";
+import type { LucideIcon } from "lucide-react";
 
 export type FilterType = "ss" | "ms" | "t" | "n" | "dr";
 
@@ -17,23 +17,23 @@ export type DateRangeFilterOptions = {
 export type ColumnFilterMeta =
   | {
       type: Extract<FilterType, "dr">;
-      icon?: IconName;
+      icon?: LucideIcon;
       dateRangeOptions?: DateRangeFilterOptions;
     }
   | {
       type: Extract<FilterType, "t">;
-      icon?: IconName;
+      icon?: LucideIcon;
       textOptions?: TextFilterOptions;
     }
   | {
       type?: Extract<FilterType, "ms" | "n" | "ss">;
-      icon?: IconName;
+      icon?: LucideIcon;
     };
 
 export type FilterableColumn = {
     id: string;
     title: string;
-    icon?: IconName;
+    icon?: LucideIcon;
 } & (
     | {
         type: Extract<FilterType, "ss">;

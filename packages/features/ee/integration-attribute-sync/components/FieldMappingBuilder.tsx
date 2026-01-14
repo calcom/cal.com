@@ -1,7 +1,8 @@
+import { ArrowRightIcon, LinkIcon, PlusIcon, Trash2Icon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Input, Select, Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
 import type {
@@ -72,7 +73,7 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading, 
           />
         </div>
 
-        <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+        <ArrowRightIcon className="text-subtle h-4 w-4" />
 
         <div className="flex-1" style={{ minWidth: "200px" }}>
           <Select
@@ -92,8 +93,8 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading, 
         <Button
           color="minimal"
           size="sm"
-          StartIcon="trash-2"
-          onClick={onRemove}
+                    StartIcon={Trash2Icon}
+                    onClick={onRemove}
           disabled={isLoading}
           className="text-subtle hover:text-default"
           aria-label={t("remove")}
@@ -155,7 +156,7 @@ export const FieldMappingBuilder = ({
     <div className="bg-default border-subtle rounded-2xl border p-2">
       <div className="ml-2 flex items-center gap-0.5">
         <div className="border-subtle rounded-lg border p-1">
-          <Icon name="link" className="text-subtle h-4 w-4" />
+          <LinkIcon className="text-subtle h-4 w-4" />
         </div>
         <span className="text-emphasis ml-2 text-sm font-medium">{t("attribute_sync_field_mappings")}</span>
       </div>
@@ -185,9 +186,9 @@ export const FieldMappingBuilder = ({
       <Button
         color="minimal"
         size="sm"
-        StartIcon="plus"
-        className="mt-2"
-        onClick={handleAddMapping}
+                StartIcon={PlusIcon}
+                className="mt-2"
+                onClick={handleAddMapping}
         disabled={isLoadingAttributes}>
         {t("attribute_sync_add_mapping")}
       </Button>

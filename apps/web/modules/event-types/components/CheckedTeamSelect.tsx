@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { UserIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import type { Options, Props } from "react-select";
 
@@ -12,7 +13,6 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
@@ -114,15 +114,14 @@ export const CheckedTeamSelect = ({
                 customClassNames?.selectedHostList?.listItem?.container
               )}>
               {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && (
-                <Icon
-                  name="user"
-                  className={classNames(
-                    "mt-0.5 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.avatar
-                  )}
-                />
-              )}
+                            {isPlatform && (
+                              <UserIcon
+                                className={classNames(
+                                  "mt-0.5 h-4 w-4",
+                                  customClassNames?.selectedHostList?.listItem?.avatar
+                                )}
+                              />
+                            )}
               <p
                 className={classNames(
                   "text-emphasis my-auto ms-3 text-sm",
@@ -169,14 +168,13 @@ export const CheckedTeamSelect = ({
                   <></>
                 )}
 
-                <Icon
-                  name="x"
-                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                  className={classNames(
-                    "my-auto ml-2 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.removeButton
-                  )}
-                />
+                                <XIcon
+                                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                                  className={classNames(
+                                    "my-auto ml-2 h-4 w-4",
+                                    customClassNames?.selectedHostList?.listItem?.removeButton
+                                  )}
+                                />
               </div>
             </li>
           </>

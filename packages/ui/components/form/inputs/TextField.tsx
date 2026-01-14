@@ -1,12 +1,11 @@
 "use client";
 
 import { cva } from "class-variance-authority";
+import { XIcon } from "lucide-react";
 import React, { forwardRef, useId, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-
-import { Icon } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
@@ -227,8 +226,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
               </Addon>
             )}
             {type === "search" && inputValue?.toString().length > 0 && (
-              <Icon
-                name="x"
+              <XIcon
                 className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
                 onClick={(e) => {
                   setInputValue("");
@@ -262,8 +260,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         )}
         <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
         {hint && (
-          <div className="text-muted mt-2 flex items-center text-sm">
-            <Icon name="info" className="text-muted h-4 w-4 mr-1" />
+          <div className="text-default mt-2 flex items-center text-sm">
             {hint}
           </div>
         )}

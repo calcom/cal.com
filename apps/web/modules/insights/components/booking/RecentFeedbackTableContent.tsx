@@ -1,5 +1,7 @@
 "use client";
 
+import { ZapIcon } from "lucide-react";
+
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -41,7 +43,7 @@ export const RecentFeedbackTableContent = ({ data }: { data: FeedbackData }) => 
         ))
       ) : (
         <EmptyScreen
-          Icon="zap"
+          Icon={ZapIcon}
           headline={t("no_ratings")}
           description={t("no_ratings_description")}
           buttonRaw={

@@ -1,7 +1,7 @@
+import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
 import { CalendarToggleContainer } from "./CalendarToggleContainer";
@@ -13,10 +13,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
     <Link
       href="/availability"
       className="hover:bg-subtle group-hover:text-default text-emphasis group flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 transition">
-      <Icon
-        name="arrow-left"
-        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
-      />
+      <ArrowLeftIcon className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton
         title={name}
         as="p"

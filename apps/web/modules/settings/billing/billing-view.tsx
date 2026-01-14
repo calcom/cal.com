@@ -1,5 +1,7 @@
 "use client";
 
+import { ExternalLinkIcon } from "lucide-react";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -119,7 +121,7 @@ const BillingView = () => {
               {t("view_and_manage_billing_details")}
             </p>
           </div>
-          <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon="external-link">
+          <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon={ExternalLinkIcon}>
             {t("billing_portal")}
           </Button>
         </div>

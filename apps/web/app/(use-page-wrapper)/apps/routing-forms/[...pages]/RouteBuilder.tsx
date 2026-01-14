@@ -1,6 +1,17 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  BlocksIcon,
+  GlobeIcon,
+  MenuIcon,
+  PlusIcon,
+  SplitIcon,
+  UserCheckIcon,
+  ZapIcon,
+} from "lucide-react";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -56,8 +67,6 @@ import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import type { IconName } from "@calcom/ui/components/icon";
-import { Icon } from "@calcom/ui/components/icon";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
 import SingleForm from "@components/apps/routing-forms/SingleForm";
@@ -293,7 +302,7 @@ const WeightedAttributesSelector = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
-              <Icon name="globe" className="text-subtle h-4 w-4" />
+              <GlobeIcon className="text-subtle h-4 w-4" />
             </div>
             <div className="flex flex-col">
               <span className="text-emphasis ml-2 text-sm font-medium">{t("use_attribute_weights")}</span>
@@ -377,7 +386,7 @@ const Route = ({
   attributes?: Attribute[];
   cardOptions?: {
     collapsible?: boolean;
-    leftIcon?: IconName;
+    leftIcon?: LucideIcon;
   };
 }) => {
   const { t } = useLocale();
@@ -526,7 +535,7 @@ const Route = ({
     <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
       <div className="ml-2 flex items-center gap-0.5">
         <div className="border-subtle rounded-lg border p-1">
-          <Icon name="zap" className="text-subtle h-4 w-4" />
+          <ZapIcon className="text-subtle h-4 w-4" />
         </div>
         <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
       </div>
@@ -576,7 +585,7 @@ const Route = ({
         <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
           <div className="ml-2 flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
-              <Icon name="user-check" className="text-subtle h-4 w-4" />
+              <UserCheckIcon className="text-subtle h-4 w-4" />
             </div>
             <span className="text-emphasis ml-2 text-sm font-medium">
               And connect with specific team members
@@ -605,7 +614,7 @@ const Route = ({
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="border-subtle rounded-lg border p-1">
-            <Icon name="blocks" className="text-subtle h-4 w-4" />
+            <BlocksIcon className="text-subtle h-4 w-4" />
           </div>
           <span className="text-emphasis ml-2 text-sm font-medium">Fallback</span>
         </div>
@@ -793,7 +802,7 @@ const Route = ({
               <div className="bg-default border-subtle my-3 rounded-xl border p-2">
                 <div className="mb-2 ml-2 flex items-center gap-0.5">
                   <div className="border-subtle rounded-lg border p-1">
-                    <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                    <ArrowRightIcon className="text-subtle h-4 w-4" />
                   </div>
                   <span className="text-emphasis ml-2 text-sm font-medium">Send booker to</span>
                 </div>
@@ -1259,20 +1268,20 @@ const Routes = ({
           );
         })}
         {mainRoutes.length === 0 ? (
-          <EmptyState
-            icon="menu"
-            header="Create your first route"
+                    <EmptyState
+                      icon={MenuIcon}
+                      header="Create your first route"
             text="Routes determine where your form responses will be sent based on the answers provided."
             buttonText={t("add_a_new_route")}
             buttonOnClick={createRoute}
-            buttonStartIcon="plus"
+            buttonStartIcon={PlusIcon}
             buttonClassName="mt-6"
             buttonDataTestId="add-route-button"
           />
         ) : (
           <Button
             color="minimal"
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             className="mb-6"
             onClick={createRoute}
             data-testid="add-route-button">
@@ -1285,7 +1294,7 @@ const Routes = ({
             form={form}
             cardOptions={{
               collapsible: false,
-              leftIcon: "split",
+              leftIcon: SplitIcon,
             }}
             formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
             attributesQueryBuilderConfig={attributesQueryBuilderConfig}

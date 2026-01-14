@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, Columns3Icon, Grid3x3Icon } from "lucide-react";
 import { shallow } from "zustand/shallow";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -13,7 +14,6 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "@calcom/web/modules/bookings/components/TimeFormatToggle";
@@ -122,7 +122,7 @@ export function Header({
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon="chevron-left"
+            StartIcon={ChevronLeftIcon}
             aria-label="Previous Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />
@@ -130,7 +130,7 @@ export function Header({
             className="group rtl:mr-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon="chevron-right"
+            StartIcon={ChevronRightIcon}
             aria-label="Next Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays)}
           />
@@ -196,7 +196,7 @@ const LayoutToggle = ({
         value: BookerLayouts.MONTH_VIEW,
         label: (
           <>
-            <Icon name="calendar" width="16" height="16" />
+            <CalendarIcon width="16" height="16" />
             <span className="sr-only">${t("switch_monthly")}</span>
           </>
         ),
@@ -206,7 +206,7 @@ const LayoutToggle = ({
         value: BookerLayouts.WEEK_VIEW,
         label: (
           <>
-            <Icon name="grid-3x3" width="16" height="16" />
+            <Grid3x3Icon width="16" height="16" />
             <span className="sr-only">${t("switch_weekly")}</span>
           </>
         ),
@@ -216,7 +216,7 @@ const LayoutToggle = ({
         value: BookerLayouts.COLUMN_VIEW,
         label: (
           <>
-            <Icon name="columns-3" width="16" height="16" />
+            <Columns3Icon width="16" height="16" />
             <span className="sr-only">${t("switch_columnview")}</span>
           </>
         ),

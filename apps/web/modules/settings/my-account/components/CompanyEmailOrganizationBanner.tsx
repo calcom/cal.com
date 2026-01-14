@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 
@@ -82,7 +83,7 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
             <Button color="secondary" onClick={handleDismiss}>
               {t("dismiss")}
             </Button>
-            <Button color="primary" EndIcon="external-link" onClick={handleLearnMore}>
+            <Button color="primary" EndIcon={ExternalLinkIcon} onClick={handleLearnMore}>
               {t("upgrade")}
             </Button>
           </div>

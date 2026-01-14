@@ -1,5 +1,7 @@
 "use client";
 
+import { ClipboardIcon, CodeIcon, CopyIcon, EllipsisIcon, ExternalLinkIcon, LinkIcon, PencilIcon, SearchIcon, TrashIcon, UploadIcon, VenetianMaskIcon } from "lucide-react";
+
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -37,7 +39,6 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Switch, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -708,7 +709,7 @@ export const InfiniteEventTypeList = ({
                                     target="_blank"
                                     variant="icon"
                                     href={calLink}
-                                    StartIcon="external-link"
+                                    StartIcon={ExternalLinkIcon}
                                   />
                                 </Tooltip>
 
@@ -716,7 +717,7 @@ export const InfiniteEventTypeList = ({
                                   <Button
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon="link"
+                                    StartIcon={LinkIcon}
                                     onClick={() => {
                                       showToast(t("link_copied"), "success");
                                       copyToClipboard(calLink);
@@ -731,7 +732,7 @@ export const InfiniteEventTypeList = ({
                                     <Button
                                       color="secondary"
                                       variant="icon"
-                                      StartIcon="venetian-mask"
+                                      StartIcon={VenetianMaskIcon}
                                       onClick={() => {
                                         showToast(
                                           t("private_link_copied"),
@@ -764,7 +765,7 @@ export const InfiniteEventTypeList = ({
                                   type="button"
                                   variant="icon"
                                   color="secondary"
-                                  StartIcon="ellipsis"
+                                  StartIcon={EllipsisIcon}
                                   // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
                                   className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                                 />
@@ -775,7 +776,7 @@ export const InfiniteEventTypeList = ({
                                     <DropdownItem
                                       type="button"
                                       data-testid={`event-type-edit-${type.id}`}
-                                      StartIcon="pencil"
+                                      StartIcon={PencilIcon}
                                       onClick={() =>
                                         router.push(`/event-types/${type.id}`)
                                       }
@@ -793,7 +794,7 @@ export const InfiniteEventTypeList = ({
                                         <DropdownItem
                                           type="button"
                                           data-testid={`event-type-duplicate-${type.id}`}
-                                          StartIcon="copy"
+                                          StartIcon={CopyIcon}
                                           onClick={() =>
                                             openDuplicateModal(type, group)
                                           }
@@ -809,7 +810,7 @@ export const InfiniteEventTypeList = ({
                                       namespace={type.slug}
                                       as={DropdownItem}
                                       type="button"
-                                      StartIcon="code"
+                                      StartIcon={CodeIcon}
                                       className="w-full rounded-none"
                                       embedUrl={encodeURIComponent(embedLink)}
                                       eventId={type.id}
@@ -832,7 +833,7 @@ export const InfiniteEventTypeList = ({
                                             type.schedulingType
                                           );
                                         }}
-                                        StartIcon="trash"
+                                        StartIcon={TrashIcon}
                                         className="w-full rounded-t-none"
                                       >
                                         {t("delete")}
@@ -857,7 +858,7 @@ export const InfiniteEventTypeList = ({
                           type="button"
                           variant="icon"
                           color="secondary"
-                          StartIcon="ellipsis"
+                          StartIcon={EllipsisIcon}
                         />
                       </DropdownMenuTrigger>
                       <DropdownMenuPortal>
@@ -868,7 +869,7 @@ export const InfiniteEventTypeList = ({
                                 <DropdownItem
                                   href={calLink}
                                   target="_blank"
-                                  StartIcon="external-link"
+                                  StartIcon={ExternalLinkIcon}
                                   className="w-full rounded-none"
                                 >
                                   {t("preview")}
@@ -881,7 +882,7 @@ export const InfiniteEventTypeList = ({
                                     navigator.clipboard.writeText(calLink);
                                     showToast(t("link_copied"), "success");
                                   }}
-                                  StartIcon="clipboard"
+                                  StartIcon={ClipboardIcon}
                                   className="w-full rounded-none text-left"
                                 >
                                   {t("copy_link")}
@@ -909,7 +910,7 @@ export const InfiniteEventTypeList = ({
                                       showToast(t("failed"), "error")
                                     );
                                 }}
-                                StartIcon="upload"
+                                StartIcon={UploadIcon}
                                 className="w-full rounded-none"
                               >
                                 {t("share")}
@@ -922,7 +923,7 @@ export const InfiniteEventTypeList = ({
                                 onClick={() =>
                                   router.push(`/event-types/${type.id}`)
                                 }
-                                StartIcon="pencil"
+                                StartIcon={PencilIcon}
                                 className="w-full rounded-none"
                               >
                                 {t("edit")}
@@ -937,7 +938,7 @@ export const InfiniteEventTypeList = ({
                                   onClick={() =>
                                     openDuplicateModal(type, group)
                                   }
-                                  StartIcon="copy"
+                                  StartIcon={CopyIcon}
                                   data-testid={`event-type-duplicate-${type.id}`}
                                 >
                                   {t("duplicate")}
@@ -957,7 +958,7 @@ export const InfiniteEventTypeList = ({
                                       type.schedulingType
                                     );
                                   }}
-                                  StartIcon="trash"
+                                  StartIcon={TrashIcon}
                                   className="w-full rounded-t-none"
                                 >
                                   {t("delete")}
@@ -1040,7 +1041,7 @@ const CreateFirstEventTypeView = ({
 
   return (
     <EmptyScreen
-      Icon="link"
+      Icon={LinkIcon}
       headline={
         searchTerm
           ? t("no_result_found_for", { searchTerm })
@@ -1067,7 +1068,7 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
     <div className="flex items-center gap-4">
       <TextField
         className="max-w-64"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
         containerClassName="max-w-64 focus:ring-offset-0!"
         type="search"
         value={searchTerm}
@@ -1100,7 +1101,7 @@ const EmptyEventTypeList = ({
   return (
     <>
       <EmptyScreen
-        Icon="link"
+        Icon={LinkIcon}
         headline={
           searchTerm
             ? t("no_result_found_for", { searchTerm })

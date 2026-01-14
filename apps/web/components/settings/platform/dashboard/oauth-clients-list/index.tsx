@@ -1,3 +1,4 @@
+import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import type { PlatformOAuthClientDto } from "@calcom/platform-types";
@@ -59,7 +60,7 @@ export const OAuthClientsList = ({ oauthClients, isDeleting, handleDelete }: OAu
         <EmptyScreen
           headline="Create your first OAuth client"
           description="OAuth clients facilitate access to Cal.com on behalf of users"
-          Icon="plus"
+          Icon={PlusIcon}
           className=""
           buttonRaw={<NewOAuthClientButton redirectLink="/settings/platform/oauth-clients/create" />}
         />
@@ -78,8 +79,8 @@ const NewOAuthClientButton = ({ redirectLink, label }: { redirectLink: string; l
         router.push(redirectLink);
       }}
       color="secondary"
-      StartIcon="plus">
-      {!!label ? label : "Add"}
+      StartIcon={PlusIcon}>
+      {label ? label : "Add"}
     </Button>
   );
 };

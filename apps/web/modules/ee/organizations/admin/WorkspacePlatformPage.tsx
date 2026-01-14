@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PencilIcon } from "lucide-react";
 import { useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -282,7 +283,7 @@ function PlatformListItem({ platform, onEdit, onToggle }: Pick<Props, "platform"
                 id: "edit",
                 label: t("edit"),
                 onClick: () => onEdit(platform, "meta"),
-                icon: "pencil",
+                icon: PencilIcon,
               },
               // {
               //   id: "edit-service-account",

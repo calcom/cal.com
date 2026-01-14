@@ -1,3 +1,5 @@
+import { Trash2Icon } from "lucide-react";
+
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { DataTableSelectionBar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,7 +47,7 @@ export function BulkDeleteBlocklistEntries({ entries, onRemove }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <DataTableSelectionBar.Button icon="trash" color="destructive">
+        <DataTableSelectionBar.Button icon={Trash2Icon} color="destructive">
           {t("remove_from_blocklist")}
         </DataTableSelectionBar.Button>
       </DialogTrigger>

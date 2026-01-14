@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PencilIcon, PlusIcon, XIcon } from "lucide-react";
+
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -27,7 +29,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="minimal"
             type="button"
-            StartIcon="pencil"
+            StartIcon={PencilIcon}
             onClick={() => setShowDialog(true)}
             disabled={props.disabled}>
             Change
@@ -36,7 +38,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="minimal"
             type="button"
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             onClick={() => setShowDialog(true)}
             disabled={props.disabled}>
             Add from Giphy
@@ -47,7 +49,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="destructive"
             type="button"
-            StartIcon="x"
+            StartIcon={XIcon}
             onClick={() => {
               setSelectedGif("");
               props.onChange("");

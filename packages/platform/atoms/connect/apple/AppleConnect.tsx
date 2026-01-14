@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { CalendarDaysIcon } from "lucide-react";
 import type { FC } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -91,7 +92,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
           <>
             {isMultiCalendar && (
               <Button
-                StartIcon="calendar-days"
+                StartIcon={CalendarDaysIcon}
                 color="primary"
                 disabled={isClickable ? false : isChecking}
                 tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance="apple" />}
@@ -105,7 +106,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
             )}
             {!isMultiCalendar && (
               <Button
-                StartIcon="calendar-days"
+                StartIcon={CalendarDaysIcon}
                 color="primary"
                 disabled={isDisabled}
                 className={cn(

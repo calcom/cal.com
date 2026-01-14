@@ -1,18 +1,17 @@
+import type { LucideIcon } from "lucide-react";
+import { ChevronRightIcon, ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
-import { Fragment } from "react";
 import posthog from "posthog-js";
+import { Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import classNames from "@calcom/ui/classNames";
 
-import { Icon } from "../../icon";
-import type { IconName } from "../../icon";
-
 export type VerticalTabItemProps = {
   name: string;
   info?: string;
-  icon?: IconName;
+  icon?: LucideIcon;
   disabled?: boolean;
   children?: VerticalTabItemProps[];
   textClassNames?: string;
@@ -70,15 +69,14 @@ const VerticalTabItem = ({
             className={classNames(
               props.textClassNames || "text-default text-sm font-medium leading-none",
               "hover:bg-subtle [&[aria-current='page']]:bg-subtle [&[aria-current='page']]:text-emphasis group-hover:text-default group flex w-full flex-row items-center rounded-md p-2 transition ",
-              props.disabled && "pointer-events-none opacity-30!",
+              props.disabled && "opacity-30! pointer-events-none",
               (isChild || !props.icon) && "ml-7",
               props.className
             )}
             data-testid={`vertical-tab-${props["data-testid"]}`}
             aria-current={isCurrent ? "page" : undefined}>
             {props.icon && (
-              <Icon
-                name={props.icon}
+              <props.icon
                 className={classNames("me-2 h-4 w-4", props.iconClassName)}
                 data-testid="icon-component"
               />
@@ -86,7 +84,9 @@ const VerticalTabItem = ({
             <div className="h-fit min-w-0 flex-1">
               <span className="flex items-center gap-2">
                 {t(name)}
-                {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}
+                {props.isExternalLink ? (
+                  <ExternalLinkIcon className="h-4 w-4" data-testid="external-link" />
+                ) : null}
               </span>
               {info && (
                 // TODO: I don't think having apps-info as a data-test-id is right here as this is meant to be dumb component.
@@ -97,11 +97,10 @@ const VerticalTabItem = ({
             </div>
             {!disableChevron && isCurrent && (
               <div className="ml-auto self-center">
-                <Icon
-                  name="chevron-right"
+                <ChevronRightIcon
                   width={20}
                   height={20}
-                  className="text-default h-auto w-[20px] stroke-[1.5px]"
+                  className="text-subtle"
                   data-testid="chevron-right"
                 />
               </div>

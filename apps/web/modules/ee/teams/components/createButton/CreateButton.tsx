@@ -1,6 +1,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { PlusIcon } from "lucide-react";
+
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -100,8 +102,7 @@ export function CreateButton(props: CreateBtnProps) {
               : null
           }
           data-testid="create-button"
-          StartIcon={startIcon}
-          EndIcon={endIcon}
+          StartIcon={PlusIcon}
           size="sm"
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
@@ -118,8 +119,7 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon={startIcon}
-              EndIcon={endIcon}
+              StartIcon={PlusIcon}
               size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}

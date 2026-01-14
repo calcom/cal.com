@@ -1,10 +1,10 @@
 "use client";
 
+import { LoaderIcon } from "lucide-react";
 import { Fragment, useMemo, type ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
-import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -77,7 +77,7 @@ export function ChartCard({
       }>
       {shouldShowDefaultLoading ? (
         <div className="m-auto flex h-80 flex-col items-center justify-center">
-          <Spinner className="h-6 w-6" />
+          <LoaderIcon className="h-6 w-6 animate-spin" />
         </div>
       ) : (
         panelCardProps.children

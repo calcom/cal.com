@@ -1,5 +1,6 @@
 "use client";
 
+import { BookIcon, PlusIcon } from "lucide-react";
 import type { RowSelectionState } from "@tanstack/react-table";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import type { ReactNode } from "react";
@@ -156,17 +157,17 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
             dashedBorder={false}
             buttonRaw={
               <div className="flex gap-2">
-                <Button
-                  StartIcon="plus"
-                  onClick={onAddClick}
-                  color="primary"
-                  disabled={!isSystem && !permissions?.canCreate}>
-                  {t("add")}
-                </Button>
-                {IS_CALCOM && (
-                  <Button
-                    StartIcon="book"
-                    color="secondary"
+                                <Button
+                                  StartIcon={PlusIcon}
+                                  onClick={onAddClick}
+                                  color="primary"
+                                  disabled={!isSystem && !permissions?.canCreate}>
+                                  {t("add")}
+                                </Button>
+                                {IS_CALCOM && (
+                                  <Button
+                                    StartIcon={BookIcon}
+                                    color="secondary"
                     onClick={() =>
                       window.open("https://cal.com/help/security/blocklist", "_blank", "noopener,noreferrer")
                     }>

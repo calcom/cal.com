@@ -2,6 +2,7 @@
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
+import { CalendarIcon, CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronUpIcon, CircleAlertIcon, ExternalLinkIcon, UserXIcon, XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -51,7 +52,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
@@ -471,7 +471,7 @@ export default function Success(props: PageProps) {
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm transition dark:hover:bg-transparent">
-            <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
+            <ChevronLeftIcon className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -531,12 +531,12 @@ export default function Success(props: PageProps) {
                           isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && !isAwaitingPayment && isReschedulable && (
-                          <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
                         {(needsConfirmation || isAwaitingPayment) && isReschedulable && (
-                          <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                          <CalendarIcon className="text-emphasis h-5 w-5" />
                         )}
-                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                        {isCancelled && <XIcon className="h-5 w-5 text-red-600 dark:text-red-200" />}
                       </div>
                     </div>
                     <div className="mb-8 mt-6 text-center last:mb-0">
@@ -726,10 +726,11 @@ export default function Success(props: PageProps) {
                                 className="font-medium transition hover:text-blue-500 focus:outline-none">
                                 <div className="flex items-center gap-1">
                                   {showUtmParams ? t("hide") : t("show")}
-                                  <Icon
-                                    name={showUtmParams ? "chevron-up" : "chevron-down"}
-                                    className="size-4"
-                                  />
+                                  {showUtmParams ? (
+                                    <ChevronUpIcon className="size-4" />
+                                  ) : (
+                                    <ChevronDownIcon className="size-4" />
+                                  )}
                                 </div>
                               </button>
 
@@ -1028,7 +1029,7 @@ export default function Success(props: PageProps) {
                   (noShow ? (
                     <>
                       <EmptyScreen
-                        Icon="user-x"
+                        Icon={UserXIcon}
                         iconClassName="text-error"
                         iconWrapperClassName="bg-error"
                         headline={t("host_no_show")}
@@ -1104,7 +1105,7 @@ export default function Success(props: PageProps) {
                       </span>
                     </div>
                   }
-                  CustomIcon="circle-alert"
+                  CustomIcon={CircleAlertIcon}
                   customIconColor="text-attention dark:text-orange-200"
                 />
               )}
@@ -1127,7 +1128,7 @@ const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) =
           <Link href={`/booking/${rescheduledToUid}`}>
             <div className="flex items-center gap-1">
               {t("view_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
+              <ExternalLinkIcon className="h-4 w-4" />
             </div>
           </Link>
         </span>
@@ -1153,7 +1154,7 @@ const DisplayLocation = ({
       className={classNames("text-default flex items-center gap-2", className)}
       rel="noreferrer">
       {providerName || "Link"}
-      <Icon name="external-link" className="text-default inline h-4 w-4" />
+      <ExternalLinkIcon className="text-default inline h-4 w-4" />
     </a>
   ) : (
     <p className={className}>{locationToDisplay}</p>

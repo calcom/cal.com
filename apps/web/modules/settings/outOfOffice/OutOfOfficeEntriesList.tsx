@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import { ClockIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -29,7 +30,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -277,7 +277,7 @@ function OutOfOfficeEntriesListContent({
                       color="secondary"
                       variant="icon"
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
-                      StartIcon="pencil"
+                      StartIcon={PencilIcon}
                       onClick={() => {
                         const startDateOffset = -1 * item.start.getTimezoneOffset();
                         const endDateOffset = -1 * item.end.getTimezoneOffset();
@@ -321,7 +321,7 @@ function OutOfOfficeEntriesListContent({
                         isFetching ||
                         !item.canEditAndDelete
                       }
-                      StartIcon="trash-2"
+                      StartIcon={Trash2Icon}
                       data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
                       onClick={() => {
                         deleteOutOfOfficeEntryMutation.mutate({
@@ -404,7 +404,7 @@ function OutOfOfficeEntriesListContent({
                       <div className="w-12" />
                     </div>
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                      <Icon name="clock" size={28} className="text-black" />
+                      <ClockIcon size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-56 bg-white text-lg font-bold" />
                       <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
                         z

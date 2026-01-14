@@ -1,6 +1,8 @@
 "use client";
 
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarHeartIcon, InfoIcon, Link2Icon, ShieldCheckIcon, StarIcon, UsersIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -44,7 +46,6 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form, SelectField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
@@ -60,24 +61,29 @@ type FormValues = z.infer<typeof signupSchema>;
 
 export type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
-const FEATURES = [
+const FEATURES: {
+  title: string;
+  description: string;
+  i18nOptions?: { appName: string };
+  icon: LucideIcon;
+}[] = [
   {
     title: "connect_all_calendars",
     description: "connect_all_calendars_description",
     i18nOptions: {
       appName: APP_NAME,
     },
-    icon: "calendar-heart" as const,
+    icon: CalendarHeartIcon,
   },
   {
     title: "set_availability",
     description: "set_availbility_description",
-    icon: "users" as const,
+    icon: UsersIcon,
   },
   {
     title: "share_a_link_or_embed",
     description: "share_a_link_or_embed_description",
-    icon: "link-2" as const,
+    icon: Link2Icon,
     i18nOptions: {
       appName: APP_NAME,
     },
@@ -149,12 +155,12 @@ function UsernameField({
           <div className="text-sm ">
             {usernameTaken ? (
               <div className="text-error flex items-center">
-                <Icon name="info" className="mr-1 inline-block h-4 w-4" />
+                <InfoIcon className="mr-1 inline-block h-4 w-4" />
                 <p>{t("already_in_use_error")}</p>
               </div>
             ) : premium ? (
               <div data-testid="premium-username-warning" className="flex items-center">
-                <Icon name="star" className="mr-1 inline-block h-4 w-4" />
+                <StarIcon className="mr-1 inline-block h-4 w-4" />
                 <p>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
@@ -374,7 +380,7 @@ export default function Signup({
                 <Button
                   color="minimal"
                   className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
-                  StartIcon="arrow-left"
+                  StartIcon={ArrowLeftIcon}
                   data-testid="signup-back-button"
                   onClick={() => {
                     setDisplayEmailForm(false);
@@ -585,7 +591,7 @@ export default function Signup({
                           ? "opacity-50"
                           : ""
                       )}>
-                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
+                      <ShieldCheckIcon className="mr-2 h-5 w-5" />
                       {t("create_account_with_saml")}
                     </Button>
                   ) : (
@@ -818,24 +824,27 @@ export default function Signup({
               />
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
-              {FEATURES.map((feature, index) => (
-                <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
-                  <div className="text-emphasis items-center">
-                    <Icon name={feature.icon} className="mb-1 h-4 w-4" />
-                    <span className="text-sm font-medium">{t(feature.title)}</span>
+              {FEATURES.map((feature, index) => {
+                const FeatureIcon = feature.icon;
+                return (
+                  <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                    <div className="text-emphasis items-center">
+                      <FeatureIcon className="mb-1 h-4 w-4" />
+                      <span className="text-sm font-medium">{t(feature.title)}</span>
+                    </div>
+                    <div className="text-subtle text-sm">
+                      <p>
+                        {t(
+                          feature.description,
+                          feature.i18nOptions && {
+                            ...feature.i18nOptions,
+                          }
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-subtle text-sm">
-                    <p>
-                      {t(
-                        feature.description,
-                        feature.i18nOptions && {
-                          ...feature.i18nOptions,
-                        }
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

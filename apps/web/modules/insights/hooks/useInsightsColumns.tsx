@@ -1,5 +1,6 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import startCase from "lodash/startCase";
+import { CheckIcon, CircleIcon, ClipboardIcon } from "lucide-react";
 import { useMemo } from "react";
 import { z } from "zod";
 
@@ -231,7 +232,7 @@ export const useInsightsColumns = ({
           </div>
         ),
         meta: {
-          filter: { type: ColumnFilterType.MULTI_SELECT, icon: "circle" },
+          filter: { type: ColumnFilterType.MULTI_SELECT, icon: CircleIcon },
         },
       }),
       columnHelper.accessor("bookingCreatedAt", {
@@ -352,7 +353,7 @@ function CopyButton({ label, value }: { label: string; value: string }) {
       size="sm"
       className="overflow-hidden"
       tooltip={value}
-      EndIcon={isCopied ? "check" : "clipboard"}
+      EndIcon={isCopied ? CheckIcon : ClipboardIcon}
       onClick={() => {
         copyToClipboard(value);
       }}>

@@ -2,6 +2,8 @@
 
 import { keepPreviousData } from "@tanstack/react-query";
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+
 
 import {
   BlockedEntriesTable,
@@ -138,7 +140,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
           {permissions?.canCreate && (
             <Button
               color="primary"
-              StartIcon="plus"
+              StartIcon={PlusIcon}
               onClick={() => setShowCreateModal(true)}
             >
               {t("add")}

@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRightIcon, PlusIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -14,7 +15,6 @@ import { Button } from "@calcom/ui/components/button";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
 
 const schema = z.object({
@@ -217,10 +217,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
                     className="group/remove mx-2 px-0 hover:bg-transparent"
                     onClick={() => handleRemoveInput(index)}
                     aria-label="Remove Team">
-                    <Icon
-                      name="x"
-                      className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1"
-                    />
+                    <XIcon className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1" />
                   </Button>
                 )
               }
@@ -232,7 +229,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
         {counter === 5 && <p className="text-subtle my-2 text-sm">{t("org_max_team_warnings")}</p>}
         {counter < 5 && (
           <Button
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             color="secondary"
             onClick={handleCounterIncrease}
             aria-label={t("add_a_team")}
@@ -242,7 +239,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
           </Button>
         )}
         <Button
-          EndIcon="arrow-right"
+          EndIcon={ArrowRightIcon}
           type="submit"
           color="primary"
           className="mt-6 w-full justify-center"

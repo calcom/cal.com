@@ -1,6 +1,8 @@
 "use client";
 
 import type { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+import { EllipsisIcon, PencilIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -164,11 +166,11 @@ function RoleItem({
           <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
             <Dropdown>
               <DropdownMenuTrigger asChild>
-                <Button variant="icon" color="secondary" StartIcon="ellipsis" />
+                <Button variant="icon" color="secondary" StartIcon={EllipsisIcon} />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="flex flex-col">
                 {permissions.canUpdate && (
-                  <DropdownItem StartIcon="pencil" onClick={onClick}>
+                  <DropdownItem StartIcon={PencilIcon} onClick={onClick}>
                     {t("edit")}
                   </DropdownItem>
                 )}

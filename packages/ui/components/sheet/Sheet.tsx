@@ -1,6 +1,8 @@
 "use client";
 
 import * as SheetPrimitives from "@radix-ui/react-dialog";
+import { XIcon } from "lucide-react";
+
 import * as React from "react";
 
 import classNames from "@calcom/ui/classNames";
@@ -100,7 +102,7 @@ const SheetHeader = React.forwardRef<
       <div className={classNames("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
       {showCloseButton && (
         <SheetPrimitives.Close asChild>
-          <Button variant="icon" StartIcon="x" color="minimal" className="aspect-square p-1" />
+          <Button variant="icon" StartIcon={XIcon} color="minimal" className="aspect-square p-1" />
         </SheetPrimitives.Close>
       )}
     </div>

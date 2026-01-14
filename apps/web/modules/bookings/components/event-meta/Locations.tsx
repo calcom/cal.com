@@ -1,5 +1,7 @@
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { MapPinIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import classNames from "@calcom/ui/classNames";
@@ -20,10 +22,10 @@ export const EventLocations = ({ event }: { event: BookerEvent }) => {
   };
   const eventLocationType = getEventLocationType(locations[0].type);
   const iconUrl = locations.length > 1 || !eventLocationType?.iconUrl ? undefined : eventLocationType.iconUrl;
-  const icon = locations.length > 1 || !eventLocationType?.iconUrl ? "map-pin" : undefined;
+  const Icon = locations.length > 1 || !eventLocationType?.iconUrl ? MapPinIcon : undefined;
 
   return (
-    <EventMetaBlock iconUrl={iconUrl} icon={icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
+    <EventMetaBlock iconUrl={iconUrl} Icon={Icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
       {locations.length === 1 && (
         <Tooltip content={getLocationToDisplay(locations[0])}>
           <div className="" key={locations[0].type}>

@@ -15,19 +15,40 @@ vi.mock("../../icon", () => ({
 }));
 
 vi.mock("../../button", () => ({
-  Button: ({ children, onClick, StartIcon }: any) => (
-    <button onClick={onClick} data-testid={`button-${StartIcon || "default"}`}>
-      {StartIcon && <span>{StartIcon}</span>}
-      {children}
-    </button>
-  ),
+  Button: ({
+    children,
+    onClick,
+    StartIcon,
+  }: {
+    children?: React.ReactNode;
+    onClick?: () => void;
+    StartIcon?: React.ComponentType<{ "data-testid"?: string }>;
+  }) => {
+    const IconComponent = StartIcon;
+    const iconName =
+      (StartIcon as unknown as { displayName?: string; name?: string })?.displayName ||
+      (StartIcon as unknown as { displayName?: string; name?: string })?.name ||
+      "default";
+    return (
+      <button onClick={onClick} data-testid={`button-${iconName.toLowerCase()}`}>
+        {IconComponent && <IconComponent data-testid="start-icon" />}
+        {children}
+      </button>
+    );
+  },
 }));
 
 vi.mock("../../dropdown", () => ({
-  Dropdown: ({ children }: any) => <div data-testid="dropdown">{children}</div>,
-  DropdownMenuTrigger: ({ children }: any) => <div data-testid="dropdown-trigger">{children}</div>,
-  DropdownMenuContent: ({ children }: any) => <div data-testid="dropdown-content">{children}</div>,
-  DropdownMenuItem: ({ children }: any) => <div data-testid="dropdown-item">{children}</div>,
+  Dropdown: ({ children }: { children?: React.ReactNode }) => <div data-testid="dropdown">{children}</div>,
+  DropdownMenuTrigger: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="dropdown-trigger">{children}</div>
+  ),
+  DropdownMenuContent: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="dropdown-content">{children}</div>
+  ),
+  DropdownMenuItem: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="dropdown-item">{children}</div>
+  ),
 }));
 
 vi.mock("./AddVariablesDropdown", () => ({

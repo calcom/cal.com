@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -88,7 +90,7 @@ export const Pagination = ({
         <ButtonGroup containerProps={{ className: "space-x-1.5" }}>
           <Button
             variant="icon"
-            StartIcon="arrow-left"
+            StartIcon={ArrowLeftIcon}
             onClick={handlePrevious}
             disabled={currentPage <= 1}
             color="secondary"
@@ -96,7 +98,7 @@ export const Pagination = ({
           />
           <Button
             variant="icon"
-            StartIcon="arrow-right"
+            StartIcon={ArrowRightIcon}
             onClick={handleNext}
             disabled={currentPage >= totalPages}
             color="secondary"

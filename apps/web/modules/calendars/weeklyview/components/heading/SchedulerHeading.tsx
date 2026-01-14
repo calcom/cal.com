@@ -1,4 +1,6 @@
 import dayjs from "@calcom/dayjs";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
@@ -30,7 +32,7 @@ export function SchedulerHeading() {
         <ButtonGroup combined>
           {/* TODO: i18n label with correct view */}
           <Button
-            StartIcon="chevron-left"
+            StartIcon={ChevronLeftIcon}
             variant="icon"
             color="secondary"
             aria-label="Previous Week"
@@ -39,7 +41,7 @@ export function SchedulerHeading() {
             }}
           />
           <Button
-            StartIcon="chevron-right"
+            StartIcon={ChevronRightIcon}
             variant="icon"
             color="secondary"
             aria-label="Next Week"

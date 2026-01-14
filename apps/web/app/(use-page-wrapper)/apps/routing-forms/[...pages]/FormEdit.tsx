@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ChevronDownIcon, MenuIcon, PlusIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -20,7 +21,6 @@ import {
   TextField,
   MultiOptionInput,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
@@ -187,10 +187,7 @@ function Field({
                           <span className="text-default">
                             {defaultValue?.label || "Select field type"}
                           </span>
-                          <Icon
-                            name="chevron-down"
-                            className="text-default h-4 w-4"
-                          />
+                          <ChevronDownIcon className="text-default h-4 w-4" />
                         </Button>
                       </Tooltip>
                     </div>
@@ -353,7 +350,7 @@ const FormEdit = ({
           <Button
             data-testid="add-field"
             type="button"
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             color="secondary"
             onClick={addField}
           >
@@ -370,7 +367,7 @@ const FormEdit = ({
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
             <div className="text-emphasis flex h-full items-center justify-center">
-              <Icon name="menu" className="text-emphasis h-4 w-4" />
+              <MenuIcon className="text-emphasis h-4 w-4" />
             </div>
           </div>
           {/* Left fanned card */}
@@ -399,7 +396,7 @@ const FormEdit = ({
         <Button
           data-testid="add-field"
           onClick={addField}
-          StartIcon="plus"
+          StartIcon={PlusIcon}
           className="mt-6"
         >
           Add question

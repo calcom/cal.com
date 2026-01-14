@@ -1,5 +1,7 @@
 "use client";
 
+import { FileDownIcon, Handshake as HandshakeIcon, PlusIcon } from "lucide-react";
+
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
   ColumnFilterType,
@@ -698,7 +700,7 @@ function UserListTableContent({
                   <DataTableSelectionBar.Button
                     color="secondary"
                     onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                    icon="handshake"
+                    Icon={HandshakeIcon}
                   >
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
@@ -754,7 +756,7 @@ function UserListTableContent({
             <DataTableToolbar.CTA
               type="button"
               color="secondary"
-              StartIcon="file-down"
+              StartIcon={FileDownIcon}
               loading={isDownloading}
               onClick={() => handleDownload()}
               data-testid="export-members-button"
@@ -765,7 +767,7 @@ function UserListTableContent({
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 onClick={() => {
                   dispatch({
                     type: "INVITE_MEMBER",

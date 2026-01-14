@@ -1,3 +1,5 @@
+import { Grid3X3Icon } from "lucide-react";
+
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type {
   EventTypeApp,
@@ -23,7 +25,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
     <div>
       {!isStripeConnected ? (
         <EmptyScreen
-          Icon="grid-3x3"
+          Icon={Grid3X3Icon}
           headline="Stripe not connected"
           description="You need to connect Stripe to use this feature. Please click on the button below to connect."
           buttonRaw={

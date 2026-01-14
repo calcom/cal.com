@@ -1,10 +1,10 @@
+import { XIcon } from "lucide-react";
 import React from "react";
 import type { Props } from "react-select";
 
 import Select from "@calcom/features/form/components/Select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Icon } from "@calcom/ui/components/icon";
 
 type CheckedSelectOption = {
   avatar: string;
@@ -42,8 +42,7 @@ export const CheckedSelect = ({
             alt={option.label}
           />
           {option.label}
-          <Icon
-            name="x"
+          <XIcon
             onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
             className="text-subtle float-right mt-0.5 h-5 w-5 cursor-pointer"
           />

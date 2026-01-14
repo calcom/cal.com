@@ -1,3 +1,5 @@
+import { XIcon } from "lucide-react";
+
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { DataTableSelectionBar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,7 +47,7 @@ export function BulkDismissReports({ reports, onRemove }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <DataTableSelectionBar.Button icon="x" color="secondary">
+        <DataTableSelectionBar.Button icon={XIcon} color="secondary">
           {t("dismiss")}
         </DataTableSelectionBar.Button>
       </DialogTrigger>

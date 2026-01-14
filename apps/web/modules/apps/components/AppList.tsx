@@ -1,4 +1,6 @@
 import { useCallback, useState } from "react";
+import { EllipsisIcon, TrashIcon, VideoIcon } from "lucide-react";
+
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -90,7 +92,7 @@ export const AppList = ({
             <div className="flex justify-end">
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button StartIcon="ellipsis" variant="icon" color="secondary" />
+                  <Button StartIcon={EllipsisIcon} variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {!appIsDefault && variant === "conferencing" && (
@@ -98,7 +100,7 @@ export const AppList = ({
                       <DropdownItem
                         type="button"
                         color="secondary"
-                        StartIcon="video"
+                        StartIcon={VideoIcon}
                         onClick={() => {
                           const locationType = getLocationFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
@@ -225,7 +227,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, app, teamId)}
           disabled={isGlobal || isDelegationCredential({ credentialId })}
-          StartIcon="trash">
+          StartIcon={TrashIcon}>
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>

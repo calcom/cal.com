@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { CalendarIcon } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
@@ -101,7 +102,7 @@ export const BookEventForm = ({
       <EmptyScreen
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon="calendar"
+        Icon={CalendarIcon}
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />

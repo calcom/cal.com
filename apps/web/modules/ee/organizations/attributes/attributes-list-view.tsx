@@ -1,6 +1,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import { EllipsisIcon, PencilIcon, PlusIcon, TagsIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
@@ -17,7 +18,6 @@ import {
   DropdownMenuItem,
 } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
 
@@ -97,7 +97,7 @@ function AttributeItem({
                 type="button"
                 variant="icon"
                 color="secondary"
-                StartIcon="ellipsis"
+                StartIcon={EllipsisIcon}
                 className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
               />
             </DropdownMenuTrigger>
@@ -106,7 +106,7 @@ function AttributeItem({
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon="pencil"
+                    StartIcon={PencilIcon}
                     href={`/settings/organizations/attributes/${attribute.id}/edit`}>
                     {t("edit")}
                   </DropdownItem>
@@ -116,7 +116,7 @@ function AttributeItem({
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon="trash-2"
+                    StartIcon={Trash2Icon}
                     color="destructive"
                     className="rounded-t-none"
                     onClick={() => setAttributeToDelete(attribute)}>
@@ -169,7 +169,7 @@ function OrganizationAttributesPage({
             {permissions.canCreate && (
               <Button
                 className="w-fit"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 color="minimal"
                 href="/settings/organizations/attributes/create">
                 {t("add")}
@@ -179,7 +179,7 @@ function OrganizationAttributesPage({
         ) : (
           <div className="flex w-full flex-col items-center justify-center p-14">
             <div className="bg-emphasis text-emphasis flex h-16 w-16 items-center justify-center rounded-full p-2">
-              <Icon name="tags" />
+              <TagsIcon />
             </div>
             <h2 className="font-cal text-emphasis mt-6 text-xl font-semibold leading-none">
               {t("add_attributes")}
@@ -191,7 +191,7 @@ function OrganizationAttributesPage({
             {permissions.canCreate && (
               <Button
                 className="mt-8"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 color="secondary"
                 href="/settings/organizations/attributes/create">
                 {t("new_attribute")}

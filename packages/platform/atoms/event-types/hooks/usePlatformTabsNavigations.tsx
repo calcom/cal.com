@@ -3,6 +3,15 @@
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { TFunction } from "i18next";
+import {
+  CalendarIcon,
+  ClockIcon,
+  CreditCardIcon,
+  LinkIcon,
+  RepeatIcon,
+  SettingsIcon,
+  UsersIcon,
+} from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -69,7 +78,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
         onClick: () => setCurrentTab("recurring"),
         isActive: currentTab === "recurring",
         href: `${url}?tabName=recurring`,
-        icon: "repeat",
+        icon: RepeatIcon,
         info: t(`recurring_event_tab_description`),
         "data-testid": "recurring",
       });
@@ -81,7 +90,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
         onClick: () => setCurrentTab("availability"),
         isActive: currentTab === "availability",
         href: `${url}?tabName=availability`,
-        icon: "calendar",
+        icon: CalendarIcon,
         info:
           isManagedEventType || isChildrenManagedEventType
             ? formMethods.getValues("schedule") === null
@@ -104,7 +113,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
         onClick: () => setCurrentTab("team"),
         isActive: currentTab === "team",
         href: `${url}?tabName=team`,
-        icon: "users",
+        icon: UsersIcon,
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
@@ -153,7 +162,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       onClick: () => onClick("setup"),
       isActive: currentTab === "setup",
       href: `${url}?tabName=setup`,
-      icon: "link",
+      icon: LinkIcon,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
       "data-testid": `basics`,
     });
@@ -163,7 +172,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       onClick: () => onClick("limits"),
       isActive: currentTab === "limits",
       href: `${url}?tabName=limits`,
-      icon: "clock",
+      icon: ClockIcon,
       info: t(`event_limit_tab_description`),
       "data-testid": "event_limit_tab_title",
     });
@@ -174,7 +183,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       onClick: () => onClick("advanced"),
       isActive: currentTab === "advanced",
       href: `${url}?tabName=advanced`,
-      icon: "sliders-vertical",
+      icon: SettingsIcon,
       info: t(`event_advanced_tab_description`),
       "data-testid": "event_advanced_tab_title",
     });
@@ -184,7 +193,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       onClick: () => onClick("payments"),
       isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,
-      icon: "credit-card",
+      icon: CreditCardIcon,
       info: t(`event_payments_tab_description`),
       "data-testid": "payments",
     });

@@ -1,5 +1,17 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  ChartBarIcon,
+  ContactIcon,
+  CreditCardIcon,
+  Grid3x3Icon,
+  MailIcon,
+  PlusIcon,
+  Share2Icon,
+  VideoIcon,
+} from "lucide-react";
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
@@ -15,7 +27,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import type { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -98,17 +109,17 @@ const IntegrationsContainer = ({
   };
 
   // TODO: Refactor and reuse getAppCategories?
-  const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
-    calendar: "calendar",
-    conferencing: "video",
-    automation: "share-2",
-    analytics: "chart-bar",
-    payment: "credit-card",
-    other: "grid-3x3",
-    web3: "credit-card", // deprecated
-    video: "video", // deprecated
-    messaging: "mail",
-    crm: "contact",
+  const emptyIcon: Record<AppCategories, LucideIcon> = {
+    calendar: CalendarIcon,
+    conferencing: VideoIcon,
+    automation: Share2Icon,
+    analytics: ChartBarIcon,
+    payment: CreditCardIcon,
+    other: Grid3x3Icon,
+    web3: CreditCardIcon, // deprecated
+    video: VideoIcon, // deprecated
+    messaging: MailIcon,
+    crm: ContactIcon,
   };
 
   return (
@@ -148,7 +159,7 @@ const IntegrationsContainer = ({
                   data-testid="add-apps"
                   href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
-                  StartIcon="plus">
+                  StartIcon={PlusIcon}>
                   {t("add")}
                 </Button>
               }

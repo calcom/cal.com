@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { SettingsIcon } from "lucide-react";
+
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -65,7 +67,7 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
           data-testid="overlay-calendar-settings-button"
           variant="icon"
           color="secondary"
-          StartIcon="settings"
+          StartIcon={SettingsIcon}
           onClick={() => {
             setCalendarSettingsOverlay(true);
           }}

@@ -1,4 +1,6 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { BanIcon, CheckIcon, EllipsisIcon, XIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -97,7 +99,7 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
-                StartIcon="ban"
+                StartIcon={BanIcon}
               />
               <Button
                 type="button"
@@ -105,22 +107,22 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={acceptInvite}
-                StartIcon="check"
+                StartIcon={CheckIcon}
               />
             </div>
             <div className="block sm:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
+                  <Button type="button" color="minimal" variant="icon" StartIcon={EllipsisIcon} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <DropdownItem type="button" StartIcon="check" onClick={acceptInvite}>
+                    <DropdownItem type="button" StartIcon={CheckIcon} onClick={acceptInvite}>
                       {t("accept")}
                     </DropdownItem>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <DropdownItem color="destructive" type="button" StartIcon="x" onClick={declineInvite}>
+                    <DropdownItem color="destructive" type="button" StartIcon={XIcon} onClick={declineInvite}>
                       {t("reject")}
                     </DropdownItem>
                   </DropdownMenuItem>

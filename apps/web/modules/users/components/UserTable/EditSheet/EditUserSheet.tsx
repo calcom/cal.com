@@ -1,3 +1,11 @@
+import {
+  AtSign as AtSignIcon,
+  Calendar as CalendarIcon,
+  Clock as ClockIcon,
+  ExternalLink as ExternalLinkIcon,
+  Fingerprint as FingerprintIcon,
+  Users as UsersIcon,
+} from "lucide-react";
 import type { Dispatch } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -121,29 +129,29 @@ export function EditUserSheet({
                           loadedUser?.username
                         }`
                       )}
-                      icon="external-link"
+                      icon={ExternalLinkIcon}
                     />
                     <DisplayInfo
                       label={t("email")}
                       value={loadedUser?.email ?? ""}
-                      icon="at-sign"
+                      icon={AtSignIcon}
                     />
                     <DisplayInfo
                       label={t("role")}
                       value={[loadedUser?.role ?? ""]}
-                      icon="fingerprint"
+                      icon={FingerprintIcon}
                     />
                     <DisplayInfo
                       label={t("timezone")}
                       value={loadedUser?.timeZone ?? ""}
-                      icon="clock"
+                      icon={ClockIcon}
                     />
                     <DisplayInfo
                       label={t("teams")}
                       value={
                         !teamNames || teamNames.length === 0 ? "" : teamNames
                       }
-                      icon="users"
+                      icon={UsersIcon}
                       coloredBadges
                     />
                     <DisplayInfo
@@ -153,7 +161,7 @@ export function EditUserSheet({
                           ? ""
                           : schedulesNames
                       }
-                      icon="calendar"
+                      icon={CalendarIcon}
                     />
                   </div>
                   {canViewAttributes &&

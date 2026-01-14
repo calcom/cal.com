@@ -1,4 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ArrowRightIcon } from "lucide-react";
+
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -83,7 +85,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       {queryIntegrations.isPending && <StepConnectionLoader />}
 
       <Button
-        EndIcon="arrow-right"
+        EndIcon={ArrowRightIcon}
         data-testid="save-calendar-button"
         className={classNames(
           "text-inverted bg-inverted border-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",

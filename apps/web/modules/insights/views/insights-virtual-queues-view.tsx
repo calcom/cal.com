@@ -1,5 +1,6 @@
 "use client";
 
+import { SplitIcon } from "lucide-react";
 import { useState } from "react";
 
 import type { RoutingForm } from "@calcom/app-store/routing-forms/types/types";
@@ -27,7 +28,7 @@ export default function InsightsVirtualQueuesPage() {
   if (routingForms && routingForms.length === 0) {
     return (
       <EmptyScreen
-        Icon="split"
+        Icon={SplitIcon}
         headline={t("no_routing_forms")}
         description={t("empty_routing_forms_description")}
       />

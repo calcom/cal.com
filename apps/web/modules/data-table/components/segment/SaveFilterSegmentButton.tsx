@@ -1,4 +1,6 @@
 import { useSession } from "next-auth/react";
+import { BookmarkIcon } from "lucide-react";
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import posthog from "posthog-js";
@@ -160,7 +162,7 @@ export function SaveFilterSegmentButton() {
 
   if (!isSegmentEnabled) {
     return (
-      <Button StartIcon="bookmark" color="secondary" disabled>
+      <Button StartIcon={BookmarkIcon} color="secondary" disabled>
         {t("save")}
       </Button>
     );
@@ -170,7 +172,7 @@ export function SaveFilterSegmentButton() {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
-          StartIcon="bookmark"
+          StartIcon={BookmarkIcon}
           color="secondary"
           onClick={() => posthog.capture("insights_routing_save_filter_clicked")}
           disabled={!canSaveSegment}

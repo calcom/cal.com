@@ -1,6 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { PlusIcon } from "lucide-react";
+
 import { Button } from "@calcom/ui/components/button";
 
 import { useRoleSheetState } from "../hooks/useRoleQueryStates";
@@ -10,7 +12,7 @@ export function CreateRoleCTA() {
   const { setIsOpen } = useRoleSheetState();
 
   return (
-    <Button StartIcon="plus" onClick={() => setIsOpen(true)}>
+    <Button StartIcon={PlusIcon} onClick={() => setIsOpen(true)}>
       {t("create_role")}
     </Button>
   );

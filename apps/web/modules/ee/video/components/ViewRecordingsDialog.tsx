@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { DownloadIcon } from "lucide-react";
+
 import { Suspense, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -129,7 +131,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                 </div>
                 {hasTeamPlan ? (
                   <Button
-                    StartIcon="download"
+                    StartIcon={DownloadIcon}
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>
