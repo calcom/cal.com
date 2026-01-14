@@ -69,7 +69,7 @@ jobs:
         run: |
           # The CLI outputs the version; id allows us to access outputs.deploymentVersion
           cd packages/features
-          npx trigger.dev@latest deploy --config  --skip-promotion
+          npx trigger.dev@latest deploy --config ./trigger.config.ts --skip-promotion
 
       - name: Bump version
         env:
