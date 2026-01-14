@@ -69,10 +69,15 @@ runs:
             const session = await checkSessionStatus(sessionId);
             if (session) {
               console.log(`PR creator session status: ${session.status_enum}`);
-              core.setOutput('has-existing-session', 'true');
-              core.setOutput('session-id', sessionId);
-              core.setOutput('session-url', `https://app.devin.ai/sessions/${sessionId}`);
-              return;
+              const activeStatuses = ['working', 'blocked', 'resumed'];
+              if (activeStatuses.includes(session.status_enum)) {
+                core.setOutput('has-existing-session', 'true');
+                core.setOutput('session-id', sessionId);
+                core.setOutput('session-url', `https://app.devin.ai/sessions/${sessionId}`);
+                return;
+              } else {
+                console.log(`PR creator session ${sessionId} is not active, will check comments`);
+              }
             }
           }
 
