@@ -136,16 +136,6 @@ describe("RedisFeatureRepository", () => {
     });
   });
 
-  describe("invalidateAll", () => {
-    it("should delete all and flagMap cache keys", async () => {
-      await repository.invalidateAll();
-
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:global:all");
-      expect(mockRedisService.del).toHaveBeenCalledWith("features:global:flagMap");
-      expect(mockRedisService.del).toHaveBeenCalledTimes(2);
-    });
-  });
-
   describe("custom TTL in constructor", () => {
     it("should use custom TTL from constructor", async () => {
       const customTtl = 60000;

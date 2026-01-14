@@ -21,7 +21,6 @@ const createMockRedisRepo = (): IRedisFeatureRepository => ({
   setBySlug: vi.fn(),
   getFeatureFlagMap: vi.fn(),
   setFeatureFlagMap: vi.fn(),
-  invalidateAll: vi.fn(),
 });
 
 describe("CachedFeatureRepository", () => {

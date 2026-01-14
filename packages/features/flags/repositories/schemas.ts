@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const dateSchema = z.union([z.date(), z.string().transform((str) => new Date(str))]);
+const dateSchema = z.coerce.date();
 
 export const teamFeaturesSchema = z.object({
   teamId: z.number(),

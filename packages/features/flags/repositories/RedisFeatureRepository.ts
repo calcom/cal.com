@@ -19,7 +19,6 @@ export interface IRedisFeatureRepository {
   setBySlug(slug: FeatureId, feature: Feature, ttlMs?: number): Promise<void>;
   getFeatureFlagMap(): Promise<AppFlags | null>;
   setFeatureFlagMap(flags: AppFlags, ttlMs?: number): Promise<void>;
-  invalidateAll(): Promise<void>;
 }
 
 export class RedisFeatureRepository implements IRedisFeatureRepository {
@@ -50,10 +49,5 @@ export class RedisFeatureRepository implements IRedisFeatureRepository {
 
   async setFeatureFlagMap(flags: AppFlags, ttlMs?: number): Promise<void> {
     await this.redisService.set(KEY.flagMap(), flags, { ttl: ttlMs ?? this.ttlMs });
-  }
-
-  async invalidateAll(): Promise<void> {
-    await this.redisService.del(KEY.all());
-    await this.redisService.del(KEY.flagMap());
   }
 }
