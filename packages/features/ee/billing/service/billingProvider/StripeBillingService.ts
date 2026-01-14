@@ -290,6 +290,7 @@ export class StripeBillingService implements IBillingProviderService {
       // If paid or void, no action needed
     } catch (error) {
       log.warn("Failed to void invoice", { invoiceId, error });
+      throw error;
     }
   }
 
