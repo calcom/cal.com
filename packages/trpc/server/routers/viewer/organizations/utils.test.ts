@@ -4,12 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TrpcSessionUser } from "../../../types";
 
-const { mockFindTeamsNotBelongingToOrgByIds, mockCheckPermission, mockUpdateNewTeamMemberEventTypes } =
-  vi.hoisted(() => ({
+const { mockFindTeamsNotBelongingToOrgByIds, mockCheckPermission, mockAddMembersToTeams } = vi.hoisted(
+  () => ({
     mockFindTeamsNotBelongingToOrgByIds: vi.fn(),
     mockCheckPermission: vi.fn(),
-    mockUpdateNewTeamMemberEventTypes: vi.fn(),
-  }));
+    mockAddMembersToTeams: vi.fn(),
+  })
+);
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
@@ -32,8 +33,10 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
   }),
 }));
 
-vi.mock("@calcom/features/ee/teams/lib/queries", () => ({
-  updateNewTeamMemberEventTypes: mockUpdateNewTeamMemberEventTypes,
+vi.mock("@calcom/features/ee/teams/services/teamService", () => ({
+  TeamService: {
+    addMembersToTeams: mockAddMembersToTeams,
+  },
 }));
 
 import { addMembersToTeams } from "./utils";
@@ -53,10 +56,9 @@ describe("addMembersToTeams", () => {
 
     mockFindTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
     mockCheckPermission.mockResolvedValue(true);
-    mockUpdateNewTeamMemberEventTypes.mockResolvedValue(undefined);
+    mockAddMembersToTeams.mockResolvedValue(undefined);
 
     prisma.membership.findMany.mockResolvedValue([]);
-    prisma.membership.createMany.mockResolvedValue({ count: 0 });
   });
 
   it("should throw UNAUTHORIZED if user has no organizationId", async () => {
@@ -107,12 +109,10 @@ describe("addMembersToTeams", () => {
     ).rejects.toThrow("One or more users are not in the organization");
   });
 
-  it("should wait for all updateNewTeamMemberEventTypes calls to complete before returning", async () => {
+  it("should call TeamService.addMembersToTeams with correct membership data", async () => {
     const user = createMockUser();
     const userIds = [10, 20];
     const teamIds = [1, 2];
-
-    const callCompletionOrder: string[] = [];
 
     prisma.membership.findMany
       .mockResolvedValueOnce([
@@ -120,11 +120,6 @@ describe("addMembersToTeams", () => {
         { userId: 20, teamId: ORGANIZATION_ID, accepted: true },
       ])
       .mockResolvedValueOnce([]);
-
-    mockUpdateNewTeamMemberEventTypes.mockImplementation(async (userId: number, teamId: number) => {
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      callCompletionOrder.push(`${userId}-${teamId}`);
-    });
 
     const result = await addMembersToTeams({
       user,
@@ -134,19 +129,21 @@ describe("addMembersToTeams", () => {
     expect(result.success).toBe(true);
     expect(result.invitedTotalUsers).toBe(2);
 
-    expect(callCompletionOrder).toHaveLength(4);
-    expect(callCompletionOrder).toContain("10-1");
-    expect(callCompletionOrder).toContain("10-2");
-    expect(callCompletionOrder).toContain("20-1");
-    expect(callCompletionOrder).toContain("20-2");
-
-    expect(mockUpdateNewTeamMemberEventTypes).toHaveBeenCalledTimes(4);
+    expect(mockAddMembersToTeams).toHaveBeenCalledTimes(1);
+    expect(mockAddMembersToTeams).toHaveBeenCalledWith({
+      membershipData: expect.arrayContaining([
+        expect.objectContaining({ userId: 10, teamId: 1, role: MembershipRole.MEMBER, accepted: true }),
+        expect.objectContaining({ userId: 10, teamId: 2, role: MembershipRole.MEMBER, accepted: true }),
+        expect.objectContaining({ userId: 20, teamId: 1, role: MembershipRole.MEMBER, accepted: true }),
+        expect.objectContaining({ userId: 20, teamId: 2, role: MembershipRole.MEMBER, accepted: true }),
+      ]),
+    });
   });
 
-  it("should call updateNewTeamMemberEventTypes for each user-team combination", async () => {
+  it("should pass correct accepted status based on org membership", async () => {
     const user = createMockUser();
     const userIds = [10, 20];
-    const teamIds = [1, 2];
+    const teamIds = [1];
 
     prisma.membership.findMany
       .mockResolvedValueOnce([
@@ -161,10 +158,12 @@ describe("addMembersToTeams", () => {
     });
 
     expect(result.success).toBe(true);
-    expect(mockUpdateNewTeamMemberEventTypes).toHaveBeenCalledWith(10, 1);
-    expect(mockUpdateNewTeamMemberEventTypes).toHaveBeenCalledWith(10, 2);
-    expect(mockUpdateNewTeamMemberEventTypes).toHaveBeenCalledWith(20, 1);
-    expect(mockUpdateNewTeamMemberEventTypes).toHaveBeenCalledWith(20, 2);
+    expect(mockAddMembersToTeams).toHaveBeenCalledWith({
+      membershipData: expect.arrayContaining([
+        expect.objectContaining({ userId: 10, teamId: 1, accepted: true }),
+        expect.objectContaining({ userId: 20, teamId: 1, accepted: false }),
+      ]),
+    });
   });
 
   it("should skip users already in teams", async () => {
@@ -185,33 +184,28 @@ describe("addMembersToTeams", () => {
     });
 
     expect(result.success).toBe(true);
-    expect(mockUpdateNewTeamMemberEventTypes).toHaveBeenCalledTimes(1);
-    expect(mockUpdateNewTeamMemberEventTypes).toHaveBeenCalledWith(20, 1);
+    expect(mockAddMembersToTeams).toHaveBeenCalledWith({
+      membershipData: [expect.objectContaining({ userId: 20, teamId: 1 })],
+    });
   });
 
-  it("should create memberships with correct data", async () => {
+  it("should not call TeamService when no users to add", async () => {
     const user = createMockUser();
     const userIds = [10];
     const teamIds = [1];
 
     prisma.membership.findMany
       .mockResolvedValueOnce([{ userId: 10, teamId: ORGANIZATION_ID, accepted: true }])
-      .mockResolvedValueOnce([]);
+      .mockResolvedValueOnce([{ userId: 10, teamId: 1 }]);
 
-    await addMembersToTeams({
+    const result = await addMembersToTeams({
       user,
       input: { userIds, teamIds },
     });
 
-    expect(prisma.membership.createMany).toHaveBeenCalledWith({
-      data: [
-        expect.objectContaining({
-          userId: 10,
-          teamId: 1,
-          role: MembershipRole.MEMBER,
-          accepted: true,
-        }),
-      ],
+    expect(result.success).toBe(true);
+    expect(mockAddMembersToTeams).toHaveBeenCalledWith({
+      membershipData: [],
     });
   });
 });
