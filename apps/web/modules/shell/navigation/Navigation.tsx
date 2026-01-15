@@ -22,6 +22,13 @@ const getNavigationItems = (
   hasInsightsAccess: boolean
 ): NavigationItemType[] => [
   {
+    name: "mateusz",
+    href: "/mateusz",
+    icon: "user",
+    isCurrent: ({ pathname }) => pathname?.startsWith("/mateusz") ?? false,
+    moreOnMobile: true,
+  },
+  {
     name: "event_types_page_title",
     href: "/event-types",
     icon: "link",
@@ -38,6 +45,7 @@ const getNavigationItems = (
     href: "/availability",
     icon: "clock",
   },
+
   ...(orgBranding
     ? [
         {
