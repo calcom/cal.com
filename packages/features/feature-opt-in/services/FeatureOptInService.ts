@@ -374,6 +374,27 @@ export class FeatureOptInService implements IFeatureOptInService {
       };
     }
 
+    // Simulate what would happen if user opts in
+    const featureConfig = getOptInFeatureConfig(featureId);
+    const policy: OptInFeaturePolicy = featureConfig?.policy ?? "permissive";
+
+    const simulatedResult = computeEffectiveStateAcrossTeams({
+      globalEnabled: featureState.globalEnabled,
+      orgState: featureState.orgState,
+      teamStates: featureState.teamStates,
+      userState: "enabled",
+      policy,
+    });
+
+    if (!simulatedResult.enabled) {
+      return {
+        status: "blocked",
+        canOptIn: false,
+        userRoleContext,
+        blockingReason: simulatedResult.reason,
+      };
+    }
+
     return {
       status: "can_opt_in",
       canOptIn: true,

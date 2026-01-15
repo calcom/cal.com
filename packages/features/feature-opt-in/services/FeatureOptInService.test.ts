@@ -44,6 +44,12 @@ vi.mock("../config", () => {
       policy: "permissive",
       scope: ["user"],
     },
+    {
+      slug: "strict-feature",
+      titleI18nKey: "strict_feature",
+      descriptionI18nKey: "strict_feature_desc",
+      policy: "strict",
+    },
   ];
   return {
     OPT_IN_FEATURES: mockFeatures,
@@ -148,6 +154,7 @@ describe("FeatureOptInService", () => {
           "org-only-feature",
           "team-only-feature",
           "user-only-feature",
+          "strict-feature",
         ],
       });
     });
@@ -189,6 +196,7 @@ describe("FeatureOptInService", () => {
           "org-only-feature",
           "team-only-feature",
           "user-only-feature",
+          "strict-feature",
         ],
       });
     });
@@ -268,6 +276,7 @@ describe("FeatureOptInService", () => {
           "org-only-feature",
           "team-only-feature",
           "user-only-feature",
+          "strict-feature",
         ],
       });
     });
@@ -623,6 +632,94 @@ describe("FeatureOptInService", () => {
       expect(result.status).toBe("can_opt_in");
       expect(result.userRoleContext?.adminTeamIds).toEqual([1]);
       expect(result.userRoleContext?.adminTeamNames).toEqual([{ id: 1, name: "Team 1" }]);
+    });
+  });
+
+  describe("checkFeatureOptInEligibility - simulation logic", () => {
+    let mockMembershipRepository: { findAllByUserId: ReturnType<typeof vi.fn> };
+    let mockPermissionCheckService: { checkPermission: ReturnType<typeof vi.fn> };
+    let mockTeamRepository: { findOwnedTeamsByUserId: ReturnType<typeof vi.fn> };
+
+    beforeEach(() => {
+      mockMembershipRepository = {
+        findAllByUserId: vi.fn(),
+      };
+      mockPermissionCheckService = {
+        checkPermission: vi.fn(),
+      };
+      mockTeamRepository = {
+        findOwnedTeamsByUserId: vi.fn(),
+      };
+
+      vi.doMock("@calcom/features/membership/repositories/MembershipRepository", () => ({
+        MembershipRepository: mockMembershipRepository,
+      }));
+      vi.doMock("@calcom/features/pbac/services/permission-check.service", () => ({
+        PermissionCheckService: vi.fn(() => mockPermissionCheckService),
+      }));
+      vi.doMock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
+        TeamRepository: vi.fn(() => mockTeamRepository),
+      }));
+    });
+
+    it("should return blocked when strict policy feature would not be enabled even after user opts in", async () => {
+      const { computeEffectiveStateAcrossTeams } = await import("../lib/computeEffectiveState");
+
+      const result = computeEffectiveStateAcrossTeams({
+        globalEnabled: true,
+        orgState: "inherit",
+        teamStates: ["inherit"],
+        userState: "enabled",
+        policy: "strict",
+      });
+
+      expect(result.enabled).toBe(false);
+      expect(result.reason).toBe("feature_user_only_not_allowed");
+    });
+
+    it("should return enabled when permissive policy feature would be enabled after user opts in", async () => {
+      const { computeEffectiveStateAcrossTeams } = await import("../lib/computeEffectiveState");
+
+      const result = computeEffectiveStateAcrossTeams({
+        globalEnabled: true,
+        orgState: "inherit",
+        teamStates: ["inherit"],
+        userState: "enabled",
+        policy: "permissive",
+      });
+
+      expect(result.enabled).toBe(true);
+      expect(result.reason).toBe("feature_enabled");
+    });
+
+    it("should return enabled when strict policy feature has org enablement and user opts in", async () => {
+      const { computeEffectiveStateAcrossTeams } = await import("../lib/computeEffectiveState");
+
+      const result = computeEffectiveStateAcrossTeams({
+        globalEnabled: true,
+        orgState: "enabled",
+        teamStates: ["inherit"],
+        userState: "enabled",
+        policy: "strict",
+      });
+
+      expect(result.enabled).toBe(true);
+      expect(result.reason).toBe("feature_enabled");
+    });
+
+    it("should return blocked when strict policy feature has any team disabled", async () => {
+      const { computeEffectiveStateAcrossTeams } = await import("../lib/computeEffectiveState");
+
+      const result = computeEffectiveStateAcrossTeams({
+        globalEnabled: true,
+        orgState: "enabled",
+        teamStates: ["disabled", "inherit"],
+        userState: "enabled",
+        policy: "strict",
+      });
+
+      expect(result.enabled).toBe(false);
+      expect(result.reason).toBe("feature_any_team_disabled");
     });
   });
 });
