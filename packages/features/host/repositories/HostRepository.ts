@@ -141,4 +141,31 @@ export class HostRepository {
 
     return { items, nextCursor, hasMore };
   }
+
+  async findHostsWithConferencingCredentials(eventTypeId: number) {
+    return await this.prismaClient.host.findMany({
+      where: { eventTypeId },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            credentials: {
+              where: {
+                app: {
+                  categories: {
+                    hasSome: [AppCategories.conferencing, AppCategories.video],
+                  },
+                },
+              },
+              select: {
+                id: true,
+                type: true,
+                appId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }

@@ -1605,6 +1605,16 @@ export class EventTypeRepository {
     });
   }
 
+  async findByIdWithTeamId({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        teamId: true,
+      },
+    });
+  }
+
   async findByIdWithParent(eventTypeId: number) {
     return this.prismaClient.eventType.findUnique({
       where: { id: eventTypeId },

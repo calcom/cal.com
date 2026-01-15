@@ -24,4 +24,37 @@ export class HostLocationRepository {
       },
     });
   }
+
+  async upsertMany(
+    locations: {
+      userId: number;
+      eventTypeId: number;
+      type: string;
+      link: string | null;
+      address: string | null;
+      phoneNumber: string | null;
+      credentialId: number | null;
+    }[]
+  ) {
+    return await Promise.all(
+      locations.map((location) =>
+        this.prismaClient.hostLocation.upsert({
+          where: {
+            userId_eventTypeId: {
+              userId: location.userId,
+              eventTypeId: location.eventTypeId,
+            },
+          },
+          create: location,
+          update: {
+            type: location.type,
+            link: location.link,
+            address: location.address,
+            phoneNumber: location.phoneNumber,
+            credentialId: location.credentialId,
+          },
+        })
+      )
+    );
+  }
 }
