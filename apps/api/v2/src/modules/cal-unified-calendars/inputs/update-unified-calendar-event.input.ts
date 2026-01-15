@@ -2,7 +2,10 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsISO8601, IsOptional, IsString, ValidateNested, IsEnum, IsArray } from "class-validator";
 
-import { CalendarEventStatus, CalendarEventResponseStatus } from "../outputs/get-unified-calendar-event.output";
+import {
+  CalendarEventStatus,
+  CalendarEventResponseStatus,
+} from "../outputs/get-unified-calendar-event.output";
 
 export class UpdateCalendarEventAttendee {
   @IsString()
@@ -50,7 +53,6 @@ export class UpdateCalendarEventAttendee {
     description: "Indicates if this attendee is the host",
   })
   host?: boolean;
-
 }
 
 export class UpdateDateTimeWithZone {

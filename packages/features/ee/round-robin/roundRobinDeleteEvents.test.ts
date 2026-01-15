@@ -12,18 +12,18 @@ import {
   getOrganizer,
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 describe("roundRobinReassignment test", () => {
   setupAndTeardown();
@@ -115,6 +115,8 @@ describe("roundRobinReassignment test", () => {
 
     await roundRobinReassignment({
       bookingId: 123,
+      reassignedById: 101,
+      orgId: null,
     });
 
     // Verify that calendar deletion occurred (may be called multiple times due to duplicate references)
@@ -122,7 +124,7 @@ describe("roundRobinReassignment test", () => {
     const deleteCall = calendarMock.deleteEventCalls[0];
     expect(deleteCall.args.uid).toBe("ORIGINAL_EVENT_ID");
     expect(deleteCall.args.externalCalendarId).toBe("MOCK_EXTERNAL_CALENDAR_ID");
-    expect(deleteCall.args.event.organizer.email).toBe(newHost.email); // Current implementation uses new host credentials
+    expect(deleteCall.args.event.organizer.email).toBe(originalHost.email);
     expect(deleteCall.args.event.uid).toBe(bookingToReassignUid);
 
     // Verify that creation occurred with new host credentials

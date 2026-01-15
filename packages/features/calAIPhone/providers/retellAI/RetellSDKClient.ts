@@ -12,7 +12,11 @@ import type {
   RetellAgent,
   CreatePhoneNumberParams,
   CreatePhoneCallParams,
+  CreateWebCallParams,
   ImportPhoneNumberParams,
+  RetellCallListParams,
+  RetellCallListResponse,
+  RetellVoice,
 } from "./types";
 
 const RETELL_API_KEY = process.env.RETELL_AI_KEY;
@@ -91,7 +95,7 @@ export class RetellSDKClient implements RetellAIRepository {
     }
   }
 
-  async createAgent(data: CreateAgentRequest): Promise<RetellAgent> {
+  async createOutboundAgent(data: CreateAgentRequest): Promise<RetellAgent> {
     this.logger.info("Creating agent via SDK", {
       agentName: data.agent_name,
     });
@@ -231,6 +235,50 @@ export class RetellSDKClient implements RetellAIRepository {
       return response;
     } catch (error) {
       this.logger.error("Failed to create phone call", { error });
+      throw error;
+    }
+  }
+
+  async listCalls(params: RetellCallListParams): Promise<RetellCallListResponse> {
+    try {
+      this.logger.info("Listing calls via SDK", {
+        limit: params.limit,
+        hasFilters: !!params.filter_criteria,
+      });
+
+      const response = await this.client.call.list(params);
+
+      this.logger.info("Calls listed successfully", {
+        count: response.length,
+      });
+
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to list calls", { error });
+      throw error;
+    }
+  }
+
+  async createWebCall(data: CreateWebCallParams) {
+    try {
+      const response = await this.client.call.createWebCall({
+        agent_id: data.agentId,
+        retell_llm_dynamic_variables: data.dynamicVariables,
+      });
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to create web call", { error });
+      throw error;
+    }
+  }
+
+  async listVoices(): Promise<RetellVoice[]> {
+    try {
+      const response = await this.client.voice.list();
+
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to list voices", { error });
       throw error;
     }
   }

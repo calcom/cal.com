@@ -1,7 +1,8 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import type { PlatformOAuthClient, Prisma } from "@prisma/client";
+
+import type { PlatformOAuthClient, Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class OAuthClientRepository {
@@ -116,6 +117,15 @@ export class OAuthClientRepository {
           },
         },
       },
+    });
+  }
+
+  async getByOrgId(organizationId: number) {
+    return this.dbRead.prisma.platformOAuthClient.findMany({
+      where: {
+        organizationId,
+      },
+      select: { id: true },
     });
   }
 

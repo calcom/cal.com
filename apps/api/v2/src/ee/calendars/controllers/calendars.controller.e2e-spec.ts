@@ -1,19 +1,7 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
-import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
-import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
-import * as request from "supertest";
+import request from "supertest";
 import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -23,16 +11,39 @@ import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { IcsCalendarServiceMock } from "test/mocks/ics-calendar-service-mock";
 import { randomString } from "test/utils/randomString";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   GOOGLE_CALENDAR,
-  OFFICE_365_CALENDAR,
-  GOOGLE_CALENDAR_TYPE,
   GOOGLE_CALENDAR_ID,
+  GOOGLE_CALENDAR_TYPE,
+  OFFICE_365_CALENDAR,
+  OFFICE_365_CALENDAR_ID,
+  OFFICE_365_CALENDAR_TYPE,
+  SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
-import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
+import type { Credential, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+
+// Mock the BuildIcsFeedCalendarService factory function
+const mockBuildIcsFeedCalendarService = jest.fn();
+jest.mock("@calcom/platform-libraries/app-store", () => {
+  const actual = jest.requireActual("@calcom/platform-libraries/app-store");
+  return {
+    ...actual,
+    BuildIcsFeedCalendarService: (...args: unknown[]) => mockBuildIcsFeedCalendarService(...args),
+  };
+});
+
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
+import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
+import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
@@ -220,9 +231,13 @@ describe("Platform Calendars Endpoints", () => {
       urls: ["https://cal.com/ics/feed.ics"],
       readOnly: false,
     };
-    jest
-      .spyOn(IcsFeedCalendarService.prototype, "listCalendars")
-      .mockImplementation(IcsCalendarServiceMock.prototype.listCalendars);
+    mockBuildIcsFeedCalendarService.mockReturnValue({
+      listCalendars: new IcsCalendarServiceMock().listCalendars,
+      createEvent: jest.fn(),
+      deleteEvent: jest.fn(),
+      updateEvent: jest.fn(),
+      getAvailability: jest.fn(),
+    });
     await request(app.getHttpServer())
       .post(`/v2/calendars/${ICS_CALENDAR}/save`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)

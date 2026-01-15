@@ -1,13 +1,16 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
+import {
+  entityPrismaWhereClause,
+  canEditEntity,
+} from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import { sanitizeValue } from "@calcom/lib/csvUtils";
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
-import { getHumanReadableFieldResponseValue } from "@calcom/lib/server/service/routingForm/responseData/getHumanReadableFieldResponseValue";
 import prisma from "@calcom/prisma";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 
 import { getSerializableForm } from "../../lib/getSerializableForm";
+import { getHumanReadableFieldResponseValue } from "../../lib/responseData/getHumanReadableFieldResponseValue";
 import type { FormResponse, SerializableForm } from "../../types/types";
 
 type Fields = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>;

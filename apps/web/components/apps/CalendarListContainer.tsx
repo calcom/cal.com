@@ -1,16 +1,10 @@
 "use client";
 
-import { useEffect, Suspense, useState } from "react";
-
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
-import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
-import { SelectedCalendarsSettingsWebWrapper } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
-import AppListCard from "@calcom/features/apps/components/AppListCard";
-import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
@@ -18,11 +12,22 @@ import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateSettingsCalendars } from "@calcom/web/app/cache/path/settings/my-account";
-
-import { QueryCell } from "@lib/QueryCell";
+import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
+import { SelectedCalendarsSettingsWebWrapper } from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
+import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import { QueryCell } from "@lib/QueryCell";
+import { Suspense, useEffect, useState } from "react";
+import { DestinationCalendarSettingsWebWrapper } from "./DestinationCalendarSettingsWebWrapper";
+
+type CalendarListContainerProps = {
+  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+  installedCalendars: RouterOutputs["viewer"]["apps"]["integrations"];
+  heading?: boolean;
+  fromOnboarding?: boolean;
+};
 
 type Props = {
   onChanged: () => unknown | Promise<unknown>;
@@ -31,7 +36,7 @@ type Props = {
   isPending?: boolean;
 };
 
-function CalendarList(props: Props) {
+function CalendarList(props: Props): JSX.Element {
   const { t } = useLocale();
   const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
@@ -67,18 +72,16 @@ function CalendarList(props: Props) {
   );
 }
 
-const AddCalendarButton = () => {
+const AddCalendarButton = (): JSX.Element => {
   const { t } = useLocale();
   return (
-    <>
-      <Button color="secondary" StartIcon="plus" href="/apps/categories/calendar">
-        {t("add_calendar")}
-      </Button>
-    </>
+    <Button color="secondary" StartIcon="plus" href="/apps/categories/calendar">
+      {t("add_calendar")}
+    </Button>
   );
 };
 
-export const CalendarListContainerSkeletonLoader = () => {
+export const CalendarListContainerSkeletonLoader = (): JSX.Element => {
   const { t } = useLocale();
   return (
     <SettingsHeader
@@ -90,19 +93,12 @@ export const CalendarListContainerSkeletonLoader = () => {
   );
 };
 
-type CalendarListContainerProps = {
-  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
-  installedCalendars: RouterOutputs["viewer"]["apps"]["integrations"];
-  heading?: boolean;
-  fromOnboarding?: boolean;
-};
-
 export function CalendarListContainer({
   connectedCalendars: data,
   installedCalendars,
   heading = true,
   fromOnboarding,
-}: CalendarListContainerProps) {
+}: CalendarListContainerProps): JSX.Element {
   const { t } = useLocale();
   const { error, setQuery: setError } = useRouterQuery("error");
   const [loading, setLoading] = useState(false);
@@ -142,14 +138,14 @@ export function CalendarListContainer({
   };
 
   useEffect(() => {
-    if (error === "account_already_linked") {
+    if (error === "account_already_linked" || error === "no_default_calendar") {
       showToast(t(error), "error", { id: error });
       setError(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const utils = trpc.useUtils();
-  const onChanged = () =>
+  const onChanged = (): void => {
     Promise.allSettled([
       utils.viewer.apps.integrations.invalidate(
         { variant: "calendar", onlyInstalled: true },
@@ -160,7 +156,7 @@ export function CalendarListContainer({
       utils.viewer.calendars.connectedCalendars.invalidate(),
       revalidateSettingsCalendars(),
     ]);
-
+  };
   const mutation = trpc.viewer.calendars.setDestinationCalendar.useMutation({
     onSuccess: () => {
       utils.viewer.calendars.connectedCalendars.invalidate();
@@ -168,51 +164,61 @@ export function CalendarListContainer({
     },
   });
 
+  let content = null;
+  if (!!data.connectedCalendars.length || !!installedCalendars?.items.length) {
+    let headingContent = null;
+    if (heading) {
+      headingContent = (
+        <>
+          <DestinationCalendarSettingsWebWrapper connectedCalendars={data} />
+          <Suspense fallback={<SkeletonLoader />}>
+            <SelectedCalendarsSettingsWebWrapper
+              onChanged={onChanged}
+              fromOnboarding={fromOnboarding}
+              destinationCalendarId={data.destinationCalendar?.externalId}
+              isPending={mutation.isPending}
+              connectedCalendars={data}
+            />
+          </Suspense>
+        </>
+      );
+    }
+    content = headingContent;
+  } else if (fromOnboarding) {
+    content = (
+      <>
+        {!!data?.connectedCalendars.length && (
+          <ShellSubHeading
+            className="mt-4"
+            title={<SubHeadingTitleWithConnections title={t("connect_additional_calendar")} />}
+          />
+        )}
+        <CalendarList onChanged={onChanged} />
+      </>
+    );
+  } else {
+    content = (
+      <EmptyScreen
+        Icon="calendar"
+        headline={t("no_category_apps", {
+          category: t("calendar").toLowerCase(),
+        })}
+        description={t(`no_category_apps_description_calendar`)}
+        buttonRaw={
+          <Button color="secondary" data-testid="connect-calendar-apps" href="/apps/categories/calendar">
+            {t(`connect_calendar_apps`)}
+          </Button>
+        }
+      />
+    );
+  }
+
   return (
     <SettingsHeader
       title={t("calendars")}
       description={t("calendars_description")}
       CTA={<AddCalendarButton />}>
-      {!!data.connectedCalendars.length || !!installedCalendars?.items.length ? (
-        <>
-          {heading && (
-            <>
-              <DestinationCalendarSettingsWebWrapper />
-              <Suspense fallback={<SkeletonLoader />}>
-                <SelectedCalendarsSettingsWebWrapper
-                  onChanged={onChanged}
-                  fromOnboarding={fromOnboarding}
-                  destinationCalendarId={data.destinationCalendar?.externalId}
-                  isPending={mutation.isPending}
-                />
-              </Suspense>
-            </>
-          )}
-        </>
-      ) : fromOnboarding ? (
-        <>
-          {!!data?.connectedCalendars.length && (
-            <ShellSubHeading
-              className="mt-4"
-              title={<SubHeadingTitleWithConnections title={t("connect_additional_calendar")} />}
-            />
-          )}
-          <CalendarList onChanged={onChanged} />
-        </>
-      ) : (
-        <EmptyScreen
-          Icon="calendar"
-          headline={t("no_category_apps", {
-            category: t("calendar").toLowerCase(),
-          })}
-          description={t(`no_category_apps_description_calendar`)}
-          buttonRaw={
-            <Button color="secondary" data-testid="connect-calendar-apps" href="/apps/categories/calendar">
-              {t(`connect_calendar_apps`)}
-            </Button>
-          }
-        />
-      )}
+      {content}
 
       {/* Calendar Notifications Section */}
       <div className="border-subtle mt-8 rounded-b-xl border-x border-b px-4 pb-8 pt-6 sm:px-6">
@@ -231,6 +237,7 @@ export function CalendarListContainer({
             checked={isNotifyCalendarAlertsChecked}
             onCheckedChange={handleCalendarNotificationToggle}
             disabled={loading}
+            aria-label={t("unreachable_calendar_alerts")}
           />
         </div>
       </div>

@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
-import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { WebhookSchema } from "@calcom/prisma/zod/modelSchema/WebhookSchema";
 
-const schemaWebhookBaseBodyParams = Webhook.pick({
+const schemaWebhookBaseBodyParams = WebhookSchema.pick({
   userId: true,
   eventTypeId: true,
   eventTriggers: true,
@@ -21,6 +22,7 @@ export const schemaWebhookCreateParams = z
     eventTypeId: z.number().optional(),
     userId: z.number().optional(),
     secret: z.string().optional().nullable(),
+    version: z.nativeEnum(WebhookVersion).optional(),
     // API shouldn't mess with Apps webhooks yet (ie. Zapier)
     // appId: z.string().optional().nullable(),
   })
@@ -33,17 +35,19 @@ export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams
     z.object({
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
       secret: z.string().optional().nullable(),
+      version: z.nativeEnum(WebhookVersion).optional(),
     })
   )
   .partial()
   .strict();
 
-export const schemaWebhookReadPublic = Webhook.pick({
+export const schemaWebhookReadPublic = WebhookSchema.pick({
   id: true,
   userId: true,
   eventTypeId: true,
   payloadTemplate: true,
   eventTriggers: true,
+  version: true,
   // FIXME: We have some invalid urls saved in the DB
   // subscriberUrl: true,
   /** @todo: find out how to properly add back and validate those. */

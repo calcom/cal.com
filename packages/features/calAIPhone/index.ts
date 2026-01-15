@@ -45,6 +45,8 @@ export type {
   AIConfigurationSetup,
   AIConfigurationDeletion,
   DeletionResult,
+  RetellCallListParams,
+  RetellCallListResponse,
 } from "./providers/retellAI";
 
 // Legacy exports for backward compatibility

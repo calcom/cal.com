@@ -1,3 +1,5 @@
+import type { TrackingData } from "@calcom/lib/tracking";
+
 import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceCreatePhoneNumberParams,
@@ -12,6 +14,7 @@ import { AgentService } from "./services/AgentService";
 import { BillingService } from "./services/BillingService";
 import { CallService } from "./services/CallService";
 import { PhoneNumberService } from "./services/PhoneNumberService";
+import { VoiceService } from "./services/VoiceService";
 import type {
   RetellLLM,
   RetellCall,
@@ -32,6 +35,7 @@ export class RetellAIService {
   private billingService: BillingService;
   private callService: CallService;
   private phoneNumberService: PhoneNumberService;
+  private voiceService: VoiceService;
 
   constructor(
     private repository: RetellAIRepository,
@@ -39,16 +43,27 @@ export class RetellAIService {
     private phoneNumberRepository: PhoneNumberRepositoryInterface,
     private transactionManager: TransactionInterface
   ) {
-    this.aiConfigurationService = new AIConfigurationService(repository);
-    this.agentService = new AgentService(repository, agentRepository);
-    this.billingService = new BillingService(phoneNumberRepository, repository);
-    this.callService = new CallService(repository, agentRepository);
-    this.phoneNumberService = new PhoneNumberService(
-      repository,
+    this.aiConfigurationService = new AIConfigurationService({ retellRepository: repository });
+    this.agentService = new AgentService({
+      retellRepository: repository,
       agentRepository,
       phoneNumberRepository,
-      transactionManager
-    );
+    });
+    this.billingService = new BillingService({
+      phoneNumberRepository,
+      retellRepository: repository,
+    });
+    this.callService = new CallService({
+      retellRepository: repository,
+      agentRepository,
+    });
+    this.phoneNumberService = new PhoneNumberService({
+      retellRepository: repository,
+      agentRepository,
+      phoneNumberRepository,
+      transactionManager,
+    });
+    this.voiceService = new VoiceService({ retellRepository: repository });
 
     // Inject RetellAIService reference into CallService
     this.callService.setRetellAIService(this);
@@ -138,7 +153,7 @@ export class RetellAIService {
     return this.agentService.getAgentWithDetails(params);
   }
 
-  async createAgent(params: {
+  async createOutboundAgent(params: {
     name?: string;
     userId: number;
     teamId?: number;
@@ -148,7 +163,7 @@ export class RetellAIService {
     generalTools?: RetellLLMGeneralTools;
     userTimeZone: string;
   }) {
-    return this.agentService.createAgent({
+    return this.agentService.createOutboundAgent({
       ...params,
       setupAIConfiguration: () =>
         this.setupAIConfiguration({
@@ -162,6 +177,20 @@ export class RetellAIService {
     });
   }
 
+  async createInboundAgent(params: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
+    userTimeZone: string;
+  }) {
+    return this.agentService.createInboundAgent({
+      ...params,
+      aiConfigurationService: this.aiConfigurationService,
+    });
+  }
+
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
@@ -171,6 +200,9 @@ export class RetellAIService {
     beginMessage?: string | null;
     generalTools?: RetellLLMGeneralTools;
     voiceId?: string;
+    language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }) {
     return this.agentService.updateAgentConfiguration({
       ...params,
@@ -220,16 +252,43 @@ export class RetellAIService {
     return this.callService.createTestCall(params);
   }
 
+  async createWebCall(params: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }) {
+    return this.callService.createWebCall(params);
+  }
+
   async generatePhoneNumberCheckoutSession(params: {
     userId: number;
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    tracking?: TrackingData;
   }) {
     return this.billingService.generatePhoneNumberCheckoutSession(params);
   }
 
   async cancelPhoneNumberSubscription(params: { phoneNumberId: number; userId: number; teamId?: number }) {
     return this.billingService.cancelPhoneNumberSubscription(params);
+  }
+
+  async listCalls(params: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }) {
+    return this.callService.listCalls(params);
+  }
+
+  async listVoices() {
+    return this.voiceService.listVoices();
   }
 }

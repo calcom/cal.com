@@ -1,17 +1,20 @@
-import type { z } from "zod";
+import { z } from "zod";
 
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import type { EventLocationType } from "@calcom/lib/location";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { BookerLayoutSettings, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { type PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -109,6 +112,7 @@ export type FormValues = {
   useEventLevelSelectedCalendars: boolean;
   disabledCancelling: boolean;
   disabledRescheduling: boolean;
+  minimumRescheduleNotice: number | null;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)
@@ -129,6 +133,7 @@ export type FormValues = {
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   autoTranslateDescriptionEnabled: boolean;
+  autoTranslateInstantMeetingTitleEnabled: boolean;
   fieldTranslations: EventTypeTranslation[];
   scheduleName: string;
   minimumBookingNotice: number;
@@ -176,9 +181,35 @@ export type FormValues = {
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
 
-export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
-export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
-export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypes"]["heavy"]["update"];
+export type EventTypeAssignedUsers = {
+  owner: {
+    avatar: string;
+    email: string;
+    name: string;
+    username: string;
+    membership: MembershipRole;
+    id: number;
+    avatarUrl: string | null;
+    nonProfileUsername: string | null;
+    profile: UserProfile;
+  };
+  created: boolean;
+  hidden: boolean;
+  slug: string;
+}[];
+
+export type EventTypeHosts = {
+  user: {
+    timeZone: string;
+  };
+  userId: number;
+  scheduleId: number | null;
+  isFixed: boolean;
+  priority: number | null;
+  weight: number | null;
+  groupId: string | null;
+}[];
+export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
 export type TabMap = {
   advanced: React.ReactNode;
   ai?: React.ReactNode;
@@ -228,6 +259,9 @@ export type SelectClassNames = {
   container?: string;
 };
 
+// Re-export schemas from server-safe location
+export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
+
 export type FormValidationResult = {
   isValid: boolean;
   errors: Record<string, unknown>;
@@ -246,4 +280,5 @@ export interface CalVideoSettings {
   disableTranscriptionForGuests?: boolean;
   disableTranscriptionForOrganizer?: boolean;
   redirectUrlOnExit?: string;
+  requireEmailForGuests?: boolean;
 }

@@ -1,13 +1,14 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Prisma, User } from "@prisma/client";
+
+import type { Prisma, User } from "@calcom/prisma/client";
 
 export class UserRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
-  constructor(private readonly module: TestingModule) {
+  constructor(module: TestingModule) {
     this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
@@ -47,5 +48,15 @@ export class UserRepositoryFixture {
 
   async deleteByEmail(email: User["email"]) {
     return this.prismaWriteClient.user.delete({ where: { email } });
+  }
+
+  async createSecondaryEmail(userId: User["id"], email: string, emailVerified: Date | null) {
+    return this.prismaWriteClient.secondaryEmail.create({
+      data: {
+        userId,
+        email,
+        emailVerified,
+      },
+    });
   }
 }

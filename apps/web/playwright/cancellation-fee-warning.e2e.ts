@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
-import type Prisma from "@prisma/client";
+
+import type { EventType } from "@calcom/prisma/client";
 
 import { test } from "./lib/fixtures";
 import { IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
@@ -12,7 +13,7 @@ test.describe("Cancellation Fee Warning E2E", () => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -40,7 +41,7 @@ test.describe("Cancellation Fee Warning E2E", () => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -68,7 +69,7 @@ test.describe("Cancellation Fee Warning E2E", () => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 

@@ -1,8 +1,11 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
+import { AddVerifiedEmailInput } from "@/modules/atoms/inputs/add-verified-email.input";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
+import { GetVerifiedEmailsParams } from "@/modules/atoms/inputs/get-verified-emails-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
+import { GetVerifiedEmailsOutput } from "@/modules/atoms/outputs/get-verified-emails-output";
 import { SendVerificationEmailOutput } from "@/modules/atoms/outputs/send-verification-email.output";
 import { VerifyEmailCodeOutput } from "@/modules/atoms/outputs/verify-email-code.output";
 import { VerificationAtomsService } from "@/modules/atoms/services/verification-atom.service";
@@ -76,13 +79,13 @@ export class AtomsVerificationController {
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
   async verifyEmailCode(@Body() body: VerifyEmailCodeInput): Promise<VerifyEmailCodeOutput> {
-    const verified = await this.verificationService.verifyEmailCodeUnAuthenticated({
+    await this.verificationService.verifyEmailCodeUnAuthenticated({
       email: body.email,
       code: body.code,
     });
 
     return {
-      data: { verified },
+      data: { verified: true },
       status: SUCCESS_STATUS,
     };
   }
@@ -102,6 +105,46 @@ export class AtomsVerificationController {
 
     return {
       data: { verified },
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Get("/emails/verified-emails")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getVerifiedEmails(
+    @Query() query: GetVerifiedEmailsParams,
+    @GetUser() user: UserWithProfile
+  ): Promise<GetVerifiedEmailsOutput> {
+    const verifiedEmails = await this.verificationService.getVerifiedEmails({
+      userId: user.id,
+      userEmail: user.email,
+      teamId: query.teamId ? Number(query.teamId) : undefined,
+    });
+
+    return {
+      data: verifiedEmails,
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Post("/emails/verified-emails")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async addVerifiedEmails(
+    @Body() body: AddVerifiedEmailInput,
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<{ emailVerified: boolean }>> {
+    const emailVerified = await this.verificationService.addVerifiedEmail({
+      userId: user.id,
+      existingPrimaryEmail: user.email,
+      email: body.email,
+    });
+
+    return {
+      data: { emailVerified },
       status: SUCCESS_STATUS,
     };
   }

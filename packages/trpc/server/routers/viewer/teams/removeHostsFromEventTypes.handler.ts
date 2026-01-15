@@ -1,5 +1,7 @@
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,19 +17,36 @@ type RemoveHostsFromEventTypes = {
 
 export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHostsFromEventTypes) {
   const { userIds, eventTypeIds, teamId } = input;
-  const isTeamAdminOrOwner =
-    (await isTeamAdmin(ctx.user.id, teamId)) || (await isTeamOwner(ctx.user.id, teamId));
 
-  // check if user is admin or owner of team
-  if (!isTeamAdminOrOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
+  const permissionCheckService = new PermissionCheckService();
+  const hasEventTypeUpdatePermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId,
+    permission: "eventType.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  // check if user has permission to update event types
+  if (!hasEventTypeUpdatePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  // verify that all userIds are members of the team
+  const teamMemberIds = await MembershipRepository.findAcceptedMembershipsByUserIdsInTeam({
+    userIds,
+    teamId,
+  });
+
+  const filteredUserIds = teamMemberIds.map((teamMember) => teamMember.userId);
 
   return await prisma.host.deleteMany({
     where: {
       eventTypeId: {
         in: eventTypeIds,
       },
+      eventType: {
+        teamId: teamId,
+      },
       userId: {
-        in: userIds,
+        in: filteredUserIds,
       },
     },
   });

@@ -11,6 +11,12 @@ import { createNextApiHandler } from "./createNextApiHandler";
 import { errorFormatter } from "./errorFormatter";
 import { onErrorHandler } from "./onErrorHandler";
 
+vi.mock("./createContext", () => {
+  return {
+    createContext: vi.fn(),
+  };
+});
+
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
 }));

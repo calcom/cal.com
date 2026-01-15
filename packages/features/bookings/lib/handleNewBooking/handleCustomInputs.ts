@@ -1,6 +1,7 @@
-import type { EventTypeCustomInput } from "@prisma/client";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
+
+import type { EventTypeCustomInput } from "@calcom/prisma/client";
 
 type CustomInput = {
   value: string | boolean;

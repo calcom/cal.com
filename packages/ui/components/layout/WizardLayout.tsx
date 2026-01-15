@@ -1,6 +1,6 @@
 "use client";
 
-// eslint-disable-next-line no-restricted-imports
+ 
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "sonner";
@@ -18,9 +18,10 @@ export function WizardLayout({
   maxSteps = 2,
   currentStep = 0,
   isOptionalCallback,
+  footer,
 }: {
   children: React.ReactNode;
-} & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void }) {
+} & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void; footer?: React.ReactNode }) {
   const { t, isLocaleReady } = useLocale();
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
   const pathname = usePathname();
@@ -60,6 +61,7 @@ export function WizardLayout({
               <Steps maxSteps={maxSteps} currentStep={currentStep} disableNavigation />
             </div>
             <StepCard>{children}</StepCard>
+            {footer && <div className="mt-4">{footer}</div>}
           </div>
         </div>
         {isOptionalCallback && (

@@ -17,6 +17,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   eventType,
   app,
   eventTypeFormMetadata,
+  onAppInstallSuccess,
 }) {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -27,6 +28,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
       app={app}
       switchChecked={requirePayment}

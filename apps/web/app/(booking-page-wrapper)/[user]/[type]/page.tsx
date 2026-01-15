@@ -26,12 +26,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const meeting = {
     title,
     profile: { name: profileName, image: profileImage },
-    users: [
-      ...(eventData?.subsetOfUsers || []).map((user) => ({
+    users:
+      eventData?.subsetOfUsers.map((user) => ({
         name: `${user.name}`,
         username: `${user.username}`,
-      })),
-    ],
+      })) || [],
   };
   const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(

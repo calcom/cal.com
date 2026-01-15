@@ -1,5 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import type { RetellLLMGeneralTools } from "@calcom/features/calAIPhone/providers/retellAI/types";
+import { calAIPhoneWorkflowTemplates } from "@calcom/features/calAIPhone/workflowTemplates";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateInputSchema } from "./create.schema";
@@ -12,16 +13,21 @@ type CreateHandlerOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
-  const { teamId, name, workflowStepId, ...retellConfig } = input;
+  const { teamId, name, workflowStepId, templateWorkflowId, ...retellConfig } = input;
 
   const aiService = createDefaultAIPhoneServiceProvider();
 
-  return await aiService.createAgent({
+  const generalPrompt = templateWorkflowId
+    ? calAIPhoneWorkflowTemplates?.[templateWorkflowId as keyof typeof calAIPhoneWorkflowTemplates]
+        ?.generalPrompt
+    : undefined;
+
+  return await aiService.createOutboundAgent({
     name,
     userId: ctx.user.id,
     teamId,
     workflowStepId,
-    generalPrompt: retellConfig.generalPrompt,
+    generalPrompt: generalPrompt ?? retellConfig.generalPrompt,
     beginMessage: retellConfig.beginMessage,
     generalTools: retellConfig.generalTools as RetellLLMGeneralTools,
     userTimeZone: ctx.user.timeZone,
