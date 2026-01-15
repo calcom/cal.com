@@ -41,8 +41,8 @@
       "url": "self-hosting"
     },
     {
-      "name": "Platform",
-      "url": "platform"
+      "name": "OAuth",
+      "url": "oauth"
     },
     {
       "name": "API v2 Reference",
