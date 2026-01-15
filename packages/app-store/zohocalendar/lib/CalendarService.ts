@@ -19,7 +19,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
-export default class ZohoCalendarService implements Calendar {
+class ZohoCalendarService implements Calendar {
   private integrationName = "";
   private log: typeof logger;
   auth: { getToken: () => Promise<ZohoAuthCredentials> };
@@ -478,4 +478,13 @@ export default class ZohoCalendarService implements Calendar {
 
     return zohoEvent;
   };
+}
+
+/**
+ * Factory function that creates a Zoho Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+  return new ZohoCalendarService(credential);
 }

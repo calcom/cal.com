@@ -19,3 +19,4 @@ export { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/B
 export { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 export { BookingAuditTaskerProducerService } from "@calcom/features/booking-audit/lib/service/BookingAuditTaskerProducerService";
 export { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
+export { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
