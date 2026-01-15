@@ -11,6 +11,7 @@ import { Icon, type IconName } from "@calid/features/ui/components/icon";
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
+import Head from "next/head";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -111,24 +112,24 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
     );
   }, [telemetry, pathname]);
 
-  useEffect(() => {
-    if (team.faviconUrl) {
-      const faviconUrl = getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true);
-      const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
-      defaultFavicons.forEach((link) => {
-        link.rel = "icon";
-        link.href = faviconUrl;
-        link.type = "image/png";
-      });
-      if (defaultFavicons.length === 0) {
-        const link: HTMLLinkElement = document.createElement("link");
-        link.rel = "icon";
-        link.href = faviconUrl;
-        link.type = "image/png";
-        document.head.appendChild(link);
-      }
-    }
-  }, [team.faviconUrl]);
+  // useEffect(() => {
+  //   if (team.faviconUrl) {
+  //     const faviconUrl = getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true);
+  //     const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
+  //     defaultFavicons.forEach((link) => {
+  //       link.rel = "icon";
+  //       link.href = faviconUrl;
+  //       link.type = "image/png";
+  //     });
+  //     if (defaultFavicons.length === 0) {
+  //       const link: HTMLLinkElement = document.createElement("link");
+  //       link.rel = "icon";
+  //       link.href = faviconUrl;
+  //       link.type = "image/png";
+  //       document.head.appendChild(link);
+  //     }
+  //   }
+  // }, [team.faviconUrl]);
 
   if (considerUnpublished) {
     const teamSlug = team.slug || metadata?.requestedSlug;
@@ -263,9 +264,17 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
   const metadataHeaderUrl =
     headerUrl ?? (isPrismaObjOrUndefined(team?.metadata)?.headerUrl as string | null | undefined) ?? null;
   const resolvedHeader = getPlaceholderHeader(metadataHeaderUrl, team.name);
+  const finalFaviconUrl = team.faviconUrl
+    ? getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true)
+    : "/calid_favicon.svg";
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col">
+      <Head>
+        <link rel="icon" href={finalFaviconUrl} />
+        <link rel="shortcut icon" href={finalFaviconUrl} />
+        <link rel="apple-touch-icon" href={finalFaviconUrl} />
+      </Head>
       <main className="bg-default h-full w-full">
         <div
           className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
