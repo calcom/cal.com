@@ -1,30 +1,28 @@
-import type { ZodEnum } from "zod";
-import { z } from "zod";
-
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
+import type { ZodEnum } from "zod";
+import { z } from "zod";
 
 import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
 import { createOrgPbacProcedure, createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
+import { router } from "../../../trpc";
 
-const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum(["enabled", "disabled", "inherit"]);
+const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum([
+  "enabled",
+  "disabled",
+  "inherit",
+]);
 
-const featureOptInService = getFeatureOptInService();
-const featuresRepository = new FeaturesRepository(prisma);
-const teamRepository = new TeamRepository(prisma);
-const membershipRepository = new MembershipRepository(prisma);
+const featureOptInService: ReturnType<typeof getFeatureOptInService> = getFeatureOptInService();
+const featuresRepository: FeaturesRepository = new FeaturesRepository(prisma);
+const teamRepository: TeamRepository = new TeamRepository(prisma);
+const membershipRepository: MembershipRepository = new MembershipRepository(prisma);
 
-/**
- * Helper to get user's org and team IDs from their memberships.
- * Returns orgId (if user belongs to an org) and teamIds (non-org teams).
- */
 async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
   const memberships = await membershipRepository.findAllByUserId({
     userId,
@@ -45,45 +43,7 @@ async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | n
   return { orgId, teamIds };
 }
 
-type UserRoleContext = {
-  isOrgAdmin: boolean;
-  orgId: number | null;
-  adminTeamIds: number[];
-  adminTeamNames: { id: number; name: string }[];
-};
-
-/**
- * Helper to get user's role context for feature opt-in banner.
- * Returns whether user is org admin and which teams they are admin of.
- */
-async function getUserRoleContext(userId: number): Promise<UserRoleContext> {
-  const memberships = await MembershipRepository.findAllByUserId({
-    userId,
-    filters: { accepted: true },
-  });
-
-  let isOrgAdmin = false;
-  let orgId: number | null = null;
-
-  for (const membership of memberships) {
-    const isAdmin = membership.role === "ADMIN" || membership.role === "OWNER";
-
-    if (membership.team.isOrganization) {
-      orgId = membership.teamId;
-      if (isAdmin) {
-        isOrgAdmin = true;
-      }
-    }
-  }
-
-  const adminTeams = await teamRepository.findOwnedTeamsByUserId({ userId });
-  const adminTeamIds = adminTeams.map((team) => team.id);
-  const adminTeamNames = adminTeams.map((team) => ({ id: team.id, name: team.name }));
-
-  return { isOrgAdmin, orgId, adminTeamIds, adminTeamNames };
-}
-
-export const featureOptInRouter = router({
+export const featureOptInRouter: ReturnType<typeof router> = router({
   /**
    * Get all opt-in features with states for current user.
    * This considers all teams/orgs the user belongs to.
@@ -121,10 +81,6 @@ export const featureOptInRouter = router({
     return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId, scope: "org" });
   }),
 
-  /**
-   * Check if user is eligible to see the feature opt-in banner.
-   * Returns eligibility status and user role context for the confirmation dialog.
-   */
   checkFeatureOptInEligibility: authedProcedure
     .input(
       z.object({
@@ -132,75 +88,10 @@ export const featureOptInRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (!isOptInFeature(input.featureId)) {
-        return {
-          status: "invalid_feature" as const,
-          canOptIn: false,
-          userRoleContext: null,
-          blockingReason: null,
-        };
-      }
-
-      const { orgId, teamIds } = await getUserOrgAndTeamIds(ctx.user.id);
-      const resolvedStates = await featureOptInService.resolveFeatureStatesAcrossTeams({
+      return featureOptInService.checkFeatureOptInEligibility({
         userId: ctx.user.id,
-        orgId,
-        teamIds,
-        featureIds: [input.featureId],
+        featureId: input.featureId,
       });
-
-      const featureState = resolvedStates[input.featureId];
-      if (!featureState) {
-        return {
-          status: "invalid_feature" as const,
-          canOptIn: false,
-          userRoleContext: null,
-          blockingReason: null,
-        };
-      }
-
-      if (!featureState.globalEnabled) {
-        return {
-          status: "feature_disabled" as const,
-          canOptIn: false,
-          userRoleContext: null,
-          blockingReason: "feature_global_disabled",
-        };
-      }
-
-      if (featureState.effectiveEnabled) {
-        return {
-          status: "already_enabled" as const,
-          canOptIn: false,
-          userRoleContext: null,
-          blockingReason: null,
-        };
-      }
-
-      const userRoleContext = await getUserRoleContext(ctx.user.id);
-
-      const blockingReasons = [
-        "feature_org_disabled",
-        "feature_all_teams_disabled",
-        "feature_any_team_disabled",
-        "feature_user_only_not_allowed",
-      ];
-
-      if (blockingReasons.includes(featureState.effectiveReason)) {
-        return {
-          status: "blocked" as const,
-          canOptIn: false,
-          userRoleContext,
-          blockingReason: featureState.effectiveReason,
-        };
-      }
-
-      return {
-        status: "can_opt_in" as const,
-        canOptIn: true,
-        userRoleContext,
-        blockingReason: null,
-      };
     }),
 
   /**
