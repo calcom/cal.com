@@ -1,6 +1,6 @@
 import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
-import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { GetMeEventTypesQuery } from "@/ee/me/inputs/get-me-event-types-query.input";
 import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
@@ -32,7 +32,7 @@ export class MeController {
     private readonly usersService: UsersService,
     private readonly meService: MeService,
     private readonly eventTypesService: EventTypesService_2024_06_14,
-    private readonly eventTypeResponseTransformPipe: EventTypeResponseTransformPipe
+    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14
   ) {}
 
   @Get("/")
@@ -87,7 +87,9 @@ export class MeController {
     @Query() queryParams: GetMeEventTypesQuery
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getUserEventTypes(userId, queryParams.sortCreatedAt);
-    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
+    const eventTypesFormatted = eventTypes.map((eventType) =>
+      this.outputEventTypesService.getResponseEventType(eventType.ownerId, eventType, false)
+    );
 
     return {
       status: SUCCESS_STATUS,
