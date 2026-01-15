@@ -80,16 +80,12 @@ export class SyncHostsMembershipsService {
       details: [],
     };
 
-    const eventTypesWithAllTeamMembersAssigned =
-      await this.eventTypeRepository.findAllOfTeamsBySchedulingTypeIncludeHostsAndTeamMembers({
-        filters: {
-          schedulingTypes: [SchedulingType.ROUND_ROBIN, SchedulingType.COLLECTIVE],
-          assignAllTeamMembers: true,
-        },
+    const eventTypesWithOutOfSyncHosts =
+      await this.eventTypeRepository.findWithOutOfSyncHostsIncludeHostsAndTeamMembers({
         limit: 100,
       });
 
-    for (const eventType of eventTypesWithAllTeamMembersAssigned) {
+    for (const eventType of eventTypesWithOutOfSyncHosts) {
       if (!eventType.team) continue;
 
       const eventTypeResult = await this.processEventType({

@@ -1864,20 +1864,57 @@ export class EventTypeRepository {
     return eventTypeResult;
   }
 
-  async findAllOfTeamsBySchedulingTypeIncludeHostsAndTeamMembers({
-    filters,
-    limit,
-  }: {
-    filters: {
-      schedulingTypes: SchedulingType[];
-      assignAllTeamMembers?: boolean;
-    };
-    limit?: number;
-  }) {
-    const { schedulingTypes, assignAllTeamMembers } = filters;
+  async findWithOutOfSyncHostsIncludeHostsAndTeamMembers({ limit }: { limit?: number }) {
+    type OutOfSyncEventTypeId = { eventTypeId: number };
+
+    const outOfSyncEventTypeIds = await this.prismaClient.$queryRaw<OutOfSyncEventTypeId[]>`
+      SELECT DISTINCT et.id as "eventTypeId"
+      FROM "EventType" et
+      JOIN "Team" t ON et."teamId" = t.id
+      WHERE 
+          et."teamId" IS NOT NULL
+          AND et."assignAllTeamMembers" = true
+          AND et."schedulingType" IN ('ROUND_ROBIN', 'COLLECTIVE')
+          AND (
+              -- Has orphaned hosts (hosts who are not accepted team members)
+              EXISTS (
+                  SELECT 1 
+                  FROM "Host" h
+                  WHERE h."eventTypeId" = et.id
+                    AND NOT EXISTS (
+                        SELECT 1 
+                        FROM "Membership" m
+                        WHERE m."userId" = h."userId"
+                          AND m."teamId" = et."teamId"
+                          AND m."accepted" = true
+                    )
+              )
+              OR
+              -- Has missing hosts (accepted team members who are not hosts)
+              EXISTS (
+                  SELECT 1 
+                  FROM "Membership" m
+                  WHERE m."teamId" = et."teamId"
+                    AND m."accepted" = true
+                    AND NOT EXISTS (
+                        SELECT 1 
+                        FROM "Host" h
+                        WHERE h."eventTypeId" = et.id
+                          AND h."userId" = m."userId"
+                    )
+              )
+          )
+      LIMIT ${limit ?? 100};
+    `;
+
+    if (outOfSyncEventTypeIds.length === 0) {
+      return [];
+    }
+
+    const eventTypeIds = outOfSyncEventTypeIds.map((row) => row.eventTypeId);
+
     return this.prismaClient.eventType.findMany({
-      where: { teamId: { not: null }, schedulingType: { in: schedulingTypes }, assignAllTeamMembers },
-      take: limit,
+      where: { id: { in: eventTypeIds } },
       select: {
         id: true,
         schedulingType: true,
