@@ -134,7 +134,10 @@ export class EventTypesService_2024_06_14 {
     orgId?: number;
     authUser?: AuthOptionalUser;
   }) {
-    const user = await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId);
+    const user =
+      params.orgSlug || params.orgId
+        ? await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId)
+        : await this.usersRepository.findByUsernameExcludingOrgUsers(params.username);
     if (!user) {
       return null;
     }
@@ -229,7 +232,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
-    const user = await this.usersRepository.findByUsernameExcludingOrgUsers(username);
+    const user = await this.usersRepository.findByUsername(username);
     if (!user) {
       throw new NotFoundException(`User with username "${username}" not found`);
     }
