@@ -188,7 +188,6 @@ export class UsersRepository {
     return this.dbRead.prisma.user.findFirst({
       where: {
         username,
-        organizationId: null,
         profiles: { none: {} },
       },
     });
