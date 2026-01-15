@@ -1,17 +1,22 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  reminderSchema,
   type ReminderMinutes,
+  reminderSchema,
 } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { AtomsWrapper } from "../../../../packages/platform/atoms/src/components/atoms-wrapper";
 import { DestinationCalendarSettings } from "../../../../packages/platform/atoms/destination-calendar/DestinationCalendar";
-
-export const DestinationCalendarSettingsWebWrapper = () => {
+import { AtomsWrapper } from "../../../../packages/platform/atoms/src/components/atoms-wrapper";
+export const DestinationCalendarSettingsWebWrapper = ({
+  connectedCalendars,
+}: {
+  connectedCalendars?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+}): JSX.Element | null => {
   const { t } = useLocale();
-  const calendars = trpc.viewer.calendars.connectedCalendars.useQuery();
+  const calendars = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
+    initialData: connectedCalendars,
+  });
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.calendars.setDestinationCalendar.useMutation({
     onSuccess: () => {
@@ -33,7 +38,7 @@ export const DestinationCalendarSettingsWebWrapper = () => {
     return null;
   }
 
-  const handleReminderChange = (value: ReminderMinutes) => {
+  const handleReminderChange = (value: ReminderMinutes): void => {
     const destCal = calendars.data.destinationCalendar;
     if (destCal?.credentialId) {
       reminderMutation.mutate({
@@ -47,9 +52,10 @@ export const DestinationCalendarSettingsWebWrapper = () => {
   const validatedReminderValue = reminderSchema.safeParse(
     calendars.data.destinationCalendar.customCalendarReminder
   );
-  const reminderValue: ReminderMinutes = validatedReminderValue.success
-    ? validatedReminderValue.data
-    : null;
+  let reminderValue: ReminderMinutes = null;
+  if (validatedReminderValue.success) {
+    reminderValue = validatedReminderValue.data;
+  }
 
   return (
     <AtomsWrapper>

@@ -55,7 +55,11 @@ export const getWho = (
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .map((member) =>
+          calEvent.hideOrganizerEmail
+            ? `${member.name} - ${t("team_member")}`
+            : `${member.name} - ${t("team_member")}\n${member.email}`
+        )
         .join("\n")
     : [];
 
