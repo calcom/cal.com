@@ -1,3 +1,4 @@
+import process from "node:process";
 import { syncVercelEnvVars } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 import dotEnv from "dotenv";
@@ -34,7 +35,16 @@ export default defineConfig({
 
   // Build configuration (optional)
   build: {
-    external: ["@prisma/client", "nodemailer", "jsdom", "playwright-core", "playwright", "chromium-bidi"],
+    external: [
+      "@prisma/client",
+      "nodemailer",
+      "jsdom",
+      "playwright-core",
+      "playwright",
+      "chromium-bidi",
+      "http-cookie-agent",
+      "deasync",
+    ],
     extensions: canSyncEnvVars
       ? [
           syncVercelEnvVars({

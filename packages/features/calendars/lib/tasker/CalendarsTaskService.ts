@@ -9,7 +9,9 @@ export interface ICalendarsTaskServiceDependencies {
 
 export class CalendarsTaskService implements CalendarsTasks {
   constructor(
-    public readonly dependencies: { logger: ITaskerDependencies["logger"] } & ICalendarsTaskServiceDependencies
+    public readonly dependencies: {
+      logger: ITaskerDependencies["logger"];
+    } & ICalendarsTaskServiceDependencies
   ) {}
 
   async ensureDefaultCalendars(
@@ -53,7 +55,7 @@ export class CalendarsTaskService implements CalendarsTasks {
       }
 
       const { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } = await import(
-        "@calcom/platform-libraries"
+        "@calcom/features/calendars/lib/getConnectedDestinationCalendars"
       );
 
       await getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
