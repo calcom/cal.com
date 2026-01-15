@@ -28,7 +28,7 @@ export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) 
     link.rel = "icon";
 
     if (!isBookingPage) {
-      link.href = "/favicon.ico";
+      link.href = "/calid_favicon.svg";
     }
 
     link.type = "image/png";
