@@ -166,7 +166,7 @@ export class UsersRepository {
     });
   }
 
-  async findByUsername(username: string, orgSlug?: string, orgId?: number, excludeOrgUsers?: boolean) {
+  async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
       where:
         orgId || orgSlug
@@ -180,8 +180,16 @@ export class UsersRepository {
             }
           : {
               username,
-              ...(excludeOrgUsers ? { profiles: { none: {} } } : {}),
             },
+    });
+  }
+
+  async findByUsernameExcludingOrgUsers(username: string) {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        username,
+        profiles: { none: {} },
+      },
     });
   }
 

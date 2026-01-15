@@ -229,7 +229,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
-    const user = await this.usersRepository.findByUsername(username, undefined, undefined, true);
+    const user = await this.usersRepository.findByUsernameExcludingOrgUsers(username);
     if (!user) {
       throw new NotFoundException(`User with username "${username}" not found`);
     }
