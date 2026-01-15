@@ -204,7 +204,7 @@
       "group": "Getting Started",
       "pages": [
         "api-reference/v2/introduction",
-        "api-reference/v2/oauth-authorization",
+        "api-reference/v2/oauth",
         "api-reference/v2/v1-v2-differences"
       ]
     },
