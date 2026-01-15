@@ -3317,7 +3317,6 @@ describe("Event types Endpoints", () => {
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
-      await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(nonOrgUserEventType.id);
       } catch (_e) {}
@@ -3330,6 +3329,7 @@ describe("Event types Endpoints", () => {
       try {
         await userRepositoryFixture.delete(orgUser.id);
       } catch (_e) {}
+      await teamRepositoryFixture.delete(organization.id);
       await app.close();
     });
   });
