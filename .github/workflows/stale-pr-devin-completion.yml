@@ -201,8 +201,8 @@ jobs:
           6. Run the appropriate checks (lint, type-check, tests) to ensure the PR is ready for review.
           7. Commit your changes with clear commit messages.
           8. Push your changes to the PR branch.
-          9. Post a summary comment on the PR explaining what you completed.
-          10. Remove the 'stale' label from the PR if you've completed the work.
+          9. After successfully pushing, remove the 'Stale' label from the PR.
+          10. Post a summary comment on the PR explaining what you completed.
           11. Mark the PR as ready for review if applicable.
 
           Rules and Guidelines:
@@ -263,31 +263,6 @@ jobs:
               exit 1
             fi
           fi
-
-      - name: Remove Stale label
-        if: env.SESSION_URL != ''
-        uses: actions/github-script@v7
-        env:
-          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prNumber = parseInt(process.env.PR_NUMBER);
-            const { owner, repo } = context.repo;
-
-            try {
-              await github.rest.issues.removeLabel({
-                owner,
-                repo,
-                issue_number: prNumber,
-                name: 'Stale'
-              });
-            } catch (error) {
-              // Ignore 404 errors if the label doesn't exist
-              if (error.status !== 404) {
-                throw error;
-              }
-            }
 
       - name: Post comment with Devin session link
         if: env.SESSION_URL != ''
