@@ -5,14 +5,14 @@ import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 import dayjs from "@calcom/dayjs";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
+import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
+import { isOrganisationAdmin } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -751,9 +751,9 @@ export async function getBookings({
   };
 
   const checkIfUserIsTeamAdminOrOwner = async (userId: number, booking: (typeof plainBookings)[number]) => {
-    const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, booking.eventType?.teamId ?? 0));
-    const isOrgAdminOrOwner = !!(await isOrganisationAdmin(userId, booking.eventType?.team?.parentId ?? 0));
-    return isTeamAdminOrOwner || isOrgAdminOrOwner;
+    const isTeamAdminOrOwnerResult = !!(await isTeamOwner(userId, booking.eventType?.teamId ?? 0));
+    const isOrgAdminOrOwnerResult = !!(await isOrganisationAdmin(userId, booking.eventType?.team?.parentId ?? 0));
+    return isTeamAdminOrOwnerResult || isOrgAdminOrOwnerResult;
   };
 
   const bookings = await Promise.all(
