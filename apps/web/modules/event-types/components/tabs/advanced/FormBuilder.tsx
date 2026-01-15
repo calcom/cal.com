@@ -15,6 +15,7 @@ import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
 import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
@@ -625,6 +626,13 @@ function FieldEditDialog({
                 />
               }
             />
+            {fieldForm.getValues("name") === "cancellationReason" && (
+              <Alert
+                severity="neutral"
+                className="mb-4"
+                title={t("cancellation_reason_booking_question_alert")}
+              />
+            )}
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
@@ -646,6 +654,7 @@ function FieldEditDialog({
             />
             {(() => {
               if (!variantsConfig) {
+                const isCancellationReasonField = fieldForm.getValues("name") === "cancellationReason";
                 return (
                   <>
                     <InputField
@@ -663,28 +672,32 @@ function FieldEditDialog({
                       }
                       label={t("identifier")}
                     />
-                    <CheckboxField
-                      description={t("disable_input_if_prefilled")}
-                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-                    />
-                    <div>
-                      {formFieldType === "boolean" && !isPlatform ? (
-                        <CheckboxFieldLabel fieldForm={fieldForm} />
-                      ) : (
-                        <InputField
-                          {...fieldForm.register("label")}
-                          // System fields have a defaultLabel, so there a label is not required
-                          required={
-                            !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
-                          }
-                          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                          containerClassName="mt-6"
-                          label={t("label")}
-                        />
-                      )}
-                    </div>
+                    {!isCancellationReasonField && (
+                      <CheckboxField
+                        description={t("disable_input_if_prefilled")}
+                        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                      />
+                    )}
+                    {!isCancellationReasonField && (
+                      <div>
+                        {formFieldType === "boolean" && !isPlatform ? (
+                          <CheckboxFieldLabel fieldForm={fieldForm} />
+                        ) : (
+                          <InputField
+                            {...fieldForm.register("label")}
+                            // System fields have a defaultLabel, so there a label is not required
+                            required={
+                              !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                            }
+                            placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                            containerClassName="mt-6"
+                            label={t("label")}
+                          />
+                        )}
+                      </div>
+                    )}
 
-                    {fieldType?.isTextType ? (
+                    {fieldType?.isTextType && !isCancellationReasonField ? (
                       <InputField
                         {...fieldForm.register("placeholder")}
                         containerClassName="mt-6"
@@ -709,7 +722,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck && !isCancellationReasonField ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 

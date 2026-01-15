@@ -8,6 +8,7 @@ export const SystemField = z.enum([
   "notes",
   "guests",
   "rescheduleReason",
+  "cancellationReason",
   "smsReminderNumber",
   "attendeePhoneNumber",
   "aiAgentCallPhoneNumber",

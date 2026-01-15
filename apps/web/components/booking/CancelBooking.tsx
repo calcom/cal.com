@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
@@ -72,6 +72,16 @@ const InternalNotePresetsSelect = ({
   );
 };
 
+type BookingField = {
+  name: string;
+  required?: boolean;
+  hidden?: boolean;
+  label?: string;
+  placeholder?: string;
+  defaultLabel?: string;
+  defaultPlaceholder?: string;
+};
+
 type Props = {
   booking: {
     title?: string;
@@ -111,6 +121,7 @@ type Props = {
   eventTypeMetadata?: Record<string, unknown> | null;
   showErrorAsToast?: boolean;
   onCanceled?: () => void;
+  bookingFields?: BookingField[];
 };
 
 export default function CancelBooking(props: Props) {
@@ -124,7 +135,15 @@ export default function CancelBooking(props: Props) {
     bookingCancelledEventProps,
     currentUserEmail,
     eventTypeMetadata,
+    bookingFields,
   } = props;
+
+  const cancellationReasonField = useMemo(() => {
+    return bookingFields?.find((field) => field.name === "cancellationReason");
+  }, [bookingFields]);
+
+  const isCancellationReasonRequired = cancellationReasonField?.required ?? false;
+  const isCancellationReasonHidden = cancellationReasonField?.hidden ?? false;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
@@ -162,9 +181,14 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
-  const hostMissingCancellationReason =
-    isCancellationUserHost &&
-    (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
+  const isCancellationReasonMissing = !cancellationReason?.trim();
+  const hostMissingInternalNote =
+    isCancellationUserHost && props.internalNotePresets.length > 0 && !internalNote?.id;
+
+  const shouldRequireCancellationReason = isCancellationUserHost || isCancellationReasonRequired;
+  const disableCancelButton =
+    (shouldRequireCancellationReason && isCancellationReasonMissing) || hostMissingInternalNote;
+
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
@@ -217,25 +241,31 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{isCancellationUserHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          {!isCancellationReasonHidden && (
+            <>
+              <Label>
+                {shouldRequireCancellationReason ? t("cancellation_reason_host") : t("cancellation_reason")}
+              </Label>
 
-          <TextArea
-            data-testid="cancel_reason"
-            ref={cancelBookingRef}
-            placeholder={t("cancellation_reason_placeholder")}
-            value={cancellationReason}
-            onChange={(e) => setCancellationReason(e.target.value)}
-            className={classNames("mb-4 w-full", !isRenderedAsCancelDialog && "mt-2")}
-            rows={3}
-          />
-          {isCancellationUserHost ? (
-            <div className="-mt-2 mb-4 flex items-center gap-2">
-              <Icon name="info" className="text-subtle h-4 w-4" />
-              <p className="text-subtle text-sm leading-none">
-                {t("notify_attendee_cancellation_reason_warning")}
-              </p>
-            </div>
-          ) : null}
+              <TextArea
+                data-testid="cancel_reason"
+                ref={cancelBookingRef}
+                placeholder={t("cancellation_reason_placeholder")}
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                className={classNames("mb-4 w-full", !isRenderedAsCancelDialog && "mt-2")}
+                rows={3}
+              />
+              {isCancellationUserHost ? (
+                <div className="-mt-2 mb-4 flex items-center gap-2">
+                  <Icon name="info" className="text-subtle h-4 w-4" />
+                  <p className="text-subtle text-sm leading-none">
+                    {t("notify_attendee_cancellation_reason_warning")}
+                  </p>
+                </div>
+              ) : null}
+            </>
+          )}
           {cancellationNoShowFeeWarning && booking?.payment && (
             <div>
               <div className="bg-attention mb-5 rounded-md p-3">
@@ -267,7 +297,7 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={hostMissingCancellationReason || cancellationNoShowFeeNotAcknowledged}
+                disabled={disableCancelButton || cancellationNoShowFeeNotAcknowledged}
                 onClick={async () => {
                   setLoading(true);
 

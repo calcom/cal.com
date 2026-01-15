@@ -1371,6 +1371,8 @@
   "expires": "Expires",
   "request_reschedule_booking": "Request to reschedule your booking",
   "reason_for_reschedule": "Reason for reschedule",
+  "reason_for_cancellation": "Reason for cancellation",
+  "cancellation_reason_booking_question_alert": "This question is only displayed when a booking is being cancelled",
   "book_a_new_time": "Book a new time",
   "reschedule_request_sent": "Reschedule request sent",
   "reschedule_modal_description": "This will cancel the scheduled meeting, notify the scheduler and ask them to pick a new time.",
