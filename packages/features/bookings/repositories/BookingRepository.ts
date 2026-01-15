@@ -2227,8 +2227,6 @@ export class BookingRepository implements IBookingRepository {
   }) {
     if (!userIds.length && !userEmails.length) return [];
 
-    const normalizedEmails = userEmails.map((e) => e.toLowerCase());
-
     return this.prismaClient.booking.findMany({
       where: {
         status: {
@@ -2237,12 +2235,12 @@ export class BookingRepository implements IBookingRepository {
         AND: [{ startTime: { lt: dateTo } }, { endTime: { gt: dateFrom } }],
         OR: [
           ...(userIds.length > 0 ? [{ userId: { in: userIds } }] : []),
-          ...(normalizedEmails.length > 0
+          ...(userEmails.length > 0
             ? [
                 {
                   attendees: {
                     some: {
-                      email: { in: normalizedEmails },
+                      email: { in: userEmails, mode: "insensitive" as const },
                     },
                   },
                 },
