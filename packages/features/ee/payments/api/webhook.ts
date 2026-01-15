@@ -80,7 +80,7 @@ const handleCheckoutSessionExpired = async (event: Stripe.Event) => {
 
   // Only handle checkout sessions that have a payment_intent (booking payments)
   if (!session.payment_intent) {
-    log.info("Checkout session expired without payment_intent, skipping", safeStringify(session));
+    log.info("Checkout session expired without payment_intent, skipping", safeStringify({ sessionId: session.id }));
     throw new HttpCode({ statusCode: 202, message: "No payment_intent in session" });
   }
 
@@ -104,7 +104,7 @@ const handleCheckoutSessionExpired = async (event: Stripe.Event) => {
   });
 
   if (!payment?.bookingId) {
-    log.info("Stripe: Payment not found for expired checkout session", safeStringify(session));
+    log.info("Stripe: Payment not found for expired checkout session", safeStringify({ sessionId: session.id, paymentIntentId }));
     throw new HttpCode({ statusCode: 202, message: "Payment not found" });
   }
 
