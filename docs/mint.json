@@ -41,10 +41,6 @@
       "url": "self-hosting"
     },
     {
-      "name": "OAuth",
-      "url": "oauth"
-    },
-    {
       "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2"
@@ -202,60 +198,6 @@
             "/self-hosting/guides/organization/single-organization-setup"
           ]
         }
-      ]
-    },
-    {
-      "group": "Getting Started",
-      "pages": [
-        "platform/introduction",
-        "platform/setup",
-        "platform/quickstart",
-        {
-          "group": "Atoms",
-          "icon": "atom",
-          "pages": [
-            "platform/atoms/apple-calendar-connect",
-            "platform/atoms/availability-settings",
-            "platform/atoms/booker",
-            "platform/atoms/booker-embed",
-            "platform/atoms/cal-provider",
-            "platform/atoms/calendar-settings",
-            "platform/atoms/calendar-view",
-            "platform/atoms/conferencing-apps",
-            "platform/atoms/create-schedule",
-            "platform/atoms/event-type",
-            "platform/atoms/google-calendar-connect",
-            "platform/atoms/list-event-types",
-            "platform/atoms/list-schedules",
-            "platform/atoms/outlook-calendar-connect",
-            "platform/atoms/payment-form",
-            "platform/atoms/stripe-connect"
-          ]
-        },
-        {
-          "group": "Hooks",
-          "icon": "brackets-curly",
-          "pages": [
-            "platform/bookings-hooks",
-            "platform/event-types-hooks",
-            "platform/calendars-hooks",
-            "platform/user-or-team-related-hooks"
-          ]
-        },
-        {
-          "group": "Guides",
-          "icon": "book",
-          "pages": [
-            "platform/guides/replacing-toasts",
-            "platform/guides/booking-fields",
-            "platform/guides/booking-redirects",
-            "platform/guides/managed-orgs",
-            "platform/guides/teams-setup",
-            "platform/guides/global-event-types",
-            "platform/guides/custom-booking-flow"
-          ]
-        },
-        "platform/faq"
       ]
     },
     {
