@@ -1,16 +1,32 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  FrequencyInput,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
+import {
+  type ApiSuccessResponse,
+  BaseConfirmationPolicy_2024_06_14,
+  type CreateEventTypeInput_2024_06_14,
+  type EventTypeOutput_2024_06_14,
+  type GuestsDefaultFieldOutput_2024_06_14,
+  type NameDefaultFieldInput_2024_06_14,
+  type NotesDefaultFieldInput_2024_06_14,
+  type SplitNameDefaultFieldOutput_2024_06_14,
+  supportedIntegrations,
+  TeamEventTypeOutput_2024_06_14,
+  type UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
+import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
+import type { EventType, PlatformOAuthClient, Schedule, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -21,32 +37,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookerLayoutsInputEnum_2024_06_14,
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-  FrequencyInput,
-} from "@calcom/platform-enums";
-import { SchedulingType } from "@calcom/platform-libraries";
-import {
-  BaseConfirmationPolicy_2024_06_14,
-  TeamEventTypeOutput_2024_06_14,
-  supportedIntegrations,
-  type ApiSuccessResponse,
-  type CreateEventTypeInput_2024_06_14,
-  type EventTypeOutput_2024_06_14,
-  type GuestsDefaultFieldOutput_2024_06_14,
-  type NameDefaultFieldInput_2024_06_14,
-  type NotesDefaultFieldInput_2024_06_14,
-  type SplitNameDefaultFieldOutput_2024_06_14,
-  type UpdateEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
-import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
-import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
-import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -636,6 +635,7 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.bookingUrl).toContain(`/${user.username}/${body.slug}`);
           expect(createdEventType.disableCancelling).toEqual({ disabled: true });
           expect(createdEventType.disableRescheduling).toEqual({ disabled: true });
           expect(createdEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(true);
@@ -732,6 +732,7 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
       expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
       expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
       expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
@@ -1552,6 +1553,7 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+      expect(fetchedEventType.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
     });
 
     it("system admin can access another user's event type by id", async () => {
@@ -2678,12 +2680,19 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.title).toEqual(body.title);
             secondCreatedEventType = responseBody.data;
 
-            const { id, title, slug, ...restFirst } = firstCreatedEventType;
-            const { id: id2, title: title2, slug: slug2, ...restSecond } = secondCreatedEventType;
+            const { id, title, slug, bookingUrl, ...restFirst } = firstCreatedEventType;
+            const {
+              id: id2,
+              title: title2,
+              slug: slug2,
+              bookingUrl: bookingUrl2,
+              ...restSecond
+            } = secondCreatedEventType;
             expect(restFirst).toEqual(restSecond);
             expect(id2).not.toEqual(id);
             expect(title2).not.toEqual(title);
             expect(slug2).not.toEqual(slug);
+            expect(bookingUrl2).not.toEqual(bookingUrl);
           });
       });
 
@@ -3177,6 +3186,170 @@ describe("Event types Endpoints", () => {
       } catch (e) {
         console.log(e);
       }
+      await app.close();
+    });
+  });
+
+  describe("Same username - org vs non-org user", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+
+    const sharedUsername = `same-username-test-${randomString()}`;
+    const nonOrgUserEmail = `non-org-${sharedUsername}@api.com`;
+    const orgUserEmail = `org-${sharedUsername}@api.com`;
+
+    let nonOrgUser: User;
+    let orgUser: User;
+    let nonOrgUserEventType: EventType;
+    let orgUserEventType: EventType;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        nonOrgUserEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({
+        name: `same-username-org-${randomString()}`,
+        slug: `same-username-org-slug-${randomString()}`,
+      });
+      oAuthClient = await oauthClientRepositoryFixture.create(
+        organization.id,
+        {
+          logo: "logo-url",
+          name: "name",
+          redirectUris: ["redirect-uri"],
+          permissions: 32,
+        },
+        "secret"
+      );
+
+      nonOrgUser = await userRepositoryFixture.create({
+        email: nonOrgUserEmail,
+        name: `Non-Org User ${sharedUsername}`,
+        username: sharedUsername,
+      });
+
+      orgUser = await userRepositoryFixture.create({
+        email: orgUserEmail,
+        name: `Org User ${sharedUsername}`,
+        username: sharedUsername,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${orgUser.id}`,
+        username: sharedUsername,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: orgUser.id,
+          },
+        },
+      });
+
+      nonOrgUserEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Non-Org User Event Type",
+          slug: `non-org-event-${randomString()}`,
+          length: 30,
+          hidden: false,
+        },
+        nonOrgUser.id
+      );
+
+      orgUserEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Org User Event Type",
+          slug: `org-event-${randomString()}`,
+          length: 60,
+          hidden: false,
+        },
+        orgUser.id
+      );
+
+      await app.init();
+    });
+
+    it("should return only non-org user's event types when querying by shared username", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${sharedUsername}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].id).toEqual(nonOrgUserEventType.id);
+      expect(responseBody.data[0].title).toEqual("Non-Org User Event Type");
+    });
+
+    it("should return only org user's event types when querying by shared username with orgSlug", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${sharedUsername}&orgSlug=${organization.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].id).toEqual(orgUserEventType.id);
+      expect(responseBody.data[0].title).toEqual("Org User Event Type");
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      try {
+        await eventTypesRepositoryFixture.delete(nonOrgUserEventType.id);
+      } catch (_e) {}
+      try {
+        await eventTypesRepositoryFixture.delete(orgUserEventType.id);
+      } catch (_e) {}
+      try {
+        await userRepositoryFixture.delete(nonOrgUser.id);
+      } catch (_e) {}
+      try {
+        await userRepositoryFixture.delete(orgUser.id);
+      } catch (_e) {}
+      await teamRepositoryFixture.delete(organization.id);
       await app.close();
     });
   });

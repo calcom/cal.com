@@ -21,15 +21,18 @@ export interface ISelectedCalendarRepository {
    *
    * @param take the number of calendars to take
    * @param integrations the list of integrations
+   * @param genericCalendarSuffixes the list of generic calendar suffixes to exclude
    */
   findNextSubscriptionBatch({
     take,
     teamIds,
     integrations,
+    genericCalendarSuffixes,
   }: {
     take: number;
     teamIds: number[];
     integrations?: string[];
+    genericCalendarSuffixes?: string[];
   }): Promise<SelectedCalendar[]>;
 
   /**
