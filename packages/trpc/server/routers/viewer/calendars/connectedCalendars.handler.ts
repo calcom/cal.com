@@ -11,7 +11,12 @@ type ConnectedCalendarsOptions = {
   input: TConnectedCalendarsInputSchema;
 };
 
-export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalendarsOptions) => {
+export const connectedCalendarsHandler = async ({
+  ctx,
+  input,
+}: ConnectedCalendarsOptions): Awaited<
+  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
+> => {
   const { user } = ctx;
   const onboarding = input?.onboarding || false;
 
