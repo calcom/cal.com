@@ -168,7 +168,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expect(result.hostsAdded).toBe(1);
     expect(result.hostsRemoved).toBe(0);
@@ -186,7 +186,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expect(result.hostsAdded).toBe(0);
     expect(result.hostsRemoved).toBe(1);
@@ -204,7 +204,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expect(result.hostsAdded).toBe(1);
     expectHostCreated({ userId: 1, eventTypeId: 1, isFixed: true });
@@ -220,7 +220,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expect(result.hostsAdded).toBe(1);
     expectHostCreated({ userId: 1, eventTypeId: 1, isFixed: false });
@@ -236,7 +236,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expectNoChanges(result);
     expect(DB.hostCreationLog).toHaveLength(0);
@@ -254,7 +254,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expect(result.hostsAdded).toBe(1);
     expect(result.details[0].organizationId).toBe(1);
@@ -274,7 +274,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expect(result.hostsAdded).toBe(1);
     expect(result.hostsRemoved).toBe(1);
@@ -301,7 +301,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expect(result.hostsAdded).toBe(2);
     expect(result.eventTypesProcessed).toBe(2);
@@ -316,7 +316,7 @@ describe("SyncHostsMembershipsService", () => {
     });
 
     const service = createService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: [1] });
 
     expectNoChanges(result);
   });

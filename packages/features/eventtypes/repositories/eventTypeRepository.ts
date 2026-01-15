@@ -9,7 +9,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
-import type { Prisma, EventType as PrismaEventType } from "@calcom/prisma/client";
+import { Prisma, type EventType as PrismaEventType } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -1854,7 +1854,13 @@ export class EventTypeRepository {
     return eventTypeResult;
   }
 
-  async findWithOutOfSyncHostsIncludeHostsAndTeamMembers({ limit }: { limit?: number }) {
+  async findWithOutOfSyncHostsIncludeHostsAndTeamMembers({
+    limit,
+    orgIds,
+  }: {
+    limit?: number;
+    orgIds: number[];
+  }) {
     type OutOfSyncEventTypeId = { eventTypeId: number };
 
     const outOfSyncEventTypeIds = await this.prismaClient.$queryRaw<OutOfSyncEventTypeId[]>`
@@ -1865,6 +1871,7 @@ export class EventTypeRepository {
           et."teamId" IS NOT NULL
           AND et."assignAllTeamMembers" = true
           AND et."schedulingType" IN ('roundRobin', 'collective')
+          AND t."parentId" IN (${Prisma.join(orgIds)})
           AND (
               EXISTS (
                   SELECT 1 

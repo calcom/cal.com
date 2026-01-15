@@ -10,6 +10,8 @@ import { SyncHostsMembershipsService, type SyncResult } from "../services/SyncHo
 
 const log = logger.getSubLogger({ prefix: ["cron/syncHostsMemberships"] });
 
+const ORG_IDS: number[] = [];
+
 function createSyncHostsMembershipsService(): SyncHostsMembershipsService {
   const eventTypeRepository = new EventTypeRepository(prisma);
   const hostRepository = new HostRepository(prisma);
@@ -28,7 +30,7 @@ export async function handleSyncHostsMemberships(request: NextRequest): Promise<
 
   try {
     const service = createSyncHostsMembershipsService();
-    const result = await service.syncHostsWithMemberships();
+    const result = await service.syncHostsWithMemberships({ orgIds: ORG_IDS });
 
     log.info("Sync hosts memberships cron completed", {
       hostsAdded: result.hostsAdded,

@@ -72,7 +72,7 @@ export class SyncHostsMembershipsService {
     this.logger = logger;
   }
 
-  async syncHostsWithMemberships(): Promise<SyncResult> {
+  async syncHostsWithMemberships({ orgIds }: { orgIds: number[] }): Promise<SyncResult> {
     const result: SyncResult = {
       hostsAdded: 0,
       hostsRemoved: 0,
@@ -83,6 +83,7 @@ export class SyncHostsMembershipsService {
     const eventTypesWithOutOfSyncHosts =
       await this.eventTypeRepository.findWithOutOfSyncHostsIncludeHostsAndTeamMembers({
         limit: 100,
+        orgIds,
       });
 
     for (const eventType of eventTypesWithOutOfSyncHosts) {
