@@ -6,13 +6,14 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import type Prisma from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
-import type { Prisma as PrismaType } from "@calcom/prisma/client";
+import type { Prisma, User, EventType } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
@@ -28,6 +29,18 @@ export function hashPassword(password: string) {
   return hashedPassword;
 }
 
+/**
+ * Default feature flags enabled for all teams and organizations created in E2E tests.
+ * These flags represent the most common production features that should be tested by default.
+ */
+const DEFAULT_TEAM_FEATURE_FLAGS: Array<keyof AppFlags> = [];
+
+/**
+ * Default feature flags enabled for individual users created in E2E tests.
+ * Empty by default - users don't typically have feature flags unless explicitly needed.
+ */
+const DEFAULT_USER_FEATURE_FLAGS: Array<keyof AppFlags> = ["bookings-v3"];
+
 type UserFixture = ReturnType<typeof createUserFixture>;
 
 export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
@@ -37,7 +50,7 @@ const userIncludes = {
   workflows: true,
   credentials: true,
   routingForms: true,
-} satisfies PrismaType.UserInclude;
+} satisfies Prisma.UserInclude;
 
 type InstallStripeParamsSkipTrue = {
   eventTypeIds?: number[];
@@ -63,16 +76,11 @@ type InstallStripeParams = InstallStripeParamsUnion & {
   page: Page;
 };
 
-const userWithEventTypes = {
+const _userWithEventTypes = {
   include: userIncludes,
-} satisfies PrismaType.UserDefaultArgs;
+} satisfies Prisma.UserDefaultArgs;
 
-const seededForm = {
-  id: "948ae412-d995-4865-875a-48302588de03",
-  name: "Seeded Form - Pro",
-};
-
-type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
+type UserWithIncludes = Prisma.UserGetPayload<typeof _userWithEventTypes>;
 
 const createTeamWorkflow = async (user: { id: number }, team: { id: number }) => {
   return await prisma.workflow.create({
@@ -160,6 +168,8 @@ const createTeamAndAddUser = async (
     orgRequestedSlug,
     schedulingType,
     assignAllTeamMembersForSubTeamEvents,
+    teamSlug,
+    teamFeatureFlags,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -172,13 +182,17 @@ const createTeamAndAddUser = async (
     orgRequestedSlug?: string;
     schedulingType?: SchedulingType;
     assignAllTeamMembersForSubTeamEvents?: boolean;
+    teamSlug?: string;
+    teamFeatureFlags?: Array<keyof AppFlags>;
   },
   workerInfo: WorkerInfo
 ) => {
   const slugIndex = index ? `-count-${index}` : "";
   const slug =
-    orgRequestedSlug ?? `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
-  const data: PrismaType.TeamCreateInput = {
+    teamSlug ??
+    orgRequestedSlug ??
+    `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
+  const data: Prisma.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
     isOrganization: isOrg,
   };
@@ -191,19 +205,21 @@ const createTeamAndAddUser = async (
         orgAutoAcceptEmail: user.email.split("@")[1],
         isOrganizationVerified: !!isOrgVerified,
         isOrganizationConfigured: isDnsSetup,
+        orgAutoJoinOnSignup: true,
       },
     };
   }
 
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
-    const team = await createTeamAndAddUser({ user }, workerInfo);
-    await createTeamEventType(user, team, {
+    const subteam = await createTeamAndAddUser({ user, teamFeatureFlags }, workerInfo);
+
+    await createTeamEventType(user, subteam, {
       schedulingType: schedulingType,
       assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
     });
-    await createTeamWorkflow(user, team);
-    data.children = { connect: [{ id: team.id }] };
+    await createTeamWorkflow(user, subteam);
+    data.children = { connect: [{ id: subteam.id }] };
   }
   data.orgProfiles = isOrg
     ? {
@@ -235,6 +251,21 @@ const createTeamAndAddUser = async (
       accepted: true,
     },
   });
+
+  // Enable feature flags for the team if specified
+  if (teamFeatureFlags && teamFeatureFlags.length > 0) {
+    const featuresRepository = new FeaturesRepository(prisma);
+    await Promise.all(
+      teamFeatureFlags.map((featureFlag) =>
+        featuresRepository.setTeamFeatureState({
+          teamId: team.id,
+          featureId: featureFlag as FeatureId,
+          state: "enabled",
+          assignedBy: "e2e-fixture",
+        })
+      )
+    );
+  }
 
   return team;
 };
@@ -271,6 +302,23 @@ export const createUsersFixture = (
         | (CustomUserOpts & {
             organizationId?: number | null;
             overrideDefaultEventTypes?: boolean;
+            /**
+             * Feature flags to enable for this individual user.
+             * Defaults to DEFAULT_USER_FEATURE_FLAGS.
+             * Pass specific flags to enable user-level features.
+             * @default DEFAULT_USER_FEATURE_FLAGS
+             * @example
+             * ```typescript
+             * // Default feature flags
+             * const user = await users.create();
+             *
+             * // Specific feature flags
+             * const user = await users.create({
+             *   userFeatureFlags: ["bookings-v3"]
+             * });
+             * ```
+             */
+            userFeatureFlags?: Array<keyof AppFlags>;
           })
         | null,
       scenario: {
@@ -283,6 +331,7 @@ export const createUsersFixture = (
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
         teamEventSlug?: string;
+        teamSlug?: string;
         teamEventLength?: number;
         isOrg?: boolean;
         isOrgVerified?: boolean;
@@ -295,6 +344,31 @@ export const createUsersFixture = (
         orgRequestedSlug?: string;
         assignAllTeamMembers?: boolean;
         assignAllTeamMembersForSubTeamEvents?: boolean;
+        /**
+         * Feature flags to enable for the created team(s) and organization(s).
+         * Defaults to DEFAULT_TEAM_FEATURE_FLAGS when hasTeam is true.
+         * Pass an empty array to disable default flags, or pass specific flags to override.
+         * Applies to both regular teams and organizations (when isOrg: true).
+         * @default DEFAULT_TEAM_FEATURE_FLAGS
+         * @example
+         * ```typescript
+         * // Default feature flags
+         * const user = await users.create({}, { hasTeam: true });
+         *
+         * // Specific feature flags
+         * const user = await users.create({}, {
+         *   hasTeam: true,
+         *   teamFeatureFlags: ["pbac"]
+         * });
+         *
+         * // Organizations also get the flags by default
+         * const user = await users.create({}, {
+         *   hasTeam: true,
+         *   isOrg: true
+         * }); // Org gets DEFAULT_TEAM_FEATURE_FLAGS
+         * ```
+         */
+        teamFeatureFlags?: Array<keyof AppFlags>;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -347,9 +421,30 @@ export const createUsersFixture = (
         where: { id: _user.id },
         include: userIncludes,
       });
+
+      // Enable feature flags for the user if specified
+      // Default to DEFAULT_USER_FEATURE_FLAGS if not specified
+      const userFeatureFlags = opts?.userFeatureFlags ?? DEFAULT_USER_FEATURE_FLAGS;
+      if (userFeatureFlags.length > 0) {
+        const featuresRepository = new FeaturesRepository(prisma);
+        await Promise.all(
+          userFeatureFlags.map((featureFlag) =>
+            featuresRepository.setUserFeatureState({
+              userId: user.id,
+              featureId: featureFlag as FeatureId,
+              state: "enabled",
+              assignedBy: "e2e-fixture",
+            })
+          )
+        );
+      }
+
       if (scenario.hasTeam) {
         const numberOfTeams = scenario.numberOfTeams || 1;
         for (let i = 0; i < numberOfTeams; i++) {
+          // Determine feature flags to use
+          const featureFlags = scenario.teamFeatureFlags ?? DEFAULT_TEAM_FEATURE_FLAGS;
+
           const team = await createTeamAndAddUser(
             {
               user: {
@@ -367,10 +462,13 @@ export const createUsersFixture = (
               orgRequestedSlug: scenario.orgRequestedSlug,
               schedulingType: scenario.schedulingType,
               assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
+              teamSlug: scenario?.teamSlug,
+              teamFeatureFlags: featureFlags,
             },
             workerInfo
           );
           store.teams.push(team);
+
           const teamEvent = await createTeamEventType(user, team, scenario);
           if (scenario.teammates) {
             // Create Teammate users
@@ -591,6 +689,9 @@ export const createUsersFixture = (
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
+      const trackedEmails = store.trackedEmails.map((e) => e.email);
+      const teamIds = store.teams.map((org) => org.id);
+
       if (emails) {
         const emailMessageIds: string[] = [];
         for (const user of store.trackedEmails.concat(store.users.map((u) => ({ email: u.email })))) {
@@ -606,11 +707,22 @@ export const createUsersFixture = (
         }
       }
 
-      await prisma.user.deleteMany({ where: { id: { in: ids } } });
-      // Delete all users that were tracked by email(if they were created)
-      await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
-      await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
-      await prisma.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
+      // Run clean-up in a single transaction to avoid lock ordering deadlocks
+      await prisma.$transaction(async (tx) => {
+        if (ids.length > 0) {
+          await tx.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
+          await tx.user.deleteMany({ where: { id: { in: ids } } });
+        }
+
+        if (trackedEmails.length > 0) {
+          await tx.user.deleteMany({ where: { email: { in: trackedEmails } } });
+        }
+
+        if (teamIds.length > 0) {
+          await tx.team.deleteMany({ where: { id: { in: teamIds } } });
+        }
+      });
+
       store.users = [];
       store.teams = [];
       store.trackedEmails = [];
@@ -648,7 +760,6 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await prisma.user.findUnique({
       where: { id: store.user.id },
       include: { eventTypes: true },
@@ -711,6 +822,31 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       }
       return membership;
     },
+    getAllTeamMembership: async () => {
+      const memberships = await prisma.membership.findMany({
+        where: {
+          userId: user.id,
+          team: {
+            isOrganization: false,
+          },
+        },
+        include: { team: true, user: true },
+      });
+
+      const filteredMemberships = memberships.map((membership) => ({
+        ...membership,
+        team: {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        },
+      }));
+
+      if (filteredMemberships.length === 0) {
+        throw new Error("No team memberships found for user");
+      }
+
+      return filteredMemberships;
+    },
     getOrgMembership: async () => {
       const membership = await prisma.membership.findFirstOrThrow({
         where: {
@@ -760,9 +896,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         },
       });
     },
-    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">, slug: string) =>
+    setupEventWithPrice: async (eventType: Pick<EventType, "id">, slug: string) =>
       setupEventWithPrice(eventType, slug, store.page),
-    bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
+    bookAndPayEvent: async (eventType: Pick<EventType, "slug">) =>
       bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
     installStripePersonal: async (params: InstallStripeParamsUnion) =>
@@ -788,11 +924,11 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
-type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
-  _bookings?: PrismaType.BookingCreateInput[];
+type SupportedTestEventTypes = Prisma.EventTypeCreateInput & {
+  _bookings?: Prisma.BookingCreateInput[];
 };
 
-type SupportedTestWorkflows = PrismaType.WorkflowCreateInput;
+type SupportedTestWorkflows = Prisma.WorkflowCreateInput;
 
 type CustomUserOptsKeys =
   | "username"
@@ -805,7 +941,7 @@ type CustomUserOptsKeys =
   | "disableImpersonation"
   | "role"
   | "identityProvider";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
+type CustomUserOpts = Partial<Pick<User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
   workflows?: SupportedTestWorkflows[];
@@ -826,7 +962,7 @@ const createUser = (
         organizationId?: number | null;
       })
     | null
-): PrismaType.UserUncheckedCreateInput => {
+): Prisma.UserUncheckedCreateInput => {
   const suffixToMakeUsernameUnique = `-${workerInfo.workerIndex}-${Date.now()}`;
   // build a unique name for our user
   const uname =
@@ -952,7 +1088,7 @@ async function confirmPendingPayment(page: Page) {
 
 // login using a replay of an E2E routine.
 export async function login(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password?: string | null },
+  user: Pick<User, "username"> & Partial<Pick<User, "email">> & { password?: string | null },
   page: Page
 ) {
   // get locators
@@ -966,7 +1102,7 @@ export async function login(
   await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   await passwordLocator.fill(user.password ?? user.username!);
 
   // waiting for specific login request to resolve
@@ -975,17 +1111,49 @@ export async function login(
   await responsePromise;
 }
 
+/**
+ * Helper to retry network requests that may fail with transient errors like ECONNRESET
+ */
+async function retryOnNetworkError<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 500
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      const errorMessage = lastError.message || "";
+      // Only retry on transient network errors
+      const isRetryable =
+        errorMessage.includes("ECONNRESET") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        errorMessage.includes("socket hang up");
+
+      if (!isRetryable || attempt === maxRetries) {
+        throw lastError;
+      }
+      // Wait before retrying with exponential backoff
+      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+    }
+  }
+  throw lastError;
+}
+
 export async function apiLogin(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
+  user: Pick<User, "username"> & Partial<Pick<User, "email">> & { password: string | null },
   page: Page,
   navigateToUrl?: string
 ) {
-  // Get CSRF token
-  const csrfToken = await page
-    .context()
-    .request.get("/api/auth/csrf")
-    .then((response) => response.json())
-    .then((json) => json.csrfToken);
+  // Get CSRF token with retry for transient network errors
+  const csrfToken = await retryOnNetworkError(async () => {
+    const response = await page.context().request.get("/api/auth/csrf");
+    const json = await response.json();
+    return json.csrfToken;
+  });
 
   // Make the login request
   const loginData = {
@@ -997,9 +1165,11 @@ export async function apiLogin(
     csrfToken,
   };
 
-  const response = await page.context().request.post("/api/auth/callback/credentials", {
-    data: loginData,
-  });
+  const response = await retryOnNetworkError(() =>
+    page.context().request.post("/api/auth/callback/credentials", {
+      data: loginData,
+    })
+  );
 
   expect(response.status()).toBe(200);
 
@@ -1007,23 +1177,21 @@ export async function apiLogin(
    * Critical: Navigate to a protected page to trigger NextAuth session loading
    * This forces NextAuth to run the jwt and session callbacks that populate
    * the session with profile, org, and other important data
-   * We picked /settings/my-account/profile due to it being one of
-   * our lighest protected pages and doesnt do anything other than load the user profile
    */
-  await page.goto(navigateToUrl || "/settings/my-account/profile");
+  await page.goto(navigateToUrl || "/e2e/session-warmup");
 
   // Wait for the session API call to complete to ensure session is fully established
   // Only wait if we're on a protected page that would trigger the session API call
   try {
     await page.waitForResponse("/api/auth/session", { timeout: 2000 });
-  } catch (error) {
+  } catch {
     // Session API call not made (likely on a public page), continue anyway
   }
 
   return response;
 }
 
-export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, slug: string, page: Page) {
+export async function setupEventWithPrice(eventType: Pick<EventType, "id">, slug: string, page: Page) {
   await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
   await page.locator(`[data-testid='${slug}-app-switch']`).first().click();
   await page.getByPlaceholder("Price").fill("100");
@@ -1031,8 +1199,8 @@ export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id"
 }
 
 export async function bookAndPayEvent(
-  user: Pick<Prisma.User, "username">,
-  eventType: Pick<Prisma.EventType, "slug">,
+  user: Pick<User, "username">,
+  eventType: Pick<EventType, "slug">,
   page: Page
 ) {
   // booking process with stripe integration

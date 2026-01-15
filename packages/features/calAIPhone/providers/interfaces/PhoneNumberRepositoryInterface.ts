@@ -63,7 +63,7 @@ export interface PhoneNumberRepositoryInterface {
   updateSubscriptionStatus(params: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }): Promise<void>;
 
   /**
@@ -74,6 +74,18 @@ export interface PhoneNumberRepositoryInterface {
     inboundProviderAgentId?: string | null;
     outboundProviderAgentId?: string | null;
   }): Promise<void>;
+
+  /**
+   * Conditionally set inbound agent only if currently unset (atomic operation to prevent race conditions)
+   */
+  updateInboundAgentId(params: { id: number; agentId: string }): Promise<{ count: number }>;
+
+  /**
+   * Find inbound agent by phone number ID
+   */
+  findInboundAgentIdByPhoneNumberId(params: {
+    phoneNumberId: number;
+  }): Promise<{ inboundAgentId: string | null } | null>;
 }
 
 /**

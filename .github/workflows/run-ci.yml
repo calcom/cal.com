@@ -1,0 +1,125 @@
+name: Run CI
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  trigger:
+    name: Trigger CI
+    if: github.event.label.name == 'run-ci' || github.event.label.name == 'ready-for-e2e'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify and trigger CI
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const adder = context.payload.sender.login;
+            const senderType = context.payload.sender.type;
+            const pr = context.payload.pull_request;
+
+            console.log(`Sender: ${adder} (type: ${senderType})`);
+
+            const trustedBotLogins = ['graphite-app[bot]'];
+            let isAuthorized = false;
+
+            if (senderType === 'Bot' && trustedBotLogins.includes(adder)) {
+              console.log(`Authorized: trusted GitHub App`);
+              isAuthorized = true;
+            }
+
+            if (!isAuthorized) {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: adder,
+              });
+
+              if (!['admin', 'maintain', 'write'].includes(perm.permission)) {
+                core.setFailed(`${adder} does not have write access`);
+                return;
+              }
+
+              console.log(`Label added by ${adder}`);
+            }
+
+            // Find the latest pr.yml run for this PR's head SHA
+            const { data: runs } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'pr.yml',
+              head_sha: pr.head.sha,
+              per_page: 5,
+            });
+
+            // Filter runs to this PR (in case same SHA exists in multiple PRs)
+            const matchingRuns = runs.workflow_runs.filter(run =>
+              !run.pull_requests?.length || run.pull_requests.some(p => p.number === pr.number)
+            );
+
+            if (matchingRuns.length === 0) {
+              core.setFailed(`No PR workflow found for SHA ${pr.head.sha}`);
+              return;
+            }
+
+            const latestRun = matchingRuns[0];
+
+            // If workflow is still running, cancel it first then re-run
+            if (latestRun.status === 'in_progress' || latestRun.status === 'queued') {
+              console.log(`Workflow is running (status: ${latestRun.status}). Cancelling it first...`);
+
+              await github.rest.actions.cancelWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: latestRun.id,
+              });
+
+              // Wait for the workflow to be cancelled (poll with timeout)
+              const maxWaitTime = 60000; // 60 seconds
+              const pollInterval = 2000; // 2 seconds
+              const startTime = Date.now();
+
+              while (Date.now() - startTime < maxWaitTime) {
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+                const { data: updatedRun } = await github.rest.actions.getWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: latestRun.id,
+                });
+
+                if (updatedRun.status === 'completed') {
+                  console.log(`Workflow cancelled successfully (conclusion: ${updatedRun.conclusion})`);
+                  break;
+                }
+
+                console.log(`Waiting for workflow to cancel... (status: ${updatedRun.status})`);
+              }
+
+              // Check final status
+              const { data: finalRun } = await github.rest.actions.getWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: latestRun.id,
+              });
+
+              if (finalRun.status !== 'completed') {
+                core.setFailed(`Timed out waiting for workflow to cancel (status: ${finalRun.status})`);
+                return;
+              }
+            }
+
+            console.log(`Re-running workflow ${latestRun.id} (was: ${latestRun.conclusion || latestRun.status})`);
+
+            // Re-run preserves original context (PR, SHA, etc.)
+            await github.rest.actions.reRunWorkflow({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: latestRun.id,
+            });
+
+            console.log(`Triggered: ${latestRun.html_url}`);

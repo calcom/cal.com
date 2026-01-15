@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateANewPlatformForm } from "@calcom/features/ee/platform/components/index";
+import { CreateANewPlatformForm } from "~/ee/platform/components/CreateANewPlatformForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { WizardLayout } from "@calcom/ui/components/layout";

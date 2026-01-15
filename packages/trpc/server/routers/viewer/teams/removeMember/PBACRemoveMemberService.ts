@@ -2,6 +2,7 @@ import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,10 +21,11 @@ export class PBACRemoveMemberService extends BaseRemoveMemberService {
       action: CustomAction.Remove,
     });
 
-    const teamsWithPermission = await this.permissionService.getTeamIdsWithPermission(
+    const teamsWithPermission = await this.permissionService.getTeamIdsWithPermission({
       userId,
-      removePermission
-    );
+      permission: removePermission,
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
 
     // Convert to Set for O(1) lookup
     const teamsWithPermissionSet = new Set(teamsWithPermission);

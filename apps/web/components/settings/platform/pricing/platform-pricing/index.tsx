@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { showToast } from "@calcom/ui/components/toast";
@@ -17,6 +18,8 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
   const pathname = usePathname();
   const currentPage = pathname?.split("/").pop();
   const router = useRouter();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
   const { mutateAsync: createTeamSubscription, isPending: isCreateTeamSubscriptionLoading } =
     useSubscribeTeamToStripe({
       onSuccess: (redirectUrl: string) => {
@@ -24,6 +27,7 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
       },
       onError: () => {
         showToast(ErrorCode.UnableToSubscribeToThePlatform, "error");
+        setLoadingPlan(null);
       },
       teamId,
     });
@@ -35,6 +39,7 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
       },
       onError: () => {
         showToast(ErrorCode.UnableToSubscribeToThePlatform, "error");
+        setLoadingPlan(null);
       },
       teamId,
     });
@@ -43,6 +48,8 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
     if (plan === "Enterprise") {
       return router.push("https://go.cal.com/quote");
     }
+
+    setLoadingPlan(plan);
 
     if (currentPage === "platform") {
       createTeamSubscription({ plan: plan.toLocaleUpperCase() });
@@ -56,7 +63,7 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
   }
 
   return (
-    <div className="flex h-auto flex-col items-center justify-center px-5 py-10 md:px-10 lg:h-[100%]">
+    <div className="flex h-auto flex-col items-center justify-center px-5 py-10 md:px-10 lg:h-full">
       {heading}
       <div>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -68,7 +75,10 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
                   description={plan.description}
                   pricing={plan.pricing}
                   includes={plan.includes}
-                  isLoading={isCreateTeamSubscriptionLoading || isUpgradeTeamSubscriptionLoading}
+                  isLoading={
+                    loadingPlan === plan.plan &&
+                    (isCreateTeamSubscriptionLoading || isUpgradeTeamSubscriptionLoading)
+                  }
                   currentPlan={plan.plan.toLocaleLowerCase() === teamPlan}
                   handleSubscribe={() => handleStripeSubscription(plan.plan)}
                 />

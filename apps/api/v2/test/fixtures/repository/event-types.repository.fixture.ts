@@ -58,6 +58,22 @@ export class EventTypesRepositoryFixture {
     return this.prismaWriteClient.eventType.delete({ where: { id: eventTypeId } });
   }
 
+  async deleteAllTeamEventTypes(teamId: number) {
+    return this.prismaWriteClient.eventType.deleteMany({
+      where: {
+        teamId,
+      },
+    });
+  }
+
+  async deleteAllUserEventTypes(userId: number) {
+    return this.prismaWriteClient.eventType.deleteMany({
+      where: {
+        userId,
+      },
+    });
+  }
+
   async findById(eventTypeId: EventType["id"]) {
     return this.prismaReadClient.eventType.findUnique({ where: { id: eventTypeId } });
   }

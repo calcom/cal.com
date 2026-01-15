@@ -6,12 +6,10 @@
  *
  * CrmService.test.ts could still focus on testing detailed edge cases as needed.
  */
-import "../../../../../tests/libs/__mocks__/prisma";
-
 import jsforce from "@jsforce/jsforce-node";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import SalesforceCRMService from "../CrmService";
+import { createSalesforceCrmServiceWithSalesforceType } from "../CrmService";
 import { SalesforceRecordEnum } from "../enums";
 import {
   mockValueOfAccountOwnershipQueryMatchingContact,
@@ -41,12 +39,12 @@ vi.mock("@calcom/lib/constants", () => {
 vi.mock("@jsforce/jsforce-node", () => {
   return {
     default: {
-      Connection: vi.fn().mockImplementation(() => ({})),
+      Connection: vi.fn().mockImplementation(function() { return {}; }),
     },
   };
 });
 
-vi.mock("@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
   checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
 }));
 
@@ -118,13 +116,15 @@ describe("SalesforceCRMService", () => {
     // Override jsforce mock with our custom mock
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Not full implementation of jsforce.Connection
-    vi.mocked(jsforce.Connection).mockImplementation(() => ({
-      ...salesforceMock.mockConnection,
-      version: "1.0",
-      loginUrl: "https://test.salesforce.com",
-      instanceUrl: "https://test.salesforce.com",
-      accessToken: "123",
-    }));
+    vi.mocked(jsforce.Connection).mockImplementation(function() {
+      return {
+        ...salesforceMock.mockConnection,
+        version: "1.0",
+        loginUrl: "https://test.salesforce.com",
+        instanceUrl: "https://test.salesforce.com",
+        accessToken: "123",
+      };
+    });
   });
 
   describe("createOnLeadAndSearchOnAccount", () => {
@@ -133,7 +133,7 @@ describe("SalesforceCRMService", () => {
       const forRoundRobinSkip = true;
       it("(Lookup-1) should return contact's account owner's email as ownerEmail if the contact is found directly by email", async () => {
         mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingContact());
-        const crmService = new SalesforceCRMService(credential, appOptions);
+        const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
         const contactAccountOwnerEmail = "owner@test.com";
         const lookingForEmail = "contact@email.com";
 
@@ -151,7 +151,7 @@ describe("SalesforceCRMService", () => {
 
       it("(Lookup-2) should fallback to account(and use the account owner email as ownerEmail) matched by emailDomain if the contact is not found(i.e Lookup-1 fails)", async () => {
         mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingAccountWebsite());
-        const crmService = new SalesforceCRMService(credential, appOptions);
+        const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
         const contactAccountOwnerEmail = "owner@test.com";
         const emailDomain = "example.com";
         const lookingForEmail = `test@${emailDomain}`;
@@ -172,7 +172,7 @@ describe("SalesforceCRMService", () => {
 
       it("(Lookup-3) should fallback to account having most number of contacts matched by emailDomain when Lookup-1 and Lookup-2 fails", async () => {
         mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingRelatedContacts());
-        const crmService = new SalesforceCRMService(credential, appOptions);
+        const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
         const accountOwnerEmail = "owner1@test.com";
         const emailDomain = "example.com";
         const lookingForEmail = `test@${emailDomain}`;
@@ -195,7 +195,7 @@ describe("SalesforceCRMService", () => {
     describe("getContacts: forRoundRobinSkip=false i.e. how it is called when creating event", () => {
       const forRoundRobinSkip = false;
       it("should return lead object if the lead is found directly by email and contact is not found by that email", async () => {
-        const crmService = new SalesforceCRMService(credential, appOptions);
+        const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
         const contactAccountOwnerEmail = "contact-account-owner@acme.com";
         const contactOwnerEmail = "contact-owner@acme.com";
         const leadOwnerEmail = "lead-owner@acme.com";
@@ -210,7 +210,7 @@ describe("SalesforceCRMService", () => {
           Website: "https://anything",
         });
 
-        const contact = salesforceMock.addContact({
+        const _contact = salesforceMock.addContact({
           // Contact doesn't have the matching email
           Email: contactEmail,
           FirstName: "Test",
@@ -245,12 +245,12 @@ describe("SalesforceCRMService", () => {
       });
 
       it("should return contact object(if there is one by that email) even if lead is found by that email", async () => {
-        const crmService = new SalesforceCRMService(credential, appOptions);
+        const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
         const contactAccountOwnerEmail = "contact-account-owner@acme.com";
         const contactOwnerEmail = "contact-owner@acme.com";
         const leadOwnerEmail = "lead-owner@acme.com";
         const lookingForEmail = "test1@example.com";
-        const contactEmail = "test2@example.com";
+        const _contactEmail = "test2@example.com";
 
         const account = salesforceMock.addAccount({
           Id: "test-account-id",
@@ -271,7 +271,7 @@ describe("SalesforceCRMService", () => {
           },
         });
 
-        const lead = salesforceMock.addLead({
+        const _lead = salesforceMock.addLead({
           // Lead has the matching email
           Email: lookingForEmail,
           FirstName: "Test",
@@ -297,7 +297,7 @@ describe("SalesforceCRMService", () => {
 
     describe("createContact", () => {
       it("should create a contact under an account if the attendee has an account", async () => {
-        const crmService = new SalesforceCRMService(credential, appOptions);
+        const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
         const attendeeEmail = "test@booker.com";
         const account = salesforceMock.addAccount({
           Id: "test-account-id",
@@ -331,7 +331,7 @@ describe("SalesforceCRMService", () => {
       });
 
       it("should create a lead if the attendee has no account", async () => {
-        const crmService = new SalesforceCRMService(credential, appOptions);
+        const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
         const attendeeEmail = "test@booker.com";
         const result = await crmService.createContacts([
           {

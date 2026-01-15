@@ -4,15 +4,17 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -44,6 +46,11 @@ const userSelect = {
       name: true,
       slug: true,
       bannerUrl: true,
+      organizationSettings: {
+        select: {
+          disableAutofillOnBookingPage: true,
+        },
+      },
     },
   },
   defaultScheduleId: true,
@@ -84,6 +91,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     seatsPerTimeSlot: true,
     disableCancelling: true,
     disableRescheduling: true,
+    minimumRescheduleNotice: true,
     allowReschedulingCancelledBookings: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
@@ -105,9 +113,19 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             name: true,
             bannerUrl: true,
             logoUrl: true,
+            organizationSettings: {
+              select: {
+                disableAutofillOnBookingPage: true,
+              },
+            },
           },
         },
         isPrivate: true,
+        organizationSettings: {
+          select: {
+            disableAutofillOnBookingPage: true,
+          },
+        },
       },
     },
     successRedirectUrl: true,
@@ -501,25 +519,27 @@ export const getPublicEvent = async (
       length: eventWithUserProfiles.length,
     });
   }
-  const isTeamAdminOrOwner = await prisma.membership.findFirst({
-    where: {
-      userId: currentUserId ?? -1,
-      teamId: event.teamId ?? -1,
-      accepted: true,
-      role: { in: ["ADMIN", "OWNER"] },
-    },
-  });
+  let canViewPrivateTeamMembers = false;
+  if (currentUserId && event.teamId) {
+    const permissionCheckService = new PermissionCheckService();
+    canViewPrivateTeamMembers = await permissionCheckService.checkPermission({
+      userId: currentUserId,
+      teamId: event.teamId,
+      permission: "team.read",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
 
-  const isOrgAdminOrOwner = await prisma.membership.findFirst({
-    where: {
-      userId: currentUserId ?? -1,
-      teamId: event.team?.parentId ?? -1,
-      accepted: true,
-      role: { in: ["ADMIN", "OWNER"] },
-    },
-  });
+    if (!canViewPrivateTeamMembers && event.team?.parentId) {
+      canViewPrivateTeamMembers = await permissionCheckService.checkPermission({
+        userId: currentUserId,
+        teamId: event.team.parentId,
+        permission: "team.read",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+    }
+  }
 
-  if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
+  if (event.team?.isPrivate && !canViewPrivateTeamMembers) {
     users = [];
   }
 
@@ -635,7 +655,7 @@ export async function getUsersFromEvent(
 ) {
   const { team, hosts, subsetOfHosts, owner, id } = event;
   if (team) {
-    const eventHosts = !!hosts?.length ? hosts : subsetOfHosts;
+    const eventHosts = hosts?.length ? hosts : subsetOfHosts;
     // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
     return eventHosts.length
       ? eventHosts.filter((host) => host.user.username).map(mapHostsToUsers)
