@@ -3,12 +3,13 @@
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { TUpdateAttendeeDetailsInputSchema } from "@calcom/trpc/server/routers/publicViewer/updateAttendeeDetails.schema";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { EmailInput, Input, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { useState } from "react";
+import { type ChangeEvent, useState } from "react";
 
 type Attendee = {
   email: string;
@@ -24,6 +25,81 @@ type Props = {
   onClose: () => void;
 };
 
+// Extracted component to reduce complexity of the main modal
+function AttendeeFormFields({
+  name,
+  setName,
+  email,
+  setEmail,
+  phoneNumber,
+  setPhoneNumber,
+  timeZone,
+  setTimeZone,
+}: {
+  name: string;
+  setName: (v: string) => void;
+  email: string;
+  setEmail: (v: string) => void;
+  phoneNumber: string;
+  setPhoneNumber: (v: string) => void;
+  timeZone: string;
+  setTimeZone: (v: string) => void;
+}) {
+  const { t } = useLocale();
+  return (
+    <div className="mt-4 space-y-4">
+      <div>
+        <Label htmlFor="name">{t("your_name") || "Your name"}</Label>
+        <Input
+          id="name"
+          name="name"
+          value={name}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+          className="mt-1"
+          placeholder={t("your_name") || "Your name"}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="email">{t("email_address") || "Email address"}</Label>
+        <EmailInput
+          id="email"
+          name="email"
+          value={email}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+          className="mt-1"
+          placeholder={t("email_address") || "Email address"}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="phone">{t("phone_number") || "Phone number"}</Label>
+        <Input
+          id="phone"
+          name="phone"
+          type="tel"
+          value={phoneNumber}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
+          className="mt-1"
+          placeholder={t("phone_number") || "Phone number"}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="timezone">{t("timezone") || "Timezone"}</Label>
+        <TimezoneSelect
+          id="timezone"
+          value={timeZone}
+          onChange={(event: { value: string } | null) => {
+            if (event) setTimeZone(event.value);
+          }}
+          className="mt-1"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function EditAttendeeDetails({ bookingUid, attendee, isOpen, onClose }: Props): JSX.Element {
   const { t } = useLocale();
 
@@ -34,7 +110,7 @@ export default function EditAttendeeDetails({ bookingUid, attendee, isOpen, onCl
   const [error, setError] = useState<string | null>(null);
 
   const mutation = trpc.viewer.public.updateAttendeeDetails.useMutation({
-    onSuccess: (_, variables) => {
+    onSuccess: (_, variables: TUpdateAttendeeDetailsInputSchema) => {
       showToast(t("details_updated_successfully") || "Details updated successfully", "success");
       onClose();
 
@@ -49,7 +125,7 @@ export default function EditAttendeeDetails({ bookingUid, attendee, isOpen, onCl
       // Full page reload to ensure all data is refreshed
       window.location.href = currentUrl.toString();
     },
-    onError: (err) => {
+    onError: (err: { message: string }) => {
       setError(err.message);
     },
   });
@@ -70,14 +146,7 @@ export default function EditAttendeeDetails({ bookingUid, attendee, isOpen, onCl
     }
 
     // Build update payload with only changed fields
-    const updateData: {
-      bookingUid: string;
-      currentEmail: string;
-      name?: string;
-      email?: string;
-      phoneNumber?: string;
-      timeZone?: string;
-    } = {
+    const updateData: TUpdateAttendeeDetailsInputSchema = {
       bookingUid,
       currentEmail: attendee.email,
     };
@@ -109,56 +178,16 @@ export default function EditAttendeeDetails({ bookingUid, attendee, isOpen, onCl
             subtitle={t("update_your_booking_information") || "Update your booking information"}
           />
 
-          <div className="mt-4 space-y-4">
-            <div>
-              <Label htmlFor="name">{t("your_name") || "Your name"}</Label>
-              <Input
-                id="name"
-                name="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1"
-                placeholder={t("your_name") || "Your name"}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="email">{t("email_address") || "Email address"}</Label>
-              <EmailInput
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1"
-                placeholder={t("email_address") || "Email address"}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">{t("phone_number") || "Phone number"}</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="mt-1"
-                placeholder={t("phone_number") || "Phone number"}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="timezone">{t("timezone") || "Timezone"}</Label>
-              <TimezoneSelect
-                id="timezone"
-                value={timeZone}
-                onChange={(event) => {
-                  if (event) setTimeZone(event.value);
-                }}
-                className="mt-1"
-              />
-            </div>
-          </div>
+          <AttendeeFormFields
+            name={name}
+            setName={setName}
+            email={email}
+            setEmail={setEmail}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+            timeZone={timeZone}
+            setTimeZone={setTimeZone}
+          />
 
           {error && (
             <div className="mt-4 flex items-center gap-x-2 text-sm text-red-700">

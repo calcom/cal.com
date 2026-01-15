@@ -6,10 +6,7 @@ import {
 } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-// biome-ignore lint/complexity/noExcessiveLinesPerFunction: Email component needs to handle localized links and logic in one place
-export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person }) {
-  // Only the original attendee can make changes to the event
-  // Guests cannot
+function getManageLinkData(props: { calEvent: CalendarEvent; attendee: Person }) {
   const t = props.attendee.language.translate;
   const cancelLink = getCancelLink(props.calEvent, props.attendee);
   const rescheduleLink = getRescheduleLink({ calEvent: props.calEvent, attendee: props.attendee });
@@ -26,102 +23,132 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   const shouldDisplayRescheduleLink = Boolean(hasRescheduleLink && !isRecurringEvent);
   const isTeamMember = props.calEvent.team?.members.some((member) => props.attendee.email === member.email);
 
-  if (
+  const isVisible =
     (isOriginalAttendee || isOrganizer || isTeamMember) &&
-    (hasCancelLink || (!isRecurringEvent && hasRescheduleLink) || hasBookingLink || hasEditDetailsLink)
-  ) {
-    return (
-      <div
-        style={{
-          fontFamily: "Roboto, Helvetica, sans-serif",
-          fontSize: "16px",
-          fontWeight: 500,
-          lineHeight: "0px",
-          textAlign: "left",
-          color: "#101010",
-        }}>
-        <p
-          style={{
-            fontWeight: 400,
-            lineHeight: "24px",
-            textAlign: "center",
-            width: "100%",
-          }}>
-          {(shouldDisplayRescheduleLink || hasCancelLink || hasEditDetailsLink) && (
-            <>{t("need_to_make_a_change")}</>
-          )}
-          {shouldDisplayRescheduleLink && (
-            <span>
-              <a
-                href={rescheduleLink}
-                style={{
-                  color: "#374151",
-                  marginLeft: "5px",
-                  marginRight: "5px",
-                  textDecoration: "underline",
-                }}>
-                <>{t("reschedule")}</>
-              </a>
-              {(hasCancelLink || hasEditDetailsLink) && <>{t("or_lowercase")}</>}
-            </span>
-          )}
-          {hasCancelLink && (
-            <span>
-              <a
-                href={cancelLink}
-                style={{
-                  color: "#374151",
-                  marginLeft: "5px",
-                  marginRight: hasEditDetailsLink ? "5px" : "0px",
-                  textDecoration: "underline",
-                }}>
-                <>{t("cancel")}</>
-              </a>
-              {hasEditDetailsLink && <>{t("or_lowercase")}</>}
-            </span>
-          )}
+    (hasCancelLink || (!isRecurringEvent && hasRescheduleLink) || hasBookingLink || hasEditDetailsLink);
 
-          {/* Edit Details link - only for original attendees, not organizers */}
-          {hasEditDetailsLink && (
-            <span>
-              <a
-                href={editDetailsLink}
-                style={{
-                  color: "#374151",
-                  marginLeft: "5px",
-                  textDecoration: "underline",
-                }}>
-                <>{t("edit_details") || "Edit Details"}</>
-              </a>
-            </span>
-          )}
+  return {
+    t,
+    cancelLink,
+    rescheduleLink,
+    bookingLink,
+    editDetailsLink,
+    shouldDisplayRescheduleLink,
+    hasCancelLink,
+    hasEditDetailsLink,
+    hasBookingLink,
+    isVisible,
+    platformClientId: props.calEvent.platformClientId,
+  };
+}
 
-          {props.calEvent.platformClientId && hasBookingLink && (
-            <span>
-              {(hasCancelLink || shouldDisplayRescheduleLink || hasEditDetailsLink) && (
-                <span
-                  style={{
-                    marginLeft: "5px",
-                  }}>
-                  {t("or_lowercase")}
-                </span>
-              )}
-              <a
-                href={bookingLink}
-                style={{
-                  color: "#374151",
-                  marginLeft: "5px",
-                  textDecoration: "underline",
-                }}>
-                <>{t("check_here")}</>
-              </a>
-            </span>
-          )}
-        </p>
-      </div>
-    );
+export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person }) {
+  const {
+    t,
+    cancelLink,
+    rescheduleLink,
+    bookingLink,
+    editDetailsLink,
+    shouldDisplayRescheduleLink,
+    hasCancelLink,
+    hasEditDetailsLink,
+    hasBookingLink,
+    isVisible,
+    platformClientId,
+  } = getManageLinkData(props);
+
+  if (!isVisible) {
+    return null;
   }
 
-  // Don't have the rights to the manage link
-  return null;
+  return (
+    <div
+      style={{
+        fontFamily: "Roboto, Helvetica, sans-serif",
+        fontSize: "16px",
+        fontWeight: 500,
+        lineHeight: "0px",
+        textAlign: "left",
+        color: "#101010",
+      }}>
+      <p
+        style={{
+          fontWeight: 400,
+          lineHeight: "24px",
+          textAlign: "center",
+          width: "100%",
+        }}>
+        {(shouldDisplayRescheduleLink || hasCancelLink || hasEditDetailsLink) && (
+          <>{t("need_to_make_a_change")}</>
+        )}
+        {shouldDisplayRescheduleLink && (
+          <span>
+            <a
+              href={rescheduleLink}
+              style={{
+                color: "#374151",
+                marginLeft: "5px",
+                marginRight: "5px",
+                textDecoration: "underline",
+              }}>
+              <>{t("reschedule")}</>
+            </a>
+            {(hasCancelLink || hasEditDetailsLink) && <>{t("or_lowercase")}</>}
+          </span>
+        )}
+        {hasCancelLink && (
+          <span>
+            <a
+              href={cancelLink}
+              style={{
+                color: "#374151",
+                marginLeft: "5px",
+                marginRight: hasEditDetailsLink ? "5px" : "0px",
+                textDecoration: "underline",
+              }}>
+              <>{t("cancel")}</>
+            </a>
+            {hasEditDetailsLink && <>{t("or_lowercase")}</>}
+          </span>
+        )}
+
+        {/* Edit Details link - only for original attendees, not organizers */}
+        {hasEditDetailsLink && (
+          <span>
+            <a
+              href={editDetailsLink}
+              style={{
+                color: "#374151",
+                marginLeft: "5px",
+                textDecoration: "underline",
+              }}>
+              <>{t("edit_details") || "Edit Details"}</>
+            </a>
+          </span>
+        )}
+
+        {platformClientId && hasBookingLink && (
+          <span>
+            {(hasCancelLink || shouldDisplayRescheduleLink || hasEditDetailsLink) && (
+              <span
+                style={{
+                  marginLeft: "5px",
+                }}>
+                {t("or_lowercase")}
+              </span>
+            )}
+            <a
+              href={bookingLink}
+              style={{
+                color: "#374151",
+                marginLeft: "5px",
+                textDecoration: "underline",
+              }}>
+              <>{t("check_here")}</>
+            </a>
+          </span>
+        )}
+      </p>
+    </div>
+  );
 }

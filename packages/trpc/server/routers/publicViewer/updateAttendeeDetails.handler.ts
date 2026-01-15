@@ -18,21 +18,7 @@ type UpdateAttendeeDetailsResult = {
   };
 };
 
-// biome-ignore lint/complexity/noExcessiveLinesPerFunction: Handler requires sequential validation steps
-export const updateAttendeeDetailsHandler = async ({
-  input,
-}: UpdateAttendeeDetailsOptions): Promise<UpdateAttendeeDetailsResult> => {
-  const { bookingUid, currentEmail, name, email, phoneNumber, timeZone } = input;
-
-  // Check if at least one field is being updated
-  if (!name && !email && !phoneNumber && !timeZone) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "At least one field must be provided to update",
-    });
-  }
-
-  // Find the booking and attendee
+async function findAndValidateBooking(bookingUid: string, currentEmail: string) {
   const booking = await prisma.booking.findUnique({
     where: {
       uid: bookingUid,
@@ -77,6 +63,25 @@ export const updateAttendeeDetailsHandler = async ({
       message: "Attendee not found for this booking",
     });
   }
+
+  return { booking, attendee };
+}
+
+export const updateAttendeeDetailsHandler = async ({
+  input,
+}: UpdateAttendeeDetailsOptions): Promise<UpdateAttendeeDetailsResult> => {
+  const { bookingUid, currentEmail, name, email, phoneNumber, timeZone } = input;
+
+  // Check if at least one field is being updated
+  if (!name && !email && !phoneNumber && !timeZone) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "At least one field must be provided to update",
+    });
+  }
+
+  // Find the booking and attendee
+  const { attendee } = await findAndValidateBooking(bookingUid, currentEmail);
 
   // Build the update data object with only provided fields
   const updateData: {
