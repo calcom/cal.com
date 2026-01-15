@@ -29,7 +29,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
   const canManageOrganization = await permissionCheckService.checkPermission({
     userId: session.user.id,
     teamId: session.user.profile.organizationId,
-    permission: "team.update",
+    permission: "organization.update",
     fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
   });
 
