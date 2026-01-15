@@ -45,6 +45,15 @@ export class MonthlyProrationService {
     const { monthKey, teamIds } = params;
 
     const teamIdsList = teamIds || (await this.teamRepository.getAnnualTeamsWithSeatChanges(monthKey));
+    const teamIdsPreview = teamIds && teamIds.length <= 25 ? teamIds : undefined;
+    const teamIdsTruncated = teamIds ? teamIds.length > 25 : false;
+
+    this.logger.info("Monthly proration batch started", {
+      monthKey,
+      teamCount: teamIdsList.length,
+      teamIds: teamIdsPreview,
+      teamIdsTruncated,
+    });
 
     const teamsToProcess = teamIdsList.map((id: number) => ({ id }));
 
@@ -57,18 +66,34 @@ export class MonthlyProrationService {
       if (result) results.push(result);
     }
 
+    this.logger.info("Monthly proration batch finished", {
+      monthKey,
+      teamCount: teamIdsList.length,
+      processedCount: results.length,
+      skippedCount: teamIdsList.length - results.length,
+    });
+
     return results;
   }
 
   async createProrationForTeam(params: CreateProrationParams) {
     const { teamId, monthKey } = params;
 
+    this.logger.info(`[${teamId}] starting monthly proration`, { monthKey });
+
     const seatTracker = new SeatChangeTrackingService();
 
     const changes = await seatTracker.getMonthlyChanges({ teamId, monthKey });
 
+    this.logger.info(`[${teamId}] seat changes`, {
+      additions: changes.additions,
+      removals: changes.removals,
+      netChange: changes.netChange,
+    });
+
     // If there are no changes at all (no additions or removals), skip processing
     if (changes.additions === 0 && changes.removals === 0) {
+      this.logger.info(`[${teamId}] no seat changes, skipping proration`);
       return null;
     }
 
@@ -99,6 +124,12 @@ export class MonthlyProrationService {
 
     const paidSeats = billing.paidSeats ?? (await this.getSubscriptionQuantity(billing.subscriptionId));
 
+    this.logger.info(`[${teamId}] billing summary`, {
+      billingPeriod: billing.billingPeriod,
+      pricePerSeat: billing.pricePerSeat,
+      paidSeats,
+    });
+
     const [year, month] = monthKey.split("-").map(Number);
     const periodEnd = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
@@ -108,6 +139,13 @@ export class MonthlyProrationService {
       subscriptionEnd: billing.subscriptionEnd,
       pricePerSeat: billing.pricePerSeat,
       monthEnd: periodEnd,
+    });
+
+    this.logger.info(`[${teamId}] proration calculation`, {
+      netSeatIncrease: changes.netChange,
+      pricePerSeat: billing.pricePerSeat,
+      remainingDays: calculation.remainingDays,
+      proratedAmount: calculation.proratedAmount,
     });
 
     const proration = await this.prorationRepository.createProration({
@@ -132,6 +170,14 @@ export class MonthlyProrationService {
       organizationBillingId: teamWithBilling.isOrganization ? billing.id : null,
     });
 
+    this.logger.info(`[${teamId}] proration record created`, {
+      prorationId: proration.id,
+      seatsAdded: proration.seatsAdded,
+      seatsRemoved: proration.seatsRemoved,
+      netSeatIncrease: proration.netSeatIncrease,
+      status: proration.status,
+    });
+
     await seatTracker.markAsProcessed({
       teamId,
       monthKey,
@@ -139,9 +185,23 @@ export class MonthlyProrationService {
     });
 
     if (calculation.proratedAmount > 0) {
+      this.logger.info(`[${teamId}] creating invoice item`, {
+        prorationId: proration.id,
+        proratedAmount: proration.proratedAmount,
+      });
       const updatedProration = await this.createStripeInvoiceItem(proration);
+      this.logger.info(`[${teamId}] invoice processed`, {
+        prorationId: updatedProration.id,
+        status: updatedProration.status,
+        invoiceId: updatedProration.invoiceId,
+      });
       return updatedProration;
     }
+
+    this.logger.info(`[${teamId}] no charge required, updating subscription quantity`, {
+      prorationId: proration.id,
+      seatsAtEnd: proration.seatsAtEnd,
+    });
 
     await updateSubscriptionQuantity({
       billingService: this.billingService,
@@ -159,9 +219,17 @@ export class MonthlyProrationService {
       proration.seatsAtEnd
     );
 
-    return await this.prorationRepository.updateProrationStatus(proration.id, "CHARGED", {
+    const updatedProration = await this.prorationRepository.updateProrationStatus(proration.id, "CHARGED", {
       chargedAt: new Date(),
     });
+
+    this.logger.info(`[${teamId}] subscription updated without charge`, {
+      prorationId: updatedProration.id,
+      status: updatedProration.status,
+      seatsAtEnd: updatedProration.seatsAtEnd,
+    });
+
+    return updatedProration;
   }
 
   private calculateProration(params: {

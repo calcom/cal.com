@@ -14,14 +14,18 @@ import { NextResponse } from "next/server";
 const log = logger.getSubLogger({ prefix: ["monthly-proration-cron"] });
 
 async function getHandler(request: NextRequest) {
-  const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
+  const apiKey =
+    request.headers.get("authorization") ||
+    request.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   const featuresRepository = new FeaturesRepository(prisma);
-  const isEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+  const isEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "monthly-proration"
+  );
 
   if (!isEnabled) {
     return NextResponse.json({ message: "Monthly proration disabled" });
@@ -30,11 +34,16 @@ async function getHandler(request: NextRequest) {
   const requestedMonthKey = request.nextUrl.searchParams.get("monthKey");
   const monthKeyPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
   if (requestedMonthKey && !monthKeyPattern.test(requestedMonthKey)) {
-    return NextResponse.json({ message: "Invalid monthKey format. Use YYYY-MM." }, { status: 400 });
+    return NextResponse.json(
+      { message: "Invalid monthKey format. Use YYYY-MM." },
+      { status: 400 }
+    );
   }
 
   const now = new Date();
-  const startOfCurrentMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const startOfCurrentMonthUtc = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  );
   const previousMonthUtc = subMonths(startOfCurrentMonthUtc, 1);
   const defaultMonthKey = formatMonthKey(previousMonthUtc);
   const monthKey = requestedMonthKey || defaultMonthKey;
@@ -42,7 +51,13 @@ async function getHandler(request: NextRequest) {
   log.info(`Scheduling monthly proration tasks for ${monthKey}`);
 
   const teamRepository = new MonthlyProrationTeamRepository(prisma);
-  const teamIdsList = await teamRepository.getAnnualTeamsWithSeatChanges(monthKey);
+  const teamIdsList = await teamRepository.getAnnualTeamsWithSeatChanges(
+    monthKey
+  );
+
+  console.log({
+    teamIdsList,
+  });
 
   if (teamIdsList.length === 0) {
     return NextResponse.json({
@@ -56,14 +71,24 @@ async function getHandler(request: NextRequest) {
   const prorationTasker = getMonthlyProrationTasker();
 
   const batches: number[][] = [];
-  for (let index = 0; index < teamIdsList.length; index += MONTHLY_PRORATION_BATCH_SIZE) {
-    batches.push(teamIdsList.slice(index, index + MONTHLY_PRORATION_BATCH_SIZE));
+  for (
+    let index = 0;
+    index < teamIdsList.length;
+    index += MONTHLY_PRORATION_BATCH_SIZE
+  ) {
+    batches.push(
+      teamIdsList.slice(index, index + MONTHLY_PRORATION_BATCH_SIZE)
+    );
   }
 
-  log.info(`Scheduling ${teamIdsList.length} teams in ${batches.length} batches for ${monthKey}`);
+  log.info(
+    `Scheduling ${teamIdsList.length} teams in ${batches.length} batches for ${monthKey}`
+  );
 
   const isAsyncTaskerEnabled =
-    ENABLE_ASYNC_TASKER && process.env.TRIGGER_SECRET_KEY && process.env.TRIGGER_API_URL;
+    ENABLE_ASYNC_TASKER &&
+    process.env.TRIGGER_SECRET_KEY &&
+    process.env.TRIGGER_API_URL;
 
   if (isAsyncTaskerEnabled) {
     await Promise.all(
