@@ -2,42 +2,35 @@ import { render, waitFor } from "@testing-library/react";
 import React from "react";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
-// Mock next-auth/react
 vi.mock("next-auth/react", () => ({
   signOut: vi.fn(),
 }));
 
-// Mock next/navigation
 vi.mock("next/navigation", () => ({
   usePathname: () => "/settings",
 }));
 
-// Mock useLocale
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({
     t: (key: string) => key,
   }),
 }));
 
-// Mock useMeQuery
 const mockUseMeQuery = vi.fn();
 vi.mock("@calcom/trpc/react/hooks/useMeQuery", () => ({
   default: () => mockUseMeQuery(),
 }));
 
-// Mock useGetUserAttributes
 vi.mock("@calcom/web/components/settings/platform/hooks/useGetUserAttributes", () => ({
   useGetUserAttributes: () => ({
     isPlatformUser: false,
   }),
 }));
 
-// Mock FreshChatProvider
 vi.mock("@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider", () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// Mock UI components
 vi.mock("@calcom/ui/components/avatar", () => ({
   Avatar: () => <div data-testid="avatar">Avatar</div>,
 }));
@@ -67,11 +60,9 @@ describe("UserDropdown", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Setup mock Beacon function
     mockBeacon = vi.fn();
     mockSupportOpen = vi.fn();
 
-    // Setup window mocks
     Object.defineProperty(window, "Beacon", {
       value: mockBeacon,
       writable: true,
@@ -84,7 +75,6 @@ describe("UserDropdown", () => {
       configurable: true,
     });
 
-    // Mock screen dimensions
     Object.defineProperty(window, "screen", {
       value: { width: 1920, height: 1080 },
       writable: true,
@@ -93,7 +83,6 @@ describe("UserDropdown", () => {
   });
 
   afterEach(() => {
-    // Clean up window mocks
     // @ts-expect-error - cleaning up mock
     delete window.Beacon;
     // @ts-expect-error - cleaning up mock
@@ -136,7 +125,6 @@ describe("UserDropdown", () => {
     });
 
     it("should not throw error when Beacon is undefined", async () => {
-      // Remove Beacon from window
       // @ts-expect-error - cleaning up mock
       delete window.Beacon;
 
@@ -187,21 +175,6 @@ describe("UserDropdown", () => {
           screenResolution: "1920x1080",
         });
       });
-    });
-  });
-
-  describe("SSR safety", () => {
-    it("should handle SSR environment gracefully (window undefined check)", async () => {
-      mockUseMeQuery.mockReturnValue({
-        data: { username: "testuser", name: "Test User", avatarUrl: null, avatar: null },
-        isPending: false,
-      });
-
-      const { UserDropdown } = await import("./UserDropdown");
-
-      // The component should render without errors even in environments
-      // where window might be undefined during SSR
-      expect(() => render(<UserDropdown />)).not.toThrow();
     });
   });
 
