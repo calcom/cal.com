@@ -37,24 +37,18 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
  */
 export const useRouterQuery = () => {
   const searchParams = useCompatSearchParams();
-  let routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? null);
+  let routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? [].values());
 
-  // In embed contexts, useSearchParams might not properly reflect URL params
-  // Fall back to window.location.search if we're in an embed and have no params
-  if (typeof window !== "undefined" && window.location.search) {
-    const isEmbed = window.location.pathname.includes("/embed");
-    const hasNoParams = Object.keys(routerQuery).length === 0;
+  // In embed iframe contexts (e.g., inline embeds), Next.js's useSearchParams() may not
+  // properly reflect URL parameters. This occurs because the iframe's URL is set dynamically
+  // by the embed script, and React's hydration may not pick up the search params correctly.
+  // We fall back to window.location.search to ensure URL parameters are always accessible,
+  // which is essential for features like "Disable input if prefilled" to work correctly.
+  if (typeof window !== "undefined" && window.location.pathname.includes("/embed")) {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const windowQuery = fromEntriesWithDuplicateKeys(urlSearchParams.entries());
 
-    if (isEmbed && hasNoParams) {
-      const urlSearchParams = new URLSearchParams(window.location.search);
-      routerQuery = fromEntriesWithDuplicateKeys(urlSearchParams.entries());
-    } else if (isEmbed) {
-      // Even if we have some params, merge with window.location.search to ensure we have all
-      const urlSearchParams = new URLSearchParams(window.location.search);
-      const windowQuery = fromEntriesWithDuplicateKeys(urlSearchParams.entries());
-      // Merge window query params with priority (they represent the actual URL)
-      routerQuery = { ...routerQuery, ...windowQuery };
-    }
+    routerQuery = Object.keys(routerQuery).length === 0 ? windowQuery : { ...routerQuery, ...windowQuery };
   }
 
   return routerQuery;
