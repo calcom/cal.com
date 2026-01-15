@@ -29,7 +29,7 @@ export class UsersService {
       usernames.map((username) => this.usersRepository.findByUsername(username, orgSlug, orgId))
     );
     
-    return users
+    return users;
   }
 
   getUserMainProfile(user: UserWithProfileMinimal): ProfileMinimal | undefined {
