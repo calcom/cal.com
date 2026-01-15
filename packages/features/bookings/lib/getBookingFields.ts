@@ -1,19 +1,19 @@
-import type { z } from "zod";
-
+import process from "node:process";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
-import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
+import { CAL_AI_AGENT_PHONE_NUMBER_FIELD, SMS_REMINDER_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
-import type { EventTypeCustomInput, EventType } from "@calcom/prisma/client";
+import type { EventType, EventTypeCustomInput } from "@calcom/prisma/client";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
   BookingFieldTypeEnum,
   customInputSchema,
-  eventTypeBookingFields,
   EventTypeMetaDataSchema,
+  eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 
 export type Fields = z.infer<typeof eventTypeBookingFields>;
 
@@ -36,7 +36,7 @@ export const getSmsReminderNumberField = () =>
     defaultLabel: "number_text_notifications",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getSmsReminderNumberSource = ({
   workflowId,
@@ -59,7 +59,7 @@ export const getAIAgentCallPhoneNumberField = () =>
     defaultLabel: "phone_number_for_ai_call",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getAIAgentCallPhoneNumberSource = ({
   workflowId,
@@ -362,7 +362,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       bookingFields[attendeePhoneNumberIndex] = {
         ...bookingFields[attendeePhoneNumberIndex],
         hidden: false,
-        required: isPhoneNumberRequired,
+        required: bookingFields[attendeePhoneNumberIndex].required || isPhoneNumberRequired,
         sources: [...(bookingFields[attendeePhoneNumberIndex].sources || []), ...phoneNumberSources],
       };
     }

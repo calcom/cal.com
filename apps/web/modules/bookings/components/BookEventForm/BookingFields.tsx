@@ -1,20 +1,18 @@
-import { useMemo, useRef } from "react";
-import { useFormContext } from "react-hook-form";
-import { z } from "zod";
-
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
-import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum, getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { useMemo, useRef } from "react";
+import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 type TouchedFields = {
   responses?: Record<string, boolean>;
@@ -72,7 +70,7 @@ export const BookingFields = ({
       const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
 
       if (!targetTouched) {
-        setValue(\`responses.\${name}\`, phone, {
+        setValue(`responses.${name}`, phone, {
           shouldDirty: false,
           shouldValidate: false,
         });
@@ -83,10 +81,10 @@ export const BookingFields = ({
   };
 
   const getPriceFormattedLabel = (label: string, price: number) =>
-    \`\${label} (\${Intl.NumberFormat(i18n.language, {
+    `${label} (${Intl.NumberFormat(i18n.language, {
       style: "currency",
       currency: paymentCurrency,
-    }).format(price)})\`;
+    }).format(price)})`;
 
   const getFieldWithDirectPricing = (field: Fields[number]) => {
     if (!fieldTypesConfigMap[field.type]?.supportsPricing || !field.label || !field.price) {
@@ -143,9 +141,10 @@ export const BookingFields = ({
         const bookingReadOnly = field.editable === "user-readonly";
 
         let readOnly = bookingReadOnly || rescheduleReadOnly;
-        let hidden = !!field.hidden;
 
+        let hidden = !!field.hidden;
         const fieldViews = field.views;
+
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
           return null;
         }
@@ -172,7 +171,7 @@ export const BookingFields = ({
           hidden = isDynamicGroupBooking ? true : !!field.hidden;
         }
 
-        // We don't show \`notes\` field during reschedule but since it's a query param we better valid if rescheduleUid brought any bookingData
+        // We don't show `notes` field during reschedule but since it's a query param we better valid if rescheduleUid brought any bookingData
         if (field.name === SystemField.Enum.notes && bookingData !== null) {
           return null;
         }
@@ -188,7 +187,7 @@ export const BookingFields = ({
           }
           const optionsInputs = field.optionsInputs;
 
-          // TODO: Instead of \`getLocationOptionsForSelect\` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the \`name\` of the field.
+          // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
           const options = getLocationOptionsForSelect(locations, t);
           options.forEach((option) => {
             const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
