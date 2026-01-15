@@ -10,6 +10,7 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {
     booking: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
     attendee: {
       update: vi.fn(),
@@ -21,6 +22,7 @@ describe("updateAttendeeDetails.handler", () => {
   const mockBookingWithAttendee = {
     id: 1,
     status: "ACCEPTED",
+    title: "15min Meeting between Pro Example and Test Attendee",
     attendees: [
       {
         id: 100,
@@ -83,6 +85,7 @@ describe("updateAttendeeDetails.handler", () => {
       vi.mocked(prisma.booking.findUnique).mockResolvedValue({
         id: 1,
         status: "CANCELLED",
+        title: "Meeting",
         attendees: [],
       });
 
@@ -104,6 +107,7 @@ describe("updateAttendeeDetails.handler", () => {
       vi.mocked(prisma.booking.findUnique).mockResolvedValue({
         id: 1,
         status: "REJECTED",
+        title: "Meeting",
         attendees: [],
       });
 
@@ -127,6 +131,7 @@ describe("updateAttendeeDetails.handler", () => {
       vi.mocked(prisma.booking.findUnique).mockResolvedValue({
         id: 1,
         status: "ACCEPTED",
+        title: "Meeting",
         attendees: [], // Empty array - no matching attendee
       });
 
@@ -146,7 +151,7 @@ describe("updateAttendeeDetails.handler", () => {
   });
 
   describe("Successful updates", () => {
-    it("should successfully update attendee name only", async () => {
+    it("should successfully update attendee name only and update booking title", async () => {
       vi.mocked(prisma.booking.findUnique).mockResolvedValue(mockBookingWithAttendee);
       vi.mocked(prisma.attendee.update).mockResolvedValue({
         ...mockBookingWithAttendee.attendees[0],
@@ -167,6 +172,34 @@ describe("updateAttendeeDetails.handler", () => {
         where: { id: 100 },
         data: { name: "Updated Name" },
       });
+
+      // Verify booking title update
+      expect(prisma.booking.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { title: "15min Meeting between Pro Example and Updated Name" },
+      });
+    });
+
+    it("should NOT update booking title if it does not contain old name", async () => {
+      const mockBookingWithFixedTitle = {
+        ...mockBookingWithAttendee,
+        title: "Custom Event Title",
+      };
+      vi.mocked(prisma.booking.findUnique).mockResolvedValue(mockBookingWithFixedTitle);
+      vi.mocked(prisma.attendee.update).mockResolvedValue({
+        ...mockBookingWithFixedTitle.attendees[0],
+        name: "Updated Name",
+      });
+
+      await updateAttendeeDetailsHandler({
+        input: {
+          bookingUid: "test-booking-uid",
+          currentEmail: "attendee@example.com",
+          name: "Updated Name",
+        },
+      });
+
+      expect(prisma.booking.update).not.toHaveBeenCalled();
     });
 
     it("should successfully update attendee email only", async () => {
@@ -190,6 +223,8 @@ describe("updateAttendeeDetails.handler", () => {
         where: { id: 100 },
         data: { email: "newemail@example.com" },
       });
+      // Should not update booking title
+      expect(prisma.booking.update).not.toHaveBeenCalled();
     });
 
     it("should successfully update attendee phone number only", async () => {
@@ -301,6 +336,8 @@ describe("updateAttendeeDetails.handler", () => {
       });
 
       expect(result.success).toBe(true);
+      // No change in name, so no booking title update expected (or maybe we don't care, but logic implies if name changes)
+      expect(prisma.booking.update).not.toHaveBeenCalled();
     });
   });
 });

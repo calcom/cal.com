@@ -26,6 +26,7 @@ async function findAndValidateBooking(bookingUid: string, currentEmail: string) 
     select: {
       id: true,
       status: true,
+      title: true,
       attendees: {
         where: {
           email: currentEmail,
@@ -81,7 +82,7 @@ export const updateAttendeeDetailsHandler = async ({
   }
 
   // Find the booking and attendee
-  const { attendee } = await findAndValidateBooking(bookingUid, currentEmail);
+  const { booking, attendee } = await findAndValidateBooking(bookingUid, currentEmail);
 
   // Build the update data object with only provided fields
   const updateData: {
@@ -103,6 +104,18 @@ export const updateAttendeeDetailsHandler = async ({
     },
     data: updateData,
   });
+
+  // Update booking title if name changed and title contains old name
+  if (name && name !== attendee.name && booking.title.includes(attendee.name)) {
+    await prisma.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: {
+        title: booking.title.replace(attendee.name, name),
+      },
+    });
+  }
 
   return {
     success: true,
