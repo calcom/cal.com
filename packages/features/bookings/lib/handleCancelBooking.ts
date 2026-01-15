@@ -34,7 +34,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, CancellationReasonRequired } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -120,12 +120,15 @@ async function handler(input: CancelBookingInput) {
 
   if (!platformClientId && !cancellationReason?.trim() && !skipCancellationReasonValidation) {
     const teamCancellationSetting =
-      bookingToDelete.eventType?.team?.cancellationReasonRequired ?? "MANDATORY_FOR_HOST_ONLY";
+      bookingToDelete.eventType?.team?.cancellationReasonRequired ??
+      CancellationReasonRequired.MANDATORY_FOR_HOST_ONLY;
 
     const shouldRequireReason =
-      teamCancellationSetting === "MANDATORY_FOR_BOTH" ||
-      (teamCancellationSetting === "MANDATORY_FOR_HOST_ONLY" && isCancellationUserHost) ||
-      (teamCancellationSetting === "MANDATORY_FOR_ATTENDEE_ONLY" && !isCancellationUserHost);
+      teamCancellationSetting === CancellationReasonRequired.MANDATORY_FOR_BOTH ||
+      (teamCancellationSetting === CancellationReasonRequired.MANDATORY_FOR_HOST_ONLY &&
+        isCancellationUserHost) ||
+      (teamCancellationSetting === CancellationReasonRequired.MANDATORY_FOR_ATTENDEE_ONLY &&
+        !isCancellationUserHost);
 
     if (shouldRequireReason) {
       const messageKey = isCancellationUserHost ? "host" : "attendee";

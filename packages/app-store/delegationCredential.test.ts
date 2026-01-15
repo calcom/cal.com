@@ -105,6 +105,7 @@ const mockOrganization = {
   hideTeamProfileLink: false,
   rrResetInterval: null,
   rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+  cancellationReasonRequired: "MANDATORY_FOR_HOST_ONLY" as const,
 };
 
 // Credential Builders

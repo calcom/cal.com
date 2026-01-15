@@ -8,6 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
+import type { CancellationReasonRequired } from "@calcom/prisma/enums";
+import { CancellationReasonRequired as CancellationReasonRequiredEnum } from "@calcom/prisma/enums";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
@@ -108,11 +110,7 @@ type Props = {
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
   eventTypeMetadata?: Record<string, unknown> | null;
-  teamCancellationReasonRequired?:
-    | "MANDATORY_FOR_BOTH"
-    | "MANDATORY_FOR_HOST_ONLY"
-    | "MANDATORY_FOR_ATTENDEE_ONLY"
-    | "OPTIONAL_FOR_BOTH";
+  teamCancellationReasonRequired?: CancellationReasonRequired;
 };
 
 export default function CancelBooking(props: Props) {
@@ -166,12 +164,15 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
-  const teamCancellationSetting = teamCancellationReasonRequired ?? "MANDATORY_FOR_HOST_ONLY";
+  const teamCancellationSetting =
+    teamCancellationReasonRequired ?? CancellationReasonRequiredEnum.MANDATORY_FOR_HOST_ONLY;
 
   const isCancellationReasonRequired =
-    teamCancellationSetting === "MANDATORY_FOR_BOTH" ||
-    (teamCancellationSetting === "MANDATORY_FOR_HOST_ONLY" && isCancellationUserHost) ||
-    (teamCancellationSetting === "MANDATORY_FOR_ATTENDEE_ONLY" && !isCancellationUserHost);
+    teamCancellationSetting === CancellationReasonRequiredEnum.MANDATORY_FOR_BOTH ||
+    (teamCancellationSetting === CancellationReasonRequiredEnum.MANDATORY_FOR_HOST_ONLY &&
+      isCancellationUserHost) ||
+    (teamCancellationSetting === CancellationReasonRequiredEnum.MANDATORY_FOR_ATTENDEE_ONLY &&
+      !isCancellationUserHost);
 
   const hostMissingCancellationReason =
     isCancellationReasonRequired &&
@@ -184,7 +185,7 @@ export default function CancelBooking(props: Props) {
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   return (

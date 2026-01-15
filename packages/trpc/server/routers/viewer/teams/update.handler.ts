@@ -1,5 +1,4 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";

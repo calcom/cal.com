@@ -4,6 +4,7 @@ import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSche
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
+import { CancellationReasonRequired } from "@calcom/prisma/enums";
 
 export type TUpdateInputSchema = {
   id: number;
@@ -20,11 +21,7 @@ export type TUpdateInputSchema = {
   theme?: string | null;
   bookingLimits?: IntervalLimit | null;
   includeManagedEventsInLimits?: boolean;
-  cancellationReasonRequired?:
-    | "MANDATORY_FOR_BOTH"
-    | "MANDATORY_FOR_HOST_ONLY"
-    | "MANDATORY_FOR_ATTENDEE_ONLY"
-    | "OPTIONAL_FOR_BOTH";
+  cancellationReasonRequired?: CancellationReasonRequired;
   rrResetInterval?: "DAY" | "MONTH";
   rrTimestampBasis?: "CREATED_AT" | "START_TIME";
 };
@@ -51,14 +48,7 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   theme: z.string().optional().nullable(),
   bookingLimits: intervalLimitsType.optional(),
   includeManagedEventsInLimits: z.boolean().optional(),
-  cancellationReasonRequired: z
-    .enum([
-      "MANDATORY_FOR_BOTH",
-      "MANDATORY_FOR_HOST_ONLY",
-      "MANDATORY_FOR_ATTENDEE_ONLY",
-      "OPTIONAL_FOR_BOTH",
-    ])
-    .optional(),
+  cancellationReasonRequired: z.nativeEnum(CancellationReasonRequired).optional(),
   rrResetInterval: z.enum(["DAY", "MONTH"]).optional(),
   rrTimestampBasis: z.enum(["CREATED_AT", "START_TIME"]).optional(),
 });

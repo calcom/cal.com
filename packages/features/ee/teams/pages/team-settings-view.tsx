@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
+import { CancellationReasonRequired } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -192,14 +193,11 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
   const utils = trpc.useUtils();
 
   const form = useForm<{
-    cancellationReasonRequired:
-      | "MANDATORY_FOR_BOTH"
-      | "MANDATORY_FOR_HOST_ONLY"
-      | "MANDATORY_FOR_ATTENDEE_ONLY"
-      | "OPTIONAL_FOR_BOTH";
+    cancellationReasonRequired: CancellationReasonRequired;
   }>({
     defaultValues: {
-      cancellationReasonRequired: team?.cancellationReasonRequired || "MANDATORY_FOR_HOST_ONLY",
+      cancellationReasonRequired:
+        team?.cancellationReasonRequired || CancellationReasonRequired.MANDATORY_FOR_HOST_ONLY,
     },
   });
 
@@ -213,7 +211,8 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
       await utils.viewer.teams.get.invalidate();
       if (res) {
         reset({
-          cancellationReasonRequired: res.cancellationReasonRequired || "MANDATORY_FOR_HOST_ONLY",
+          cancellationReasonRequired:
+            res.cancellationReasonRequired || CancellationReasonRequired.MANDATORY_FOR_HOST_ONLY,
         });
       }
       showToast(t("settings_updated_successfully"), "success");
@@ -223,10 +222,10 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   const cancellationReasonOptions = [
-    { value: "MANDATORY_FOR_BOTH", label: t("mandatory_for_both") },
-    { value: "MANDATORY_FOR_HOST_ONLY", label: t("mandatory_for_host_only") },
-    { value: "MANDATORY_FOR_ATTENDEE_ONLY", label: t("mandatory_for_attendee_only") },
-    { value: "OPTIONAL_FOR_BOTH", label: t("optional_for_both") },
+    { value: CancellationReasonRequired.MANDATORY_FOR_BOTH, label: t("mandatory_for_both") },
+    { value: CancellationReasonRequired.MANDATORY_FOR_HOST_ONLY, label: t("mandatory_for_host_only") },
+    { value: CancellationReasonRequired.MANDATORY_FOR_ATTENDEE_ONLY, label: t("mandatory_for_attendee_only") },
+    { value: CancellationReasonRequired.OPTIONAL_FOR_BOTH, label: t("optional_for_both") },
   ];
 
   return (
@@ -257,11 +256,7 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
                       if (selectedOption) {
                         onChange(selectedOption.value);
                         mutation.mutate({
-                          cancellationReasonRequired: selectedOption.value as
-                            | "MANDATORY_FOR_BOTH"
-                            | "MANDATORY_FOR_HOST_ONLY"
-                            | "MANDATORY_FOR_ATTENDEE_ONLY"
-                            | "OPTIONAL_FOR_BOTH",
+                          cancellationReasonRequired: selectedOption.value,
                           id: team.id,
                         });
                       }
