@@ -3189,4 +3189,168 @@ describe("Event types Endpoints", () => {
       await app.close();
     });
   });
+
+  describe("Same username - org vs non-org user", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+
+    const sharedUsername = `same-username-test-${randomString()}`;
+    const nonOrgUserEmail = `non-org-${sharedUsername}@api.com`;
+    const orgUserEmail = `org-${sharedUsername}@api.com`;
+
+    let nonOrgUser: User;
+    let orgUser: User;
+    let nonOrgUserEventType: EventType;
+    let orgUserEventType: EventType;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        nonOrgUserEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({
+        name: `same-username-org-${randomString()}`,
+        slug: `same-username-org-slug-${randomString()}`,
+      });
+      oAuthClient = await oauthClientRepositoryFixture.create(
+        organization.id,
+        {
+          logo: "logo-url",
+          name: "name",
+          redirectUris: ["redirect-uri"],
+          permissions: 32,
+        },
+        "secret"
+      );
+
+      nonOrgUser = await userRepositoryFixture.create({
+        email: nonOrgUserEmail,
+        name: `Non-Org User ${sharedUsername}`,
+        username: sharedUsername,
+      });
+
+      orgUser = await userRepositoryFixture.create({
+        email: orgUserEmail,
+        name: `Org User ${sharedUsername}`,
+        username: sharedUsername,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${orgUser.id}`,
+        username: sharedUsername,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: orgUser.id,
+          },
+        },
+      });
+
+      nonOrgUserEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Non-Org User Event Type",
+          slug: `non-org-event-${randomString()}`,
+          length: 30,
+          hidden: false,
+        },
+        nonOrgUser.id
+      );
+
+      orgUserEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Org User Event Type",
+          slug: `org-event-${randomString()}`,
+          length: 60,
+          hidden: false,
+        },
+        orgUser.id
+      );
+
+      await app.init();
+    });
+
+    it("should return only non-org user's event types when querying by shared username", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${sharedUsername}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].id).toEqual(nonOrgUserEventType.id);
+      expect(responseBody.data[0].title).toEqual("Non-Org User Event Type");
+    });
+
+    it("should return only org user's event types when querying by shared username with orgSlug", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${sharedUsername}&orgSlug=${organization.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].id).toEqual(orgUserEventType.id);
+      expect(responseBody.data[0].title).toEqual("Org User Event Type");
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      try {
+        await eventTypesRepositoryFixture.delete(nonOrgUserEventType.id);
+      } catch (_e) {}
+      try {
+        await eventTypesRepositoryFixture.delete(orgUserEventType.id);
+      } catch (_e) {}
+      try {
+        await userRepositoryFixture.delete(nonOrgUser.id);
+      } catch (_e) {}
+      try {
+        await userRepositoryFixture.delete(orgUser.id);
+      } catch (_e) {}
+      await teamRepositoryFixture.delete(organization.id);
+      await app.close();
+    });
+  });
 });
