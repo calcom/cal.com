@@ -28,15 +28,8 @@ export class UsersService {
     const users = await Promise.all(
       usernames.map((username) => this.usersRepository.findByUsername(username, orgSlug, orgId))
     );
-    const usersFiltered: UserWithProfile[] = [];
-
-    for (const user of users) {
-      if (user) {
-        usersFiltered.push(user);
-      }
-    }
-
-    return usersFiltered;
+    
+    return users
   }
 
   getUserMainProfile(user: UserWithProfileMinimal): ProfileMinimal | undefined {
