@@ -4283,7 +4283,8 @@
   "select_location_type": "Select location type",
   "mass_apply_fallback_title": "Fallback behavior",
   "mass_apply_fallback_explanation": "Hosts without this app installed will use Cal Video. If they install the app later, their preferred location will be used automatically.",
-  "location_applied_to_hosts": "Location applied to {{count}} hosts",
+  "location_applied_to_hosts_one": "Location applied to {{count}} host",
+  "location_applied_to_hosts_other": "Location applied to {{count}} hosts",
   "booking_audit_action": {
     "created": "Booked with {{host}}",
     "created_with_seat": "Seat Booked with {{host}}",
