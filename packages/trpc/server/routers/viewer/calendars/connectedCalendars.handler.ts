@@ -11,12 +11,21 @@ type ConnectedCalendarsOptions = {
   input: TConnectedCalendarsInputSchema;
 };
 
+type ConnectedCalendarsHandlerResult = {
+  destinationCalendar: ReturnType<
+    typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb
+  >["destinationCalendar"];
+  connectedCalendars: ReturnType<
+    typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb
+  >["connectedCalendars"] & {
+    cacheUpdatedAt: null;
+  };
+};
+
 export const connectedCalendarsHandler = async ({
   ctx,
   input,
-}: ConnectedCalendarsOptions): Awaited<
-  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
-> => {
+}: ConnectedCalendarsOptions): Promise<ConnectedCalendarsHandlerResult> => {
   const { user } = ctx;
   const onboarding = input?.onboarding || false;
 
