@@ -10,11 +10,17 @@ import { Platform, Text, TouchableOpacity, View } from "react-native";
 import type { Schedule } from "@/services/calcom";
 import { AvailabilityTabIOSPicker } from "./AvailabilityTabIOSPicker";
 
+interface TimeSlot {
+  startTime?: string;
+  endTime?: string;
+}
+
 interface DaySchedule {
   day: string;
   available: boolean;
   startTime?: string;
   endTime?: string;
+  timeSlots?: TimeSlot[];
 }
 
 interface AvailabilityTabProps {
@@ -181,6 +187,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                 const dayInfo = daySchedules.find((d) => d.day === day);
                 const isEnabled = dayInfo?.available ?? false;
                 const isLast = index === DAYS.length - 1;
+                const timeSlots = dayInfo?.timeSlots || [];
 
                 return (
                   <View
@@ -203,16 +210,25 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                       {day}
                     </Text>
 
-                    {/* Time range or Unavailable */}
-                    <Text
-                      className={`flex-1 text-right text-[15px] ${
-                        isEnabled ? "text-black" : "text-[#8E8E93]"
-                      }`}
-                    >
-                      {isEnabled && dayInfo?.startTime && dayInfo?.endTime
-                        ? `${formatTime12Hour(dayInfo.startTime)} - ${formatTime12Hour(dayInfo.endTime)}`
-                        : "Unavailable"}
-                    </Text>
+                    {/* Time ranges or Unavailable - support multiple time slots */}
+                    {isEnabled && timeSlots.length > 0 ? (
+                      <View className="flex-1 items-end">
+                        {timeSlots.map((slot, slotIndex) => (
+                          <Text
+                            key={`${slotIndex}-${slot.startTime}`}
+                            className={`text-[15px] text-black ${slotIndex > 0 ? "mt-1" : ""}`}
+                          >
+                            {slot.startTime && slot.endTime
+                              ? `${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}`
+                              : ""}
+                          </Text>
+                        ))}
+                      </View>
+                    ) : (
+                      <Text className="flex-1 text-right text-[15px] text-[#8E8E93]">
+                        Unavailable
+                      </Text>
+                    )}
                   </View>
                 );
               })}
