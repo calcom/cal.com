@@ -1,33 +1,66 @@
-name: Cubic AI to Devin Review
+name: Cubic feedback addressed by Devin
 
 on:
-  pull_request_review:
-    types: [submitted]
+  workflow_run:
+    workflows: ["Cubic AI Review Trigger"]
+    types:
+      - completed
 
 permissions:
   contents: read
   pull-requests: write
+  actions: read
 
 jobs:
   trigger-devin:
     name: Trigger Devin to Address Cubic AI Review
-    # Only run if the review is from cubic-dev-ai bot and contains the AI prompt
-    if: github.event.review.user.login == 'cubic-dev-ai[bot]'
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Download review context artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            
+            const matchArtifact = artifacts.data.artifacts.find(
+              artifact => artifact.name === 'cubic-review-context'
+            );
+            
+            if (!matchArtifact) {
+              core.setFailed('No cubic-review-context artifact found');
+              return;
+            }
+            
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
+            });
+            
+            const fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/context.zip`, Buffer.from(download.data));
+
+      - name: Unzip artifact
+        run: unzip context.zip
+
       - name: Extract AI prompt from Cubic review
         id: extract-prompt
         uses: actions/github-script@v7
         with:
           script: |
-            const reviewBody = context.payload.review.body || '';
+            const fs = require('fs');
+            const contextData = JSON.parse(fs.readFileSync('review-context.json', 'utf8'));
+            const reviewBody = contextData.review_body || '';
+            const prNumber = contextData.pr_number;
             
-            // Look for the AI prompt section in Cubic's review
-            // Format: <details><summary>Prompt for AI agents (all issues)</summary>
-            //         ```text
-            //         ... prompt content ...
-            //         ```
-            //         </details>
+            core.setOutput('pr-number', prNumber);
+            
             const promptMatch = reviewBody.match(/<details>\s*<summary>Prompt for AI agents[^<]*<\/summary>\s*```(?:text)?\s*([\s\S]*?)```\s*<\/details>/i);
             
             if (!promptMatch || !promptMatch[1]) {
@@ -40,8 +73,6 @@ jobs:
             const prompt = promptMatch[1].trim();
             console.log('Extracted prompt:', prompt);
             
-            // Save prompt to file to avoid shell escaping issues
-            const fs = require('fs');
             fs.writeFileSync('/tmp/cubic-prompt.txt', prompt);
             
             core.setOutput('has-prompt', 'true');
@@ -57,7 +88,7 @@ jobs:
         with:
           devin-api-key: ${{ secrets.DEVIN_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr-number: ${{ steps.extract-prompt.outputs.pr-number }}
 
       - name: Set session environment variables
         if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'true'
@@ -72,7 +103,7 @@ jobs:
         run: |
           CUBIC_PROMPT=$(cat /tmp/cubic-prompt.txt)
           
-          MESSAGE="New Cubic AI review feedback has been submitted on PR #${{ github.event.pull_request.number }}.
+          MESSAGE="New Cubic AI review feedback has been submitted on PR #${{ steps.extract-prompt.outputs.pr-number }}.
 
           IMPORTANT: Before fixing any issue, check the individual Cubic comment on the PR for that issue's confidence score. The confidence score appears as 'Fix confidence (alpha): X/10' in each comment. Note that the (alpha) may or not be there. Don't be picky about that text. But only fix issues where the confidence score is 9/10 or higher. If you cannot find a confidence score for an issue, skip it.
 
@@ -102,7 +133,7 @@ jobs:
         run: |
           CUBIC_PROMPT=$(cat /tmp/cubic-prompt.txt)
           
-          FULL_PROMPT="You are addressing code review feedback from Cubic AI on PR #${{ github.event.pull_request.number }} in repository ${{ github.repository }}.
+          FULL_PROMPT="You are addressing code review feedback from Cubic AI on PR #${{ steps.extract-prompt.outputs.pr-number }} in repository ${{ github.repository }}.
 
           Your tasks:
           1. Clone the repository ${{ github.repository }} locally.
@@ -127,11 +158,11 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$(jq -n \
               --arg prompt "$FULL_PROMPT" \
-              --arg title "Cubic AI Review: PR #${{ github.event.pull_request.number }}" \
+              --arg title "Cubic AI Review: PR #${{ steps.extract-prompt.outputs.pr-number }}" \
               '{
                 prompt: $prompt,
                 title: $title,
-                tags: ["cubic-ai-review", "pr-${{ github.event.pull_request.number }}"]
+                tags: ["cubic-ai-review", "pr-${{ steps.extract-prompt.outputs.pr-number }}"]
               }')")
           
           if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
@@ -161,10 +192,14 @@ jobs:
               ? `### Devin AI is addressing Cubic AI's review feedback\n\nA Devin session has been created to address the issues identified by Cubic AI.\n\n[View Devin Session](${sessionUrl})`
               : `### Devin AI is addressing Cubic AI's review feedback\n\nNew feedback has been sent to the existing Devin session.\n\n[View Devin Session](${sessionUrl})`;
             
+            const fs = require('fs');
+            const contextData = JSON.parse(fs.readFileSync('review-context.json', 'utf8'));
+            const prNumber = contextData.pr_number;
+            
             const { data: comment } = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
+              issue_number: prNumber,
               body: message
             });
             
@@ -189,7 +224,7 @@ jobs:
           
           MESSAGE="IMPORTANT: When you have finished addressing Cubic AI's feedback (whether you pushed changes or not), you MUST update the GitHub comment to show completion status.
 
-          Use the GitHub API to update comment ID ${COMMENT_ID} on PR #${{ github.event.pull_request.number }} in repository ${{ github.repository }}.
+          Use the GitHub API to update comment ID ${COMMENT_ID} on PR #${{ steps.extract-prompt.outputs.pr-number }} in repository ${{ github.repository }}.
 
           Add a completion status section at the bottom of the comment:
           - If you pushed changes: Add '\n\n---\n:white_check_mark: Pushed commit [\`{SHORT_HASH}\`](https://github.com/${{ github.repository }}/commit/{FULL_HASH})' where {SHORT_HASH} is the first 7 characters of the commit hash and {FULL_HASH} is the full commit hash.

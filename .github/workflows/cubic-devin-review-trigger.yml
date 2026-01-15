@@ -1,0 +1,32 @@
+name: Cubic AI Review Trigger
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+# This workflow triggers on pull_request_review events (including from forks)
+# and saves the review context as an artifact. The main cubic-devin-review.yml
+# workflow then runs via workflow_run with full permissions and secrets access.
+
+jobs:
+  save-review-context:
+    name: Save Review Context
+    if: github.event.review.user.login == 'cubic-dev-ai[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Save review context to artifact
+        run: |
+          cat > review-context.json << 'EOF'
+          {
+            "pr_number": ${{ github.event.pull_request.number }},
+            "review_body": ${{ toJSON(github.event.review.body) }},
+            "repository": "${{ github.repository }}"
+          }
+          EOF
+
+      - name: Upload review context
+        uses: actions/upload-artifact@v4
+        with:
+          name: cubic-review-context
+          path: review-context.json
+          retention-days: 1
