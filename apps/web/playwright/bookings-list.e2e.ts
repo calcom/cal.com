@@ -646,8 +646,8 @@ test.describe("Attendee Visibility in Booking List", () => {
     await expect(bookingItem).toBeVisible();
 
     // Should see both attendees
-    await expect(page.locator("text=John First")).toBeVisible();
-    await expect(page.locator("text=Jane Second")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-first+seats@cal.com")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-second+seats@cal.com")).toBeVisible();
   });
 
   test("Team Admin should see all attendees in booking list when seatsShowAttendees is false", async ({
@@ -675,8 +675,8 @@ test.describe("Attendee Visibility in Booking List", () => {
     await expect(bookingItem).toBeVisible();
 
     // Should see both attendees
-    await expect(page.locator("text=John First")).toBeVisible();
-    await expect(page.locator("text=Jane Second")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-first+seats@cal.com")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-second+seats@cal.com")).toBeVisible();
   });
 
   test("Event Host should see all attendees in booking list when seatsShowAttendees is false", async ({
@@ -699,7 +699,7 @@ test.describe("Attendee Visibility in Booking List", () => {
     await expect(bookingItem).toBeVisible();
 
     // Should see both attendees
-    await expect(page.locator("text=John First")).toBeVisible();
-    await expect(page.locator("text=Jane Second")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-first+seats@cal.com")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-second+seats@cal.com")).toBeVisible();
   });
 });
