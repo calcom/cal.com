@@ -2,7 +2,10 @@ import { randomBytes } from "node:crypto";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
-import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import {
+  updateNewTeamMemberEventTypes,
+  addNewMembersToEventTypes,
+} from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
@@ -169,6 +172,38 @@ export class TeamService {
     }
 
     await Promise.all(deleteMembershipPromises);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
+    const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
+      teamBillingService.updateQuantity()
+    );
+    await Promise.allSettled(teamBillingPromises);
+  }
+
+  static async addMembersToTeams({
+    membershipData,
+  }: {
+    membershipData: Array<{
+      createdAt: Date;
+      userId: number;
+      teamId: number;
+      role: MembershipRole;
+      accepted: boolean;
+    }>;
+  }) {
+    if (membershipData.length === 0) {
+      return;
+    }
+
+    await prisma.membership.createMany({
+      data: membershipData,
+    });
+
+    const teamIds = Array.from(new Set(membershipData.map((m) => m.teamId)));
+    const userIds = Array.from(new Set(membershipData.map((m) => m.userId)));
+
+    await Promise.all(teamIds.map((teamId) => addNewMembersToEventTypes({ userIds, teamId })));
+
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
     const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
