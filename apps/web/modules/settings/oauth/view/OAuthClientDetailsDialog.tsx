@@ -17,7 +17,7 @@ import { Label, TextArea } from "@calcom/ui/components/form";
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
-export type OAuthClientDetails = {
+type OAuthClientDetails = {
   clientId: string;
   name: string;
   purpose?: string | null;
@@ -31,7 +31,7 @@ export type OAuthClientDetails = {
   clientType?: string;
 };
 
-export const OAuthClientDetailsDialog = ({
+const OAuthClientDetailsDialog = ({
   open,
   onOpenChange,
   client,
@@ -213,7 +213,7 @@ export const OAuthClientDetailsDialog = ({
             })}>
             {status ? (
               <div className="flex items-center justify-start">
-                <Badge variant={getStatusBadgeVariant(status).variant}>
+                <Badge data-testid="oauth-client-details-status-badge" variant={getStatusBadgeVariant(status).variant}>
                   {t(getStatusBadgeVariant(status).labelKey)}
                 </Badge>
               </div>
@@ -343,7 +343,7 @@ export const OAuthClientDetailsDialog = ({
   );
 };
 
-function getStatusBadgeVariant (status: string) {
+function getStatusBadgeVariant(status: string) {
   switch (status) {
     case "APPROVED":
       return { variant: "success" as const, labelKey: "approved" as const };
@@ -354,3 +354,6 @@ function getStatusBadgeVariant (status: string) {
       return { variant: "orange" as const, labelKey: "pending" as const };
   }
 };
+
+export type { OAuthClientDetails };
+export { OAuthClientDetailsDialog };

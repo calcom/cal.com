@@ -49,6 +49,7 @@ type ExpectedOAuthClientDetails = {
   purpose: string;
   redirectUri: string;
   websiteUrl: string;
+  statusLabel: "Approved" | "Rejected" | "Pending";
   pkceEnabled: boolean;
   hasLogo: boolean;
 };
@@ -231,6 +232,7 @@ async function expectOAuthClientInDb(
 }
 
 async function expectOAuthClientDetails(details: Locator, expected: ExpectedOAuthClientDetails): Promise<void> {
+  await expect(details.getByTestId("oauth-client-details-status-badge")).toHaveText(expected.statusLabel);
   await expect(details.getByTestId("oauth-client-details-client-id")).toHaveText(expected.clientId);
   await expect(getOAuthClientDetailsNameInput(details)).toHaveValue(expected.name);
   await expect(getOAuthClientDetailsPurposeInput(details)).toHaveValue(expected.purpose);
@@ -247,7 +249,6 @@ async function expectOAuthClientInList(page: Page, input: { clientId: string; na
   const row = getOAuthClientListItem(page, input.clientId);
   await expect(row).toBeVisible();
   await expect(row.getByText(input.name)).toBeVisible();
-  await expect(row.getByText("Pending")).toBeVisible();
 }
 
 async function goToOAuthSettings(page: Page): Promise<void> {
@@ -337,6 +338,7 @@ test.describe("OAuth client creation", () => {
       purpose,
       redirectUri,
       websiteUrl: "",
+      statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: false,
     });
@@ -373,6 +375,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
     });
@@ -386,6 +389,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
     });
@@ -405,6 +409,85 @@ test.describe("OAuth client creation", () => {
     await deleteOAuthClient(page, clientId, editedName);
 
     await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("editing redirect uri of an approved client triggers reapproval (status becomes PENDING)", async ({ page, prisma, users }, testInfo) => {
+    const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
+
+    const user = await users.create();
+    await user.apiLogin("/settings/developer/oauth");
+
+    const clientName = `${testPrefix}approved-client-${Date.now()}`;
+    const clientId = `${testPrefix.replaceAll("-", "")}approved${Date.now()}`;
+
+    const initialRedirectUri = "https://example.com/approved-callback";
+
+    await prisma.oAuthClient.create({
+      data: {
+        clientId,
+        name: clientName,
+        purpose: "Approved client for redirectUri reapproval test",
+        redirectUri: initialRedirectUri,
+        websiteUrl: null,
+        logo: null,
+        clientType: "PUBLIC",
+        clientSecret: null,
+        status: "APPROVED",
+        userId: user.id,
+      },
+    });
+
+    await page.reload();
+
+    const detailsBeforeUpdate = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(detailsBeforeUpdate, {
+      clientId,
+      name: clientName,
+      purpose: "Approved client for redirectUri reapproval test",
+      redirectUri: initialRedirectUri,
+      websiteUrl: "",
+      statusLabel: "Approved",
+      pkceEnabled: true,
+      hasLogo: false,
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      status: "APPROVED",
+      redirectUri: initialRedirectUri,
+      clientType: "PUBLIC",
+      clientSecret: null,
+    });
+
+    const updatedRedirectUri = `https://example.com/approved-updated-${Date.now()}`;
+
+    await getOAuthClientDetailsRedirectUriInput(detailsBeforeUpdate).fill(updatedRedirectUri);
+
+    const updateResponsePromise = page.waitForResponse((res) => res.url().includes("/api/trpc/oAuth/updateClient"));
+    await page.getByTestId("oauth-client-details-save").click();
+    const updateResponse = await updateResponsePromise;
+    expect(updateResponse.ok()).toBe(true);
+
+    await closeOAuthClientDetails(page);
+
+    const detailsAfterUpdate = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(detailsAfterUpdate, {
+      clientId,
+      name: clientName,
+      purpose: "Approved client for redirectUri reapproval test",
+      redirectUri: updatedRedirectUri,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+    });
+    await closeOAuthClientDetails(page);
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      status: "PENDING",
+      redirectUri: updatedRedirectUri,
+      clientType: "PUBLIC",
+      clientSecret: null,
+    });
   });
 
   test("creates a private (confidential) OAuth client; submitted modal shows id+secret; list/details/DB reflect values", async ({ page, prisma }, testInfo) => {
@@ -435,6 +518,7 @@ test.describe("OAuth client creation", () => {
       purpose,
       redirectUri,
       websiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
     });
@@ -471,6 +555,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
     });
@@ -484,6 +569,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
     });
@@ -531,6 +617,7 @@ test.describe("OAuth client creation", () => {
       purpose,
       redirectUri,
       websiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: false,
     });
@@ -567,6 +654,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: true,
     });
@@ -580,6 +668,7 @@ test.describe("OAuth client creation", () => {
       purpose: editedPurpose,
       redirectUri: editedRedirectUri,
       websiteUrl: editedWebsiteUrl,
+      statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: true,
     });

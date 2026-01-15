@@ -31,7 +31,7 @@ type UpdateClientOutput = {
   rejectionReason: string | null;
 };
 
-export const updateClientHandler = async ({
+const updateClientHandler = async ({
   ctx,
   input,
 }: UpdateClientOptions): Promise<UpdateClientOutput> => {
@@ -196,6 +196,10 @@ function triggersReapprovalForOwnerEdit(params: {
     return true;
   }
 
+  if (proposedUpdates.redirectUri !== undefined && proposedUpdates.redirectUri !== currentClient.redirectUri) {
+    return true;
+  }
+
   return false;
 }
 
@@ -302,3 +306,5 @@ function buildUpdateClientUpdateData(params: {
 
   return updateData;
 }
+
+export { updateClientHandler };

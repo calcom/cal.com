@@ -430,7 +430,7 @@ describe("updateClientHandler", () => {
     expect(mocks.sendOAuthClientRejectedNotification).not.toHaveBeenCalled();
   });
 
-  it("does not set status to PENDING when an owner updates redirectUri", async () => {
+  it("sets status to PENDING when an owner updates redirectUri (reapproval flow)", async () => {
     mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
@@ -449,7 +449,7 @@ describe("updateClientHandler", () => {
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      status: "APPROVED",
+      status: "PENDING",
       redirectUri: updatedRedirectUri,
       websiteUrl: null,
       logo: null,
@@ -481,6 +481,8 @@ describe("updateClientHandler", () => {
         where: { clientId: CLIENT_ID },
         data: {
           redirectUri: updatedRedirectUri,
+          status: "PENDING",
+          rejectionReason: null,
         },
       })
     );
