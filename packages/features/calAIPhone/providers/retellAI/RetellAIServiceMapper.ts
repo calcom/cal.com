@@ -102,7 +102,7 @@ export class RetellAIServiceMapper {
     return {
       general_prompt: data.general_prompt,
       begin_message: data.begin_message,
-      general_tools: data.general_tools ?? null,
+      general_tools: data.general_tools ?? undefined,
     };
   }
 
@@ -173,6 +173,8 @@ export class RetellAIServiceMapper {
       enabled: agent.enabled,
       userId: agent.userId,
       teamId: agent.teamId,
+      inboundEventTypeId: agent.inboundEventTypeId,
+      outboundEventTypeId: agent.outboundEventTypeId,
       outboundPhoneNumbers: agent.outboundPhoneNumbers,
       retellData: {
         agentId: retellAgent.agent_id,

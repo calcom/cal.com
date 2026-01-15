@@ -1,7 +1,13 @@
 import { z } from "zod";
 
-export const ZCreateInputSchema = z.object({
-  name: z.string(),
+export type TCreateInputSchema = {
+  name: string;
+  schedule?: { start: Date; end: Date }[][];
+  eventTypeId?: number;
+};
+
+export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
+  name: z.string().trim().min(1, "Schedule name cannot be empty"),
   schedule: z
     .array(
       z.array(
@@ -14,5 +20,3 @@ export const ZCreateInputSchema = z.object({
     .optional(),
   eventTypeId: z.number().optional(),
 });
-
-export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

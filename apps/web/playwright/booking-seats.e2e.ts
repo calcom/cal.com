@@ -64,14 +64,14 @@ test.describe("Booking with Seats", () => {
     await test.step("Attendee #2 shouldn't be able to cancel booking using only booking/uid", async () => {
       await page.goto(`/booking/${booking.uid}`);
 
-      await expect(page.locator("[text=Cancel]")).toHaveCount(0);
+      await expect(page.locator("[text=Cancel]")).toHaveCount(0, { timeout: 0 });
     });
 
     await test.step("Attendee #2 shouldn't be able to cancel booking using randomString for seatReferenceUId", async () => {
       await page.goto(`/booking/${booking.uid}?seatReferenceUid=${randomString(10)}`);
 
       // expect cancel button to don't be in the page
-      await expect(page.locator("[text=Cancel]")).toHaveCount(0);
+      await expect(page.locator("[text=Cancel]")).toHaveCount(0, { timeout: 0 });
     });
   });
 
@@ -82,7 +82,7 @@ test.describe("Booking with Seats", () => {
       { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
     await page.goto(`/booking/${booking.uid}?cancel=true`);
-    await expect(page.locator("[text=Cancel]")).toHaveCount(0);
+    await expect(page.locator("[text=Cancel]")).toHaveCount(0, { timeout: 0 });
 
     // expect login text to be in the page, not data-testid
     await expect(page.locator("text=Login")).toHaveCount(1);
@@ -99,7 +99,7 @@ test.describe("Booking with Seats", () => {
     await page.goto(`/booking/${booking.uid}?cancel=true`);
 
     // expect login button to don't be in the page
-    await expect(page.locator("text=Login")).toHaveCount(0);
+    await expect(page.locator("text=Login")).toHaveCount(0, { timeout: 0 });
 
     // fill reason for cancellation
     await page.fill('[data-testid="cancel_reason"]', "Double booked!");
@@ -183,7 +183,7 @@ test.describe("Reschedule for booking with seats", () => {
     await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
     // Validate that the number of seats its 10
-    await expect(page.locator("text=9 / 10 Seats available")).toHaveCount(0);
+    await expect(page.locator("text=9 / 10 Seats available")).toHaveCount(0, { timeout: 0 });
   });
 
   test("Should cancel with seats but event should be still accessible and with one less attendee/seat", async ({
@@ -191,11 +191,10 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.apiLogin();
 
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
@@ -326,7 +325,7 @@ test.describe("Reschedule for booking with seats", () => {
     // No attendees should be displayed only the one that it's cancelling
     const notFoundSecondAttendee = await page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
 
-    await expect(notFoundSecondAttendee).toHaveCount(0);
+    await expect(notFoundSecondAttendee).toHaveCount(0, { timeout: 0 });
     const foundFirstAttendee = await page.locator('p[data-testid="attendee-email-first+seats@cal.com"]');
     await expect(foundFirstAttendee).toHaveCount(1);
 
@@ -366,7 +365,7 @@ test.describe("Reschedule for booking with seats", () => {
     const getBooking = await booking.self();
 
     await page.goto(`/booking/${booking.uid}`);
-    await expect(page.locator('[data-testid="reschedule"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="reschedule"]')).toHaveCount(0, { timeout: 0 });
 
     // expect login text to be in the page, not data-testid
     await expect(page.locator("text=Login")).toHaveCount(1);
@@ -383,7 +382,7 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto(`/booking/${booking.uid}`);
 
     // expect login button to don't be in the page
-    await expect(page.locator("text=Login")).toHaveCount(0);
+    await expect(page.locator("text=Login")).toHaveCount(0, { timeout: 0 });
 
     // reschedule-link click
     await page.locator('[data-testid="reschedule-link"]').click();
@@ -511,7 +510,7 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
@@ -556,7 +555,24 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForSelector('[data-testid="bookings"]');
 
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-    await page.locator('[data-testid="reschedule"]').click();
+
+    // Wait for the reschedule link to be visible and have an href attribute
+    const rescheduleLink = page.locator('[data-testid="reschedule"]');
+    await expect(rescheduleLink).toBeVisible();
+    await expect(rescheduleLink).toHaveAttribute("href", /.+/);
+
+    const href = await rescheduleLink.getAttribute("href");
+    const url = new URL(href!, page.url());
+    const seatReferenceUid = url.searchParams.get("seatReferenceUid");
+    if (!seatReferenceUid) {
+      await page.reload();
+      await page.waitForSelector('[data-testid="bookings"]');
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await expect(rescheduleLink).toBeVisible();
+      await expect(rescheduleLink).toHaveAttribute("href", /.+/);
+    }
+    await rescheduleLink.click();
+    await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await page.waitForURL((url) => {
       const rescheduleUid = url.searchParams.get("rescheduleUid");

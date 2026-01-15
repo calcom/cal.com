@@ -49,7 +49,7 @@ type PartialBooking =
 
 export type PartialWorkflowReminder = Pick<
   WorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid" | "seatReferenceId"
 > & {
   booking: PartialBooking | null;
 } & { workflowStep: PartialWorkflowStep };
@@ -134,6 +134,7 @@ export const select = {
   scheduledDate: true,
   isMandatoryReminder: true,
   uuid: true,
+  seatReferenceId: true,
   workflowStep: {
     select: {
       action: true,

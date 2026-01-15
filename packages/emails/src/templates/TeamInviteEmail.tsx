@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { getSubject, getTypeOfInvite } from "../../templates/team-invite-email";
+import { getSubject, getTypeOfInvite } from "../../lib/utils/team-invite-utils";
 import { V2BaseEmailHtml, CallToAction } from "../components";
 
 type TeamInvite = {
