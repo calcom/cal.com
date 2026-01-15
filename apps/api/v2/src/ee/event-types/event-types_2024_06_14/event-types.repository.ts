@@ -126,7 +126,7 @@ export class EventTypesRepository_2024_06_14 {
       where: {
         userId,
       },
-      ...(sortCreatedAt && { orderBy: { createdAt: sortCreatedAt } }),
+      ...(sortCreatedAt && { orderBy: [{ createdAt: sortCreatedAt }, { id: sortCreatedAt }] }),
       ...(skip !== undefined && { skip }),
       ...(take !== undefined && { take }),
       include: { users: this.usersInclude, schedule: true, destinationCalendar: true },
@@ -139,7 +139,7 @@ export class EventTypesRepository_2024_06_14 {
         userId,
         hidden: false,
       },
-      ...(sortCreatedAt && { orderBy: { createdAt: sortCreatedAt } }),
+      ...(sortCreatedAt && { orderBy: [{ createdAt: sortCreatedAt }, { id: sortCreatedAt }] }),
       include: { users: this.usersInclude, schedule: true, destinationCalendar: true },
     });
   }
