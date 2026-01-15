@@ -376,7 +376,15 @@ export class FeatureOptInService implements IFeatureOptInService {
 
     // Simulate what would happen if user opts in
     const featureConfig = getOptInFeatureConfig(featureId);
-    const policy: OptInFeaturePolicy = featureConfig?.policy ?? "permissive";
+    if (!featureConfig) {
+      return {
+        status: "blocked",
+        canOptIn: false,
+        userRoleContext,
+        blockingReason: "feature_config_not_found",
+      };
+    }
+    const policy: OptInFeaturePolicy = featureConfig.policy ?? "permissive";
 
     const simulatedResult = computeEffectiveStateAcrossTeams({
       globalEnabled: featureState.globalEnabled,
@@ -386,6 +394,8 @@ export class FeatureOptInService implements IFeatureOptInService {
       policy,
     });
 
+    // For strict policy features, user opt-in alone won't enable the feature if org/team hasn't explicitly enabled it.
+    // E.g., strict policy + org "inherit" + team "inherit" + user "enabled" → feature still not enabled.
     if (!simulatedResult.enabled) {
       return {
         status: "blocked",
