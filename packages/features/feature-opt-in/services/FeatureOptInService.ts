@@ -1,9 +1,14 @@
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-import { getOptInFeatureConfig, getOptInFeaturesForScope, isFeatureAllowedForScope } from "../config";
+import { getOptInFeatureConfig, getOptInFeaturesForScope, isFeatureAllowedForScope, isOptInFeature } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 import type { OptInFeaturePolicy, OptInFeatureScope } from "../types";
@@ -32,6 +37,54 @@ type ListFeaturesForTeamResult = {
   teamState: FeatureState;
   orgState: FeatureState;
 };
+
+type UserRoleContext = {
+  isOrgAdmin: boolean;
+  orgId: number | null;
+  adminTeamIds: number[];
+  adminTeamNames: { id: number; name: string }[];
+};
+
+type FeatureOptInEligibilityStatus =
+  | "invalid_feature"
+  | "feature_disabled"
+  | "already_enabled"
+  | "blocked"
+  | "can_opt_in";
+
+type FeatureOptInEligibilityResult =
+  | {
+      status: "invalid_feature";
+      canOptIn: false;
+      userRoleContext: null;
+      blockingReason: null;
+    }
+  | {
+      status: "feature_disabled";
+      canOptIn: false;
+      userRoleContext: null;
+      blockingReason: string;
+    }
+  | {
+      status: "already_enabled";
+      canOptIn: false;
+      userRoleContext: null;
+      blockingReason: null;
+    }
+  | {
+      status: "blocked";
+      canOptIn: false;
+      userRoleContext: UserRoleContext;
+      blockingReason: string;
+    }
+  | {
+      status: "can_opt_in";
+      canOptIn: true;
+      userRoleContext: UserRoleContext;
+      blockingReason: null;
+    };
+
+export type { UserRoleContext, FeatureOptInEligibilityStatus, FeatureOptInEligibilityResult };
 
 function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
   if (orgId !== null) {
@@ -240,6 +293,135 @@ export class FeatureOptInService implements IFeatureOptInService {
     });
 
     return results.filter((result) => result.globalEnabled);
+  }
+
+  /**
+   * Check if user is eligible to see the feature opt-in banner.
+   * Uses PBAC to determine user's role context (org admin, team admin permissions).
+   */
+  async checkFeatureOptInEligibility(input: {
+    userId: number;
+    featureId: string;
+  }): Promise<FeatureOptInEligibilityResult> {
+    const { userId, featureId } = input;
+
+    if (!isOptInFeature(featureId)) {
+      return {
+        status: "invalid_feature",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: null,
+      };
+    }
+
+    const { orgId, teamIds } = await this.getUserOrgAndTeamIds(userId);
+    const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
+      userId,
+      orgId,
+      teamIds,
+      featureIds: [featureId],
+    });
+
+    const featureState = resolvedStates[featureId];
+    if (!featureState) {
+      return {
+        status: "invalid_feature",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: null,
+      };
+    }
+
+    if (!featureState.globalEnabled) {
+      return {
+        status: "feature_disabled",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: "feature_global_disabled",
+      };
+    }
+
+    if (featureState.effectiveEnabled) {
+      return {
+        status: "already_enabled",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: null,
+      };
+    }
+
+    const userRoleContext = await this.getUserRoleContext(userId, orgId, teamIds);
+
+    const blockingReasons = [
+      "feature_org_disabled",
+      "feature_all_teams_disabled",
+      "feature_any_team_disabled",
+      "feature_user_only_not_allowed",
+    ];
+
+    if (blockingReasons.includes(featureState.effectiveReason)) {
+      return {
+        status: "blocked",
+        canOptIn: false,
+        userRoleContext,
+        blockingReason: featureState.effectiveReason,
+      };
+    }
+
+    return {
+      status: "can_opt_in",
+      canOptIn: true,
+      userRoleContext,
+      blockingReason: null,
+    };
+  }
+
+  private async getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
+    const memberships = await MembershipRepository.findAllByUserId({
+      userId,
+      filters: { accepted: true },
+    });
+
+    let orgId: number | null = null;
+    const teamIds: number[] = [];
+
+    for (const membership of memberships) {
+      if (membership.team.isOrganization) {
+        orgId = membership.teamId;
+      } else {
+        teamIds.push(membership.teamId);
+      }
+    }
+
+    return { orgId, teamIds };
+  }
+
+  private async getUserRoleContext(
+    userId: number,
+    orgId: number | null,
+    _teamIds: number[]
+  ): Promise<UserRoleContext> {
+    const permissionService = new PermissionCheckService();
+    const fallbackRoles = [MembershipRole.OWNER, MembershipRole.ADMIN];
+
+    let isOrgAdmin = false;
+    if (orgId !== null) {
+      isOrgAdmin = await permissionService.checkPermission({
+        userId,
+        teamId: orgId,
+        permission: "organization.update",
+        fallbackRoles,
+      });
+    }
+
+    const teamRepository = new TeamRepository(prisma);
+    const adminTeams = await teamRepository.findOwnedTeamsByUserId({ userId });
+
+    const nonOrgAdminTeams = adminTeams.filter((team) => !team.isOrganization);
+    const adminTeamIds = nonOrgAdminTeams.map((team) => team.id);
+    const adminTeamNames = nonOrgAdminTeams.map((team) => ({ id: team.id, name: team.name }));
+
+    return { isOrgAdmin, orgId, adminTeamIds, adminTeamNames };
   }
 
   /**
