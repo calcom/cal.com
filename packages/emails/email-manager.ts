@@ -45,7 +45,7 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
-import UnreachableCalendarEmail from "./templates/unreachable-calendar-email";
+import { UnreachableCalendarEmail } from "./templates/unreachable-calendar-email";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 

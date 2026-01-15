@@ -19,7 +19,7 @@ import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingT
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import { QueryCell } from "@lib/QueryCell";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import { DestinationCalendarSettingsWebWrapper } from "./DestinationCalendarSettingsWebWrapper";
 
 type CalendarListContainerProps = {
@@ -101,37 +101,35 @@ export function CalendarListContainer({
 }: CalendarListContainerProps): JSX.Element {
   const { t } = useLocale();
   const { error, setQuery: setError } = useRouterQuery("error");
-  const [loading, setLoading] = useState(false);
-  const [isNotifyCalendarAlertsChecked, setIsNotifyCalendarAlertsChecked] = useState(true);
 
-  const { data: user } = trpc.viewer.me.get.useQuery();
-
-  // Sync local state with user data
-  useEffect(() => {
-    if (user) {
-      // Default to true if notifyCalendarAlerts is null/undefined (matches database default)
-      setIsNotifyCalendarAlertsChecked(user.notifyCalendarAlerts ?? true);
-    }
-  }, [user]);
+  const { data: user, isLoading: isUserLoading } = trpc.viewer.me.get.useQuery();
+  const utils = trpc.useUtils();
 
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
-    onSuccess: async () => {
-      showToast(t("settings_updated_successfully"), "success");
-      setLoading(false);
-      // Don't invalidate immediately to avoid race conditions with optimistic updates
+    onMutate: async (newData) => {
+      await utils.viewer.me.get.cancel();
+      const previousData = utils.viewer.me.get.getData();
+      utils.viewer.me.get.setData(undefined, (old) => {
+        if (!old) return old;
+        return { ...old, notifyCalendarAlerts: newData.notifyCalendarAlerts ?? old.notifyCalendarAlerts };
+      });
+      return { previousData };
     },
-    onError: (error) => {
+    onSuccess: () => {
+      showToast(t("settings_updated_successfully"), "success");
+    },
+    onError: (error, _newData, context) => {
       showToast(error.message, "error");
-      // Revert the optimistic update on error
-      setIsNotifyCalendarAlertsChecked(!isNotifyCalendarAlertsChecked);
-      setLoading(false);
+      if (context?.previousData) {
+        utils.viewer.me.get.setData(undefined, context.previousData);
+      }
+    },
+    onSettled: () => {
+      utils.viewer.me.get.invalidate();
     },
   });
 
-  const handleCalendarNotificationToggle = async (enabled: boolean) => {
-    setLoading(true);
-    // Optimistic update
-    setIsNotifyCalendarAlertsChecked(enabled);
+  const handleCalendarNotificationToggle = (enabled: boolean) => {
     updateProfileMutation.mutate({
       notifyCalendarAlerts: enabled,
     });
@@ -144,7 +142,7 @@ export function CalendarListContainer({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const utils = trpc.useUtils();
+
   const onChanged = (): void => {
     Promise.allSettled([
       utils.viewer.apps.integrations.invalidate(
@@ -234,9 +232,9 @@ export function CalendarListContainer({
             <p className="text-subtle mt-1 text-sm">{t("unreachable_calendar_alerts_description")}</p>
           </div>
           <Switch
-            checked={isNotifyCalendarAlertsChecked}
+            checked={Boolean(user?.notifyCalendarAlerts ?? true)}
             onCheckedChange={handleCalendarNotificationToggle}
-            disabled={loading}
+            disabled={isUserLoading || updateProfileMutation.isPending}
             aria-label={t("unreachable_calendar_alerts")}
           />
         </div>

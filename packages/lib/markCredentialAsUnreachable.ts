@@ -1,5 +1,5 @@
 import { sendUnreachableCalendarEmail } from "@calcom/emails/email-manager";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import prisma from "@calcom/prisma";
 
 const NOTIFICATION_COOLDOWN_HOURS = 24; // Only notify once per day

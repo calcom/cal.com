@@ -1,13 +1,21 @@
-import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
 import BaseEmail from "./_base-email";
 
-export default class UnreachableCalendarEmail extends BaseEmail {
+export class UnreachableCalendarEmail extends BaseEmail {
   recipientEmail: string;
   recipientName?: string;
   calendarName: string;
   reason: string;
+
+  private esc(str: string): string {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 
   constructor({
     recipientEmail,
@@ -39,15 +47,19 @@ export default class UnreachableCalendarEmail extends BaseEmail {
   }
 
   async getHtml() {
+    const escapedCalendarName = this.esc(this.calendarName);
+    const escapedRecipientName = this.recipientName ? this.esc(this.recipientName) : undefined;
+    const escapedReason = this.reason ? this.esc(this.reason) : undefined;
+
     return `
       <div style="font-family: Arial, sans-serif;">
-        <h2>Action Required: Your ${this.calendarName} is unreachable</h2>
+        <h2>Action Required: Your ${escapedCalendarName} is unreachable</h2>
         <p>
-          ${this.recipientName ? `Hi ${this.recipientName},` : "Hello,"}
+          ${escapedRecipientName ? `Hi ${escapedRecipientName},` : "Hello,"}
         </p>
         <p>
-          Your linked calendar <strong>${this.calendarName}</strong> is no longer reachable. 
-          ${this.reason ? `Reason: ${this.reason}.` : ""} 
+          Your linked calendar <strong>${escapedCalendarName}</strong> is no longer reachable. 
+          ${escapedReason ? `Reason: ${escapedReason}.` : ""} 
           Until you reconnect or remove it, invitees will see no availability on your booking pages.
         </p>
         <p>
