@@ -220,6 +220,7 @@ export default function EventTypeDetail() {
   const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
   const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
   const [hideCalendarEventDetails, setHideCalendarEventDetails] = useState(false);
+  const [redirectEnabled, setRedirectEnabled] = useState(false);
   const [successRedirectUrl, setSuccessRedirectUrl] = useState("");
   const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
   const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
@@ -231,6 +232,7 @@ export default function EventTypeDetail() {
   const [customReplyToEmail, setCustomReplyToEmail] = useState("");
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
+  const [interfaceLanguageEnabled, setInterfaceLanguageEnabled] = useState(false);
   const [interfaceLanguage, setInterfaceLanguage] = useState("");
   const [showOptimizedSlots, setShowOptimizedSlots] = useState(false);
 
@@ -673,8 +675,8 @@ export default function EventTypeDetail() {
       setSendCalVideoTranscription(false);
     }
 
-    // Load interface language (API V2)
-    if (eventTypeExt.interfaceLanguage !== undefined) {
+    if (eventTypeExt.interfaceLanguage) {
+      setInterfaceLanguageEnabled(true);
       setInterfaceLanguage(eventTypeExt.interfaceLanguage);
     }
 
@@ -737,8 +739,8 @@ export default function EventTypeDetail() {
       setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
     }
 
-    // Load redirect URL
     if (eventType.successRedirectUrl) {
+      setRedirectEnabled(true);
       setSuccessRedirectUrl(eventType.successRedirectUrl);
     }
     if (eventType.forwardParamsSuccessRedirect !== undefined) {
@@ -921,25 +923,34 @@ export default function EventTypeDetail() {
       const dayShort = day.substring(0, 3).toLowerCase(); // mon, tue, etc.
       const dayShortUpper = day.substring(0, 3).toUpperCase();
 
-      const availability = selectedScheduleDetails.availability?.find((avail) => {
-        if (!avail.days || !Array.isArray(avail.days)) return false;
+      // Find ALL matching availability slots for this day (not just the first one)
+      const matchingSlots =
+        selectedScheduleDetails.availability?.filter((avail) => {
+          if (!avail.days || !Array.isArray(avail.days)) return false;
 
-        return avail.days.some(
-          (d) =>
-            d === dayLower ||
-            d === dayUpper ||
-            d === day ||
-            d === dayShort ||
-            d === dayShortUpper ||
-            d.toLowerCase() === dayLower
-        );
-      });
+          return avail.days.some(
+            (d) =>
+              d === dayLower ||
+              d === dayUpper ||
+              d === day ||
+              d === dayShort ||
+              d === dayShortUpper ||
+              d.toLowerCase() === dayLower
+          );
+        }) || [];
+
+      // Map to time slots array
+      const timeSlots = matchingSlots.map((slot) => ({
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }));
 
       return {
         day,
-        available: !!availability,
-        startTime: availability?.startTime,
-        endTime: availability?.endTime,
+        available: timeSlots.length > 0,
+        startTime: timeSlots[0]?.startTime,
+        endTime: timeSlots[0]?.endTime,
+        timeSlots, // Include all time slots for this day
       };
     });
 
@@ -1400,7 +1411,10 @@ export default function EventTypeDetail() {
           style={{
             flex: 1,
           }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: activeTab === "limits" || activeTab === "advanced" ? 280 : 200,
+          }}
           contentInsetAdjustmentBehavior="automatic"
         >
           {activeTab === "basics" ? (
@@ -2161,6 +2175,8 @@ export default function EventTypeDetail() {
               setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
               allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
               setAllowBookingThroughRescheduleLink={setAllowBookingThroughRescheduleLink}
+              redirectEnabled={redirectEnabled}
+              setRedirectEnabled={setRedirectEnabled}
               successRedirectUrl={successRedirectUrl}
               setSuccessRedirectUrl={setSuccessRedirectUrl}
               forwardParamsSuccessRedirect={forwardParamsSuccessRedirect}
@@ -2189,6 +2205,8 @@ export default function EventTypeDetail() {
               setDisableRescheduling={setDisableRescheduling}
               sendCalVideoTranscription={sendCalVideoTranscription}
               setSendCalVideoTranscription={setSendCalVideoTranscription}
+              interfaceLanguageEnabled={interfaceLanguageEnabled}
+              setInterfaceLanguageEnabled={setInterfaceLanguageEnabled}
               interfaceLanguage={interfaceLanguage}
               setInterfaceLanguage={setInterfaceLanguage}
               showOptimizedSlots={showOptimizedSlots}
