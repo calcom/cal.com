@@ -1408,16 +1408,6 @@ export class EventTypeRepository {
     };
   }
 
-  static getSelectedCalendarsFromUser<TSelectedCalendar extends { eventTypeId: number | null }>({
-    user,
-    eventTypeId,
-  }: {
-    user: UserWithSelectedCalendars<TSelectedCalendar>;
-    eventTypeId: number;
-  }) {
-    return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
-  }
-
   async findByIdForUserAvailability({ id }: { id: number }) {
     const eventType = await this.prismaClient.eventType.findUnique({
       where: { id },
