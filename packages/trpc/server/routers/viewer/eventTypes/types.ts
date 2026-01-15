@@ -3,7 +3,8 @@ import { z } from "zod";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type { CancellationReasonRequirement, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import { CancellationReasonRequirement as CancellationReasonRequirementEnum } from "@calcom/prisma/enums";
 import type {
   CustomInputSchema,
   EventTypeMetadata,
@@ -181,12 +182,7 @@ export type TUpdateInputSchema = {
   showOptimizedSlots?: boolean | null;
   disableCancelling?: boolean | null;
   disableRescheduling?: boolean | null;
-  requiresCancellationReason?:
-    | "MANDATORY_BOTH"
-    | "MANDATORY_HOST_ONLY"
-    | "MANDATORY_ATTENDEE_ONLY"
-    | "OPTIONAL_BOTH"
-    | null;
+  requiresCancellationReason?: CancellationReasonRequirement | null;
   minimumRescheduleNotice?: number | null;
   seatsShowAttendees?: boolean | null;
   seatsShowAvailabilityCount?: boolean | null;

@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CancellationReasonRequirement } from "@calcom/prisma/enums";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
@@ -109,12 +110,7 @@ type Props = {
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
   renderContext: "booking-single-view" | "dialog";
   eventTypeMetadata?: Record<string, unknown> | null;
-  requiresCancellationReason?:
-    | "MANDATORY_BOTH"
-    | "MANDATORY_HOST_ONLY"
-    | "MANDATORY_ATTENDEE_ONLY"
-    | "OPTIONAL_BOTH"
-    | null;
+  requiresCancellationReason?: CancellationReasonRequirement | null;
   showErrorAsToast?: boolean;
   onCanceled?: () => void;
 };
@@ -168,13 +164,14 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
-  const requirementSetting = props.requiresCancellationReason ?? "MANDATORY_HOST_ONLY";
+  const requirementSetting =
+    props.requiresCancellationReason ?? CancellationReasonRequirement.MANDATORY_HOST_ONLY;
 
   const isReasonRequiredForUser = () => {
-    if (requirementSetting === "OPTIONAL_BOTH") return false;
-    if (requirementSetting === "MANDATORY_BOTH") return true;
-    if (requirementSetting === "MANDATORY_HOST_ONLY") return isCancellationUserHost;
-    if (requirementSetting === "MANDATORY_ATTENDEE_ONLY") return !isCancellationUserHost;
+    if (requirementSetting === CancellationReasonRequirement.OPTIONAL_BOTH) return false;
+    if (requirementSetting === CancellationReasonRequirement.MANDATORY_BOTH) return true;
+    if (requirementSetting === CancellationReasonRequirement.MANDATORY_HOST_ONLY) return isCancellationUserHost;
+    if (requirementSetting === CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY) return !isCancellationUserHost;
     return false;
   };
 

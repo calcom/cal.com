@@ -45,7 +45,7 @@ import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { CancellationReasonRequirement, SchedulingType } from "@calcom/prisma/enums";
 import type { EditableSchema } from "@calcom/prisma/zod-utils";
 import type { fieldSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -692,10 +692,16 @@ export const EventAdvancedTab = ({
             name="requiresCancellationReason"
             render={({ field: { value, onChange } }) => {
               const cancellationReasonOptions = [
-                { value: "MANDATORY_BOTH", label: t("mandatory_for_both") },
-                { value: "MANDATORY_HOST_ONLY", label: t("mandatory_for_host_only") },
-                { value: "MANDATORY_ATTENDEE_ONLY", label: t("mandatory_for_attendee_only") },
-                { value: "OPTIONAL_BOTH", label: t("optional_for_both") },
+                { value: CancellationReasonRequirement.MANDATORY_BOTH, label: t("mandatory_for_both") },
+                {
+                  value: CancellationReasonRequirement.MANDATORY_HOST_ONLY,
+                  label: t("mandatory_for_host_only"),
+                },
+                {
+                  value: CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY,
+                  label: t("mandatory_for_attendee_only"),
+                },
+                { value: CancellationReasonRequirement.OPTIONAL_BOTH, label: t("optional_for_both") },
               ];
               return (
                 <div className="border-subtle rounded-lg border px-4 py-6 sm:px-6">
@@ -706,7 +712,8 @@ export const EventAdvancedTab = ({
                     </div>
                     <Select
                       value={cancellationReasonOptions.find(
-                        (opt) => opt.value === (value || "MANDATORY_HOST_ONLY")
+                        (opt) =>
+                          opt.value === (value || CancellationReasonRequirement.MANDATORY_HOST_ONLY)
                       )}
                       options={cancellationReasonOptions}
                       onChange={(selected) => onChange(selected?.value)}
