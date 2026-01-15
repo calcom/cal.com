@@ -714,6 +714,25 @@ describe("Teams Memberships Endpoints", () => {
         expect(responseBody.data.accepted).toBe(false);
       });
 
+      it("should return 422 when trying to add user who is not in parent organization to sub-team", async () => {
+        const userNotInOrg = await userRepositoryFixture.create({
+          email: `not-in-org-${randomString()}@external.com`,
+          username: `not-in-org-${randomString()}`,
+        });
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/teams/${subteamWithAutoAccept.id}/memberships`)
+          .send({
+            userId: userNotInOrg.id,
+            role: "MEMBER",
+          } satisfies CreateTeamMembershipInput)
+          .expect(422);
+
+        expect(response.body.message).toBe("User is not part of the Organization");
+
+        await userRepositoryFixture.deleteByEmail(userNotInOrg.email);
+      });
+
       afterAll(async () => {
         await userRepositoryFixture.deleteByEmail(userWithMatchingEmail.email);
         await userRepositoryFixture.deleteByEmail(userWithUppercaseEmail.email);
