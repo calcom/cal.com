@@ -1,3 +1,7 @@
+import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
+import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
+import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { GetMeEventTypesQuery } from "@/ee/me/inputs/get-me-event-types-query.input";
 import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
 import { MeService } from "@/ee/me/services/me.service";
@@ -10,10 +14,10 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
+import { Controller, UseGuards, Get, Patch, Body, Query } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { EVENT_TYPE_READ, PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { userSchemaResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -26,7 +30,9 @@ import { userSchemaResponse } from "@calcom/platform-types";
 export class MeController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly meService: MeService
+    private readonly meService: MeService,
+    private readonly eventTypesService: EventTypesService_2024_06_14,
+    private readonly eventTypeResponseTransformPipe: EventTypeResponseTransformPipe
   ) {}
 
   @Get("/")
@@ -70,6 +76,22 @@ export class MeController {
     return {
       status: SUCCESS_STATUS,
       data: me,
+    };
+  }
+
+  @Get("/event-types")
+  @Permissions([EVENT_TYPE_READ])
+  @ApiOperation({ summary: "Get my event types" })
+  async getMyEventTypes(
+    @GetUser("id") userId: number,
+    @Query() queryParams: GetMeEventTypesQuery
+  ): Promise<GetEventTypesOutput_2024_06_14> {
+    const eventTypes = await this.eventTypesService.getUserEventTypes(userId, queryParams.sortCreatedAt);
+    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventTypesFormatted,
     };
   }
 }
