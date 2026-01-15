@@ -201,7 +201,7 @@ jobs:
           6. Run the appropriate checks (lint, type-check, tests) to ensure the PR is ready for review.
           7. Commit your changes with clear commit messages.
           8. Push your changes to the PR branch.
-          9. After successfully pushing, remove the 'Stale' label from the PR.
+          9. After successfully pushing, remove the 'stale' label from the PR.
           10. Post a summary comment on the PR explaining what you completed.
           11. Mark the PR as ready for review if applicable.
 
