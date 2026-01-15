@@ -264,6 +264,31 @@ jobs:
             fi
           fi
 
+      - name: Remove Stale label
+        if: env.SESSION_URL != ''
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
+            const { owner, repo } = context.repo;
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: prNumber,
+                name: 'Stale'
+              });
+            } catch (error) {
+              // Ignore 404 errors if the label doesn't exist
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
       - name: Post comment with Devin session link
         if: env.SESSION_URL != ''
         uses: actions/github-script@v7
