@@ -17,9 +17,9 @@ type GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult = Awaited<
 
 type ConnectedCalendarsHandlerResult = {
   destinationCalendar: GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["destinationCalendar"];
-  connectedCalendars: GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["connectedCalendars"] & {
+  connectedCalendars: (GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["connectedCalendars"][number] & {
     cacheUpdatedAt: null;
-  };
+  })[];
 };
 
 export const connectedCalendarsHandler = async ({
