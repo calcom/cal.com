@@ -1,3 +1,6 @@
+import { TeamService } from "@calcom/platform-libraries";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
@@ -5,9 +8,6 @@ import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/up
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-
-import { TeamService } from "@calcom/platform-libraries";
 
 export const PLATFORM_USER_BEING_ADDED_TO_REGULAR_TEAM_ERROR = `Can't add user to team - the user is platform managed user but team is not because team probably was not created using OAuth credentials.`;
 export const REGULAR_USER_BEING_ADDED_TO_PLATFORM_TEAM_ERROR = `Can't add user to team - the user is not platform managed user but team is platform managed. Both have to be created using OAuth credentials.`;
@@ -20,30 +20,41 @@ export class TeamsMembershipsService {
     private readonly oAuthClientsRepository: OAuthClientRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly orgMembershipService: OrganizationMembershipService
+    private readonly orgMembershipService: OrganizationMembershipService,
+    private readonly logger: Logger
   ) {}
 
-  async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
-    await this.canUserBeAddedToTeam(data.userId, teamId);
-
-    // Check if team is a sub-team of an organization and apply auto-accept logic
+  private async shouldAutoAccept({ teamId, userId }: { teamId: number; userId: number }): Promise<boolean> {
     const team = await this.teamsRepository.getById(teamId);
+
     if (team?.parentId) {
-      const user = await this.usersRepository.findById(data.userId);
+      const user = await this.usersRepository.findById(userId);
       if (user) {
         const shouldAutoAccept = await this.orgMembershipService.shouldAutoAccept({
           organizationId: team.parentId,
           userEmail: user.email,
         });
 
-        // ALWAYS override when email matches - prevents pending memberships
-        // Organizations expect added team member to automatically start receiving bookings for the team event
-        if (shouldAutoAccept) {
-          data = { ...data, accepted: true };
-        }
+        return shouldAutoAccept;
       }
     }
 
+    return false;
+  }
+  async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
+    await this.canUserBeAddedToTeam(data.userId, teamId);
+    const shouldAutoAccept = await this.shouldAutoAccept({ teamId, userId: data.userId });
+    if (shouldAutoAccept) {
+      data = { ...data, accepted: true };
+    }
+
+    if (data.accepted) {
+      try {
+        await updateNewTeamMemberEventTypes(data.userId, teamId);
+      } catch (err) {
+        this.logger.error("Could not update new team member eventTypes", err);
+      }
+    }
     const teamMembership = await this.teamsMembershipsRepository.createTeamMembership(teamId, data);
     return teamMembership;
   }
