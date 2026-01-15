@@ -41,10 +41,6 @@
       "url": "self-hosting"
     },
     {
-      "name": "Platform",
-      "url": "platform"
-    },
-    {
       "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2"
