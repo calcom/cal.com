@@ -107,12 +107,7 @@ export default function AvailabilityDetailIOS() {
         </Stack.Header.Right>
       </Stack.Header>
 
-      <AvailabilityDetailScreen
-        ref={screenRef}
-        id={id}
-        // @ts-expect-error - onActionsReady is only available in AvailabilityDetailScreen.ios.tsx
-        onActionsReady={handleActionsReady}
-      />
+      <AvailabilityDetailScreen ref={screenRef} id={id} onActionsReady={handleActionsReady} />
     </>
   );
 }

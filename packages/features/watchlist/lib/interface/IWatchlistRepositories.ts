@@ -13,6 +13,15 @@ export interface IGlobalWatchlistRepository {
   findById(id: string): Promise<Watchlist | null>;
   listBlockedEntries(): Promise<Watchlist[]>;
 
+  /**
+   * Bulk find blocking entries for multiple emails and domains.
+   * Single query for N emails and domains - eliminates N+1.
+   */
+  findBlockingEntriesForEmailsAndDomains(params: {
+    emails: string[];
+    domains: string[];
+  }): Promise<Watchlist[]>;
+
   // Write operations
   createEntry(data: {
     type: WatchlistType;
@@ -51,6 +60,16 @@ export interface IOrganizationWatchlistRepository {
   findById(id: string, organizationId: number): Promise<Watchlist | null>;
   listBlockedEntries(organizationId: number): Promise<Watchlist[]>;
   listAllOrganizationEntries(): Promise<Watchlist[]>;
+
+  /**
+   * Bulk find blocking entries for multiple emails and domains within an organization.
+   * Single query for N emails and domains - eliminates N+1.
+   */
+  findBlockingEntriesForEmailsAndDomains(params: {
+    emails: string[];
+    domains: string[];
+    organizationId: number;
+  }): Promise<Watchlist[]>;
 
   // Write operations
   createEntry(

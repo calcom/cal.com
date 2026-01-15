@@ -66,7 +66,7 @@ export async function getServerSession(options: {
   });
 
   if (!userFromDb) {
-    log.debug("No user found");
+    log.warn("No user found for valid token", { userId });
     return null;
   }
 
@@ -124,12 +124,14 @@ export async function getServerSession(options: {
       },
       select: {
         id: true,
+        uuid: true,
         role: true,
       },
     });
     if (impersonatedByUser) {
       session.user.impersonatedBy = {
         id: impersonatedByUser?.id,
+        uuid: impersonatedByUser.uuid,
         role: impersonatedByUser.role,
       };
     }

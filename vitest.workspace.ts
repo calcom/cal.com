@@ -31,7 +31,7 @@ const workspaces = packagedEmbedTestsOnly
           name: `IntegrationTests`,
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -49,7 +49,7 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           // TODO: Ignore the api until tests are fixed
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -66,7 +66,7 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/**/*.timezone.test.ts", "apps/**/*.timezone.test.ts"],
           // TODO: Ignore the api until tests are fixed
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
       },
     ]
@@ -84,7 +84,7 @@ const workspaces = packagedEmbedTestsOnly
             "apps/api/v2/**/*",
           ],
           name: "@calcom/lib",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -108,7 +108,7 @@ const workspaces = packagedEmbedTestsOnly
             "apps/api/v2/**/*",
           ],
           name: "@calcom/api",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -151,7 +151,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/app-store-delegation-credential",
           include: ["packages/app-store/delegationCredential.test.ts"],
           environment: "node",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
       },
       {

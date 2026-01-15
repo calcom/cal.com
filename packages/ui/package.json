@@ -92,8 +92,6 @@
     "@radix-ui/react-portal": "1.0.4",
     "@radix-ui/react-select": "0.1.1",
     "@radix-ui/react-slider": "1.2.2",
-    "@storybook/blocks": "7.6.3",
-    "@storybook/react": "7.6.3",
     "@tanstack/react-table": "8.20.6",
     "@wojtekmaj/react-daterange-picker": "3.4.0",
     "class-variance-authority": "0.4.0",

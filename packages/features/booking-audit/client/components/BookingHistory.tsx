@@ -43,6 +43,11 @@ type AuditLog = {
         displayEmail: string | null;
         displayAvatar: string | null;
     };
+    impersonatedBy?: {
+        displayName: string;
+        displayEmail: string | null;
+        displayAvatar: string | null;
+    } | null;
 };
 
 interface BookingLogsFiltersProps {
@@ -283,8 +288,14 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                 <span className="font-medium text-emphasis min-w-[80px]">{t("actor")}</span>
                                                 <span className="text-default">{log.actor.displayName || log.actor.type}</span>
                                             </div>
+                                            {log.impersonatedBy && (
+                                                <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                                                    <span className="font-medium text-emphasis min-w-[80px]">{t("booking_audit_action.actor_impersonated_by", { actor: log.actor.displayName })}</span>
+                                                    <span className="text-default">{log.impersonatedBy.displayName}</span>
+                                                </div>
+                                            )}
                                             <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                                                <span className="font-medium text-emphasis min-w-[80px]">{t("source")}</span>
+                                                <span className="font-medium text-emphasis min-w-[80px]">{t("booking_audit_action.source")}</span>
                                                 <span className="text-default">{log.source}</span>
                                             </div>
                                             <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">

@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTableSkeleton } from "@calcom/features/data-table";
+import { DataTableSkeleton } from "~/data-table/components";
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 

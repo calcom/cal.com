@@ -1,6 +1,8 @@
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type { IBookingAuditRepository, BookingAuditCreateInput, BookingAuditWithActor } from "./IBookingAuditRepository";
+import { BookingAuditContextSchema } from "../dto/types";
 
 type Dependencies = {
     prismaClient: PrismaClient;
@@ -30,6 +32,7 @@ const safeBookingAuditSelect = {
     source: true,
     operationId: true,
     data: true,
+    context: true,
     createdAt: true,
     updatedAt: true,
 } as const;
@@ -37,8 +40,15 @@ const safeBookingAuditSelect = {
 export class PrismaBookingAuditRepository implements IBookingAuditRepository {
     constructor(private readonly deps: Dependencies) { }
 
+    private parsed<T extends { context: Prisma.JsonValue }>(auditLog: T) {
+        return {
+            ...auditLog,
+            context: auditLog.context ? BookingAuditContextSchema.parse(auditLog.context) : null,
+        };
+    }
+
     async create(bookingAudit: BookingAuditCreateInput) {
-        return this.deps.prismaClient.bookingAudit.create({
+        const created = await this.deps.prismaClient.bookingAudit.create({
             data: {
                 bookingUid: bookingAudit.bookingUid,
                 actorId: bookingAudit.actorId,
@@ -48,8 +58,11 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 source: bookingAudit.source,
                 operationId: bookingAudit.operationId,
                 data: bookingAudit.data === null ? undefined : bookingAudit.data,
+                context: bookingAudit.context ?? undefined,
             },
         });
+
+        return this.parsed(created);
     }
 
     async createMany(bookingAudits: BookingAuditCreateInput[]) {
@@ -63,13 +76,14 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 source: bookingAudit.source,
                 operationId: bookingAudit.operationId,
                 data: bookingAudit.data === null ? undefined : bookingAudit.data,
+                context: bookingAudit.context === undefined ? undefined : bookingAudit.context,
             })),
         });
         return { count: result.count };
     }
 
     async findAllForBooking(bookingUid: string): Promise<BookingAuditWithActor[]> {
-        return this.deps.prismaClient.bookingAudit.findMany({
+        const results = await this.deps.prismaClient.bookingAudit.findMany({
             where: {
                 bookingUid,
             },
@@ -83,10 +97,12 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 timestamp: "desc",
             },
         });
+
+        return results.map(this.parsed);
     }
 
     async findRescheduledLogsOfBooking(bookingUid: string): Promise<BookingAuditWithActor[]> {
-        return this.deps.prismaClient.bookingAudit.findMany({
+        const results = await this.deps.prismaClient.bookingAudit.findMany({
             where: {
                 bookingUid,
                 action: "RESCHEDULED",
@@ -99,6 +115,8 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
             },
             orderBy: { timestamp: "desc" },
         });
+
+        return results.map(this.parsed);
     }
 }
 
