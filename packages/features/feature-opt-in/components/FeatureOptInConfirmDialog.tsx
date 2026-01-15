@@ -149,12 +149,9 @@ export function FeatureOptInConfirmDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
-      <DialogContent title={t("enable_feature")} type="creation">
+      <DialogContent title={t(featureConfig.titleI18nKey)} type="creation">
         <div className="space-y-4">
-          <div>
-            <h4 className="text-emphasis font-medium">{t(featureConfig.titleI18nKey)}</h4>
-            <p className="text-subtle mt-1 text-sm">{t(featureConfig.descriptionI18nKey)}</p>
-          </div>
+          <p className="text-subtle text-sm">{t(featureConfig.descriptionI18nKey)}</p>
 
           {(canEnableForOrg || canEnableForTeams) && (
             <div className="space-y-3">
@@ -199,7 +196,7 @@ export function FeatureOptInConfirmDialog({
             {t("cancel")}
           </Button>
           <Button color="primary" onClick={handleConfirm} loading={isSubmitting}>
-            {t("enable_feature")}
+            {t("enable")}
           </Button>
         </DialogFooter>
       </DialogContent>

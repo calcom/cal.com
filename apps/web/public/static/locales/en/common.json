@@ -4342,7 +4342,6 @@
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
   "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
   "try_it_now": "Try it now",
-  "enable_feature": "Enable Feature",
   "enable_for": "Enable for",
   "entire_organization": "Entire organization",
   "team_name": "{{name}}",
