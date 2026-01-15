@@ -42,6 +42,7 @@ const _getBusyTimesFromLimits = async (
       limitManager,
       rescheduleUid,
       timeZone,
+      seatsPerTimeSlot: eventType.seatsPerTimeSlot,
     });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
@@ -83,6 +84,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
   user?: { id: number; email: string };
   includeManagedEvents?: boolean;
   timeZone?: string | null;
+  seatsPerTimeSlot?: number | null;
 }) => {
   const {
     bookings,
@@ -96,6 +98,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     rescheduleUid,
     includeManagedEvents = false,
     timeZone,
+    seatsPerTimeSlot,
   } = params;
 
   for (const key of descendingLimitKeys) {
@@ -134,6 +137,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
 
       const periodEnd = periodStart.endOf(unit);
       let totalBookings = 0;
+      let totalAttendees = 0;
 
       for (const booking of bookings) {
         // consider booking part of period independent of end date
@@ -141,7 +145,15 @@ const _getBusyTimesFromBookingLimits = async (params: {
           continue;
         }
         totalBookings++;
-        if (totalBookings >= limit) {
+        totalAttendees += booking.attendeeCount || 1;
+
+        // For seated events, check if all seats are filled
+        if (seatsPerTimeSlot) {
+          if (totalAttendees >= seatsPerTimeSlot) {
+            limitManager.addBusyTime(periodStart, unit);
+            break;
+          }
+        } else if (totalBookings >= limit) {
           limitManager.addBusyTime(periodStart, unit);
           break;
         }
