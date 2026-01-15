@@ -50,6 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }),
   });
 
+  if (!tokenResponse.ok) {
+    const errorBody = await tokenResponse.text();
+    res.status(tokenResponse.status).json({ message: "Failed to exchange OAuth code", detail: errorBody });
+    return;
+  }
+
   const pipedriveToken: PipedriveToken = await tokenResponse.json();
 
   pipedriveToken.expiryDate = Math.round(Date.now() + pipedriveToken.expires_in * 1000);
