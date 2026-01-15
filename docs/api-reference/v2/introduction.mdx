@@ -76,6 +76,10 @@ OAuth credentials can be accessed in the platform dashboard https://app.cal.com/
 1. `x-cal-client-id` - ID of the OAuth client.
 2. `x-cal-secret-key` - secret of the OAuth client.
 
+
+
+## Deprecated
+
 ### 3. Managed user access token
 
 After you create a managed user you will receive its access and refresh tokens. The response also includes managed user's id, so we recommend you to add new properties to your users table calAccessToken, calRefreshToken and calManagedUserId to store this information.
@@ -92,9 +96,6 @@ Validity period: access tokens are valid for 60 minutes and refresh tokens for 1
 
 Recovering tokens: if you ever lose managed user's access or refresh tokens, you can force refresh them using the OAuth client credentials and store them in your database [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens).
 
-
-
-## Deprecated
 
 ## Platform endpoints
 
