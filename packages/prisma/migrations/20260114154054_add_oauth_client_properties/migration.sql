@@ -10,9 +10,6 @@ ADD COLUMN     "userId" INTEGER,
 ADD COLUMN     "websiteUrl" TEXT;
 
 -- CreateIndex
-CREATE INDEX "IntegrationAttributeSync_credentialId_idx" ON "public"."IntegrationAttributeSync"("credentialId");
-
--- CreateIndex
 CREATE INDEX "OAuthClient_userId_idx" ON "public"."OAuthClient"("userId");
 
 -- AddForeignKey
