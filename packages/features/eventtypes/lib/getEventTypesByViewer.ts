@@ -53,7 +53,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   }
 
   const permissionCheckService = new PermissionCheckService();
-  const [teamsWithEventTypeReadPermission, teamsWithEventTypeManagePermission] = await Promise.all([
+  const [teamsWithEventTypeReadPermission, teamsWithEventTypeUpdatePermission] = await Promise.all([
     permissionCheckService.getTeamIdsWithPermission({
       userId: user.id,
       permission: "eventType.read",
@@ -301,7 +301,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                 return res;
               })
               .filter((evType) =>
-                !teamsWithEventTypeManagePermission.includes(team.id)
+                !teamsWithEventTypeUpdatePermission.includes(team.id)
                   ? evType.schedulingType !== SchedulingType.MANAGED
                   : true
               )

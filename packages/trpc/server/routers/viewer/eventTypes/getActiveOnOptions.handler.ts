@@ -56,14 +56,14 @@ const fetchEventTypeGroups = async ({
   parentOrgHasLockedEventTypes,
   skipEventTypes,
   teamId,
-  teamIdsWithEventTypeManagePermission,
+  teamIdsWithEventTypeUpdatePermission,
 }: {
   ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
   profile: NonNullable<Awaited<ReturnType<typeof ProfileRepository.findByUpIdWithAuth>>>;
   parentOrgHasLockedEventTypes: boolean | undefined;
   skipEventTypes: boolean;
   teamId?: number;
-  teamIdsWithEventTypeManagePermission: number[];
+  teamIdsWithEventTypeUpdatePermission: number[];
 }): Promise<EventTypeGroup[]> => {
   const user = ctx.user;
   const userProfile = ctx.user.profile;
@@ -135,11 +135,11 @@ const fetchEventTypeGroups = async ({
           metadata: teamMetadataSchema.parse(membership.team.metadata),
         };
 
-        const canManageEventTypes = teamIdsWithEventTypeManagePermission.includes(team.id);
+        const canUpdateEventTypes = teamIdsWithEventTypeUpdatePermission.includes(team.id);
         const eventTypes = team.eventTypes
           ?.filter((evType) => evType.userId === null || evType.userId === user.id)
           ?.filter((evType) =>
-            !canManageEventTypes ? evType.schedulingType !== SchedulingType.MANAGED : true
+            !canUpdateEventTypes ? evType.schedulingType !== SchedulingType.MANAGED : true
           );
 
         return {
@@ -225,7 +225,7 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
   }
 
   const permissionCheckService = new PermissionCheckService();
-  const teamIdsWithEventTypeManagePermission = await permissionCheckService.getTeamIdsWithPermission({
+  const teamIdsWithEventTypeUpdatePermission = await permissionCheckService.getTeamIdsWithPermission({
     userId: user.id,
     permission: "eventType.update",
     fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
@@ -237,7 +237,7 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
     parentOrgHasLockedEventTypes,
     skipEventTypes: shouldSkipEventTypes,
     teamId,
-    teamIdsWithEventTypeManagePermission,
+    teamIdsWithEventTypeUpdatePermission,
   });
 
   const teamOptions = await fetchTeamOptions({
