@@ -33,6 +33,11 @@
   },
   "tabs": [
     {
+      "name": "API v2 Reference",
+      "openapi": "/api-reference/v2/openapi.json",
+      "url": "api-reference/v2"
+    },
+    {
       "name": "Developing",
       "url": "developing"
     },
@@ -41,25 +46,24 @@
       "url": "self-hosting"
     },
     {
-      "name": "OAuth",
-      "url": "oauth"
-    },
-    {
-      "name": "API v2 Reference",
-      "openapi": "/api-reference/v2/openapi.json",
-      "url": "api-reference/v2"
-    },
-    {
-      "name": "API v1 Reference",
+      "name": "API v1 Reference [Deprecated]",
       "openapi": "/api-reference/v1/openapi-v1.json",
       "url": "api-reference/v1",
       "banner": {
         "type": "warning",
-        "content": "API v1 will be discontinued on February 15, 2026. Please migrate to [API v2](/api-reference/v2/introduction)."
+        "content": "API v1 is deprecated and will be discontinued on February 15, 2026. Please migrate to [API v2](/api-reference/v2/introduction)."
       }
     }
   ],
   "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "api-reference/v2/introduction",
+        "api-reference/v2/oauth",
+        "api-reference/v2/v1-v2-differences"
+      ]
+    },
     {
       "group": "Getting Started",
       "pages": ["developing/introduction", "developing/local-development"]
@@ -203,64 +207,6 @@
           ]
         }
       ]
-    },
-    {
-      "group": "Getting Started",
-      "pages": [
-        "platform/introduction",
-        "platform/setup",
-        "platform/quickstart",
-        {
-          "group": "Atoms",
-          "icon": "atom",
-          "pages": [
-            "platform/atoms/apple-calendar-connect",
-            "platform/atoms/availability-settings",
-            "platform/atoms/booker",
-            "platform/atoms/booker-embed",
-            "platform/atoms/cal-provider",
-            "platform/atoms/calendar-settings",
-            "platform/atoms/calendar-view",
-            "platform/atoms/conferencing-apps",
-            "platform/atoms/create-schedule",
-            "platform/atoms/event-type",
-            "platform/atoms/google-calendar-connect",
-            "platform/atoms/list-event-types",
-            "platform/atoms/list-schedules",
-            "platform/atoms/outlook-calendar-connect",
-            "platform/atoms/payment-form",
-            "platform/atoms/stripe-connect"
-          ]
-        },
-        {
-          "group": "Hooks",
-          "icon": "brackets-curly",
-          "pages": [
-            "platform/bookings-hooks",
-            "platform/event-types-hooks",
-            "platform/calendars-hooks",
-            "platform/user-or-team-related-hooks"
-          ]
-        },
-        {
-          "group": "Guides",
-          "icon": "book",
-          "pages": [
-            "platform/guides/replacing-toasts",
-            "platform/guides/booking-fields",
-            "platform/guides/booking-redirects",
-            "platform/guides/managed-orgs",
-            "platform/guides/teams-setup",
-            "platform/guides/global-event-types",
-            "platform/guides/custom-booking-flow"
-          ]
-        },
-        "platform/faq"
-      ]
-    },
-    {
-      "group": "Getting Started",
-      "pages": ["api-reference/v2/introduction", "api-reference/v2/v1-v2-differences"]
     },
     {
       "group": "Getting Started",
