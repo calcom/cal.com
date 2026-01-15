@@ -34,14 +34,17 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const { t } = useLocale();
   const mutation = useMutation({
     mutationFn: async ({ isOn }: { isOn: boolean }) => {
-      const body = {
+      const body: Record<string, string> = {
         integration: type,
         externalId: externalId,
-        ...(delegationCredentialId && { delegationCredentialId }),
-        // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
-        ...(eventTypeId ? { eventTypeId: String(eventTypeId) } : {}),
       };
+      if (delegationCredentialId) {
+        body.delegationCredentialId = String(delegationCredentialId);
+      }
+      if (eventTypeId) {
+        body.eventTypeId = String(eventTypeId);
+      }
 
       if (isOn) {
         const res = await fetch("/api/availability/calendar", {

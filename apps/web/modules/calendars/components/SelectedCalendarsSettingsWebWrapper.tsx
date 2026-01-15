@@ -98,7 +98,7 @@ const ConnectedCalendarList = ({
                             }
                             return null;
                           })()}
-                          delegationCredentialId={connectedCalendar.delegationCredentialId || null}
+                          delegationCredentialId={connectedCalendar.delegationCredentialId ? Number(connectedCalendar.delegationCredentialId) : null}
                         />
                       ))}
                     </ul>

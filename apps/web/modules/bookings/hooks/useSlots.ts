@@ -16,6 +16,8 @@ import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewe
 
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
 
+import type { QuickAvailabilityCheck } from "@calcom/features/bookings/Booker/types";
+
 export type { QuickAvailabilityCheck, UseSlotsReturnType } from "@calcom/features/bookings/Booker/types";
 
 const useQuickAvailabilityChecks = ({

@@ -294,7 +294,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       }
 
       const { uid, paymentUid } = booking;
-      const fullName = getFullName(bookingForm.getValues("responses.name"));
+      const fullName = getFullName(bookingForm.getValues("responses.name") as string | { firstName: string; lastName?: string } | undefined);
 
       const users = event.data?.subsetOfHosts?.length
         ? event.data?.subsetOfHosts.map((host) => host.user)
@@ -355,7 +355,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
             paymentUid,
             date: timeslot,
             name: fullName,
-            email: bookingForm.getValues("responses.email"),
+            email: bookingForm.getValues("responses.email") as string | undefined,
             absolute: false,
           })
         );
@@ -369,7 +369,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
 
       const query = {
         isSuccessBookingPage: true,
-        email: bookingForm.getValues("responses.email"),
+        email: bookingForm.getValues("responses.email") as string | undefined,
         eventTypeSlug: eventSlug,
         seatReferenceUid: "seatReferenceUid" in booking ? (booking.seatReferenceUid as string) : null,
         formerTime:
@@ -475,7 +475,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       const query = {
         isSuccessBookingPage: true,
         allRemainingBookings: true,
-        email: bookingForm.getValues("responses.email"),
+        email: bookingForm.getValues("responses.email") as string | undefined,
         eventTypeSlug: eventSlug,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,

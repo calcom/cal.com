@@ -62,7 +62,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
               type={integrationType}
               isChecked={calendar.isSelected}
               isLastItemInList={i === calendars.length - 1}
-              delegationCredentialId={calendar.delegationCredentialId}
+              delegationCredentialId={calendar.delegationCredentialId ? Number(calendar.delegationCredentialId) : null}
             />
           ))}
         </ul>
