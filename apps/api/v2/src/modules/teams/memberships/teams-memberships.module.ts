@@ -6,10 +6,20 @@ import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-t
 import { TeamsMembershipsController } from "@/modules/teams/memberships/controllers/teams-memberships.controller";
 import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
+import { TeamsModule } from "@/modules/teams/teams/teams.module";
+import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, RedisModule, OrganizationsModule, MembershipsModule, TeamsEventTypesModule],
+  imports: [
+    PrismaModule,
+    RedisModule,
+    OrganizationsModule,
+    MembershipsModule,
+    TeamsEventTypesModule,
+    TeamsModule,
+    UsersModule,
+  ],
   providers: [TeamsMembershipsRepository, TeamsMembershipsService],
   controllers: [TeamsMembershipsController],
   exports: [TeamsMembershipsService],
