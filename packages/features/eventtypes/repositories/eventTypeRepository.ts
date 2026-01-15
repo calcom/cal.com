@@ -1874,7 +1874,7 @@ export class EventTypeRepository {
       WHERE 
           et."teamId" IS NOT NULL
           AND et."assignAllTeamMembers" = true
-          AND et."schedulingType" IN ('ROUND_ROBIN', 'COLLECTIVE')
+          AND et."schedulingType" IN ('roundRobin', 'collective')
           AND (
               -- Has orphaned hosts (hosts who are not accepted team members)
               EXISTS (
