@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import type { CSSObjectWithLabel } from "react-select";
 import { components } from "react-select";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -314,9 +315,7 @@ const HostLocationRow = ({
             menuPlacement="auto"
             menuPortalTarget={typeof document !== "undefined" ? document.body : null}
             styles={{
-              menuPortal: (base) => {
-                return { ...base, zIndex: 9999 };
-              },
+              menuPortal: (base) => ({ ...base, zIndex: 9999 }) as CSSObjectWithLabel,
             }}
             onChange={handleLocationSelect}
           />
