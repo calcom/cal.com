@@ -689,6 +689,36 @@ export const EventAdvancedTab = ({
       {!isPlatform && (
         <>
           <Controller
+            name="requiresCancellationReason"
+            render={({ field: { value, onChange } }) => {
+              const cancellationReasonOptions = [
+                { value: "MANDATORY_BOTH", label: t("mandatory_for_both") },
+                { value: "MANDATORY_HOST_ONLY", label: t("mandatory_for_host_only") },
+                { value: "MANDATORY_ATTENDEE_ONLY", label: t("mandatory_for_attendee_only") },
+                { value: "OPTIONAL_BOTH", label: t("optional_for_both") },
+              ];
+              return (
+                <div className="border-subtle rounded-lg border px-4 py-6 sm:px-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-default text-sm font-semibold">{t("require_cancellation_reason")}</p>
+                      <p className="text-default text-sm">{t("require_cancellation_reason_description")}</p>
+                    </div>
+                    <Select
+                      value={cancellationReasonOptions.find(
+                        (opt) => opt.value === (value || "MANDATORY_HOST_ONLY")
+                      )}
+                      options={cancellationReasonOptions}
+                      onChange={(selected) => onChange(selected?.value)}
+                      className="w-52"
+                    />
+                  </div>
+                </div>
+              );
+            }}
+          />
+
+          <Controller
             name="disabledCancelling"
             render={({ field: { onChange, value } }) => (
               <SettingsToggle

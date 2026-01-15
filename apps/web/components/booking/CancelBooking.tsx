@@ -109,6 +109,12 @@ type Props = {
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
   renderContext: "booking-single-view" | "dialog";
   eventTypeMetadata?: Record<string, unknown> | null;
+  requiresCancellationReason?:
+    | "MANDATORY_BOTH"
+    | "MANDATORY_HOST_ONLY"
+    | "MANDATORY_ATTENDEE_ONLY"
+    | "OPTIONAL_BOTH"
+    | null;
   showErrorAsToast?: boolean;
   onCanceled?: () => void;
 };
@@ -162,9 +168,19 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
-  const hostMissingCancellationReason =
-    isCancellationUserHost &&
-    (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
+  const requirementSetting = props.requiresCancellationReason ?? "MANDATORY_HOST_ONLY";
+
+  const isReasonRequiredForUser = () => {
+    if (requirementSetting === "OPTIONAL_BOTH") return false;
+    if (requirementSetting === "MANDATORY_BOTH") return true;
+    if (requirementSetting === "MANDATORY_HOST_ONLY") return isCancellationUserHost;
+    if (requirementSetting === "MANDATORY_ATTENDEE_ONLY") return !isCancellationUserHost;
+    return false;
+  };
+
+  const missingRequiredReason = isReasonRequiredForUser() && !cancellationReason?.trim();
+  const hostMissingInternalNote =
+    isCancellationUserHost && props.internalNotePresets.length > 0 && !internalNote?.id;
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
@@ -217,7 +233,10 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{isCancellationUserHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          <Label>
+            {t("cancellation_reason")}
+            {!isReasonRequiredForUser() && ` ${t("cancellation_reason_optional")}`}
+          </Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -267,7 +286,7 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={hostMissingCancellationReason || cancellationNoShowFeeNotAcknowledged}
+                disabled={missingRequiredReason || hostMissingInternalNote || cancellationNoShowFeeNotAcknowledged}
                 onClick={async () => {
                   setLoading(true);
 

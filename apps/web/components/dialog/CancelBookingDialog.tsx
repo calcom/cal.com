@@ -48,6 +48,12 @@ interface ICancelBookingDialog {
   isHost: boolean;
   internalNotePresets?: { id: number; name: string; cancellationReason: string | null }[];
   eventTypeMetadata?: Record<string, unknown> | null;
+  requiresCancellationReason?:
+    | "MANDATORY_BOTH"
+    | "MANDATORY_HOST_ONLY"
+    | "MANDATORY_ATTENDEE_ONLY"
+    | "OPTIONAL_BOTH"
+    | null;
 }
 
 export const CancelBookingDialog = (props: ICancelBookingDialog) => {
@@ -67,6 +73,7 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
     isHost,
     internalNotePresets = [],
     eventTypeMetadata,
+    requiresCancellationReason,
   } = props;
 
   const utils = trpc.useUtils();
@@ -113,6 +120,7 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
           isHost={isHost}
           internalNotePresets={internalNotePresets}
           eventTypeMetadata={eventTypeMetadata}
+          requiresCancellationReason={requiresCancellationReason}
           showErrorAsToast={true}
           onCanceled={handleCanceled}
         />

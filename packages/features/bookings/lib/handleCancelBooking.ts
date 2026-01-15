@@ -180,15 +180,26 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
+  const requiresCancellationReasonSetting =
+    bookingToDelete.eventType?.requiresCancellationReason ?? "MANDATORY_HOST_ONLY";
+
+  const isReasonRequiredForUser = () => {
+    if (requiresCancellationReasonSetting === "OPTIONAL_BOTH") return false;
+    if (requiresCancellationReasonSetting === "MANDATORY_BOTH") return true;
+    if (requiresCancellationReasonSetting === "MANDATORY_HOST_ONLY") return isCancellationUserHost;
+    if (requiresCancellationReasonSetting === "MANDATORY_ATTENDEE_ONLY") return !isCancellationUserHost;
+    return false;
+  };
+
   if (
     !platformClientId &&
     !cancellationReason?.trim() &&
-    isCancellationUserHost &&
+    isReasonRequiredForUser() &&
     !skipCancellationReasonValidation
   ) {
     throw new HttpError({
       statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
+      message: "Cancellation reason is required",
     });
   }
 
