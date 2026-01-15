@@ -3,14 +3,6 @@ title: "Introduction to API v2"
 description: "Introduction to Cal.com API v2 endpoints"
 ---
 
-## Platform endpoints
-
-Platform customers have the following endpoints available:
-
-1. Endpoints prefixed with "Platform".
-2. Endpoints with no prefix e.g "Bookings", "Event Types".
-3. If you are at least on the ESSENTIALS plan, then all endpoints prefixed with "Orgs" except "Orgs / Attributes", "Orgs / Attributes / Options" and "Orgs / Teams / Routing forms / Responses".
-
 ## Organizations endpoints
 
 Organizations customers have all the endpoints except the ones prefixed with "Platform" and "Teams" and "Orgs / Orgs" because
@@ -93,3 +85,15 @@ It is passed as an authorization bearer request header Authorization: Bearer \<a
 Validity period: access tokens are valid for 60 minutes and refresh tokens for 1 year, and tokens can be refreshed using the refresh endpoint [API reference](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh). After refreshing you will receive the new access and refresh tokens that you have to store in your database.
 
 Recovering tokens: if you ever lose managed user's access or refresh tokens, you can force refresh them using the OAuth client credentials and store them in your database [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens).
+
+
+
+## Deprecated
+
+## Platform endpoints
+
+Platform customers have the following endpoints available:
+
+1. Endpoints prefixed with "Platform".
+2. Endpoints with no prefix e.g "Bookings", "Event Types".
+3. If you are at least on the ESSENTIALS plan, then all endpoints prefixed with "Orgs" except "Orgs / Attributes", "Orgs / Attributes / Options" and "Orgs / Teams / Routing forms / Responses".
