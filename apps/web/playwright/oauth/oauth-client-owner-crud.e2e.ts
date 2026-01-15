@@ -83,7 +83,7 @@ const oAuthClientSelect = {
 async function createOAuthClient(page: Page, input: CreateOAuthClientInput): Promise<CreateOAuthClientResult> {
   await goToOAuthSettings(page);
 
-  await page.getByTestId("open-oauth-client-create-dialog").click();
+  await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
 
   const form = getOAuthClientCreateForm(page);
   await getOAuthClientCreateNameInput(form).fill(input.name);
@@ -287,7 +287,7 @@ test.describe("OAuth client creation", () => {
   test("cannot be created without required fields (name, purpose, redirect uri)", async ({ page }) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
-    await page.getByTestId("open-oauth-client-create-dialog").click();
+    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
 
     const form = page.getByTestId("oauth-client-create-form");
     await expect(form).toBeVisible();

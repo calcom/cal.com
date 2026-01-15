@@ -37,7 +37,7 @@ type CreateOAuthClientResult = {
 export async function createPendingOAuthClient(page: Page, input: CreateOAuthClientInput): Promise<CreateOAuthClientResult> {
   await goToDeveloperOAuthSettings(page);
 
-  await page.getByTestId("open-oauth-client-create-dialog").click();
+  await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
 
   const form = page.getByTestId("oauth-client-create-form");
   await form.locator("#name").fill(input.name);
