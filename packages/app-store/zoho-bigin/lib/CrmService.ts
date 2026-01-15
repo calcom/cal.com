@@ -33,7 +33,7 @@ export type BiginContact = {
   Email: string;
 };
 
-export default class BiginCrmService implements CRM {
+class BiginCrmService implements CRM {
   private readonly integrationName = "zoho-bigin";
   private readonly auth: { getToken: () => Promise<BiginToken> };
   private log: typeof logger;
@@ -299,7 +299,19 @@ export default class BiginCrmService implements CRM {
   }
 }
 
-const toISO8601String = (date: Date) => {
+/**
+ * Factory function that creates a Zoho Bigin CRM service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  _appOptions?: Record<string, unknown>
+): CRM {
+  return new BiginCrmService(credential);
+}
+
+const toISO8601String= (date: Date) => {
   const tzo = -date.getTimezoneOffset(),
     dif = tzo >= 0 ? "+" : "-",
     pad = function (num: number) {

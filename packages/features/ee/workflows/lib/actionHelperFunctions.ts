@@ -145,6 +145,29 @@ export function getTemplateBodyForAction({
   return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailBody;
 }
 
+export function getTemplateSubjectForAction({
+  action,
+  locale,
+  t,
+  template,
+  timeFormat,
+}: {
+  action: WorkflowActions;
+  locale: string;
+  t: TFunction;
+  template: WorkflowTemplates;
+  timeFormat: TimeFormat;
+}): string | null {
+  // SMS and WhatsApp don't have subjects
+  if (isSMSAction(action) || isWhatsappAction(action)) {
+    return null;
+  }
+
+  // For email actions, get the subject from the template
+  const templateFunction = getEmailTemplateFunction(template);
+  return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailSubject;
+}
+
 export function isFormTrigger(trigger: WorkflowTriggerEvents) {
   return FORM_TRIGGER_WORKFLOW_EVENTS.includes(trigger);
 }
