@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
+import { useBookerUrl } from "@calcom/web/modules/bookings/hooks/useBookerUrl";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

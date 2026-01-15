@@ -48,10 +48,10 @@ yarn vitest run path/to/file.test.ts
 yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
 
 # Integration test specific file
-yarn test path/to/file.integration-test.ts -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts
 
 # Integration test specific file + specific test
-yarn test path/to/file.integration-test.ts --testNamePattern="specific test name" -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts --testNamePattern="specific test name"
 
 # E2E test specific file
 PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts

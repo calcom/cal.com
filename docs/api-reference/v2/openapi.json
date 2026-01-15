@@ -2936,7 +2936,9 @@
                   "watchlist.create",
                   "watchlist.read",
                   "watchlist.update",
-                  "watchlist.delete"
+                  "watchlist.delete",
+                  "featureOptIn.read",
+                  "featureOptIn.update"
                 ]
               }
             }
@@ -6659,7 +6661,9 @@
                   "webhook.create",
                   "webhook.read",
                   "webhook.update",
-                  "webhook.delete"
+                  "webhook.delete",
+                  "featureOptIn.read",
+                  "featureOptIn.update"
                 ]
               }
             }
@@ -29645,7 +29649,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -29758,7 +29764,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -29920,7 +29928,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -30039,7 +30049,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           }
@@ -30123,7 +30135,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -30215,7 +30229,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -30356,7 +30372,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -30454,7 +30472,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           }
@@ -33058,10 +33078,6 @@
               "error"
             ]
           },
-          "message": {
-            "type": "string",
-            "example": "This endpoint will require authentication in a future release."
-          },
           "error": {
             "type": "object"
           },
@@ -33097,10 +33113,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "message": {
-            "type": "string",
-            "example": "This endpoint will require authentication in a future release."
           },
           "error": {
             "type": "object"

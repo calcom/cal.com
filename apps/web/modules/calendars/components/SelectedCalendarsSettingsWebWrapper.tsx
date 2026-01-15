@@ -1,18 +1,17 @@
-import Link from "next/link";
-import React from "react";
-
+import { SelectedCalendarsSettings } from "@calcom/atoms/selected-calendars/SelectedCalendarsSettings";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
+import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
+import CredentialActionsDropdown from "@calcom/web/modules/apps/components/CredentialActionsDropdown";
+import Link from "next/link";
+import React from "react";
 
-import AppListCard from "../../apps/components/AppListCard";
-import CredentialActionsDropdown from "../../apps/components/CredentialActionsDropdown";
 import AdditionalCalendarSelector from "./AdditionalCalendarSelector";
 import { CalendarSwitch } from "./CalendarSwitch";
-import { SelectedCalendarsSettings } from "@calcom/atoms/selected-calendars/SelectedCalendarsSettings";
 
 export enum SelectedCalendarSettingsScope {
   User = "user",
@@ -30,6 +29,7 @@ type SelectedCalendarsSettingsWebWrapperProps = {
   scope?: SelectedCalendarSettingsScope;
   setScope?: (scope: SelectedCalendarSettingsScope) => void;
   disableConnectionModification?: boolean;
+  connectedCalendars?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
 };
 
 const ConnectedCalendarList = ({
@@ -92,7 +92,12 @@ const ConnectedCalendarList = ({
                           isChecked={cal.isSelected}
                           destination={cal.externalId === destinationCalendarId}
                           credentialId={cal.credentialId}
-                          eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
+                          eventTypeId={(() => {
+                            if (shouldUseEventTypeScope) {
+                              return eventTypeId;
+                            }
+                            return null;
+                          })()}
                           delegationCredentialId={connectedCalendar.delegationCredentialId || null}
                         />
                       ))}
@@ -145,19 +150,30 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
     eventTypeId = null,
   } = props;
 
-  const query = trpc.viewer.calendars.connectedCalendars.useQuery(
-    {
-      eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,
-    },
-    {
-      suspense: true,
-      refetchOnWindowFocus: false,
-    }
-  );
+  let queryInput: { eventTypeId: number } | undefined;
+  if (scope === SelectedCalendarSettingsScope.EventType) {
+    queryInput = { eventTypeId: eventTypeId! };
+  }
 
-  const { isPending } = props;
+  let initialData: RouterOutputs["viewer"]["calendars"]["connectedCalendars"] | undefined;
+  if (scope === SelectedCalendarSettingsScope.User && props.connectedCalendars) {
+    initialData = props.connectedCalendars;
+  }
+
+  const query = trpc.viewer.calendars.connectedCalendars.useQuery(queryInput, {
+    initialData,
+    suspense: true,
+    refetchOnWindowFocus: false,
+  });
+
+  const isPending = props.isPending;
   const showScopeSelector = !!props.eventTypeId;
-  const isDisabled = disabledScope ? disabledScope === scope : false;
+
+  let isDisabled = false;
+  if (disabledScope) {
+    isDisabled = disabledScope === scope;
+  }
+
   const shouldDisableConnectionModification = isDisabled || disableConnectionModification;
   return (
     <div>
@@ -170,7 +186,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
           scope={scope}
           shouldDisableConnectionModification={shouldDisableConnectionModification}
         />
-        {query.data?.connectedCalendars && query.data?.connectedCalendars.length > 0 ? (
+        {!!(query.data?.connectedCalendars && query.data?.connectedCalendars.length > 0) && (
           <ConnectedCalendarList
             fromOnboarding={props.fromOnboarding}
             scope={scope}
@@ -180,7 +196,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
             items={query.data.connectedCalendars}
             isDisabled={isDisabled}
           />
-        ) : null}
+        )}
       </SelectedCalendarsSettings>
     </div>
   );
