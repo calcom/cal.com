@@ -11,13 +11,13 @@ type ConnectedCalendarsOptions = {
   input: TConnectedCalendarsInputSchema;
 };
 
+type GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult = Awaited<
+  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
+>;
+
 type ConnectedCalendarsHandlerResult = {
-  destinationCalendar: ReturnType<
-    typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb
-  >["destinationCalendar"];
-  connectedCalendars: ReturnType<
-    typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb
-  >["connectedCalendars"] & {
+  destinationCalendar: GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["destinationCalendar"];
+  connectedCalendars: GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["connectedCalendars"] & {
     cacheUpdatedAt: null;
   };
 };
