@@ -4,16 +4,26 @@ import { Stack } from "expo-router";
 import { Platform, StatusBar, View } from "react-native";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
+import { PushNotificationOnboarding } from "@/components/PushNotificationOnboarding";
 import { GlobalToast } from "@/components/ui/GlobalToast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { PushNotificationProvider, usePushNotifications } from "@/contexts/PushNotificationContext";
 import { QueryProvider } from "@/contexts/QueryContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import "../global.css";
 
-function RootLayoutContent() {
-  const { isAuthenticated } = useAuth();
+function AuthenticatedContent() {
+  const { hasCompletedOnboarding, isLoading } = usePushNotifications();
 
-  const content = isAuthenticated ? (
+  if (isLoading) {
+    return null;
+  }
+
+  if (!hasCompletedOnboarding && Platform.OS !== "web") {
+    return <PushNotificationOnboarding />;
+  }
+
+  return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
@@ -305,6 +315,16 @@ function RootLayoutContent() {
         }}
       />
     </Stack>
+  );
+}
+
+function RootLayoutContent() {
+  const { isAuthenticated } = useAuth();
+
+  const content = isAuthenticated ? (
+    <PushNotificationProvider>
+      <AuthenticatedContent />
+    </PushNotificationProvider>
   ) : (
     <LoginScreenComponent />
   );
