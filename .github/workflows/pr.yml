@@ -195,6 +195,7 @@ jobs:
             has-files-requiring-all-checks:
               - '**'
               - '!companion/**'
+              - '!.vscode/**'
               - '!**/*.md'
               - '!**/*.mdx'
               - '!.github/CODEOWNERS'

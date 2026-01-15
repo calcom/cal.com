@@ -6,7 +6,8 @@ import type { z } from "zod";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { appDataSchema } from "../zod";
-import SalesforceCRMService from "./CrmService";
+import type { SalesforceCRM } from "./CrmService";
+import { createSalesforceCrmServiceWithSalesforceType } from "./CrmService";
 import { SalesforceRecordEnum } from "./enums";
 
 type AppOptions = z.infer<typeof appDataSchema>;
@@ -87,7 +88,7 @@ vi.mock("./graphql/SalesforceGraphQLClient", () => ({
 }));
 
 describe("SalesforceCRMService", () => {
-  let service: SalesforceCRMService;
+  let service: SalesforceCRM;
   let mockConnection: {
     query: ReturnType<typeof vi.fn>;
     sobject: ReturnType<typeof vi.fn>;
@@ -121,9 +122,9 @@ describe("SalesforceCRMService", () => {
       delegationCredentialId: null,
     };
 
-    service = new SalesforceCRMService(mockCredential, {}, true);
+    service = createSalesforceCrmServiceWithSalesforceType(mockCredential, {}, true);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-ignore - accessing private property for testing
     service.conn = Promise.resolve(mockConnection);
   });
 
