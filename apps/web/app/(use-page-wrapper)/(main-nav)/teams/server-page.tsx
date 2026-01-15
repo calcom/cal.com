@@ -1,6 +1,6 @@
 import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, cacheLife, cacheTag } from "next/cache";
 
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
@@ -32,6 +32,9 @@ export const ServerTeamsListing = async ({
   searchParams: SearchParams;
   session: Session;
 }) => {
+  "use cache: private";
+  cacheLife({ stale: 30 });
+  cacheTag("viewer.teams.list");
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const autoAccept = Array.isArray(searchParams?.autoAccept)
     ? searchParams.autoAccept[0]
