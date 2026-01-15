@@ -663,13 +663,12 @@ async function createOrganizationAndAddMembersAndTeams({
 // The raw API key (without prefix) is: 0123456789abcdef0123456789abcdef
 // Use this in Postman/API clients: cal_live_0123456789abcdef0123456789abcdef
 const SEEDED_API_KEY = "0123456789abcdef0123456789abcdef";
-const SEEDED_API_KEY_ID = "seeded-api-key-local-dev";
 
 async function seedApiKey(userId: number) {
   const hashedKey = hashAPIKey(SEEDED_API_KEY);
 
-  const existingKey = await prisma.apiKey.findUnique({
-    where: { id: SEEDED_API_KEY_ID },
+  const existingKey = await prisma.apiKey.findFirst({
+    where: { hashedKey },
   });
 
   if (existingKey) {
@@ -679,11 +678,10 @@ async function seedApiKey(userId: number) {
 
   await prisma.apiKey.create({
     data: {
-      id: SEEDED_API_KEY_ID,
       userId,
       hashedKey,
       note: "Seeded API Key for local development",
-      expiresAt: null, // Never expires
+      expiresAt: null,
     },
   });
 
