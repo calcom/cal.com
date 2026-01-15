@@ -1,8 +1,10 @@
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
+import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
@@ -36,6 +38,8 @@ import { Module } from "@nestjs/common";
     TeamsSchedulesService,
     OrganizationsTeamsRepository,
     SchedulesRepository_2024_06_11,
+    OAuthClientRepository,
+    OrganizationMembershipService,
   ],
   controllers: [TeamsController, TeamsSchedulesController],
   exports: [TeamsRepository],
