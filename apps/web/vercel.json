@@ -27,10 +27,6 @@
     {
       "path": "/api/cron/selected-calendars",
       "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/monthly-proration",
-      "schedule": "0 0 1 * *"
     }
   ],
   "functions": {
