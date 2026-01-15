@@ -34,9 +34,11 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
 }));
 
 vi.mock("@calcom/features/ee/teams/services/teamService", () => ({
-  TeamService: {
-    addMembersToTeams: mockAddMembersToTeams,
-  },
+  TeamService: vi.fn().mockImplementation(function () {
+    return {
+      addMembersToTeams: mockAddMembersToTeams,
+    };
+  }),
 }));
 
 import { addMembersToTeams } from "./utils";

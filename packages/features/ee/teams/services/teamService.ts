@@ -180,7 +180,7 @@ export class TeamService {
     await Promise.allSettled(teamBillingPromises);
   }
 
-  static async addMembersToTeams({
+  async addMembersToTeams({
     membershipData,
   }: {
     membershipData: Array<{
@@ -203,13 +203,6 @@ export class TeamService {
     const userIds = Array.from(new Set(membershipData.map((m) => m.userId)));
 
     await Promise.all(teamIds.map((teamId) => addNewMembersToEventTypes({ userIds, teamId })));
-
-    const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
-    const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
-      teamBillingService.updateQuantity()
-    );
-    await Promise.allSettled(teamBillingPromises);
   }
 
   static async inviteMemberByToken(token: string, userId: number) {

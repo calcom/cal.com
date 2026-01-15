@@ -394,4 +394,100 @@ describe("TeamService", () => {
       expect(mockTeamBilling.publish).toHaveBeenCalled();
     });
   });
+
+  describe("addMembersToTeams", () => {
+    it("should do nothing when membershipData is empty", async () => {
+      const teamService = new TeamService();
+      await teamService.addMembersToTeams({ membershipData: [] });
+
+      expect(prismaMock.membership.createMany).not.toHaveBeenCalled();
+    });
+
+    it("should create memberships and update event types", async () => {
+      const { addNewMembersToEventTypes } = await import("@calcom/features/ee/teams/lib/queries");
+      vi.mocked(addNewMembersToEventTypes).mockResolvedValue(undefined);
+      prismaMock.membership.createMany.mockResolvedValue({ count: 2 });
+
+      const teamService = new TeamService();
+      const membershipData = [
+        {
+          createdAt: new Date(),
+          userId: 1,
+          teamId: 10,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+        {
+          createdAt: new Date(),
+          userId: 2,
+          teamId: 10,
+          role: MembershipRole.MEMBER,
+          accepted: false,
+        },
+      ];
+
+      await teamService.addMembersToTeams({ membershipData });
+
+      expect(prismaMock.membership.createMany).toHaveBeenCalledWith({
+        data: membershipData,
+      });
+      expect(addNewMembersToEventTypes).toHaveBeenCalledWith({
+        userIds: [1, 2],
+        teamId: 10,
+      });
+    });
+
+    it("should handle multiple teams correctly", async () => {
+      const { addNewMembersToEventTypes } = await import("@calcom/features/ee/teams/lib/queries");
+      vi.mocked(addNewMembersToEventTypes).mockResolvedValue(undefined);
+      prismaMock.membership.createMany.mockResolvedValue({ count: 4 });
+
+      const teamService = new TeamService();
+      const membershipData = [
+        {
+          createdAt: new Date(),
+          userId: 1,
+          teamId: 10,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+        {
+          createdAt: new Date(),
+          userId: 1,
+          teamId: 20,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+        {
+          createdAt: new Date(),
+          userId: 2,
+          teamId: 10,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+        {
+          createdAt: new Date(),
+          userId: 2,
+          teamId: 20,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      ];
+
+      await teamService.addMembersToTeams({ membershipData });
+
+      expect(prismaMock.membership.createMany).toHaveBeenCalledWith({
+        data: membershipData,
+      });
+      expect(addNewMembersToEventTypes).toHaveBeenCalledTimes(2);
+      expect(addNewMembersToEventTypes).toHaveBeenCalledWith({
+        userIds: [1, 2],
+        teamId: 10,
+      });
+      expect(addNewMembersToEventTypes).toHaveBeenCalledWith({
+        userIds: [1, 2],
+        teamId: 20,
+      });
+    });
+  });
 });

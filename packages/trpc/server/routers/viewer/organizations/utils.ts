@@ -99,7 +99,8 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
     })
   );
 
-  await TeamService.addMembersToTeams({ membershipData });
+  const teamService = new TeamService();
+  await teamService.addMembersToTeams({ membershipData });
 
   return {
     success: true,
