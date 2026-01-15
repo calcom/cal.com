@@ -472,6 +472,7 @@ export class TeamRepository {
     const org = await this.prismaClient.team.findFirst({
       where: {
         slug,
+        parentId: null,
         isOrganization: true,
       },
       select: {
