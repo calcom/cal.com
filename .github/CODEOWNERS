@@ -1,6 +1,7 @@
+.github/actions/**/* @calcom/Foundation
+.github/workflows/**/* @calcom/Foundation
 /**/package.json @calcom/Foundation
-/apps/api/**/* @calcom/API
-/apps/ui-playground/**/* @calcom/Consumer @calcom/Foundation
+/apps/api/**/* @calcom/Foundation
 /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
 /apps/web/lib/csp.ts @calcom/Foundation
 /apps/web/lib/buildNonce.ts @calcom/Foundation
@@ -8,7 +9,7 @@
 /apps/web/lib/core/**/* @calcom/Foundation
 /apps/web/lib/booking.ts @calcom/Foundation
 /apps/web/lib/handleOrgRedirect.ts @calcom/Foundation
-/apps/web/middleware.ts @calcom/Foundation
+/apps/web/proxy.ts @calcom/Foundation
 /deploy/**/* @calcom/Foundation
 /packages/app-store/applecalendar/**/* @calcom/Foundation
 /packages/app-store/caldavcalendar/**/* @calcom/Foundation
@@ -29,7 +30,7 @@
 /packages/features/bookings/lib/getLuckyUser.ts @calcom/Foundation
 /packages/features/schedules/lib/slots.ts @calcom/Foundation
 /packages/platform/atoms/**/*WebWrapper.tsx @calcom/Consumer
-/packages/platform/**/* @calcom/Platform @calcom/Foundation
+/packages/platform/**/* @calcom/Consumer @calcom/Foundation
 /packages/prisma/**/* @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/confirm.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/get.handler.ts @calcom/Foundation

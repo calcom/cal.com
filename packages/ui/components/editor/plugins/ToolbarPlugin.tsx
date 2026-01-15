@@ -451,7 +451,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
   if (!props.editable) return null;
   return (
-    <div className="toolbar flex" ref={toolbarRef}>
+    <div className="toolbar flex gap-1" ref={toolbarRef}>
       <>
         {!props.excludedToolbarItems?.includes("blockType") && (
           <>
@@ -465,16 +465,18 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   <Icon name="chevron-down" className="text-default ml-2 h-4 w-4" />
                 </>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="flex flex-col gap-1">
                 {Object.keys(blockTypeToBlockName).map((key) => {
                   return (
-                    <DropdownMenuItem key={key} className="outline-none hover:ring-0 focus:ring-0">
+                    <DropdownMenuItem
+                      key={key}
+                      className="outline-none hover:ring-0 focus:ring-0 rounded-md">
                       <Button
                         color="minimal"
                         type="button"
                         onClick={() => format(key)}
                         className={classNames(
-                          "w-full rounded-none focus:ring-0",
+                          "w-full rounded-md focus:ring-0",
                           blockType === key ? "bg-subtle w-full" : ""
                         )}>
                         <>

@@ -4,12 +4,15 @@
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
+    "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",
     "API_KEY_PREFIX",
     "ATOMS_E2E_API_URL",
     "ATOMS_E2E_OAUTH_CLIENT_ID",
     "ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED",
     "ATOMS_E2E_OAUTH_CLIENT_SECRET",
     "ATOMS_E2E_ORG_ID",
+    "AXIOM_TOKEN",
+    "AXIOM_DATASET",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
     "BASECAMP3_USER_AGENT",
@@ -76,6 +79,7 @@
     "AVATARAPI_PASSWORD",
     "GIPHY_API_KEY",
     "GOOGLE_API_CREDENTIALS",
+    "GOOGLE_CALENDAR_API_KEY",
     "GOOGLE_LOGIN_ENABLED",
     "GOOGLE_WEBHOOK_TOKEN",
     "GOOGLE_WEBHOOK_URL",
@@ -129,7 +133,6 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
-    "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
     "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
     "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
     "NEXT_PUBLIC_WEBSITE_TERMS_URL",
@@ -183,6 +186,8 @@
     "STRIPE_TEAM_MONTHLY_PRICE_ID",
     "STRIPE_TEAM_PRODUCT_ID",
     "STRIPE_ORG_MONTHLY_PRICE_ID",
+    "STRIPE_ORG_PRODUCT_ID",
+    "STRIPE_ORG_TRIAL_DAYS",
     "ORG_MONTHLY_CREDITS",
     "TANDEM_BASE_URL",
     "TANDEM_CLIENT_ID",
@@ -223,9 +228,6 @@
     "LOCAL_TESTING_DOMAIN_VERCEL",
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
     "CLOUDFLARE_ZONE_ID",
-    "NEXT_PUBLIC_MINTLIFY_CHAT_API_KEY",
-    "NEXT_PUBLIC_CHAT_API_URL",
-    "NEXT_PUBLIC_DOCS_URL",
     "CLOUDFLARE_VERCEL_CNAME",
     "CLOUDFLARE_DNS",
     "EMBED_PUBLIC_EMBED_FINGER_PRINT",
@@ -280,7 +282,50 @@
     "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
     "ENTERPRISE_SLUGS",
     "PLATFORM_ENTERPRISE_SLUGS",
-    "USE_POOL"
+    "USE_POOL",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_API_URL",
+    "TRIGGER_DEV_PROJECT_REF",
+    "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+    "TRIGGER_DEV_VERCEL_PROJECT_ID",
+    "TRIGGER_DEV_VERCEL_TEAM_ID",
+    "ENABLE_ASYNC_TASKER",
+    "STRIPE_ORG_PRODUCT_ID",
+    "GOOGLE_ADS_ENABLED",
+    "LINKEDIN_ADS_ENABLED",
+    "SEED_PLATFORM_OAUTH_CLIENT_ID",
+    "SEED_PLATFORM_OAUTH_CLIENT_SECRET",
+    "API_PORT",
+    "API_ENV",
+    "API_URL",
+    "DATABASE_WRITE_URL",
+    "JWT_SECRET",
+    "DOCS_URL",
+    "DATABASE_READ_URL",
+    "GET_LICENSE_KEY_URL",
+    "LOG_LEVEL",
+    "RATE_LIMIT_DEFAULT_TTL_MS",
+    "NEXTAUTH_SECRET_BACKUP",
+    "RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN",
+    "RATE_LIMIT_DEFAULT_LIMIT",
+    "RATE_LIMIT_DEFAULT_LIMIT_API_KEY",
+    "RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT",
+    "STRIPE_API_KEY",
+    "STRIPE_PRICE_ID_SCALE",
+    "STRIPE_PRICE_ID_ESSENTIALS_OVERAGE",
+    "REPLEXICA_API_KEY",
+    "SLOTS_WORKER_POOL_SIZE",
+    "STRIPE_PRICE_ID_STARTER",
+    "STRIPE_PRICE_ID_SCALE_OVERAGE",
+    "STRIPE_PRICE_ID_STARTER_OVERAGE",
+    "STRIPE_PRICE_ID_ESSENTIALS",
+    "WEB_APP_URL",
+    "REDIS_URL",
+    "ENABLE_SLOTS_WORKERS",
+    "B2_APPLICATION_KEY_ID",
+    "B2_APPLICATION_KEY",
+    "B2_BUCKET_ID",
+    "B2_BUCKET_NAME"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
@@ -309,10 +354,11 @@
       "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
+      "dependsOn": ["@calcom/prisma#post-install"],
       "outputs": ["./types"]
     },
     "@calcom/web#build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "copy-app-store-static"],
       "outputs": [".next/**"],
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
@@ -344,13 +390,16 @@
         "ORG_MONTHLY_CREDITS",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
         "STRIPE_ORG_PRODUCT_ID",
+        "STRIPE_ORG_TRIAL_DAYS",
         "NEXT_PUBLIC_API_V2_URL",
         "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
         "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "BUILD_STANDALONE",
         "NEXT_PUBLIC_API_HITPAY_PRODUCTION",
-        "NEXT_PUBLIC_API_HITPAY_SANDBOX"
-      ]
+        "NEXT_PUBLIC_API_HITPAY_SANDBOX",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/web#dx": {
       "cache": false,
@@ -360,11 +409,12 @@
       "cache": false,
       "dependsOn": []
     },
-    "@calcom/atoms#build": {
+    "@calcom/atoms#build-npm": {
       "outputs": ["dist/**", "globals.min.css"]
     },
     "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
       "env": [
         "NODE_ENV",
         "API_PORT",
@@ -372,8 +422,12 @@
         "DATABASE_WRITE_URL",
         "LOG_LEVEL",
         "NEXTAUTH_SECRET",
-        "USE_POOL"
-      ]
+        "USE_POOL",
+        "LOGGER_BRIDGE_LOG_LEVEL",
+        "REDIS_URL",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/ai#build": {
       "env": [
@@ -440,8 +494,41 @@
       "cache": false,
       "outputs": ["dist/**", "build/**"]
     },
+    "@calcom/web#dev": {
+      "dependsOn": ["@calcom/trpc#build", "//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
     "dev": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
+    "dev:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
+      "cache": false
+    },
+    "deploy:trigger:prod": {
+      "inputs": ["./.env"],
+      "env": [
+        "TRIGGER_DEV_PROJECT_REF",
+        "TRIGGER_API_URL",
+        "TRIGGER_SECRET_KEY",
+        "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+        "TRIGGER_DEV_VERCEL_PROJECT_ID",
+        "TRIGGER_DEV_VERCEL_TEAM_ID"
+      ],
+      "cache": false
+    },
+    "deploy:trigger:staging": {
+      "inputs": ["./.env"],
+      "env": [
+        "TRIGGER_DEV_PROJECT_REF",
+        "TRIGGER_API_URL",
+        "TRIGGER_SECRET_KEY",
+        "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+        "TRIGGER_DEV_VERCEL_PROJECT_ID",
+        "TRIGGER_DEV_VERCEL_TEAM_ID"
+      ],
       "cache": false
     },
     "dx": {

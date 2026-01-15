@@ -1,13 +1,8 @@
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { CustomThrottlerGuard } from "@/lib/throttler-guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import type { PlatformOAuthClient, RateLimit, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
-import { TestingModule } from "@nestjs/testing";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import { Test, TestingModule } from "@nestjs/testing";
+import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -16,9 +11,12 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { RateLimitRepositoryFixture } from "test/fixtures/repository/rate-limit.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import type { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { CustomThrottlerGuard } from "@/lib/throttler-guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("AppController", () => {
   describe("Rate limiting", () => {

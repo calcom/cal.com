@@ -4,6 +4,8 @@ declare namespace NodeJS {
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
     readonly GOOGLE_API_CREDENTIALS: string | undefined;
+    /** Google Calendar API key for fetching public holiday calendars */
+    readonly GOOGLE_CALENDAR_API_KEY: string | undefined;
     /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
     readonly BASE_URL: string | undefined;
     /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
@@ -32,6 +34,7 @@ declare namespace NodeJS {
     readonly STRIPE_TEAM_PRODUCT_ID: `prod_${string}` | undefined;
     readonly PAYMENT_FEE_PERCENTAGE: number | undefined;
     readonly PAYMENT_FEE_FIXED: number | undefined;
+    readonly AWAITING_PAYMENT_EMAIL_DELAY_MINUTES: number | undefined;
     readonly NEXT_PUBLIC_INTERCOM_APP_ID: string | undefined;
     readonly NEXT_PUBLIC_POSTHOG_KEY: string | undefined;
     readonly NEXT_PUBLIC_POSTHOG_HOST: string | undefined;

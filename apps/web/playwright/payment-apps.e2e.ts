@@ -11,7 +11,7 @@ test.afterEach(({ users }) => users.deleteAll());
 
 async function goToAppsTab(page: Page, eventTypeId?: number) {
   await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-  await expect(page.getByTestId("vertical-tab-apps")).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("vertical-tab-apps").first()).toHaveAttribute("aria-current", "page");
 }
 
 test.describe("Payment app", () => {

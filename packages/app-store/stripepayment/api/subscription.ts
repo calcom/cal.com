@@ -52,6 +52,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customer: customerId,
       success_url: return_url,
       cancel_url: return_url,
+      metadata: {
+        userId: userId.toString(),
+        intentUsername,
+      },
     };
 
     const checkPremiumResult = await checkPremiumUsername(intentUsername);

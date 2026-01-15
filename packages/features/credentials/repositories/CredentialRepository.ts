@@ -25,7 +25,14 @@ type CredentialUpdateInput = {
 };
 
 export class CredentialRepository {
-  constructor(private primaClient: PrismaClient) {}
+  constructor(private primaClient: PrismaClient) { }
+
+  async findByCredentialId(id: number) {
+    return this.primaClient.credential.findUnique({
+      where: { id },
+      select: safeCredentialSelect,
+    });
+  }
 
   async findByIdWithDelegationCredential(id: number) {
     return this.primaClient.credential.findUnique({
@@ -290,6 +297,35 @@ export class CredentialRepository {
       },
       include: {
         app: true,
+      },
+    });
+  }
+
+  findByTeamIdAndSlugs({ teamId, slugs }: { teamId: number; slugs: string[] }) {
+    return this.primaClient.credential.findMany({
+      where: {
+        teamId,
+        appId: {
+          in: slugs,
+        },
+      },
+      select: { ...safeCredentialSelect, team: { select: { name: true } } },
+    });
+  }
+
+  findByIdAndTeamId({ id, teamId }: { id: number; teamId: number }) {
+    return this.primaClient.credential.findFirst({
+      where: {
+        id,
+        teamId,
+      },
+      select: {
+        ...safeCredentialSelect,
+        app: {
+          select: {
+            slug: true,
+          },
+        },
       },
     });
   }

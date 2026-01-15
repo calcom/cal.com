@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
@@ -16,6 +15,8 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
+
+import Shell from "~/shell/Shell";
 
 export default function EditOAuthClient() {
   const { t } = useLocale();
@@ -81,7 +82,7 @@ export default function EditOAuthClient() {
                 </p>
               </div>
             </div>
-            {(!Boolean(clientId) || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
+            {(!clientId || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
             {isFetched && !!data && (
               <EditOAuthClientForm
                 defaultValues={{
