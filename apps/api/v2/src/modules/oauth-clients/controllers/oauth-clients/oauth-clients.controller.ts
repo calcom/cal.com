@@ -43,7 +43,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
   path: "/v2/oauth-clients",
   version: API_VERSIONS_VALUES,
 })
-@ApiTags("Deprecated: OAuth Clients")
+@ApiTags("Deprecated: Platform OAuth Clients")
 @UseGuards(ApiAuthGuard, OrganizationRolesGuard)
 @ApiHeader(API_KEY_HEADER)
 export class OAuthClientsController {
