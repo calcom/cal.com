@@ -53,9 +53,6 @@ export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
     : never;
 }[FieldPath<TFieldValues>];
 
-// Store preserved time slots for each day to restore when toggling back on
-const preservedTimeSlotsRef = new Map<string, TimeRange[]>();
-
 export const ScheduleDay = <TFieldValues extends FieldValues>({
   name,
   weekday,
@@ -77,7 +74,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
 }) => {
   const { watch, setValue } = useFormContext();
   const watchDayRange = watch(name);
-  const fieldName = String(name);
+  const lastNonEmptyDayRangeRef = useRef<TimeRange[] | null>(null);
 
   return (
     <div
@@ -102,22 +99,16 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 data-testid={`${weekday}-switch`}
                 onCheckedChange={(isChecked) => {
                   if (isChecked) {
-                    // restore previous time slots if available, otherwise use default
-                    const preserved = preservedTimeSlotsRef.get(fieldName);
-                    if (preserved && preserved.length > 0) {
-                      setValue(name, preserved as TFieldValues[typeof name]);
-                    } else {
-                      setValue(name, [
-                        DEFAULT_DAY_RANGE,
-                      ] as TFieldValues[typeof name]);
-                    }
+                    const previousDayRange = lastNonEmptyDayRangeRef.current;
+                    const newValue =
+                      (previousDayRange && previousDayRange.length > 0
+                        ? previousDayRange
+                        : [DEFAULT_DAY_RANGE]) as TFieldValues[typeof name];
+
+                    setValue(name, newValue);
                   } else {
-                    // save current time slots before clearing
                     if (watchDayRange && watchDayRange.length > 0) {
-                      preservedTimeSlotsRef.set(
-                        fieldName,
-                        watchDayRange as TimeRange[]
-                      );
+                      lastNonEmptyDayRangeRef.current = watchDayRange as unknown as TimeRange[];
                     }
                     setValue(name, [] as TFieldValues[typeof name]);
                   }
