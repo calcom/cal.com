@@ -1,4 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   type ReminderMinutes,
@@ -7,7 +8,6 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 import { DestinationCalendarSettings } from "../../../../packages/platform/atoms/destination-calendar/DestinationCalendar";
 import { AtomsWrapper } from "../../../../packages/platform/atoms/src/components/atoms-wrapper";
-
 export const DestinationCalendarSettingsWebWrapper = ({
   connectedCalendars,
 }: {
