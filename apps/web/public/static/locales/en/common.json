@@ -4274,7 +4274,7 @@
   "enable_custom_host_locations": "Enable custom host locations",
   "enable_custom_host_locations_description": "Allow each host to have their own meeting location",
   "locations_disabled_per_host_enabled": "Locations are controlled per-host when custom host locations option is enabled",
-  "host_locations": "Configure locations per host",
+  "host_locations": "Configure location per host",
   "select_location": "Select location",
   "host_locations_fallback_description": "When a host doesn't have the selected app installed, Cal Video will be used as a fallback",
   "select_option_hosts": "Apply to all hosts",

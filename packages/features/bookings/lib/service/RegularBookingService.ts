@@ -19,7 +19,6 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { HostLocationRepository } from "@calcom/features/host/repositories/HostLocationRepository";
 import {
   eventTypeMetaDataSchemaWithTypedApps,
   eventTypeAppMetadataOptionalSchema,

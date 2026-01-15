@@ -203,7 +203,7 @@ const HostLocationRow = ({
   }, [currentLocation, hostData]);
 
   const displayName = hostData?.name || `${t("user")} ${host.userId}`;
-  const avatarUrl = hostData?.avatarUrl || "";
+  const avatarUrl = hostData?.avatarUrl || undefined;
 
   const currentLocationEventType = currentLocation ? getEventLocationType(currentLocation.type) : null;
   const hasOrganizerInput = !!currentLocationEventType?.organizerInputType;
@@ -293,7 +293,7 @@ const HostLocationRow = ({
   return (
     <>
       <div className="border-subtle flex items-center gap-3 border-b px-3 py-3 last:border-b-0">
-        <Avatar size="sm" imageSrc={avatarUrl} alt={displayName} className="min-w-8" />
+        <Avatar size="sm" imageSrc={avatarUrl} alt={displayName} />
         <div className="min-w-0 flex-1">
           <div className="text-emphasis truncate text-sm font-medium">{displayName}</div>
           {hostData?.email && <div className="text-subtle truncate text-xs">{hostData.email}</div>}
@@ -523,31 +523,29 @@ const LocationInputField = ({ eventLocationType, inputValue, setInputValue }: Lo
   );
 };
 
-const useInfiniteScroll = (
-  loadMoreRef: React.RefObject<HTMLDivElement | null>,
+const useFetchMoreOnScroll = (
+  containerRef: React.RefObject<HTMLDivElement | null>,
   hasNextPage: boolean | undefined,
   isFetchingNextPage: boolean,
   fetchNextPage: () => void
 ) => {
-  const handleObserver = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries;
-      if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    },
-    [hasNextPage, isFetchingNextPage, fetchNextPage]
-  );
+  const handleScroll = useCallback(() => {
+    const container = containerRef.current;
+    if (!container || !hasNextPage || isFetchingNextPage) return;
+
+    const { scrollHeight, scrollTop, clientHeight } = container;
+    if (scrollHeight - scrollTop - clientHeight < 100) {
+      fetchNextPage();
+    }
+  }, [containerRef, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
-    const element = loadMoreRef.current;
-    if (!element) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const observer = new IntersectionObserver(handleObserver, { threshold: 0.1 });
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, [handleObserver, loadMoreRef]);
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [handleScroll, containerRef]);
 };
 
 const mergeLocationOptionsWithHostApps = (
@@ -599,7 +597,7 @@ type HostListProps = {
   hostDataMap: Map<number, HostWithLocationOptions>;
   locationOptions: TLocationOptions;
   onLocationChange: (userId: number, location: HostLocation | null) => void;
-  loadMoreRef: React.RefObject<HTMLDivElement | null>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   isLoading: boolean;
   isFetchingNextPage: boolean;
   onOpenMassApply: () => void;
@@ -610,7 +608,7 @@ const HostList = ({
   hostDataMap,
   locationOptions,
   onLocationChange,
-  loadMoreRef,
+  containerRef,
   isLoading,
   isFetchingNextPage,
   onOpenMassApply,
@@ -618,9 +616,9 @@ const HostList = ({
   const { t } = useLocale();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Skeleton as={Label} loadingClassName="w-24" className="mt-2">
+        <Skeleton as={Label} loadingClassName="w-24" className="mt-auto mb-0">
           {t("host_locations")}
         </Skeleton>
         <Button type="button" color="secondary" onClick={onOpenMassApply}>
@@ -628,7 +626,7 @@ const HostList = ({
         </Button>
       </div>
 
-      <div className="border-subtle max-h-96 overflow-y-auto rounded-md border">
+      <div ref={containerRef} className="border-subtle max-h-96 overflow-y-auto rounded-md border">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
@@ -644,7 +642,6 @@ const HostList = ({
                 onLocationChange={onLocationChange}
               />
             ))}
-            <div ref={loadMoreRef} className="h-1" />
             {isFetchingNextPage && (
               <div className="flex items-center justify-center py-4">
                 <Icon name="loader" className="text-subtle h-4 w-4 animate-spin" />
@@ -661,7 +658,7 @@ const HostList = ({
 
 const useHostLocationsData = (eventTypeId: number, enabled: boolean, locationOptions: TLocationOptions) => {
   const { t } = useLocale();
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     trpc.viewer.eventTypes.getHostsWithLocationOptions.useInfiniteQuery(
@@ -676,9 +673,9 @@ const useHostLocationsData = (eventTypeId: number, enabled: boolean, locationOpt
     [locationOptions, hostsWithApps, t]
   );
 
-  useInfiniteScroll(loadMoreRef, hasNextPage, isFetchingNextPage, fetchNextPage);
+  useFetchMoreOnScroll(containerRef, hasNextPage, isFetchingNextPage, fetchNextPage);
 
-  return { hostDataMap, mergedLocationOptions, loadMoreRef, isLoading, isFetchingNextPage };
+  return { hostDataMap, mergedLocationOptions, containerRef, isLoading, isFetchingNextPage };
 };
 
 const useHostLocationHandlers = (
@@ -774,7 +771,7 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
   const hosts = formMethods.watch("hosts");
 
-  const { hostDataMap, mergedLocationOptions, loadMoreRef, isLoading, isFetchingNextPage } =
+  const { hostDataMap, mergedLocationOptions, containerRef, isLoading, isFetchingNextPage } =
     useHostLocationsData(eventTypeId, enablePerHostLocations, locationOptions);
   const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts);
   const { handleMassApply, isPending } = useMassApplyMutation(eventTypeId, formMethods, hosts, () =>
@@ -800,7 +797,7 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
             hostDataMap={hostDataMap}
             locationOptions={mergedLocationOptions}
             onLocationChange={handleLocationChange}
-            loadMoreRef={loadMoreRef}
+            containerRef={containerRef}
             isLoading={isLoading}
             isFetchingNextPage={isFetchingNextPage}
             onOpenMassApply={() => setIsMassApplyDialogOpen(true)}

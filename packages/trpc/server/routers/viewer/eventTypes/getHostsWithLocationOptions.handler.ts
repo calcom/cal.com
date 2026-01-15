@@ -73,7 +73,7 @@ export function transformHostsToResponse(
     name: host.user.name,
     email: host.user.email,
     avatarUrl: host.user.avatarUrl,
-    defaultConferencingApp: userMetadata.parse(host.user.metadata)?.defaultConferencingApp ?? null,
+    defaultConferencingApp: userMetadata.safeParse(host.user.metadata).data?.defaultConferencingApp ?? null,
     location: host.location,
     installedApps: enrichedUsers[index].credentials.map((cred) => {
       const appMeta = cred.appId ? appMetadataBySlug.get(cred.appId) : null;

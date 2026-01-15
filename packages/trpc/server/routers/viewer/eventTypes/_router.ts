@@ -148,7 +148,10 @@ export const eventTypesRouter = router({
     });
   }),
 
-  getHostsWithLocationOptions: authedProcedure
+  getHostsWithLocationOptions: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
     .input(ZGetHostsWithLocationOptionsInputSchema)
     .query(async ({ ctx, input }) => {
       const { getHostsWithLocationOptionsHandler } = await import("./getHostsWithLocationOptions.handler");
@@ -159,7 +162,10 @@ export const eventTypesRouter = router({
       });
     }),
 
-  massApplyHostLocation: createEventPbacProcedure("eventType.update", [MembershipRole.ADMIN, MembershipRole.OWNER])
+  massApplyHostLocation: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
     .input(ZMassApplyHostLocationInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { massApplyHostLocationHandler } = await import("./massApplyHostLocation.handler");
