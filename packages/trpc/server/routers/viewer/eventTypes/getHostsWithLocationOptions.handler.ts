@@ -1,5 +1,6 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import type { PrismaClient, Prisma } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -101,20 +102,14 @@ export const getHostsWithLocationOptionsHandler = async ({
 }: GetHostsWithLocationOptionsInput): Promise<GetHostsWithLocationOptionsResponse> => {
   const { eventTypeId, cursor, limit } = input;
 
-  const eventType = await ctx.prisma.eventType.findUnique({
-    where: { id: eventTypeId },
-    select: {
-      id: true,
-      teamId: true,
-      team: { select: { parentId: true } },
-    },
-  });
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+  const eventType = await eventTypeRepo.findByIdWithTeamId({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Event type not found" });
   }
 
-  const organizationId = eventType.team?.parentId ?? null;
+  const organizationId = ctx.user.organizationId ?? null;
   const hostRepository = new HostRepository(ctx.prisma);
   const {
     items: hosts,
