@@ -1,17 +1,22 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import {
+  FilterCheckboxField,
+  FilterCheckboxFieldsContainer,
+} from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { CheckboxField, Label, Select } from "@calcom/ui/components/form";
+import { Divider } from "@calcom/ui/components/divider";
+import { CheckboxField, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { AnimatedPopover } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
-import { useMemo, useState } from "react";
-import type { MultiValue, SingleValue } from "react-select";
+import { useState } from "react";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -19,14 +24,6 @@ type UserRoleContext = {
   adminTeamIds: number[];
   adminTeamNames: { id: number; name: string }[];
 };
-
-type SelectOption = {
-  value: string;
-  label: string;
-};
-
-const OPTION_USER = "user";
-const OPTION_ORG = "org";
 
 interface FeatureOptInConfirmDialogProps {
   isOpen: boolean;
@@ -53,26 +50,9 @@ export function FeatureOptInConfirmDialog({
   const canEnableForTeams = hasAdminTeams;
   const showSelector = canEnableForOrg || canEnableForTeams;
 
-  const options = useMemo((): SelectOption[] => {
-    const opts: SelectOption[] = [{ value: OPTION_USER, label: t("just_for_me") }];
-
-    if (canEnableForOrg) {
-      opts.push({ value: OPTION_ORG, label: t("entire_organization") });
-    }
-
-    if (canEnableForTeams) {
-      adminTeamNames.forEach((team) => {
-        opts.push({ value: `team-${team.id}`, label: team.name });
-      });
-    }
-
-    return opts;
-  }, [canEnableForOrg, canEnableForTeams, adminTeamNames, t]);
-
-  const defaultOption = options.find((opt) => opt.value === OPTION_USER);
-  const [selectedOptions, setSelectedOptions] = useState<SelectOption[]>(
-    defaultOption ? [defaultOption] : []
-  );
+  const [enableForUser, setEnableForUser] = useState(true);
+  const [enableForOrg, setEnableForOrg] = useState(false);
+  const [selectedTeamIds, setSelectedTeamIds] = useState<number[]>([]);
   const [autoOptIn, setAutoOptIn] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [shouldInvalidate, setShouldInvalidate] = useState(false);
@@ -85,42 +65,40 @@ export function FeatureOptInConfirmDialog({
   const setTeamAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation();
   const setOrganizationAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation();
 
-  const handleSelectionChange = (selected: MultiValue<SelectOption> | SingleValue<SelectOption>): void => {
-    if (!selected) {
-      setSelectedOptions([]);
-      return;
+  const hasTeamsSelected = selectedTeamIds.length > 0;
+  const hasAnySelection = enableForUser || enableForOrg || hasTeamsSelected;
+
+  const getSelectedText = (): string => {
+    const parts: string[] = [];
+    if (enableForUser) parts.push(t("just_for_me"));
+    if (enableForOrg) parts.push(t("entire_organization"));
+    if (hasTeamsSelected) {
+      const teamNames = adminTeamNames
+        .filter((team) => selectedTeamIds.includes(team.id))
+        .map((team) => team.name);
+      parts.push(...teamNames);
     }
+    return parts.length > 0 ? parts.join(", ") : t("select");
+  };
 
-    if (!Array.isArray(selected)) {
-      setSelectedOptions([selected]);
-      return;
-    }
-
-    const newSelection = selected as SelectOption[];
-    const previousValues = selectedOptions.map((opt) => opt.value);
-    const newValues = newSelection.map((opt) => opt.value);
-
-    const orgWasSelected = previousValues.includes(OPTION_ORG);
-    const orgIsNowSelected = newValues.includes(OPTION_ORG);
-
-    if (!orgWasSelected && orgIsNowSelected) {
-      setSelectedOptions(newSelection.filter((opt) => opt.value === OPTION_ORG || opt.value === OPTION_USER));
-    } else if (orgIsNowSelected && newSelection.some((opt) => opt.value.startsWith("team-"))) {
-      setSelectedOptions(newSelection.filter((opt) => opt.value !== OPTION_ORG));
-    } else {
-      setSelectedOptions(newSelection);
+  const handleOrgChange = (checked: boolean): void => {
+    setEnableForOrg(checked);
+    if (checked) {
+      setSelectedTeamIds([]);
     }
   };
 
-  const hasOrgSelected = selectedOptions.some((opt) => opt.value === OPTION_ORG);
-  const hasUserSelected = selectedOptions.some((opt) => opt.value === OPTION_USER);
-  const selectedTeamIds = selectedOptions
-    .filter((opt) => opt.value.startsWith("team-"))
-    .map((opt) => parseInt(opt.value.replace("team-", ""), 10));
-  const hasTeamsSelected = selectedTeamIds.length > 0;
+  const handleTeamChange = (teamId: number, checked: boolean): void => {
+    if (checked) {
+      setSelectedTeamIds((prev) => [...prev, teamId]);
+      setEnableForOrg(false);
+    } else {
+      setSelectedTeamIds((prev) => prev.filter((id) => id !== teamId));
+    }
+  };
 
   const getAutoOptInText = (): string => {
-    if (hasOrgSelected) {
+    if (enableForOrg) {
       return t("auto_opt_in_future_features_org");
     }
     if (hasTeamsSelected) {
@@ -134,7 +112,7 @@ export function FeatureOptInConfirmDialog({
     try {
       const promises: Promise<unknown>[] = [];
 
-      if (hasOrgSelected && orgId) {
+      if (enableForOrg && orgId) {
         promises.push(
           setOrganizationStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" })
         );
@@ -154,7 +132,7 @@ export function FeatureOptInConfirmDialog({
         });
       }
 
-      if (hasUserSelected) {
+      if (enableForUser) {
         promises.push(setUserStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" }));
         if (autoOptIn) {
           promises.push(setUserAutoOptInMutation.mutateAsync({ autoOptIn: true }));
@@ -173,7 +151,7 @@ export function FeatureOptInConfirmDialog({
   };
 
   const getSettingsRedirectPath = (): string => {
-    if (hasOrgSelected) {
+    if (enableForOrg) {
       return "/settings/organizations/features";
     }
     if (hasTeamsSelected && selectedTeamIds.length > 0) {
@@ -200,7 +178,9 @@ export function FeatureOptInConfirmDialog({
       setShouldInvalidate(false);
     }
     setIsSuccess(false);
-    setSelectedOptions(defaultOption ? [defaultOption] : []);
+    setEnableForUser(true);
+    setEnableForOrg(false);
+    setSelectedTeamIds([]);
     setAutoOptIn(false);
     onClose();
   };
@@ -231,21 +211,53 @@ export function FeatureOptInConfirmDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
-      <DialogContent title={t(featureConfig.titleI18nKey)} type="creation">
+      <DialogContent title={t(featureConfig.nameI18nKey)} type="creation">
         <div className="space-y-4">
           <p className="text-subtle text-sm">{t(featureConfig.descriptionI18nKey)}</p>
 
           {showSelector && (
             <div className="space-y-2">
               <Label>{t("enable_for")}</Label>
-              <Select
-                isMulti
-                value={selectedOptions}
-                onChange={handleSelectionChange}
-                options={options}
-                closeMenuOnSelect={false}
-                className="w-full"
-              />
+              <AnimatedPopover text={getSelectedText()} popoverTriggerClassNames="w-full">
+                <FilterCheckboxFieldsContainer>
+                  <FilterCheckboxField
+                    id="just-for-me"
+                    icon={<Icon name="user" className="h-4 w-4" />}
+                    checked={enableForUser}
+                    onChange={(e) => setEnableForUser(e.target.checked)}
+                    label={t("just_for_me")}
+                  />
+
+                  {canEnableForOrg && (
+                    <>
+                      <Divider />
+                      <FilterCheckboxField
+                        id="entire-org"
+                        icon={<Icon name="building" className="h-4 w-4" />}
+                        checked={enableForOrg}
+                        onChange={(e) => handleOrgChange(e.target.checked)}
+                        label={t("entire_organization")}
+                      />
+                    </>
+                  )}
+
+                  {canEnableForTeams && adminTeamNames.length > 0 && (
+                    <>
+                      <Divider />
+                      {adminTeamNames.map((team) => (
+                        <FilterCheckboxField
+                          key={team.id}
+                          id={`team-${team.id}`}
+                          icon={<Icon name="users" className="h-4 w-4" />}
+                          checked={selectedTeamIds.includes(team.id)}
+                          onChange={(e) => handleTeamChange(team.id, e.target.checked)}
+                          label={team.name}
+                        />
+                      ))}
+                    </>
+                  )}
+                </FilterCheckboxFieldsContainer>
+              </AnimatedPopover>
             </div>
           )}
 
@@ -262,11 +274,7 @@ export function FeatureOptInConfirmDialog({
           <Button color="secondary" onClick={resetAndClose} disabled={isSubmitting}>
             {t("cancel")}
           </Button>
-          <Button
-            color="primary"
-            onClick={handleConfirm}
-            loading={isSubmitting}
-            disabled={selectedOptions.length === 0}>
+          <Button color="primary" onClick={handleConfirm} loading={isSubmitting} disabled={!hasAnySelection}>
             {t("enable")}
           </Button>
         </DialogFooter>

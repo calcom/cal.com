@@ -44,7 +44,13 @@ export interface IFeatureOptInService {
   ): Promise<void>;
   setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number; scope?: OptInFeatureScope }
+      | {
+          teamId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: number;
+          scope?: OptInFeatureScope;
+        }
       | { teamId: number; featureId: FeatureId; state: "inherit"; scope?: OptInFeatureScope }
   ): Promise<void>;
 }

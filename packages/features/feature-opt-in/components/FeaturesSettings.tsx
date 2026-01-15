@@ -101,7 +101,7 @@ function FeatureItem({
               "text-emphasis flex items-center text-sm font-medium",
               blockedWarning && "text-subtle line-through"
             )}>
-            {t(config.titleI18nKey)}
+            {t(config.nameI18nKey)}
             {blockedWarning && (
               <Tooltip side="top" content={blockedWarning}>
                 <span>

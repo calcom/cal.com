@@ -1,8 +1,7 @@
 "use client";
 
-import type { ReactElement } from "react";
-
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import type { ReactElement } from "react";
 
 import { FeatureOptInBanner } from "./FeatureOptInBanner";
 import { FeatureOptInConfirmDialog } from "./FeatureOptInConfirmDialog";
