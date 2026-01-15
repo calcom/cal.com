@@ -659,9 +659,6 @@ async function createOrganizationAndAddMembersAndTeams({
   }
 }
 
-// Hardcoded API key for local development that persists across prisma migrate reset
-// The raw API key (without prefix) is: 0123456789abcdef0123456789abcdef
-// Use this in Postman/API clients: cal_live_0123456789abcdef0123456789abcdef
 const SEEDED_API_KEY = "0123456789abcdef0123456789abcdef";
 
 async function seedApiKey(userId: number) {
