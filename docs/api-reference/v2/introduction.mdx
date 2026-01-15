@@ -62,7 +62,13 @@ in your request header.
 
 All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
 
-### 2. OAuth client credentials
+
+
+## Deprecated & Maintenance for existing users only
+
+As of 15th December 2025, we're currently undergoing a restructuring of our "Platform"-offering. Until further we continue to provide enterprise support for existing customers but no longer offer new signups for any "Platform" plan.
+
+### 2. Platform OAuth client credentials
 
 You need to use OAuth credentials when:
 
@@ -76,11 +82,7 @@ OAuth credentials can be accessed in the platform dashboard https://app.cal.com/
 1. `x-cal-client-id` - ID of the OAuth client.
 2. `x-cal-secret-key` - secret of the OAuth client.
 
-
-
-## Deprecated & Maintenance for existing users only
-
-### 3. Managed user access token
+### 3. Platform Managed user access token
 
 After you create a managed user you will receive its access and refresh tokens. The response also includes managed user's id, so we recommend you to add new properties to your users table calAccessToken, calRefreshToken and calManagedUserId to store this information.
 
