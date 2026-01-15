@@ -1,6 +1,4 @@
 import { randomBytes } from "node:crypto";
-import type { TFunction } from "i18next";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -18,14 +16,13 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
-import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
-import type { Profile as ProfileType } from "@calcom/prisma/client";
+import type { Membership, OrganizationSettings, Profile as ProfileType, Team } from "@calcom/prisma/client";
+import { Prisma, type UserPassword, type User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
+import type { TFunction } from "i18next";
 
 import { isEmail } from "../util";
 import type { TeamWithParent } from "./types";
@@ -137,7 +134,7 @@ export async function getUniqueInvitationsOrThrowIfEmpty(invitations: Invitation
   return uniqueInvitations;
 }
 
-export const enum INVITE_STATUS {
+export enum INVITE_STATUS {
   USER_PENDING_MEMBER_OF_THE_ORG = "USER_PENDING_MEMBER_OF_THE_ORG",
   USER_ALREADY_INVITED_OR_MEMBER = "USER_ALREADY_INVITED_OR_MEMBER",
   USER_MEMBER_OF_OTHER_ORGANIZATION = "USER_MEMBER_OF_OTHER_ORGANIZATION",
@@ -270,7 +267,7 @@ export function getOrgConnectionInfo({
   team: Pick<TeamWithParent, "parentId" | "id">;
   isOrg: boolean;
 }) {
-  let orgId: number | undefined = undefined;
+  let orgId: number | undefined;
   let autoAccept = false;
 
   if (team.parentId || isOrg) {
@@ -908,6 +905,19 @@ export async function handleExistingUsersInvites({
 
         // If auto-accepting into org, also accept any pending sub-team memberships
         if (shouldAutoAccept) {
+          const pendingSubTeamMemberships = await prisma.membership.findMany({
+            where: {
+              userId: user.id,
+              accepted: false,
+              team: {
+                parentId: organization.id,
+              },
+            },
+            select: {
+              teamId: true,
+            },
+          });
+
           await prisma.membership.updateMany({
             where: {
               userId: user.id,
@@ -920,6 +930,18 @@ export async function handleExistingUsersInvites({
               accepted: true,
             },
           });
+
+          const subTeamIds = pendingSubTeamMemberships.map((m) => m.teamId);
+          if (subTeamIds.length > 0) {
+            const results = await Promise.allSettled(
+              subTeamIds.map((teamId) => updateNewTeamMemberEventTypes(user.id, teamId))
+            );
+            results.forEach((result) => {
+              if (result.status === "rejected") {
+                log.error("Error updating new team member event types for user in sub-team", result.reason);
+              }
+            });
+          }
         }
         return {
           ...user,
