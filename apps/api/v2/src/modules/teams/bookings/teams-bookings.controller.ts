@@ -1,11 +1,9 @@
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { GetTeamsBookingsInput_2024_08_13 } from "@/modules/teams/bookings/inputs/get-teams-bookings.input";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -19,7 +17,7 @@ import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
   path: "/v2/teams/:teamId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, RolesGuard, PlatformPlanGuard)
+@UseGuards(ApiAuthGuard, RolesGuard)
 @DocsTags("Teams / Bookings")
 @ApiHeader(API_KEY_HEADER)
 export class TeamsBookingsController {
@@ -28,7 +26,6 @@ export class TeamsBookingsController {
   @Get("/")
   @ApiOperation({ summary: "Get team bookings" })
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
   @HttpCode(HttpStatus.OK)
   async getAllTeamBookings(
     @Query() queryParams: GetTeamsBookingsInput_2024_08_13,
