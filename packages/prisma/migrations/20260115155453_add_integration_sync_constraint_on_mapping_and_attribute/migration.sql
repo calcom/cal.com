@@ -5,4 +5,4 @@
 
 */
 -- CreateIndex
-CREATE UNIQUE INDEX "AttributeSyncFieldMapping_integrationAttributeSyncId_attrib_key" ON "public"."AttributeSyncFieldMapping"("integrationAttributeSyncId", "attributeId");
+CREATE UNIQUE INDEX IF NOT EXISTS "AttributeSyncFieldMapping_integrationAttributeSyncId_attrib_key" ON "public"."AttributeSyncFieldMapping"("integrationAttributeSyncId", "attributeId");
