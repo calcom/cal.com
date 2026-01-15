@@ -10,7 +10,10 @@ import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import {
+  createGoogleCalendarServiceWithGoogleType,
+  type GoogleCalendar,
+} from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
@@ -733,7 +736,7 @@ export const getOptions = ({
             appId: "google-calendar",
             type: "google_calendar",
           });
-          const gCalService = new GoogleCalendarService({
+          const gCalService = createGoogleCalendarServiceWithGoogleType({
             ...gcalCredential,
             user: null,
             delegatedTo: null,
