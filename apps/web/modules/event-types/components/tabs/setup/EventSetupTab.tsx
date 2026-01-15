@@ -306,7 +306,7 @@ export const EventSetupTab = (
                   message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
                 },
               })}
-              addOnSuffix={<>{t("minutes").toLowerCase()}</>}
+              addOnSuffix={<>{t("minutes")}</>}
               min={MIN_EVENT_DURATION_MINUTES}
               max={MAX_EVENT_DURATION_MINUTES}
             />
