@@ -1,18 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import type { ReactElement } from "react";
-import { useState } from "react";
-
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Checkbox, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { Label, Checkbox } from "@calcom/ui/components/form";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
+import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import type { ReactElement } from "react";
+import { useState } from "react";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -45,6 +44,7 @@ export function FeatureOptInConfirmDialog({
   const [scope, setScope] = useState<OptInScope>("user");
   const [autoOptIn, setAutoOptIn] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [shouldInvalidate, setShouldInvalidate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const setUserStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation();
@@ -74,7 +74,9 @@ export function FeatureOptInConfirmDialog({
           )
         );
         if (autoOptIn) {
-          await Promise.all(adminTeamIds.map((teamId) => setTeamAutoOptInMutation.mutateAsync({ teamId, autoOptIn: true })));
+          await Promise.all(
+            adminTeamIds.map((teamId) => setTeamAutoOptInMutation.mutateAsync({ teamId, autoOptIn: true }))
+          );
         }
       } else {
         await setUserStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" });
@@ -83,10 +85,8 @@ export function FeatureOptInConfirmDialog({
         }
       }
 
-      utils.viewer.featureOptIn.checkFeatureOptInEligibility.invalidate();
-      utils.viewer.featureOptIn.listForUser.invalidate();
-
       setIsSuccess(true);
+      setShouldInvalidate(true);
     } catch (_error) {
       showToast(t("error_enabling_feature"), "error");
     } finally {
@@ -96,7 +96,7 @@ export function FeatureOptInConfirmDialog({
 
   const handleViewSettings = () => {
     onDismissBanner();
-    onClose();
+    resetAndClose();
     if (scope === "org") {
       router.push("/settings/organizations/features");
     } else if (scope === "teams" && adminTeamIds.length > 0) {
@@ -108,10 +108,15 @@ export function FeatureOptInConfirmDialog({
 
   const handleDismiss = () => {
     onDismissBanner();
-    onClose();
+    resetAndClose();
   };
 
   const resetAndClose = () => {
+    if (shouldInvalidate) {
+      utils.viewer.featureOptIn.checkFeatureOptInEligibility.invalidate();
+      utils.viewer.featureOptIn.listForUser.invalidate();
+      setShouldInvalidate(false);
+    }
     setIsSuccess(false);
     setScope("user");
     setAutoOptIn(false);
@@ -156,11 +161,7 @@ export function FeatureOptInConfirmDialog({
               <Label>{t("enable_for")}</Label>
               <RadioGroup value={scope} onValueChange={(value) => setScope(value as OptInScope)}>
                 {canEnableForOrg && (
-                  <RadioField
-                    value="org"
-                    label={t("entire_organization")}
-                    id="scope-org"
-                  />
+                  <RadioField value="org" label={t("entire_organization")} id="scope-org" />
                 )}
                 {canEnableForTeams && (
                   <RadioField
@@ -173,11 +174,7 @@ export function FeatureOptInConfirmDialog({
                     id="scope-teams"
                   />
                 )}
-                <RadioField
-                  value="user"
-                  label={t("just_for_me")}
-                  id="scope-user"
-                />
+                <RadioField value="user" label={t("just_for_me")} id="scope-user" />
               </RadioGroup>
             </div>
           )}
