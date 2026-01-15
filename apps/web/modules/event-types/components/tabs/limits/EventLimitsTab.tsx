@@ -162,10 +162,6 @@ function RangeLimitRadioItem({
                 }}
                 disabled={isDisabled}
                 onDatesChange={({ startDate, endDate }) => {
-                  // Convert local dates to UTC midnight for the same date
-                  // This ensures the date selected by the user is stored correctly
-                  // regardless of their timezone (e.g., Jan 20 selected in Dubai
-                  // is stored as 2026-01-20T00:00:00Z, not 2026-01-19T20:00:00Z)
                   const toUTCMidnight = (date: Date | undefined): Date | undefined => {
                     if (!date) return undefined;
                     return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
