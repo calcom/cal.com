@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
@@ -51,9 +52,8 @@ export async function checkOnboardingRedirect(
   const featuresRepository = new FeaturesRepository(prisma);
 
   if (options?.checkEmailVerification) {
-    const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-      "email-verification"
-    );
+    const emailVerificationEnabled =
+      await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
     if (!user.emailVerified && user.identityProvider === "CAL" && emailVerificationEnabled) {
       // User needs email verification, redirect to verification page
@@ -64,17 +64,9 @@ export async function checkOnboardingRedirect(
   // Determine which onboarding path to use
   const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
-  const pendingInvite = await prisma.membership.findFirst({
-    where: {
-      userId: userId,
-      accepted: false,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const hasPendingInvite = await MembershipRepository.hasPendingInviteByUserId({ userId });
 
-  if (pendingInvite && onboardingV3Enabled) {
+  if (hasPendingInvite && onboardingV3Enabled) {
     return "/onboarding/personal/settings";
   }
 

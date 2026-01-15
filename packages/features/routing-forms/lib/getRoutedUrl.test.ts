@@ -1,6 +1,6 @@
 import "@calcom/lib/__mocks__/logger";
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import type { GetServerSidePropsContext } from "next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

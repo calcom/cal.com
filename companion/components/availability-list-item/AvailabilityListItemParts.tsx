@@ -2,6 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import type { Schedule } from "@/hooks";
 
+// Convert 24-hour time to 12-hour format with AM/PM
+const formatTime12Hour = (time24: string): string => {
+  const [hours, minutes] = time24.split(":");
+  const hour = parseInt(hours, 10);
+  const min = minutes || "00";
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${hour12}:${min} ${period}`;
+};
+
 interface ScheduleNameProps {
   name: string;
   isDefault?: boolean;
@@ -30,18 +40,28 @@ export function AvailabilitySlots({ availability, scheduleId }: AvailabilitySlot
     return <Text className="text-sm text-cal-text-secondary">No availability set</Text>;
   }
 
+  const MAX_VISIBLE_SLOTS = 2;
+  const visibleSlots = availability.slice(0, MAX_VISIBLE_SLOTS);
+  const remainingCount = availability.length - MAX_VISIBLE_SLOTS;
+
   return (
     <View>
-      {availability.map((slot, slotIndex) => (
+      {visibleSlots.map((slot, slotIndex) => (
         <View
           key={`${scheduleId}-${slot.days.join("-")}-${slotIndex}`}
-          className={slotIndex > 0 ? "mt-2" : ""}
+          className={slotIndex > 0 ? "mt-1" : ""}
         >
-          <Text className="text-sm text-cal-text-secondary">
-            {slot.days.join(", ")} {slot.startTime} - {slot.endTime}
+          <Text className="text-sm text-cal-text-secondary" numberOfLines={1}>
+            {slot.days.join(", ")} {formatTime12Hour(slot.startTime)} -{" "}
+            {formatTime12Hour(slot.endTime)}
           </Text>
         </View>
       ))}
+      {remainingCount > 0 && (
+        <Text className="mt-1 text-sm text-cal-text-secondary">
+          +{remainingCount} more {remainingCount === 1 ? "slot" : "slots"}
+        </Text>
+      )}
     </View>
   );
 }

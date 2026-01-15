@@ -123,6 +123,41 @@ export class OrganizationsDelegationCredentialService {
     }
   }
 
+  async ensureDefaultCalendarsForUser(orgId: number, userId: number, userEmail: string) {
+    try {
+      const emailParts = userEmail.split("@");
+      if (emailParts.length < 2 || !emailParts[1]) {
+        this.logger.warn(`Invalid email format for user ${userId}: missing domain`);
+        return;
+      }
+      const emailDomain = `@${emailParts[1]}`;
+
+      const delegationCredential =
+        await this.organizationsDelegationCredentialRepository.findEnabledByOrgIdAndDomain(orgId, emailDomain);
+
+      if (!delegationCredential) {
+        return;
+      }
+
+      const existingJob = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${userId}`);
+      if (existingJob) {
+        await existingJob.remove();
+        this.logger.log(`Removed existing default calendar job for user with id: ${userId}`);
+      }
+      this.logger.log(`Adding default calendar job for user with id: ${userId}`);
+      await this.calendarsQueue.add(
+        DEFAULT_CALENDARS_JOB,
+        { userId } satisfies DefaultCalendarsJobDataType,
+        { jobId: `${DEFAULT_CALENDARS_JOB}_${userId}`, removeOnComplete: true }
+      );
+    } catch (err) {
+      this.logger.error(
+        err,
+        `Could not ensure default calendars for user with id: ${userId} in org with id: ${orgId}`
+      );
+    }
+  }
+
   async updateDelegationCredentialEnabled(
     orgId: number,
     delegationCredentialId: string,

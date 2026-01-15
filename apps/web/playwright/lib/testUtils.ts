@@ -1,9 +1,9 @@
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { createHash } from "crypto";
-import EventEmitter from "events";
-import type { IncomingMessage, ServerResponse } from "http";
-import { createServer } from "http";
+import { createHash } from "node:crypto";
+import EventEmitter from "node:events";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -106,22 +106,35 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 }
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
-  // Let current month dates fully render.
-  await page.getByTestId("incrementMonth").click();
+  // Wait for the booker to be ready before interacting
+  const incrementMonth = page.getByTestId("incrementMonth");
+  await incrementMonth.waitFor();
+  await incrementMonth.click();
 
-  // Waiting for full month increment
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+  // Wait for available day to appear after month increment
+  const firstAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(0);
+  await firstAvailableDay.waitFor();
+  await firstAvailableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).click();
+  const firstTimeSlot = page.locator('[data-testid="time"]').nth(0);
+  await firstTimeSlot.waitFor();
+  await firstTimeSlot.click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
-  // Let current month dates fully render.
-  await page.getByTestId("incrementMonth").click();
+  // Wait for the booker to be ready before interacting
+  const incrementMonth = page.getByTestId("incrementMonth");
+  await incrementMonth.waitFor();
+  await incrementMonth.click();
 
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+  // Wait for available day to appear after month increment
+  const secondAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(1);
+  await secondAvailableDay.waitFor();
+  await secondAvailableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).click();
+  const firstTimeSlot = page.locator('[data-testid="time"]').nth(0);
+  await firstTimeSlot.waitFor();
+  await firstTimeSlot.click();
 }
 
 export async function bookEventOnThisPage(page: Page) {

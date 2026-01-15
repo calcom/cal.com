@@ -14,9 +14,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "deploymentTarget": "18.0",
-      "bundleIdentifier": "com.calcom.companion",
+      "bundleIdentifier": "com.cal.companion",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },

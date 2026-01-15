@@ -3,7 +3,7 @@
  * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
-import type { ServerResponse } from "http";
+import type { ServerResponse } from "node:http";
 import type { NextApiResponse } from "next";
 
 import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
