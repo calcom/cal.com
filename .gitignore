@@ -60,7 +60,7 @@ yarn-error.log*
 .history/
 
 # Typescript
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # turbo
 .turbo
@@ -75,6 +75,7 @@ packages/prisma/enums
 
 # Builds
 dist
+packages/app-store/types
 
 # Linting
 lint-results
