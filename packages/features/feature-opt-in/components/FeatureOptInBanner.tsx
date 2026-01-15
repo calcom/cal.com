@@ -1,11 +1,10 @@
 "use client";
 
-import type { ReactElement } from "react";
-
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import type { ReactElement } from "react";
 
 interface FeatureOptInBannerProps {
   featureConfig: OptInFeatureConfig;
@@ -21,7 +20,7 @@ export function FeatureOptInBanner({
   const { t } = useLocale();
 
   return (
-    <div className="bg-default border-subtle fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border p-4 shadow-lg">
+    <div className="bg-default border-subtle fixed bottom-5 right-5 z-50 max-w-xs rounded-lg border p-4 shadow-lg">
       <div className="flex items-start gap-3">
         <div className="bg-subtle flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
           <Icon name="sparkles" className="text-emphasis h-5 w-5" />
