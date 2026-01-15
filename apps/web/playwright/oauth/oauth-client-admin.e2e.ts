@@ -29,15 +29,37 @@ async function expectClientStatusInDb(
     .toBe(status);
 }
 
-async function expectClientInAdminSection(page: Page, sectionTestId: string, clientId: string): Promise<void> {
+async function waitForAdminSection(page: Page, sectionTestId: string) {
+  await expect
+    .poll(
+      async () => {
+        return await page.getByTestId(sectionTestId).count();
+      },
+      { timeout: 30_000 }
+    )
+    .toBe(1);
+
   const section = page.getByTestId(sectionTestId);
   await expect(section).toBeVisible();
+  return section;
+}
+
+async function expectClientInAdminSection(page: Page, sectionTestId: string, clientId: string): Promise<void> {
+  const section = await waitForAdminSection(page, sectionTestId);
+
+  await expect
+    .poll(
+      async () => {
+        return await section.getByTestId(`oauth-client-list-item-${clientId}`).count();
+      },
+      { timeout: 30_000 }
+    )
+    .toBe(1);
   await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toBeVisible();
 }
 
 async function expectClientNotInAdminSection(page: Page, sectionTestId: string, clientId: string): Promise<void> {
-  const section = page.getByTestId(sectionTestId);
-  await expect(section).toBeVisible();
+  const section = await waitForAdminSection(page, sectionTestId);
   await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toHaveCount(0);
 }
 
@@ -117,14 +139,20 @@ test.describe("OAuth clients admin", () => {
 
     await expectClientStatusInDb(prisma, toBeRejected.clientId, "REJECTED");
 
-    const rejectedDetails = await openOAuthClientDetailsFromList(page, toBeRejected.clientId);
+    await expectClientNotInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
+    await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
+
+    await page
+      .getByTestId("oauth-client-admin-rejected-section")
+      .getByTestId(`oauth-client-list-item-${toBeRejected.clientId}`)
+      .click();
+
+    const rejectedDetails = page.getByTestId("oauth-client-details-form");
+    await expect(rejectedDetails).toBeVisible();
     await expect(rejectedDetails.getByTestId("oauth-client-details-rejection-reason-display")).toContainText(
       rejectionReason
     );
     await closeOAuthClientDetails(page);
-
-    await expectClientNotInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", staysPending.clientId);
 
     // Reload to ensure list queries show consistent counts
