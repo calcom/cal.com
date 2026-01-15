@@ -672,7 +672,7 @@ describe("createEvent", () => {
   });
 
   test("should use default reminders when no custom reminder is configured", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockGoogleEvent = {
@@ -736,7 +736,7 @@ describe("createEvent", () => {
   });
 
   test("should handle 'just in time' reminder (0 minutes) correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock the getReminderDuration method to return 0 (just in time)
