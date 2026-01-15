@@ -184,6 +184,7 @@ import { Module } from "@nestjs/common";
     OrganizationsEventTypesService,
     OrganizationsConferencingService,
     OrganizationsStripeService,
+    OrganizationMembershipService,
   ],
   controllers: [
     OrganizationsTeamsController,

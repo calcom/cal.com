@@ -112,16 +112,4 @@ export class TeamsMembershipsRepository {
     });
   }
 
-  async findTeamById(teamId: number) {
-    return this.dbRead.prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      select: {
-        id: true,
-        parentId: true,
-        isOrganization: true,
-      },
-    });
-  }
 }
