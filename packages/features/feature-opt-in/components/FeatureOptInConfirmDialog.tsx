@@ -5,13 +5,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { CheckboxField, Label } from "@calcom/ui/components/form";
+import { CheckboxField, Label, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { MultiValue, SingleValue } from "react-select";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -20,7 +20,13 @@ type UserRoleContext = {
   adminTeamNames: { id: number; name: string }[];
 };
 
-type OptInScope = "user" | "org" | "teams";
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
+const OPTION_USER = "user";
+const OPTION_ORG = "org";
 
 interface FeatureOptInConfirmDialogProps {
   isOpen: boolean;
@@ -41,7 +47,32 @@ export function FeatureOptInConfirmDialog({
   const router = useRouter();
   const utils = trpc.useUtils();
 
-  const [scope, setScope] = useState<OptInScope>("user");
+  const { isOrgAdmin, orgId, adminTeamIds, adminTeamNames } = userRoleContext;
+  const hasAdminTeams = adminTeamIds.length > 0;
+  const canEnableForOrg = isOrgAdmin && orgId !== null;
+  const canEnableForTeams = hasAdminTeams;
+  const showSelector = canEnableForOrg || canEnableForTeams;
+
+  const options = useMemo((): SelectOption[] => {
+    const opts: SelectOption[] = [{ value: OPTION_USER, label: t("just_for_me") }];
+
+    if (canEnableForOrg) {
+      opts.push({ value: OPTION_ORG, label: t("entire_organization") });
+    }
+
+    if (canEnableForTeams) {
+      adminTeamNames.forEach((team) => {
+        opts.push({ value: `team-${team.id}`, label: team.name });
+      });
+    }
+
+    return opts;
+  }, [canEnableForOrg, canEnableForTeams, adminTeamNames, t]);
+
+  const defaultOption = options.find((opt) => opt.value === OPTION_USER);
+  const [selectedOptions, setSelectedOptions] = useState<SelectOption[]>(
+    defaultOption ? [defaultOption] : []
+  );
   const [autoOptIn, setAutoOptIn] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [shouldInvalidate, setShouldInvalidate] = useState(false);
@@ -54,36 +85,83 @@ export function FeatureOptInConfirmDialog({
   const setTeamAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation();
   const setOrganizationAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation();
 
-  const { isOrgAdmin, orgId, adminTeamIds, adminTeamNames } = userRoleContext;
-  const hasAdminTeams = adminTeamIds.length > 0;
-  const canEnableForOrg = isOrgAdmin && orgId !== null;
-  const canEnableForTeams = hasAdminTeams;
+  const handleSelectionChange = (selected: MultiValue<SelectOption> | SingleValue<SelectOption>): void => {
+    if (!selected) {
+      setSelectedOptions([]);
+      return;
+    }
 
-  const handleConfirm = async () => {
+    if (!Array.isArray(selected)) {
+      setSelectedOptions([selected]);
+      return;
+    }
+
+    const newSelection = selected as SelectOption[];
+    const previousValues = selectedOptions.map((opt) => opt.value);
+    const newValues = newSelection.map((opt) => opt.value);
+
+    const orgWasSelected = previousValues.includes(OPTION_ORG);
+    const orgIsNowSelected = newValues.includes(OPTION_ORG);
+
+    if (!orgWasSelected && orgIsNowSelected) {
+      setSelectedOptions(newSelection.filter((opt) => opt.value === OPTION_ORG || opt.value === OPTION_USER));
+    } else if (orgIsNowSelected && newSelection.some((opt) => opt.value.startsWith("team-"))) {
+      setSelectedOptions(newSelection.filter((opt) => opt.value !== OPTION_ORG));
+    } else {
+      setSelectedOptions(newSelection);
+    }
+  };
+
+  const hasOrgSelected = selectedOptions.some((opt) => opt.value === OPTION_ORG);
+  const hasUserSelected = selectedOptions.some((opt) => opt.value === OPTION_USER);
+  const selectedTeamIds = selectedOptions
+    .filter((opt) => opt.value.startsWith("team-"))
+    .map((opt) => parseInt(opt.value.replace("team-", ""), 10));
+  const hasTeamsSelected = selectedTeamIds.length > 0;
+
+  const getAutoOptInText = (): string => {
+    if (hasOrgSelected) {
+      return t("auto_opt_in_future_features_org");
+    }
+    if (hasTeamsSelected) {
+      return t("auto_opt_in_future_features_teams");
+    }
+    return t("auto_opt_in_future_features_user");
+  };
+
+  const handleConfirm = async (): Promise<void> => {
     setIsSubmitting(true);
     try {
-      if (scope === "org" && orgId) {
-        await setOrganizationStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" });
-        if (autoOptIn) {
-          await setOrganizationAutoOptInMutation.mutateAsync({ autoOptIn: true });
-        }
-      } else if (scope === "teams") {
-        await Promise.all(
-          adminTeamIds.map((teamId) =>
-            setTeamStateMutation.mutateAsync({ teamId, slug: featureConfig.slug, state: "enabled" })
-          )
+      const promises: Promise<unknown>[] = [];
+
+      if (hasOrgSelected && orgId) {
+        promises.push(
+          setOrganizationStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" })
         );
         if (autoOptIn) {
-          await Promise.all(
-            adminTeamIds.map((teamId) => setTeamAutoOptInMutation.mutateAsync({ teamId, autoOptIn: true }))
-          );
-        }
-      } else {
-        await setUserStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" });
-        if (autoOptIn) {
-          await setUserAutoOptInMutation.mutateAsync({ autoOptIn: true });
+          promises.push(setOrganizationAutoOptInMutation.mutateAsync({ autoOptIn: true }));
         }
       }
+
+      if (hasTeamsSelected) {
+        selectedTeamIds.forEach((teamId) => {
+          promises.push(
+            setTeamStateMutation.mutateAsync({ teamId, slug: featureConfig.slug, state: "enabled" })
+          );
+          if (autoOptIn) {
+            promises.push(setTeamAutoOptInMutation.mutateAsync({ teamId, autoOptIn: true }));
+          }
+        });
+      }
+
+      if (hasUserSelected) {
+        promises.push(setUserStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" }));
+        if (autoOptIn) {
+          promises.push(setUserAutoOptInMutation.mutateAsync({ autoOptIn: true }));
+        }
+      }
+
+      await Promise.all(promises);
 
       setIsSuccess(true);
       setShouldInvalidate(true);
@@ -94,31 +172,35 @@ export function FeatureOptInConfirmDialog({
     }
   };
 
-  const handleViewSettings = () => {
-    onDismissBanner();
-    resetAndClose();
-    if (scope === "org") {
-      router.push("/settings/organizations/features");
-    } else if (scope === "teams" && adminTeamIds.length > 0) {
-      router.push(`/settings/teams/${adminTeamIds[0]}/features`);
-    } else {
-      router.push("/settings/my-account/features");
+  const getSettingsRedirectPath = (): string => {
+    if (hasOrgSelected) {
+      return "/settings/organizations/features";
     }
+    if (hasTeamsSelected && selectedTeamIds.length > 0) {
+      return `/settings/teams/${selectedTeamIds[0]}/features`;
+    }
+    return "/settings/my-account/features";
   };
 
-  const handleDismiss = () => {
+  const handleViewSettings = (): void => {
+    onDismissBanner();
+    resetAndClose();
+    router.push(getSettingsRedirectPath());
+  };
+
+  const handleDismiss = (): void => {
     onDismissBanner();
     resetAndClose();
   };
 
-  const resetAndClose = () => {
+  const resetAndClose = (): void => {
     if (shouldInvalidate) {
       utils.viewer.featureOptIn.checkFeatureOptInEligibility.invalidate();
       utils.viewer.featureOptIn.listForUser.invalidate();
       setShouldInvalidate(false);
     }
     setIsSuccess(false);
-    setScope("user");
+    setSelectedOptions(defaultOption ? [defaultOption] : []);
     setAutoOptIn(false);
     onClose();
   };
@@ -153,40 +235,25 @@ export function FeatureOptInConfirmDialog({
         <div className="space-y-4">
           <p className="text-subtle text-sm">{t(featureConfig.descriptionI18nKey)}</p>
 
-          {(canEnableForOrg || canEnableForTeams) && (
-            <div className="space-y-3">
+          {showSelector && (
+            <div className="space-y-2">
               <Label>{t("enable_for")}</Label>
-              <RadioGroup value={scope} onValueChange={(value) => setScope(value as OptInScope)}>
-                {canEnableForOrg && (
-                  <RadioField value="org" label={t("entire_organization")} id="scope-org" />
-                )}
-                {canEnableForTeams && (
-                  <RadioField
-                    value="teams"
-                    label={
-                      adminTeamNames.length === 1
-                        ? t("team_name", { name: adminTeamNames[0].name })
-                        : t("my_teams_count", { count: adminTeamNames.length })
-                    }
-                    id="scope-teams"
-                  />
-                )}
-                <RadioField value="user" label={t("just_for_me")} id="scope-user" />
-              </RadioGroup>
+              <Select
+                isMulti
+                value={selectedOptions}
+                onChange={handleSelectionChange}
+                options={options}
+                closeMenuOnSelect={false}
+                className="w-full"
+              />
             </div>
           )}
 
           <div className="border-subtle border-t pt-4">
             <CheckboxField
               checked={autoOptIn}
-              onChange={(e) => setAutoOptIn(e.target.checked)}
-              description={
-                scope === "org"
-                  ? t("auto_opt_in_future_features_org")
-                  : scope === "teams"
-                    ? t("auto_opt_in_future_features_teams")
-                    : t("auto_opt_in_future_features_user")
-              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoOptIn(e.target.checked)}
+              description={getAutoOptInText()}
             />
           </div>
         </div>
@@ -195,7 +262,11 @@ export function FeatureOptInConfirmDialog({
           <Button color="secondary" onClick={resetAndClose} disabled={isSubmitting}>
             {t("cancel")}
           </Button>
-          <Button color="primary" onClick={handleConfirm} loading={isSubmitting}>
+          <Button
+            color="primary"
+            onClick={handleConfirm}
+            loading={isSubmitting}
+            disabled={selectedOptions.length === 0}>
             {t("enable")}
           </Button>
         </DialogFooter>
