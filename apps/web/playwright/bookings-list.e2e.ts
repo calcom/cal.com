@@ -639,6 +639,7 @@ test.describe("Attendee Visibility in Booking List", () => {
 
     await teamOwner.apiLogin();
     await page.goto("/bookings/upcoming");
+    await expect(page).toHaveURL("/bookings/upcoming");
 
     // Should see the booking with all attendees visible
     const bookingItem = page.locator('[data-testid="booking-item"]').first();
