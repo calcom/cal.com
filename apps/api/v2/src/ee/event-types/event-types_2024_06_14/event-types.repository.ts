@@ -116,12 +116,19 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
-  async getUserEventTypes(userId: number, sortCreatedAt?: SortOrderType) {
+  async getUserEventTypes(
+    userId: number,
+    sortCreatedAt?: SortOrderType,
+    skip?: number,
+    take?: number
+  ) {
     return this.dbRead.prisma.eventType.findMany({
       where: {
         userId,
       },
       ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
+      ...(skip !== undefined && { skip }),
+      ...(take !== undefined && { take }),
       include: { users: this.usersInclude, schedule: true, destinationCalendar: true },
     });
   }

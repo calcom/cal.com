@@ -212,8 +212,8 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async getUserEventTypes(userId: number, sortCreatedAt?: SortOrderType) {
-    const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId, sortCreatedAt);
+  async getUserEventTypes(userId: number, sortCreatedAt?: SortOrderType, skip?: number, take?: number) {
+    const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId, sortCreatedAt, skip, take);
 
     return eventTypes.map((eventType) => {
       return { ownerId: userId, ...eventType };

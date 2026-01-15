@@ -1,9 +1,9 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEnum, IsOptional } from "class-validator";
 
-import { SortOrder, SortOrderType } from "@calcom/platform-types";
+import { SkipTakePagination, SortOrder, SortOrderType } from "@calcom/platform-types";
 
-export class GetMeEventTypesQuery {
+export class GetMeEventTypesQuery extends SkipTakePagination {
   @ApiPropertyOptional({
     enum: SortOrder,
     description: "Sort event types by creation date. When not provided, no explicit ordering is applied.",

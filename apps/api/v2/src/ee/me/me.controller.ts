@@ -86,7 +86,12 @@ export class MeController {
     @GetUser("id") userId: number,
     @Query() queryParams: GetMeEventTypesQuery
   ): Promise<GetEventTypesOutput_2024_06_14> {
-    const eventTypes = await this.eventTypesService.getUserEventTypes(userId, queryParams.sortCreatedAt);
+    const eventTypes = await this.eventTypesService.getUserEventTypes(
+      userId,
+      queryParams.sortCreatedAt,
+      queryParams.skip,
+      queryParams.take
+    );
     const eventTypesFormatted = eventTypes.map((eventType) =>
       this.outputEventTypesService.getResponseEventType(eventType.ownerId, eventType, false)
     );

@@ -368,12 +368,8 @@ describe("Me Endpoints", () => {
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toEqual(3);
 
-      expect(new Date(responseBody.data[0].createdAt).valueOf()).toBeLessThan(
-        new Date(responseBody.data[1].createdAt).valueOf()
-      );
-      expect(new Date(responseBody.data[1].createdAt).valueOf()).toBeLessThan(
-        new Date(responseBody.data[2].createdAt).valueOf()
-      );
+      expect(responseBody.data[0].id).toBeLessThan(responseBody.data[1].id);
+      expect(responseBody.data[1].id).toBeLessThan(responseBody.data[2].id);
     });
 
     it("should return event types sorted by createdAt descending", async () => {
@@ -388,12 +384,47 @@ describe("Me Endpoints", () => {
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toEqual(3);
 
-      expect(new Date(responseBody.data[0].createdAt).valueOf()).toBeGreaterThan(
-        new Date(responseBody.data[1].createdAt).valueOf()
-      );
-      expect(new Date(responseBody.data[1].createdAt).valueOf()).toBeGreaterThan(
-        new Date(responseBody.data[2].createdAt).valueOf()
-      );
+      expect(responseBody.data[0].id).toBeGreaterThan(responseBody.data[1].id);
+      expect(responseBody.data[1].id).toBeGreaterThan(responseBody.data[2].id);
+    });
+
+    it("should return paginated event types with take parameter", async () => {
+      const response = await request(app.getHttpServer())
+        .get("/v2/me/event-types?take=2&sortCreatedAt=asc")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+    });
+
+    it("should return paginated event types with skip parameter", async () => {
+      const response = await request(app.getHttpServer())
+        .get("/v2/me/event-types?skip=1&sortCreatedAt=asc")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+    });
+
+    it("should return paginated event types with skip and take parameters", async () => {
+      const response = await request(app.getHttpServer())
+        .get("/v2/me/event-types?skip=1&take=1&sortCreatedAt=asc")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
     });
 
     afterAll(async () => {
