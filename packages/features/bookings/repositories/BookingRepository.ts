@@ -1,12 +1,11 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
+import type { Booking, Prisma } from "@calcom/prisma/client";
+import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 import {
-  bookingMinimalSelect,
   bookingAuthorizationCheckSelect,
   bookingDetailsSelect,
+  bookingMinimalSelect,
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -2085,8 +2084,6 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
   }) {
     if (!userIds.length && !userEmails.length) return [];
 
-    const normalizedEmails = userEmails.map((e) => e.toLowerCase());
-
     return this.prismaClient.booking.findMany({
       where: {
         status: {
@@ -2097,12 +2094,12 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
         // Booking belongs to one of the users (as host or attendee)
         OR: [
           ...(userIds.length > 0 ? [{ userId: { in: userIds } }] : []),
-          ...(normalizedEmails.length > 0
+          ...(userEmails.length > 0
             ? [
                 {
                   attendees: {
                     some: {
-                      email: { in: normalizedEmails },
+                      email: { in: userEmails, mode: "insensitive" as const },
                     },
                   },
                 },
