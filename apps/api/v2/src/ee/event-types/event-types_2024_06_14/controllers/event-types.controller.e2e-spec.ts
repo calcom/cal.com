@@ -3258,6 +3258,7 @@ describe("Event types Endpoints", () => {
         email: orgUserEmail,
         name: `Org User ${sharedUsername}`,
         username: sharedUsername,
+        organizationId: organization.id,
       });
 
       await profileRepositoryFixture.create({
