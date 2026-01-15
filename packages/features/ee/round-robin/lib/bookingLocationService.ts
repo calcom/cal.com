@@ -306,7 +306,7 @@ export class BookingLocationService {
 
     if (hostLocation.link) {
       return {
-        locationBodyString: hostLocation.type,
+        locationBodyString: hostLocation.link,
         organizerDefaultLocationUrl: hostLocation.link,
         perHostCredentialId: undefined,
       };

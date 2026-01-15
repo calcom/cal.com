@@ -506,6 +506,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           priority: number;
           weight: number;
           groupId: string | null | undefined;
+          scheduleId?: number | null | undefined;
           location?: {
             create: {
               type: string;
@@ -521,6 +522,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           groupId: host.groupId,
+          scheduleId: host.scheduleId ?? null,
         };
         if (host.location) {
           hostData.location = {
@@ -600,7 +602,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
 
     // Delete host locations for hosts that no longer have locations
-    const hostsWithoutLocations = existingHosts.filter((host) => !host.location);
+    const hostsWithoutLocations = existingHosts.filter((host) => host.location === null);
     if (hostsWithoutLocations.length > 0) {
       await ctx.prisma.hostLocation.deleteMany({
         where: {
