@@ -123,8 +123,12 @@ export class WorkflowReminderRepository {
             sendTo: true,
             emailSubject: true,
             sender: true,
+            numberVerificationPending: true,
+            numberRequired: true,
             workflow: {
               select: {
+                id: true,
+                name: true,
                 trigger: true,
                 time: true,
                 timeUnit: true,
