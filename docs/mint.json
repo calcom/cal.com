@@ -41,6 +41,10 @@
       "url": "self-hosting"
     },
     {
+      "name": "OAuth",
+      "url": "oauth"
+    },
+    {
       "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2"
