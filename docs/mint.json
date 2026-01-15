@@ -33,17 +33,17 @@
   },
   "tabs": [
     {
+      "name": "API v2 Reference",
+      "openapi": "/api-reference/v2/openapi.json",
+      "url": "api-reference/v2"
+    },
+    {
       "name": "Developing",
       "url": "developing"
     },
     {
       "name": "Self Hosting",
       "url": "self-hosting"
-    },
-    {
-      "name": "API v2 Reference",
-      "openapi": "/api-reference/v2/openapi.json",
-      "url": "api-reference/v2"
     },
     {
       "name": "API v1 Reference",
