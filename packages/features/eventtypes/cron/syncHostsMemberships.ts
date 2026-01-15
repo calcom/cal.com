@@ -1,4 +1,4 @@
-import { validateRequest } from "@calcom/lib/cron";
+import { validateRequest } from "@calcom/lib/cron/validateRequest";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { NextRequest } from "next/server";
