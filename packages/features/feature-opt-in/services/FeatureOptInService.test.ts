@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FeatureOptInService } from "./FeatureOptInService";
 
 const mockIsFeatureAllowedForScope = vi.fn();
+const mockFindAllByUserId = vi.fn();
 
 // Mock the OPT_IN_FEATURES config
 vi.mock("../config", () => {
@@ -64,8 +65,10 @@ vi.mock("../config", () => {
 
 // Mock MembershipRepository
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: {
-    findAllByUserId: vi.fn(),
+  MembershipRepository: class {
+    findAllByUserId(...args: unknown[]) {
+      return mockFindAllByUserId(...args);
+    }
   },
 }));
 
@@ -489,10 +492,9 @@ describe("FeatureOptInService", () => {
   });
 
   describe("checkFeatureOptInEligibility", () => {
-    const mockFindAllByUserId = vi.fn();
-
     beforeEach(async () => {
       vi.resetAllMocks();
+      mockFindAllByUserId.mockReset();
       mockCheckPermission = vi.fn();
       mockFindOwnedTeamsByUserId = vi.fn();
 
@@ -505,12 +507,6 @@ describe("FeatureOptInService", () => {
       };
 
       service = new FeatureOptInService(mockFeaturesRepository as unknown as FeaturesRepository);
-
-      const { MembershipRepository } = await import(
-        "@calcom/features/membership/repositories/MembershipRepository"
-      );
-
-      vi.mocked(MembershipRepository.findAllByUserId).mockImplementation(mockFindAllByUserId);
     });
 
     it("should return invalid_feature for non-opt-in features", async () => {
@@ -652,7 +648,11 @@ describe("FeatureOptInService", () => {
       };
 
       vi.doMock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-        MembershipRepository: mockMembershipRepository,
+        MembershipRepository: class {
+          findAllByUserId(...args: unknown[]) {
+            return mockMembershipRepository.findAllByUserId(...args);
+          }
+        },
       }));
       vi.doMock("@calcom/features/pbac/services/permission-check.service", () => ({
         PermissionCheckService: vi.fn(() => mockPermissionCheckService),

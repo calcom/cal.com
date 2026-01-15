@@ -414,7 +414,8 @@ export class FeatureOptInService implements IFeatureOptInService {
   }
 
   private async getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-    const memberships = await MembershipRepository.findAllByUserId({
+    const membershipRepository = new MembershipRepository(prisma);
+    const memberships = await membershipRepository.findAllByUserId({
       userId,
       filters: { accepted: true },
     });
