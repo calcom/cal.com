@@ -4347,6 +4347,7 @@
   "team_name": "{{name}}",
   "my_teams_count": "My teams ({{count}})",
   "just_for_me": "Just for me",
+  "for_me": "For me",
   "auto_opt_in_future_features_org": "Automatically opt into future features for my organization",
   "auto_opt_in_future_features_teams": "Automatically opt into future features for my teams",
   "auto_opt_in_future_features_user": "Automatically opt into future features",

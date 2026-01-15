@@ -70,7 +70,7 @@ export function FeatureOptInConfirmDialog({
 
   const getSelectedText = (): string => {
     const parts: string[] = [];
-    if (enableForUser) parts.push(t("just_for_me"));
+    if (enableForUser) parts.push(t("for_me"));
     if (enableForOrg) parts.push(t("entire_organization"));
     if (hasTeamsSelected) {
       const teamNames = adminTeamNames
@@ -218,14 +218,22 @@ export function FeatureOptInConfirmDialog({
           {showSelector && (
             <div className="space-y-2">
               <Label>{t("enable_for")}</Label>
-              <AnimatedPopover text={getSelectedText()} popoverTriggerClassNames="w-full">
+              <AnimatedPopover
+                text={getSelectedText()}
+                popoverTriggerClassNames="w-full"
+                Trigger={
+                  <div className="flex w-full items-center justify-between">
+                    <span className="truncate">{getSelectedText()}</span>
+                    <Icon name="chevron-down" className="ml-2 h-4 w-4 shrink-0" />
+                  </div>
+                }>
                 <FilterCheckboxFieldsContainer>
                   <FilterCheckboxField
-                    id="just-for-me"
+                    id="for-me"
                     icon={<Icon name="user" className="h-4 w-4" />}
                     checked={enableForUser}
                     onChange={(e) => setEnableForUser(e.target.checked)}
-                    label={t("just_for_me")}
+                    label={t("for_me")}
                   />
 
                   {canEnableForOrg && (
@@ -261,7 +269,7 @@ export function FeatureOptInConfirmDialog({
             </div>
           )}
 
-          <div className="border-subtle border-t pt-4">
+          <div className="pt-2">
             <CheckboxField
               checked={autoOptIn}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoOptIn(e.target.checked)}
