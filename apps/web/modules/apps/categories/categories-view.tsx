@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
+
+import Shell from "~/shell/Shell";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 

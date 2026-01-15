@@ -1,6 +1,6 @@
 import type { Retell } from "retell-sdk";
 
-import type { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
+import type { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 
 export type RetellLLM = Retell.LlmResponse;
 export type RetellPhoneNumber = Retell.PhoneNumberResponse;
@@ -103,7 +103,7 @@ export type CreateAgentRequest = Retell.AgentCreateParams;
 export type UpdateLLMRequest = Retell.LlmUpdateParams;
 export type UpdateAgentRequest = Retell.AgentUpdateParams;
 export type Agent = NonNullable<
-  Awaited<ReturnType<typeof PrismaAgentRepository.findByIdWithUserAccessAndDetails>>
+  Awaited<ReturnType<PrismaAgentRepository["findByIdWithUserAccessAndDetails"]>>
 >;
 
 export type RetellAgentWithDetails = {
@@ -113,6 +113,8 @@ export type RetellAgentWithDetails = {
   enabled: boolean;
   userId: number | null;
   teamId: number | null;
+  inboundEventTypeId?: number | null;
+  outboundEventTypeId?: number | null;
   outboundPhoneNumbers: Array<{
     id: number;
     phoneNumber: string;
@@ -167,7 +169,7 @@ export interface RetellAIRepository {
   deleteLLM(llmId: string): Promise<void>;
 
   // Agent operations
-  createAgent(data: CreateAgentRequest): Promise<RetellAgent>;
+  createOutboundAgent(data: CreateAgentRequest): Promise<RetellAgent>;
   getAgent(agentId: string): Promise<RetellAgent>;
   updateAgent(agentId: string, data: UpdateAgentRequest): Promise<RetellAgent>;
   deleteAgent(agentId: string): Promise<void>;
@@ -181,7 +183,7 @@ export interface RetellAIRepository {
 
   // Call operations
   createPhoneCall(data: CreatePhoneCallParams): Promise<RetellCall>;
-  
+
   listCalls(params: RetellCallListParams): Promise<RetellCallListResponse>;
 
   createWebCall(

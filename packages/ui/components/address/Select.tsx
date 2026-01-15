@@ -41,14 +41,14 @@ function Select<
         },
       })}
       styles={{
-        option: (provided, state) => ({
-          ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
-          },
-        }),
+        option: (provided, state) =>
+          Object.assign({}, provided, {
+            color: state.isSelected ? "var(--brand-text-color)" : "black",
+            ":active": {
+              backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+              color: "var(--brand-text-color)",
+            },
+          }),
       }}
       components={{
         ...components,
@@ -78,24 +78,24 @@ export function UnstyledSelect<
         Input: InputComponent,
       }}
       styles={{
-        container: (provided) => ({
-          ...provided,
-          width: "100%",
-        }),
-        control: (provided) => ({
-          ...provided,
-          backgroundColor: " transparent",
-          border: "none",
-          boxShadow: "none",
-        }),
-        option: (provided, state) => ({
-          ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
-          },
-        }),
+        container: (provided, _props) =>
+          Object.assign({}, provided, {
+            width: "100%",
+          }),
+        control: (provided, _props) =>
+          Object.assign({}, provided, {
+            backgroundColor: " transparent",
+            border: "none",
+            boxShadow: "none",
+          }),
+        option: (provided, state) =>
+          Object.assign({}, provided, {
+            color: state.isSelected ? "var(--brand-text-color)" : "black",
+            ":active": {
+              backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+              color: "var(--brand-text-color)",
+            },
+          }),
         indicatorSeparator: () => ({
           display: "hidden",
           color: "black",

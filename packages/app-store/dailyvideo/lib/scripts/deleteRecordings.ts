@@ -170,8 +170,8 @@ async function getAllRecordingsOlderThan6Months(): Promise<Recording[]> {
 }
 
 async function saveRecordingsToJson(recordings: Recording[]): Promise<void> {
-  const fs = await import("fs/promises");
-  const path = await import("path");
+  const fs = await import("node:fs/promises");
+  const path = await import("node:path");
 
   const simplifiedRecordings = recordings.map((recording) => ({
     id: recording.id,
@@ -316,8 +316,8 @@ async function deleteRecordingsFromJson(dryRun = false): Promise<void> {
     process.exit(1);
   }
 
-  const fs = await import("fs/promises");
-  const path = await import("path");
+  const fs = await import("node:fs/promises");
+  const path = await import("node:path");
 
   const filePath = path.join(process.cwd(), "recordings_older_than_6_months.json");
 
@@ -415,7 +415,7 @@ async function deleteRecordingsFromJson(dryRun = false): Promise<void> {
 }
 
 async function mainDelete(): Promise<void> {
-  const readline = (await import("readline")).createInterface({
+  const readline = (await import("node:readline")).createInterface({
     input: process.stdin,
     output: process.stdout,
   });

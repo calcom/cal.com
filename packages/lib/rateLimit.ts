@@ -8,7 +8,15 @@ const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 export { type RatelimitResponse };
 
 export type RateLimitHelper = {
-  rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai" | "sms" | "smsMonth";
+  rateLimitingType?:
+    | "core"
+    | "forcedSlowMode"
+    | "common"
+    | "api"
+    | "ai"
+    | "sms"
+    | "smsMonth"
+    | "instantMeeting";
   identifier: string;
   opts?: LimitOptions;
   /**
@@ -20,11 +28,16 @@ export type RateLimitHelper = {
 
 export const API_KEY_RATE_LIMIT = 30;
 
+let warned = false;
+
 export function rateLimiter() {
   const { UNKEY_ROOT_KEY } = process.env;
 
   if (!UNKEY_ROOT_KEY) {
-    log.warn("Disabled because the UNKEY_ROOT_KEY environment variable was not found.");
+    if (!warned) {
+      log.warn("Disabled because the UNKEY_ROOT_KEY environment variable was not found.");
+      warned = true;
+    }
     return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
   const timeout = {
@@ -48,6 +61,14 @@ export function rateLimiter() {
       namespace: "core",
       limit: 10,
       duration: "60s",
+      timeout,
+      onError,
+    }),
+    instantMeeting: new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "instantMeeting",
+      limit: 1,
+      duration: "10m",
       timeout,
       onError,
     }),

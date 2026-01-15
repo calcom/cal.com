@@ -6,14 +6,15 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { isTeamAdmin, isTeamMember } from "@calcom/features/ee/teams/lib/queries";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
@@ -117,18 +118,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
-  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
+  eventTypeRaw.users = eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)
     : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
-    if (!eventTypeRaw.owner)
-      return {
-        notFound: true,
-      } as const;
-    eventTypeRaw.users.push({
-      ...eventTypeRaw.owner,
-    });
+    if (!eventTypeRaw.owner) {
+      if (bookingInfoRaw.user) {
+        eventTypeRaw.users.push({
+          ...bookingInfoRaw.user,
+          hideBranding: false,
+          theme: null,
+          brandColor: null,
+          darkBrandColor: null,
+          isPlatformManaged: false,
+        });
+      } else {
+        return { notFound: true } as const;
+      }
+    } else {
+      eventTypeRaw.users.push({ ...eventTypeRaw.owner });
+    }
   }
 
   const eventType = {
@@ -152,9 +162,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
-    theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
+    ...getBrandingForEventType({ eventType: eventTypeRaw }),
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
@@ -183,6 +191,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = await checkIfUserIsHostOrTeamAdmin(userId);
+  const eventTeamId = eventType.team?.id ?? eventType.parent?.teamId;
+  const isLoggedInUserTeamMember = !!(userId && eventTeamId && (await isTeamMember(userId, eventTeamId)));
+
+  const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamMember;
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
@@ -202,8 +214,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!isLoggedInUserHost) {
-    // Removing hidden fields from responses
+  if (!canViewHiddenData) {
     for (const key in bookingInfo.responses) {
       const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
       if (field && !!field.hidden) {
@@ -215,7 +226,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   async function getInternalNotePresets(teamId: number | null) {
-    if (!teamId || !isLoggedInUserHost) return [];
+    if (!teamId || !canViewHiddenData) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -233,8 +244,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedPreviousBooking =
     eventType.hideOrganizerEmail &&
-    previousBooking &&
-    previousBooking.rescheduledBy === bookingInfo.user?.email
+      previousBooking &&
+      previousBooking.rescheduledBy === bookingInfo.user?.email
       ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
       : previousBooking;
 
@@ -247,11 +258,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       hideBranding: isPlatformBooking
         ? true
         : await shouldHideBrandingForEvent({
-            eventTypeId: eventType.id,
-            team: eventType?.parent?.team ?? eventType?.team,
-            owner: eventType.users[0] ?? null,
-            organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
-          }),
+          eventTypeId: eventType.id,
+          team: eventType?.parent?.team ?? eventType?.team,
+          owner: eventType.users[0] ?? null,
+          organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+        }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
@@ -264,6 +275,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
+      canViewHiddenData,
       internalNotePresets: internalNotes,
     },
   };

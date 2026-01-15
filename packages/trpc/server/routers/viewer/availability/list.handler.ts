@@ -1,13 +1,15 @@
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
-import { getDefaultScheduleId } from "./util";
 
 type ListOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "defaultScheduleId">;
   };
 };
+
+export type GetAvailabilityListHandlerReturn = Awaited<ReturnType<typeof listHandler>>;
 
 export const listHandler = async ({ ctx }: ListOptions) => {
   const { user } = ctx;
@@ -35,7 +37,8 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
   let defaultScheduleId: number | null;
   try {
-    defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    const scheduleRepository = new ScheduleRepository(prisma);
+    defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
 
     if (!user.defaultScheduleId) {
       await prisma.user.update({
@@ -47,6 +50,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
         },
       });
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     defaultScheduleId = null;
   }

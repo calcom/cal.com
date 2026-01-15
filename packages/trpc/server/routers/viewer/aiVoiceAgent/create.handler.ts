@@ -22,7 +22,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
         ?.generalPrompt
     : undefined;
 
-  return await aiService.createAgent({
+  return await aiService.createOutboundAgent({
     name,
     userId: ctx.user.id,
     teamId,

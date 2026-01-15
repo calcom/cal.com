@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLayoutEffect } from "react";
 
 import {
   getOrgDomainConfigFromHostname,
@@ -40,9 +41,8 @@ function getPageInfo(pathname: string, host: string) {
     return {
       username: currentOrgDomain ?? "",
       pageType: PageType.ORG,
-      url: `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${
-        currentOrgDomain?.replace("/", "") ?? ""
-      }`,
+      url: `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${currentOrgDomain?.replace("/", "") ?? ""
+        }`,
     };
   }
 }
@@ -54,6 +54,12 @@ export function NotFound({ host }: { host: string }) {
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
   const isInsights = pathname?.startsWith("/insights");
+
+  useLayoutEffect(() => {
+    if (typeof window !== "undefined") {
+      window.CalComPageStatus = "404";
+    }
+  }, []);
 
   const links = [
     {
@@ -145,7 +151,7 @@ export function NotFound({ host }: { host: string }) {
                   target="_blank"
                   className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse"
                   rel="noreferrer">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
                       <Icon name="check" className="h-6 w-6 text-green-500" aria-hidden="true" />
                     </span>
@@ -156,15 +162,14 @@ export function NotFound({ host }: { host: string }) {
                         <span className="focus:outline-none">
                           <span className="absolute inset-0" aria-hidden="true" />
                           {t("register")}{" "}
-                          <strong className="text-green-500">{`${
-                            pageType === PageType.TEAM ? `${new URL(WEBSITE_URL).host}/team/` : ""
-                          }${username}${pageType === PageType.ORG ? `.${subdomainSuffix()}` : ""}`}</strong>
+                          <strong className="text-green-500">{`${pageType === PageType.TEAM ? `${new URL(WEBSITE_URL).host}/team/` : ""
+                            }${username}${pageType === PageType.ORG ? `.${subdomainSuffix()}` : ""}`}</strong>
                         </span>
                       </span>
                     </h3>
                     <p className="text-subtle text-base">{t(`404_claim_entity_${pageType.toLowerCase()}`)}</p>
                   </div>
-                  <div className="flex-shrink-0 self-center">
+                  <div className="shrink-0 self-center">
                     <Icon name="chevron-right" className="text-muted h-5 w-5" aria-hidden="true" />
                   </div>
                 </a>
@@ -180,8 +185,8 @@ export function NotFound({ host }: { host: string }) {
                   <a
                     href={link.href}
                     className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                    <div className="flex-shrink-0">
-                      <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
+                    <div className="shrink-0">
+                      <span className="bg-cal-muted flex h-12 w-12 items-center justify-center rounded-lg">
                         <Icon name={link.icon} className="text-default h-6 w-6" aria-hidden="true" />
                       </span>
                     </div>
@@ -194,7 +199,7 @@ export function NotFound({ host }: { host: string }) {
                       </h3>
                       <p className="text-subtle text-base">{link.description}</p>
                     </div>
-                    <div className="flex-shrink-0 self-center">
+                    <div className="shrink-0 self-center">
                       <Icon name="chevron-right" className="text-muted h-5 w-5" aria-hidden="true" />
                     </div>
                   </a>

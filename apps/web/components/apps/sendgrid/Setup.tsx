@@ -39,7 +39,7 @@ export default function SendgridSetup() {
   return (
     <div className="bg-emphasis flex h-screen">
       <div className="bg-default m-auto rounded p-5 md:w-[520px] md:p-10">
-        <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
+        <div className="flex flex-col stack-y-5 md:flex-row md:space-x-5 md:stack-y-0">
           <div>
             <img src="/api/app-store/sendgrid/logo.png" alt="Sendgrid" className="h-12 w-12 max-w-2xl" />
           </div>
@@ -76,7 +76,7 @@ export default function SendgridSetup() {
                     showToast(json.message, "error");
                   }
                 }}>
-                <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
+                <fieldset className="stack-y-2" disabled={form.formState.isSubmitting}>
                   <Controller
                     name="api_key"
                     control={form.control}
@@ -108,8 +108,8 @@ export default function SendgridSetup() {
                     className={
                       testPassed !== undefined
                         ? testPassed
-                          ? " !bg-success hover:bg-success !text-green-700"
-                          : "bg-error hover:bg-error !border-red-700 !text-red-700"
+                          ? " bg-cal-success! hover:bg-cal-success text-green-700!"
+                          : "bg-error hover:bg-error border-red-700! text-red-700!"
                         : "secondary"
                     }
                     color={testPassed === true ? "minimal" : "secondary"}

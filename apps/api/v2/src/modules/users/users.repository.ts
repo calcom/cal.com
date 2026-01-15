@@ -1,11 +1,10 @@
+import { CreationSource } from "@calcom/platform-libraries";
+import type { Prisma, Profile, Team, User } from "@calcom/prisma/client";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { Injectable, NotFoundException } from "@nestjs/common";
-
-import { CreationSource } from "@calcom/platform-libraries";
-import type { Profile, User, Team, Prisma } from "@calcom/prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -14,7 +13,10 @@ export type UserWithProfile = User & {
 
 @Injectable()
 export class UsersRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async create(
     user: CreateManagedUserInput,
@@ -22,8 +24,6 @@ export class UsersRepository {
     oAuthClientId: string,
     isPlatformManaged: boolean
   ) {
-    this.formatInput(user);
-
     return this.dbWrite.prisma.user.create({
       data: {
         ...user,
@@ -184,6 +184,15 @@ export class UsersRepository {
     });
   }
 
+  async findByUsernameExcludingOrgUsers(username: string) {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        username,
+        profiles: { none: {} },
+      },
+    });
+  }
+
   async findManagedUsersByOAuthClientId(oauthClientId: string, cursor: number, limit: number) {
     return this.dbRead.prisma.user.findMany({
       where: {
@@ -227,8 +236,6 @@ export class UsersRepository {
   }
 
   async update(userId: number, updateData: UpdateManagedUserInput) {
-    this.formatInput(updateData);
-
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: updateData,
@@ -257,12 +264,6 @@ export class UsersRepository {
     });
   }
 
-  formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
-    if (userInput.weekStart) {
-      userInput.weekStart = userInput.weekStart;
-    }
-  }
-
   setDefaultSchedule(userId: number, scheduleId: number) {
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
@@ -280,6 +281,14 @@ export class UsersRepository {
     return user?.defaultScheduleId;
   }
 
+  async getUsersScheduleDefaultIds(userIds: number[]): Promise<Map<number, number | null>> {
+    const users = await this.dbRead.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, defaultScheduleId: true },
+    });
+    return new Map(users.map((user) => [user.id, user.defaultScheduleId]));
+  }
+
   async getOrganizationUsers(organizationId: number) {
     const profiles = await this.dbRead.prisma.profile.findMany({
       where: {
@@ -289,7 +298,7 @@ export class UsersRepository {
         user: true,
       },
     });
-    return profiles.map((profile) => profile.user);
+    return profiles.map((profile: Profile & { user: User }) => profile.user);
   }
 
   async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
@@ -407,5 +416,75 @@ export class UsersRepository {
         email: true,
       },
     });
+  }
+
+  async getUserEmailsVerifiedForTeam(teamId: number) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            teamId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        secondaryEmails: {
+          where: {
+            emailVerified: {
+              not: null,
+            },
+          },
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findVerifiedSecondaryEmail(userId: number, email: string) {
+    return this.dbRead.prisma.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId: userId,
+          email: email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
+  }
+
+  async swapPrimaryEmailWithSecondaryEmail(
+    userId: number,
+    secondaryEmailId: number,
+    oldPrimaryEmail: string,
+    oldPrimaryEmailVerified: Date | null,
+    newPrimaryEmail: string
+  ) {
+    const [, updatedUser] = await this.dbWrite.prisma.$transaction([
+      this.dbWrite.prisma.secondaryEmail.update({
+        where: {
+          id: secondaryEmailId,
+          userId: userId,
+        },
+        data: {
+          email: oldPrimaryEmail,
+          emailVerified: oldPrimaryEmailVerified,
+        },
+      }),
+      this.dbWrite.prisma.user.update({
+        where: { id: userId },
+        data: {
+          email: newPrimaryEmail,
+        },
+      }),
+    ]);
+
+    return updatedUser;
   }
 }

@@ -61,7 +61,7 @@ export class RedisService implements OnModuleDestroy {
 
     try {
       return JSON.parse(data) as TData;
-    } catch (e) {
+    } catch {
       return data as TData;
     }
   }
@@ -74,6 +74,30 @@ export class RedisService implements OnModuleDestroy {
       return this.redis.del(key);
     } catch (err) {
       if (err instanceof Error) this.logger.error(`IoRedis del failed: ${err.message}`);
+      return 0;
+    }
+  }
+
+  async getKeys(pattern: string): Promise<string[]> {
+    if (!this.isReady) {
+      return [];
+    }
+    try {
+      return this.redis.keys(pattern);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis getKeys failed: ${err.message}`);
+      return [];
+    }
+  }
+
+  async delMany(keys: string[]): Promise<number> {
+    if (!this.isReady || keys.length === 0) {
+      return 0;
+    }
+    try {
+      return this.redis.del(...keys);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis delMany failed: ${err.message}`);
       return 0;
     }
   }
@@ -134,6 +158,18 @@ export class RedisService implements OnModuleDestroy {
       return this.redis.lpush(key, ...stringifiedElements);
     } catch (err) {
       if (err instanceof Error) this.logger.error(`IoRedis lpush failed: ${err.message}`);
+      return 0;
+    }
+  }
+
+  async incr(key: string): Promise<number> {
+    if (!this.isReady) {
+      return 0;
+    }
+    try {
+      return this.redis.incr(key);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis incr failed: ${err.message}`);
       return 0;
     }
   }
