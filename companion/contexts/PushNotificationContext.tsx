@@ -54,9 +54,9 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
 
       const { status } = await Notifications.getPermissionsAsync();
       setPermissionStatus(status);
+      setIsLoading(false);
     } catch (error) {
       console.error("Failed to check push notification onboarding status:", error);
-    } finally {
       setIsLoading(false);
     }
   }, []);
