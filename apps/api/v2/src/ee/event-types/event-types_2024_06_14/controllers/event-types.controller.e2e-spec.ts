@@ -3258,7 +3258,11 @@ describe("Event types Endpoints", () => {
         email: orgUserEmail,
         name: `Org User ${sharedUsername}`,
         username: sharedUsername,
-        organizationId: organization.id,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
       });
 
       await profileRepositoryFixture.create({
@@ -3301,7 +3305,7 @@ describe("Event types Endpoints", () => {
 
     it("should return only non-org user's event types when querying by shared username", async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types/${sharedUsername}`)
+        .get(`/api/v2/event-types?username=${sharedUsername}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .set("Authorization", `Bearer whatever`)
         .expect(200);
