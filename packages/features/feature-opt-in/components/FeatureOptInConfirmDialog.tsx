@@ -29,6 +29,7 @@ interface FeatureOptInConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onDismissBanner: () => void;
+  onOptInSuccess?: () => void;
   featureConfig: OptInFeatureConfig;
   userRoleContext: UserRoleContext;
 }
@@ -37,6 +38,7 @@ export function FeatureOptInConfirmDialog({
   isOpen,
   onClose,
   onDismissBanner,
+  onOptInSuccess,
   featureConfig,
   userRoleContext,
 }: FeatureOptInConfirmDialogProps): ReactElement {
@@ -70,7 +72,7 @@ export function FeatureOptInConfirmDialog({
 
   const getSelectedText = (): string => {
     const parts: string[] = [];
-    if (enableForUser) parts.push(t("for_me"));
+    if (enableForUser) parts.push(t("just_for_me"));
     if (enableForOrg) parts.push(t("entire_organization"));
     if (hasTeamsSelected) {
       const teamNames = adminTeamNames
@@ -81,9 +83,18 @@ export function FeatureOptInConfirmDialog({
     return parts.length > 0 ? parts.join(", ") : t("select");
   };
 
+  const handleUserChange = (checked: boolean): void => {
+    setEnableForUser(checked);
+    if (checked) {
+      setEnableForOrg(false);
+      setSelectedTeamIds([]);
+    }
+  };
+
   const handleOrgChange = (checked: boolean): void => {
     setEnableForOrg(checked);
     if (checked) {
+      setEnableForUser(false);
       setSelectedTeamIds([]);
     }
   };
@@ -91,6 +102,7 @@ export function FeatureOptInConfirmDialog({
   const handleTeamChange = (teamId: number, checked: boolean): void => {
     if (checked) {
       setSelectedTeamIds((prev) => [...prev, teamId]);
+      setEnableForUser(false);
       setEnableForOrg(false);
     } else {
       setSelectedTeamIds((prev) => prev.filter((id) => id !== teamId));
@@ -143,6 +155,7 @@ export function FeatureOptInConfirmDialog({
 
       setIsSuccess(true);
       setShouldInvalidate(true);
+      onOptInSuccess?.();
     } catch (_error) {
       showToast(t("error_enabling_feature"), "error");
     } finally {
@@ -229,11 +242,11 @@ export function FeatureOptInConfirmDialog({
                 }>
                 <FilterCheckboxFieldsContainer>
                   <FilterCheckboxField
-                    id="for-me"
+                    id="just-for-me"
                     icon={<Icon name="user" className="h-4 w-4" />}
                     checked={enableForUser}
-                    onChange={(e) => setEnableForUser(e.target.checked)}
-                    label={t("for_me")}
+                    onChange={(e) => handleUserChange(e.target.checked)}
+                    label={t("just_for_me")}
                   />
 
                   {canEnableForOrg && (

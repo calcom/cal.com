@@ -24,6 +24,7 @@ type FeatureOptInBannerState = {
   openDialog: () => void;
   closeDialog: () => void;
   dismiss: () => void;
+  markOptedIn: () => void;
 };
 
 interface FeatureOptInBannerWrapperProps {
@@ -49,6 +50,7 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           isOpen={state.isDialogOpen}
           onClose={state.closeDialog}
           onDismissBanner={state.dismiss}
+          onOptInSuccess={state.markOptedIn}
           featureConfig={state.featureConfig}
           userRoleContext={state.userRoleContext}
         />

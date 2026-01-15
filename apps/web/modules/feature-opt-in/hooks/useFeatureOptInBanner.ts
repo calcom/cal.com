@@ -1,18 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { z } from "zod";
-
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
+import { useCallback, useMemo, useState } from "react";
+import { z } from "zod";
 
 const DISMISSED_STORAGE_KEY = "feature-opt-in-dismissed";
+const OPTED_IN_STORAGE_KEY = "feature-opt-in-enabled";
 
-const dismissedFeaturesSchema = z.record(z.string(), z.boolean());
+const featuresMapSchema = z.record(z.string(), z.boolean());
 
-type DismissedFeatures = z.infer<typeof dismissedFeaturesSchema>;
+type FeaturesMap = z.infer<typeof featuresMapSchema>;
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -32,14 +32,15 @@ export type UseFeatureOptInBannerResult = {
   openDialog: () => void;
   closeDialog: () => void;
   dismiss: () => void;
+  markOptedIn: () => void;
 };
 
-function getDismissedFeatures(): DismissedFeatures {
-  const stored = localStorage.getItem(DISMISSED_STORAGE_KEY);
+function getFeaturesMap(storageKey: string): FeaturesMap {
+  const stored = localStorage.getItem(storageKey);
   if (!stored) return {};
   try {
     const parsed = JSON.parse(stored);
-    const result = dismissedFeaturesSchema.safeParse(parsed);
+    const result = featuresMapSchema.safeParse(parsed);
     if (result.success) {
       return result.data;
     }
@@ -49,35 +50,41 @@ function getDismissedFeatures(): DismissedFeatures {
   }
 }
 
-function setDismissedFeature(featureId: string): void {
-  const current = getDismissedFeatures();
+function setFeatureInMap(storageKey: string, featureId: string): void {
+  const current = getFeaturesMap(storageKey);
   current[featureId] = true;
-  localStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify(current));
+  localStorage.setItem(storageKey, JSON.stringify(current));
 }
 
-function isFeatureDismissed(featureId: string): boolean {
-  const dismissed = getDismissedFeatures();
-  return dismissed[featureId] === true;
+function isFeatureInMap(storageKey: string, featureId: string): boolean {
+  const features = getFeaturesMap(storageKey);
+  return features[featureId] === true;
 }
 
 export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(() => isFeatureDismissed(featureId));
+  const [isDismissed, setIsDismissed] = useState(() => isFeatureInMap(DISMISSED_STORAGE_KEY, featureId));
+  const [isOptedIn, setIsOptedIn] = useState(() => isFeatureInMap(OPTED_IN_STORAGE_KEY, featureId));
 
   const featureConfig = useMemo(() => getOptInFeatureConfig(featureId) ?? null, [featureId]);
 
   const eligibilityQuery = trpc.viewer.featureOptIn.checkFeatureOptInEligibility.useQuery(
     { featureId },
     {
-      enabled: !isDismissed && featureConfig !== null,
+      enabled: !isDismissed && !isOptedIn && featureConfig !== null,
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 5,
     }
   );
 
   const dismiss = useCallback(() => {
-    setDismissedFeature(featureId);
+    setFeatureInMap(DISMISSED_STORAGE_KEY, featureId);
     setIsDismissed(true);
+  }, [featureId]);
+
+  const markOptedIn = useCallback(() => {
+    setFeatureInMap(OPTED_IN_STORAGE_KEY, featureId);
+    setIsOptedIn(true);
   }, [featureId]);
 
   const openDialog = useCallback(() => {
@@ -90,11 +97,12 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
 
   const shouldShow = useMemo(() => {
     if (isDismissed) return false;
+    if (isOptedIn) return false;
     if (!featureConfig) return false;
     if (eligibilityQuery.isLoading) return false;
     if (!eligibilityQuery.data) return false;
     return eligibilityQuery.data.status === "can_opt_in";
-  }, [isDismissed, featureConfig, eligibilityQuery.isLoading, eligibilityQuery.data]);
+  }, [isDismissed, isOptedIn, featureConfig, eligibilityQuery.isLoading, eligibilityQuery.data]);
 
   return {
     shouldShow,
@@ -107,5 +115,6 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
     openDialog,
     closeDialog,
     dismiss,
+    markOptedIn,
   };
 }

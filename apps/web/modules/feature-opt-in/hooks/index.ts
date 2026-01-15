@@ -1,6 +1,10 @@
-export { useUserFeatureOptIn } from "./useUserFeatureOptIn";
-export { useTeamFeatureOptIn } from "./useTeamFeatureOptIn";
-export { useOrganizationFeatureOptIn } from "./useOrganizationFeatureOptIn";
-export { useFeatureOptInBanner } from "./useFeatureOptInBanner";
+export type {
+  NormalizedFeature,
+  ToggleLabels,
+  UseFeatureOptInResult,
+} from "@calcom/features/feature-opt-in/types";
 export type { UseFeatureOptInBannerResult } from "./useFeatureOptInBanner";
-export type { UseFeatureOptInResult, NormalizedFeature, ToggleLabels } from "@calcom/features/feature-opt-in/types";
+export { useFeatureOptInBanner } from "./useFeatureOptInBanner";
+export { useOrganizationFeatureOptIn } from "./useOrganizationFeatureOptIn";
+export { useTeamFeatureOptIn } from "./useTeamFeatureOptIn";
+export { useUserFeatureOptIn } from "./useUserFeatureOptIn";
