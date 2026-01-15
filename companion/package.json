@@ -46,8 +46,7 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "check": "biome check --write .",
-    "check:ci": "biome ci .",
-    "prepare": "cd .. && husky companion/.husky"
+    "check:ci": "biome ci ."
   },
   "dependencies": {
     "@expo/ui": "0.2.0-canary-20251230-fc48ddc",
@@ -99,6 +98,7 @@
     "@biomejs/biome": "2.3.10",
     "@types/chrome": "0.1.31",
     "@types/react": "19.2.3",
+    "@types/node": "22.19.6",
     "@types/react-dom": "19.2.3",
     "babel-plugin-react-compiler": "19.0.0-beta-af1b7da-20250417",
     "babel-preset-expo": "54.0.7",

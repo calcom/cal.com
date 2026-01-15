@@ -1,5 +1,6 @@
-import { Button, ContextMenu, Host, HStack, Image as SwiftUIImage } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { Button, Host, Image as SwiftUIImage } from "@expo/ui/swift-ui";
+import * as Haptics from "expo-haptics";
+import { buttonStyle, controlSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -27,7 +28,7 @@ import {
   useUserProfile,
 } from "@/hooks";
 import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
-import { CalComAPIService, type EventType } from "@/services/calcom";
+import type { EventType } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
@@ -110,9 +111,12 @@ export default function EventTypesIOS() {
   };
 
   const handleCopyLink = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      await Clipboard.setStringAsync(link);
+      await Clipboard.setStringAsync(eventType.bookingUrl);
       showSuccessAlert("Link Copied", "Event type link copied!");
     } catch {
       showErrorAlert("Error", "Failed to copy link. Please try again.");
@@ -120,11 +124,14 @@ export default function EventTypesIOS() {
   };
 
   const _handleShare = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Share.share({
         message: `Book a meeting: ${eventType.title}`,
-        url: link,
+        url: eventType.bookingUrl,
       });
     } catch {
       showErrorAlert("Error", "Failed to share link. Please try again.");
@@ -168,7 +175,10 @@ export default function EventTypesIOS() {
                 console.error("Failed to delete event type", message);
                 if (__DEV__) {
                   const stack = deleteError instanceof Error ? deleteError.stack : undefined;
-                  console.debug("[EventTypes] deleteEventType failed", { message, stack });
+                  console.debug("[EventTypes] deleteEventType failed", {
+                    message,
+                    stack,
+                  });
                 }
                 showErrorAlert("Error", "Failed to delete event type. Please try again.");
               },
@@ -222,10 +232,12 @@ export default function EventTypesIOS() {
   };
 
   const handlePreview = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      // For mobile, use in-app browser
-      await openInAppBrowser(link, "event type preview");
+      await openInAppBrowser(eventType.bookingUrl, "event type preview");
     } catch {
       console.error("Failed to open preview");
       showErrorAlert("Error", "Failed to open preview. Please try again.");
@@ -233,6 +245,7 @@ export default function EventTypesIOS() {
   };
 
   const handleOpenCreateModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Use native iOS Alert.prompt for a native look
     Alert.prompt(
       "Add a new event type",
@@ -539,24 +552,21 @@ export default function EventTypesIOS() {
       {/* Floating Action Button for New Event Type with Glass UI Menu */}
       <View className="absolute right-6" style={{ bottom: 100 }}>
         <Host matchContents>
-          <ContextMenu
-            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-            activationMethod="singlePress"
+          <Button
+            onPress={handleOpenCreateModal}
+            modifiers={[
+              buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"),
+              padding(),
+              controlSize("large"),
+            ]}
           >
-            <ContextMenu.Items>
-              <Button systemImage="link" onPress={handleOpenCreateModal} label="New Event Type" />
-            </ContextMenu.Items>
-            <ContextMenu.Trigger>
-              <HStack modifiers={[frame({ width: 35, height: 40 })]}>
-                <SwiftUIImage
-                  systemName="plus"
-                  color="primary"
-                  size={28}
-                  // modifiers={[frame({ width: 56, height: 56 })]}
-                />
-              </HStack>
-            </ContextMenu.Trigger>
-          </ContextMenu>
+            <SwiftUIImage
+              systemName="plus"
+              color="primary"
+              size={24}
+              modifiers={[frame({ height: 24, width: 17 })]}
+            />
+          </Button>
         </Host>
       </View>
     </>

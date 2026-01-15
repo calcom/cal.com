@@ -8,6 +8,7 @@ import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -225,25 +226,16 @@ export default function BookingDetailIOS() {
           headerBackTitle: monthName, // This shows on the back button
           headerBackButtonDisplayMode: "default",
           headerTitle: "", // Hide the title in the header bar itself
-          headerStyle: {
-            backgroundColor: "#f2f2f7",
-          },
           headerShadowVisible: false,
+          headerTransparent: true,
         }}
       />
 
-      <Stack.Header style={{ shadowColor: "transparent", backgroundColor: "#f2f2f7" }}>
+      <Stack.Header
+        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+      >
         <Stack.Header.Right>
-          {/* Join Meeting Menu - only show if there's a meeting URL */}
-          {meetingUrl && (
-            <Stack.Header.Menu>
-              <Stack.Header.Icon sf="video" />
-              <Stack.Header.MenuAction icon="video" onPress={handleJoinMeeting}>
-                Join Meeting
-              </Stack.Header.MenuAction>
-            </Stack.Header.Menu>
-          )}
-
           {/* Actions Menu */}
           <Stack.Header.Menu>
             <Stack.Header.Icon sf="ellipsis" />
@@ -301,6 +293,12 @@ export default function BookingDetailIOS() {
               ))}
             </Stack.Header.Menu>
           </Stack.Header.Menu>
+
+          {meetingUrl && (
+            <Stack.Header.Button onPress={handleJoinMeeting} variant="prominent" tintColor="#000">
+              Join
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
       </Stack.Header>
 

@@ -4,18 +4,15 @@
  * iOS Settings style with grouped input rows and section headers.
  */
 
-import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-
-import { LocationsList, AddLocationTrigger } from "@/components/LocationsList";
-import { createLocationItemFromOption } from "@/utils/locationHelpers";
-import type { LocationItem, LocationOptionGroup } from "@/types/locations";
-import { slugify } from "@/utils/slugify";
 import type React from "react";
 import { useState } from "react";
+import { Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { AddLocationTrigger, LocationsList } from "@/components/LocationsList";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
+import { createLocationItemFromOption } from "@/utils/locationHelpers";
+import { slugify } from "@/utils/slugify";
+import { BasicsTabIOSPicker } from "./BasicsTabIOSPicker";
 
 interface BasicsTabProps {
   eventTitle: string;
@@ -40,6 +37,7 @@ interface BasicsTabProps {
   onUpdateLocation: (locationId: string, updates: Partial<LocationItem>) => void;
   locationOptions: LocationOptionGroup[];
   conferencingLoading: boolean;
+  bookingUrl?: string;
 }
 
 // Section header
@@ -159,7 +157,11 @@ function NavigationRow({
                   {value}
                 </Text>
               ) : null}
-              <IOSPickerTrigger options={options} selectedValue={value || ""} onSelect={onSelect} />
+              <BasicsTabIOSPicker
+                options={options}
+                selectedValue={value || ""}
+                onSelect={onSelect}
+              />
             </>
           ) : (
             <TouchableOpacity
@@ -178,42 +180,6 @@ function NavigationRow({
         </View>
       </View>
     </View>
-  );
-}
-
-// iOS Native Picker trigger component
-function IOSPickerTrigger({
-  options,
-  selectedValue,
-  onSelect,
-}: {
-  options: string[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {options.map((opt) => (
-            <Button
-              key={opt}
-              systemImage={selectedValue === opt ? "checkmark" : undefined}
-              onPress={() => onSelect(opt)}
-              label={opt}
-            />
-          ))}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>
-          <HStack>
-            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
-          </HStack>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
   );
 }
 
@@ -236,17 +202,17 @@ function SettingRow({
     <View className="bg-white pl-4">
       <View
         className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height }}
+        style={{ height, flexDirection: "row", alignItems: "center" }}
       >
         <Text className="flex-1 text-[17px] text-black" style={{ fontWeight: "400" }}>
           {title}
         </Text>
-        <View style={{ alignSelf: "center" }}>
+        <View style={{ alignSelf: "center", justifyContent: "center" }}>
           <Switch
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
@@ -288,7 +254,26 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
             <Text className="mb-2 text-[13px] text-[#6D6D72]">URL</Text>
             <View className="flex-row items-center overflow-hidden rounded-lg bg-[#F2F2F7]">
               <Text className="bg-[#E5E5EA] px-3 py-2 text-[15px] text-[#666]">
-                cal.com/{props.username}/
+                {(() => {
+                  // Parse bookingUrl to get domain prefix (e.g., "i.cal.com/" or "cal.com/username/")
+                  if (props.bookingUrl) {
+                    try {
+                      const url = new URL(props.bookingUrl);
+                      // Get path without the last segment (slug)
+                      const pathParts = url.pathname.split("/").filter(Boolean);
+                      pathParts.pop(); // Remove slug
+                      // Compute prefix outside try/catch for React Compiler
+                      let prefix = "/";
+                      if (pathParts.length > 0) {
+                        prefix = `/${pathParts.join("/")}/`;
+                      }
+                      return `${url.hostname}${prefix}`;
+                    } catch {
+                      // fallback
+                    }
+                  }
+                  return `cal.com/${props.username}/`;
+                })()}
               </Text>
               <TextInput
                 className="flex-1 px-3 py-2 text-[17px] text-black"

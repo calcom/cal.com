@@ -3,10 +3,7 @@
  * Reusable component for displaying and managing multiple event type locations
  */
 
-import { Button, ContextMenu, Host } from "@expo/ui/swift-ui";
-import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import type React from "react";
 import { useState } from "react";
 import { Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -17,6 +14,7 @@ import {
   getLocationInputPlaceholder,
   locationRequiresInput,
 } from "@/utils/locationHelpers";
+import { LocationsListIOSPicker } from "./LocationsListIOSPicker";
 import { SvgImage } from "./SvgImage";
 
 interface LocationsListProps {
@@ -53,19 +51,6 @@ function isLocationAlreadyAdded(locations: LocationItem[], optionValue: string):
     return loc.type === optionValue;
   });
 }
-
-const getSFSymbolForType = (type: string) => {
-  switch (type) {
-    case "address":
-      return "mappin.and.ellipse";
-    case "link":
-      return "link";
-    case "phone":
-      return "phone";
-    default:
-      return "video";
-  }
-};
 
 export const AddLocationTrigger = ({
   isHeader = false,
@@ -116,30 +101,17 @@ export const AddLocationTrigger = ({
     return trigger;
   }
 
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={!isHeader ? [buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")] : []}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {locationOptions.flatMap((group) =>
-            group.options
-              .filter((opt) => !isLocationAlreadyAdded(locations, opt.value))
-              .map((option) => (
-                <Button
-                  key={option.value}
-                  onPress={() => onSelectOption(option.value, option.label)}
-                  label={option.label}
-                  systemImage={getSFSymbolForType(option.value)}
-                />
-              ))
-          )}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>{trigger}</ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
+  const iosPicker = (
+    <LocationsListIOSPicker
+      isHeader={isHeader}
+      locationOptions={locationOptions}
+      locations={locations}
+      onSelectOption={onSelectOption}
+      trigger={trigger}
+    />
   );
+
+  return iosPicker ?? trigger;
 };
 
 export const LocationsList: React.FC<LocationsListProps> = ({
