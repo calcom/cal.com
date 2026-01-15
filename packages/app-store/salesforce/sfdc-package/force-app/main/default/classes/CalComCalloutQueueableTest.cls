@@ -3,6 +3,8 @@ private class CalComCalloutQueueableTest {
 
     @isTest
     static void testQueueableExecutionSuccess() {
+        CalComHttpMock.resetState();
+        
         List<CalComCalloutQueueable.UserChangePayload> payloads = createTestPayloads(1);
 
         Test.setMock(HttpCalloutMock.class, new CalComHttpMock(200, '{"success": true}'));
@@ -12,11 +14,16 @@ private class CalComCalloutQueueableTest {
         System.enqueueJob(queueable);
         Test.stopTest();
 
-        System.assert(true, 'Queueable executed without exceptions');
+        System.assertEquals(1, CalComHttpMock.getCallCount(), 'Expected exactly one HTTP callout');
+        List<HttpRequest> requests = CalComHttpMock.getCapturedRequests();
+        System.assertEquals(1, requests.size(), 'Expected one captured request');
+        System.assertEquals('POST', requests[0].getMethod(), 'Request method should be POST');
     }
 
     @isTest
     static void testQueueableExecutionWithMultiplePayloads() {
+        CalComHttpMock.resetState();
+        
         List<CalComCalloutQueueable.UserChangePayload> payloads = createTestPayloads(3);
 
         Test.setMock(HttpCalloutMock.class, new CalComHttpMock(200, '{"success": true}'));
@@ -26,11 +33,13 @@ private class CalComCalloutQueueableTest {
         System.enqueueJob(queueable);
         Test.stopTest();
 
-        System.assert(true, 'Queueable executed with multiple payloads without exceptions');
+        System.assertEquals(3, CalComHttpMock.getCallCount(), 'Expected three HTTP callouts for three payloads');
     }
 
     @isTest
     static void testQueueableExecutionFailureResponse() {
+        CalComHttpMock.resetState();
+        
         List<CalComCalloutQueueable.UserChangePayload> payloads = createTestPayloads(1);
 
         Test.setMock(HttpCalloutMock.class, new CalComHttpMock(500, '{"error": "Internal Server Error"}'));
@@ -40,11 +49,13 @@ private class CalComCalloutQueueableTest {
         System.enqueueJob(queueable);
         Test.stopTest();
 
-        System.assert(true, 'Queueable handled failure response without throwing exception');
+        System.assertEquals(1, CalComHttpMock.getCallCount(), 'Expected HTTP callout even for failure response');
     }
 
     @isTest
     static void testQueueableExecutionEmptyPayloads() {
+        CalComHttpMock.resetState();
+        
         List<CalComCalloutQueueable.UserChangePayload> payloads = new List<CalComCalloutQueueable.UserChangePayload>();
 
         Test.setMock(HttpCalloutMock.class, new CalComHttpMock());
@@ -54,7 +65,7 @@ private class CalComCalloutQueueableTest {
         System.enqueueJob(queueable);
         Test.stopTest();
 
-        System.assert(true, 'Queueable executed with empty payloads without exceptions');
+        System.assertEquals(0, CalComHttpMock.getCallCount(), 'Expected no HTTP callouts with empty payloads');
     }
 
     @isTest

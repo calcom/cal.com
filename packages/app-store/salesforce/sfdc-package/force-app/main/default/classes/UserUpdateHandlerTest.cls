@@ -3,6 +3,8 @@ private class UserUpdateHandlerTest {
 
     @isTest
     static void testHandleAfterUpdateWithChangedFields() {
+        CalComHttpMock.resetState();
+        
         User testUser = [SELECT Id, FirstName, LastName, Email FROM User WHERE Id = :UserInfo.getUserId() LIMIT 1];
 
         Map<Id, User> oldMap = new Map<Id, User>();
@@ -23,11 +25,16 @@ private class UserUpdateHandlerTest {
         UserUpdateHandler.handleAfterUpdate(oldMap, newMap);
         Test.stopTest();
 
-        System.assert(true, 'Handler executed without exceptions when fields changed');
+        System.assertEquals(1, CalComHttpMock.getCallCount(), 'Expected exactly one HTTP callout for changed fields');
+        List<HttpRequest> requests = CalComHttpMock.getCapturedRequests();
+        System.assertEquals(1, requests.size(), 'Expected one captured request');
+        System.assert(requests[0].getBody().contains('changedFields'), 'Request body should contain changedFields');
     }
 
     @isTest
     static void testHandleAfterUpdateWithNoChanges() {
+        CalComHttpMock.resetState();
+        
         User testUser = [SELECT Id, FirstName, LastName, Email FROM User WHERE Id = :UserInfo.getUserId() LIMIT 1];
 
         Map<Id, User> oldMap = new Map<Id, User>();
@@ -42,11 +49,13 @@ private class UserUpdateHandlerTest {
         UserUpdateHandler.handleAfterUpdate(oldMap, newMap);
         Test.stopTest();
 
-        System.assert(true, 'Handler executed without exceptions when no fields changed');
+        System.assertEquals(0, CalComHttpMock.getCallCount(), 'Expected no HTTP callouts when no fields changed');
     }
 
     @isTest
     static void testHandleAfterUpdateWithMultipleUsers() {
+        CalComHttpMock.resetState();
+        
         List<User> testUsers = [SELECT Id, FirstName, LastName, Email FROM User WHERE IsActive = true LIMIT 2];
 
         if (testUsers.size() < 2) {
@@ -74,11 +83,13 @@ private class UserUpdateHandlerTest {
         UserUpdateHandler.handleAfterUpdate(oldMap, newMap);
         Test.stopTest();
 
-        System.assert(true, 'Handler executed without exceptions for multiple users');
+        System.assertEquals(testUsers.size(), CalComHttpMock.getCallCount(), 'Expected HTTP callouts for each user with changed fields');
     }
 
     @isTest
     static void testHandleAfterUpdateWithMultipleFieldChanges() {
+        CalComHttpMock.resetState();
+        
         User testUser = [SELECT Id, FirstName, LastName, Email, Title, Department FROM User WHERE Id = :UserInfo.getUserId() LIMIT 1];
 
         Map<Id, User> oldMap = new Map<Id, User>();
@@ -103,11 +114,18 @@ private class UserUpdateHandlerTest {
         UserUpdateHandler.handleAfterUpdate(oldMap, newMap);
         Test.stopTest();
 
-        System.assert(true, 'Handler executed without exceptions when multiple fields changed');
+        System.assertEquals(1, CalComHttpMock.getCallCount(), 'Expected exactly one HTTP callout for multiple field changes');
+        List<HttpRequest> requests = CalComHttpMock.getCapturedRequests();
+        System.assertEquals(1, requests.size(), 'Expected one captured request');
+        String requestBody = requests[0].getBody();
+        System.assert(requestBody.contains('FirstName'), 'Request body should contain FirstName field');
+        System.assert(requestBody.contains('LastName'), 'Request body should contain LastName field');
     }
 
     @isTest
     static void testHandleAfterUpdateWithEmptyMaps() {
+        CalComHttpMock.resetState();
+        
         Map<Id, User> oldMap = new Map<Id, User>();
         Map<Id, User> newMap = new Map<Id, User>();
 
@@ -117,6 +135,6 @@ private class UserUpdateHandlerTest {
         UserUpdateHandler.handleAfterUpdate(oldMap, newMap);
         Test.stopTest();
 
-        System.assert(true, 'Handler executed without exceptions with empty maps');
+        System.assertEquals(0, CalComHttpMock.getCallCount(), 'Expected no HTTP callouts with empty maps');
     }
 }
