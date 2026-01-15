@@ -212,7 +212,18 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
       if (
         !shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.RESCHEDULED)
       ) {
-        emailsAndSMSToSend.push(sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, person)));
+        emailsAndSMSToSend.push(
+          sendEmail(
+            () =>
+              new AttendeeRescheduledEmail(
+                {
+                  ...calendarEvent,
+                  ...(calendarEvent.hideCalendarNotes && { additionalNotes: undefined }),
+                },
+                person
+              )
+          )
+        );
         if (person.phoneNumber) {
           emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
         }
@@ -322,7 +333,16 @@ const _sendRescheduledEmailsAndSMS = async (
   if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.RESCHEDULED)) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
-        return sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, attendee));
+        return sendEmail(
+          () =>
+            new AttendeeRescheduledEmail(
+              {
+                ...calendarEvent,
+                ...(calendarEvent.hideCalendarNotes && { additionalNotes: undefined }),
+              },
+              attendee
+            )
+        );
       })
     );
   }
@@ -350,7 +370,18 @@ export const sendRescheduledSeatEmailAndSMS = async (
   if (!eventTypeDisableHostEmail(eventTypeMetadata))
     emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
   if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.RESCHEDULED))
-    emailsToSend.push(sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)));
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new AttendeeRescheduledEmail(
+            {
+              ...clonedCalEvent,
+              ...(clonedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
+            },
+            attendee
+          )
+      )
+    );
 
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSMS.sendSMSToAttendee(attendee);

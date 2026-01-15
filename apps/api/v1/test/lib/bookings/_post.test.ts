@@ -1,5 +1,5 @@
 // TODO: Fix tests (These test were never running due to the vitest workspace config)
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -74,6 +74,13 @@ vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
 
 vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.controller", () => ({
   checkIfUsersAreBlocked: vi.fn().mockResolvedValue(false),
+}));
+
+vi.mock("@calcom/features/watchlist/operations/filter-blocked-users.controller", () => ({
+  filterBlockedUsers: vi.fn().mockImplementation(async (users) => ({
+    eligibleUsers: users,
+    blockedCount: 0,
+  })),
 }));
 
 vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
