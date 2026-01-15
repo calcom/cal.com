@@ -11,7 +11,7 @@ export default function AppNotInstalledMessage({ appName }: { appName: string })
         <div className="mb-5 rounded-full bg-gray-100 p-3  dark:bg-[#292929] ">
           <Icon name="circle-alert" className="h-9 w-9 p-0.5" strokeWidth={1.5} />
         </div>
-        <h3 className="font-heading mb-2 text-2xl">{t("app_not_installed")}</h3>
+        <h3 className="font-cal mb-2 text-2xl font-semibold">{t("app_not_installed")}</h3>
         <p className="text-subtle px-1 leading-normal">{t("visit_our_app_store")}</p>
 
         <div className="mt-5">
