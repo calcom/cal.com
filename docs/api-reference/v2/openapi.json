@@ -11478,204 +11478,6 @@
         ]
       }
     },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "Create an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Deprecated: OAuth Clients"
-        ]
-      },
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "Get all OAuth clients",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Deprecated: OAuth Clients"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "Get an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Deprecated: OAuth Clients"
-        ]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "Update an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Deprecated: OAuth Clients"
-        ]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "Delete an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Deprecated: OAuth Clients"
-        ]
-      }
-    },
     "/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
@@ -12305,6 +12107,204 @@
         },
         "tags": [
           "Deprecated: Platform / Webhooks"
+        ]
+      }
+    },
+    "/v2/oauth-clients": {
+      "post": {
+        "operationId": "OAuthClientsController_createOAuthClient",
+        "summary": "Create an OAuth client",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create an OAuth client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClients",
+        "summary": "Get all OAuth clients",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}": {
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClientById",
+        "summary": "Get an OAuth client",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      },
+      "patch": {
+        "operationId": "OAuthClientsController_updateOAuthClient",
+        "summary": "Update an OAuth client",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientsController_deleteOAuthClient",
+        "summary": "Delete an OAuth client",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
         ]
       }
     },
