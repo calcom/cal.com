@@ -12,9 +12,9 @@
  * This is the single source of truth for storage operations across the app.
  */
 
-import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 /**
  * Check if chrome.storage is available (browser extension context)
@@ -111,7 +111,9 @@ export const secureStorage = {
       });
     }
     if (Platform.OS === "web") {
-      keys.forEach((key) => localStorage.removeItem(key));
+      for (const key of keys) {
+        localStorage.removeItem(key);
+      }
       return;
     }
     await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));

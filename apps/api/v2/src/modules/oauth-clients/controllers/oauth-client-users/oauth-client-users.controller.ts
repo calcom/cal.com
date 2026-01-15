@@ -84,9 +84,7 @@ export class OAuthClientUsersController {
     @Param("clientId") oAuthClientId: string,
     @Body() body: CreateManagedUserInput
   ): Promise<CreateManagedUserOutput> {
-    this.logger.log(
-      `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
-    );
+    this.logger.log(`Creating user for OAuth Client ${oAuthClientId}`);
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
     if (!client) {
       throw new NotFoundException(`OAuth Client with ID ${oAuthClientId} not found`);
@@ -133,7 +131,7 @@ export class OAuthClientUsersController {
     @GetOrgId() organizationId: number
   ): Promise<GetManagedUserOutput> {
     await this.validateManagedUserOwnership(clientId, userId);
-    this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
+    this.logger.log(`Updating user ${userId} for OAuth Client ${clientId}`);
 
     const user = await this.oAuthClientUsersService.updateOAuthClientUser(
       clientId,

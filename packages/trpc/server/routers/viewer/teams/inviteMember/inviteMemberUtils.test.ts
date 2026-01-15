@@ -136,12 +136,11 @@ describe("Invite Member Utils", () => {
   describe("ensureAtleastAdminPermissions", () => {
     it("It should throw an error if the user is not an admin of the ORG", async () => {
       const mockCheckPermission = vi.fn().mockResolvedValue(false);
-      vi.mocked(PermissionCheckService).mockImplementation(
-        () =>
-          ({
-            checkPermission: mockCheckPermission,
-          } as any)
-      );
+      vi.mocked(PermissionCheckService).mockImplementation(function () {
+        return {
+          checkPermission: mockCheckPermission,
+        } as any;
+      });
 
       await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })).rejects.toThrow(
         "UNAUTHORIZED"
@@ -157,12 +156,11 @@ describe("Invite Member Utils", () => {
 
     it("It should NOT throw an error if the user is an admin of the ORG", async () => {
       const mockCheckPermission = vi.fn().mockResolvedValue(true);
-      vi.mocked(PermissionCheckService).mockImplementation(
-        () =>
-          ({
-            checkPermission: mockCheckPermission,
-          } as any)
-      );
+      vi.mocked(PermissionCheckService).mockImplementation(function () {
+        return {
+          checkPermission: mockCheckPermission,
+        } as any;
+      });
 
       await expect(
         ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })

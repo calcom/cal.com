@@ -75,7 +75,7 @@ export function TimezoneSelectComponent({
   classNames: timezoneClassNames,
   timezoneSelectCustomClassname,
   components,
-  variant = "default",
+  variant: _variant = "default",
   isPending,
   value,
   size = "md",
@@ -116,15 +116,15 @@ export function TimezoneSelectComponent({
         ...(isWebTimezoneSelect ? addTimezonesToDropdown(additionalTimezones) : {}),
       }}
       styles={{
-        control: (base) => ({
-          ...base,
-          minHeight: size === "sm" ? "28px" : "36px",
-          height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
-        }),
-        menuList: (base) => ({
-          ...base,
-          height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
-        }),
+        control: (base) =>
+          Object.assign({}, base, {
+            minHeight: size === "sm" ? "28px" : "36px",
+            height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
+          }),
+        menuList: (base) =>
+          Object.assign({}, base, {
+            height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
+          }),
       }}
       onInputChange={handleInputChange}
       {...props}
