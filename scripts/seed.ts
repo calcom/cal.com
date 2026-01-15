@@ -684,6 +684,15 @@ async function seedApiKey(userId: number, apiKey: string) {
   console.log(`🔑 Created seeded API Key: ${apiKeyPrefix}${apiKey}`);
 }
 
+async function ensureAcmeOwnerHasApiKeySeeded() {
+  const owner1AcmeUser = await prisma.user.findFirst({
+    where: { email: "owner1-acme@example.com" },
+  });
+  if (owner1AcmeUser) {
+    await seedApiKey(owner1AcmeUser.id, "0123456789abcdef0123456789abcdef");
+  }
+}
+
 async function main() {
   await createUserAndEventType({
     user: {
@@ -1612,12 +1621,7 @@ async function main() {
     }
   }
 
-  const owner1AcmeUser = await prisma.user.findFirst({
-    where: { email: "owner1-acme@example.com" },
-  });
-  if (owner1AcmeUser) {
-    await seedApiKey(owner1AcmeUser.id, "0123456789abcdef0123456789abcdef");
-  }
+  await ensureAcmeOwnerHasApiKeySeeded();
 }
 
 async function runSeed() {
