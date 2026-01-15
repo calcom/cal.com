@@ -659,10 +659,8 @@ async function createOrganizationAndAddMembersAndTeams({
   }
 }
 
-const SEEDED_API_KEY = "0123456789abcdef0123456789abcdef";
-
-async function seedApiKey(userId: number) {
-  const hashedKey = hashAPIKey(SEEDED_API_KEY);
+async function seedApiKey(userId: number, apiKey: string) {
+  const hashedKey = hashAPIKey(apiKey);
 
   const existingKey = await prisma.apiKey.findFirst({
     where: { hashedKey },
@@ -683,7 +681,7 @@ async function seedApiKey(userId: number) {
   });
 
   const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
-  console.log(`🔑 Created seeded API Key: ${apiKeyPrefix}${SEEDED_API_KEY}`);
+  console.log(`🔑 Created seeded API Key: ${apiKeyPrefix}${apiKey}`);
 }
 
 async function main() {
@@ -1614,12 +1612,11 @@ async function main() {
     }
   }
 
-  // Seed API key for the pro user
-  const proUserForApiKey = await prisma.user.findFirst({
-    where: { username: "pro" },
+  const owner1AcmeUser = await prisma.user.findFirst({
+    where: { email: "owner1-acme@example.com" },
   });
-  if (proUserForApiKey) {
-    await seedApiKey(proUserForApiKey.id);
+  if (owner1AcmeUser) {
+    await seedApiKey(owner1AcmeUser.id, "0123456789abcdef0123456789abcdef");
   }
 }
 
