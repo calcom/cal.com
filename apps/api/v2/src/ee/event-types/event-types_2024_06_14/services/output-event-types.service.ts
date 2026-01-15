@@ -119,6 +119,7 @@ type Input = Pick<
   | "bookingRequiresAuthentication"
   | "maxActiveBookingsPerBooker"
   | "maxActiveBookingPerBookerOfferReschedule"
+  | "maxRoundRobinHosts"
   | "disableCancelling"
   | "disableRescheduling"
   | "minimumRescheduleNotice"

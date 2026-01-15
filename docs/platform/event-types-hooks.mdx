@@ -130,7 +130,7 @@ export default function CreateEventType() {
 
 ### 5. `useCreateTeamEventType`
 
-The useCreateTeamEventType hook allows you to create a new team event type. This hook returns a mutation function that handles the event type creation process. The mutation function accepts an object with the following properties: ***lengthInMinutes*** which is the length of the event in minutes, ***title*** which is the title of the event, ***slug*** which is the slug of the event, ***description*** which is the description of the event, schedulingType which can be either ***COLLECTIVE***, ***ROUND_ROBIN*** or ***MANAGED***, ***hosts*** which is an array of hosts for the event and the ***teamId*** which is the id of the team.
+The useCreateTeamEventType hook allows you to create a new team event type. This hook returns a mutation function that handles the event type creation process. The mutation function accepts an object with the following properties: ***lengthInMinutes*** which is the length of the event in minutes, ***title*** which is the title of the event, ***slug*** which is the slug of the event, ***description*** which is the description of the event, schedulingType which can be either ***COLLECTIVE***, ***ROUND_ROBIN*** or ***MANAGED***, ***hosts*** which is an array of hosts for the event and the ***teamId*** which is the id of the team, and optionally ***maxRoundRobinHosts*** which specifies the maximum number of hosts to assign per booking for Round Robin events (defaults to 1).
 
 Below code snippet shows how to use the useCreateTeamEventType hook to set up a team event type.
 
@@ -160,6 +160,7 @@ export default function CreateTeamEventType() {
             schedulingType: "COLLECTIVE",
             hosts: [{"userId": 1456}, {"userId": 2357}],
             teamId: 1234,
+            maxRoundRobinHosts: 2,
           })
         }}>
         Create team event type

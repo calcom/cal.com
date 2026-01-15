@@ -1133,89 +1133,106 @@ async function handler(
       );
 
       const luckyUsers: typeof users = [];
+      const maxHostsPerGroup = eventType.maxRoundRobinHosts ?? 1;
+      const excludedUserIds = new Set<number>();
+
+      // Pre-compute values outside the loop for performance optimization
+      const userIdsSet = new Set(users.map((user) => user.id));
+      const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+        memberId: eventTypeWithUsers.users[0]?.id ?? null,
+        teamId: eventType.teamId,
+      });
+      const enrichedHosts = await enrichHostsWithDelegationCredentials({
+        orgId: firstUserOrgId ?? null,
+        hosts: eventTypeWithUsers.hosts,
+      });
+
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
-        let luckUserFound = false;
-        while (luckyUserPool.length > 0 && !luckUserFound) {
-          const freeUsers = luckyUserPool.filter(
-            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
-          );
-          // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
-          if (freeUsers.length === 0) break;
-          assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.
-          // freeUsers is ensured
+        let hostsFoundInGroup = 0;
 
-          const userIdsSet = new Set(users.map((user) => user.id));
-          const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
-            memberId: eventTypeWithUsers.users[0].id ?? null,
-            teamId: eventType.teamId,
-          });
-          const newLuckyUser = await deps.luckyUserService.getLuckyUser({
-            // find a lucky user that is not already in the luckyUsers array
-            availableUsers: freeUsers,
-            // only hosts from the same group
-            allRRHosts: (
-              await enrichHostsWithDelegationCredentials({
-                orgId: firstUserOrgId ?? null,
-                hosts: eventTypeWithUsers.hosts,
-              })
-            ).filter(
-              (host) =>
-                !host.isFixed &&
-                userIdsSet.has(host.user.id) &&
-                (host.groupId === groupId || (!host.groupId && groupId === DEFAULT_GROUP_ID))
-            ),
-            eventType,
-            routingFormResponse,
-            meetingStartTime: new Date(reqBody.start),
-          });
-          if (!newLuckyUser) {
-            break; // prevent infinite loop
-          }
+        // Filter hosts for this group once per group iteration
+        const groupRRHosts = enrichedHosts.filter(
+          (host) =>
+            !host.isFixed &&
+            userIdsSet.has(host.user.id) &&
+            (host.groupId === groupId || (!host.groupId && groupId === DEFAULT_GROUP_ID))
+        );
+
+        const freeUsersForGroup = luckyUserPool.filter((user) => !excludedUserIds.has(user.id));
+        if (freeUsersForGroup.length === 0) continue;
+
+        // Map users to convert undefined priority/weight to null (required by getOrderedListOfLuckyUsers)
+        const mappedUsers = freeUsersForGroup.map((user) => ({
+          ...user,
+          priority: user.priority ?? null,
+          weight: user.weight ?? null,
+        }));
+        assertNonEmptyArray(mappedUsers);
+
+        // Get ordered list of lucky users with a single data fetch (optimized for multi-host selection)
+        const { users: orderedCandidates } = await deps.luckyUserService.getOrderedListOfLuckyUsers({
+          availableUsers: mappedUsers,
+          allRRHosts: groupRRHosts,
+          eventType,
+          routingFormResponse,
+          meetingStartTime: new Date(reqBody.start),
+        });
+
+        // Iterate through pre-ordered candidates (no additional DB queries)
+        for (const candidate of orderedCandidates) {
+          if (hostsFoundInGroup >= maxHostsPerGroup) break;
+          if (excludedUserIds.has(candidate.id)) continue;
+
+          // Find the original user object to preserve full type information
+          const originalUser = freeUsersForGroup.find((u) => u.id === candidate.id);
+          if (!originalUser) continue;
+
           if (
             input.bookingData.isFirstRecurringSlot &&
             eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
             input.bookingData.numSlotsToCheckForAvailability &&
             input.bookingData.allRecurringDates
           ) {
-            // for recurring round robin events check if lucky user is available for next slots
+            // For recurring round robin events, check availability across multiple slots in parallel
             try {
-              for (
-                let i = 0;
-                i < input.bookingData.allRecurringDates.length &&
-                i < input.bookingData.numSlotsToCheckForAvailability;
-                i++
-              ) {
-                const start = input.bookingData.allRecurringDates[i].start;
-                const end = input.bookingData.allRecurringDates[i].end;
+              if (!skipAvailabilityCheck) {
+                const slotsToCheck = input.bookingData.allRecurringDates.slice(
+                  0,
+                  input.bookingData.numSlotsToCheckForAvailability
+                );
 
-                if (!skipAvailabilityCheck) {
-                  await ensureAvailableUsers(
-                    { ...eventTypeWithUsers, users: [newLuckyUser] },
-                    {
-                      dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-                      dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-                      timeZone: reqBody.timeZone,
-                      originalRescheduledBooking,
-                    },
-                    tracingLogger,
-                    calendarFetchMode
-                  );
-                }
+                await Promise.all(
+                  slotsToCheck.map(({ start, end }) =>
+                    ensureAvailableUsers(
+                      { ...eventTypeWithUsers, users: [originalUser] },
+                      {
+                        dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                        dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                        timeZone: reqBody.timeZone,
+                        originalRescheduledBooking,
+                      },
+                      tracingLogger,
+                      calendarFetchMode
+                    )
+                  )
+                );
               }
-              // if no error, then lucky user is available for the next slots
-              luckyUsers.push(newLuckyUser);
-              luckUserFound = true;
+              luckyUsers.push(originalUser);
+              excludedUserIds.add(originalUser.id);
+              hostsFoundInGroup++;
             } catch {
-              notAvailableLuckyUsers.push(newLuckyUser);
+              notAvailableLuckyUsers.push(originalUser);
+              excludedUserIds.add(originalUser.id);
               tracingLogger.info(
-                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+                `Round robin host ${originalUser.name} not available for recurring slots. Trying another host.`
               );
             }
           } else {
-            luckyUsers.push(newLuckyUser);
-            luckUserFound = true;
+            luckyUsers.push(originalUser);
+            excludedUserIds.add(originalUser.id);
+            hostsFoundInGroup++;
           }
         }
       }
@@ -1239,7 +1256,7 @@ async function handler(
       // If there are RR hosts, we need to find a lucky user
       if (
         [...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 &&
-        luckyUsers.length !== (Object.keys(nonEmptyHostGroups).length || 1)
+        luckyUsers.length < (Object.keys(nonEmptyHostGroups).length || 1)
       ) {
         throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
       }

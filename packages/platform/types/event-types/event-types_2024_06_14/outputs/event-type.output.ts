@@ -15,6 +15,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Max,
   Min,
   ValidateNested,
 } from "class-validator";
@@ -615,6 +616,17 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
     description: "Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  @IsOptional()
+  @ApiPropertyOptional({
+    description:
+      "Only relevant for round robin event types. Specifies the maximum number of hosts to automatically assign per booking. When a booking is created, the system assigns up to this number of available hosts. If fewer hosts are available than the configured maximum, all available hosts are assigned. Minimum value is 1, maximum is 20, defaults to 1.",
+    example: 1,
+  })
+  maxRoundRobinHosts?: number;
 
   @IsBoolean()
   @IsOptional()

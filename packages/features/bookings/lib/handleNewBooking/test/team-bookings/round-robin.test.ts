@@ -1088,6 +1088,155 @@ describe("Round Robin handleNewBooking", () => {
     });
   });
 
+  describe("Round Robin with maxRoundRobinHosts", () => {
+    const createBooker = () =>
+      getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+    const createOrganizer = () =>
+      getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        defaultScheduleId: null,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        destinationCalendar: {
+          integration: TestData.apps["google-calendar"].type,
+          externalId: "organizer@google-calendar.com",
+        },
+      });
+
+    const createTeamMember = (id: number, index: number) => ({
+      name: `Team Member ${index}`,
+      username: `team-member-${index}`,
+      timeZone: Timezones["+5:30"],
+      defaultScheduleId: null,
+      email: `team-member-${index}@example.com`,
+      id,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const createTeamMembers = (count: number, startId = 102) =>
+      Array.from({ length: count }, (_, i) => createTeamMember(startId + i, i + 1));
+
+    const setupScenario = async (
+      teamMembers: ReturnType<typeof createTeamMember>[],
+      maxRoundRobinHosts?: number
+    ) => {
+      const organizer = createOrganizer();
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              schedulingType: SchedulingType.ROUND_ROBIN,
+              length: 30,
+              ...(maxRoundRobinHosts !== undefined && { maxRoundRobinHosts }),
+              users: teamMembers.map((m) => ({ id: m.id })),
+              hosts: teamMembers.map((m) => ({ userId: m.id, isFixed: false })),
+              schedule: TestData.schedules.IstWorkHours,
+              destinationCalendar: {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "event-type-1@google-calendar.com",
+              },
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: teamMembers,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+        })
+      );
+
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: "http://mock-dailyvideo.example.com/meeting-1",
+        },
+      });
+
+      mockCalendarToHaveNoBusySlots("googlecalendar", {
+        create: {
+          id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+        },
+      });
+    };
+
+    const createBooking = async (booker: ReturnType<typeof createBooker>) => {
+      const handleNewBooking = getNewBookingHandler();
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          start: `${getDate({ dateIncrement: 1 }).dateString}T10:00:00.000Z`,
+          end: `${getDate({ dateIncrement: 1 }).dateString}T10:30:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+        },
+      });
+
+      return handleNewBooking({ bookingData: mockBookingData });
+    };
+
+    test("assigns multiple hosts when maxRoundRobinHosts > 1", async () => {
+      const booker = createBooker();
+      const teamMembers = createTeamMembers(3);
+
+      await setupScenario(teamMembers, 3);
+      const createdBooking = await createBooking(booker);
+
+      expect(createdBooking).toBeDefined();
+      expect(createdBooking.luckyUsers).toHaveLength(3);
+      createdBooking.luckyUsers.forEach((userId) => {
+        expect(teamMembers.map((m) => m.id)).toContain(userId);
+      });
+    });
+
+    test("assigns all available hosts when fewer than maxRoundRobinHosts", async () => {
+      const booker = createBooker();
+      const teamMembers = createTeamMembers(2);
+
+      await setupScenario(teamMembers, 5);
+      const createdBooking = await createBooking(booker);
+
+      expect(createdBooking).toBeDefined();
+      expect(createdBooking.luckyUsers).toHaveLength(2);
+    });
+
+    test("assigns single host when maxRoundRobinHosts is undefined (default)", async () => {
+      const booker = createBooker();
+      const teamMembers = createTeamMembers(3);
+
+      await setupScenario(teamMembers);
+      const createdBooking = await createBooking(booker);
+
+      expect(createdBooking).toBeDefined();
+      expect(createdBooking.luckyUsers).toHaveLength(1);
+    });
+
+    test("assigns single host when maxRoundRobinHosts is 1", async () => {
+      const booker = createBooker();
+      const teamMembers = createTeamMembers(3);
+
+      await setupScenario(teamMembers, 1);
+      const createdBooking = await createBooking(booker);
+
+      expect(createdBooking).toBeDefined();
+      expect(createdBooking.luckyUsers).toHaveLength(1);
+    });
+  });
+
   describe("Round Robin with requiresConfirmation", () => {
     test(
       "should not create calendar events for unconfirmed round robin bookings on first booking and reschedule",
@@ -1156,7 +1305,6 @@ describe("Round Robin handleNewBooking", () => {
           })
         );
 
-        // Mock calendar - we should NOT see calendar events created for unconfirmed bookings
         mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             uid: "MOCK_ID",
@@ -1164,7 +1312,6 @@ describe("Round Robin handleNewBooking", () => {
           },
         });
 
-        // First booking with first host - should be PENDING and NO calendar events
         const firstBookingData = getMockRequestDataForBooking({
           data: {
             eventTypeId: 1,
@@ -1183,10 +1330,8 @@ describe("Round Robin handleNewBooking", () => {
           bookingData: firstBookingData,
         });
 
-        // Verify first booking is PENDING
         expect(firstBooking.status).toBe(BookingStatus.PENDING);
 
-        // Verify first booking has NO calendar references (no calendar events created)
         const firstBookingInDb = await prisma.booking.findUnique({
           where: {
             id: firstBooking.id,
@@ -1199,7 +1344,6 @@ describe("Round Robin handleNewBooking", () => {
         expect(firstBookingInDb?.references).toHaveLength(0);
         expect(firstBookingInDb?.status).toBe(BookingStatus.PENDING);
 
-        // Now reschedule with second host - should still be PENDING and NO calendar events
         const rescheduleBookingData = getMockRequestDataForBooking({
           data: {
             eventTypeId: 1,
@@ -1220,11 +1364,8 @@ describe("Round Robin handleNewBooking", () => {
           bookingData: rescheduleBookingData,
         });
 
-        // Verify rescheduled booking is still PENDING
         expect(rescheduledBooking.status).toBe(BookingStatus.PENDING);
 
-        // Verify rescheduled booking has NO calendar references (no calendar events created)
-        // This is the key fix: rescheduling unconfirmed bookings should NOT create calendar events
         const rescheduledBookingInDb = await prisma.booking.findUnique({
           where: {
             id: rescheduledBooking.id,
