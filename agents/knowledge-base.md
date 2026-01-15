@@ -377,13 +377,6 @@ import { Button } from "@calcom/ui/components/button";
 - **Tests**: Same as source file + `.test.ts` or `.spec.ts`
 - **Avoid**: Dot-suffixes like `.service.ts`, `.repository.ts` (except for tests, types, specs)
 
-## Repository + DTO Pattern and Method Conventions
-
-See the following rules in `agents/rules/` for comprehensive documentation:
-- [data-repository-pattern.md](./rules/data-repository-pattern.md) - Repository pattern and technology isolation
-- [data-dto-boundaries.md](./rules/data-dto-boundaries.md) - DTO usage, location, and naming conventions
-- [data-repository-methods.md](./rules/data-repository-methods.md) - Repository method naming conventions
-
 ## When using Day.js
 
 ```typescript
@@ -454,7 +447,3 @@ When doing logic that depends on Browser locale, use i18n.language (prefer to de
 Note that with Date, you’re dealing with System time, so it’s not suited to everywhere (such as in the Booker, where instead we’ll likely migrate to Temporal) - but in most cases the above are suitable.
 
 The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It's a non-ideal solution to a problem that unfortunately exists due to Dayjs.
-
-## Dependency Injection (DI) Pattern
-
-See [rules/patterns-di-pattern.md](./rules/patterns-di-pattern.md) for the complete guide on using the type-safe moduleLoader pattern for dependency injection.
