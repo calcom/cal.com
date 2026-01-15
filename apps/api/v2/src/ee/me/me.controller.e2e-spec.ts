@@ -368,8 +368,12 @@ describe("Me Endpoints", () => {
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toEqual(3);
 
-      expect(responseBody.data[0].id).toBeLessThan(responseBody.data[1].id);
-      expect(responseBody.data[1].id).toBeLessThan(responseBody.data[2].id);
+      expect(new Date(responseBody.data[0].createdAt).valueOf()).toBeLessThan(
+        new Date(responseBody.data[1].createdAt).valueOf()
+      );
+      expect(new Date(responseBody.data[1].createdAt).valueOf()).toBeLessThan(
+        new Date(responseBody.data[2].createdAt).valueOf()
+      );
     });
 
     it("should return event types sorted by createdAt descending", async () => {
@@ -384,8 +388,12 @@ describe("Me Endpoints", () => {
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toEqual(3);
 
-      expect(responseBody.data[0].id).toBeGreaterThan(responseBody.data[1].id);
-      expect(responseBody.data[1].id).toBeGreaterThan(responseBody.data[2].id);
+      expect(new Date(responseBody.data[0].createdAt).valueOf()).toBeGreaterThan(
+        new Date(responseBody.data[1].createdAt).valueOf()
+      );
+      expect(new Date(responseBody.data[1].createdAt).valueOf()).toBeGreaterThan(
+        new Date(responseBody.data[2].createdAt).valueOf()
+      );
     });
 
     afterAll(async () => {
