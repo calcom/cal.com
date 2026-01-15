@@ -5,7 +5,7 @@ import {
 
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { PrismaAppRepository } from "@calcom/features/apps/repository/PrismaAppRepository";
+import { PrismaAppRepository } from "@calcom/features/apps/repositories/PrismaAppRepository";
 import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
