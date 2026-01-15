@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CRM } from "@calcom/types/CrmService";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
@@ -15,6 +16,8 @@ type AppOptions = z.infer<typeof appDataSchema>;
 const {
   mockHubspotClient,
   mockGetAppKeysFromSlug,
+  mockTrackingRepository,
+  mockBookingRepository,
 }: {
   mockHubspotClient: {
     crm: {
@@ -39,6 +42,8 @@ const {
     setAccessToken: ReturnType<typeof vi.fn>;
   };
   mockGetAppKeysFromSlug: ReturnType<typeof vi.fn>;
+  mockTrackingRepository: { findByBookingUid: ReturnType<typeof vi.fn> };
+  mockBookingRepository: { findBookingByUid: ReturnType<typeof vi.fn> };
 } = vi.hoisted(() => {
   const mockHubspotClient = {
     crm: {
@@ -88,7 +93,15 @@ const {
     client_secret: "mock_client_secret",
   });
 
-  return { mockHubspotClient, mockGetAppKeysFromSlug };
+  const mockTrackingRepository = {
+    findByBookingUid: vi.fn(),
+  };
+
+  const mockBookingRepository = {
+    findBookingByUid: vi.fn(),
+  };
+
+  return { mockHubspotClient, mockGetAppKeysFromSlug, mockTrackingRepository, mockBookingRepository };
 });
 
 vi.mock("@hubspot/api-client", () => {
@@ -113,16 +126,22 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-import HubspotCalendarService from "./CrmService";
+vi.mock("@calcom/lib/server/repository/PrismaTrackingRepository", () => ({
+  PrismaTrackingRepository: class {
+    findByBookingUid = mockTrackingRepository.findByBookingUid;
+  },
+}));
+
+vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
+  BookingRepository: class {
+    findBookingByUid = mockBookingRepository.findBookingByUid;
+  },
+}));
+
+import BuildCrmService from "./CrmService";
 
 describe("HubspotCalendarService", () => {
-  let service: HubspotCalendarService;
-  let mockTrackingRepository: {
-    findByBookingUid: ReturnType<typeof vi.fn>;
-  };
-  let mockBookingRepository: {
-    findBookingByUid: ReturnType<typeof vi.fn>;
-  };
+  let service: CRM & { getAppOptions: () => AppOptions };
 
   setupAndTeardown();
 
@@ -135,14 +154,6 @@ describe("HubspotCalendarService", () => {
       client_id: "mock_client_id",
       client_secret: "mock_client_secret",
     });
-
-    mockTrackingRepository = {
-      findByBookingUid: vi.fn(),
-    };
-
-    mockBookingRepository = {
-      findBookingByUid: vi.fn(),
-    };
 
     const mockCredential: CredentialPayload = {
       id: 1,
@@ -163,16 +174,7 @@ describe("HubspotCalendarService", () => {
       delegationCredentialId: null,
     };
 
-    service = new HubspotCalendarService(mockCredential, {});
-
-    // @ts-expect-error - Injecting mock repositories for testing
-    service.trackingRepository = mockTrackingRepository;
-    // @ts-expect-error - Injecting mock repositories for testing
-    service.bookingRepository = mockBookingRepository;
-    // @ts-expect-error - Injecting mock hubspot client for testing
-    service.hubspotClient = mockHubspotClient;
-    // @ts-expect-error - Mocking auth promise to prevent unhandled rejections
-    service.auth = Promise.resolve({ getToken: vi.fn() });
+    service = BuildCrmService(mockCredential, {}) as CRM & { getAppOptions: () => AppOptions };
   });
 
   afterEach(() => {
