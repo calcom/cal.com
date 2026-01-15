@@ -1,13 +1,5 @@
-/* Test framework: Prefer Vitest (vi.mock, describe/it/expect). If this repo uses Jest, switch imports to '@jest/globals' and jest.mock accordingly. */
-
-import type { PermissionLevel } from "./usePermissions.test"; // type-only if available locally
-
-// Attempt to import test globals from Vitest; fall back to Jest globals if necessary
-// @ts-ignore - accommodate either env without type errors
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
-// NOTE: If your project uses Jest, replace the import above with:
-// import { describe, it, expect, beforeEach, jest as vi } from "@jest/globals";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PermissionLevel } from "./usePermissions";
 
 vi.mock("@calcom/features/pbac/domain/types/permission-registry", () => {
   const CrudAction = {
@@ -16,24 +8,37 @@ vi.mock("@calcom/features/pbac/domain/types/permission-registry", () => {
     Update: "update",
     Delete: "delete",
   } as const;
+
+  const Scope = {
+    Team: "team",
+    Organization: "organization",
+  } as const;
+
   const PERMISSION_REGISTRY = {
-    "*": { _resource: "*" },
+    "*": { _resource: { i18nKey: "all" } },
     calendar: {
-      [CrudAction.Create]: true,
-      [CrudAction.Read]: true,
-      [CrudAction.Update]: true,
-      [CrudAction.Delete]: true,
-      _resource: "calendar",
+      [CrudAction.Create]: {},
+      [CrudAction.Read]: {},
+      [CrudAction.Update]: {},
+      [CrudAction.Delete]: {},
+      _resource: { i18nKey: "calendar" },
       _internalMeta: true, // should be ignored
     },
     team: {
-      [CrudAction.Read]: true,
-      [CrudAction.Update]: true,
-      _resource: "team",
+      [CrudAction.Read]: {},
+      [CrudAction.Update]: {},
+      _resource: { i18nKey: "team" },
       _secret: "ignore", // should be ignored
     },
   } as const;
-  return { CrudAction, PERMISSION_REGISTRY };
+
+  // Mock getPermissionsForScope to return the registry without the "*" resource
+  const getPermissionsForScope = () => {
+    const { "*": _, ...rest } = PERMISSION_REGISTRY;
+    return rest;
+  };
+
+  return { CrudAction, Scope, PERMISSION_REGISTRY, getPermissionsForScope };
 });
 
 vi.mock("@calcom/features/pbac/utils/permissionTraversal", () => {
@@ -67,7 +72,7 @@ vi.mock("@calcom/features/pbac/utils/permissionTraversal", () => {
 });
 
 // Import after mocks are set up
-import { usePermissions } from "./usePermissions.test"; // Implementation colocated per PR diff
+import { usePermissions } from "./usePermissions";
 
 describe("usePermissions - permission utilities", () => {
   let perms: ReturnType<typeof usePermissions>;
@@ -83,12 +88,16 @@ describe("usePermissions - permission utilities", () => {
 
     it("ignores internal keys and requires all non-internal actions across all resources", () => {
       // Missing team.update
-      const some = ["calendar.create","calendar.read","calendar.update","calendar.delete","team.read"];
+      const some = ["calendar.create", "calendar.read", "calendar.update", "calendar.delete", "team.read"];
       expect(perms.hasAllPermissions(some)).toBe(false);
 
       const all = [
-        "calendar.create","calendar.read","calendar.update","calendar.delete",
-        "team.read","team.update",
+        "calendar.create",
+        "calendar.read",
+        "calendar.update",
+        "calendar.delete",
+        "team.read",
+        "team.update",
       ];
       expect(perms.hasAllPermissions(all)).toBe(true);
     });
@@ -98,8 +107,12 @@ describe("usePermissions - permission utilities", () => {
       expect(perms.hasAllPermissions(["*.*"])).toBe(false);
 
       const fullPlusStar = [
-        "calendar.create","calendar.read","calendar.update","calendar.delete",
-        "team.read","team.update",
+        "calendar.create",
+        "calendar.read",
+        "calendar.update",
+        "calendar.delete",
+        "team.read",
+        "team.update",
         "*.*",
       ];
       expect(perms.hasAllPermissions(fullPlusStar)).toBe(true);
@@ -112,13 +125,15 @@ describe("usePermissions - permission utilities", () => {
       expect(perms.getResourcePermissionLevel("*", ["*.*"])).toBe("all");
     });
 
-    it("returns 'none' for unknown resources", () => {
-      expect(perms.getResourcePermissionLevel("unknown", ["*.*"])).toBe("all"); // wildcard wins
+    it("returns 'none' for unknown resources even with wildcard", () => {
+      // Unknown resources return 'none' because they're not in the registry
+      // The wildcard check only applies to known resources
+      expect(perms.getResourcePermissionLevel("unknown", ["*.*"])).toBe("none");
       expect(perms.getResourcePermissionLevel("unknown", [])).toBe("none");
     });
 
     it("returns 'all' when all non-internal actions for resource are granted", () => {
-      const list = ["calendar.create","calendar.read","calendar.update","calendar.delete"];
+      const list = ["calendar.create", "calendar.read", "calendar.update", "calendar.delete"];
       expect(perms.getResourcePermissionLevel("calendar", list)).toBe("all");
     });
 
@@ -143,8 +158,12 @@ describe("usePermissions - permission utilities", () => {
       expect(next).toEqual(
         expect.arrayContaining([
           "*.*",
-          "calendar.create","calendar.read","calendar.update","calendar.delete",
-          "team.read","team.update",
+          "calendar.create",
+          "calendar.read",
+          "calendar.update",
+          "calendar.delete",
+          "team.read",
+          "team.update",
         ])
       );
       // No duplicates
@@ -152,46 +171,55 @@ describe("usePermissions - permission utilities", () => {
     });
 
     it("for '*' with level 'none' removes '*.*' and leaves empty set", () => {
-      const next = perms.toggleResourcePermissionLevel("*", "none", ["*.*","calendar.read","team.read"]);
+      const next = perms.toggleResourcePermissionLevel("*", "none", ["*.*", "calendar.read", "team.read"]);
       expect(next).not.toContain("*.*");
       // Because we removed *.*, we don't auto-remove individuals unless resource-specific; keep others
-      expect(next).toEqual(expect.arrayContaining(["calendar.read","team.read"]));
+      expect(next).toEqual(expect.arrayContaining(["calendar.read", "team.read"]));
     });
 
     it("for specific resource with 'none' removes that resource's permissions only", () => {
-      const current = ["calendar.create","calendar.read","calendar.update","team.read"];
-      const next = perms.toggleResourcePermissionLevel("calendar","none", current);
+      const current = ["calendar.create", "calendar.read", "calendar.update", "team.read"];
+      const next = perms.toggleResourcePermissionLevel("calendar", "none", current);
       expect(next).toEqual(["team.read"]);
     });
 
     it("for specific resource with 'read' keeps only read for that resource", () => {
-      const current = ["calendar.create","calendar.read","calendar.update","team.read"];
-      const next = perms.toggleResourcePermissionLevel("calendar","read", current);
+      const current = ["calendar.create", "calendar.read", "calendar.update", "team.read"];
+      const next = perms.toggleResourcePermissionLevel("calendar", "read", current);
       // calendar.* collapsed to read only; team.read preserved
-      expect(next.sort()).toEqual(["calendar.read","team.read"].sort());
+      expect(next.sort()).toEqual(["calendar.read", "team.read"].sort());
     });
 
     it("for specific resource with 'all' expands to all non-internal actions for that resource", () => {
       const current = ["team.read"];
-      const next = perms.toggleResourcePermissionLevel("calendar","all", current);
+      const next = perms.toggleResourcePermissionLevel("calendar", "all", current);
       expect(next).toEqual(
         expect.arrayContaining([
-          "calendar.create","calendar.read","calendar.update","calendar.delete",
+          "calendar.create",
+          "calendar.read",
+          "calendar.update",
+          "calendar.delete",
           "team.read",
         ])
       );
     });
 
     it("re-adds '*.*' when post-change state has all permissions across all resources", () => {
-      const almostAll = ["calendar.create","calendar.read","calendar.update","calendar.delete","team.read"];
-      const next = perms.toggleResourcePermissionLevel("team","all", almostAll);
+      const almostAll = [
+        "calendar.create",
+        "calendar.read",
+        "calendar.update",
+        "calendar.delete",
+        "team.read",
+      ];
+      const next = perms.toggleResourcePermissionLevel("team", "all", almostAll);
       expect(next).toEqual(expect.arrayContaining(["*.*"]));
       expect(perms.hasAllPermissions(next)).toBe(true);
     });
 
     it("no-ops and returns currentPermissions when resource not in registry", () => {
       const curr = ["team.read"];
-      const next = perms.toggleResourcePermissionLevel("nonexistent","all", curr);
+      const next = perms.toggleResourcePermissionLevel("nonexistent", "all", curr);
       // Implementation returns currentPermissions unchanged for unknown resource
       expect(next).toBe(curr);
     });
@@ -200,28 +228,31 @@ describe("usePermissions - permission utilities", () => {
   describe("toggleSinglePermission", () => {
     it("enabling a permission adds it and its transitive dependencies, without duplicates", () => {
       const next = perms.toggleSinglePermission("team.update", true, []);
-      expect(next).toEqual(expect.arrayContaining(["team.update","team.read"]));
+      expect(next).toEqual(expect.arrayContaining(["team.update", "team.read"]));
       // unique
       expect(new Set(next).size).toBe(next.length);
     });
 
     it("disabling a permission removes it and all its transitive dependents", () => {
-      const current = ["team.read","team.update","calendar.read"];
+      const current = ["team.read", "team.update", "calendar.read"];
       const next = perms.toggleSinglePermission("team.read", false, current);
       // team.update depends on team.read, so it should also be removed
       expect(next).toEqual(["calendar.read"]);
     });
 
     it("does not remove unrelated permissions when disabling one", () => {
-      const current = ["calendar.read","team.read","team.update"];
+      const current = ["calendar.read", "team.read", "team.update"];
       const next = perms.toggleSinglePermission("calendar.read", false, current);
       // calendar.delete depends on read, so delete should be removed too if present; but it's not
-      expect(next.sort()).toEqual(["team.read","team.update"].sort());
+      expect(next.sort()).toEqual(["team.read", "team.update"].sort());
     });
 
     it("re-adds '*.*' when after toggling, all permissions are present", () => {
       const allButStar = [
-        "calendar.create","calendar.read","calendar.update","calendar.delete",
+        "calendar.create",
+        "calendar.read",
+        "calendar.update",
+        "calendar.delete",
         "team.read",
       ];
       const next = perms.toggleSinglePermission("team.update", true, allButStar);
