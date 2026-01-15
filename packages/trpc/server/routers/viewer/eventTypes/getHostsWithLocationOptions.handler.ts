@@ -1,7 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient, Prisma } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -116,7 +116,11 @@ export const getHostsWithLocationOptionsHandler = async ({
 
   const organizationId = eventType.team?.parentId ?? null;
   const hostRepository = new HostRepository(ctx.prisma);
-  const { items: hosts, nextCursor, hasMore } = await hostRepository.findHostsWithLocationOptionsPaginated({
+  const {
+    items: hosts,
+    nextCursor,
+    hasMore,
+  } = await hostRepository.findHostsWithLocationOptionsPaginated({
     eventTypeId,
     cursor,
     limit,
@@ -125,7 +129,10 @@ export const getHostsWithLocationOptionsHandler = async ({
   const usersForEnrichment = hosts.map((host) => ({
     id: host.user.id,
     email: host.user.email,
-    credentials: host.user.credentials,
+    credentials: host.user.credentials.map((cred) => ({
+      ...cred,
+      key: {} as Prisma.JsonValue,
+    })),
   }));
 
   const enrichedUsers = await enrichUsersWithDelegationCredentials({

@@ -313,7 +313,11 @@ const HostLocationRow = ({
             className="w-72 text-sm"
             menuPlacement="auto"
             menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-            styles={{ menuPortal: (base, _props) => ({ ...base, zIndex: 9999 }) }}
+            styles={{
+              menuPortal: (base) => {
+                return { ...base, zIndex: 9999 };
+              },
+            }}
             onChange={handleLocationSelect}
           />
           {hasOrganizerInput && currentLocation && (
