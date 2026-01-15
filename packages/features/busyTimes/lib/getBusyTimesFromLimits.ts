@@ -42,6 +42,7 @@ const _getBusyTimesFromLimits = async (
       limitManager,
       rescheduleUid,
       timeZone,
+      eventType,
     });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
@@ -83,6 +84,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
   user?: { id: number; email: string };
   includeManagedEvents?: boolean;
   timeZone?: string | null;
+  eventType?: NonNullable<EventType>;
 }) => {
   const {
     bookings,
@@ -96,6 +98,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     rescheduleUid,
     includeManagedEvents = false,
     timeZone,
+    eventType,
   } = params;
 
   for (const key of descendingLimitKeys) {
@@ -142,7 +145,22 @@ const _getBusyTimesFromBookingLimits = async (params: {
         }
         totalBookings++;
         if (totalBookings >= limit) {
-          limitManager.addBusyTime(periodStart, unit);
+          if (eventType?.seatsPerTimeSlot) {
+            const slotBookings = bookings.filter((b) => {
+              if (!dayjs(b.start).isSame(dayjs(booking.start))) return false;
+              if (!isBookingWithinPeriod(b, periodStart, periodEnd, timeZone || "UTC")) return false;
+              if (eventTypeId && b.eventTypeId && b.eventTypeId !== eventTypeId) return false;
+              return true;
+            });
+
+            const totalAttendees = slotBookings.length;
+            const remainingSeats = eventType.seatsPerTimeSlot - totalAttendees;
+            if (remainingSeats <= 0) {
+              limitManager.addBusyTime(periodStart, unit);
+            }
+          } else {
+            limitManager.addBusyTime(periodStart, unit);
+          }
           break;
         }
       }
@@ -226,7 +244,8 @@ const _getBusyTimesFromTeamLimits = async (
   teamId: number,
   includeManagedEvents: boolean,
   timeZone: string,
-  rescheduleUid?: string
+  rescheduleUid?: string,
+  eventType?: NonNullable<EventType>
 ) => {
   const busyTimesService = getBusyTimesService();
   const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
@@ -251,6 +270,7 @@ const _getBusyTimesFromTeamLimits = async (
     title,
     source: `eventType-${eventTypeId}-booking-${id}`,
     userId,
+    eventTypeId,
   }));
 
   const limitManager = new LimitManager();
@@ -266,6 +286,7 @@ const _getBusyTimesFromTeamLimits = async (
     user,
     includeManagedEvents,
     timeZone,
+    eventType,
   });
 
   return limitManager.getBusyTimes();
