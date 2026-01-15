@@ -2,7 +2,7 @@ import type { BillingPeriod } from "@calcom/prisma/enums";
 
 type SubscriptionItemLike = {
   id: string;
-  quantity: number | null;
+  quantity?: number | null;
   price: {
     unit_amount: number | null;
     recurring: { interval: string } | null;
