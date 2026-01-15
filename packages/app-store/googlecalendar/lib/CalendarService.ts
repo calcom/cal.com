@@ -2,12 +2,12 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
-
 import { MeetLocationType } from "@calcom/app-store/constants";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getDestinationCalendarRepository } from "@calcom/features/di/containers/DestinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
@@ -15,10 +15,11 @@ import type {
   CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
+  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
-import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
@@ -28,14 +29,33 @@ type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] 
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
+/**
+ * Extended interface for Google Calendar service that includes Google-specific methods.
+ * This interface is used by internal Google Calendar modules (callback, tests, etc.)
+ * that need access to Google-specific functionality beyond the generic Calendar interface.
+ */
+export interface GoogleCalendar extends Calendar {
+  getPrimaryCalendar(calendar?: unknown): Promise<{ id?: string | null; timeZone?: string | null } | null>;
+
+  upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+  ): Promise<unknown>;
+
+  createSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+  ): Promise<unknown>;
+
+  authedCalendar(): Promise<calendar_v3.Calendar>;
+}
+
 interface GoogleCalError extends Error {
   code?: number;
 }
 
-const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
+const isGaxiosResponse= (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
-export default class GoogleCalendarService implements Calendar {
+class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: CalendarAuth;
   private log: typeof logger;
@@ -46,6 +66,32 @@ export default class GoogleCalendarService implements Calendar {
     this.credential = credential;
     this.auth = new CalendarAuth(credential);
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+  }
+
+  private async getReminderDuration(credentialId: number): Promise<number | null> {
+    try {
+      const destinationCalendarRepository = getDestinationCalendarRepository();
+      return await destinationCalendarRepository.getCustomReminderByCredentialId(credentialId);
+    } catch (error) {
+      this.log.warn("Failed to fetch custom calendar reminder", safeStringify(error));
+      return null;
+    }
+  }
+
+  private getReminders(customReminderMinutes: number | null): {
+    useDefault: boolean;
+    overrides?: { method: string; minutes: number }[];
+  } {
+    if (customReminderMinutes !== null) {
+      return {
+        useDefault: false,
+        overrides: [
+          { method: "popup", minutes: customReminderMinutes },
+          { method: "email", minutes: customReminderMinutes },
+        ],
+      };
+    }
+    return { useDefault: true };
   }
 
   public getCredentialId() {
@@ -119,6 +165,9 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
 
+    // Fetch custom reminder duration for this credential's destination calendar
+    const customReminderMinutes = await this.getReminderDuration(credentialId);
+
     const payload: calendar_v3.Schema$Event = {
       summary: calEvent.title,
       description: calEvent.calendarDescription,
@@ -131,9 +180,7 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: calEvent.organizer.timeZone,
       },
       attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: this.getReminders(customReminderMinutes),
       guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
@@ -278,6 +325,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+    // Fetch custom reminder duration for this credential's destination calendar
+    const customReminderMinutes = await this.getReminderDuration(this.credential.id);
+
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -290,9 +340,7 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: event.organizer.timeZone,
       },
       attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: this.getReminders(customReminderMinutes),
       guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
@@ -400,7 +448,9 @@ export default class GoogleCalendarService implements Calendar {
     return apiResponse.json;
   }
 
-  async getFreeBusyResult(args: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
+  async getFreeBusyResult(
+    args: FreeBusyArgs,
+  ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     return await this.fetchAvailability(args);
   }
 
@@ -417,7 +467,9 @@ export default class GoogleCalendarService implements Calendar {
     return validCals[0];
   }
 
-  async getFreeBusyData(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string })[] | null> {
+  async getFreeBusyData(
+    args: FreeBusyArgs,
+  ): Promise<(EventBusyDate & { id: string })[] | null> {
     const freeBusyResult = await this.getFreeBusyResult(args);
     if (!freeBusyResult.calendars) return null;
 
@@ -435,15 +487,8 @@ export default class GoogleCalendarService implements Calendar {
     return result;
   }
 
-  async getAvailabilityWithTimeZones(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    /**
-     * If true, we will fallback to the primary calendar if no valid selected calendars are found
-     */
-    fallbackToPrimary?: boolean
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -548,12 +593,11 @@ export default class GoogleCalendarService implements Calendar {
 
   /**
    * Fetches availability data using the cache-or-fetch pattern
-   *
    */
   private async fetchAvailabilityData(
     calendarIds: string[],
     dateFrom: string,
-    dateTo: string
+    dateTo: string,
   ): Promise<EventBusyDate[]> {
     // More efficient date difference calculation using native Date objects
     // Use Math.floor to match dayjs diff behavior (truncates, doesn't round up)
@@ -564,11 +608,13 @@ export default class GoogleCalendarService implements Calendar {
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
-      const freeBusyData = await this.getFreeBusyData({
-        timeMin: dateFrom,
-        timeMax: dateTo,
-        items: calendarIds.map((id) => ({ id })),
-      });
+      const freeBusyData = await this.getFreeBusyData(
+        {
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: calendarIds.map((id) => ({ id })),
+        }
+      );
 
       if (!freeBusyData) throw new Error("No response from google calendar");
       return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
@@ -590,11 +636,13 @@ export default class GoogleCalendarService implements Calendar {
         currentEndTime = originalEndTime;
       }
 
-      const chunkData = await this.getFreeBusyData({
-        timeMin: new Date(currentStartTime).toISOString(),
-        timeMax: new Date(currentEndTime).toISOString(),
-        items: calendarIds.map((id) => ({ id })),
-      });
+      const chunkData = await this.getFreeBusyData(
+        {
+          timeMin: new Date(currentStartTime).toISOString(),
+          timeMax: new Date(currentEndTime).toISOString(),
+          items: calendarIds.map((id) => ({ id })),
+        }
+      );
 
       if (chunkData) {
         busyData.push(...chunkData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end })));
@@ -606,15 +654,8 @@ export default class GoogleCalendarService implements Calendar {
     return busyData;
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    /**
-     * If true, we will fallback to the primary calendar if no valid selected calendars are found
-     */
-    fallbackToPrimary?: boolean
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
 
     const selectedCalendarIds = selectedCalendars
@@ -783,4 +824,27 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like calendar_v3.Calendar)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all Google API SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCalendarService(
+  credential: CredentialForCalendarServiceWithEmail
+): Calendar {
+  return new GoogleCalendarService(credential);
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance with the extended GoogleCalendar type.
+ * This is used by internal Google Calendar modules (callback, tests, etc.) that need access to
+ * Google-specific methods beyond the generic Calendar interface.
+ */
+export function createGoogleCalendarServiceWithGoogleType(
+  credential: CredentialForCalendarServiceWithEmail
+): GoogleCalendar {
+  return new GoogleCalendarService(credential);
 }

@@ -33,7 +33,6 @@ function getOAuthConfig() {
         clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_EDGE || defaultClientId,
         redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_EDGE || defaultRedirectUri,
       };
-    case "chrome":
     default:
       return {
         clientId: defaultClientId,
@@ -47,6 +46,9 @@ export default defineConfig({
     "build:manifestGenerated": (_wxt, manifest) => {
       manifest.browser_specific_settings ??= {};
       manifest.browser_specific_settings.gecko ??= {};
+      // Stable extension ID for Firefox development - ensures consistent OAuth redirect URL
+      // This must be an email-like string for Firefox to accept it
+      manifest.browser_specific_settings.gecko.id = "companion@cal.com";
       manifest.browser_specific_settings.gecko.data_collection_permissions = {
         required: ["none"],
       };
@@ -57,10 +59,15 @@ export default defineConfig({
   publicDir: "extension/public",
   outDir: ".output",
   manifest: {
-    name: "Cal.com Companion",
-    version: "1.7.4",
+    name: browserTarget === "safari" ? "Cal.com" : "Cal.com Companion",
+    version: "1.7.5",
     description: "Your calendar companion for quick booking and scheduling",
-    permissions: ["activeTab", "storage", "identity"],
+    permissions: [
+      "activeTab",
+      "storage",
+      // Safari doesn't support Chrome's identity API
+      ...(browserTarget !== "safari" ? ["identity"] : []),
+    ],
     host_permissions: [
       "https://companion.cal.com/*",
       "https://api.cal.com/*",
@@ -68,7 +75,7 @@ export default defineConfig({
       "https://mail.google.com/*",
       "https://calendar.google.com/*",
       // Include localhost permission for dev builds (needed for iframe to load)
-      ...(!isBuildForStore ? ["http://localhost:*/*"] : []),
+      // ...(!isBuildForStore ? ["http://localhost:*/*"] : []),
     ],
     content_security_policy: {
       extension_pages: !isBuildForStore
@@ -92,7 +99,7 @@ export default defineConfig({
   vite: () => {
     // Determine companion URL based on build type
     const devUrl = isBuildForStore ? "" : process.env.EXPO_PUBLIC_COMPANION_DEV_URL || "";
-    const isLocalDev = Boolean(devUrl && devUrl.includes("localhost"));
+    const isLocalDev = Boolean(devUrl?.includes("localhost"));
 
     // Get OAuth config for the target browser
     const oauthConfig = getOAuthConfig();

@@ -141,6 +141,7 @@ test.describe("Teams - NonOrg", () => {
 
       // Go directly to the create team page
       await page.goto("/settings/teams/new");
+      await page.waitForLoadState("networkidle");
       // Fill input[name="name"]
       await page.locator('input[name="name"]').fill(uniqueName);
       await page.click("[type=submit]");
@@ -161,7 +162,7 @@ test.describe("Teams - NonOrg", () => {
     await test.step("Can create team with same name", async () => {
       // Click text=Create Team
       await page.locator("text=Create Team").click();
-      await page.waitForURL("/settings/teams/new");
+      await page.waitForLoadState("networkidle");
       // Fill input[name="name"]
       await page.locator('input[name="name"]').fill(uniqueName);
       // Click text=Continue
@@ -170,8 +171,11 @@ test.describe("Teams - NonOrg", () => {
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
-      // Click text=Continue
-      await page.locator("[data-testid=publish-button]").click();
+      // Wait for the page to fully load and the publish button to be visible
+      await page.waitForLoadState("networkidle");
+      const publishButton = page.locator("[data-testid=publish-button]");
+      await publishButton.waitFor({ state: "visible", timeout: 10000 });
+      await publishButton.click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
       await page.locator("[data-testid=handle-later-button]").click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);

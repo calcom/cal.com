@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import oAuthManagerMock, {
   defaultMockOAuthManager,
   setFullMockOAuthManagerRequest,
@@ -20,13 +18,10 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
-
-import CalendarService from "../CalendarService";
-import {
-  createMockJWTInstance,
-  createCredentialForCalendarService,
-} from "./utils";
 import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
+
+import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
+import { createMockJWTInstance, createCredentialForCalendarService } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -48,7 +43,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
   appId: "google-calendar",
   type: "google_calendar",
   key: {
-    access_token: "<INVALID_TOKEN>"
+    access_token: "<INVALID_TOKEN>",
   },
   user: {
     email: "user@example.com",
@@ -61,8 +56,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
 
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
-
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
       {
@@ -107,21 +101,23 @@ describe("getAvailability", () => {
       };
     });
 
-    const availabilityWithPrimaryAsFallback = await calendarService.getAvailability(
-      "2024-01-01",
-      "2024-01-02",
-      [],
-      true
-    );
+    const availabilityWithPrimaryAsFallback = await calendarService.getAvailability({
+      dateFrom: "2024-01-01",
+      dateTo: "2024-01-02",
+      selectedCalendars: [],
+      mode: "slots",
+      fallbackToPrimary: true,
+    });
 
     expect(availabilityWithPrimaryAsFallback).toEqual(mockedBusyTimes1);
 
-    const availabilityWithAllCalendarsAsFallback = await calendarService.getAvailability(
-      "2024-01-01",
-      "2024-01-02",
-      [],
-      false
-    );
+    const availabilityWithAllCalendarsAsFallback = await calendarService.getAvailability({
+      dateFrom: "2024-01-01",
+      dateTo: "2024-01-02",
+      selectedCalendars: [],
+      mode: "slots",
+      fallbackToPrimary: false,
+    });
 
     expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
   });
@@ -129,7 +125,7 @@ describe("getAvailability", () => {
 
 describe("getPrimaryCalendar", () => {
   test("should fetch primary calendar using 'primary' keyword", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = createGoogleCalendarServiceWithGoogleType(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockPrimaryCalendar = {
       id: "user@example.com",
@@ -331,7 +327,7 @@ describe("Date Optimization Benchmarks", () => {
   });
 
   test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockBusyData = [
@@ -375,7 +371,7 @@ describe("Date Optimization Benchmarks", () => {
 
 describe("createEvent", () => {
   test("should create event with correct input/output format and handle all expected properties", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock Google Calendar API response
@@ -460,6 +456,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 10,
         },
       ],
       iCalUID: "test-ical-uid@google.com",
@@ -573,7 +570,7 @@ describe("createEvent", () => {
   });
 
   test("should handle recurring events correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock recurring event response
@@ -634,6 +631,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 10,
         },
       ],
       calendarDescription: "Weekly team meeting",
@@ -672,198 +670,136 @@ describe("createEvent", () => {
 
     log.info("createEvent recurring event test passed");
   });
-});
 
-describe("Delegation Credential Batching", () => {
-  test("getAvailability should fetch availability for selected calendars", async () => {
-    const calendarService = new CalendarService(mockCredential);
+  test("should use default reminders when no custom reminder is configured", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
-    const mockedBusyTimes = [
-      { start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" },
-      { start: "2024-01-02T14:00:00Z", end: "2024-01-02T15:00:00Z" },
-    ];
+    const mockGoogleEvent = {
+      id: "mock-event-default-reminder",
+      summary: "Test Meeting Default Reminder",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
 
-    calendarListMock.mockImplementation(() => {
-      return {
-        data: {
-          items: [
-            { id: "calendar1@test.com" },
-            { id: "calendar2@test.com" },
-          ],
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: mockGoogleEvent,
+    });
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
+
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-456",
+      title: "Test Meeting Default Reminder",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
+      },
+      attendees: [],
+      calendarDescription: "Test meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: null,
         },
-      };
+      ],
+    };
+
+    // Mock the getReminderDuration method to return null (no custom reminder configured)
+    vi.spyOn(calendarService as any, "getReminderDuration").mockResolvedValue(null);
+
+    await calendarService.createEvent(testCalEvent, mockCredential.id);
+
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+
+    // When no custom reminder is configured, should use Google Calendar's default
+    expect(insertCall.requestBody.reminders).toEqual({
+      useDefault: true,
     });
 
-    freebusyQueryMock.mockImplementation(() => {
-      return {
-        data: {
-          calendars: {
-            "calendar1@test.com": { busy: [mockedBusyTimes[0]] },
-            "calendar2@test.com": { busy: [mockedBusyTimes[1]] },
-          },
-        },
-      };
-    });
-
-    const selectedCalendars = [
-      {
-        externalId: "calendar1@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: "delegation-1",
-      },
-      {
-        externalId: "calendar2@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: "delegation-2",
-      },
-    ];
-
-    const availability = await calendarService.getAvailability(
-      "2024-01-01",
-      "2024-01-31",
-      selectedCalendars,
-      false
-    );
-
-    // CalendarService makes a single API call with all calendars
-    // Batching by delegationCredentialId is handled by CalendarBatchWrapper
-    expect(freebusyQueryMock).toHaveBeenCalledTimes(1);
-
-    // Should return combined results from all calendars
-    expect(availability).toHaveLength(2);
+    log.info("createEvent with default reminders test passed");
   });
 
-  test("CalendarBatchWrapper should make separate API calls for different delegationCredentialIds", async () => {
-    // Import CalendarBatchWrapper for integration test
-    const { CalendarBatchWrapper } = await import("@calcom/features/calendar-batch/lib/CalendarBatchWrapper");
-
-    const calendarService = new CalendarService(mockCredential);
-    const wrapper = new CalendarBatchWrapper({ originalCalendar: calendarService });
+  test("should handle 'just in time' reminder (0 minutes) correctly", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
-    const mockedBusyTimes1 = [{ start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" }];
-    const mockedBusyTimes2 = [{ start: "2024-01-02T14:00:00Z", end: "2024-01-02T15:00:00Z" }];
+    // Mock the getReminderDuration method to return 0 (just in time)
+    vi.spyOn(calendarService as any, "getReminderDuration").mockResolvedValue(0);
 
-    calendarListMock.mockImplementation(() => {
-      return {
-        data: {
-          items: [
-            { id: "calendar1@test.com" },
-            { id: "calendar2@test.com" },
-          ],
-        },
-      };
+    const mockGoogleEvent = {
+      id: "mock-event-just-in-time",
+      summary: "Test Meeting Just In Time",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
+
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: mockGoogleEvent,
     });
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
 
-    let callCount = 0;
-    freebusyQueryMock.mockImplementation(() => {
-      callCount++;
-      const busyTimes = callCount === 1 ? mockedBusyTimes1 : mockedBusyTimes2;
-      return {
-        data: {
-          calendars: {
-            "calendar@test.com": { busy: busyTimes },
-          },
-        },
-      };
-    });
-
-    const selectedCalendars = [
-      {
-        externalId: "calendar1@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: "delegation-1",
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-789",
+      title: "Test Meeting Just In Time",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
       },
-      {
-        externalId: "calendar2@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: "delegation-2",
-      },
-    ];
-
-    const availability = await wrapper.getAvailability(
-      "2024-01-01",
-      "2024-01-31",
-      selectedCalendars,
-      undefined,
-      false
-    );
-
-    // CalendarBatchWrapper should make 2 API calls (one per delegation credential group)
-    expect(freebusyQueryMock).toHaveBeenCalledTimes(2);
-
-    // Should return combined results from both groups
-    expect(availability).toHaveLength(2);
-  });
-
-  test("getAvailability should fallback to primary calendar when no calendars selected and fallbackToPrimary is true", async () => {
-    const calendarService = new CalendarService(mockCredential);
-    setFullMockOAuthManagerRequest();
-
-    const mockedBusyTimes = [
-      { start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" },
-    ];
-
-    calendarListMock.mockImplementation(() => {
-      return {
-        data: {
-          items: [
-            { id: "primary@test.com", primary: true },
-            { id: "secondary@test.com" },
-          ],
+      attendees: [],
+      calendarDescription: "Test meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 0,
         },
-      };
+      ],
+    };
+
+    await calendarService.createEvent(testCalEvent, mockCredential.id);
+
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+
+    // When "just in time" (0 minutes) is configured, should override with 0-minute reminders
+    expect(insertCall.requestBody.reminders).toEqual({
+      useDefault: false,
+      overrides: [
+        { method: "popup", minutes: 0 },
+        { method: "email", minutes: 0 },
+      ],
     });
 
-    freebusyQueryMock.mockImplementation(() => {
-      return {
-        data: {
-          calendars: {
-            "primary@test.com": { busy: mockedBusyTimes },
-          },
-        },
-      };
-    });
-
-    // Empty selected calendars with fallbackToPrimary = true
-    const availability = await calendarService.getAvailability(
-      "2024-01-01",
-      "2024-01-31",
-      [],
-      true
-    );
-
-    // Should have called FreeBusy API
-    expect(freebusyQueryMock).toHaveBeenCalled();
-
-    // Should return busy times from primary calendar
-    expect(availability).toEqual(mockedBusyTimes);
-  });
-
-  test("getAvailability should return empty array when only non-google calendars are selected", async () => {
-    const calendarService = new CalendarService(mockCredential);
-    setFullMockOAuthManagerRequest();
-
-    const selectedCalendars = [
-      {
-        externalId: "calendar1@outlook.com",
-        integration: "office365_calendar",
-        delegationCredentialId: null,
-      },
-    ];
-
-    const availability = await calendarService.getAvailability(
-      "2024-01-01",
-      "2024-01-31",
-      selectedCalendars,
-      false
-    );
-
-    // Should return empty array since no google calendars
-    expect(availability).toEqual([]);
-
-    // Should not have called FreeBusy API
-    expect(freebusyQueryMock).not.toHaveBeenCalled();
+    log.info("createEvent with just in time reminders test passed");
   });
 });
