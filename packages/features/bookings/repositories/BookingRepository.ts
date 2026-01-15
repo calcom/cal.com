@@ -257,6 +257,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
       hideOrganizerEmail: true,
+      hideOrganizerName: true,
       schedulingType: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -639,6 +640,7 @@ export class BookingRepository implements IBookingRepository {
           requiresConfirmation: true,
           allowReschedulingPastBookings: true,
           hideOrganizerEmail: true,
+          hideOrganizerName: true,
         },
       },
       ...(seatedEvent && {
@@ -873,6 +875,7 @@ export class BookingRepository implements IBookingRepository {
           select: {
             id: true,
             hideOrganizerEmail: true,
+            hideOrganizerName: true,
             hosts: {
               select: {
                 userId: true,
@@ -1467,6 +1470,7 @@ export class BookingRepository implements IBookingRepository {
           select: {
             title: true,
             hideOrganizerEmail: true,
+            hideOrganizerName: true,
             teamId: true,
             metadata: true,
           },
@@ -1748,6 +1752,7 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
             title: true,
             length: true,
             hideOrganizerEmail: true,
+            hideOrganizerName: true,
             customReplyToEmail: true,
             bookingFields: true,
             metadata: true,

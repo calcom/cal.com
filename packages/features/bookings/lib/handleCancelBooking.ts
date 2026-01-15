@@ -399,6 +399,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
+    hideOrganizerName: bookingToDelete.eventType?.hideOrganizerName,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
     organizationId: ownerProfile?.organizationId ?? null,

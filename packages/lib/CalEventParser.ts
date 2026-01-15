@@ -3,6 +3,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
+import { formatPersonText } from "@calcom/lib/bookings/hideOrganizerUtils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
@@ -32,7 +33,13 @@ export const getWhen = (
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
-    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team" | "hideOrganizerEmail"
+    | "attendees"
+    | "seatsPerTimeSlot"
+    | "seatsShowAttendees"
+    | "organizer"
+    | "team"
+    | "hideOrganizerEmail"
+    | "hideOrganizerName"
   >,
   t: TFunction
 ) => {
@@ -49,15 +56,27 @@ export const getWho = (
     )
     .join("\n");
 
-  const organizer = calEvent.hideOrganizerEmail
-    ? `${calEvent.organizer.name} - ${t("organizer")}`
-    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+  const organizer = formatPersonText({
+    name: calEvent.organizer.name,
+    email: calEvent.organizer.email,
+    role: t("organizer"),
+    hideOrganizerName: calEvent.hideOrganizerName,
+    hideOrganizerEmail: calEvent.hideOrganizerEmail,
+  });
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .map((member) =>
+          formatPersonText({
+            name: member.name,
+            email: member.email,
+            role: t("team_member"),
+            hideOrganizerName: calEvent.hideOrganizerName,
+            hideOrganizerEmail: calEvent.hideOrganizerEmail,
+          })
+        )
         .join("\n")
-    : [];
+    : "";
 
   return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
     teamMembers.length ? `\n${teamMembers}` : ""

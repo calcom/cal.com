@@ -55,6 +55,7 @@ const getUserBooking = async (uid: string) => {
           timeZone: true,
           schedulingType: true,
           hideOrganizerEmail: true,
+          hideOrganizerName: true,
         },
       },
       seatsReferences: {

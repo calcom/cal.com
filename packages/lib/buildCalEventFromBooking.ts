@@ -39,6 +39,7 @@ type EventType = {
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
   hideOrganizerEmail: boolean;
+  hideOrganizerName: boolean;
   customReplyToEmail: string | null;
 };
 
@@ -102,6 +103,7 @@ export const buildCalEventFromBooking = async ({
     },
     attendees: attendeesList,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+    hideOrganizerName: booking.eventType?.hideOrganizerName,
     uid: booking.uid,
     recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
     location,

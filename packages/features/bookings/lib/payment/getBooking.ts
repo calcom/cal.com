@@ -61,6 +61,7 @@ export async function getBooking(bookingId: number) {
           price: true,
           requiresConfirmation: true,
           hideOrganizerEmail: true,
+          hideOrganizerName: true,
           metadata: true,
           customReplyToEmail: true,
           title: true,
@@ -183,6 +184,7 @@ export async function getBooking(bookingId: number) {
       id: user.id,
     },
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+    hideOrganizerName: booking.eventType?.hideOrganizerName,
     team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,

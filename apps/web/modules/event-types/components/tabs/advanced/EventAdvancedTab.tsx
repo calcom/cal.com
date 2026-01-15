@@ -105,6 +105,7 @@ export type EventAdvancedTabCustomClassNames = {
   };
   timezoneLock?: SettingsToggleClassNames;
   hideOrganizerEmail?: SettingsToggleClassNames;
+  hideOrganizerName?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
@@ -446,6 +447,13 @@ export const EventAdvancedTab = ({
   }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
+  // Watch both organizer hiding fields for reactive updates
+  const watchedHideOrganizerEmail = formMethods.watch("hideOrganizerEmail");
+  const watchedHideOrganizerName = formMethods.watch("hideOrganizerName");
+
+  // Derive visibility from watched values - section is visible if either checkbox is enabled
+  const hideOrganizerDetailsVisible = watchedHideOrganizerEmail || watchedHideOrganizerName;
+
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
@@ -528,6 +536,7 @@ export const EventAdvancedTab = ({
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
+  const hideOrganizerNameLocked = shouldLockDisableProps("hideOrganizerName");
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
@@ -1138,32 +1147,62 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
-      <Controller
-        name="hideOrganizerEmail"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.hideOrganizerEmail?.container
-            )}
-            title={t("hide_organizer_email")}
-            {...hideOrganizerEmailLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="hide_organizer_email_description"
-                href="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email"
-              />
-            }
-            descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            data-testid="hide-organizer-email"
-          />
+      <SettingsToggle
+        labelClassName="text-sm"
+        toggleSwitchAtTheEnd={true}
+        switchContainerClassName={classNames(
+          "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+          hideOrganizerDetailsVisible && "rounded-b-none"
         )}
-      />
+        childrenClassName="lg:ml-0"
+        title={t("hide_organizer_details")}
+        description={
+          <LearnMoreLink
+            t={t}
+            i18nKey="hide_organizer_details_description"
+            href="https://cal.com/help/event-types/hide-organizer-details"
+          />
+        }
+        checked={hideOrganizerDetailsVisible}
+        onCheckedChange={(e) => {
+          if (e) {
+            // When expanding, auto-check both checkboxes
+            formMethods.setValue("hideOrganizerEmail", true, { shouldDirty: true, shouldTouch: true });
+            formMethods.setValue("hideOrganizerName", true, { shouldDirty: true, shouldTouch: true });
+          } else {
+            // When collapsing, uncheck both checkboxes
+            formMethods.setValue("hideOrganizerEmail", false, { shouldDirty: true, shouldTouch: true });
+            formMethods.setValue("hideOrganizerName", false, { shouldDirty: true, shouldTouch: true });
+          }
+        }}
+        data-testid="hide-organizer-details">
+        <div className="border-subtle flex flex-col gap-4 rounded-b-lg border border-t-0 p-6">
+          <Controller
+            name="hideOrganizerEmail"
+            render={({ field: { value, onChange } }) => (
+              <CheckboxField
+                data-testid="hide-organizer-email-checkbox"
+                description={t("hide_organizer_email")}
+                disabled={hideOrganizerEmailLocked.disabled}
+                onChange={(e) => onChange(e)}
+                checked={value}
+              />
+            )}
+          />
+          <Controller
+            name="hideOrganizerName"
+            render={({ field: { value, onChange } }) => (
+              <CheckboxField
+                data-testid="hide-organizer-name-checkbox"
+                description={t("hide_organizer_name")}
+                disabled={hideOrganizerNameLocked.disabled}
+                onChange={(e) => onChange(e)}
+                checked={value}
+              />
+            )}
+          />
+        </div>
+      </SettingsToggle>
       <Controller
         name="lockTimeZoneToggleOnBookingPage"
         render={({ field: { value, onChange } }) => {
