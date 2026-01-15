@@ -1868,7 +1868,7 @@ export class EventTypeRepository {
     type OutOfSyncEventTypeId = { eventTypeId: number };
 
     const outOfSyncEventTypeIds = await this.prismaClient.$queryRaw<OutOfSyncEventTypeId[]>`
-      SELECT DISTINCT et.id as "eventTypeId"
+      SELECT et.id as "eventTypeId"
       FROM "EventType" et
       JOIN "Team" t ON et."teamId" = t.id
       WHERE 
@@ -1876,7 +1876,6 @@ export class EventTypeRepository {
           AND et."assignAllTeamMembers" = true
           AND et."schedulingType" IN ('roundRobin', 'collective')
           AND (
-              -- Has orphaned hosts (hosts who are not accepted team members)
               EXISTS (
                   SELECT 1 
                   FROM "Host" h
@@ -1890,7 +1889,6 @@ export class EventTypeRepository {
                     )
               )
               OR
-              -- Has missing hosts (accepted team members who are not hosts)
               EXISTS (
                   SELECT 1 
                   FROM "Membership" m
