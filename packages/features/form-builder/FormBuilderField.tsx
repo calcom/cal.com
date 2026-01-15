@@ -66,10 +66,17 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  forceWindowLocationParams = false,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  /**
+   * When true, reads query parameters directly from window.location.search instead of
+   * relying on React's router state. This is useful in embed contexts where the URL is
+   * set dynamically and React's hydration may not properly reflect the actual URL parameters.
+   */
+  forceWindowLocationParams?: boolean;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -79,7 +86,7 @@ export const FormBuilderField = ({
     t
   );
 
-  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field, { forceWindowLocationParams });
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
       <Controller

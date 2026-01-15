@@ -17,12 +17,19 @@ export const BookingFields = ({
   rescheduleUid,
   isDynamicGroupBooking,
   bookingData,
+  forceWindowLocationParams = false,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
+  /**
+   * When true, reads query parameters directly from window.location.search instead of
+   * relying on React's router state. This is useful in embed contexts where the URL is
+   * set dynamically and React's hydration may not properly reflect the actual URL parameters.
+   */
+  forceWindowLocationParams?: boolean;
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
@@ -135,7 +142,13 @@ export const BookingFields = ({
         }
 
         return (
-          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <FormBuilderField
+            className="mb-4"
+            field={{ ...field, hidden }}
+            readOnly={readOnly}
+            key={index}
+            forceWindowLocationParams={forceWindowLocationParams}
+          />
         );
       })}
     </div>

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -78,6 +79,7 @@ export const BookEventForm = ({
   const username = useBookerStoreContext((state) => state.username);
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
+  const isEmbed = useIsEmbed();
   const { timeFormat, timezone } = useBookerTime();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
@@ -129,6 +131,7 @@ export const BookEventForm = ({
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
+          forceWindowLocationParams={isEmbed}
         />
         {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">

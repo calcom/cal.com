@@ -18,6 +18,15 @@ type FieldProps = Pick<
   "name" | "type" | "disableOnPrefill" | "variantsConfig" | "optionsInputs"
 >;
 
+type UseShouldBeDisabledDueToPrefillOptions = {
+  /**
+   * When true, reads query parameters directly from window.location.search instead of
+   * relying on React's router state. This is useful in embed contexts where the URL is
+   * set dynamically and React's hydration may not properly reflect the actual URL parameters.
+   */
+  forceWindowLocationParams?: boolean;
+};
+
 export const getFieldNameFromErrorMessage = (errorMessage: string): string => {
   const name = errorMessage?.replace(/\{([^}]+)\}.*/, "$1");
   return name;
@@ -42,9 +51,13 @@ function isEqual(searchParamValue: string | string[], formValue: string[] | stri
   return intersected(formValueToArray, urlValueToArray);
 }
 
-export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
+export const useShouldBeDisabledDueToPrefill = (
+  field: FieldProps,
+  options: UseShouldBeDisabledDueToPrefillOptions = {}
+): boolean => {
+  const { forceWindowLocationParams = false } = options;
   const { getValues, formState } = useFormContext();
-  const toPrefillValues = useRouterQuery();
+  const toPrefillValues = useRouterQuery({ forceWindowLocationParams });
   if (!field.disableOnPrefill) {
     return false;
   }
