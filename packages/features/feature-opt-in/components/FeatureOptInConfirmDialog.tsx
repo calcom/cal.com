@@ -10,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
-import { Label, Checkbox } from "@calcom/ui/components/form";
+import { Label, CheckboxField } from "@calcom/ui/components/form";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -183,7 +183,7 @@ export function FeatureOptInConfirmDialog({
           )}
 
           <div className="border-subtle border-t pt-4">
-            <Checkbox
+            <CheckboxField
               checked={autoOptIn}
               onChange={(e) => setAutoOptIn(e.target.checked)}
               description={

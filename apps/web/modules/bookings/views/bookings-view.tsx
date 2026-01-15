@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 import { DataTableProvider, type SystemFilterSegment, ColumnFilterType } from "@calcom/features/data-table";
-import { FeatureOptInBannerWrapper } from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
+import FeatureOptInBannerWrapper from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
