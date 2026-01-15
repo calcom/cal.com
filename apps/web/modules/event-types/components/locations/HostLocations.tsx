@@ -30,7 +30,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { FormValues, Host, HostLocation } from "../../lib/types";
+import type { FormValues, Host, HostLocation } from "@calcom/features/eventtypes/lib/types";
 import type { TLocationOptions } from "./Locations";
 
 type HostWithLocationOptions = {
@@ -313,7 +313,7 @@ const HostLocationRow = ({
             className="w-72 text-sm"
             menuPlacement="auto"
             menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+            styles={{ menuPortal: (base, _props) => ({ ...base, zIndex: 9999 }) }}
             onChange={handleLocationSelect}
           />
           {hasOrganizerInput && currentLocation && (
@@ -524,7 +524,7 @@ const LocationInputField = ({ eventLocationType, inputValue, setInputValue }: Lo
 };
 
 const useFetchMoreOnScroll = (
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  containerRef: React.RefObject<HTMLDivElement>,
   hasNextPage: boolean | undefined,
   isFetchingNextPage: boolean,
   fetchNextPage: () => void
@@ -597,7 +597,7 @@ type HostListProps = {
   hostDataMap: Map<number, HostWithLocationOptions>;
   locationOptions: TLocationOptions;
   onLocationChange: (userId: number, location: HostLocation | null) => void;
-  containerRef: React.RefObject<HTMLDivElement | null>;
+  containerRef: React.RefObject<HTMLDivElement>;
   isLoading: boolean;
   isFetchingNextPage: boolean;
   onOpenMassApply: () => void;

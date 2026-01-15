@@ -1,6 +1,6 @@
 import { AppCategories } from "@calcom/prisma/enums";
 import type { PrismaClient } from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
 export class HostRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -74,7 +74,7 @@ export class HostRepository {
                   },
                 },
               },
-              select: credentialForCalendarServiceSelect,
+              select: safeCredentialSelect,
             },
           },
         },
@@ -127,7 +127,7 @@ export class HostRepository {
                   },
                 },
               },
-              select: credentialForCalendarServiceSelect,
+              select: safeCredentialSelect,
             },
           },
         },
