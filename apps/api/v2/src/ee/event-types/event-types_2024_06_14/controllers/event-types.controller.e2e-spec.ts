@@ -3301,7 +3301,7 @@ describe("Event types Endpoints", () => {
 
     it("should return only non-org user's event types when querying by shared username", async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types/${sharedUsername}`)
+        .get(`/api/v2/event-types/${sharedUsername}/public`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .set("Authorization", `Bearer whatever`)
         .expect(200);
