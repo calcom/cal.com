@@ -428,15 +428,11 @@ export const useEventTypeForm = ({
 
     if (hasCalVideoLocation) {
       filteredPayload.calVideoSettings = values.calVideoSettings ?? defaultCalVideoSettings;
+    } else {
+      delete filteredPayload.calVideoSettings;
     }
 
-    const calVideoSettingsDirty = !!dirtyFields.calVideoSettings;
-
-    if (dirtyFieldExists || calVideoSettingsDirty) {
-      // Only include calVideoSettings if location actually has Cal Video
-      if (hasCalVideoLocation) {
-        filteredPayload.calVideoSettings = values.calVideoSettings ?? defaultCalVideoSettings;
-      }
+    if (dirtyFieldExists) {
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };
