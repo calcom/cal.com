@@ -976,7 +976,6 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
             propertyName,
             // TODO: Remove @ts-expect-error, type error no longer exists in later TS versions.
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             {
               ...watchIntervalLimits,
               [rest.value]: defaultLimit,
