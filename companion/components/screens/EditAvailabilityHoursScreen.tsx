@@ -110,7 +110,7 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
           Tap a day to edit its hours
         </Text>
 
-        <View>
+        <View className="overflow-hidden rounded-xl bg-white border border-gray-200">
           {DAYS.map((day, dayIndex) => {
             const daySlots = availability[dayIndex] || [];
             const isEnabled = daySlots.length > 0;
@@ -118,8 +118,8 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
             return (
               <AppPressable key={day} onPress={() => onDayPress(dayIndex)}>
                 <View
-                  className={`mb-2.5 flex-row items-center rounded-xl border-2 px-4 py-4 ${
-                    isEnabled ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"
+                  className={`flex-row items-center px-4 py-3.5 ${
+                    dayIndex > 0 ? "border-t border-gray-100" : ""
                   }`}
                 >
                   {/* Day status indicator */}

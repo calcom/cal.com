@@ -16,7 +16,7 @@ import { FullScreenModal } from "@/components/FullScreenModal";
 import { TIMEZONES as ALL_TIMEZONES } from "@/constants/timezones";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { shadows } from "@/utils/shadows";
 
 // Format timezones for display
@@ -75,7 +75,8 @@ export const EditAvailabilityNameScreen = forwardRef<
         name: trimmedName,
         timeZone: timezone,
       });
-      Alert.alert("Success", "Schedule updated successfully", [{ text: "OK", onPress: onSuccess }]);
+      showSuccessAlert("Success", "Schedule updated successfully");
+      onSuccess();
       setIsSaving(false);
     } catch {
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
