@@ -18,6 +18,7 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -433,6 +434,157 @@ describe("Event types Endpoints", () => {
       }
       try {
         await userRepositoryFixture.delete(user.id);
+      } catch (_e) {
+        // User might have been deleted by the test
+      }
+      await app.close();
+    });
+  });
+
+  describe("Same username - org vs non-org user", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+
+    const sharedUsername = `same-username-test-${randomString()}`;
+    const nonOrgUserEmail = `non-org-${sharedUsername}@api.com`;
+    const orgUserEmail = `org-${sharedUsername}@api.com`;
+
+    let nonOrgUser: User;
+    let orgUser: User;
+    let nonOrgUserEventType: EventType;
+    let orgUserEventType: EventType;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        nonOrgUserEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_04_15, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({
+        name: `same-username-org-${randomString()}`,
+        slug: `same-username-org-slug-${randomString()}`,
+      });
+      oAuthClient = await oauthClientRepositoryFixture.create(
+        organization.id,
+        {
+          logo: "logo-url",
+          name: "name",
+          redirectUris: ["redirect-uri"],
+          permissions: 32,
+        },
+        "secret"
+      );
+
+      nonOrgUser = await userRepositoryFixture.create({
+        email: nonOrgUserEmail,
+        name: `Non-Org User ${sharedUsername}`,
+        username: sharedUsername,
+      });
+
+      orgUser = await userRepositoryFixture.create({
+        email: orgUserEmail,
+        name: `Org User ${sharedUsername}`,
+        username: sharedUsername,
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${orgUser.id}`,
+        username: sharedUsername,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: orgUser.id,
+          },
+        },
+      });
+
+      nonOrgUserEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Non-Org User Event Type",
+          slug: `non-org-event-${randomString()}`,
+          length: 30,
+          hidden: false,
+        },
+        nonOrgUser.id
+      );
+
+      orgUserEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Org User Event Type",
+          slug: `org-event-${randomString()}`,
+          length: 60,
+          hidden: false,
+        },
+        orgUser.id
+      );
+
+      await app.init();
+    });
+
+    it("should return only non-org user's event types when querying by shared username", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types/${sharedUsername}/public`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypesPublic> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].id).toEqual(nonOrgUserEventType.id);
+      expect(responseBody.data[0].title).toEqual("Non-Org User Event Type");
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      try {
+        await eventTypesRepositoryFixture.delete(nonOrgUserEventType.id);
+      } catch (_e) {
+        // Event type might have been deleted by the test
+      }
+      try {
+        await eventTypesRepositoryFixture.delete(orgUserEventType.id);
+      } catch (_e) {
+        // Event type might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(nonOrgUser.id);
+      } catch (_e) {
+        // User might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(orgUser.id);
       } catch (_e) {
         // User might have been deleted by the test
       }
