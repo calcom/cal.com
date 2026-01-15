@@ -36,6 +36,19 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
  */
 export const useRouterQuery = () => {
   const searchParams = useCompatSearchParams();
-  const routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? null);
+  let routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? [].values());
+
+  // In embed iframe contexts (e.g., inline embeds), Next.js's useSearchParams() may not
+  // properly reflect URL parameters. This occurs because the iframe's URL is set dynamically
+  // by the embed script, and React's hydration may not pick up the search params correctly.
+  // We fall back to window.location.search to ensure URL parameters are always accessible,
+  // which is essential for features like "Disable input if prefilled" to work correctly.
+  if (typeof window !== "undefined" && window.location.pathname.includes("/embed")) {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const windowQuery = fromEntriesWithDuplicateKeys(urlSearchParams.entries());
+
+    routerQuery = Object.keys(routerQuery).length === 0 ? windowQuery : { ...routerQuery, ...windowQuery };
+  }
+
   return routerQuery;
 };
