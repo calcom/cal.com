@@ -443,6 +443,7 @@ export class AvailableSlotsService {
 
           const periodEnd = periodStart.endOf(unit);
           let totalBookings = 0;
+          let totalAttendees = 0;
 
           const { title, source } = LimitSources.eventBookingLimit({ limit, unit });
 
@@ -452,7 +453,21 @@ export class AvailableSlotsService {
             }
 
             totalBookings++;
-            if (totalBookings >= limit) {
+            totalAttendees += booking.attendeeCount || 1;
+
+            // For seated events, check if all seats are filled
+            if (eventType.seatsPerTimeSlot) {
+              if (totalAttendees >= eventType.seatsPerTimeSlot) {
+                globalLimitManager.addBusyTime({
+                  start: periodStart,
+                  unit,
+                  timeZone,
+                  title,
+                  source,
+                });
+                break;
+              }
+            } else if (totalBookings >= limit) {
               globalLimitManager.addBusyTime({
                 start: periodStart,
                 unit,
@@ -543,6 +558,7 @@ export class AvailableSlotsService {
 
             const periodEnd = periodStart.endOf(unit);
             let totalBookings = 0;
+            let totalAttendees = 0;
 
             for (const booking of userBookings) {
               if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
@@ -550,7 +566,21 @@ export class AvailableSlotsService {
               }
 
               totalBookings++;
-              if (totalBookings >= limit) {
+              totalAttendees += booking.attendeeCount || 1;
+
+              // For seated events, check if all seats are filled
+              if (eventType.seatsPerTimeSlot) {
+                if (totalAttendees >= eventType.seatsPerTimeSlot) {
+                  limitManager.addBusyTime({
+                    start: periodStart,
+                    unit,
+                    timeZone,
+                    title,
+                    source,
+                  });
+                  break;
+                }
+              } else if (totalBookings >= limit) {
                 limitManager.addBusyTime({
                   start: periodStart,
                   unit,
