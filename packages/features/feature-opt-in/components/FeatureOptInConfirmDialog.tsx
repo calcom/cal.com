@@ -223,7 +223,7 @@ export function FeatureOptInConfirmDialog({
                 popoverTriggerClassNames="w-full"
                 Trigger={
                   <div className="flex w-full items-center justify-between">
-                    <span className="truncate">{getSelectedText()}</span>
+                    <span className="truncate leading-normal">{getSelectedText()}</span>
                     <Icon name="chevron-down" className="ml-2 h-4 w-4 shrink-0" />
                   </div>
                 }>
@@ -269,13 +269,11 @@ export function FeatureOptInConfirmDialog({
             </div>
           )}
 
-          <div className="pt-2">
-            <CheckboxField
-              checked={autoOptIn}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoOptIn(e.target.checked)}
-              description={getAutoOptInText()}
-            />
-          </div>
+          <CheckboxField
+            checked={autoOptIn}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoOptIn(e.target.checked)}
+            description={getAutoOptInText()}
+          />
         </div>
 
         <DialogFooter>
