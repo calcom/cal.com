@@ -21,8 +21,17 @@ import {
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
 import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
-import * as appStore from "@calcom/platform-libraries/app-store";
 import type { Credential, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+
+// Mock the BuildIcsFeedCalendarService factory function
+const mockBuildIcsFeedCalendarService = jest.fn();
+jest.mock("@calcom/platform-libraries/app-store", () => {
+  const actual = jest.requireActual("@calcom/platform-libraries/app-store");
+  return {
+    ...actual,
+    BuildIcsFeedCalendarService: (...args: unknown[]) => mockBuildIcsFeedCalendarService(...args),
+  };
+});
 
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
@@ -222,13 +231,13 @@ describe("Platform Calendars Endpoints", () => {
       urls: ["https://cal.com/ics/feed.ics"],
       readOnly: false,
     };
-    jest.spyOn(appStore, "BuildIcsFeedCalendarService").mockImplementation(() => ({
+    mockBuildIcsFeedCalendarService.mockReturnValue({
       listCalendars: new IcsCalendarServiceMock().listCalendars,
       createEvent: jest.fn(),
       deleteEvent: jest.fn(),
       updateEvent: jest.fn(),
       getAvailability: jest.fn(),
-    }));
+    });
     await request(app.getHttpServer())
       .post(`/v2/calendars/${ICS_CALENDAR}/save`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
