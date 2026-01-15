@@ -1,25 +1,24 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ApiSuccessResponse, UserResponse } from "@calcom/platform-types";
+import type { Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { UserResponse, ApiSuccessResponse } from "@calcom/platform-types";
-import type { User, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Me Endpoints", () => {
   describe("User Authentication", () => {

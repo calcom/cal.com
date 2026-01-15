@@ -643,11 +643,18 @@ export function buildPartialUpdatePayload(
   }
 
   const originalRequiresConfirmation =
-    original.requiresConfirmation ||
+    original.requiresConfirmation === true ||
     (original.confirmationPolicy &&
-      !("disabled" in original.confirmationPolicy && original.confirmationPolicy.disabled));
-  if (currentState.requiresConfirmation !== originalRequiresConfirmation) {
-    payload.requiresConfirmation = currentState.requiresConfirmation;
+      !(
+        "disabled" in original.confirmationPolicy && original.confirmationPolicy.disabled === true
+      ));
+  if (currentState.requiresConfirmation !== !!originalRequiresConfirmation) {
+    // API V2 expects confirmationPolicy object, not requiresConfirmation boolean
+    if (currentState.requiresConfirmation) {
+      payload.confirmationPolicy = { type: "always" };
+    } else {
+      payload.confirmationPolicy = { disabled: true };
+    }
   }
 
   if (

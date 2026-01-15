@@ -177,6 +177,7 @@ export default function EventTypeDetail() {
   const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
+  const [bookingUrl, setBookingUrl] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
   const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
@@ -219,6 +220,7 @@ export default function EventTypeDetail() {
   const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
   const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
   const [hideCalendarEventDetails, setHideCalendarEventDetails] = useState(false);
+  const [redirectEnabled, setRedirectEnabled] = useState(false);
   const [successRedirectUrl, setSuccessRedirectUrl] = useState("");
   const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
   const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
@@ -230,6 +232,7 @@ export default function EventTypeDetail() {
   const [customReplyToEmail, setCustomReplyToEmail] = useState("");
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
+  const [interfaceLanguageEnabled, setInterfaceLanguageEnabled] = useState(false);
   const [interfaceLanguage, setInterfaceLanguage] = useState("");
   const [showOptimizedSlots, setShowOptimizedSlots] = useState(false);
 
@@ -456,6 +459,7 @@ export default function EventTypeDetail() {
     if (eventType.description) setEventDescription(eventType.description);
     if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
     if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+    if (eventType.bookingUrl) setBookingUrl(eventType.bookingUrl);
 
     // Load schedule ID - this will be used by fetchSchedules to select the correct schedule
     if (eventType.scheduleId) {
@@ -671,8 +675,8 @@ export default function EventTypeDetail() {
       setSendCalVideoTranscription(false);
     }
 
-    // Load interface language (API V2)
-    if (eventTypeExt.interfaceLanguage !== undefined) {
+    if (eventTypeExt.interfaceLanguage) {
+      setInterfaceLanguageEnabled(true);
       setInterfaceLanguage(eventTypeExt.interfaceLanguage);
     }
 
@@ -735,8 +739,8 @@ export default function EventTypeDetail() {
       setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
     }
 
-    // Load redirect URL
     if (eventType.successRedirectUrl) {
+      setRedirectEnabled(true);
       setSuccessRedirectUrl(eventType.successRedirectUrl);
     }
     if (eventType.forwardParamsSuccessRedirect !== undefined) {
@@ -919,25 +923,34 @@ export default function EventTypeDetail() {
       const dayShort = day.substring(0, 3).toLowerCase(); // mon, tue, etc.
       const dayShortUpper = day.substring(0, 3).toUpperCase();
 
-      const availability = selectedScheduleDetails.availability?.find((avail) => {
-        if (!avail.days || !Array.isArray(avail.days)) return false;
+      // Find ALL matching availability slots for this day (not just the first one)
+      const matchingSlots =
+        selectedScheduleDetails.availability?.filter((avail) => {
+          if (!avail.days || !Array.isArray(avail.days)) return false;
 
-        return avail.days.some(
-          (d) =>
-            d === dayLower ||
-            d === dayUpper ||
-            d === day ||
-            d === dayShort ||
-            d === dayShortUpper ||
-            d.toLowerCase() === dayLower
-        );
-      });
+          return avail.days.some(
+            (d) =>
+              d === dayLower ||
+              d === dayUpper ||
+              d === day ||
+              d === dayShort ||
+              d === dayShortUpper ||
+              d.toLowerCase() === dayLower
+          );
+        }) || [];
+
+      // Map to time slots array
+      const timeSlots = matchingSlots.map((slot) => ({
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }));
 
       return {
         day,
-        available: !!availability,
-        startTime: availability?.startTime,
-        endTime: availability?.endTime,
+        available: timeSlots.length > 0,
+        startTime: timeSlots[0]?.startTime,
+        endTime: timeSlots[0]?.endTime,
+        timeSlots, // Include all time slots for this day
       };
     });
 
@@ -945,29 +958,19 @@ export default function EventTypeDetail() {
   };
 
   const handlePreview = async () => {
-    const eventTypeSlug = eventSlug || "preview";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to generate preview link:", error);
-      showErrorAlert("Error", "Failed to generate preview link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await openInAppBrowser(link, "event type preview");
+    await openInAppBrowser(bookingUrl, "event type preview");
   };
 
   const handleCopyLink = async () => {
-    const eventTypeSlug = eventSlug || "event-link";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to copy link:", error);
-      showErrorAlert("Error", "Failed to copy link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await Clipboard.setStringAsync(link);
+    await Clipboard.setStringAsync(bookingUrl);
     showSuccessAlert("Success", "Link copied!");
   };
 
@@ -1279,7 +1282,10 @@ export default function EventTypeDetail() {
         {/* Tab Navigation Dropdown Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <AppPressable className="flex-row items-center gap-1 px-2 py-2">
+            <AppPressable
+              className="flex-row items-center gap-1 px-2 py-2"
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
               <Text className="text-[16px] font-semibold text-[#000000]" numberOfLines={1}>
                 {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
               </Text>
@@ -1405,7 +1411,10 @@ export default function EventTypeDetail() {
           style={{
             flex: 1,
           }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: activeTab === "limits" || activeTab === "advanced" ? 280 : 200,
+          }}
           contentInsetAdjustmentBehavior="automatic"
         >
           {activeTab === "basics" ? (
@@ -1433,6 +1442,7 @@ export default function EventTypeDetail() {
               onUpdateLocation={handleUpdateLocation}
               locationOptions={getLocationOptionsForDropdown()}
               conferencingLoading={conferencingLoading}
+              bookingUrl={bookingUrl}
             />
           ) : null}
 
@@ -2165,6 +2175,8 @@ export default function EventTypeDetail() {
               setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
               allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
               setAllowBookingThroughRescheduleLink={setAllowBookingThroughRescheduleLink}
+              redirectEnabled={redirectEnabled}
+              setRedirectEnabled={setRedirectEnabled}
               successRedirectUrl={successRedirectUrl}
               setSuccessRedirectUrl={setSuccessRedirectUrl}
               forwardParamsSuccessRedirect={forwardParamsSuccessRedirect}
@@ -2193,6 +2205,8 @@ export default function EventTypeDetail() {
               setDisableRescheduling={setDisableRescheduling}
               sendCalVideoTranscription={sendCalVideoTranscription}
               setSendCalVideoTranscription={setSendCalVideoTranscription}
+              interfaceLanguageEnabled={interfaceLanguageEnabled}
+              setInterfaceLanguageEnabled={setInterfaceLanguageEnabled}
               interfaceLanguage={interfaceLanguage}
               setInterfaceLanguage={setInterfaceLanguage}
               showOptimizedSlots={showOptimizedSlots}
@@ -2342,15 +2356,17 @@ export default function EventTypeDetail() {
                   <View className="bg-white pl-4">
                     <View
                       className="flex-row items-center justify-between pr-4"
-                      style={{ height: 44 }}
+                      style={{ height: 44, flexDirection: "row", alignItems: "center" }}
                     >
                       <Text className="text-[17px] text-black">Hidden</Text>
-                      <Switch
-                        value={isHidden}
-                        onValueChange={setIsHidden}
-                        trackColor={{ false: "#E5E5EA", true: "#000000" }}
-                        thumbColor="#FFFFFF"
-                      />
+                      <View style={{ justifyContent: "center", height: "100%" }}>
+                        <Switch
+                          value={isHidden}
+                          onValueChange={setIsHidden}
+                          trackColor={{ false: "#E5E5EA", true: "#000000" }}
+                          thumbColor="#FFFFFF"
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>

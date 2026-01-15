@@ -138,8 +138,24 @@ export default function More() {
           ))}
         </View>
 
-        {/* Sign Out Button */}
+        {/* Delete Account Link */}
         <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <TouchableOpacity
+            onPress={() =>
+              openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
+            }
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50"
+          >
+            <View className="flex-1 flex-row items-center">
+              <Ionicons name="trash-outline" size={20} color="#991B1B" />
+              <Text className="ml-3 text-base font-medium text-[#991B1B]">Delete Account</Text>
+            </View>
+            <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Sign Out Button */}
+        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           <TouchableOpacity
             onPress={handleSignOut}
             className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
