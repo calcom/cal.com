@@ -1,8 +1,7 @@
-import { z } from "zod";
-
 import { eventTypeLocations, eventTypeSlug } from "@calcom/lib/zod/eventType";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 type CalVideoSettings =
   | {
@@ -82,6 +81,7 @@ export type TCreateEventTypeInput = {
   afterEventBuffer?: number;
   scheduleId?: number;
   calVideoSettings?: CalVideoSettings;
+  assignAllTeamMembers?: boolean;
 };
 
 export const createEventTypeInput: z.ZodType<TCreateEventTypeInput> = z
@@ -102,6 +102,7 @@ export const createEventTypeInput: z.ZodType<TCreateEventTypeInput> = z
     afterEventBuffer: z.number().int().min(0).optional(),
     scheduleId: z.number().int().optional(),
     calVideoSettings: calVideoSettingsSchema,
+    assignAllTeamMembers: z.boolean().optional(),
   })
   .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {

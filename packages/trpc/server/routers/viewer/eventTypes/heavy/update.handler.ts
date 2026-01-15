@@ -1,5 +1,3 @@
-import type { NextApiResponse, GetServerSidePropsContext } from "next";
-
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
@@ -21,20 +19,20 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import {
-  WorkflowTriggerEvents,
-  SchedulingType,
   EventTypeAutoTranslatedField,
   RRTimestampBasis,
+  SchedulingType,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import {
-  ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
+  ensureUniqueBookingFields,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
@@ -112,6 +110,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       maxActiveBookingsPerBooker: true,
+      schedulingType: true,
+      assignAllTeamMembers: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -590,6 +590,50 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (assignAllTeamMembers !== undefined) {
     data.assignAllTeamMembers = assignAllTeamMembers;
+  }
+
+  if (teamId && assignAllTeamMembers === true && !eventType.assignAllTeamMembers && !hosts) {
+    const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+    const schedulingType = data.schedulingType ?? eventType.schedulingType;
+    const isCollective = schedulingType === SchedulingType.COLLECTIVE;
+
+    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(teamMemberIds);
+
+    const existingHostUserIds = teamMemberIds.filter((userId) => oldHostsSet.has(userId));
+    const newHostUserIds = teamMemberIds.filter((userId) => !oldHostsSet.has(userId));
+    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+
+    data.hosts = {
+      deleteMany: {
+        OR: removedHosts.map((host) => ({
+          userId: host.userId,
+          eventTypeId: id,
+        })),
+      },
+      create: newHostUserIds.map((userId) => ({
+        userId,
+        isFixed: isCollective,
+        priority: 2,
+        weight: 100,
+      })),
+      update: existingHostUserIds.map((userId) => {
+        const existingHost = eventType.hosts.find((h) => h.userId === userId);
+        return {
+          where: {
+            userId_eventTypeId: {
+              userId,
+              eventTypeId: id,
+            },
+          },
+          data: {
+            isFixed: isCollective || existingHost?.isFixed || false,
+            priority: existingHost?.priority ?? 2,
+            weight: existingHost?.weight ?? 100,
+          },
+        };
+      }),
+    };
   }
 
   // Validate the secondary email
