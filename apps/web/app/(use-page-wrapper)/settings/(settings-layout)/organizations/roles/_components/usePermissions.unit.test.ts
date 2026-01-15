@@ -261,7 +261,7 @@ describe("usePermissions - permission utilities", () => {
     });
 
     it("adding a permission for unknown resource still just adds/removes string tokens (since traversal returns none)", () => {
-      const start = [];
+      const start: string[] = [];
       const add = perms.toggleSinglePermission("ghost.read", true, start);
       expect(add).toEqual(["ghost.read"]);
       const rem = perms.toggleSinglePermission("ghost.read", false, add);
