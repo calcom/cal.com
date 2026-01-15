@@ -777,7 +777,7 @@ export default class EventManager {
             reference.type.includes("_calendar")
           );
 
-          if (bookingCalendarReference && bookingCalendarReference.uid) {
+          if (bookingCalendarReference?.uid) {
             // Update existing calendar events
             results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
           } else {
