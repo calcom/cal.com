@@ -58,6 +58,14 @@
   "navigation": [
     {
       "group": "Getting Started",
+      "pages": [
+        "api-reference/v2/introduction",
+        "api-reference/v2/oauth",
+        "api-reference/v2/v1-v2-differences"
+      ]
+    },
+    {
+      "group": "Getting Started",
       "pages": ["developing/introduction", "developing/local-development"]
     },
     {
@@ -198,14 +206,6 @@
             "/self-hosting/guides/organization/single-organization-setup"
           ]
         }
-      ]
-    },
-    {
-      "group": "Getting Started",
-      "pages": [
-        "api-reference/v2/introduction",
-        "api-reference/v2/oauth",
-        "api-reference/v2/v1-v2-differences"
       ]
     },
     {
