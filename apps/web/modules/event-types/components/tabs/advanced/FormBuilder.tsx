@@ -891,6 +891,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   if (!fieldTypeConfigVariants || !variantsConfig) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient
         <span
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
