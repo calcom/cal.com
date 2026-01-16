@@ -3,7 +3,6 @@ import type React from "react";
 import { useMemo } from "react";
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
 import { BookingActionsModal } from "@/components/BookingActionsModal";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Booking, EventType } from "@/services/calcom";
+import { showInfoAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is selected
@@ -207,7 +207,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
           }
         }}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={onCancel}
       />

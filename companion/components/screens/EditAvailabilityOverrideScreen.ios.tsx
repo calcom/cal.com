@@ -5,7 +5,7 @@ import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 
 // Convert 24-hour time to 12-hour format with AM/PM
 const formatTime12Hour = (time24: string): string => {
@@ -141,7 +141,8 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         await CalComAPIService.updateSchedule(schedule.id, {
           overrides: newOverrides,
         });
-        Alert.alert("Success", successMessage, [{ text: "OK", onPress: onSuccess }]);
+        showSuccessAlert("Success", successMessage);
+        onSuccess();
         setIsSaving(false);
       } catch {
         showErrorAlert("Error", "Failed to save override. Please try again.");
@@ -195,7 +196,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     const startTimeStr = dateToTimeString(startTime);
     const endTimeStr = dateToTimeString(endTime);
     if (!isUnavailable && endTimeStr <= startTimeStr) {
-      Alert.alert("Error", "End time must be after start time");
+      showErrorAlert("Error", "End time must be after start time");
       return;
     }
 
@@ -331,7 +332,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         <Switch
           value={isUnavailable}
           onValueChange={setIsUnavailable}
-          trackColor={{ false: "#E5E5EA", true: "#FF3B30" }}
+          trackColor={{ false: "#E5E5EA", true: "#000000" }}
           thumbColor="#fff"
         />
       </View>
