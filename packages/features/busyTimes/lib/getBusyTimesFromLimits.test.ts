@@ -209,6 +209,78 @@ describe("getBusyTimesFromBookingLimits with seats", () => {
     });
   });
 
+  describe("yearly limits with seats", () => {
+    it("should use seat-aware logic for yearly limits on seated events", async () => {
+      const limitManager = new LimitManager();
+      const dateFrom = dayjs().startOf("year");
+      const dateTo = dayjs().endOf("year");
+
+      // Event type has 5 seats and limit of 1 booking per year
+      // 1 booking exists with 2 attendees - 3 seats should still be available
+      const bookings: EventBusyDetails[] = [
+        {
+          start: dateFrom.add(1, "day").set("hour", 10).toDate(),
+          end: dateFrom.add(1, "day").set("hour", 11).toDate(),
+          title: "Booking 1",
+          source: "eventType-1-booking-1",
+          userId: 1,
+          attendeeCount: 2, // Only 2 seats taken
+        },
+      ];
+
+      await getBusyTimesFromBookingLimits({
+        bookings,
+        bookingLimits: { PER_YEAR: 1 },
+        dateFrom,
+        dateTo,
+        limitManager,
+        eventTypeId: 1,
+        timeZone: "UTC",
+        seatsPerTimeSlot: 5, // 5 seats available
+      });
+
+      const busyTimes = limitManager.getBusyTimes();
+
+      // Should NOT be marked as busy because 2 attendees < 5 seats
+      // (Without the fix, it would be blocked because 1 booking >= 1 limit)
+      expect(busyTimes).toHaveLength(0);
+    });
+
+    it("should mark yearly slot busy when all seats are filled", async () => {
+      const limitManager = new LimitManager();
+      const dateFrom = dayjs().startOf("year");
+      const dateTo = dayjs().endOf("year");
+
+      // Event type has 3 seats, and all are booked
+      const bookings: EventBusyDetails[] = [
+        {
+          start: dateFrom.add(1, "day").set("hour", 10).toDate(),
+          end: dateFrom.add(1, "day").set("hour", 11).toDate(),
+          title: "Booking 1",
+          source: "eventType-1-booking-1",
+          userId: 1,
+          attendeeCount: 3, // All 3 seats taken
+        },
+      ];
+
+      await getBusyTimesFromBookingLimits({
+        bookings,
+        bookingLimits: { PER_YEAR: 1 },
+        dateFrom,
+        dateTo,
+        limitManager,
+        eventTypeId: 1,
+        timeZone: "UTC",
+        seatsPerTimeSlot: 3, // Only 3 seats available
+      });
+
+      const busyTimes = limitManager.getBusyTimes();
+
+      // Should be marked as busy because all 3 seats are taken
+      expect(busyTimes).toHaveLength(1);
+    });
+  });
+
   describe("edge cases", () => {
     it("should handle attendeeCount defaulting to 1 when not provided", async () => {
       const limitManager = new LimitManager();
