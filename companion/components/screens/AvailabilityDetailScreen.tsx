@@ -376,13 +376,20 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
         )}
 
-        {/* No Overrides Message */}
+        {/* No Overrides Message - Still navigable to add overrides */}
         {overrides.length === 0 && (
           <View className="mb-4 overflow-hidden rounded-xl bg-white">
-            <View className="px-4 py-3.5">
-              <Text className="text-[17px] text-black">Date Overrides</Text>
-              <Text className="mt-1 text-[15px] text-[#8E8E93]">No date overrides set</Text>
-            </View>
+            <AppPressable
+              onPress={() => router.push(`/edit-availability-override?id=${id}` as never)}
+            >
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <View>
+                  <Text className="text-[17px] text-black">Date Overrides</Text>
+                  <Text className="mt-1 text-[15px] text-[#8E8E93]">No date overrides set</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </View>
+            </AppPressable>
           </View>
         )}
       </ScrollView>
