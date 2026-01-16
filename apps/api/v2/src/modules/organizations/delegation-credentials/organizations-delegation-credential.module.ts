@@ -34,5 +34,6 @@ import { OrganizationsDelegationCredentialService } from "./services/organizatio
     CalendarsProcessor,
   ],
   controllers: [OrganizationsDelegationCredentialController],
+  exports: [OrganizationsDelegationCredentialRepository, OrganizationsDelegationCredentialService, BullModule],
 })
 export class OrganizationsDelegationCredentialModule {}

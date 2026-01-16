@@ -103,11 +103,14 @@ export function Header({
         {filterOptions && filterOptions.length > 0 && onFilterChange && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <AppPressable className="flex-row items-center gap-1 px-2 py-2">
-                <Text className="text-[16px] font-semibold text-[#007AFF]">
+              <AppPressable
+                className="flex-row items-center gap-1 px-2 py-2"
+                style={{ flexDirection: "row", alignItems: "center" }}
+              >
+                <Text className="text-[16px] font-semibold text-[#000000]">
                   {activeFilterLabel}
                 </Text>
-                <Ionicons name="chevron-down" size={16} color="#007AFF" />
+                <Ionicons name="chevron-down" size={16} color="#000000" />
               </AppPressable>
             </DropdownMenuTrigger>
 
@@ -143,11 +146,11 @@ export function Header({
                       <Ionicons
                         name={isSelected ? "checkmark-circle" : getFilterIcon(option.key)}
                         size={16}
-                        color={isSelected ? "#007AFF" : "#666"}
+                        color={isSelected ? "#000000" : "#666"}
                       />
                       <Text
                         className={
-                          isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"
+                          isSelected ? "text-base font-semibold text-[#000000]" : "text-base"
                         }
                       >
                         {option.label}
@@ -165,11 +168,11 @@ export function Header({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <AppPressable className="relative p-2">
-                <Ionicons name="options-outline" size={22} color="#007AFF" />
+                <Ionicons name="options-outline" size={22} color="#000000" />
                 {/* Badge for active filters */}
                 {eventTypeFilterConfig.activeFilterCount > 0 && (
                   <View
-                    className="absolute -top-0.5 -right-0.5 items-center justify-center rounded-full bg-[#007AFF]"
+                    className="absolute -top-0.5 -right-0.5 items-center justify-center rounded-full bg-[#000000]"
                     style={{ width: 16, height: 16 }}
                   >
                     <Text className="text-[10px] font-bold text-white">
@@ -206,12 +209,12 @@ export function Header({
                             : "text-outline"
                         }
                         size={16}
-                        color={eventTypeFilterConfig.sortBy === "alphabetical" ? "#007AFF" : "#666"}
+                        color={eventTypeFilterConfig.sortBy === "alphabetical" ? "#000000" : "#666"}
                       />
                       <Text
                         className={
                           eventTypeFilterConfig.sortBy === "alphabetical"
-                            ? "text-base font-semibold text-[#007AFF]"
+                            ? "text-base font-semibold text-[#000000]"
                             : "text-base"
                         }
                       >
@@ -228,12 +231,12 @@ export function Header({
                             : "calendar-outline"
                         }
                         size={16}
-                        color={eventTypeFilterConfig.sortBy === "newest" ? "#007AFF" : "#666"}
+                        color={eventTypeFilterConfig.sortBy === "newest" ? "#000000" : "#666"}
                       />
                       <Text
                         className={
                           eventTypeFilterConfig.sortBy === "newest"
-                            ? "text-base font-semibold text-[#007AFF]"
+                            ? "text-base font-semibold text-[#000000]"
                             : "text-base"
                         }
                       >
@@ -250,12 +253,12 @@ export function Header({
                             : "time-outline"
                         }
                         size={16}
-                        color={eventTypeFilterConfig.sortBy === "duration" ? "#007AFF" : "#666"}
+                        color={eventTypeFilterConfig.sortBy === "duration" ? "#000000" : "#666"}
                       />
                       <Text
                         className={
                           eventTypeFilterConfig.sortBy === "duration"
-                            ? "text-base font-semibold text-[#007AFF]"
+                            ? "text-base font-semibold text-[#000000]"
                             : "text-base"
                         }
                       >
@@ -286,12 +289,12 @@ export function Header({
                         : "eye-off-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.hiddenOnly ? "#007AFF" : "#666"}
+                    color={eventTypeFilterConfig.filters.hiddenOnly ? "#000000" : "#666"}
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.hiddenOnly
-                        ? "text-base font-semibold text-[#007AFF]"
+                        ? "text-base font-semibold text-[#000000]"
                         : "text-base"
                     }
                   >
@@ -307,12 +310,12 @@ export function Header({
                       eventTypeFilterConfig.filters.paidOnly ? "checkmark-circle" : "cash-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.paidOnly ? "#007AFF" : "#666"}
+                    color={eventTypeFilterConfig.filters.paidOnly ? "#000000" : "#666"}
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.paidOnly
-                        ? "text-base font-semibold text-[#007AFF]"
+                        ? "text-base font-semibold text-[#000000]"
                         : "text-base"
                     }
                   >
@@ -330,12 +333,12 @@ export function Header({
                         : "people-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.seatedOnly ? "#007AFF" : "#666"}
+                    color={eventTypeFilterConfig.filters.seatedOnly ? "#000000" : "#666"}
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.seatedOnly
-                        ? "text-base font-semibold text-[#007AFF]"
+                        ? "text-base font-semibold text-[#000000]"
                         : "text-base"
                     }
                   >
@@ -356,13 +359,13 @@ export function Header({
                     }
                     size={16}
                     color={
-                      eventTypeFilterConfig.filters.requiresConfirmationOnly ? "#007AFF" : "#666"
+                      eventTypeFilterConfig.filters.requiresConfirmationOnly ? "#000000" : "#666"
                     }
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.requiresConfirmationOnly
-                        ? "text-base font-semibold text-[#007AFF]"
+                        ? "text-base font-semibold text-[#000000]"
                         : "text-base"
                     }
                   >
@@ -382,12 +385,12 @@ export function Header({
                         : "repeat-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.recurringOnly ? "#007AFF" : "#666"}
+                    color={eventTypeFilterConfig.filters.recurringOnly ? "#000000" : "#666"}
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.recurringOnly
-                        ? "text-base font-semibold text-[#007AFF]"
+                        ? "text-base font-semibold text-[#000000]"
                         : "text-base"
                     }
                   >

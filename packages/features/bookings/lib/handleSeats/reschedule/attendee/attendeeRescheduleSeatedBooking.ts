@@ -23,6 +23,9 @@ const attendeeRescheduleSeatedBooking = async (
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
 
+  // Set attendeeSeatId so that reschedule/cancel links in emails use seatUid instead of bookingUid
+  evt.attendeeSeatId = bookingSeat?.referenceUid;
+
   // Update the original calendar event by removing the attendee that is rescheduling
   if (originalBookingEvt && originalRescheduledBooking) {
     // Event would probably be deleted so we first check than instead of updating references

@@ -97,6 +97,7 @@ export function UserPage(props: PageProps) {
               </h1>
               {!isBioEmpty && (
                 <>
+                  {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
                   <div
                     className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: props.safeBio }}

@@ -14,11 +14,4 @@ export class GetBookingTranscriptsOutput {
   @IsArray()
   @IsString({ each: true })
   data!: string[];
-
-  @ApiProperty({
-    example: "This endpoint will require authentication in a future release.",
-    required: false,
-  })
-  @IsString()
-  message?: string;
 }

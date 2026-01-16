@@ -24,6 +24,7 @@ import type {
   CalendarEvent,
   CalendarEventType,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
   TeamMember,
@@ -358,11 +359,8 @@ export default abstract class BaseCalendarService implements Calendar {
     return true;
   };
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const startISOString = new Date(dateFrom).toISOString();
 
     const objects = await this.fetchObjectsWithOptionalExpand({
@@ -395,6 +393,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
+        // biome-ignore lint/complexity/useLiteralKeys: accessing dynamic property from ICAL.js object
         const timezone = dtstart ? dtstart["timezone"] : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
         const isUTC = timezone === "Z";

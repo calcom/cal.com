@@ -5,7 +5,7 @@ import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 export const ZUpdateInputSchema = z.object({
   scheduleId: z.number(),
   timeZone: timeZoneSchema.optional(),
-  name: z.string().optional(),
+  name: z.string().trim().min(1, "Schedule name cannot be empty").optional(),
   isDefault: z.boolean().optional(),
   schedule: z
     .array(
