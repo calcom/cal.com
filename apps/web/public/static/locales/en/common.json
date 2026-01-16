@@ -2,6 +2,8 @@
   "hide_field_warning_title": "Are you sure you want to hide this field?",
   "hide_field_warning_description": "This field is attached with one or more workflows, hiding this will cause the related workflows to not trigger for this event",
   "hide_anyway": "Hide anyway",
+  "image_limits": "Must be {{limit}} px and at most 1mb in size.",
+  "image_limits_only_size": "At most 1mb in size.",
   "configure_your_webhook": "Use the following callback and verification token to subscribe your webhook in WhatsApp App configuration.",
   "select_whatsapp_template": "Select whatsapp template",
   "workflow_status": "Workflow status",
