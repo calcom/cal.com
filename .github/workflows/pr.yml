@@ -166,10 +166,10 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
-      has_companion: ${{ steps.filter.outputs.has_companion }}
-      has-api-v2-changes: ${{ steps.filter.outputs.has-api-v2-changes }}
-      has-prisma-changes: ${{ steps.prisma-check.outputs.has-prisma-changes }}
+      has-files-requiring-all-checks: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks }}
+      has_companion: ${{ steps.filter-inclusions.outputs.has_companion }}
+      has-api-v2-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-changes }}
+      has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
@@ -188,8 +188,9 @@ jobs:
           path: backups/backup.sql
           key: ${{ steps.cache-db-key.outputs.key }}
           lookup-only: true
-      - uses: dorny/paths-filter@v3
-        id: filter
+      - name: Check for files requiring all checks (with exclusions)
+        uses: dorny/paths-filter@v3
+        id: filter-exclusions
         with:
           predicate-quantifier: "every"
           filters: |
@@ -204,6 +205,11 @@ jobs:
               - '!help/**'
               - '!apps/web/public/static/locales/**/common.json'
               - '!i18n.lock'
+      - name: Check for specific path changes
+        uses: dorny/paths-filter@v3
+        id: filter-inclusions
+        with:
+          filters: |
             has_companion:
               - "companion/**"
             has-api-v2-changes:
@@ -216,14 +222,9 @@ jobs:
               - "packages/trpc/**"
               - "packages/prisma/schema.prisma"
               - "docs/api-reference/v2/**"
-      - name: Check for Prisma changes
-        id: prisma-check
-        run: |
-          if git diff --name-only origin/main...HEAD | grep -qE '^packages/prisma/(schema\.prisma|migrations/)'; then
-            echo "has-prisma-changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "has-prisma-changes=false" >> $GITHUB_OUTPUT
-          fi
+            has-prisma-changes:
+              - "packages/prisma/schema.prisma"
+              - "packages/prisma/migrations/**"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
