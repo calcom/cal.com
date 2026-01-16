@@ -125,7 +125,7 @@ export function useUpdateEventType() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: Record<string, unknown> }) =>
+    mutationFn: ({ id, updates }: { id: number; updates: Partial<CreateEventTypeInput> }) =>
       CalComAPIService.updateEventType(id, updates),
     onMutate: async ({ id, updates }) => {
       // Cancel any outgoing refetches to prevent overwriting optimistic update
