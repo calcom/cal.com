@@ -41,6 +41,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       slug: true,
       bio: true,
       logoUrl: true,
+      faviconUrl: true,
       bannerUrl: true,
       theme: true,
       brandColor: true,

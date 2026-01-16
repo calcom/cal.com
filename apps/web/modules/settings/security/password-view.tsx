@@ -50,7 +50,7 @@ const SkeletonLoader = () => {
 };
 
 const PasswordView = ({ user }: PasswordViewProps) => {
-  const { data } = useSession();
+  const { data, update } = useSession();
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const metadata = userMetadataSchema.safeParse(user?.metadata);
@@ -59,7 +59,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
   const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
   const sessionMutation = trpc.viewer.me.calid_updateProfile.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      await update();
       triggerToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());
       setSessionTimeout(data.metadata?.sessionTimeout);
@@ -281,7 +282,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                     loading={sessionMutation.isPending}
                     onClick={() => {
                       sessionMutation.mutate({
-                        metadata: { ...metadata, sessionTimeout },
+                        metadata: { ...metadata.data, sessionTimeout },
                       });
                       formMethods.clearErrors("apiError");
                     }}
