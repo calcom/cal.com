@@ -28,6 +28,7 @@ import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -48,7 +49,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
   const event = props.eventData
     ? {
-      data: props.eventData,
+      data: props.eventData as BookerEvent,
       isSuccess: true,
       isError: false,
       isPending: false,

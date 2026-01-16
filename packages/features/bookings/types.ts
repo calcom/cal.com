@@ -64,13 +64,13 @@ export type BookerEvent = Pick<
   | "disableCancelling"
   | "disableRescheduling"
   | "interfaceLanguage"
-  | "restrictionScheduleId"
-  | "useBookerTimezone"
   | "team"
   | "owner"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
+  restrictionScheduleId?: number | null;
+  useBookerTimezone?: boolean;
 } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
