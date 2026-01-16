@@ -970,7 +970,7 @@ describe("PermissionRepository - Integration Tests", () => {
       expect(result).toContain(testTeamId);
     });
 
-    it("should filter teams by scopedOrgId when provided", async () => {
+    it("should filter teams by orgId when provided", async () => {
       // Create two organizations
       const org1 = await prisma.team.create({
         data: {
@@ -1024,7 +1024,7 @@ describe("PermissionRepository - Integration Tests", () => {
         },
       });
 
-      // Without scopedOrgId, should return both organizations
+      // Without orgId, should return both organizations
       const resultWithoutScope = await repository.getTeamIdsWithPermissions({
         userId: testUserId,
         permissions: ["eventType.create"],
@@ -1034,12 +1034,12 @@ describe("PermissionRepository - Integration Tests", () => {
       expect(resultWithoutScope).toContain(org1.id);
       expect(resultWithoutScope).toContain(org2.id);
 
-      // With scopedOrgId = org1, should only return org1 and its child teams
+      // With orgId = org1, should only return org1 and its child teams
       const resultWithScope = await repository.getTeamIdsWithPermissions({
         userId: testUserId,
         permissions: ["eventType.create"],
         fallbackRoles: [MembershipRole.ADMIN],
-        scopedOrgId: org1.id,
+        orgId: org1.id,
       });
 
       expect(resultWithScope).toContain(org1.id);
@@ -1052,7 +1052,7 @@ describe("PermissionRepository - Integration Tests", () => {
       await prisma.team.deleteMany({ where: { id: { in: [org1.id, org2.id, team1.id, team2.id] } } });
     });
 
-    it("should include child teams when scopedOrgId is provided", async () => {
+    it("should include child teams when orgId is provided", async () => {
       // Create organization
       const org = await prisma.team.create({
         data: {
@@ -1081,12 +1081,12 @@ describe("PermissionRepository - Integration Tests", () => {
         },
       });
 
-      // With scopedOrgId, should return both org and child team
+      // With orgId, should return both org and child team
       const result = await repository.getTeamIdsWithPermissions({
         userId: testUserId,
         permissions: ["eventType.create"],
         fallbackRoles: [MembershipRole.ADMIN],
-        scopedOrgId: org.id,
+        orgId: org.id,
       });
 
       expect(result).toContain(org.id);

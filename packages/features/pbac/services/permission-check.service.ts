@@ -308,18 +308,18 @@ export class PermissionCheckService {
 
   /**
    * Gets all team IDs where the user has a specific permission
-   * @param scopedOrgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
    */
   async getTeamIdsWithPermission({
     userId,
     permission,
     fallbackRoles,
-    scopedOrgId,
+    orgId,
   }: {
     userId: number;
     permission: PermissionString;
     fallbackRoles: MembershipRole[];
-    scopedOrgId?: number;
+    orgId?: number;
   }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermission(permission);
@@ -332,7 +332,7 @@ export class PermissionCheckService {
         userId,
         permission,
         fallbackRoles,
-        scopedOrgId,
+        orgId,
       });
     } catch (error) {
       this.logger.error(error);
@@ -342,18 +342,18 @@ export class PermissionCheckService {
 
   /**
    * Gets all team IDs where the user has all of the specified permissions
-   * @param scopedOrgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
    */
   async getTeamIdsWithPermissions({
     userId,
     permissions,
     fallbackRoles,
-    scopedOrgId,
+    orgId,
   }: {
     userId: number;
     permissions: PermissionString[];
     fallbackRoles: MembershipRole[];
-    scopedOrgId?: number;
+    orgId?: number;
   }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermissions(permissions);
@@ -366,7 +366,7 @@ export class PermissionCheckService {
         userId,
         permissions,
         fallbackRoles,
-        scopedOrgId,
+        orgId,
       });
     } catch (error) {
       this.logger.error(error);

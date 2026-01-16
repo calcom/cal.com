@@ -120,7 +120,7 @@ export async function getBookings({
     userId: user.id,
     permission: "booking.read",
     fallbackRoles,
-    scopedOrgId: user.orgId ?? undefined,
+    orgId: user.orgId ?? undefined,
   });
 
   const [
