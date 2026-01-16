@@ -116,7 +116,7 @@ async function getHandler(req: NextApiRequest) {
 
 async function getConnectedCalendars(users: UserWithCalendars[]) {
   const connectedDestinationCalendarsPromises = users.map((user) =>
-    getConnectedDestinationCalendarsAndEnsureDefaultsInDb({ user, onboarding: false, prisma }).then(
+    getConnectedDestinationCalendarsAndEnsureDefaultsInDb({ user, autoSelectCalendarForConflictCheck: false, prisma }).then(
       (connectedCalendarsResult) =>
         connectedCalendarsResult.connectedCalendars.map((calendar) => ({
           userId: user.id,

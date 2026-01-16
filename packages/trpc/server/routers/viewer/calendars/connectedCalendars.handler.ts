@@ -27,12 +27,12 @@ export const connectedCalendarsHandler = async ({
   input,
 }: ConnectedCalendarsOptions): Promise<ConnectedCalendarsHandlerResult> => {
   const { user } = ctx;
-  const onboarding = input?.onboarding || false;
+  const autoSelectCalendarForConflictCheck = input?.autoSelectCalendarForConflictCheck || false;
 
   const { connectedCalendars, destinationCalendar } =
     await getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
       user,
-      onboarding,
+      autoSelectCalendarForConflictCheck,
       eventTypeId: input?.eventTypeId ?? null,
       prisma,
     });

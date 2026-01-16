@@ -101,12 +101,12 @@ type ToggledCalendarDetails = {
 async function handleNoDestinationCalendar({
   user,
   connectedCalendars,
-  onboarding,
+  autoSelectCalendarForConflictCheck,
 }: {
   user: UserWithCalendars;
   connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
-  onboarding: boolean;
-}) {
+  autoSelectCalendarForConflictCheck: boolean;
+}){
   if (!connectedCalendars.length) {
     throw new Error("No connected calendars");
   }
@@ -129,7 +129,7 @@ async function handleNoDestinationCalendar({
   } = connectedCalendars[0].primary ?? {};
 
   // Select the first calendar matching the primary by default since that will also be the destination calendar
-  if (onboarding && externalId) {
+  if (autoSelectCalendarForConflictCheck && externalId) {
     const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
       (item) => item.externalId === externalId && item.integration === integration
     );
@@ -166,19 +166,19 @@ async function handleNoDestinationCalendar({
 async function handleDestinationCalendarNotInConnectedCalendars({
   user,
   connectedCalendars,
-  onboarding,
+  autoSelectCalendarForConflictCheck,
 }: {
   user: UserWithCalendars;
   connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
-  onboarding: boolean;
-}) {
+  autoSelectCalendarForConflictCheck: boolean;
+}){
   let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
   log.debug(
     `Destination calendar isn't in connectedCalendars, update it to the first primary connected calendar for user ${user.id}`
   );
   const { integration = "", externalId = "", email: primaryEmail } = connectedCalendars[0].primary ?? {};
   // Select the first calendar matching the primary by default since that will also be the destination calendar
-  if (onboarding && externalId) {
+  if (autoSelectCalendarForConflictCheck && externalId) {
     const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
       (item) => item.externalId === externalId && item.integration === integration
     );
@@ -267,15 +267,15 @@ function getSelectedCalendars({
  */
 export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   user,
-  onboarding,
+  autoSelectCalendarForConflictCheck,
   eventTypeId,
   prisma,
 }: {
   user: UserWithCalendars;
-  onboarding: boolean;
+  autoSelectCalendarForConflictCheck: boolean;
   eventTypeId?: number | null;
   prisma: PrismaClient;
-}) {
+}){
   const userCredentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
@@ -314,7 +314,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
       await handleNoDestinationCalendar({
         user,
         connectedCalendars,
-        onboarding,
+        autoSelectCalendarForConflictCheck,
       }));
   } else {
     /* There are connected calendars and a destination calendar */
@@ -324,15 +324,15 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
     const destinationCal = findMatchingCalendar({ connectedCalendars, calendar: user.destinationCalendar });
     if (!destinationCal) {
-      ({ user, calendarToEnsureIsEnabledForConflictCheck, connectedCalendars } =
-        await handleDestinationCalendarNotInConnectedCalendars({
-          user,
-          connectedCalendars,
-          onboarding,
-        }));
-    } else if (onboarding && !destinationCal.isSelected) {
+        ({ user, calendarToEnsureIsEnabledForConflictCheck, connectedCalendars } =
+          await handleDestinationCalendarNotInConnectedCalendars({
+            user,
+            connectedCalendars,
+            autoSelectCalendarForConflictCheck,
+          }));
+    } else if (autoSelectCalendarForConflictCheck && !destinationCal.isSelected) {
       log.debug(
-        `Onboarding:Destination calendar is not selected, but in connectedCalendars, so mark it as selected in the calendar list for user ${user.id}`
+        `autoSelectCalendarForConflictCheck:Destination calendar is not selected, but in connectedCalendars, so mark it as selected in the calendar list for user ${user.id}`
       );
       // Mark the destination calendar as selected in the calendar list
       // We use every so that we can exit early once we find the matching calendar

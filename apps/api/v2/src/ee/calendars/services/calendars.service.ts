@@ -71,7 +71,7 @@ export class CalendarsService {
           (calendar) => !calendar.eventTypeId
         ),
       },
-      onboarding: false,
+      autoSelectCalendarForConflictCheck: false,
       eventTypeId: null,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
