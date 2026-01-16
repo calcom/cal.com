@@ -1,9 +1,11 @@
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, cacheLife, cacheTag } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+
+import { AVAILABILITY_CACHE_TAG } from "./cache";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
@@ -37,11 +39,15 @@ const getCachedAvailabilities = unstable_cache(
     );
     return await availabilityCaller.list();
   },
-  ["viewer.availability.list"],
-  { revalidate: 3600 } // Cache for 1 hour
+  [AVAILABILITY_CACHE_TAG],
+  { revalidate: 3600, tags: [AVAILABILITY_CACHE_TAG] }
 );
 
 const Page = async ({ searchParams: _searchParams }: PageProps) => {
+  "use cache: private";
+  cacheLife({ stale: 30 });
+  cacheTag(AVAILABILITY_CACHE_TAG);
+
   const searchParams = await _searchParams;
   const t = await getTranslate();
   const _headers = await headers();

@@ -1,7 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
+
+import { AVAILABILITY_CACHE_TAG } from "./cache";
 
 export async function revalidateAvailabilityList() {
-  revalidatePath("/availability");
+  revalidateTag(AVAILABILITY_CACHE_TAG, "max");
 }

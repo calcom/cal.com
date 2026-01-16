@@ -1,8 +1,10 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, cacheLife, cacheTag } from "next/cache";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
+
+import { ORG_ATTRIBUTES_CACHE_TAG, ORG_ROLES_CACHE_TAG } from "./cache";
 
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -32,8 +34,8 @@ const getCachedAttributes = unstable_cache(
 
     return await attributeRepo.findAllByOrgIdWithOptions({ orgId });
   },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
+  [ORG_ATTRIBUTES_CACHE_TAG],
+  { revalidate: 3600, tags: [ORG_ATTRIBUTES_CACHE_TAG] }
 );
 
 const getCachedRoles = unstable_cache(
@@ -41,11 +43,15 @@ const getCachedRoles = unstable_cache(
     const roleManager = await RoleManagementFactory.getInstance().createRoleManager(orgId);
     return await roleManager.getAllRoles(orgId);
   },
-  undefined,
-  { revalidate: 3600, tags: ["pbac.roles.list"] } // Cache for 1 hour
+  [ORG_ROLES_CACHE_TAG],
+  { revalidate: 3600, tags: [ORG_ROLES_CACHE_TAG] }
 );
 
 const Page = async () => {
+  "use cache: private";
+  cacheLife({ stale: 30 });
+  cacheTag(ORG_ATTRIBUTES_CACHE_TAG);
+
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {

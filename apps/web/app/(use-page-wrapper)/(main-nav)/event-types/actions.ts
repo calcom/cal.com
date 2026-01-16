@@ -1,7 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
+
+import { EVENT_TYPES_CACHE_TAG } from "./cache";
 
 export async function revalidateEventTypesList() {
-  revalidatePath("/event-types");
+  revalidateTag(EVENT_TYPES_CACHE_TAG, "max");
 }

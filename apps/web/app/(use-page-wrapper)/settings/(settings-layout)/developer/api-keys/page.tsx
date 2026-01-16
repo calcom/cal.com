@@ -1,5 +1,5 @@
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, cacheLife, cacheTag } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -10,6 +10,8 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import ApiKeysView from "~/settings/developer/api-keys-view";
+
+import { API_KEYS_CACHE_TAG } from "./cache";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -25,11 +27,15 @@ const getCachedApiKeys = unstable_cache(
     const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
     return await apiKeyRepository.findApiKeysFromUserId({ userId });
   },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.apiKeys.list"] } // Cache for 1 hour
+  [API_KEYS_CACHE_TAG],
+  { revalidate: 3600, tags: [API_KEYS_CACHE_TAG] }
 );
 
 const Page = async () => {
+  "use cache: private";
+  cacheLife({ stale: 30 });
+  cacheTag(API_KEYS_CACHE_TAG);
+
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session) {

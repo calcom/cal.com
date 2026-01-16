@@ -11,12 +11,13 @@ import type {
   ReadonlyRequestCookies,
 } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, cacheLife, cacheTag } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactElement } from "react";
 
 import { EventTypesWrapper } from "./EventTypesWrapper";
+import { EVENT_TYPES_CACHE_TAG } from "./cache";
 
 const getCachedEventGroups: (
   headers: ReadonlyHeaders,
@@ -43,11 +44,15 @@ const getCachedEventGroups: (
       );
       return await eventTypesCaller.getUserEventGroups({ filters });
     },
-    ["viewer.eventTypes.getUserEventGroups"],
-    { revalidate: 3600 } // seconds
+    [EVENT_TYPES_CACHE_TAG],
+    { revalidate: 3600, tags: [EVENT_TYPES_CACHE_TAG] }
   );
 
 const Page = async ({ searchParams }: PageProps): Promise<ReactElement> => {
+  "use cache: private";
+  cacheLife({ stale: 30 });
+  cacheTag(EVENT_TYPES_CACHE_TAG);
+
   const _searchParams = await searchParams;
   const _headers = await headers();
   const _cookies = await cookies();
