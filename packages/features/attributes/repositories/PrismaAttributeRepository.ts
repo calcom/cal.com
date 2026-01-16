@@ -96,4 +96,30 @@ export class PrismaAttributeRepository {
       },
     });
   }
+
+  findManyByIdsAndOrgIdWithOptions({
+    attributeIds,
+    orgId,
+  }: {
+    attributeIds: string[];
+    orgId: number;
+  }) {
+    return this.prismaClient.attribute.findMany({
+      where: {
+        teamId: orgId,
+        id: {
+          in: attributeIds,
+        },
+      },
+      include: {
+        options: {
+          select: {
+            id: true,
+            value: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  }
 }
