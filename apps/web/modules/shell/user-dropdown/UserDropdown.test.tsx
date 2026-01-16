@@ -136,6 +136,40 @@ describe("UserDropdown", () => {
       expect(() => render(<UserDropdown />)).not.toThrow();
     });
 
+    it("should call Beacon when it loads lazily after mount", async () => {
+      // Start with Beacon undefined (simulating lazy load)
+      delete window.Beacon;
+
+      mockUseMeQuery.mockReturnValue({
+        data: { username: "testuser", name: "Test User", avatarUrl: null, avatar: null },
+        isPending: false,
+      });
+
+      const { UserDropdown } = await import("./UserDropdown");
+      render(<UserDropdown />);
+
+      // Beacon should not have been called yet
+      expect(mockBeacon).not.toHaveBeenCalled();
+
+      // Simulate Beacon loading after mount
+      Object.defineProperty(window, "Beacon", {
+        value: mockBeacon,
+        writable: true,
+        configurable: true,
+      });
+
+      // Wait for the polling interval to detect Beacon
+      await waitFor(
+        () => {
+          expect(mockBeacon).toHaveBeenCalledWith("session-data", {
+            username: "testuser",
+            screenResolution: "1920x1080",
+          });
+        },
+        { timeout: 2000 }
+      );
+    });
+
     it("should update Beacon session-data when username changes", async () => {
       const { rerender } = render(<div />);
 

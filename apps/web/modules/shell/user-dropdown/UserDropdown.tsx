@@ -53,13 +53,27 @@ export function UserDropdown({ small }: UserDropdownProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const Beacon = window.Beacon;
+    const sendSessionData = () => {
+      const Beacon = window.Beacon;
+      if (Beacon) {
+        Beacon("session-data", {
+          username: user?.username || "Unknown",
+          screenResolution: `${screen.width}x${screen.height}`,
+        });
+        return true;
+      }
+      return false;
+    };
 
-    if (Beacon) {
-      Beacon("session-data", {
-        username: user?.username || "Unknown",
-        screenResolution: `${screen.width}x${screen.height}`,
-      });
+    // Try immediately, then poll if Beacon isn't loaded yet
+    if (!sendSessionData()) {
+      const intervalId = setInterval(() => {
+        if (sendSessionData()) {
+          clearInterval(intervalId);
+        }
+      }, 1000);
+
+      return () => clearInterval(intervalId);
     }
   }, [user?.username]);
 
