@@ -11,7 +11,7 @@ import { TeamsController } from "@/modules/teams/teams/controllers/teams.control
 import { TeamsService } from "@/modules/teams/teams/services/teams.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
+import { Logger, Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, MembershipsModule, RedisModule, StripeModule],
@@ -24,6 +24,7 @@ import { Module } from "@nestjs/common";
     UsersRepository,
     OrganizationsRepository,
     OrganizationMembershipService,
+    Logger,
   ],
   controllers: [TeamsController],
   exports: [TeamsRepository],

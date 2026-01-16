@@ -19,7 +19,7 @@ import { TeamsController } from "@/modules/teams/teams/controllers/teams.control
 import { TeamsService } from "@/modules/teams/teams/services/teams.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
+import { Logger, Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, MembershipsModule, RedisModule],
@@ -40,6 +40,7 @@ import { Module } from "@nestjs/common";
     SchedulesRepository_2024_06_11,
     OAuthClientRepository,
     OrganizationMembershipService,
+    Logger,
   ],
   controllers: [TeamsController, TeamsSchedulesController],
   exports: [TeamsRepository],
