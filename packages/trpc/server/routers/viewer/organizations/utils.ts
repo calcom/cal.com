@@ -106,9 +106,9 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
     data: membershipData,
   });
 
-  membershipData.forEach(async ({ userId, teamId }) => {
-    await updateNewTeamMemberEventTypes(userId, teamId);
-  });
+  await Promise.all(
+    membershipData.map(({ userId, teamId }) => updateNewTeamMemberEventTypes(userId, teamId))
+  );
 
   return {
     success: true,
