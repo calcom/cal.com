@@ -225,70 +225,70 @@ export function FeatureOptInConfirmDialog({
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
       <DialogContent title={t(featureConfig.nameI18nKey)} type="creation">
-        <div className="space-y-4">
-          <p className="text-subtle text-sm">{t(featureConfig.descriptionI18nKey)}</p>
+                <div className="flex flex-col gap-4 [&>[data-radix-popper-content-wrapper]]:!mt-0">
+                  <p className="text-subtle text-sm">{t(featureConfig.descriptionI18nKey)}</p>
 
-          {showSelector && (
-            <div className="space-y-2">
-              <Label>{t("enable_for")}</Label>
-                            <AnimatedPopover
-                              text={getSelectedText()}
-                              popoverTriggerClassNames="w-full"
-                              modal={false}
-                              Trigger={
-                  <div className="flex w-full items-center justify-between">
-                    <span className="truncate leading-normal">{getSelectedText()}</span>
-                    <Icon name="chevron-down" className="ml-2 h-4 w-4 shrink-0" />
-                  </div>
-                }>
-                <FilterCheckboxFieldsContainer>
-                  <FilterCheckboxField
-                    id="just-for-me"
-                    icon={<Icon name="user" className="h-4 w-4" />}
-                    checked={enableForUser}
-                    onChange={(e) => handleUserChange(e.target.checked)}
-                    label={t("just_for_me")}
+                  {showSelector && (
+                    <div className="space-y-2">
+                      <Label>{t("enable_for")}</Label>
+                      <AnimatedPopover
+                        text={getSelectedText()}
+                        popoverTriggerClassNames="w-full"
+                        modal={false}
+                        Trigger={
+                          <div className="flex w-full items-center justify-between">
+                            <span className="truncate leading-normal">{getSelectedText()}</span>
+                            <Icon name="chevron-down" className="ml-2 h-4 w-4 shrink-0" />
+                          </div>
+                        }>
+                        <FilterCheckboxFieldsContainer>
+                          <FilterCheckboxField
+                            id="just-for-me"
+                            icon={<Icon name="user" className="h-4 w-4" />}
+                            checked={enableForUser}
+                            onChange={(e) => handleUserChange(e.target.checked)}
+                            label={t("just_for_me")}
+                          />
+
+                          {canEnableForOrg && (
+                            <>
+                              <Divider />
+                              <FilterCheckboxField
+                                id="entire-org"
+                                icon={<Icon name="building" className="h-4 w-4" />}
+                                checked={enableForOrg}
+                                onChange={(e) => handleOrgChange(e.target.checked)}
+                                label={t("entire_organization")}
+                              />
+                            </>
+                          )}
+
+                          {canEnableForTeams && adminTeamNames.length > 0 && (
+                            <>
+                              <Divider />
+                              {adminTeamNames.map((team) => (
+                                <FilterCheckboxField
+                                  key={team.id}
+                                  id={`team-${team.id}`}
+                                  icon={<Icon name="users" className="h-4 w-4" />}
+                                  checked={selectedTeamIds.includes(team.id)}
+                                  onChange={(e) => handleTeamChange(team.id, e.target.checked)}
+                                  label={team.name}
+                                />
+                              ))}
+                            </>
+                          )}
+                        </FilterCheckboxFieldsContainer>
+                      </AnimatedPopover>
+                    </div>
+                  )}
+
+                  <CheckboxField
+                    checked={autoOptIn}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoOptIn(e.target.checked)}
+                    description={getAutoOptInText()}
                   />
-
-                  {canEnableForOrg && (
-                    <>
-                      <Divider />
-                      <FilterCheckboxField
-                        id="entire-org"
-                        icon={<Icon name="building" className="h-4 w-4" />}
-                        checked={enableForOrg}
-                        onChange={(e) => handleOrgChange(e.target.checked)}
-                        label={t("entire_organization")}
-                      />
-                    </>
-                  )}
-
-                  {canEnableForTeams && adminTeamNames.length > 0 && (
-                    <>
-                      <Divider />
-                      {adminTeamNames.map((team) => (
-                        <FilterCheckboxField
-                          key={team.id}
-                          id={`team-${team.id}`}
-                          icon={<Icon name="users" className="h-4 w-4" />}
-                          checked={selectedTeamIds.includes(team.id)}
-                          onChange={(e) => handleTeamChange(team.id, e.target.checked)}
-                          label={team.name}
-                        />
-                      ))}
-                    </>
-                  )}
-                </FilterCheckboxFieldsContainer>
-              </AnimatedPopover>
-            </div>
-          )}
-
-          <CheckboxField
-            checked={autoOptIn}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoOptIn(e.target.checked)}
-            description={getAutoOptInText()}
-          />
-        </div>
+                </div>
 
         <DialogFooter>
           <Button color="secondary" onClick={resetAndClose} disabled={isSubmitting}>
