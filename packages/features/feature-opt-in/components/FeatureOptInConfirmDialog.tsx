@@ -231,7 +231,7 @@ export function FeatureOptInConfirmDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
-      <DialogPopup className="sm:max-w-md">
+      <DialogPopup className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t(featureConfig.nameI18nKey)}</DialogTitle>
           <DialogDescription>{t(featureConfig.descriptionI18nKey)}</DialogDescription>
@@ -256,8 +256,10 @@ export function FeatureOptInConfirmDialog({
                     <MenuCheckboxItem
                       checked={enableForUser}
                       onCheckedChange={(checked) => handleUserChange(checked)}>
-                      <UserIcon className="h-4 w-4" />
-                      {t("just_for_me")}
+                      <span className="flex items-center gap-2">
+                        <UserIcon className="h-4 w-4" />
+                        {t("just_for_me")}
+                      </span>
                     </MenuCheckboxItem>
 
                     {canEnableForOrg && (
@@ -266,8 +268,10 @@ export function FeatureOptInConfirmDialog({
                         <MenuCheckboxItem
                           checked={enableForOrg}
                           onCheckedChange={(checked) => handleOrgChange(checked)}>
-                          <BuildingIcon className="h-4 w-4" />
-                          {t("entire_organization")}
+                          <span className="flex items-center gap-2">
+                            <BuildingIcon className="h-4 w-4" />
+                            {t("entire_organization")}
+                          </span>
                         </MenuCheckboxItem>
                       </>
                     )}
@@ -280,8 +284,10 @@ export function FeatureOptInConfirmDialog({
                             key={team.id}
                             checked={selectedTeamIds.includes(team.id)}
                             onCheckedChange={(checked) => handleTeamChange(team.id, checked)}>
-                            <UsersIcon className="h-4 w-4" />
-                            {team.name}
+                            <span className="flex items-center gap-2">
+                              <UsersIcon className="h-4 w-4" />
+                              {team.name}
+                            </span>
                           </MenuCheckboxItem>
                         ))}
                       </>
