@@ -388,6 +388,11 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const formattedEvent = formatCalEvent(rawCalEvent);
+
+  if (formattedEvent.hideCalendarNotes) {
+    formattedEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
+  }
+
   const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent);
   const calendar = await getCalendar(credential, "booking");
@@ -500,7 +505,7 @@ export const deleteEvent = async ({
  * Process the calendar event by generating description and removing attendees if needed
  */
 const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
-  if (calEvent.seatsPerTimeSlot){
+  if (calEvent.seatsPerTimeSlot) {
     calEvent.responses = null;
     calEvent.userFieldsResponses = null;
     calEvent.additionalNotes = null;
