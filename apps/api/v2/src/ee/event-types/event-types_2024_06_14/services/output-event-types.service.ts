@@ -463,16 +463,15 @@ export class OutputEventTypesService_2024_06_14 {
     return `${normalizedBaseUrl}/${username}/${slug}`;
   }
 
-  getResponseEventTypesForPublicEndpoint(
+  getResponseEventTypesWithoutHiddenFields(
     eventTypes: EventTypeOutput_2024_06_14[]
   ): EventTypeOutput_2024_06_14[] {
-    return eventTypes.map((eventType) => this.getResponseEventTypeForPublicEndpoint(eventType));
+    return eventTypes.map((eventType) => this.getResponseEventTypeWithoutHiddenFields(eventType));
   }
 
-  getResponseEventTypeForPublicEndpoint(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
+  getResponseEventTypeWithoutHiddenFields(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
     const {
       selectedCalendars: _selectedCalendars,
-      useEventLevelSelectedCalendars: _useEventLevelSelectedCalendars,
       ...eventTypeWithoutSelectedCalendars
     } = eventType;
 

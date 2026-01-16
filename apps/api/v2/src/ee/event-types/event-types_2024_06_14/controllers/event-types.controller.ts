@@ -171,7 +171,7 @@ export class EventTypesController_2024_06_14 {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams, authUser);
     const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
     const eventTypesWithoutHiddenFields =
-      this.outputEventTypesService.getResponseEventTypesForPublicEndpoint(eventTypesFormatted);
+      this.outputEventTypesService.getResponseEventTypesWithoutHiddenFields(eventTypesFormatted);
 
     return {
       status: SUCCESS_STATUS,
