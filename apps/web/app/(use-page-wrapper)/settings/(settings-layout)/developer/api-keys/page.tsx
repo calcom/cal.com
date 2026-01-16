@@ -1,5 +1,5 @@
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache, cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -32,10 +32,6 @@ const getCachedApiKeys = unstable_cache(
 );
 
 const Page = async () => {
-  "use cache: private";
-  cacheLife({ stale: 30 });
-  cacheTag(API_KEYS_CACHE_TAG);
-
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session) {

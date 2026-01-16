@@ -1,6 +1,6 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache, cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -48,10 +48,6 @@ const getCachedRoles = unstable_cache(
 );
 
 const Page = async () => {
-  "use cache: private";
-  cacheLife({ stale: 30 });
-  cacheTag(ORG_ATTRIBUTES_CACHE_TAG);
-
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {

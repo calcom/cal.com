@@ -11,7 +11,7 @@ import type {
   ReadonlyRequestCookies,
 } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache, cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactElement } from "react";
@@ -49,10 +49,6 @@ const getCachedEventGroups: (
   );
 
 const Page = async ({ searchParams }: PageProps): Promise<ReactElement> => {
-  "use cache: private";
-  cacheLife({ stale: 30 });
-  cacheTag(EVENT_TYPES_CACHE_TAG);
-
   const _searchParams = await searchParams;
   const _headers = await headers();
   const _cookies = await cookies();

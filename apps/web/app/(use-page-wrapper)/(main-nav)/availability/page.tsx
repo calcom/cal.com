@@ -1,7 +1,7 @@
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { unstable_cache, cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -44,10 +44,6 @@ const getCachedAvailabilities = unstable_cache(
 );
 
 const Page = async ({ searchParams: _searchParams }: PageProps) => {
-  "use cache: private";
-  cacheLife({ stale: 30 });
-  cacheTag(AVAILABILITY_CACHE_TAG);
-
   const searchParams = await _searchParams;
   const t = await getTranslate();
   const _headers = await headers();
