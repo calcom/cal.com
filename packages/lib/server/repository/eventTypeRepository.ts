@@ -1517,6 +1517,42 @@ export class EventTypeRepository {
       timeZone: true,
     } satisfies Prisma.UserSelect;
 
+    const workflowSelect = {
+      name: true,
+      id: true,
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      userId: true,
+      disabled: true,
+      calIdTeamId: true,
+      calIdTeam: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          members: true,
+        },
+      },
+      activeOn: {
+        select: {
+          eventType: {
+            select: {
+              id: true,
+              title: true,
+              parentId: true,
+              _count: {
+                select: {
+                  children: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      steps: true,
+    };
+
     const CompleteEventTypeSelect = {
       id: true,
       title: true,
@@ -1771,40 +1807,7 @@ export class EventTypeRepository {
       calIdWorkflows: {
         include: {
           workflow: {
-            select: {
-              name: true,
-              id: true,
-              trigger: true,
-              time: true,
-              timeUnit: true,
-              userId: true,
-              calIdTeamId: true,
-              calIdTeam: {
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true,
-                  members: true,
-                },
-              },
-              activeOn: {
-                select: {
-                  eventType: {
-                    select: {
-                      id: true,
-                      title: true,
-                      parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              steps: true,
-            },
+            select: workflowSelect,
           },
         },
       },
@@ -1828,7 +1831,30 @@ export class EventTypeRepository {
 
     const userCalIdTeamIds = await MembershipRepository.findUserCalIdTeamIds({ userId });
 
-    return await this.prismaClient.eventType.findFirst({
+    const activeOnAllWorkflows = await this.prismaClient.calIdWorkflow.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                AND: [{ calIdTeamId: { not: null } }, { calIdTeamId: { in: userCalIdTeamIds } }],
+              },
+              {
+                userId: userId,
+              },
+            ],
+          },
+          {
+            isActiveOnAll: true,
+          },
+        ],
+      },
+      select: workflowSelect,
+    });
+
+    console.log("Active on all workflows: ", activeOnAllWorkflows);
+
+    const event = await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           {
@@ -1855,5 +1881,15 @@ export class EventTypeRepository {
       },
       select: CompleteEventTypeSelect,
     });
+
+    const allWorkflowsMapped = (activeOnAllWorkflows ?? []).map((e) => ({
+      workflowId: e.id,
+      eventTypeId: event.id,
+      workflow: e,
+    }));
+
+    event.calIdWorkflows = event?.calIdWorkflows ? [...event?.calIdWorkflows, ...allWorkflowsMapped] : null;
+
+    return event;
   }
 }

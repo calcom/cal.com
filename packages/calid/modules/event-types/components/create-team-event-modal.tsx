@@ -215,7 +215,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
 
           <DialogFooter className="flex justify-end space-x-2 pt-4">
             <DialogClose />
-            <Button type="submit" disabled={createMutation.isPending}>
+            <Button type="submit" StartIcon="plus" disabled={createMutation.isPending}>
               {t("create")}
             </Button>
           </DialogFooter>

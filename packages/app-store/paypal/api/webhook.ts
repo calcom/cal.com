@@ -16,9 +16,6 @@ export const config = {
   },
 };
 
-export const runtime = "nodejs"; // runtime environment
-export const dynamic = "force-dynamic"; // to disable static optimization and allow dynamic body handling
-
 export async function handlePaypalPaymentSuccess(
   payload: z.infer<typeof eventSchema>,
   rawPayload: string,
@@ -74,16 +71,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
 
-    const bodyRaw = await getRawBody(req);
     const headers = req.headers;
-    const bodyAsString = bodyRaw.toString();
+
+    let body = req.body;
+
+    if (!body) {
+      const bodyRaw = await getRawBody(req);
+      const bodyAsString = bodyRaw.toString("utf8");
+      body = JSON.parse(bodyAsString);
+    }
+    // Fixed raw body parsing
 
     const parseHeaders = webhookHeadersSchema.safeParse(headers);
     if (!parseHeaders.success) {
       console.error(parseHeaders.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
-    const parse = eventSchema.safeParse(JSON.parse(bodyAsString));
+    const parse = eventSchema.safeParse(body);
     if (!parse.success) {
       console.error(parse.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
@@ -92,11 +96,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: parsedPayload } = parse;
 
     if (parsedPayload.event_type === "CHECKOUT.ORDER.APPROVED") {
-      return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
+      return await handlePaypalPaymentSuccess(parsedPayload, JSON.stringify(body), parseHeaders.data);
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
+    console.error(err.stack);
     res.status(200).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,

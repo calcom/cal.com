@@ -1,8 +1,11 @@
 {
+  "hide_field_warning_title": "Are you sure you want to hide this field?",
+  "hide_field_warning_description": "This field is attached with one or more workflows, hiding this will cause the related workflows to not trigger for this event",
+  "hide_anyway": "Hide anyway",
   "configure_your_webhook": "Use the following callback and verification token to subscribe your webhook in WhatsApp App configuration.",
   "select_whatsapp_template": "Select whatsapp template",
-  "workflow_status":"Workflow status",
-  "workflow_reminders":"Workflow automations",
+  "workflow_status": "Workflow status",
+  "workflow_reminders": "Workflow automations",
   "pw_check_least_char": "At least 7 characters",
   "pw_check_mix_case": "Mix of uppercase & lowercase",
   "pw_check_number": "At least one number",

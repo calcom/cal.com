@@ -445,21 +445,21 @@ export async function getBookings({
         tables: ["Booking", "EventType"],
       });
 
-    // 7. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
-    // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsAdminOrOwner?.length &&
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
-        tables: ["Booking"],
-      });
+    // // 7. Scope depends on `user.orgId`:
+    // // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
+    // // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
+    // userIdsWhereUserIsAdminOrOwner?.length &&
+    //   bookingQueries.push({
+    //     query: kysely
+    //       .selectFrom("Booking")
+    //       .select("Booking.id")
+    //       .select("Booking.startTime")
+    //       .select("Booking.endTime")
+    //       .select("Booking.createdAt")
+    //       .select("Booking.updatedAt")
+    //       .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
+    //     tables: ["Booking"],
+    //   });
   }
 
   const queriesWithFilters = bookingQueries.map(({ query, tables }) => {

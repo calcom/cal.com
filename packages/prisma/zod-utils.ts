@@ -376,6 +376,7 @@ export const userMetadata = z
       })
       .optional(),
     currentOnboardingStep: z.string().optional(),
+    designation: z.string().optional(),
     gettingStartedActions: z
       .object({
         viewPublicPage: z.boolean().optional().default(false),

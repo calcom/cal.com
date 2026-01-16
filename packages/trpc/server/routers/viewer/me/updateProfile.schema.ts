@@ -10,6 +10,7 @@ export const updateUserMetadataAllowedKeys = z.object({
   defaultBookerLayouts: bookerLayouts.optional(),
   currentOnboardingStep: z.string().optional(),
   phoneNumber: z.string().optional(),
+  designation: z.string().optional(),
 });
 
 export const ZUpdateProfileInputSchema = z.object({

@@ -986,6 +986,7 @@ export const EventAdvanced = ({
           </div>
           <Card className="p-5">
             <FormBuilder
+              workflows={workflows}
               showPhoneAndEmailToggle
               title={t("confirmation")}
               description={t("what_booker_should_provide")}

@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@calid/features/ui/components/dialog";
+import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
@@ -25,14 +26,16 @@ interface WorkflowStatusDialogProps {
 }
 
 // Helper function to get status badge variant
-const getStatusVariant = (status: string): "default" | "success" | "orange" | "red" | "gray" => {
+const getStatusVariant = (status: string): "default" | "success" | "orange" | "red" | "gray" | "purple" => {
   switch (status) {
     case "SENT":
       return "success";
     case "SCHEDULED":
-      return "orange";
+      return "purple";
     case "QUEUED":
       return "gray";
+    case "BOUNCED":
+      return "orange";
     case "FAILED":
       return "red";
     case "CANCELLED":
@@ -43,7 +46,7 @@ const getStatusVariant = (status: string): "default" | "success" | "orange" | "r
 };
 
 // Helper function to get channel icon
-const getChannelIcon = (channel: string): string => {
+const getChannelIcon = (channel: string): IconName => {
   switch (channel) {
     case "EMAIL":
       return "mail";
@@ -143,17 +146,21 @@ export const WorkflowStatusDialog = ({
             </div>
 
             <div className="space-y-1.5">
-              {workflow.steps.map((step: any, stepIndex: number) => (
-                <div key={stepIndex} className="flex items-center justify-between rounded-md bg-gray-50 p-2">
-                  <div className="flex items-center gap-2">
-                    <Icon name={getChannelIcon(step.channel)} className="text-muted h-3.5 w-3.5" />
-                    <span className="text-default text-xs">{step.stepName}</span>
+              {workflow.steps.map((step: any, stepIndex: number) => {
+                return (
+                  <div
+                    key={stepIndex}
+                    className="flex items-center justify-between rounded-md bg-gray-50 p-2">
+                    <div className="flex items-center gap-2">
+                      <Icon name={getChannelIcon(step.channel)} className="text-muted h-3.5 w-3.5" />
+                      <span className="text-default text-xs">{step.stepName}</span>
+                    </div>
+                    <Badge variant={getStatusVariant(step.status)} size="sm">
+                      {step.status}
+                    </Badge>
                   </div>
-                  <Badge variant={getStatusVariant(step.status)} size="sm">
-                    {step.status}
-                  </Badge>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))

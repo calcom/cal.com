@@ -464,11 +464,12 @@ const handleScheduledEmailDispatch = async (
 ) => {
   const currentMoment = dayjs();
 
-  // SendGrid scheduling constraints: 60 minutes minimum, 2 hours maximum advance
-  if (
-    currentMoment.isBefore(scheduledTimestamp.subtract(1, "hour")) &&
-    !scheduledTimestamp.isAfter(currentMoment.add(2, "hour"))
-  ) {
+  //only scheduling emails within the next 2 hours to prevent the number of cancellation calls that need to be made for a scheduled mail
+  const isWithinSendGridWindow =
+    scheduledTimestamp.isAfter(currentMoment) && !scheduledTimestamp.isAfter(currentMoment.add(2, "hour"));
+
+  if (isWithinSendGridWindow) {
+    // Schedule directly  (up to 2 hours)
     try {
       await emailDispatcher(
         {
@@ -506,7 +507,6 @@ const handleScheduledEmailDispatch = async (
     }
   } else if (scheduledTimestamp.isAfter(currentMoment.add(2, "hour"))) {
     // Schedule via CRON for times beyond 2 hours
-    // Do NOT create workflow insights here - only reminder record
     await createReminderRecord(
       bookingUid,
       workflowStepId,

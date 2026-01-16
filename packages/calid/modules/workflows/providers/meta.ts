@@ -476,17 +476,6 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
       })
     );
 
-    const isRestricted = await validateSendingPermissions(config.accountId, config.organizationId);
-
-    if (isRestricted) {
-      messageLogger.debug(
-        `${
-          config.organizationId ? `Team id ${config.organizationId} ` : `User id ${config.accountId} `
-        } is locked for WhatsApp sending`
-      );
-      return;
-    }
-
     // Determine which phone number ID to use
     const phoneNumberId = config.metaPhoneNumberId || META_PHONE_NUMBER_ID;
 
@@ -710,17 +699,6 @@ export const cancelSMS = async (referenceId: string) => {
  * Schedule a WhatsApp message using Inngest instead of in-memory storage for delayed notifications
  */
 const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) => {
-  const isRestricted = await validateSendingPermissions(config.accountId, config.organizationId);
-
-  if (isRestricted) {
-    messageLogger.debug(
-      `${
-        config.organizationId ? `Team id ${config.organizationId} ` : `User id ${config.accountId} `
-      } is locked for WhatsApp sending`
-    );
-    return;
-  }
-
   // Create a reminder record first (if not exists)
   let reminderId: number;
 

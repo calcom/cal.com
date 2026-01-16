@@ -9,7 +9,7 @@ const statusMap = {
   delivered: WorkflowStatus.DELIVERED,
   open: WorkflowStatus.READ,
   dropped: WorkflowStatus.FAILED,
-  bounce: WorkflowStatus.FAILED,
+  bounce: WorkflowStatus.BOUNCED,
   deferred: WorkflowStatus.FAILED,
   // processed: WorkflowStatus.PROCESSED,
   // click: WorkflowStatus.CLICK,

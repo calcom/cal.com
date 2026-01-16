@@ -3712,3 +3712,15 @@ checksums:
     drop_file_here_or: eedde20bdf3d6a50e3e3c34423887a15
     file_limit: 0085df2b612ab7c4c22e50b0bb43c926
     uploading: baef62e2015a34d6747ed6e4192a27b1
+    username_still_available: fdb0dbc32d1e2b7b22308b631f3d3e5e
+    claim: 5649a7cd8b85ad2a53c9ff27704b4dad
+    before_someone_else_does: 7c86ab7c41a4d7a1bf2282038b214d74
+    claim_username_description: b99010fa1b3ea188005bf5088d5bf59f
+    claim_username_cta: 67b584eae83a1fa8c2acef453a5cb765
+    claim_username_no_card_required: cb30ec684f1dddfb921524b81510ce1d
+    claim_username_instant_setup_title: 26d07881262f7b62e6fc52eb11b2f84b
+    claim_username_instant_setup_description: 80b9dea06c365e0778c838f187d9f605
+    claim_username_trusted_by_professionals_title: e5c2fd33438875d603f791c1350ae7d7
+    claim_username_trusted_by_professionals_description: 531b5b61ec2b2b2899fc5a86531a8b2a
+    claim_username_yours_forever_title: ac852df940b86b0ce4a00d8e653fda02
+    claim_username_yours_forever_description: 951b747e0f49e8c51c5568298c818382
