@@ -3335,6 +3335,22 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data[0].title).toEqual("Org User Event Type");
     });
 
+    it("should return only org user's event types when querying by shared username with orgId", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${sharedUsername}&orgId=${organization.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].id).toEqual(orgUserEventType.id);
+      expect(responseBody.data[0].title).toEqual("Org User Event Type");
+    });
+
     it("should return dynamic event type with non-org user when querying by usernames without org context", async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?usernames=${sharedUsername}`)
