@@ -312,7 +312,7 @@ export const MultiplePrivateLinksController = ({
                           data-testid={`remove-private-link-${originalIndex}`}
                           variant="icon"
                           type="button"
-                          StartIcon="trash-2"
+                          StartIcon="trash"
                           color="destructive"
                           className="ml-1 border-none"
                           onClick={() => removePrivateLink(originalIndex)}

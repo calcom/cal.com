@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useState } from "react";
@@ -133,7 +134,7 @@ export default function CredentialActionsDropdown({
         color="minimal"
         variant="fab"
         size="sm"
-        StartIcon="trash-2"
+        StartIcon="trash"
         onClick={() => {
           setDeleteModalOpen(true);
           setDropdownOpen(false);
@@ -164,22 +165,21 @@ export default function CredentialActionsDropdown({
 
       <Dialog open={disconnectModalOpen} onOpenChange={setDisconnectModalOpen}>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader showIcon variant="warning">
             <DialogTitle>{t("remove_app")}</DialogTitle>
             <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <button type="button" onClick={() => setDisconnectModalOpen(false)}>
-              {t("cancel")}
-            </button>
-            <button
-              type="button"
+            <Button
+              color="destructive"
+              StartIcon="trash"
               onClick={() => {
                 disconnectMutation.mutate({ id: credentialId });
                 setDisconnectModalOpen(false);
               }}>
               {t("yes_remove_app")}
-            </button>
+            </Button>
+            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>

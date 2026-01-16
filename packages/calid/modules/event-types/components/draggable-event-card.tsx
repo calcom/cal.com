@@ -266,7 +266,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                               <DropdownMenuItem
                                 onClick={() => onDeleteEvent(event.id)}
                                 className="text-destructive focus:text-destructive hover:bg-error text-sm">
-                                <Icon name="trash-2" className="mr-2 h-3 w-3" />
+                                <Icon name="trash" className="mr-2 h-3 w-3" />
                                 {t("delete")}
                               </DropdownMenuItem>
                             )}
@@ -286,10 +286,8 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
 
                 {clean && (
                   <div
-                    className="
-    text-subtle mb-3 mr-20 max-h-80
-    overflow-y-auto text-sm [&_a]:text-blue-600 [&_a]:underline
-  "
+                    className="text-subtle mb-3 mr-20 max-h-80 overflow-y-auto text-sm [&_a]:text-blue-600 [&_a]:underline"
+                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{ __html: clean }}
                   />
                 )}

@@ -277,7 +277,7 @@ export function TeamsList({
                             <>
                               <DropdownMenuItem
                                 color="destructive"
-                                StartIcon="trash-2"
+                                StartIcon="trash"
                                 onSelect={function (e) {
                                   e.preventDefault(); // optional — if you don't want dropdown to close
                                   setIsDisbandDialogOpen(true);
@@ -287,7 +287,7 @@ export function TeamsList({
 
                               <Dialog open={isDisbandDialogOpen} onOpenChange={setIsDisbandDialogOpen}>
                                 <DialogContent>
-                                  <DialogHeader>
+                                  <DialogHeader showIcon variant="warning">
                                     <DialogTitle>{t("disband_team")}</DialogTitle>
                                     <DialogDescription>
                                       {t("disband_team_confirmation_message")}
@@ -296,13 +296,14 @@ export function TeamsList({
                                   <DialogFooter>
                                     <Button
                                       type="button"
+                                      StartIcon="trash"
                                       color="destructive"
                                       onClick={function () {
                                         return deleteTeam(team.id);
                                       }}>
                                       {t("confirm_disband_team")}
                                     </Button>
-                                    <DialogClose color="primary" />
+                                    <DialogClose />
                                   </DialogFooter>
                                 </DialogContent>
                               </Dialog>

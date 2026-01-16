@@ -378,12 +378,13 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                             </div>
                           </div>
 
-                          <div className="mt-4 flex flex-row items-center gap-6">
+                          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                             <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
-                            <div className="flex items-center gap-3">
-                              <div className="w-[105px]">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="flex">
                                 <CustomBannerUploader
                                   target="logo"
+                                  startIcon="upload"
                                   fieldName="Logo"
                                   id="logo-upload"
                                   buttonMsg={t("upload_logo")}
@@ -406,7 +407,8 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                               </div>
                               {showRemoveAvatarButton && (
                                 <Button
-                                  color="secondary"
+                                  color="destructive"
+                                  StartIcon="trash"
                                   onClick={() => {
                                     onChange(null);
                                     updateTeamSetting({ bannerUrl: "delete" }).then(() => {
@@ -450,52 +452,50 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                             </div>
                           </div>
 
-                          <div className="mt-3 flex gap-2">
-                            <div className="flex">
-                              <Avatar
-                                alt={team?.name || "Team Favicon"}
+                          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                            <Avatar
+                              alt={team?.name || "Team Favicon"}
+                              imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                              size="lg"
+                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                              <CustomImageUploader
+                                target="avatar"
+                                startIcon="upload"
+                                fieldName="favicon"
+                                id="avatar-upload"
+                                buttonMsg={t("upload_favicon")}
+                                handleAvatarChange={(newAvatar) => {
+                                  setUploadingBanner(true);
+                                  onChange(newAvatar);
+                                  updateTeamSetting({ faviconUrl: newAvatar })
+                                    .then(() => {
+                                      const bannerValue = bannerFormMethods.getValues("bannerUrl");
+                                      setHideBrandingValue(!!(bannerValue || newAvatar));
+                                    })
+                                    .finally(() => {
+                                      setUploadingBanner(false);
+                                    });
+                                }}
                                 imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
-                                size="lg"
                               />
-                              <div className="ms-4 flex items-center">
-                                <div className="flex gap-2">
-                                  <CustomImageUploader
-                                    target="avatar"
-                                    fieldName="favicon"
-                                    id="avatar-upload"
-                                    buttonMsg={t("upload_favicon")}
-                                    handleAvatarChange={(newAvatar) => {
-                                      setUploadingBanner(true);
-                                      onChange(newAvatar);
-                                      updateTeamSetting({ faviconUrl: newAvatar })
-                                        .then(() => {
-                                          const bannerValue = bannerFormMethods.getValues("bannerUrl");
-                                          setHideBrandingValue(!!(bannerValue || newAvatar));
-                                        })
-                                        .finally(() => {
-                                          setUploadingBanner(false);
-                                        });
-                                    }}
-                                    imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
-                                  />
 
-                                  {showRemoveFaviconButton && (
-                                    <Button
-                                      color="secondary"
-                                      onClick={() => {
-                                        onChange(null);
-                                        updateTeamSetting({ faviconUrl: "delete" }).then(() => {
-                                          const bannerValue = bannerFormMethods.getValues("bannerUrl");
-                                          if (!bannerValue) {
-                                            setHideBrandingValue(false);
-                                          }
-                                        });
-                                      }}>
-                                      {t("remove")}
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
+                              {showRemoveFaviconButton && (
+                                <Button
+                                  color="destructive"
+                                  StartIcon="trash"
+                                  onClick={() => {
+                                    onChange(null);
+                                    updateTeamSetting({ faviconUrl: "delete" }).then(() => {
+                                      const bannerValue = bannerFormMethods.getValues("bannerUrl");
+                                      if (!bannerValue) {
+                                        setHideBrandingValue(false);
+                                      }
+                                    });
+                                  }}>
+                                  {t("remove")}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>

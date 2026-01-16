@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -48,17 +49,17 @@ export const DisconnectIntegrationComponent = ({
           </Button>
         </DialogTrigger>
 
-        <DialogContent size="default" className="bg-muted">
-          <DialogHeader>
+        <DialogContent>
+          <DialogHeader showIcon variant="warning">
             <DialogTitle>{t("remove_app")}</DialogTitle>
             <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="mt-6">
-            <Button onClick={onDeletionConfirmation} color="destructive">
+          <DialogFooter>
+            <Button onClick={onDeletionConfirmation} color="destructive" StartIcon="trash">
               {t("yes_remove_app")}
             </Button>
-            <Button color="secondary">{t("close")}</Button>
+            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -196,6 +196,7 @@ function TeamProfileForm({
                         <div className="flex gap-2">
                           <ImageUploader
                             target="logo"
+                            startIcon="upload"
                             id="avatar-upload"
                             buttonMsg={t("upload_logo")}
                             handleAvatarChange={onChange}
@@ -203,7 +204,7 @@ function TeamProfileForm({
                             imageSrc={getDefaultAvatar(value, form.getValues("name"))}
                           />
                           {showRemoveLogoButton && (
-                            <Button color="destructive" onClick={() => onChange(null)}>
+                            <Button color="destructive" StartIcon="trash" onClick={() => onChange(null)}>
                               {t("remove")}
                             </Button>
                           )}
@@ -287,7 +288,7 @@ function TeamProfileForm({
               <Button
                 color="destructive"
                 variant="button"
-                StartIcon="trash-2"
+                StartIcon="trash"
                 className="bg-default text-destructive"
                 data-testid="disband-team-button">
                 {t("team_profile_disband_team")}
@@ -295,21 +296,22 @@ function TeamProfileForm({
             </DialogTrigger>
 
             <DialogContent>
-              <DialogHeader>
+              <DialogHeader showIcon variant="warning">
                 <DialogTitle>{t("team_profile_disband_team")}</DialogTitle>
                 <DialogDescription>{t("team_profile_disband_team_confirmation_message")}</DialogDescription>
               </DialogHeader>
 
               <DialogFooter>
-                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"
+                  StartIcon="trash"
                   onClick={() => {
                     disbandTeam();
                   }}>
                   {t("team_profile_confirm_disband_team")}
                 </Button>
+                <DialogClose />
               </DialogFooter>
             </DialogContent>
           </Dialog>
