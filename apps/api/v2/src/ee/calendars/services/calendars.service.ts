@@ -54,7 +54,7 @@ export class CalendarsService {
   async getCalendars(userId: number, ensureDefaultSelectedCalendars = false) {
     const cachedResult = await this.calendarsCacheService.getConnectedAndDestinationCalendarsCache(userId);
 
-    if (cachedResult) {
+    if (cachedResult && !ensureDefaultSelectedCalendars) {
       return cachedResult;
     }
 
