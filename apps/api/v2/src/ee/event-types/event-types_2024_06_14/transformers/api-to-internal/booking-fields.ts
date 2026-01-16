@@ -237,7 +237,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
   return {
     name: field.slug,
     type: field.type,
-    label: "label" in field ? field.label : "",
+    label: "label" in field && field.label ? field.label : "",
     sources: [
       {
         id: "user",

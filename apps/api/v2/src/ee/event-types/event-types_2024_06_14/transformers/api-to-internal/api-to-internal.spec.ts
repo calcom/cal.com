@@ -236,7 +236,43 @@ describe("transformBookingFieldsApiToInternal", () => {
       {
         name: bookingField.slug,
         type: bookingField.type,
-        label: bookingField.label,
+        label: "Your phone number",
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: bookingField.required,
+        placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform phone field without label (uses empty string fallback)", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "phone",
+      slug: "phone",
+      required: true,
+      placeholder: "123456789",
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: CustomField[] = [
+      {
+        name: bookingField.slug,
+        type: bookingField.type,
+        label: "",
         sources: [
           {
             id: "user",
