@@ -3363,7 +3363,7 @@ describe("Event types Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.length).toEqual(1);
-      expect(responseBody.data[0].title).toEqual("Dynamic");
+      expect(responseBody.data[0].title).toEqual("Group Meeting");
       expect(responseBody.data[0].users).toBeDefined();
       expect(responseBody.data[0].users?.length).toEqual(1);
       expect(responseBody.data[0].users?.[0].username).toEqual(sharedUsername);
@@ -3382,7 +3382,7 @@ describe("Event types Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.length).toEqual(1);
-      expect(responseBody.data[0].title).toEqual("Dynamic");
+      expect(responseBody.data[0].title).toEqual("Group Meeting");
       expect(responseBody.data[0].users).toBeDefined();
       expect(responseBody.data[0].users?.length).toEqual(1);
       expect(responseBody.data[0].users?.[0].username).toEqual(sharedUsername);
