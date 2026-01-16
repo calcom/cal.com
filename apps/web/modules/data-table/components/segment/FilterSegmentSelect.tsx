@@ -189,7 +189,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
                       submenuItems={items}
                       segment={segment}
                       onSelect={() => {
-                        if (segmentId && segmentId.type === segment.type && segmentId.id === segment.id) {
+                        if (selectedSegment && selectedSegment.type === segment.type && selectedSegment.id === segment.id) {
                           clearAll();
                         } else {
                           if (segment.type === "system") {
@@ -199,9 +199,9 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
                           }
                         }
                       }}>
-                      {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
+                      {selectedSegment && selectedSegment.type === segment.type && selectedSegment.id === segment.id && (
                         <Icon name="check" className="ml-3 h-4 w-4" />
-                      )}
+                          )}
                       <span className="ml-3">{segment.name}</span>
                     </DropdownItemWithSubmenu>
                   );

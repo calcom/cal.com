@@ -233,6 +233,7 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 For detailed information, see the `agents/` directory:
 
 - **[agents/README.md](agents/README.md)** - Architecture overview and patterns
+- **[agents/rules/](agents/rules/)** - Modular engineering rules (performance, architecture, data layer, etc.)
 - **[agents/commands.md](agents/commands.md)** - Complete command reference
 - **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and best practices
 - **[agents/coding-standards.md](agents/coding-standards.md)** - Coding standards with examples

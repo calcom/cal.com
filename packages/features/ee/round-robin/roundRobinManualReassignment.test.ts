@@ -16,6 +16,8 @@ import {
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, vi, expect } from "vitest";
+import { v4 as uuidv4 } from "uuid";
+import { parse } from "node-html-parser";
 
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -876,5 +878,157 @@ describe("roundRobinManualReassignment - Location Changes", () => {
         reassignedById: 999,
       })
     ).rejects.toThrow("Failed to set video conferencing link, but the meeting has been rescheduled");
+  });
+});
+
+describe("roundRobinManualReassignment - Seated Events", () => {
+  setupAndTeardown();
+
+  test("should not expose other attendees in updated email when seatsShowAttendees is disabled for seated round-robin event", async ({
+    emails,
+  }) => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    const eventManagerRescheduleSpy = await mockEventManagerReschedule();
+
+    const testDestinationCalendar = createTestDestinationCalendar();
+    const originalHost = createTestUser({ id: 1, destinationCalendar: testDestinationCalendar });
+    const newHost = createTestUser({ id: 2 });
+    const users = [originalHost, newHost, createTestUser({ id: 3 })];
+
+    const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
+
+    const bookingToReassignUid = "seated-booking-manual-reassign";
+    const attendee1Email = "attendee1@test.com";
+    const attendee2Email = "attendee2@test.com";
+    const attendee3Email = "attendee3@test.com";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "round-robin-seated-event",
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            length: 45,
+            seatsPerTimeSlot: 5,
+            seatsShowAttendees: false,
+            users: users.map((user) => ({ id: user.id })),
+            hosts: users.map((user) => ({ userId: user.id, isFixed: false })),
+          },
+        ],
+        bookings: [
+          await createTestBooking({
+            eventTypeId: 1,
+            userId: originalHost.id,
+            bookingId: 125,
+            bookingUid: bookingToReassignUid,
+            attendees: [
+              {
+                ...getMockBookingAttendee({
+                  id: 2,
+                  name: "Attendee 1",
+                  email: attendee1Email,
+                  locale: "en",
+                  timeZone: "Asia/Kolkata",
+                }),
+                bookingSeat: {
+                  referenceUid: uuidv4(),
+                  data: {},
+                },
+              },
+              {
+                ...getMockBookingAttendee({
+                  id: 3,
+                  name: "Attendee 2",
+                  email: attendee2Email,
+                  locale: "en",
+                  timeZone: "Asia/Kolkata",
+                }),
+                bookingSeat: {
+                  referenceUid: uuidv4(),
+                  data: {},
+                },
+              },
+              {
+                ...getMockBookingAttendee({
+                  id: 4,
+                  name: "Attendee 3",
+                  email: attendee3Email,
+                  locale: "en",
+                  timeZone: "Asia/Kolkata",
+                }),
+                bookingSeat: {
+                  referenceUid: uuidv4(),
+                  data: {},
+                },
+              },
+            ],
+          }),
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 125,
+      newUserId: newHost.id,
+      orgId: null,
+      reassignedById: 1,
+    });
+
+    // Verify that updated emails were sent to all attendees
+    const updatedEmails = emails.get().filter((email) => {
+      const subject = email.subject || "";
+      return subject.includes("updated") || subject.includes("event_type_has_been_updated");
+    });
+
+    // Check that each attendee received an email
+    expect(updatedEmails.some((email) => email.to.includes(attendee1Email))).toBe(true);
+    expect(updatedEmails.some((email) => email.to.includes(attendee2Email))).toBe(true);
+    expect(updatedEmails.some((email) => email.to.includes(attendee3Email))).toBe(true);
+
+    // Verify that each attendee's email does not contain other attendees' information
+    const attendee1EmailContent = updatedEmails.find((email) => email.to.includes(attendee1Email));
+    if (attendee1EmailContent) {
+      const emailHtml = parse(attendee1EmailContent.html);
+      const emailText = emailHtml.innerText;
+
+      // Should not contain other attendees' emails or names
+      expect(emailText).not.toContain(attendee2Email);
+      expect(emailText).not.toContain(attendee3Email);
+      expect(emailText).not.toContain("Attendee 2");
+      expect(emailText).not.toContain("Attendee 3");
+      // Should contain their own info
+      expect(emailText).toContain("Attendee 1");
+    }
+
+    const attendee2EmailContent = updatedEmails.find((email) => email.to.includes(attendee2Email));
+    if (attendee2EmailContent) {
+      const emailHtml = parse(attendee2EmailContent.html);
+      const emailText = emailHtml.innerText;
+
+      // Should not contain other attendees' emails or names
+      expect(emailText).not.toContain(attendee1Email);
+      expect(emailText).not.toContain(attendee3Email);
+      expect(emailText).not.toContain("Attendee 1");
+      expect(emailText).not.toContain("Attendee 3");
+      // Should contain their own info
+      expect(emailText).toContain("Attendee 2");
+    }
+
+    const attendee3EmailContent = updatedEmails.find((email) => email.to.includes(attendee3Email));
+    if (attendee3EmailContent) {
+      const emailHtml = parse(attendee3EmailContent.html);
+      const emailText = emailHtml.innerText;
+
+      // Should not contain other attendees' emails or names
+      expect(emailText).not.toContain(attendee1Email);
+      expect(emailText).not.toContain(attendee2Email);
+      expect(emailText).not.toContain("Attendee 1");
+      expect(emailText).not.toContain("Attendee 2");
+      // Should contain their own info
+      expect(emailText).toContain("Attendee 3");
+    }
   });
 });

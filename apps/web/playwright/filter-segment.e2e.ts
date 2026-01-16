@@ -120,9 +120,6 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.reload();
     await expect(dataTable).toBeVisible();
-
-    await selectSegment(page, segmentName);
-
     await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
     await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
 
