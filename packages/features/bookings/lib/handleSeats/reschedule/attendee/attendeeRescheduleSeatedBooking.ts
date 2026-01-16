@@ -2,6 +2,7 @@ import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { addVideoCallDataToEvent } from "@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -34,6 +35,9 @@ const attendeeRescheduleSeatedBooking = async (
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
 
+  // Set attendeeSeatId so that reschedule/cancel links in emails use seatUid instead of bookingUid
+  evt.attendeeSeatId = bookingSeat?.referenceUid;
+
   // Update the original calendar event by removing the attendee that is rescheduling
   if (originalBookingEvt && originalRescheduledBooking) {
     // Event would probably be deleted so we first check than instead of updating references
@@ -59,11 +63,17 @@ const attendeeRescheduleSeatedBooking = async (
       },
     });
 
+    const originalBookingReferences = originalRescheduledBooking?.references;
+
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
+    const evtWithVideoCallData = originalBookingReferences
+      ? addVideoCallDataToEvent(originalBookingReferences, evt)
+      : evt;
+
     await sendRescheduledSeatEmailAndSMS(
-      { ...evt, hideBranding },
+      { ...evtWithVideoCallData, hideBranding },
       seatAttendee as Person,
       eventType.metadata
     );
@@ -108,8 +118,12 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
+  const copyEventWithVideoCallData = newTimeSlotBooking.references
+    ? addVideoCallDataToEvent(newTimeSlotBooking.references, copyEvent)
+    : copyEvent;
+
   await sendRescheduledSeatEmailAndSMS(
-    { ...copyEvent, hideBranding },
+    { ...copyEventWithVideoCallData, hideBranding },
     seatAttendee as Person,
     eventType.metadata
   );

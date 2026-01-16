@@ -343,6 +343,7 @@ export const roundRobinReassignment = async ({
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
     organizationId: orgId,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
   const hideBranding = await shouldHideBrandingForEvent({
@@ -507,6 +508,7 @@ export const roundRobinReassignment = async ({
       await sendReassignedUpdatedEmailsAndSMS({
         calEvent: withHideBranding(evtWithoutCancellationReason),
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
+        showAttendees: !!eventType.seatsShowAttendees,
       });
     }
 

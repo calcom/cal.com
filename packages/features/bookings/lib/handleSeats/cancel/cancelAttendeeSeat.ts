@@ -120,7 +120,7 @@ async function cancelAttendeeSeat(
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
-            const calendar = await getCalendar(credential);
+            const calendar = await getCalendar(credential, "booking");
             if (calendar) {
               integrationsToUpdate.push(
                 calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
@@ -191,6 +191,7 @@ async function cancelAttendeeSeat(
     ...eventTypeInfo,
     status: "CANCELLED",
     smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+    requestReschedule: false,
   };
 
   const promises = webhooks.map((webhook) =>

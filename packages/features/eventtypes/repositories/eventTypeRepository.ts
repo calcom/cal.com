@@ -60,7 +60,7 @@ type UserWithSelectedCalendars<
 type HostWithLegacySelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
   THost,
-  TUser
+  TUser,
 > = THost & {
   user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
 };
@@ -86,7 +86,7 @@ function hostsWithSelectedCalendars<
 
 function usersWithSelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
-  TUser extends { selectedCalendars: TSelectedCalendar[] }
+  TUser extends { selectedCalendars: TSelectedCalendar[] },
 >(users: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>[]) {
   return users.map((user) => withSelectedCalendars(user));
 }
@@ -1316,6 +1316,7 @@ export class EventTypeRepository {
       },
       select: {
         id: true,
+        userId: true,
         slug: true,
         minimumBookingNotice: true,
         length: true,
@@ -1370,6 +1371,7 @@ export class EventTypeRepository {
             team: {
               select: {
                 id: true,
+                parentId: true,
                 bookingLimits: true,
                 includeManagedEventsInLimits: true,
               },
@@ -1407,6 +1409,7 @@ export class EventTypeRepository {
             groupId: true,
             user: {
               select: {
+                locked: true,
                 credentials: { select: credentialForCalendarServiceSelect },
                 ...availabilityUserSelect,
               },
@@ -1429,6 +1432,7 @@ export class EventTypeRepository {
         },
         users: {
           select: {
+            locked: true,
             credentials: { select: credentialForCalendarServiceSelect },
             ...availabilityUserSelect,
           },
@@ -1449,20 +1453,6 @@ export class EventTypeRepository {
         eventType.rrSegmentQueryValue
       ),
     };
-  }
-
-  static getSelectedCalendarsFromUser<
-    TSelectedCalendar extends { eventTypeId: number | null }
-  >({
-    user,
-    eventTypeId,
-  }: {
-    user: UserWithSelectedCalendars<TSelectedCalendar>;
-    eventTypeId: number;
-  }) {
-    return user.allSelectedCalendars.filter(
-      (calendar) => calendar.eventTypeId === eventTypeId
-    );
   }
 
   async findByIdForUserAvailability({ id }: { id: number }) {

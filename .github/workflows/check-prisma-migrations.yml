@@ -1,0 +1,41 @@
+name: Check Prisma Migrations
+on:
+  workflow_call:
+
+env:
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+
+jobs:
+  check-prisma-migrations:
+    name: Check migrations match schema
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    services:
+      postgres:
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: calendso
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - name: Check if migrations match schema
+        working-directory: packages/prisma
+        run: |
+          npx prisma migrate diff --exit-code \
+            --from-migrations ./migrations \
+            --to-schema-datamodel ./schema.prisma \
+            --shadow-database-url ${{ env.DATABASE_URL }}

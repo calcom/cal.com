@@ -3,9 +3,18 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getAppActor } from "@calcom/app-store/_utils/getAppActor";
+import {
+  eventTypeMetaDataSchemaWithTypedApps,
+  eventTypeAppMetadataOptionalSchema,
+} from "@calcom/app-store/zod-utils";
+import {
+  sendAttendeeRequestEmailAndSMS,
+  sendOrganizerRequestEmail,
+} from "@calcom/emails/email-manager";
+import EventManager, {
+  placeholderCreatedEvent,
+} from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -33,7 +42,10 @@ export const config = {
   },
 };
 
-export async function handleStripePaymentSuccess(event: Stripe.Event, traceContext: TraceContext) {
+export async function handleStripePaymentSuccess(
+  event: Stripe.Event,
+  traceContext: TraceContext
+) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -46,15 +58,28 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
   });
 
   if (!payment?.bookingId) {
-    log.error("Stripe: Payment Not Found", safeStringify(paymentIntent), safeStringify(payment));
+    log.error(
+      "Stripe: Payment Not Found",
+      safeStringify(paymentIntent),
+      safeStringify(payment)
+    );
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+  if (!payment?.bookingId)
+    throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+  await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: "stripe",
+    traceContext,
+  });
 }
 
-const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContext) => {
+const handleSetupSuccess = async (
+  event: Stripe.Event,
+  traceContext: TraceContext
+) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -62,7 +87,8 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
     },
   });
 
-  if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+  if (!payment?.data || !payment?.id)
+    throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
 
@@ -83,7 +109,9 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
     },
   });
 
-  const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
+  const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(
+    eventType?.metadata
+  );
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(user, {
     ...booking.eventType,
     metadata,
@@ -93,11 +121,15 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
   const platformOAuthClient = user.isPlatformManaged
     ? await platformOAuthClientRepository.getByUserId(user.id)
     : null;
-  const areCalendarEventsEnabled = platformOAuthClient?.areCalendarEventsEnabled ?? true;
+  const areCalendarEventsEnabled =
+    platformOAuthClient?.areCalendarEventsEnabled ?? true;
   const areEmailsEnabled = platformOAuthClient?.areEmailsEnabled ?? true;
 
   if (!requiresConfirmation) {
-    const eventManager = new EventManager({ ...user, credentials: allCredentials }, metadata?.apps);
+    const eventManager = new EventManager(
+      { ...user, credentials: allCredentials },
+      metadata?.apps
+    );
     const scheduleResult = areCalendarEventsEnabled
       ? await eventManager.create(evt)
       : placeholderCreatedEvent;
@@ -125,6 +157,8 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!requiresConfirmation) {
+    const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+    const actor = getAppActor({ appSlug: "stripe", bookingId: booking.id, apps });
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -132,8 +166,12 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
       bookingId: booking.id,
       booking,
       paid: true,
-      platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+      platformClientParams: platformOAuthClient
+        ? getPlatformParams(platformOAuthClient)
+        : undefined,
       traceContext: updatedTraceContext,
+      actionSource: "WEBHOOK",
+      actor,
     });
   } else if (areEmailsEnabled) {
     const organizationId = booking.eventType?.team?.parentId ?? user.organizationId ?? null;
@@ -147,11 +185,18 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
 
     const evtWithBranding = { ...evt, hideBranding };
     await sendOrganizerRequestEmail(evtWithBranding, eventType.metadata);
-    await sendAttendeeRequestEmailAndSMS(evtWithBranding, evt.attendees[0], eventType.metadata);
+    await sendAttendeeRequestEmailAndSMS(
+      evtWithBranding,
+      evt.attendees[0],
+      eventType.metadata
+    );
   }
 };
 
-type WebhookHandler = (event: Stripe.Event, traceContext: TraceContext) => Promise<void>;
+type WebhookHandler = (
+  event: Stripe.Event,
+  traceContext: TraceContext
+) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handleStripePaymentSuccess,
@@ -163,23 +208,54 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
  * We need to create a PaymentManager in `@calcom/lib`
  * to prevent circular dependencies on App Store migration
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
     const sig = req.headers["stripe-signature"];
     if (!sig) {
-      throw new HttpCode({ statusCode: 400, message: "Missing stripe-signature" });
+      throw new HttpCode({
+        statusCode: 400,
+        message: "Missing stripe-signature",
+      });
     }
 
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      throw new HttpCode({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET" });
+      throw new HttpCode({
+        statusCode: 500,
+        message: "Missing process.env.STRIPE_WEBHOOK_SECRET",
+      });
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
 
-    const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    let stripeEventId: string | undefined;
+    try {
+      const parsedPayload = JSON.parse(payload);
+      stripeEventId = parsedPayload?.id;
+      log.debug("Stripe webhook eventId", { stripeEventId });
+    } catch {
+      // Ignore parse errors, this is just for debugging
+    }
+
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        payload,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      log.error("Stripe webhook signature verification failed", {
+        stripeEventId,
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
+      throw err;
+    }
 
     const traceContext = distributedTracing.createTrace(`stripe_webhook`, {
       meta: {
@@ -191,7 +267,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
     if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
-      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+      throw new HttpCode({
+        statusCode: 202,
+        message: "Incoming connected account",
+      });
     }
 
     const handler = webhookHandlers[event.type];

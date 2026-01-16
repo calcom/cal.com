@@ -703,6 +703,7 @@ export class ManagedEventManualReassignmentService {
           slug: targetEventTypeDetails.slug,
           description: newBooking.description,
           schedulingType: parentEventType.schedulingType,
+          seatsPerTimeSlot: targetEventTypeDetails.seatsPerTimeSlot,
         })
         .withOrganizer({
           id: newUser.id,
@@ -785,6 +786,7 @@ export class ManagedEventManualReassignmentService {
         await sendReassignedUpdatedEmailsAndSMS({
           calEvent: withHideBranding(calEvent),
           eventTypeMetadata,
+          showAttendees: !!targetEventTypeDetails.seatsShowAttendees,
         });
         logger.info("Sent update emails to attendees");
       }

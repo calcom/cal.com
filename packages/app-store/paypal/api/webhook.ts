@@ -11,6 +11,8 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
+import appConfig from "../config.json";
+
 export const config = {
   api: {
     bodyParser: false,
@@ -66,7 +68,12 @@ export async function handlePaypalPaymentSuccess(
   const traceContext = distributedTracing.createTrace("paypal_webhook", {
     meta: { paymentId: payment.id, bookingId: payment.bookingId },
   });
-  return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+  return await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: appConfig.slug,
+    traceContext,
+  });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
