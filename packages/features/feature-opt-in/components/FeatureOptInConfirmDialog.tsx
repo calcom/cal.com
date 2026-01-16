@@ -18,7 +18,7 @@ import {
 import { Label } from "@coss/ui/components/label";
 import { Menu, MenuCheckboxItem, MenuPopup, MenuSeparator, MenuTrigger } from "@coss/ui/components/menu";
 import { toastManager } from "@coss/ui/components/toast";
-import { BuildingIcon, CheckIcon, ChevronDownIcon, UserIcon, UsersIcon } from "lucide-react";
+import { BuildingIcon, ChevronDownIcon, UserIcon, UsersIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
@@ -211,13 +211,6 @@ export function FeatureOptInConfirmDialog({
             <DialogTitle>{t("feature_enabled_successfully")}</DialogTitle>
             <DialogDescription>{t("feature_enabled_description")}</DialogDescription>
           </DialogHeader>
-          <DialogPanel>
-            <div className="flex flex-col items-center py-6 text-center">
-              <div className="bg-success/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-                <CheckIcon className="text-success h-6 w-6" />
-              </div>
-            </div>
-          </DialogPanel>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" />} onClick={handleDismiss}>
               {t("dismiss")}

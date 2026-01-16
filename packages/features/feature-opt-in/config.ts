@@ -8,6 +8,11 @@ export interface OptInFeatureConfig {
     name: string;
     description: string;
   };
+  bannerImage: {
+    src: string;
+    width: number;
+    height: number;
+  };
   policy: OptInFeaturePolicy;
   /** Scopes where this feature can be configured. Defaults to all scopes if not specified. */
   scope?: OptInFeatureScope[];
@@ -28,6 +33,11 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   //     title: "bookings_v3_title",
   //     name: "bookings_v3_name",
   //     description: "bookings_v3_description",
+  //   },
+  //   bannerImage: {
+  //     src: "/opt_in_banner_bookings_v3.png",
+  //     width: 548,
+  //     height: 348,
   //   },
   //   policy: "permissive",
   //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
