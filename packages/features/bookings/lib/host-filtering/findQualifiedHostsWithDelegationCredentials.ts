@@ -24,6 +24,7 @@ type Host<T> = {
   priority?: number | null;
   weight?: number | null;
   groupId: string | null;
+  minimumBookingNotice?: number | null;
 } & {
   user: T;
 };
@@ -112,6 +113,8 @@ export class QualifiedHostsService {
       createdAt: Date | null;
       priority?: number | null;
       weight?: number | null;
+      groupId: string | null;
+      minimumBookingNotice?: number | null;
       user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
     }[];
     fixedHosts: {
@@ -119,6 +122,8 @@ export class QualifiedHostsService {
       createdAt: Date | null;
       priority?: number | null;
       weight?: number | null;
+      groupId: string | null;
+      minimumBookingNotice?: number | null;
       user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
     }[];
     // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
@@ -127,6 +132,8 @@ export class QualifiedHostsService {
       createdAt: Date | null;
       priority?: number | null;
       weight?: number | null;
+      groupId: string | null;
+      minimumBookingNotice?: number | null;
       user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
     }[];
   }> {

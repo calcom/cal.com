@@ -34,6 +34,7 @@ export type Host = {
   weight: number;
   scheduleId?: number | null;
   groupId: string | null;
+  minimumBookingNotice?: number | null;
 };
 export type TeamMember = {
   value: string;
@@ -208,6 +209,7 @@ export type EventTypeHosts = {
   priority: number | null;
   weight: number | null;
   groupId: string | null;
+  minimumBookingNotice: number | null;
 }[];
 export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
 export type TabMap = {

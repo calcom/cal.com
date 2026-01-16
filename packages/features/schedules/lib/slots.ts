@@ -120,7 +120,13 @@ function buildSlotsWithDateRanges({
     }
   }
 
+  console.log("[DEBUG getSlots] minimumBookingNotice:", minimumBookingNotice);
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+  console.log("[DEBUG getSlots] startTimeWithMinNotice:", startTimeWithMinNotice.format());
+  console.log("[DEBUG getSlots] orderedDateRanges[0]:", orderedDateRanges[0] ? {
+    start: orderedDateRanges[0].start.format(),
+    end: orderedDateRanges[0].end.format()
+  } : 'empty');
 
   const slotBoundaries = new Map<number, true>();
 
@@ -128,6 +134,7 @@ function buildSlotsWithDateRanges({
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
+    console.log("[DEBUG getSlots] initial slotStartTime:", slotStartTime.format());
 
     // For current day bookings, normalizing the seconds to zero to avoid issues with time calculations
     slotStartTime = slotStartTime.set("second", 0).set("millisecond", 0);

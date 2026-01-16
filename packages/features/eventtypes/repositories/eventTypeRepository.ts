@@ -697,6 +697,7 @@ export class EventTypeRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          minimumBookingNotice: true,
           user: {
             select: {
               timeZone: true,
@@ -997,6 +998,7 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          minimumBookingNotice: true,
           user: {
             select: {
               timeZone: true,
@@ -1362,6 +1364,7 @@ export class EventTypeRepository {
             weight: true,
             priority: true,
             groupId: true,
+            minimumBookingNotice: true,
             user: {
               select: {
                 locked: true,

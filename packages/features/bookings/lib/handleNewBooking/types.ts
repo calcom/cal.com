@@ -39,6 +39,7 @@ export type IsFixedAwareUser = User & {
   organization?: { slug: string };
   priority?: number;
   weight?: number;
+  minimumBookingNotice?: number | null;
   userLevelSelectedCalendars: SelectedCalendar[];
   allSelectedCalendars: SelectedCalendar[];
   groupId?: string | null;

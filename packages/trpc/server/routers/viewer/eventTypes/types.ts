@@ -65,6 +65,7 @@ type HostInput = {
   isFixed?: boolean;
   priority?: number | null;
   weight?: number | null;
+  minimumBookingNotice?: number | null;
   scheduleId?: number | null;
   groupId?: string | null;
 };
@@ -282,6 +283,7 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   isFixed: z.boolean().optional(),
   priority: z.number().min(0).max(4).optional().nullable(),
   weight: z.number().min(0).optional().nullable(),
+  minimumBookingNotice: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
 });

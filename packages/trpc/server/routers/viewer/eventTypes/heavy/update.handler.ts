@@ -503,6 +503,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          minimumBookingNotice: host.minimumBookingNotice ?? null,
           groupId: host.groupId,
         };
       }),
@@ -517,6 +518,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          minimumBookingNotice: host.minimumBookingNotice ?? null,
           scheduleId: host.scheduleId ?? null,
           groupId: host.groupId,
         },

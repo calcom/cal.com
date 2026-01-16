@@ -134,6 +134,7 @@ const getEventTypesFromDBSelect = {
       weight: true,
       createdAt: true,
       groupId: true,
+      minimumBookingNotice: true,
       user: {
         select: {
           credentials: {

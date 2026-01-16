@@ -1,10 +1,9 @@
-import type { NextApiRequest } from "next";
-
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
 import type { PrismaClient } from "@calcom/prisma";
+import type { NextApiRequest } from "next";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
 
@@ -15,7 +14,7 @@ interface IsAvailableOptions {
   };
   input: TIsAvailableInputSchema;
 }
-
+// TODO: Add a check to see if the slot is available for the user based on the minimum booking notice
 /**
  * It does a super quick check whether that slot is bookable or not.
  * It doesn't consider slow things like querying the bookings, checking the calendars.
