@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { TFunction } from "i18next";
+import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
 import AdminOAuthClientNotification from "./admin-oauth-client-notification";
 
@@ -56,7 +57,7 @@ describe("AdminOAuthClientNotification", () => {
 
     expect(payload).toEqual(
       expect.objectContaining({
-        to: "team@cal.com",
+        to: SUPPORT_MAIL_ADDRESS,
         subject: `New OAuth Client: ${input.clientName}`,
       })
     );
