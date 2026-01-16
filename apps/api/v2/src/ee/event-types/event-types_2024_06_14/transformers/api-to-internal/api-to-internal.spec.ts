@@ -708,12 +708,49 @@ describe("transformFutureBookingLimitsApiToInternal", () => {
 
     expect(result).toEqual(expectedOutput);
   });
-  it("should normalize range type with full ISO strings to UTC midnight", () => {
+  it("should normalize range type with full ISO strings to UTC midnight (positive offset)", () => {
     // Client in Dubai (UTC+4) sends full ISO strings - without normalization this would shift dates
     // e.g., "2024-08-06T00:00:00.000+04:00" would become 2024-08-05T20:00:00.000Z
     const input: BookingWindow_2024_06_14 = {
       type: "range",
       value: ["2024-08-06T00:00:00.000+04:00", "2024-08-28T00:00:00.000+04:00"],
+    };
+
+    // Should extract date part and create UTC midnight dates
+    const expectedOutput = {
+      periodType: "RANGE",
+      periodStartDate: new Date("2024-08-06"),
+      periodEndDate: new Date("2024-08-28"),
+    };
+
+    const result = transformFutureBookingLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should normalize range type with full ISO strings to UTC midnight (negative offset)", () => {
+    // Client in Buenos Aires (UTC-3) sends full ISO strings - without normalization this would shift dates
+    // e.g., "2024-08-06T00:00:00.000-03:00" would become 2024-08-06T03:00:00.000Z (3 hours later)
+    const input: BookingWindow_2024_06_14 = {
+      type: "range",
+      value: ["2024-08-06T00:00:00.000-03:00", "2024-08-28T00:00:00.000-03:00"],
+    };
+
+    // Should extract date part and create UTC midnight dates
+    const expectedOutput = {
+      periodType: "RANGE",
+      periodStartDate: new Date("2024-08-06"),
+      periodEndDate: new Date("2024-08-28"),
+    };
+
+    const result = transformFutureBookingLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should normalize range type with full ISO strings to UTC midnight (UTC/Z suffix)", () => {
+    // Client sends UTC timestamps with Z suffix
+    const input: BookingWindow_2024_06_14 = {
+      type: "range",
+      value: ["2024-08-06T00:00:00.000Z", "2024-08-28T00:00:00.000Z"],
     };
 
     // Should extract date part and create UTC midnight dates

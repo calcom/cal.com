@@ -502,4 +502,101 @@ describe("calculatePeriodLimits - PeriodType.RANGE", () => {
       (24 * 60 * 60 * 1000);
     expect(Math.ceil(durationDays)).toBe(6);
   });
+
+  describe("timezone combinations that were causing date shifts", () => {
+    /**
+     * These tests verify the specific timezone combinations reported as buggy:
+     * 1. Event timezone: UTC (offset 0), Booker: Dubai → date was shifting back a day
+     * 2. Event timezone: Buenos Aires (UTC-3, offset -180), Booker: Dubai → date was shifting back a day
+     * 3. Event timezone: Jerusalem (UTC+2, offset 120), Booker: Dubai → was working correctly
+     *
+     * The issue was that when we parse UTC midnight and convert to a negative offset timezone,
+     * the local time becomes the previous day, causing startOf("day") to give the wrong date.
+     */
+
+    it("Event timezone UTC (offset 0), Booker Dubai: should show Jan 20 correctly", () => {
+      // User selects Jan 20 in the UI
+      // Frontend sends UTC midnight for Jan 20
+      const periodStartDate = new Date("2024-01-20T00:00:00.000Z");
+      const periodEndDate = new Date("2024-01-20T00:00:00.000Z");
+
+      const eventUtcOffset = 0; // UTC
+      const bookerUtcOffset = 240; // Dubai UTC+4
+
+      const result = calculatePeriodLimits({
+        periodType: PeriodType.RANGE,
+        periodDays: null,
+        periodCountCalendarDays: null,
+        periodStartDate,
+        periodEndDate,
+        allDatesWithBookabilityStatusInBookerTz: null,
+        eventUtcOffset,
+        bookerUtcOffset,
+      });
+
+      // Should be Jan 20, NOT Jan 19
+      expect(result.startOfRangeStartDayInEventTz!.date()).toBe(20);
+      expect(result.endOfRangeEndDayInEventTz!.date()).toBe(20);
+
+      // Start should be midnight UTC Jan 20
+      expect(result.startOfRangeStartDayInEventTz!.toISOString()).toBe("2024-01-20T00:00:00.000Z");
+    });
+
+    it("Event timezone Buenos Aires (UTC-3, offset -180), Booker Dubai: should show Jan 20 correctly", () => {
+      // User selects Jan 20 in the UI
+      // Frontend sends UTC midnight for Jan 20
+      const periodStartDate = new Date("2024-01-20T00:00:00.000Z");
+      const periodEndDate = new Date("2024-01-20T00:00:00.000Z");
+
+      const eventUtcOffset = -180; // Buenos Aires UTC-3
+      const bookerUtcOffset = 240; // Dubai UTC+4
+
+      const result = calculatePeriodLimits({
+        periodType: PeriodType.RANGE,
+        periodDays: null,
+        periodCountCalendarDays: null,
+        periodStartDate,
+        periodEndDate,
+        allDatesWithBookabilityStatusInBookerTz: null,
+        eventUtcOffset,
+        bookerUtcOffset,
+      });
+
+      // Should be Jan 20, NOT Jan 19
+      // The bug was: UTC midnight converted to Buenos Aires = Jan 19 21:00, startOf("day") = Jan 19
+      expect(result.startOfRangeStartDayInEventTz!.date()).toBe(20);
+      expect(result.endOfRangeEndDayInEventTz!.date()).toBe(20);
+
+      // Start should be midnight Jan 20 in Buenos Aires = 03:00 UTC
+      expect(result.startOfRangeStartDayInEventTz!.toISOString()).toBe("2024-01-20T03:00:00.000Z");
+    });
+
+    it("Event timezone Jerusalem (UTC+2, offset 120), Booker Dubai: should show Jan 20 correctly", () => {
+      // User selects Jan 20 in the UI
+      // Frontend sends UTC midnight for Jan 20
+      const periodStartDate = new Date("2024-01-20T00:00:00.000Z");
+      const periodEndDate = new Date("2024-01-20T00:00:00.000Z");
+
+      const eventUtcOffset = 120; // Jerusalem UTC+2
+      const bookerUtcOffset = 240; // Dubai UTC+4
+
+      const result = calculatePeriodLimits({
+        periodType: PeriodType.RANGE,
+        periodDays: null,
+        periodCountCalendarDays: null,
+        periodStartDate,
+        periodEndDate,
+        allDatesWithBookabilityStatusInBookerTz: null,
+        eventUtcOffset,
+        bookerUtcOffset,
+      });
+
+      // Should be Jan 20 (this was already working)
+      expect(result.startOfRangeStartDayInEventTz!.date()).toBe(20);
+      expect(result.endOfRangeEndDayInEventTz!.date()).toBe(20);
+
+      // Start should be midnight Jan 20 in Jerusalem = 22:00 UTC Jan 19
+      expect(result.startOfRangeStartDayInEventTz!.toISOString()).toBe("2024-01-19T22:00:00.000Z");
+    });
+  });
 });
