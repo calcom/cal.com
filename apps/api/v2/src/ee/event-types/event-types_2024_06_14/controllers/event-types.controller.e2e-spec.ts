@@ -3536,4 +3536,127 @@ describe("Event types Endpoints", () => {
       await app.close();
     });
   });
+
+  describe("User with matching profile username - backward compatibility", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+
+    const matchingUsername = `matching-${Date.now()}-example`;
+    const userEmail = `${matchingUsername}@api.com`;
+
+    let userWithMatchingProfile: User;
+    let userEventType: EventType;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({
+        name: `matching-profile-org-${Date.now()}`,
+        slug: `matching-profile-org-slug-${Date.now()}`,
+      });
+      oAuthClient = await oauthClientRepositoryFixture.create(
+        organization.id,
+        {
+          logo: "logo-url",
+          name: "name",
+          redirectUris: ["redirect-uri"],
+          permissions: 32,
+        },
+        "secret"
+      );
+
+      userWithMatchingProfile = await userRepositoryFixture.create({
+        email: userEmail,
+        name: `User ${matchingUsername}`,
+        username: matchingUsername,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${userWithMatchingProfile.id}`,
+        username: matchingUsername,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: userWithMatchingProfile.id,
+          },
+        },
+      });
+
+      userEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: "Matching Profile User Event Type",
+          slug: `matching-event-${Date.now()}`,
+          length: 30,
+          hidden: false,
+        },
+        userWithMatchingProfile.id
+      );
+
+      await app.init();
+    });
+
+    it("should return user's event types when querying by username only if user has matching profile username and is the only such user", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${matchingUsername}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].id).toEqual(userEventType.id);
+      expect(responseBody.data[0].title).toEqual("Matching Profile User Event Type");
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      try {
+        await eventTypesRepositoryFixture.delete(userEventType.id);
+      } catch (_e) {}
+      try {
+        await userRepositoryFixture.delete(userWithMatchingProfile.id);
+      } catch (_e) {}
+      await teamRepositoryFixture.delete(organization.id);
+      await app.close();
+    });
+  });
 });

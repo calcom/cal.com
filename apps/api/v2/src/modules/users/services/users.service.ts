@@ -1,8 +1,6 @@
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import type { User } from "@calcom/prisma/client";
-
 export type ProfileMinimal = {
   id: number;
   username?: string | null;
@@ -25,9 +23,40 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async getByUsernames(usernames: string[], orgSlug?: string, orgId?: number) {
-    return orgSlug || orgId
-      ? await this.usersRepository.findManyByUsernames(usernames, orgSlug, orgId)
-      : await this.usersRepository.findManyByUsernamesExcludingOrgUsers(usernames);
+    if (orgSlug || orgId) {
+      return await this.usersRepository.findManyByUsernames(usernames, orgSlug, orgId);
+    }
+
+    const users = await this.usersRepository.findManyByUsernamesExcludingOrgUsers(usernames);
+
+    if (users.length === usernames.length) {
+      return users;
+    }
+
+    const foundUsernames = new Set(users.map((u) => u.username));
+    const missingUsernames = usernames.filter((username) => !foundUsernames.has(username));
+
+    if (missingUsernames.length > 0) {
+      const usersWithMatchingProfile =
+        await this.usersRepository.findManyByUsernamesWithMatchingProfile(missingUsernames);
+
+      const usernameToUsers = new Map<string, typeof usersWithMatchingProfile>();
+      for (const user of usersWithMatchingProfile) {
+        if (user.username) {
+          const existing = usernameToUsers.get(user.username) || [];
+          existing.push(user);
+          usernameToUsers.set(user.username, existing);
+        }
+      }
+
+      for (const [_username, matchedUsers] of usernameToUsers) {
+        if (matchedUsers.length === 1) {
+          users.push(matchedUsers[0]);
+        }
+      }
+    }
+
+    return users;
   }
 
   getUserMainProfile(user: UserWithProfileMinimal): ProfileMinimal | undefined {

@@ -127,10 +127,20 @@ export class EventTypesService_2024_06_14 {
     orgId?: number;
     authUser?: AuthOptionalUser;
   }): Promise<(DatabaseEventType & { ownerId: number }) | null> {
-    const user =
+    let user =
       params.orgSlug || params.orgId
         ? await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId)
         : await this.usersRepository.findByUsernameExcludingOrgUsers(params.username);
+
+    if (!user && !params.orgSlug && !params.orgId) {
+      const usersWithMatchingProfile = await this.usersRepository.findByUsernameWithMatchingProfile(
+        params.username
+      );
+      if (usersWithMatchingProfile.length === 1) {
+        user = usersWithMatchingProfile[0];
+      }
+    }
+
     if (!user) {
       return null;
     }
@@ -158,10 +168,20 @@ export class EventTypesService_2024_06_14 {
     authUser?: AuthOptionalUser;
     sortCreatedAt?: SortOrderType;
   }) {
-    const user =
+    let user =
       params.orgSlug || params.orgId
         ? await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId)
         : await this.usersRepository.findByUsernameExcludingOrgUsers(params.username);
+
+    if (!user && !params.orgSlug && !params.orgId) {
+      const usersWithMatchingProfile = await this.usersRepository.findByUsernameWithMatchingProfile(
+        params.username
+      );
+      if (usersWithMatchingProfile.length === 1) {
+        user = usersWithMatchingProfile[0];
+      }
+    }
+
     if (!user) {
       return [];
     }

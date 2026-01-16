@@ -191,6 +191,20 @@ export class UsersRepository {
     });
   }
 
+  async findByUsernameWithMatchingProfile(username: string) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username,
+        profiles: {
+          some: {
+            username,
+          },
+        },
+      },
+      take: 2,
+    });
+  }
+
   async findManyByUsernames(usernames: string[], orgSlug?: string, orgId?: number) {
     if (orgId || orgSlug) {
       return this.dbRead.prisma.user.findMany({
@@ -216,6 +230,19 @@ export class UsersRepository {
       where: {
         username: { in: usernames },
         OR: [{ profiles: { none: {} } }, { isPlatformManaged: true }],
+      },
+    });
+  }
+
+  async findManyByUsernamesWithMatchingProfile(usernames: string[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username: { in: usernames },
+        profiles: {
+          some: {
+            username: { in: usernames },
+          },
+        },
       },
     });
   }
