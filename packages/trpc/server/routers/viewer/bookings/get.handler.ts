@@ -5,6 +5,8 @@ import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 import dayjs from "@calcom/dayjs";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
+import { isOrganisationAdmin } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
@@ -564,10 +566,11 @@ export async function getBookings({
                     .whereRef("Host.eventTypeId", "=", "EventType.id")
                 ).as("hosts"),
                 "EventType.length",
+                "EventType.teamId",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .select(["Team.id", "Team.name", "Team.slug", "Team.parentId"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
                 jsonArrayFrom(
@@ -747,13 +750,19 @@ export async function getBookings({
     });
   };
 
+  const checkIfUserIsTeamAdminOrOwner = async (userId: number, booking: (typeof plainBookings)[number]) => {
+    const isTeamAdminOrOwnerResult = !!(await isTeamOwner(userId, booking.eventType?.teamId ?? 0));
+    const isOrgAdminOrOwnerResult = !!(await isOrganisationAdmin(userId, booking.eventType?.team?.parentId ?? 0));
+    return isTeamAdminOrOwnerResult || isOrgAdminOrOwnerResult;
+  };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
       if (
-        booking.seatsReferences.length &&
         !booking.eventType?.seatsShowAttendees &&
-        !checkIfUserIsHost(user.id, booking)
+        !checkIfUserIsHost(user.id, booking) &&
+        !(await checkIfUserIsTeamAdminOrOwner(user.id, booking))
       ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }

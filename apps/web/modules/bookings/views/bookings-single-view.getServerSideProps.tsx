@@ -7,7 +7,8 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
+import { isTeamOwner, isTeamMember } from "@calcom/features/ee/teams/lib/queries";
+import { isOrganisationAdmin } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
@@ -167,11 +168,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const userId = session?.user?.id;
 
-  const checkIfUserIsHost = (userId?: number | null) => {
+  const checkIfUserIsHostOrTeamAdmin = async (userId?: number | null) => {
     if (!userId) return false;
 
+    if (bookingInfo?.user?.id === userId) return true;
+
+    const isTeamAdminOrOwner = !!(await isTeamOwner(userId, eventType?.teamId ?? 0));
+    const isOrgAdminOrOwner = !!(await isOrganisationAdmin(userId, eventType?.team?.parentId ?? 0));
+
+    if (isTeamAdminOrOwner || isOrgAdminOrOwner) return true;
+
     return (
-      bookingInfo?.user?.id === userId ||
       eventType.users.some(
         (user) =>
           user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
@@ -183,7 +190,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     );
   };
 
-  const isLoggedInUserHost = checkIfUserIsHost(userId);
+  const isLoggedInUserHost = await checkIfUserIsHostOrTeamAdmin(userId);
   const eventTeamId = eventType.team?.id ?? eventType.parent?.teamId;
   const isLoggedInUserTeamMember = !!(userId && eventTeamId && (await isTeamMember(userId, eventTeamId)));
 

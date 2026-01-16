@@ -765,7 +765,7 @@ const Attendee = (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
-          data-testid="guest"
+          data-testid={`attendee-name-${email}`}
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (

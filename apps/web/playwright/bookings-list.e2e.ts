@@ -8,7 +8,8 @@ import { addFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { setupManagedEvent } from "./lib/testUtils";
+import { setupTeamAndBookingSeats } from "./lib/test-helpers/teamHelpers";
+import { setupManagedEvent, createUserWithSeatedEventAndAttendees } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -617,3 +618,88 @@ async function createBooking({
     },
   });
 }
+
+test.describe("Attendee Visibility in Booking List", () => {
+  test("Team Owner should see all attendees in booking list when seatsShowAttendees is false", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    const teamOwner = await users.create({
+      name: "Team Owner",
+      email: "teamowner@example.com",
+    });
+
+    await setupTeamAndBookingSeats(user, booking, teamOwner, "OWNER");
+
+    await teamOwner.apiLogin();
+    await page.goto("/bookings/upcoming");
+    await expect(page).toHaveURL("/bookings/upcoming");
+
+    // Should see the booking with all attendees visible
+    const bookingItem = page.locator('[data-testid="booking-item"]').first();
+    await expect(bookingItem).toBeVisible();
+
+    // Should see both attendees
+    await expect(page.getByTestId("attendee-name-first+seats@cal.com")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-second+seats@cal.com")).toBeVisible();
+  });
+
+  test("Team Admin should see all attendees in booking list when seatsShowAttendees is false", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    const teamAdmin = await users.create({
+      name: "Team Admin",
+      email: "teamadmin@example.com",
+    });
+
+    await setupTeamAndBookingSeats(user, booking, teamAdmin, "ADMIN");
+
+    await teamAdmin.apiLogin();
+    await page.goto("/bookings/upcoming");
+
+    // Should see the booking with all attendees visible
+    const bookingItem = page.locator('[data-testid="booking-item"]').first();
+    await expect(bookingItem).toBeVisible();
+
+    // Should see both attendees
+    await expect(page.getByTestId("attendee-name-first+seats@cal.com")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-second+seats@cal.com")).toBeVisible();
+  });
+
+  test("Event Host should see all attendees in booking list when seatsShowAttendees is false", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    await setupTeamAndBookingSeats(user, booking, user, "MEMBER");
+
+    await user.apiLogin();
+    await page.goto("/bookings/upcoming");
+
+    // Should see the booking with all attendees visible
+    const bookingItem = page.locator('[data-testid="booking-item"]').first();
+    await expect(bookingItem).toBeVisible();
+
+    // Should see both attendees
+    await expect(page.getByTestId("attendee-name-first+seats@cal.com")).toBeVisible();
+    await expect(page.getByTestId("attendee-name-second+seats@cal.com")).toBeVisible();
+  });
+});

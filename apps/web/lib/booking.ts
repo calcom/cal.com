@@ -90,6 +90,7 @@ export const getEventTypesFromDB = async (id: number) => {
               theme: true,
             },
           },
+          parentId: true,
           createdByOAuthClientId: true,
         },
       },
