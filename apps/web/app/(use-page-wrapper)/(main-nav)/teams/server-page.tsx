@@ -12,6 +12,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TeamsListing } from "~/ee/teams/components/TeamsListing";
 
 import { TeamsCTA } from "./CTA";
+import { TEAMS_CACHE_TAG } from "./cache";
 
 const getCachedTeams = unstable_cache(
   async (userId: number) => {
@@ -22,7 +23,7 @@ const getCachedTeams = unstable_cache(
     });
   },
   undefined,
-  { revalidate: 3600, tags: ["viewer.teams.list"] } // Cache for 1 hour
+  { revalidate: 3600, tags: [TEAMS_CACHE_TAG] }
 );
 
 export const ServerTeamsListing = async ({
@@ -34,7 +35,7 @@ export const ServerTeamsListing = async ({
 }) => {
   "use cache: private";
   cacheLife({ stale: 30 });
-  cacheTag("viewer.teams.list");
+  cacheTag(TEAMS_CACHE_TAG);
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const autoAccept = Array.isArray(searchParams?.autoAccept)
     ? searchParams.autoAccept[0]

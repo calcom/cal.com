@@ -2,6 +2,8 @@
 
 import { revalidateTag } from "next/cache";
 
+import { TEAMS_CACHE_TAG } from "./cache";
+
 export async function revalidateTeamsList() {
-  revalidateTag("viewer.teams.list", "max");
+  revalidateTag(TEAMS_CACHE_TAG, "max");
 }
