@@ -377,10 +377,11 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                     />
 
                                     <Button
-                                      StartIcon="trash-2"
+                                      StartIcon="trash"
                                       variant="icon"
                                       tooltip={t("delete")}
-                                      color="destructive"
+                                      color="secondary"
+                                      className="text-error enabled:hover:text-error"
                                       onClick={() => deleteWebhook(webhook)}
                                     />
                                   </div>
@@ -405,8 +406,8 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                         {t("edit")}
                                       </DropdownMenuItem>
                                       <DropdownMenuItem
-                                        onClick={() => deleteWebhook(webhook)}
                                         color="destructive"
+                                        onClick={() => deleteWebhook(webhook)}
                                         StartIcon="trash">
                                         {t("delete")}
                                       </DropdownMenuItem>

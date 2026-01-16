@@ -10,13 +10,19 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+
+import type { DeleteDialogState } from "../types/event-types";
+import { DeleteEventDialog } from "./delete-event-dialog";
 
 interface EventTypeActionsProps {
   form: UseFormReturn<FormValues>;
@@ -25,7 +31,9 @@ interface EventTypeActionsProps {
   hasPermsToDelete: boolean;
   isUpdatePending: boolean;
   handleSubmit: (values: FormValues) => Promise<void>;
-  onDeleteClick: () => void;
+  onDelete: () => void;
+  eventTypeId: number;
+  isDeleting?: boolean;
 }
 
 export const EventTypeActions = ({
@@ -35,9 +43,18 @@ export const EventTypeActions = ({
   hasPermsToDelete,
   isUpdatePending,
   handleSubmit,
-  onDeleteClick,
+  onDelete,
+  eventTypeId,
+  isDeleting = false,
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
+  const { copyToClipboard } = useCopy();
+
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
+    open: false,
+    typeId: eventTypeId,
+    schedulingType: null,
+  });
 
   const isManagedEventType = (() => {
     try {
@@ -59,6 +76,35 @@ export const EventTypeActions = ({
   })();
 
   const shouldHideRedirectAndCopy = isManagedEventType || isChildrenManagedEventType;
+
+  const handleDeleteClick = () => {
+    try {
+      const schedulingType = form?.getValues("schedulingType");
+      setDeleteDialog({
+        open: true,
+        typeId: eventTypeId,
+        schedulingType: schedulingType || null,
+      });
+    } catch (error) {
+      setDeleteDialog({
+        open: true,
+        typeId: eventTypeId,
+        schedulingType: null,
+      });
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    onDelete();
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteDialog({
+      open: false,
+      typeId: eventTypeId,
+      schedulingType: null,
+    });
+  };
 
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
@@ -86,7 +132,8 @@ export const EventTypeActions = ({
               <ButtonOrLink
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(permalink);
+                  copyToClipboard(permalink);
+                  triggerToast(t("link_copied"), "success");
                 }}
                 className="flex w-full items-center">
                 <Icon name="link" className="mr-2 h-4 w-4" />
@@ -97,7 +144,7 @@ export const EventTypeActions = ({
           <DropdownMenuItem disabled={!hasPermsToDelete}>
             <ButtonOrLink
               type="button"
-              onClick={onDeleteClick}
+              onClick={handleDeleteClick}
               className="text-destructive flex w-full items-center">
               <Icon name="trash" className="mr-2 h-4 w-4" />
               {t("delete")}
@@ -162,18 +209,20 @@ export const EventTypeActions = ({
             StartIcon="link"
             tooltip={t("copy_link")}
             onClick={() => {
-              navigator.clipboard.writeText(permalink);
+              copyToClipboard(permalink);
+              triggerToast(t("link_copied"), "success");
             }}
           />
         )}
 
         <Button
-          color="destructive"
+          color="secondary"
+          className="text-error enabled:hover:text-error"
           variant="icon"
           StartIcon="trash"
           tooltip={t("delete")}
           disabled={!hasPermsToDelete}
-          onClick={onDeleteClick}
+          onClick={handleDeleteClick}
         />
       </ButtonGroup>
 
@@ -192,6 +241,13 @@ export const EventTypeActions = ({
         form="event-type-form">
         {t("save")}
       </Button>
+
+      <DeleteEventDialog
+        deleteDialog={deleteDialog}
+        onClose={handleDeleteClose}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 };

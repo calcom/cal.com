@@ -49,7 +49,7 @@ export function FilterSegmentSelect() {
       adminOnly: false,
     },
     {
-      iconName: "trash-2",
+      iconName: "trash",
       labelKey: "delete",
       onClick: (segment) => setSegmentToDelete(segment),
       isDestructive: true,

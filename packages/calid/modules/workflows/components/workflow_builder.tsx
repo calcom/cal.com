@@ -1202,7 +1202,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                   data-testid="delete-workflow"
                   color="destructive"
                   variant="icon"
-                  StartIcon="trash-2"
+                  StartIcon="trash"
                   onClick={() => setIsDeleteDialogOpen(true)}
                 />
               )}
@@ -1470,7 +1470,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           size="sm"
                                           onClick={() => removeAction(step.id)}
                                           className="p-2">
-                                          <Icon name="trash-2" className="h-4 w-4" />
+                                          <Icon name="trash" className="h-4 w-4" />
                                         </Button>
                                       )}
                                     </div>

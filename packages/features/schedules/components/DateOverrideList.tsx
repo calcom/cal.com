@@ -114,7 +114,7 @@ const DateOverrideList = ({
                 })}
                 color="destructive"
                 variant="icon"
-                StartIcon="trash-2"
+                StartIcon="trash"
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
                   handleAvailabilityUpdate();

@@ -243,7 +243,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           color="secondary"
                           className="ml-auto"
                           variant="icon"
-                          StartIcon="trash-2"
+                          StartIcon="trash"
                           onClick={() => {
                             const updatedSchedules = watchedTzSchedules.filter(
                               (s, filterIndex) => filterIndex !== index

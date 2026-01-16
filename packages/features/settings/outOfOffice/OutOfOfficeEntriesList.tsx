@@ -1,9 +1,9 @@
 "use client";
 
 import { Avatar } from "@calid/features/ui/components/avatar";
+import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Button } from "@calid/features/ui/components/button";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
@@ -308,7 +308,7 @@ function OutOfOfficeEntriesListContent() {
       //                   isFetching ||
       //                   !item.canEditAndDelete
       //                 }
-      //                 StartIcon="trash-2"
+      //                 StartIcon="trash"
       //                 data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
       //                 onClick={() => {
       //                   deleteOutOfOfficeEntryMutation.mutate({
@@ -458,7 +458,7 @@ function OutOfOfficeEntriesListContent() {
                       isFetching ||
                       !item.canEditAndDelete
                     }
-                    StartIcon="trash-2"
+                    StartIcon="trash"
                     data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
                     onClick={() => {
                       deleteOutOfOfficeEntryMutation.mutate({

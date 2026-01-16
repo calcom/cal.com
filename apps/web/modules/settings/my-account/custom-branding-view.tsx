@@ -493,13 +493,14 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-row items-center gap-6">
+                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                       <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
-                      <div className="flex items-center gap-3">
-                        <div className="w-[105px]">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex">
                           <CustomBannerUploader
                             target="logo"
-                            fieldName="Logo"
+                            startIcon="upload"
+                            fieldName="logo"
                             id="logo-upload"
                             buttonMsg={t("upload_logo")}
                             uploading={mutation.isPending}
@@ -514,7 +515,8 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                         </div>
                         {showRemoveAvatarButton && (
                           <Button
-                            color="secondary"
+                            color="destructive"
+                            StartIcon="trash"
                             onClick={() => {
                               onChange(null);
                               mutation.mutate({ bannerUrl: "delete" });
@@ -555,40 +557,38 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                       </div>
                     </div>
 
-                    <div className="mt-3 flex gap-2">
-                      <div className="flex">
-                        <Avatar
-                          alt={user.name || "User Favicon"}
-                          imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
-                          size="lg"
+                    <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                      <Avatar
+                        alt={user.name || "User Favicon"}
+                        imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                        size="lg"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CustomImageUploader
+                          target="avatar"
+                          startIcon="upload"
+                          fieldName="favicon"
+                          id="avatar-upload"
+                          buttonMsg={t("upload_favicon")}
+                          handleAvatarChange={(newAvatar) => {
+                            setOrgBase64(newAvatar);
+                            onChange(newAvatar);
+                            mutation.mutate({ faviconUrl: newAvatar });
+                          }}
+                          imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
                         />
-                        <div className="ms-4 flex items-center">
-                          <div className="flex gap-2">
-                            <CustomImageUploader
-                              target="avatar"
-                              fieldName="favicon"
-                              id="avatar-upload"
-                              buttonMsg={t("upload_favicon")}
-                              handleAvatarChange={(newAvatar) => {
-                                setOrgBase64(newAvatar);
-                                onChange(newAvatar);
-                                mutation.mutate({ faviconUrl: newAvatar });
-                              }}
-                              imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
-                            />
 
-                            {showRemoveFaviconButton && (
-                              <Button
-                                color="secondary"
-                                onClick={() => {
-                                  onChange(null);
-                                  mutation.mutate({ faviconUrl: "delete" });
-                                }}>
-                                {t("remove")}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
+                        {showRemoveFaviconButton && (
+                          <Button
+                            color="destructive"
+                            StartIcon="trash"
+                            onClick={() => {
+                              onChange(null);
+                              mutation.mutate({ faviconUrl: "delete" });
+                            }}>
+                            {t("remove")}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

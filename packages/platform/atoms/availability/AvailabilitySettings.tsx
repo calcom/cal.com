@@ -139,9 +139,9 @@ const DeleteDialogButton = ({
         <Button
           StartIcon="trash"
           variant="icon"
-          color="destructive"
+          color="secondary"
           aria-label={t("delete")}
-          className={buttonClassName}
+          className={cn(buttonClassName, "text-error enabled:hover:text-error")}
           disabled={disabled}
           tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
           tooltipSide="bottom"

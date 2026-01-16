@@ -116,7 +116,7 @@ function AttributeItem({
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon="trash-2"
+                    StartIcon="trash"
                     color="destructive"
                     className="rounded-t-none"
                     onClick={() => setAttributeToDelete(attribute)}>

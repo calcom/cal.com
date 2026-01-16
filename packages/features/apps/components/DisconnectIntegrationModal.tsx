@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -40,18 +41,15 @@ export default function DisconnectIntegrationModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleModelClose}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader showIcon variant="warning">
           <DialogTitle>{t("remove_app")}</DialogTitle>
           <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="mt-6">
-          <Button color="minimal" onClick={handleModelClose}>
-            {t("cancel")}
-          </Button>
-
+        <DialogFooter>
           <Button
             color="destructive"
+            StartIcon="trash"
             onClick={() => {
               if (isPlatform && app && credentialId) {
                 handleRemoveApp({
@@ -70,6 +68,7 @@ export default function DisconnectIntegrationModal({
             }}>
             {t("yes_remove_app")}
           </Button>
+          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -337,7 +337,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon="trash-2"
+                        StartIcon="trash"
                       />
                     )}
                     <Button

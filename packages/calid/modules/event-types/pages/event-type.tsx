@@ -28,7 +28,6 @@ import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/
 
 import { TRPCClientError } from "@trpc/react-query";
 
-// Import the new actions component
 import { EventTypeActions } from "../components/event-types-action";
 import { EventAdvanced } from "../components/tabs/event-types-advanced";
 import { EventApps } from "../components/tabs/event-types-apps";
@@ -43,11 +42,8 @@ import { EventWorkflows } from "../components/tabs/event-types-workflows";
 import { isManagedEventType } from "../utils/event-types-utils";
 import { TabSkeleton } from "./tab-skeleton";
 
-// import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-
 type CalIdEventTypeData = RouterOutputs["viewer"]["eventTypes"]["calid_get"];
 
-// Dynamic imports for dialogs only (these can remain dynamic as they're not frequently accessed)
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
 );
@@ -56,11 +52,6 @@ const AssignmentWarningDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/AssignmentWarningDialog")
 );
 
-const DeleteDialog = dynamic(() =>
-  import("@calcom/features/eventtypes/components/dialogs/DeleteDialog").then((mod) => mod.DeleteDialog)
-);
-
-// Tab configuration
 const getTabs = (currentPath: string): HorizontalTabItemProps[] => [
   { name: "Event Setup", icon: "settings", href: `${currentPath}?tabName=setup` },
   { name: "Availability", icon: "clock-2", href: `${currentPath}?tabName=availability` },
@@ -70,9 +61,7 @@ const getTabs = (currentPath: string): HorizontalTabItemProps[] => [
   { name: "Apps", icon: "blocks", href: `${currentPath}?tabName=apps` },
   { name: "Workflows", icon: "workflow", href: `${currentPath}?tabName=workflows` },
   { name: "Webhooks", icon: "webhook", href: `${currentPath}?tabName=webhooks` },
-  // { name: "Instant", icon: "bell", href: `${currentPath}?tabName=instant` },
   { name: "Recurring", icon: "refresh-ccw", href: `${currentPath}?tabName=recurring` },
-  // { name: "AI", icon: "sparkles", href: `${currentPath}?tabName=ai` },
   { name: "Embed", icon: "clipboard", href: `${currentPath}?tabName=embed` },
 ];
 
@@ -144,7 +133,6 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   // State management
   const [activeTab, setActiveTab] = useState(tab || "setup");
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -491,7 +479,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       permalink={permalink}
       hasPermsToDelete={hasPermsToDelete}
       isUpdatePending={updateMutation.isPending || !isFormReady}
-      onDeleteClick={() => setDeleteDialogOpen(true)}
+      onDelete={() => deleteMutation.mutate({ id: eventType.id })}
+      eventTypeId={eventType.id}
+      isDeleting={deleteMutation.isPending}
     />
   );
 
@@ -568,15 +558,6 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
           pendingRoute={pendingRoute}
           leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
           id={eventType.id}
-        />
-
-        <DeleteDialog
-          eventTypeId={eventType.id}
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          onDelete={() => deleteMutation.mutate({ id: eventType.id })}
-          isDeleting={deleteMutation.isPending}
-          isManagedEvent={eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : ""}
         />
       </div>
     </Shell>
