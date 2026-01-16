@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+
 import type { PrismaClient } from "@calcom/prisma";
 import type { OAuthClientStatus } from "@calcom/prisma/enums";
 
@@ -152,23 +152,16 @@ export class OAuthClientRepository {
     name: string;
     purpose: string;
     redirectUri: string;
+    clientSecret?: string;
     logo?: string;
     websiteUrl?: string;
     enablePkce?: boolean;
     userId?: number;
     status: OAuthClientStatus;
   }) {
-    const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, userId, status } = data;
+    const { name, purpose, redirectUri, clientSecret, logo, websiteUrl, enablePkce, userId, status } = data;
 
     const clientId = randomBytes(32).toString("hex");
-
-    let clientSecret: string | undefined;
-    let hashedSecret: string | undefined;
-    if (!enablePkce) {
-      const [hashed, plain] = generateSecret();
-      hashedSecret = hashed;
-      clientSecret = plain;
-    }
 
     const client = await this.prisma.oAuthClient.create({
       data: {
@@ -180,7 +173,7 @@ export class OAuthClientRepository {
         logo,
         websiteUrl,
         status,
-        clientSecret: hashedSecret,
+        clientSecret,
         ...(userId && {
           user: {
             connect: { id: userId },
@@ -196,7 +189,7 @@ export class OAuthClientRepository {
       redirectUri: client.redirectUri,
       logo: client.logo,
       clientType: client.clientType,
-      clientSecret,
+      clientSecret: client.clientSecret,
       isPkceEnabled: enablePkce,
       status: client.status,
     };
