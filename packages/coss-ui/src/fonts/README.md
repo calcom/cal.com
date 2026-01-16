@@ -22,18 +22,18 @@ export default function RootLayout({ children }) {
 
 ## Available Fonts
 
-- `fontSans` - Inter font from Google Fonts (body text, all weights)
-- `fontHeading` - Inter font at weight 600/semibold (headings)
+- `fontSans` - Inter font from Google Fonts (body text)
+- `fontHeading` - Cal Sans SemiBold font (headings)
 
 ## Adding New Fonts
 
-Add a new font configuration in `index.ts`:
+For local fonts, place the font file in this directory and add a configuration in `index.ts`:
 
 ```typescript
-import { YourFont } from "next/font/google";
+import localFont from "next/font/local";
 
-export const yourNewFont = YourFont({
-  subsets: ["latin"],
+export const yourNewFont = localFont({
+  src: "./YourFont.woff2",
   variable: "--font-your-name",
 });
 ```

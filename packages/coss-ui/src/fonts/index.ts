@@ -1,4 +1,5 @@
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 
 export const fontSans = Inter({
   subsets: ["latin"],
@@ -7,10 +8,10 @@ export const fontSans = Inter({
   display: "swap",
 });
 
-export const fontHeading = Inter({
-  subsets: ["latin"],
+export const fontHeading = localFont({
+  src: "./CalSans-SemiBold.woff2",
   variable: "--font-heading",
-  weight: "600",
   preload: true,
-  display: "swap",
+  display: "block",
+  weight: "600",
 });
