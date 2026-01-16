@@ -8,10 +8,6 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/web/modules/embed/components/EventTypeEmbed";
-import { EventTypeDescription } from "@calcom/web/modules/event-types/components";
-import { DuplicateDialog } from "@calcom/web/modules/event-types/components/DuplicateDialog";
-import { InfiniteSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import {
   extractHostTimezone,
@@ -53,10 +49,21 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { CreateButton } from "@calcom/web/modules/ee/teams/components/createButton/CreateButton";
 import {
+  EventTypeEmbedButton,
+  EventTypeEmbedDialog,
+} from "@calcom/web/modules/embed/components/EventTypeEmbed";
+import { EventTypeDescription } from "@calcom/web/modules/event-types/components";
+import {
   CreateEventTypeDialog,
   type ProfileOption,
 } from "@calcom/web/modules/event-types/components/CreateEventTypeDialog";
 import { TRPCClientError } from "@trpc/client";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type React from "react";
+import type { FC } from "react";
+import { createContext, memo, useContext, useEffect, useState } from "react";
+import { z } from "zod";
 
 type GetUserEventGroupsResponse =
   RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
@@ -74,6 +81,23 @@ type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
 
 const LIMIT = 10;
+
+interface SearchContextType {
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+  debouncedSearchTerm: string;
+}
+
+const SearchContextInternal: React.Context<SearchContextType | undefined> =
+  createContext<SearchContextType | undefined>(undefined);
+
+const useSearchContext = (): SearchContextType => {
+  const context = useContext(SearchContextInternal);
+  if (!context) {
+    throw new Error("useSearchContext must be used within SearchProvider");
+  }
+  return context;
+};
 
 interface InfiniteEventTypeListProps {
   group: InfiniteEventTypeGroup;
@@ -98,12 +122,12 @@ const querySchema = z.object({
   teamId: z.nullable(z.coerce.number()).optional().default(null),
 });
 
-const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
+const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (
+  props: InfiniteTeamsTabProps
+) => {
   const { activeEventTypeGroup } = props;
+  const { debouncedSearchTerm } = useSearchContext();
   const { t } = useLocale();
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const query = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
@@ -118,7 +142,8 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
       refetchOnWindowFocus: true,
       refetchOnMount: true,
       staleTime: 0,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage: { nextCursor: number | null | undefined }) =>
+        lastPage.nextCursor,
     }
   );
 
@@ -130,18 +155,6 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
 
   return (
     <div>
-      <TextField
-        className="max-w-64"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        containerClassName="max-w-64 focus:ring-offset-0! mb-4"
-        type="search"
-        value={searchTerm}
-        autoComplete="false"
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-        }}
-        placeholder={t("search")}
-      />
       {!!activeEventTypeGroup && (
         <InfiniteEventTypeList
           pages={query?.data?.pages}
@@ -176,7 +189,7 @@ const Item = ({
   type: EventType | InfiniteEventType;
   group: EventTypeGroup | InfiniteEventTypeGroup;
   readOnly: boolean;
-}) => {
+}): JSX.Element => {
   const { t } = useLocale();
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
@@ -188,7 +201,7 @@ const Item = ({
     ];
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
 
-  const content = () => (
+  const content = (): JSX.Element => (
     <div>
       <span
         className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
@@ -205,9 +218,9 @@ const Item = ({
         </small>
       ) : null}
       {!isManagedEventType && type.hidden && (
-        <Badge variant="gray" className="ml-2 sm:hidden">
+        <span className="ml-2 text-sm text-gray-400 sm:hidden">
           {t("hidden")}
-        </Badge>
+        </span>
       )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
@@ -258,9 +271,9 @@ const Item = ({
                 </small>
               ) : null}
               {!isManagedEventType && type.hidden && (
-                <Badge variant="gray" className="ml-2 sm:hidden">
+                <span className="ml-2 text-sm text-gray-400 sm:hidden">
                   {t("hidden")}
-                </Badge>
+                </span>
               )}
               {readOnly && (
                 <Badge
@@ -393,7 +406,7 @@ export const InfiniteEventTypeList = ({
   }, []);
 
   const setHiddenMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
-    onMutate: async (data) => {
+    onMutate: async (data: { id: number; hidden?: boolean }) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue =
         utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
@@ -441,7 +454,7 @@ export const InfiniteEventTypeList = ({
             searchQuery: debouncedSearchTerm,
             group: { teamId: group?.teamId, parentId: group?.parentId },
           },
-          context.previousValue
+          () => context.previousValue
         );
       }
       console.error(err.message);
@@ -539,7 +552,7 @@ export const InfiniteEventTypeList = ({
     };
   }, []);
 
-  async function deleteEventTypeHandler(id: number) {
+  async function deleteEventTypeHandler(id: number): Promise<void> {
     const payload = { id };
     deleteMutation.mutate(payload);
   }
@@ -1106,6 +1119,7 @@ const CreateFirstEventTypeView = ({
 
 const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
   const { t } = useLocale();
+  const { searchTerm, setSearchTerm } = useSearchContext();
 
   if (!profileOptions.length) return null;
 
@@ -1289,5 +1303,8 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
     />
   );
 };
+
+export const SearchContext: React.Context<SearchContextType | undefined> =
+  SearchContextInternal;
 
 export default EventTypesPage;

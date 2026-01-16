@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import jwt from "jsonwebtoken";
 // Import mocked dependencies after mocks are set up

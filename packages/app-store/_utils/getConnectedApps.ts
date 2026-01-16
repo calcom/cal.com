@@ -183,9 +183,9 @@ export async function getConnectedApps({
         const paymentAppImportFn = PaymentServiceMap[app.dirName as keyof typeof PaymentServiceMap];
         if (paymentAppImportFn) {
           const paymentApp = await paymentAppImportFn;
-          if (paymentApp && "PaymentService" in paymentApp && paymentApp?.PaymentService) {
-            const PaymentService = paymentApp.PaymentService;
-            const paymentInstance = new PaymentService(credential);
+                              if (paymentApp && "BuildPaymentService" in paymentApp && paymentApp?.BuildPaymentService) {
+                      const createPaymentService = paymentApp.BuildPaymentService;
+                      const paymentInstance = createPaymentService(credential);
             isSetupAlready = paymentInstance.isSetupAlready();
           }
         }

@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -37,38 +37,6 @@ const formatTime12Hour = (time24: string): string => {
   const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
   const hour12Padded = hour12.toString().padStart(2, "0");
   return `${hour12Padded}:${min} ${period}`;
-};
-
-// Format availability for display - groups days with same time range
-const formatAvailabilityDisplay = (
-  availability: Record<number, ScheduleAvailability[]>
-): string[] => {
-  const timeRangeMap: Record<string, number[]> = {};
-
-  Object.keys(availability).forEach((dayIndexStr) => {
-    const dayIndex = Number(dayIndexStr);
-    const slots = availability[dayIndex];
-    if (slots && slots.length > 0) {
-      slots.forEach((slot) => {
-        const timeKey = `${slot.startTime}-${slot.endTime}`;
-        if (!timeRangeMap[timeKey]) {
-          timeRangeMap[timeKey] = [];
-        }
-        timeRangeMap[timeKey].push(dayIndex);
-      });
-    }
-  });
-
-  const formatted: string[] = [];
-  Object.keys(timeRangeMap).forEach((timeKey) => {
-    const days = timeRangeMap[timeKey].sort((a, b) => a - b);
-    const [startTime, endTime] = timeKey.split("-");
-    const dayNames = days.map((day) => DAYS[day]).join(", ");
-    const timeRange = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
-    formatted.push(`${dayNames}, ${timeRange}`);
-  });
-
-  return formatted;
 };
 
 // Format date for display
@@ -114,8 +82,6 @@ export const AvailabilityDetailScreen = forwardRef<
       endTime: string;
     }[]
   >([]);
-  const [daysExpanded, setDaysExpanded] = useState(true);
-  const [overridesExpanded, setOverridesExpanded] = useState(true);
 
   const processScheduleData = useCallback(
     (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {
@@ -220,7 +186,7 @@ export const AvailabilityDetailScreen = forwardRef<
 
   const handleSetAsDefault = useCallback(async () => {
     if (isDefault) {
-      Alert.alert("Info", "This schedule is already set as default");
+      showInfoAlert("Info", "This schedule is already set as default");
       return;
     }
 
@@ -229,7 +195,7 @@ export const AvailabilityDetailScreen = forwardRef<
         isDefault: true,
       });
       setIsDefault(true);
-      Alert.alert("Success", "Availability set as default successfully");
+      showSuccessAlert("Success", "Availability set as default successfully");
     } catch {
       showErrorAlert("Error", "Failed to set availability as default. Please try again.");
     }
@@ -237,7 +203,7 @@ export const AvailabilityDetailScreen = forwardRef<
 
   const handleDelete = useCallback(() => {
     if (isDefault) {
-      Alert.alert(
+      showInfoAlert(
         "Cannot Delete",
         "You cannot delete the default schedule. Please set another schedule as default first."
       );
@@ -327,46 +293,20 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
         </View>
 
-        {/* Working Hours Summary Card */}
+        {/* Weekly Schedule Card - Navigable */}
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <View className="px-4 py-3.5">
-            <Text className="mb-2.5 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
-              Working Hours
-            </Text>
-            {Object.keys(availability).length > 0 ? (
-              <View>
-                {formatAvailabilityDisplay(availability).map((line) => (
-                  <Text key={line} className="mb-1 text-[17px] text-black">
-                    {line}
-                  </Text>
-                ))}
+          <AppPressable onPress={() => router.push(`/edit-availability-hours?id=${id}` as never)}>
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <Text className="text-[17px] text-black">Weekly Schedule</Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                  {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
               </View>
-            ) : (
-              <Text className="text-[17px] text-[#8E8E93]">No availability set</Text>
-            )}
-          </View>
-        </View>
-
-        {/* Weekly Schedule Card - Expandable */}
-        <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <AppPressable
-            className="flex-row items-center justify-between px-4 py-3.5"
-            onPress={() => setDaysExpanded(!daysExpanded)}
-          >
-            <Text className="text-[17px] text-black">Weekly Schedule</Text>
-            <View className="flex-row items-center">
-              <Text className="mr-1 text-[17px] text-[#8E8E93]">
-                {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
-              </Text>
-              <Ionicons
-                name={daysExpanded ? "chevron-down" : "chevron-forward"}
-                size={18}
-                color="#C7C7CC"
-              />
             </View>
-          </AppPressable>
 
-          {daysExpanded && (
+            {/* Expanded Day List */}
             <View className="border-t border-[#E5E5EA] px-4 py-2.5">
               {DAYS.map((day, dayIndex) => {
                 const daySlots = availability[dayIndex] || [];
@@ -412,38 +352,39 @@ export const AvailabilityDetailScreen = forwardRef<
                 );
               })}
             </View>
-          )}
+          </AppPressable>
         </View>
 
-        {/* Timezone Card */}
+        {/* Timezone Card - Navigable */}
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <View className="flex-row items-center justify-between px-4 py-3.5">
-            <Text className="text-[17px] text-black">Timezone</Text>
-            <Text className="text-[17px] text-[#8E8E93]">{timeZone}</Text>
-          </View>
+          <AppPressable onPress={() => router.push(`/edit-availability-name?id=${id}` as never)}>
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <Text className="text-[17px] text-black">Timezone</Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-[17px] text-[#8E8E93]">{timeZone}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </View>
+            </View>
+          </AppPressable>
         </View>
 
-        {/* Date Overrides Card - Expandable */}
+        {/* Date Overrides Card - Navigable */}
         {overrides.length > 0 && (
           <View className="mb-4 overflow-hidden rounded-xl bg-white">
             <AppPressable
-              className="flex-row items-center justify-between px-4 py-3.5"
-              onPress={() => setOverridesExpanded(!overridesExpanded)}
+              onPress={() => router.push(`/edit-availability-override?id=${id}` as never)}
             >
-              <Text className="text-[17px] text-black">Date Overrides</Text>
-              <View className="flex-row items-center">
-                <Text className="mr-1 text-[17px] text-[#8E8E93]">
-                  {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
-                </Text>
-                <Ionicons
-                  name={overridesExpanded ? "chevron-down" : "chevron-forward"}
-                  size={18}
-                  color="#C7C7CC"
-                />
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <Text className="text-[17px] text-black">Date Overrides</Text>
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                    {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                </View>
               </View>
-            </AppPressable>
 
-            {overridesExpanded && (
+              {/* Expanded Overrides List */}
               <View className="border-t border-[#E5E5EA] px-4 py-2.5">
                 {overrides.map((override, index) => (
                   <View
@@ -464,7 +405,7 @@ export const AvailabilityDetailScreen = forwardRef<
                   </View>
                 ))}
               </View>
-            )}
+            </AppPressable>
           </View>
         )}
 
