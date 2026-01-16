@@ -72,6 +72,7 @@ export class EventTypesService_2024_06_14 {
       input: {
         id: eventTypeCreated.id,
         ...rest,
+        destinationCalendar: body.destinationCalendar,
       },
       ctx: {
         user: eventTypeUser,
