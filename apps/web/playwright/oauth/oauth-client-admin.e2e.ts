@@ -8,7 +8,6 @@ import {
   createApprovedOAuthClientAsAdmin,
   createPendingOAuthClient,
   goToAdminOAuthSettings,
-  loginAsSeededAdmin,
   openOAuthClientDetailsFromList,
 } from "./oauth-client-helpers";
 
@@ -80,8 +79,9 @@ test.describe("OAuth clients admin", () => {
     await users.deleteAll();
   });
 
-  test("can manage pending/approved/rejected clients and can create approved clients as admin", async ({ page, prisma }, testInfo) => {
-    await loginAsSeededAdmin(page);
+  test("can manage pending/approved/rejected clients and can create approved clients as admin", async ({ page, prisma, users }, testInfo) => {
+    const adminUser = await users.create({ role: "ADMIN" });
+    await adminUser.apiLogin();
 
     const testPrefix = `e2e-oauth-client-admin-${testInfo.testId}-`;
 
