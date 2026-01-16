@@ -1582,6 +1582,7 @@ enum WorkflowStatus {
   READ
   FAILED
   CANCELLED
+  BOUNCED
 }
 
 model BookingSeat {

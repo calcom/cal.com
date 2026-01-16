@@ -25,6 +25,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import { WorkflowActions } from "@calcom/prisma/client";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { ToggleGroup } from "@calcom/ui/components/form";
@@ -54,6 +55,7 @@ function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
  */
 export const FormBuilder = function FormBuilder({
   title,
+  workflows,
   description,
   addFieldLabel,
   formProp,
@@ -63,6 +65,7 @@ export const FormBuilder = function FormBuilder({
   shouldConsiderRequired,
   showPhoneAndEmailToggle = false,
 }: {
+  workflows: any;
   formProp: string;
   title: string;
   description: string;
@@ -100,10 +103,30 @@ export const FormBuilder = function FormBuilder({
     name: formProp as unknown as "fields",
   });
 
+  const emailWorkflowsCount = workflows.filter(
+    (workflow: any) =>
+      !workflow.disabled && workflow.steps.some((step: any) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+  ).length;
+
+  const phoneWorkflowsCount = workflows.filter(
+    (workflow: any) =>
+      !workflow.disabled &&
+      workflow.steps.some(
+        (step: any) =>
+          step.action === WorkflowActions.WHATSAPP_ATTENDEE || step.action === WorkflowActions.SMS_ATTENDEE
+      )
+  ).length;
+
   const [fieldDialog, setFieldDialog] = useState({
     isOpen: false,
     fieldIndex: -1,
     data: {} as RhfFormField | null,
+  });
+
+  const [hideFieldWarning, setHideFieldWarning] = useState({
+    isOpen: false,
+    fieldIndex: -1,
+    onConfirm: () => {},
   });
 
   const addField = () => {
@@ -126,6 +149,8 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
+  const [toggleField, setToggleField] = useState<"email" | "phone">("email");
+
   return (
     <div>
       <div>
@@ -137,19 +162,7 @@ export const FormBuilder = function FormBuilder({
           <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
-              value={(() => {
-                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
-                const emailField = fields.find((field) => field.name === "email");
-                //check if sms/whatsapp workflow is enabled then disable the toggle
-                const hasWorkflow = phoneField?.sources?.some((s) => s.label === "CalIdWorkflow");
-                if (hasWorkflow) return "phone";
-
-                if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
-                  return "phone";
-                }
-
-                return "email";
-              })()}
+              value={toggleField}
               options={[
                 {
                   value: "email",
@@ -162,38 +175,35 @@ export const FormBuilder = function FormBuilder({
                   iconLeft: <Icon name="phone" className="h-4 w-4" />,
                 },
               ]}
-              disabled={(() => {
-                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
-                const hasWorkflowSource = phoneField?.sources?.some((s) => s.label === "CalIdWorkflow");
-                return hasWorkflowSource || false;
-              })()}
               onValueChange={(value) => {
+                setToggleField(value as "email" | "phone");
                 const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
                 const emailFieldIndex = fields.findIndex((field) => field.name === "email");
 
-                const phoneField = fields[phoneFieldIndex];
-                const hasWorkflowSource = phoneField?.sources?.some((s) => s.label === "CalIdWorkflow");
+                const hasEmailWorkflow = emailWorkflowsCount > 0;
+                const hasPhoneWorkflows = phoneWorkflowsCount > 0;
 
-                if (hasWorkflowSource) {
-                  return;
-                }
                 if (value === "email") {
                   update(emailFieldIndex, {
                     ...fields[emailFieldIndex],
                     hidden: false,
                     required: true,
                   });
-                  update(phoneFieldIndex, {
-                    ...fields[phoneFieldIndex],
-                    hidden: true,
-                    required: false,
-                  });
+                  if (!hasPhoneWorkflows) {
+                    update(phoneFieldIndex, {
+                      ...fields[phoneFieldIndex],
+                      hidden: true,
+                      required: false,
+                    });
+                  }
                 } else if (value === "phone") {
-                  update(emailFieldIndex, {
-                    ...fields[emailFieldIndex],
-                    hidden: true,
-                    required: false,
-                  });
+                  if (!hasEmailWorkflow) {
+                    update(emailFieldIndex, {
+                      ...fields[emailFieldIndex],
+                      hidden: true,
+                      required: false,
+                    });
+                  }
                   update(phoneFieldIndex, {
                     ...fields[phoneFieldIndex],
                     hidden: false,
@@ -298,16 +308,35 @@ export const FormBuilder = function FormBuilder({
                         // Hidden field can't be required, so we don't need to show the Optional badge
                         <Badge variant="secondary">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="secondary" data-testid={isRequired ? "required" : "optional"}>
+                        <Badge
+                          variant={isRequired ? "green" : "attention"}
+                          data-testid={isRequired ? "required" : "optional"}>
                           {isRequired ? t("required") : t("optional")}
                         </Badge>
                       )}
-                      {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
-                        // We don't know how to pluralize `sourceLabel` because it can be anything
-                        <Badge key={key}>
-                          {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
+                      {Object.entries(groupedBySourceLabel).map(
+                        ([sourceLabel, sources], key) =>
+                          // We don't know how to pluralize `sourceLabel` because it can be anything
+                          sourceLabel !== "CalIdWorkflow" && (
+                            <Badge key={key}>
+                              {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
+                            </Badge>
+                          )
+                      )}
+
+                      {emailWorkflowsCount > 0 && field.name === "email" && (
+                        <Badge key={"email-workflows"}>
+                          {emailWorkflowsCount}{" "}
+                          {phoneWorkflowsCount === 1 ? "CalIdWorkflow" : `CalIdWorkflows`}
                         </Badge>
-                      ))}
+                      )}
+
+                      {phoneWorkflowsCount > 0 && field.name === "attendeePhoneNumber" && (
+                        <Badge key={"email-workflows"}>
+                          {phoneWorkflowsCount}{" "}
+                          {phoneWorkflowsCount === 1 ? "CalIdWorkflow" : `CalIdWorkflows`}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
@@ -319,11 +348,33 @@ export const FormBuilder = function FormBuilder({
                     {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
                       <Switch
                         data-testid="toggle-field"
-                        // disabled={isFieldEditableSystem}
-                        disabled={field.sources?.some((s) => s.label === "CalIdWorkflow")}
                         checked={!field.hidden}
                         onCheckedChange={(checked) => {
-                          update(index, { ...field, hidden: !checked });
+                          // Check if hiding field with workflows
+                          if (!checked) {
+                            const hasWorkflows =
+                              (field.name === "email" && emailWorkflowsCount > 0) ||
+                              (field.name === "attendeePhoneNumber" && phoneWorkflowsCount > 0);
+
+                            if (hasWorkflows) {
+                              const workflowCount =
+                                field.name === "email" ? emailWorkflowsCount : phoneWorkflowsCount;
+                              setHideFieldWarning({
+                                isOpen: true,
+                                fieldIndex: index,
+                                onConfirm: () => {
+                                  update(index, { ...field, hidden: true, required: false });
+                                },
+                              });
+                              return;
+                            }
+                          }
+
+                          if (!checked) {
+                            update(index, { ...field, hidden: !checked, required: false });
+                          } else {
+                            update(index, { ...field, hidden: !checked });
+                          }
                         }}
                         tooltip={t("show_on_booking_page")}
                       />
@@ -408,6 +459,24 @@ export const FormBuilder = function FormBuilder({
             });
           }}
           shouldConsiderRequired={shouldConsiderRequired}
+        />
+      )}
+
+      {hideFieldWarning.isOpen && (
+        <HideFieldWarningDialog
+          isOpen={hideFieldWarning.isOpen}
+          onOpenChange={(isOpen) =>
+            setHideFieldWarning({
+              isOpen,
+              fieldIndex: -1,
+              onConfirm: () => {},
+            })
+          }
+          workflowCount={
+            fields[hideFieldWarning.fieldIndex]?.name === "email" ? emailWorkflowsCount : phoneWorkflowsCount
+          }
+          fieldName={fields[hideFieldWarning.fieldIndex]?.name || ""}
+          onConfirm={hideFieldWarning.onConfirm}
         />
       )}
     </div>
@@ -538,6 +607,7 @@ function FieldEditDialog({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
   });
+
   const formFieldType = fieldForm.getValues("type");
 
   useEffect(() => {
@@ -561,6 +631,7 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
   const fieldName = fieldForm.getValues("name");
+  const hidden = fieldForm.getValues("hidden");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
@@ -703,7 +774,7 @@ function FieldEditDialog({
                         return (
                           <BooleanToggleGroupField
                             data-testid="field-required"
-                            disabled={fieldForm.getValues("editable") === "system"}
+                            disabled={fieldForm.getValues("editable") === "system" || hidden}
                             value={isRequired}
                             onValueChange={(val) => {
                               onChange(val);
@@ -962,5 +1033,48 @@ function VariantFields({
         })}
       </ul>
     </>
+  );
+}
+
+function HideFieldWarningDialog({
+  isOpen,
+  onOpenChange,
+  workflowCount,
+  fieldName,
+  onConfirm,
+}: {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  workflowCount: number;
+  fieldName: string;
+  onConfirm: () => void;
+}) {
+  const { t } = useLocale();
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent size="sm">
+        <DialogHeader>
+          <DialogTitle>{t("hide_field_warning_title")}</DialogTitle>
+          <DialogDescription>
+            {t("hide_field_warning_description", {
+              count: workflowCount,
+              fieldName: fieldName === "email" ? "email" : "phone",
+            })}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose color="secondary">{t("cancel")}</DialogClose>
+          <Button
+            color="destructive"
+            onClick={() => {
+              onConfirm();
+              onOpenChange(false);
+            }}>
+            {t("hide_anyway")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

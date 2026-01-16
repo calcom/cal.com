@@ -601,6 +601,7 @@ export const EventAdvancedTab = ({
         </div>
         <div className="border-subtle bg-default rounded-lg border p-5">
           <FormBuilder
+            workflows={workflows}
             showPhoneAndEmailToggle
             title={t("confirmation")}
             description={t("what_booker_should_provide")}

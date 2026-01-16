@@ -7,10 +7,12 @@ import { TextField } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { CustomBannerUploader, CustomImageUploader } from "@calid/features/ui/components/uploader";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsCustomBranding } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/custom-branding/actions";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -47,7 +49,40 @@ const useBrandColors = (
     root: selectedTheme,
   });
 };
-
+const socialProfilesSchema = z.object({
+  socialProfiles: z.object({
+    // LinkedIn: Standard
+    linkedin: z
+      .string()
+      .regex(/^$|^https:\/\/(www\.)?linkedin\.com\/.*$/, "Invalid LinkedIn URL")
+      .optional(),
+    // Facebook: Supports facebook.com AND fb.com
+    facebook: z
+      .string()
+      .regex(/^$|^https:\/\/(www\.)?(facebook\.com|fb\.com)\/.*$/, "Invalid Facebook URL")
+      .optional(),
+    // Twitter: Supports twitter.com AND x.com
+    twitter: z
+      .string()
+      .regex(/^$|^https:\/\/(www\.)?(twitter\.com|x\.com)\/.*$/, "Invalid Twitter/X URL")
+      .optional(),
+    // Instagram: Supports instagram.com AND instagr.am
+    instagram: z
+      .string()
+      .regex(/^$|^https:\/\/(www\.)?(instagram\.com|instagr\.am)\/.*$/, "Invalid Instagram URL")
+      .optional(),
+    // YouTube: Standard
+    youtube: z
+      .string()
+      .regex(/^$|^https:\/\/(www\.)?youtube\.com\/.*$/, "Invalid YouTube URL")
+      .optional(),
+    // GitHub: Standard
+    github: z
+      .string()
+      .regex(/^$|^https:\/\/(www\.)?github\.com\/.*$/, "Invalid GitHub URL")
+      .optional(),
+  }),
+});
 const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get"] }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -120,6 +155,8 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
     defaultValues: {
       socialProfiles: DEFAULT_SOCIAL_PROFILES,
     },
+    resolver: zodResolver(socialProfilesSchema),
+    mode: "onBlur",
   });
 
   const {
@@ -265,84 +302,102 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
               <Controller
                 name="socialProfiles.linkedin"
                 control={socialProfilesFormMethods.control}
-                render={({ field }) => (
+                render={({ field, fieldState: { error } }) => (
                   <div>
                     <TextField
                       label={t("linkedin")}
                       placeholder="https://linkedin.com/in/yourprofile"
                       {...field}
                       addOnLeading={<SocialIcon name="linkedin" className="mr-1" />}
+                      error={!!error}
                     />
+                    {/* 👇 Display Error Message */}
+                    {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
                   </div>
                 )}
               />
               <Controller
                 name="socialProfiles.facebook"
                 control={socialProfilesFormMethods.control}
-                render={({ field }) => (
+                render={({ field, fieldState: { error } }) => (
                   <div>
                     <TextField
                       label={t("facebook")}
                       placeholder="https://facebook.com/yourprofile"
                       {...field}
                       addOnLeading={<SocialIcon name="facebook" className="mr-1" />}
+                      error={!!error}
                     />
+                    {/* 👇 Display Error Message */}
+                    {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
                   </div>
                 )}
               />
               <Controller
                 name="socialProfiles.twitter"
                 control={socialProfilesFormMethods.control}
-                render={({ field }) => (
+                render={({ field, fieldState: { error } }) => (
                   <div>
                     <TextField
                       label={t("twitter")}
                       placeholder="https://twitter.com/yourprofile"
                       {...field}
                       addOnLeading={<SocialIcon name="twitter" className="mr-1" />}
+                      error={!!error}
                     />
+                    {/* 👇 Display Error Message */}
+                    {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
                   </div>
                 )}
               />
               <Controller
                 name="socialProfiles.instagram"
                 control={socialProfilesFormMethods.control}
-                render={({ field }) => (
+                render={({ field, fieldState: { error } }) => (
                   <div>
                     <TextField
                       label={t("instagram")}
                       placeholder="https://instagram.com/yourprofile"
                       {...field}
                       addOnLeading={<SocialIcon name="instagram" className="mr-1" />}
+                      error={!!error}
                     />
+                    {/* 👇 Display Error Message */}
+                    {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
                   </div>
                 )}
               />
               <Controller
                 name="socialProfiles.youtube"
                 control={socialProfilesFormMethods.control}
-                render={({ field }) => (
+                render={({ field, fieldState: { error } }) => (
                   <div>
                     <TextField
                       label={t("youtube")}
                       placeholder="https://youtube.com/@yourchannel"
                       {...field}
                       addOnLeading={<SocialIcon name="youtube" className="mr-1" />}
+                      error={!!error}
                     />
+                    {/* 👇 Display Error Message */}
+                    {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
                   </div>
                 )}
               />
               <Controller
                 name="socialProfiles.github"
                 control={socialProfilesFormMethods.control}
-                render={({ field }) => (
+                render={({ field, fieldState: { error } }) => (
                   <div>
                     <TextField
                       label={t("github")}
                       placeholder="https://github.com/yourusername"
                       {...field}
                       addOnLeading={<SocialIcon name="github" className="mr-1" />}
+                      error={!!error}
                     />
+                    {/* 👇 Display Error Message */}
+                    {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
                   </div>
                 )}
               />
