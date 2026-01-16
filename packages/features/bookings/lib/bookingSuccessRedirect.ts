@@ -74,14 +74,7 @@ type ResultType = {
   phone?: string | null;
   attendeeFirstName?: string | null;
   attendeeLastName?: string | null;
-  attendeePhoneNumber?: string | null;
 };
-
-interface AttendeePhoneNumber {
-  label: string;
-  value: string;
-  isHidden: boolean;
-}
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   const redirectQueryParamKeys: BookingResponseKey[] = [
@@ -98,29 +91,12 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
   function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
     const result: ResultType = { ...obj };
-    const phoneNumber =
-      getSafe<string>(booking.responses, ["phoneNumber"]) || getSafe<string>(booking.responses, ["phone"]);
-
-    const attendeePhoneNumber = getSafe<AttendeePhoneNumber | string>(booking.responses, [
-      "attendeePhoneNumber",
-    ]);
+    const phone = getSafe<string>(booking.responses, ["phone"]);
     const firstName = getSafe<string>(booking.responses, ["name", "firstName"]);
     const lastName = getSafe<string>(booking.responses, ["name", "lastName"]);
     const name = getSafe<string>(booking.responses, ["name"]);
 
-    if (phoneNumber && typeof phoneNumber === "string") result.phone = phoneNumber;
-
-    if (attendeePhoneNumber) {
-      const value =
-        typeof attendeePhoneNumber === "object" && "value" in attendeePhoneNumber
-          ? attendeePhoneNumber.value
-          : attendeePhoneNumber;
-
-      result.attendeePhoneNumber = String(value);
-    }
-
-    if (!result.phone && result.attendeePhoneNumber) result.phone = result.attendeePhoneNumber;
-
+    if (phone) result.phone = phone;
     if (firstName) result.attendeeFirstName = firstName;
     if (lastName) result.attendeeLastName = lastName;
     else if (name && typeof name === "string") result.attendeeName = name; // Fallback if `name` is a string instead of an object
@@ -199,7 +175,6 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     attendeeName: bookingParams.attendeeName || undefined,
     hostStartTime: bookingParams.hostStartTime || undefined,
     attendeeStartTime: bookingParams.attendeeStartTime || undefined,
-    attendeePhoneNumber: bookingParams.attendeePhoneNumber || undefined,
   };
 
   return queryCompatibleParams;
