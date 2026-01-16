@@ -8,7 +8,7 @@ import { TeamsMembershipsService } from "@/modules/teams/memberships/services/te
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module } from "@nestjs/common";
+import { Logger, Module } from "@nestjs/common";
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { Module } from "@nestjs/common";
     TeamsModule,
     UsersModule,
   ],
-  providers: [TeamsMembershipsRepository, TeamsMembershipsService],
+  providers: [TeamsMembershipsRepository, TeamsMembershipsService, Logger],
   controllers: [TeamsMembershipsController],
   exports: [TeamsMembershipsService],
 })
