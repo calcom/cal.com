@@ -231,11 +231,10 @@ export function FeatureOptInConfirmDialog({
           {showSelector && (
             <div className="space-y-2">
               <Label>{t("enable_for")}</Label>
-                            <AnimatedPopover
-                              text={getSelectedText()}
-                              popoverTriggerClassNames="w-full"
-                              modal={false}
-                              Trigger={
+              <AnimatedPopover
+                text={getSelectedText()}
+                popoverTriggerClassNames="w-full"
+                Trigger={
                   <div className="flex w-full items-center justify-between">
                     <span className="truncate leading-normal">{getSelectedText()}</span>
                     <Icon name="chevron-down" className="ml-2 h-4 w-4 shrink-0" />
