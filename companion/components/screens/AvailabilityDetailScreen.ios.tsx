@@ -200,7 +200,7 @@ export const AvailabilityDetailScreen = forwardRef<
   );
 
   // Expose handlers to parent for iOS header menu
-  useMemo(() => {
+  useEffect(() => {
     if (onActionsReady) {
       onActionsReady({
         handleSetAsDefault,
@@ -209,13 +209,19 @@ export const AvailabilityDetailScreen = forwardRef<
     }
   }, [onActionsReady, handleSetAsDefault, handleDelete]);
 
+  // Handle error state - must be in useEffect to avoid side effects during render
+  useEffect(() => {
+    if (error) {
+      showErrorAlert("Error", "Failed to load availability. Please try again.");
+      router.back();
+    }
+  }, [error, router]);
+
   // Count enabled days
   const enabledDaysCount = Object.keys(availability).length;
 
-  // Handle error state
+  // Early return for error state (after useEffect hooks)
   if (error) {
-    showErrorAlert("Error", "Failed to load availability. Please try again.");
-    router.back();
     return null;
   }
 
