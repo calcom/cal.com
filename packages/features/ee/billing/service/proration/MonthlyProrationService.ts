@@ -293,6 +293,7 @@ export class MonthlyProrationService {
     });
 
     let invoiceId: string | null = null;
+    let invoiceFinalized = false;
 
     try {
       const invoice = await this.billingService.createInvoice({
@@ -306,6 +307,7 @@ export class MonthlyProrationService {
       invoiceId = invoice.invoiceId;
 
       await this.billingService.finalizeInvoice(invoiceId);
+      invoiceFinalized = true;
 
       return await this.prorationRepository.updateProrationStatus(
         proration.id,
@@ -316,12 +318,57 @@ export class MonthlyProrationService {
         }
       );
     } catch (error) {
+      await this.handleInvoiceCreationFailure({
+        error,
+        prorationId: proration.id,
+        invoiceId,
+        invoiceItemId,
+        invoiceFinalized,
+      });
+      throw error;
+    }
+  }
+
+  private async handleInvoiceCreationFailure(params: {
+    error: unknown;
+    prorationId: string;
+    invoiceId: string | null;
+    invoiceItemId: string;
+    invoiceFinalized: boolean;
+  }) {
+    const { error, prorationId, invoiceId, invoiceItemId, invoiceFinalized } = params;
+
+    if (invoiceFinalized) {
+      // Invoice is live and potentially being charged - don't clean up
+      // The webhook will handle payment success/failure
+      this.logger.error("Proration status update failed after invoice finalized - webhook will handle", {
+        prorationId,
+        invoiceId,
+        error,
+      });
+      return;
+    }
+
+    // Invoice not yet live - mark as FAILED to enable retry via retryFailedProration()
+    const failureReason = error instanceof Error ? error.message : "Invoice creation failed";
+    try {
+      await this.prorationRepository.updateProrationStatus(prorationId, "FAILED", {
+        failedAt: new Date(),
+        failureReason,
+      });
+    } catch (statusError) {
+      this.logger.error("Failed to update proration status to FAILED", { prorationId, error: statusError });
+    }
+
+    // Clean up Stripe artifacts
+    try {
       if (invoiceId) {
         await this.billingService.voidInvoice(invoiceId);
       } else {
         await this.billingService.deleteInvoiceItem(invoiceItemId);
       }
-      throw error;
+    } catch (cleanupError) {
+      this.logger.error("Failed to clean up Stripe artifacts", { prorationId, invoiceId, invoiceItemId, error: cleanupError });
     }
   }
 
