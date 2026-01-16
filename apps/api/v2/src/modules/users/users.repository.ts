@@ -182,11 +182,11 @@ export class UsersRepository {
     });
   }
 
-async findByUsernameExcludingOrgUsers(username: string) {
+  async findByUsernameExcludingOrgUsers(username: string) {
     return this.dbRead.prisma.user.findFirst({
       where: {
         username,
-        profiles: { none: {} },
+        OR: [{ profiles: { none: {} } }, { isPlatformManaged: true }],
       },
     });
   }
@@ -215,7 +215,7 @@ async findByUsernameExcludingOrgUsers(username: string) {
     return this.dbRead.prisma.user.findMany({
       where: {
         username: { in: usernames },
-        profiles: { none: {} },
+        OR: [{ profiles: { none: {} } }, { isPlatformManaged: true }],
       },
     });
   }
