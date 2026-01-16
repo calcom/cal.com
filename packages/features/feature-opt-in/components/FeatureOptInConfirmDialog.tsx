@@ -233,8 +233,8 @@ export function FeatureOptInConfirmDialog({
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
       <DialogPopup className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t(featureConfig.nameI18nKey)}</DialogTitle>
-          <DialogDescription>{t(featureConfig.descriptionI18nKey)}</DialogDescription>
+          <DialogTitle>{t(featureConfig.i18n.name)}</DialogTitle>
+          <DialogDescription>{t(featureConfig.i18n.description)}</DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <div className="space-y-4">

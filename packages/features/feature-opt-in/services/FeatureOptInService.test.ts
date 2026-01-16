@@ -14,41 +14,35 @@ vi.mock("../config", () => {
   const mockFeatures = [
     {
       slug: "test-feature-1",
-      nameI18nKey: "test_feature_1",
-      descriptionI18nKey: "test_feature_1_desc",
+      i18n: { name: "test_feature_1", description: "test_feature_1_desc" },
       policy: "permissive",
     },
     {
       slug: "test-feature-2",
-      nameI18nKey: "test_feature_2",
-      descriptionI18nKey: "test_feature_2_desc",
+      i18n: { name: "test_feature_2", description: "test_feature_2_desc" },
       policy: "permissive",
     },
     {
       slug: "org-only-feature",
-      nameI18nKey: "org_only",
-      descriptionI18nKey: "org_only_desc",
+      i18n: { name: "org_only", description: "org_only_desc" },
       policy: "permissive",
       scope: ["org"],
     },
     {
       slug: "team-only-feature",
-      nameI18nKey: "team_only",
-      descriptionI18nKey: "team_only_desc",
+      i18n: { name: "team_only", description: "team_only_desc" },
       policy: "permissive",
       scope: ["team"],
     },
     {
       slug: "user-only-feature",
-      nameI18nKey: "user_only",
-      descriptionI18nKey: "user_only_desc",
+      i18n: { name: "user_only", description: "user_only_desc" },
       policy: "permissive",
       scope: ["user"],
     },
     {
       slug: "strict-feature",
-      nameI18nKey: "strict_feature",
-      descriptionI18nKey: "strict_feature_desc",
+      i18n: { name: "strict_feature", description: "strict_feature_desc" },
       policy: "strict",
     },
   ];

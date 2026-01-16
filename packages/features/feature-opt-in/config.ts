@@ -3,8 +3,10 @@ import type { OptInFeaturePolicy, OptInFeatureScope } from "./types";
 
 export interface OptInFeatureConfig {
   slug: FeatureId;
-  nameI18nKey: string;
-  descriptionI18nKey: string;
+  i18n: {
+    name: string;
+    description: string;
+  };
   policy: OptInFeaturePolicy;
   /** Scopes where this feature can be configured. Defaults to all scopes if not specified. */
   scope?: OptInFeatureScope[];
@@ -21,8 +23,10 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   // Example - to be populated with actual features
   // {
   //   slug: "bookings-v3",
-  //   titleI18nKey: "bookings_v3_title",
-  //   descriptionI18nKey: "bookings_v3_description",
+  //   i18n: {
+  //     name: "bookings_v3_title",
+  //     description: "bookings_v3_description",
+  //   },
   //   policy: "permissive",
   //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
   // },
