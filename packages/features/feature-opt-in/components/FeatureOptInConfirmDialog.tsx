@@ -1,10 +1,6 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import {
-  FilterCheckboxField,
-  FilterCheckboxFieldsContainer,
-} from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";
@@ -20,8 +16,7 @@ import {
   DialogTitle,
 } from "@coss/ui/components/dialog";
 import { Label } from "@coss/ui/components/label";
-import { Popover, PopoverPopup, PopoverTrigger } from "@coss/ui/components/popover";
-import { Separator } from "@coss/ui/components/separator";
+import { Menu, MenuCheckboxItem, MenuPopup, MenuSeparator, MenuTrigger } from "@coss/ui/components/menu";
 import { toastManager } from "@coss/ui/components/toast";
 import { BuildingIcon, CheckIcon, ChevronDownIcon, UserIcon, UsersIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -246,8 +241,8 @@ export function FeatureOptInConfirmDialog({
             {showSelector && (
               <div className="space-y-2">
                 <Label>{t("enable_for")}</Label>
-                <Popover>
-                  <PopoverTrigger
+                <Menu>
+                  <MenuTrigger
                     render={
                       <button
                         type="button"
@@ -256,48 +251,43 @@ export function FeatureOptInConfirmDialog({
                     }>
                     <span className="truncate leading-normal">{getSelectedText()}</span>
                     <ChevronDownIcon aria-hidden="true" className="ml-2 h-4 w-4 shrink-0" />
-                  </PopoverTrigger>
-                  <PopoverPopup className="w-56">
-                    <FilterCheckboxFieldsContainer>
-                      <FilterCheckboxField
-                        id="just-for-me"
-                        icon={<UserIcon className="h-4 w-4" />}
-                        checked={enableForUser}
-                        onChange={(e) => handleUserChange(e.target.checked)}
-                        label={t("just_for_me")}
-                      />
+                  </MenuTrigger>
+                  <MenuPopup className="w-56" align="start">
+                    <MenuCheckboxItem
+                      checked={enableForUser}
+                      onCheckedChange={(checked) => handleUserChange(checked)}>
+                      <UserIcon className="h-4 w-4" />
+                      {t("just_for_me")}
+                    </MenuCheckboxItem>
 
-                      {canEnableForOrg && (
-                        <>
-                          <Separator />
-                          <FilterCheckboxField
-                            id="entire-org"
-                            icon={<BuildingIcon className="h-4 w-4" />}
-                            checked={enableForOrg}
-                            onChange={(e) => handleOrgChange(e.target.checked)}
-                            label={t("entire_organization")}
-                          />
-                        </>
-                      )}
+                    {canEnableForOrg && (
+                      <>
+                        <MenuSeparator />
+                        <MenuCheckboxItem
+                          checked={enableForOrg}
+                          onCheckedChange={(checked) => handleOrgChange(checked)}>
+                          <BuildingIcon className="h-4 w-4" />
+                          {t("entire_organization")}
+                        </MenuCheckboxItem>
+                      </>
+                    )}
 
-                      {canEnableForTeams && adminTeamNames.length > 0 && (
-                        <>
-                          <Separator />
-                          {adminTeamNames.map((team) => (
-                            <FilterCheckboxField
-                              key={team.id}
-                              id={`team-${team.id}`}
-                              icon={<UsersIcon className="h-4 w-4" />}
-                              checked={selectedTeamIds.includes(team.id)}
-                              onChange={(e) => handleTeamChange(team.id, e.target.checked)}
-                              label={team.name}
-                            />
-                          ))}
-                        </>
-                      )}
-                    </FilterCheckboxFieldsContainer>
-                  </PopoverPopup>
-                </Popover>
+                    {canEnableForTeams && adminTeamNames.length > 0 && (
+                      <>
+                        <MenuSeparator />
+                        {adminTeamNames.map((team) => (
+                          <MenuCheckboxItem
+                            key={team.id}
+                            checked={selectedTeamIds.includes(team.id)}
+                            onCheckedChange={(checked) => handleTeamChange(team.id, checked)}>
+                            <UsersIcon className="h-4 w-4" />
+                            {team.name}
+                          </MenuCheckboxItem>
+                        ))}
+                      </>
+                    )}
+                  </MenuPopup>
+                </Menu>
               </div>
             )}
 
