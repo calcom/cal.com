@@ -167,7 +167,7 @@ jobs:
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks }}
-      has_companion: ${{ steps.filter-inclusions.outputs.has_companion }}
+      has-companion: ${{ steps.filter-inclusions.outputs.has-companion }}
       has-api-v2-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-changes }}
       has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
@@ -210,7 +210,7 @@ jobs:
         id: filter-inclusions
         with:
           filters: |
-            has_companion:
+            has-companion:
               - "companion/**"
             has-api-v2-changes:
               - "apps/api/v2/**"
@@ -373,7 +373,7 @@ jobs:
   build-companion:
     name: Companion builds
     needs: [prepare]
-    if: needs.prepare.outputs.has_companion == 'true'
+    if: needs.prepare.outputs.has-companion == 'true'
     uses: ./.github/workflows/companion-build.yml
     secrets: inherit
 
@@ -505,6 +505,6 @@ jobs:
             )
           ) ||
           (
-            needs.prepare.outputs.has_companion == 'true' &&
+            needs.prepare.outputs.has-companion == 'true' &&
             needs.build-companion.result != 'success'
           )
