@@ -549,10 +549,12 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
+                "BookingSeat.data",
+                "BookingSeat.createdAt",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email", "Attendee.name", "Attendee.timeZone"])
+                    .select(["Attendee.email", "Attendee.name", "Attendee.timeZone", "Attendee.phoneNumber"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
                 ).as("attendee"),
                 jsonArrayFrom(
