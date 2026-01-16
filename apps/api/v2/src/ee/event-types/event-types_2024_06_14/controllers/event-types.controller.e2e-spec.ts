@@ -3407,9 +3407,8 @@ describe("Event types Endpoints", () => {
       await app.close();
     });
   });
-||||||| 8d1ad74650
 
-  describe("Same username - org vs non-org user", () => {
+  describe("Managed user event types - backward compatibility", () => {
     let app: INestApplication;
 
     let oAuthClient: PlatformOAuthClient;
@@ -3420,18 +3419,15 @@ describe("Event types Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const sharedUsername = `same-username-test-${randomString()}`;
-    const nonOrgUserEmail = `non-org-${sharedUsername}@api.com`;
-    const orgUserEmail = `org-${sharedUsername}@api.com`;
+    const managedUsername = `managed-${Date.now()}-example`;
+    const managedUserEmail = `${managedUsername}@api.com`;
 
-    let nonOrgUser: User;
-    let orgUser: User;
-    let nonOrgUserEventType: EventType;
-    let orgUserEventType: EventType;
+    let managedUser: User;
+    let managedUserEventType: EventType;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
-        nonOrgUserEmail,
+        managedUserEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
           imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
@@ -3453,8 +3449,8 @@ describe("Event types Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
-        name: `same-username-org-${randomString()}`,
-        slug: `same-username-org-slug-${randomString()}`,
+        name: `managed-user-org-${Date.now()}`,
+        slug: `managed-user-org-slug-${Date.now()}`,
       });
       oAuthClient = await oauthClientRepositoryFixture.create(
         organization.id,
@@ -3467,26 +3463,26 @@ describe("Event types Endpoints", () => {
         "secret"
       );
 
-      nonOrgUser = await userRepositoryFixture.create({
-        email: nonOrgUserEmail,
-        name: `Non-Org User ${sharedUsername}`,
-        username: sharedUsername,
-      });
-
-      orgUser = await userRepositoryFixture.create({
-        email: orgUserEmail,
-        name: `Org User ${sharedUsername}`,
-        username: sharedUsername,
+      managedUser = await userRepositoryFixture.create({
+        email: managedUserEmail,
+        name: `Managed User ${managedUsername}`,
+        username: managedUsername,
+        isPlatformManaged: true,
         organization: {
           connect: {
             id: organization.id,
           },
         },
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
 
       await profileRepositoryFixture.create({
-        uid: `usr-${orgUser.id}`,
-        username: sharedUsername,
+        uid: `usr-${managedUser.id}`,
+        username: managedUsername,
         organization: {
           connect: {
             id: organization.id,
@@ -3494,37 +3490,27 @@ describe("Event types Endpoints", () => {
         },
         user: {
           connect: {
-            id: orgUser.id,
+            id: managedUser.id,
           },
         },
       });
 
-      nonOrgUserEventType = await eventTypesRepositoryFixture.create(
+      managedUserEventType = await eventTypesRepositoryFixture.create(
         {
-          title: "Non-Org User Event Type",
-          slug: `non-org-event-${randomString()}`,
+          title: "Managed User Event Type",
+          slug: `managed-event-${Date.now()}`,
           length: 30,
           hidden: false,
         },
-        nonOrgUser.id
-      );
-
-      orgUserEventType = await eventTypesRepositoryFixture.create(
-        {
-          title: "Org User Event Type",
-          slug: `org-event-${randomString()}`,
-          length: 60,
-          hidden: false,
-        },
-        orgUser.id
+        managedUser.id
       );
 
       await app.init();
     });
 
-    it("should return only non-org user's event types when querying by shared username", async () => {
+    it("should return managed user's event types when querying by username only (backward compatibility for atoms)", async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${sharedUsername}`)
+        .get(`/api/v2/event-types?username=${managedUsername}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -3534,39 +3520,17 @@ describe("Event types Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.length).toEqual(1);
-      expect(responseBody.data[0].id).toEqual(nonOrgUserEventType.id);
-      expect(responseBody.data[0].title).toEqual("Non-Org User Event Type");
-    });
-
-    it("should return only org user's event types when querying by shared username with orgSlug", async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${sharedUsername}&orgSlug=${organization.slug}`)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        .set("Authorization", `Bearer whatever`)
-        .expect(200);
-
-      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
-
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.length).toEqual(1);
-      expect(responseBody.data[0].id).toEqual(orgUserEventType.id);
-      expect(responseBody.data[0].title).toEqual("Org User Event Type");
+      expect(responseBody.data[0].id).toEqual(managedUserEventType.id);
+      expect(responseBody.data[0].title).toEqual("Managed User Event Type");
     });
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       try {
-        await eventTypesRepositoryFixture.delete(nonOrgUserEventType.id);
+        await eventTypesRepositoryFixture.delete(managedUserEventType.id);
       } catch (_e) {}
       try {
-        await eventTypesRepositoryFixture.delete(orgUserEventType.id);
-      } catch (_e) {}
-      try {
-        await userRepositoryFixture.delete(nonOrgUser.id);
-      } catch (_e) {}
-      try {
-        await userRepositoryFixture.delete(orgUser.id);
+        await userRepositoryFixture.delete(managedUser.id);
       } catch (_e) {}
       await teamRepositoryFixture.delete(organization.id);
       await app.close();
