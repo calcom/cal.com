@@ -157,8 +157,14 @@ const handleSetupSuccess = async (
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!requiresConfirmation) {
-    const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-    const actor = getAppActor({ appSlug: "stripe", bookingId: booking.id, apps });
+    const apps = eventTypeAppMetadataOptionalSchema.parse(
+      eventType?.metadata?.apps
+    );
+    const actor = getAppActor({
+      appSlug: "stripe",
+      bookingId: booking.id,
+      apps,
+    });
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -174,7 +180,8 @@ const handleSetupSuccess = async (
       actor,
     });
   } else if (areEmailsEnabled) {
-    const organizationId = booking.eventType?.team?.parentId ?? user.organizationId ?? null;
+    const organizationId =
+      booking.eventType?.team?.parentId ?? user.organizationId ?? null;
 
     const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: booking.eventTypeId ?? 0,
@@ -184,12 +191,14 @@ const handleSetupSuccess = async (
     });
 
     const evtWithBranding = { ...evt, hideBranding };
-    await sendOrganizerRequestEmail(evtWithBranding, eventType.metadata);
-    await sendAttendeeRequestEmailAndSMS(
-      evtWithBranding,
-      evt.attendees[0],
-      eventType.metadata
-    );
+    await Promise.all([
+      sendOrganizerRequestEmail(evtWithBranding, eventType.metadata),
+      sendAttendeeRequestEmailAndSMS(
+        evtWithBranding,
+        evt.attendees[0],
+        eventType.metadata
+      ),
+    ]);
   }
 };
 

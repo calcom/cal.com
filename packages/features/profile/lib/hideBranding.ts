@@ -11,25 +11,20 @@ export type TeamWithBranding = {
   } | null;
 };
 
-export type ProfileWithBranding = {
+type ProfileWithBranding = {
   organization: {
     hideBranding: boolean | null;
   } | null;
 };
 
-export type UserWithBranding = {
+type UserWithBranding = {
   id: number;
   hideBranding: boolean | null;
 };
 
-export type UserWithProfileAndBranding = UserWithBranding & {
+type UserWithProfileAndBranding = UserWithBranding & {
   profile: ProfileWithBranding | null;
 };
-
-// Internal type aliases for backward compatibility
-type Team = TeamWithBranding;
-type UserWithoutProfile = UserWithBranding;
-type UserWithProfile = UserWithProfileAndBranding;
 
 /**
  * Determines if branding should be hidden by checking entity and organization settings.
@@ -129,8 +124,8 @@ export function shouldHideBrandingForEventUsingProfile({
   owner,
   team,
 }: {
-  owner: UserWithProfile | null;
-  team: Team | null;
+  owner: UserWithProfileAndBranding | null;
+  team: TeamWithBranding | null;
   eventTypeId: number;
 }) {
   let hideBranding;
@@ -197,8 +192,8 @@ export async function shouldHideBrandingForEvent({
   organizationId,
 }: {
   eventTypeId: number;
-  team: Team | null;
-  owner: UserWithoutProfile | null;
+  team: TeamWithBranding | null;
+  owner: UserWithBranding | null;
   organizationId: number | null;
 }) {
   let ownerProfile = null;
@@ -232,7 +227,7 @@ export async function shouldHideBrandingForEvent({
 /**
  * A convenience wrapper for shouldHideBrandingForEventUsingProfile to use for Team events
  */
-export function shouldHideBrandingForTeamEvent({ eventTypeId, team }: { eventTypeId: number; team: Team }) {
+export function shouldHideBrandingForTeamEvent({ eventTypeId, team }: { eventTypeId: number; team: TeamWithBranding }) {
   return shouldHideBrandingForEventUsingProfile({
     owner: null,
     team,
@@ -248,7 +243,7 @@ export function shouldHideBrandingForUserEvent({
   owner,
 }: {
   eventTypeId: number;
-  owner: UserWithProfile;
+  owner: UserWithProfileAndBranding;
 }) {
   return shouldHideBrandingForEventUsingProfile({
     owner,
