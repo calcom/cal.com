@@ -1,7 +1,15 @@
-import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { addFilter, selectSegment, expectSegmentCleared, expectSegmentSelected } from "./filter-helpers";
+import {
+  addFilter,
+  applySelectFilter,
+  createFilterSegment,
+  deleteSegment,
+  expectSegmentCleared,
+  expectSegmentSelected,
+  selectSegment,
+} from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -115,6 +123,66 @@ test.describe("System Segments", () => {
 
       // Verify filter is still applied
       await expect(page.getByTestId("filter-popover-trigger-eventTypeId")).toBeVisible();
+    });
+  });
+
+  test.describe("Deselect Clears Filters", () => {
+    test("Deselecting a system segment clears all active filters", async ({ page, users }) => {
+      const user = await users.create(undefined, { hasTeam: true });
+      await user.apiLogin();
+
+      await navigateToBookings(page);
+
+      // Select system segment (which applies filters)
+      await selectSegment(page, "My Bookings");
+      await expectSegmentSelected(page, "My Bookings");
+
+      // Verify filters are applied (URL should contain activeFilters)
+      const urlBeforeDeselect = page.url();
+      expect(urlBeforeDeselect).toContain("activeFilters");
+
+      // Deselect the segment by clicking it again
+      await selectSegment(page, "My Bookings");
+      await expectSegmentCleared(page);
+
+      // Verify filters are cleared (URL should not contain activeFilters)
+      const urlAfterDeselect = page.url();
+      expect(urlAfterDeselect).not.toContain("activeFilters");
+    });
+
+    test("Deselecting a user segment clears all active filters", async ({ page, users }) => {
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+      });
+      const { team: org } = await orgOwner.getOrgMembership();
+
+      await orgOwner.apiLogin();
+      await page.goto(`/settings/organizations/${org.slug}/members`);
+
+      const dataTable = page.getByTestId("user-list-data-table").first();
+      await expect(dataTable).toBeVisible();
+
+      // Create a filter segment
+      await applySelectFilter(page, "role", "admin");
+      const segmentName = "Test Deselect Segment";
+      await createFilterSegment(page, segmentName);
+
+      // Verify segment is selected and filters are applied
+      await expectSegmentSelected(page, segmentName);
+      const urlWithSegment = page.url();
+      expect(urlWithSegment).toContain("activeFilters");
+
+      // Deselect the segment by clicking it again
+      await selectSegment(page, segmentName);
+      await expectSegmentCleared(page);
+
+      // Verify filters are cleared
+      const urlAfterDeselect = page.url();
+      expect(urlAfterDeselect).not.toContain("activeFilters");
+
+      // Clean up - delete the segment
+      await deleteSegment(page, segmentName);
     });
   });
 });
