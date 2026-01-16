@@ -472,7 +472,11 @@ export class OutputEventTypesService_2024_06_14 {
   }
 
   getResponseEventTypeForPublicEndpoint(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
-    const { selectedCalendars: _selectedCalendars, ...eventTypeWithoutSelectedCalendars } = eventType;
+    const {
+      selectedCalendars: _selectedCalendars,
+      useEventLevelSelectedCalendars: _useEventLevelSelectedCalendars,
+      ...eventTypeWithoutSelectedCalendars
+    } = eventType;
 
     if (
       !Array.isArray(eventTypeWithoutSelectedCalendars?.bookingFields) ||
