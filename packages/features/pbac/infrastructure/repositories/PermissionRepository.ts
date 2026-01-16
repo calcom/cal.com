@@ -301,7 +301,7 @@ export class PermissionRepository implements IPermissionRepository {
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Team" t ON m."teamId" = t.id
-      LEFT JOIN "TeamFeatures" f ON f."teamId" = t.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      LEFT JOIN "TeamFeatures" f ON f."teamId" = t.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG} AND f.enabled = true
       WHERE m."userId" = ${userId}
         AND m."accepted" = true
         AND m."role"::text = ANY(${fallbackRoles})
@@ -311,7 +311,7 @@ export class PermissionRepository implements IPermissionRepository {
       FROM "Membership" m
       INNER JOIN "Team" org ON m."teamId" = org.id
       INNER JOIN "Team" child ON child."parentId" = org.id
-      LEFT JOIN "TeamFeatures" f ON f."teamId" = org.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      LEFT JOIN "TeamFeatures" f ON f."teamId" = org.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG} AND f.enabled = true
       WHERE m."userId" = ${userId}
         AND m."accepted" = true
         AND m."role"::text = ANY(${fallbackRoles})

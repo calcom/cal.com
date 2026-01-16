@@ -10,6 +10,26 @@ import {
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import type {
+  BookingWhereInput,
+  IBookingRepository,
+  BookingUpdateData,
+  BookingWhereUniqueInput,
+} from "@calcom/lib/server/repository/dto/IBookingRepository";
+
+const workflowReminderSelect = {
+  id: true,
+  referenceId: true,
+  method: true,
+};
+
+const referenceSelect = {
+  uid: true,
+  type: true,
+  externalCalendarId: true,
+  credentialId: true,
+};
+
 type ManagedEventReassignmentCreateParams = {
   uid: string;
   userId: number;
@@ -324,8 +344,22 @@ const selectStatementToGetBookingForCalEventBuilder = {
   },
 };
 
-export class BookingRepository {
+export class BookingRepository implements IBookingRepository {
   constructor(private prismaClient: PrismaClient) {}
+
+  /**
+   * Gets the fromReschedule field for a booking by UID
+   * Used to identify if this booking was created from a reschedule
+   * @param bookingUid - The unique identifier of the booking
+   * @returns The fromReschedule UID or null if not found/not a rescheduled booking
+   */
+  async getFromRescheduleUid(bookingUid: string): Promise<string | null> {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: { fromReschedule: true },
+    });
+    return booking?.fromReschedule ?? null;
+  }
 
   async getBookingAttendees(bookingId: number) {
     return await this.prismaClient.attendee.findMany({
@@ -1465,6 +1499,71 @@ export class BookingRepository {
     });
   }
 
+async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.updateMany({
+      where: where,
+      data,
+    });
+  }
+
+  async update({ where, data }: { where: BookingWhereUniqueInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+    });
+  }
+
+  /**
+   * Update a booking and return it with workflow reminders and references
+   * Used during booking cancellation to update status and retrieve related data in one query
+   */
+  async updateIncludeWorkflowRemindersAndReferences({
+    where,
+    data,
+  }: {
+    where: BookingWhereUniqueInput;
+    data: BookingUpdateData;
+  }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
+      },
+    });
+  }
+
+  /**
+   * Find bookings with workflow reminders for cleanup during cancellation
+   * Used after bulk cancellation of recurring events
+   */
+  async findManyIncludeWorkflowRemindersAndReferences({ where }: { where: BookingWhereInput }) {
+    return await this.prismaClient.booking.findMany({
+      where,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
+      },
+    });
+  }
+
   async getBookingForCalEventBuilder(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: { id: bookingId },
@@ -1478,6 +1577,7 @@ export class BookingRepository {
       select: selectStatementToGetBookingForCalEventBuilder,
     });
   }
+
   async findByIdIncludeDestinationCalendar(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
@@ -1645,6 +1745,8 @@ export class BookingRepository {
             teamId: true,
             parentId: true,
             slug: true,
+            title: true,
+            length: true,
             hideOrganizerEmail: true,
             customReplyToEmail: true,
             bookingFields: true,
@@ -1669,6 +1771,7 @@ export class BookingRepository {
         workflowReminders: true,
         responses: true,
         iCalUID: true,
+        iCalSequence: true,
       },
     });
   }
@@ -1896,6 +1999,19 @@ export class BookingRepository {
         startTime: true,
         endTime: true,
       },
+    });
+  }
+
+  async updateRecordedStatus({
+    bookingUid,
+    isRecorded,
+  }: {
+    bookingUid: string;
+    isRecorded: boolean;
+  }): Promise<void> {
+    await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { isRecorded },
     });
   }
 }
