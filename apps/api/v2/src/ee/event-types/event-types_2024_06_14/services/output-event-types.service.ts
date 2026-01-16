@@ -470,28 +470,33 @@ export class OutputEventTypesService_2024_06_14 {
   }
 
   getResponseEventTypeWithoutHiddenFields(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
-    const {
-      selectedCalendars: _selectedCalendars,
-      ...eventTypeWithoutSelectedCalendars
-    } = eventType;
-
-    if (
-      !Array.isArray(eventTypeWithoutSelectedCalendars?.bookingFields) ||
-      eventTypeWithoutSelectedCalendars.bookingFields.length === 0
-    )
-      return eventTypeWithoutSelectedCalendars;
+    if (!Array.isArray(eventType?.bookingFields) || eventType.bookingFields.length === 0) {
+      return eventType;
+    }
 
     const visibleBookingFields: OutputBookingField_2024_06_14[] = [];
-    for (const bookingField of eventTypeWithoutSelectedCalendars.bookingFields) {
+    for (const bookingField of eventType.bookingFields) {
       if ("hidden" in bookingField && bookingField.hidden === true) {
         continue;
       }
       visibleBookingFields.push(bookingField);
     }
     return {
-      ...eventTypeWithoutSelectedCalendars,
+      ...eventType,
       bookingFields: visibleBookingFields,
     };
+  }
+
+  getResponseEventTypesForPublicEndpoint(
+    eventTypes: EventTypeOutput_2024_06_14[]
+  ): EventTypeOutput_2024_06_14[] {
+    return eventTypes.map((eventType) => this.getResponseEventTypeForPublicEndpoint(eventType));
+  }
+
+  getResponseEventTypeForPublicEndpoint(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
+    const withoutHiddenFields = this.getResponseEventTypeWithoutHiddenFields(eventType);
+    const { selectedCalendars: _selectedCalendars, ...eventTypeForPublic } = withoutHiddenFields;
+    return eventTypeForPublic;
   }
 
   transformDisableRescheduling(
