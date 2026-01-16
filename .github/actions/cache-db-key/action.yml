@@ -1,0 +1,23 @@
+name: Generate cache-db key
+description: "Generate the cache key for database caching"
+inputs:
+  path:
+    required: false
+    default: "backups/backup.sql"
+    description: "Path to the backup file"
+outputs:
+  key:
+    description: "The generated cache key"
+    value: ${{ steps.generate-key.outputs.key }}
+runs:
+  using: "composite"
+  steps:
+    - name: Generate cache key
+      id: generate-key
+      shell: bash
+      env:
+        CACHE_NAME: cache-db
+        PATH_KEY: ${{ inputs.path }}
+        PRISMA_HASH: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
+      run: |
+        echo "key=${CACHE_NAME}-${PATH_KEY}-${PRISMA_HASH}" >> $GITHUB_OUTPUT

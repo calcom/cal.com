@@ -18,6 +18,7 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  datesOutOfOfficeTimeZone?: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -76,6 +77,7 @@ function buildSlotsWithDateRanges({
   offsetStart,
   datesOutOfOffice,
   showOptimizedSlots,
+  datesOutOfOfficeTimeZone,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -85,6 +87,7 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  datesOutOfOfficeTimeZone?: string;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -122,8 +125,6 @@ function buildSlotsWithDateRanges({
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
-    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
-
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
@@ -183,7 +184,14 @@ function buildSlotsWithDateRanges({
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
 
-      const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
+      let dateOutOfOfficeExists = undefined;
+      if (datesOutOfOffice) {
+        const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
+          ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")
+          : slotStartTime.utc().format("YYYY-MM-DD");
+        dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD];
+      }
+
       let slotData: {
         time: Dayjs;
         userIds?: number[];
@@ -192,12 +200,14 @@ function buildSlotsWithDateRanges({
         toUser?: IToUser;
         reason?: string;
         emoji?: string;
+        notes?: string | null;
+        showNotePublicly?: boolean;
       } = {
         time: slotStartTime,
       };
 
       if (dateOutOfOfficeExists) {
-        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
+        const { toUser, fromUser, reason, emoji, notes, showNotePublicly } = dateOutOfOfficeExists;
 
         slotData = {
           time: slotStartTime,
@@ -206,6 +216,8 @@ function buildSlotsWithDateRanges({
           ...(toUser && { toUser }),
           ...(reason && { reason }),
           ...(emoji && { emoji }),
+          ...(notes && showNotePublicly && { notes }),
+          ...(showNotePublicly !== undefined && { showNotePublicly }),
         };
       }
 
@@ -226,6 +238,7 @@ const getSlots = ({
   offsetStart = 0,
   datesOutOfOffice,
   showOptimizedSlots,
+  datesOutOfOfficeTimeZone,
 }: GetSlots): {
   time: Dayjs;
   userIds?: number[];
@@ -244,6 +257,7 @@ const getSlots = ({
     offsetStart,
     datesOutOfOffice,
     showOptimizedSlots,
+    datesOutOfOfficeTimeZone,
   });
 };
 

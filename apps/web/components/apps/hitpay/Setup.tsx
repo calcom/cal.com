@@ -13,7 +13,7 @@ import { hitpayCredentialKeysSchema } from "@calcom/app-store/hitpay/lib/hitpayC
 import type { IHitPaySetupProps } from "@calcom/app-store/hitpay/pages/setup/_getServerSideProps";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -203,15 +203,15 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     <>
       <div className="bg-default flex h-screen items-center justify-center">
         {showContent ? (
-          <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center space-y-4 p-4 lg:space-y-5">
+          <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center stack-y-4 p-4 lg:stack-y-5">
             <div className="rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
               <Icon name="info" className="mb-0.5 inline-flex h-4 w-4" /> Create or connect to an existing
               HitPay account to receive payments for your paid bookings.
             </div>
 
-            <form className="w-full space-y-4" onSubmit={onSubmit}>
+            <form className="w-full stack-y-4" onSubmit={onSubmit}>
               <div className="bg-default border-subtle overflow-auto rounded border">
-                <div className="border-subtle flex items-center justify-between border-b-[1px] p-4 md:p-5">
+                <div className="border-subtle flex items-center justify-between border-b p-4 md:p-5">
                   <h2 className="text-2xl font-semibold">Account Information</h2>
                   <div className="ml-auto flex items-center">
                     <Switch
@@ -221,7 +221,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
                     />
                   </div>
                 </div>
-                <div className="w-full space-y-4 p-4 md:p-5">
+                <div className="w-full stack-y-4 p-4 md:p-5">
                   <div className="w-full">
                     <KeyField
                       {...register("apiKey", {

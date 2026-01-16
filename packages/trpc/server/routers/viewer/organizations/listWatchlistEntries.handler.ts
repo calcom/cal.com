@@ -1,8 +1,5 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { getOrganizationWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,63 +24,37 @@ export const listWatchlistEntriesHandler = async ({ ctx, input }: ListWatchlistE
     });
   }
 
-  const permissionCheckService = new PermissionCheckService();
-  const hasPermission = await permissionCheckService.checkPermission({
-    userId: user.id,
-    teamId: organizationId,
-    permission: "watchlist.read",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
+  const service = getOrganizationWatchlistQueryService();
 
-  if (!hasPermission) {
+  try {
+    return await service.listWatchlistEntries({
+      organizationId,
+      userId: user.id,
+      limit: input.limit,
+      offset: input.offset,
+      searchTerm: input.searchTerm,
+      filters: input.filters,
+    });
+  } catch (error) {
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.UNAUTHORIZED:
+        case WatchlistErrorCode.PERMISSION_DENIED:
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
+    }
+
     throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not authorized to view blocklist entries",
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to list blocklist entries",
     });
   }
-
-  const watchlistRepo = new WatchlistRepository(prisma);
-  const userRepo = new UserRepository(prisma);
-
-  const result = await watchlistRepo.findAllEntries({
-    organizationId,
-    limit: input.limit,
-    offset: input.offset,
-    searchTerm: input.searchTerm,
-    filters: input.filters,
-  });
-
-  const userIds = result.rows
-    .map((entry) => entry.audits?.[0]?.changedByUserId)
-    .filter((id): id is number => id !== null && id !== undefined);
-
-  const uniqueUserIds = Array.from(new Set(userIds));
-
-  const users = uniqueUserIds.length > 0 ? await userRepo.findUsersByIds(uniqueUserIds) : [];
-
-  const userMap = new Map(users.map((u) => [u.id, u]));
-
-  const rowsWithCreators = result.rows.map((entry) => {
-    const audit = entry.audits?.[0];
-    if (audit?.changedByUserId) {
-      const changedByUser = userMap.get(audit.changedByUserId);
-      return {
-        ...entry,
-        audits: [
-          {
-            ...audit,
-            changedByUser,
-          },
-        ],
-      };
-    }
-    return entry;
-  });
-
-  return {
-    rows: rowsWithCreators,
-    meta: result.meta,
-  };
 };
-
-export default listWatchlistEntriesHandler;

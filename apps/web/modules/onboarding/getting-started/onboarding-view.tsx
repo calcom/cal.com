@@ -2,6 +2,7 @@
 
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useRef, useTransition } from "react";
 
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
@@ -11,6 +12,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { type IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
+import { useTeamInvites } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import { OnboardingCard } from "../components/OnboardingCard";
 import { OnboardingLayout } from "../components/OnboardingLayout";
@@ -25,9 +27,26 @@ type OnboardingViewProps = {
 export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { selectedPlan, setSelectedPlan } = useOnboardingStore();
+  const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { listInvites, isPending: isPendingInvites } = useTeamInvites();
+
+  // Reset onboarding data when visiting this page, but preserve the selected plan
+  useEffect(() => {
+    resetOnboardingPreservingPlan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // If user has pending team invites, redirect them directly to personal onboarding
+  useEffect(() => {
+    if (!isPendingInvites && listInvites && listInvites.length > 0) {
+      setSelectedPlan("personal");
+      startTransition(() => {
+        router.push("/onboarding/personal/settings");
+      });
+    }
+  }, [isPendingInvites, listInvites, router, setSelectedPlan]);
 
   // Plan order mapping for determining direction
   const planOrder: Record<PlanType, number> = {
@@ -52,6 +71,11 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   }, [selectedPlan]);
 
   const handleContinue = () => {
+    if (selectedPlan) {
+      posthog.capture("onboarding_plan_continue_clicked", {
+        plan_type: selectedPlan,
+      });
+    }
     startTransition(() => {
       if (selectedPlan === "organization") {
         router.push("/onboarding/organization/details");
@@ -106,6 +130,15 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
 
+  // Show loading state while checking for invites or if redirecting
+  if (isPendingInvites || (listInvites && listInvites.length > 0)) {
+    return (
+      <OnboardingLayout userEmail={userEmail}>
+        <OnboardingCard title={t("loading")} subtitle="" />
+      </OnboardingLayout>
+    );
+  }
+
   return (
     <>
       <OnboardingContinuationPrompt />
@@ -126,12 +159,18 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
             </div>
           }>
           {/* Card */}
-          <div className="bg-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
+          <div className="bg-cal-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}
-                onValueChange={(value) => setSelectedPlan(value as PlanType)}
+                onValueChange={(value) => {
+                  const planType = value as PlanType;
+                  setSelectedPlan(planType);
+                  posthog.capture("onboarding_plan_selected", {
+                    plan_type: planType,
+                  });
+                }}
                 className="flex w-full flex-col gap-1 rounded-[10px]">
                 {plans.map((plan) => {
                   const isSelected = selectedPlan === plan.id;
@@ -174,7 +213,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
         </OnboardingCard>
 
         {/* Right column - Icon display */}
-        <div className="bg-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
+        <div className="bg-cal-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
           <AnimatePresence mode="wait">
             {selectedPlanData && (
               <PlanIcon
