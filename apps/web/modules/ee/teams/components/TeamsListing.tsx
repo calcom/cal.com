@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -13,6 +13,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { CreateTeamModal } from "~/ee/teams/components/CreateTeamModal";
 import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
 import { UpgradeTip } from "~/shell/UpgradeTip";
 
@@ -41,6 +42,7 @@ export function TeamsListing({
   const token = searchParams?.get("token");
   const { t } = useLocale();
   const router = useRouter();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const teams = useMemo(() => data?.filter((m) => m.accepted && !m.isOrganization) || [], [data]);
 
@@ -57,6 +59,10 @@ export function TeamsListing({
   );
 
   const isCreateTeamButtonDisabled = !!(orgId && !permissions.canCreateTeam);
+
+  const handleOpenCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
 
   const features = [
     {
@@ -141,7 +147,7 @@ export function TeamsListing({
             !orgId || permissions.canCreateTeam ? (
               <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
                 <ButtonGroup>
-                  <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                  <Button color="primary" onClick={handleOpenCreateModal}>
                     {t("create_team")}
                   </Button>
                   <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
@@ -166,7 +172,7 @@ export function TeamsListing({
                 tooltip={
                   isCreateTeamButtonDisabled ? t("org_admins_can_create_new_teams") : t("create_new_team")
                 }
-                onClick={() => router.push(`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`)}>
+                onClick={handleOpenCreateModal}>
                 {t(`create_new_team`)}
               </Button>
             }
@@ -177,6 +183,8 @@ export function TeamsListing({
       <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
         <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
       </p>
+
+      <CreateTeamModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
     </>
   );
 }
