@@ -45,9 +45,6 @@ CREATE UNIQUE INDEX "AttributeSyncRule_integrationAttributeSyncId_key" ON "publi
 -- CreateIndex
 CREATE INDEX "AttributeSyncFieldMapping_integrationAttributeSyncId_idx" ON "public"."AttributeSyncFieldMapping"("integrationAttributeSyncId");
 
--- CreateIndex
-CREATE UNIQUE INDEX "AttributeSyncFieldMapping_integrationAttributeSyncId_attrib_key" ON "public"."AttributeSyncFieldMapping"("integrationAttributeSyncId", "attributeId");
-
 -- AddForeignKey
 ALTER TABLE "public"."IntegrationAttributeSync" ADD CONSTRAINT "IntegrationAttributeSync_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

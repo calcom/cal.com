@@ -45,7 +45,10 @@ export type { EventBusyDate } from "@calcom/types/Calendar";
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
 
-export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+export type {
+  BookingCreateBody,
+  BookingResponse,
+} from "@calcom/features/bookings/types";
 
 export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
