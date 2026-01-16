@@ -3260,7 +3260,7 @@ describe("Event types Endpoints", () => {
       return client;
     }
 
-    it("should create an event type with useEventLevelSelectedCalendars and selectedCalendars", async () => {
+    it("should create an event type with selectedCalendars", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Event with selected calendars",
         slug: `event-selected-calendars-${randomString()}`,
@@ -3271,7 +3271,6 @@ describe("Event types Endpoints", () => {
             integration: "cal-video",
           },
         ],
-        useEventLevelSelectedCalendars: true,
         selectedCalendars: [
           {
             integration: "google_calendar",
@@ -3292,7 +3291,6 @@ describe("Event types Endpoints", () => {
 
       expect(createdEventType).toHaveProperty("id");
       expect(createdEventType.title).toEqual(body.title);
-      expect(createdEventType.useEventLevelSelectedCalendars).toEqual(true);
       expect(createdEventType.selectedCalendars).toBeDefined();
       expect(createdEventType.selectedCalendars).toHaveLength(1);
       expect(createdEventType.selectedCalendars?.[0].integration).toEqual("google_calendar");
@@ -3325,7 +3323,6 @@ describe("Event types Endpoints", () => {
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
       const updatedEventType = responseBody.data;
 
-      expect(updatedEventType.useEventLevelSelectedCalendars).toEqual(true);
       expect(updatedEventType.selectedCalendars).toBeDefined();
       expect(updatedEventType.selectedCalendars).toHaveLength(2);
     });
@@ -3340,7 +3337,6 @@ describe("Event types Endpoints", () => {
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
       const eventType = responseBody.data;
 
-      expect(eventType.useEventLevelSelectedCalendars).toEqual(true);
       expect(eventType.selectedCalendars).toBeDefined();
       expect(eventType.selectedCalendars).toHaveLength(2);
     });
@@ -3357,12 +3353,10 @@ describe("Event types Endpoints", () => {
       const eventType = eventTypes.find((et) => et.id === createdEventTypeId);
       expect(eventType).toBeDefined();
       expect(eventType?.selectedCalendars).toBeUndefined();
-      expect(eventType?.useEventLevelSelectedCalendars).toBeUndefined();
     });
 
-    it("should clear selectedCalendars when useEventLevelSelectedCalendars is set to false", async () => {
+    it("should clear selectedCalendars when empty array is provided", async () => {
       const updateBody: UpdateEventTypeInput_2024_06_14 = {
-        useEventLevelSelectedCalendars: false,
         selectedCalendars: [],
       };
 
@@ -3376,7 +3370,6 @@ describe("Event types Endpoints", () => {
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
       const updatedEventType = responseBody.data;
 
-      expect(updatedEventType.useEventLevelSelectedCalendars).toEqual(false);
       expect(
         updatedEventType.selectedCalendars === undefined || updatedEventType.selectedCalendars?.length === 0
       ).toBe(true);
