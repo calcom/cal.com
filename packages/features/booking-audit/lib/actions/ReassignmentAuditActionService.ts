@@ -18,11 +18,14 @@ import type {
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
   assignedToId: NumberChangeSchema,
-  assignedById: NumberChangeSchema,
-  reassignmentReason: StringChangeSchema,
+  // assignedById doesn't need old/new pattern - it's always a new value (who performed the reassignment)
+  assignedById: z.number(),
+  // reassignmentReason doesn't need old/new pattern - it's always a new value
+  reassignmentReason: z.string().nullable(),
   reassignmentType: z.enum(["manual", "roundRobin"]),
   userPrimaryEmail: StringChangeSchema.optional(),
-  title: StringChangeSchema.optional(),
+  // hostName tracks the name change (old host name -> new host name)
+  hostName: StringChangeSchema.optional(),
 });
 
 export class ReassignmentAuditActionService implements IAuditActionService {
@@ -83,7 +86,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     const { fields } = this.parseStored(storedData);
     return {
       newAssignedToId: fields.assignedToId.new,
-      reassignmentReason: fields.reassignmentReason.new ?? null,
+      reassignmentReason: fields.reassignmentReason ?? null,
     };
   }
 

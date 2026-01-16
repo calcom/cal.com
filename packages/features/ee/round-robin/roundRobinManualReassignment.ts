@@ -7,7 +7,7 @@ import {
   sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -68,8 +68,8 @@ export const roundRobinManualReassignment = async ({
   reassignedById: number;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
-  actionSource?: ActionSource;
-  reassignedByUuid?: string;
+  actionSource: ValidActionSource;
+  reassignedByUuid: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -465,35 +465,21 @@ export const roundRobinManualReassignment = async ({
   }
 
   // Audit logging for manual reassignment
-  const effectiveActionSource = actionSource ?? "UNKNOWN";
-  if (effectiveActionSource === "UNKNOWN") {
-    roundRobinReassignLogger.warn("Manual reassignment with unknown actionSource", {
-      bookingUid: booking.uid,
-    });
-  }
-
-  if (reassignedByUuid) {
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onReassignment({
-      bookingUid: booking.uid,
-      actor: makeUserActor(reassignedByUuid),
-      organizationId: orgId,
-      source: effectiveActionSource,
-      auditData: {
-        assignedToId: { old: originalOrganizer.id, new: newUser.id },
-        assignedById: { old: null, new: reassignedById },
-        reassignmentReason: { old: null, new: reassignReason ?? null },
-        reassignmentType: "manual",
-        userPrimaryEmail: { old: originalOrganizer.email, new: newUser.email },
-        title: { old: originalOrganizer.name ?? null, new: newUser.name ?? null },
-      },
-    });
-  } else {
-    roundRobinReassignLogger.warn("Manual reassignment without reassignedByUuid, skipping audit", {
-      bookingUid: booking.uid,
-      reassignedById,
-    });
-  }
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onReassignment({
+    bookingUid: booking.uid,
+    actor: makeUserActor(reassignedByUuid),
+    organizationId: orgId,
+    source: actionSource,
+    auditData: {
+      assignedToId: { old: originalOrganizer.id, new: newUser.id },
+      assignedById: reassignedById,
+      reassignmentReason: reassignReason ?? null,
+      reassignmentType: "manual",
+      userPrimaryEmail: { old: originalOrganizer.email, new: newUser.email },
+      hostName: { old: originalOrganizer.name ?? null, new: newUser.name ?? null },
+    },
+  });
 
   return booking;
 };
