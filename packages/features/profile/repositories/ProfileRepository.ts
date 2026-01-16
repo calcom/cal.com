@@ -7,12 +7,14 @@ import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { User as PrismaUser } from "@calcom/prisma/client";
+import type { PrismaClient, User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
+
+import type { IProfileRepository } from "@calcom/lib/server/repository/dto/IProfileRepository";
 
 const userSelect = {
   name: true,
@@ -95,7 +97,13 @@ export enum LookupTarget {
   Profile,
 }
 
-export class ProfileRepository {
+export class ProfileRepository implements IProfileRepository {
+  private prismaClient: PrismaClient;
+
+  constructor(deps: { prismaClient: PrismaClient }) {
+    this.prismaClient = deps.prismaClient;
+  }
+
   static generateProfileUid() {
     return uuidv4();
   }
@@ -207,12 +215,12 @@ export class ProfileRepository {
         },
         ...(movedFromUserId
           ? {
-              movedFromUser: {
-                connect: {
-                  id: movedFromUserId,
-                },
+            movedFromUser: {
+              connect: {
+                id: movedFromUserId,
               },
-            }
+            },
+          }
           : null),
 
         username: username || email.split("@")[0],
@@ -1009,18 +1017,27 @@ export class ProfileRepository {
       profiles: {
         ...(orgSlug
           ? {
-              some: {
-                organization: {
-                  slug: orgSlug,
-                },
+            some: {
+              organization: {
+                slug: orgSlug,
               },
-            }
+            },
+          }
           : // If it's not orgSlug we want to ensure that no profile is there. Having a profile means that the user is a member of some organization.
-            {
-              none: {},
-            }),
+          {
+            none: {},
+          }),
       },
     };
+  }
+
+  async findFirstByUserId({ userId }: { userId: number }) {
+    return this.prismaClient.profile.findFirst({
+      where: {
+        userId,
+      },
+      select: profileSelect,
+    });
   }
 }
 

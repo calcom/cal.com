@@ -244,16 +244,18 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
 export const sendReassignedUpdatedEmailsAndSMS = async ({
   calEvent,
   eventTypeMetadata,
+  showAttendees,
 }: {
   calEvent: CalendarEvent;
   eventTypeMetadata?: EventTypeMetadata;
+  showAttendees: boolean;
 }) => {
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
   if (shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.REASSIGNED))
     return;
 
   const emailsToSend = calEvent.attendees.map((attendee) =>
-    sendEmail(() => new AttendeeUpdatedEmail(calEvent, attendee))
+    sendEmail(() => new AttendeeUpdatedEmail(calEvent, attendee, showAttendees))
   );
 
   await Promise.all(emailsToSend);

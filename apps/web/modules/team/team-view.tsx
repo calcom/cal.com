@@ -154,6 +154,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           </p>
           {!isBioEmpty && (
             <>
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
               <div
                 className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
