@@ -38,7 +38,7 @@ export type HostWithLocationOptions = {
     appLink?: string;
   } | null;
   location: {
-    id: number;
+    id: string;
     type: string;
     credentialId: number | null;
     link: string | null;
