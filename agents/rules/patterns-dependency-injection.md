@@ -1,12 +1,64 @@
-# Dependency Injection (DI) Pattern
+---
+title: Use Dependency Injection for Loose Coupling
+impact: HIGH
+impactDescription: Enables build-time safety, testability, and maintainability
+tags: patterns, dependency-injection, di, ioctopus, moduleloader, testing, coupling
+---
 
-We use a Dependency Injection pattern powered by `@evyweb/ioctopus` to manage service and repository dependencies. This pattern ensures proper dependency management, testability, and consistent instantiation of services throughout the codebase.
+## Use Dependency Injection for Loose Coupling
 
-We use the **moduleLoader pattern** which provides type-safe dependency injection. This ensures that if a service adds a new dependency, TypeScript will catch missing dependencies at build time rather than runtime.
+**Impact: HIGH**
 
-## Core Concepts
+Dependency Injection enables loose coupling, facilitates testing, and isolates concerns. Dependencies should be injected via DI containers rather than instantiated directly within classes.
 
-The DI system consists of four main components:
+**Incorrect (tight coupling with direct instantiation):**
+
+```typescript
+class BookingService {
+  private repository = new BookingRepository();
+  private emailService = new EmailService();
+  private calendarService = new GoogleCalendarService();
+
+  async createBooking(data: CreateBookingDTO) {
+    const booking = await this.repository.create(data);
+    await this.emailService.sendConfirmation(booking);
+    await this.calendarService.createEvent(booking);
+    return booking;
+  }
+}
+```
+
+**Correct (dependency injection):**
+
+```typescript
+class BookingService {
+  constructor(
+    private readonly repository: BookingRepository,
+    private readonly emailService: EmailService,
+    private readonly calendarService: CalendarService,
+  ) {}
+
+  async createBooking(data: CreateBookingDTO) {
+    const booking = await this.repository.create(data);
+    await this.emailService.sendConfirmation(booking);
+    await this.calendarService.createEvent(booking);
+    return booking;
+  }
+}
+```
+
+**Required patterns:**
+- **Application Services**: Orchestrate use cases, coordinate between domain services and repositories
+- **Domain Services**: Contain business logic that doesn't naturally belong to a single entity
+- **Repositories**: Abstract data access, isolate technology choices
+- **Caching Proxies**: Wrap repositories or services to add caching behavior transparently
+- **Decorators**: Add cross-cutting concerns (logging, metrics) without polluting domain logic
+
+## Cal.com's Type-Safe DI with moduleLoader
+
+We use `@evyweb/ioctopus` to manage service and repository dependencies. The **moduleLoader pattern** provides type-safe dependency injection, ensuring that if a service adds a new dependency, TypeScript will catch missing dependencies at build time rather than runtime.
+
+### Core Concepts
 
 **Tokens**: Unique symbols that identify each service or repository in the DI container. Every injectable class needs a corresponding token. Tokens should be defined in a `tokens.ts` file within the feature's `di/` directory.
 
@@ -16,9 +68,7 @@ The DI system consists of four main components:
 
 **`bindModuleToClassOnToken`**: A type-safe function that binds a class to a token and declares its dependencies. TypeScript ensures the declared dependencies match what the class constructor expects.
 
-## How It Works
-
-Here's the complete flow for creating a DI-enabled service:
+### How It Works
 
 **Step 1: Create tokens in the feature's di directory**
 
@@ -96,7 +146,6 @@ const loadModule = bindModuleToClassOnToken({
   moduleToken,
   token,
   classs: MyService,
-  // For multiple dependencies, use depsMap:
   depsMap: {
     bookingRepo: bookingRepositoryModuleLoader,
     userRepo: userRepositoryModuleLoader,
@@ -115,31 +164,13 @@ For a single dependency, use `dep` instead of `depsMap`:
 
 ```typescript
 // packages/features/myfeature/di/MyRepository.module.ts
-import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { MyRepository } from "@calcom/features/myfeature/repositories/MyRepository";
-
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
-import { MY_FEATURE_DI_TOKENS } from "./tokens";
-
-const thisModule = createModule();
-const token = MY_FEATURE_DI_TOKENS.MY_REPOSITORY;
-const moduleToken = MY_FEATURE_DI_TOKENS.MY_REPOSITORY_MODULE;
-
 const loadModule = bindModuleToClassOnToken({
   module: thisModule,
   moduleToken,
   token,
   classs: MyRepository,
-  // For single dependency, use dep:
   dep: prismaModuleLoader,
 });
-
-export const moduleLoader: ModuleLoader = {
-  token,
-  loadModule,
-};
-
-export type { MyRepository };
 ```
 
 **Step 4: Create a container that uses the moduleLoader**
@@ -147,7 +178,6 @@ export type { MyRepository };
 ```typescript
 // packages/features/myfeature/di/MyService.container.ts
 import { createContainer } from "@calcom/features/di/di";
-
 import { type MyService, moduleLoader as myServiceModuleLoader } from "./MyService.module";
 
 const myServiceContainer = createContainer();
@@ -161,33 +191,15 @@ export function getMyService(): MyService {
 **Step 5: Use the service via the container's getter function**
 
 ```typescript
-// Anywhere in the codebase
 import { getMyService } from "@calcom/features/myfeature/di/MyService.container";
 
 const myService = getMyService();
 await myService.doSomething();
 ```
 
-## Why moduleLoader Is Type-Safe
-
-The `bindModuleToClassOnToken` function in `packages/features/di/di.ts` uses TypeScript generics to infer the required dependencies from the class constructor:
-
-```typescript
-depsMap: Record<
-  keyof (TClass extends new (deps: infer TDeps) => any ? TDeps : never),
-  ModuleLoader
->
-```
-
-This means if `MyService` adds a new constructor dependency (e.g., `eventTypeRepo`), TypeScript will error because `depsMap` is missing that key. The error happens at build time, not runtime.
-
-The `loadModule` function also automatically loads all dependencies recursively, so you don't need to manually track the dependency chain.
-
 ## Common Mistakes to Avoid
 
 **Mistake 1: Creating a repository or service class with all static methods**
-
-Static methods bypass the DI system entirely, making the code harder to test and breaking the dependency chain.
 
 ```typescript
 // Bad - Static methods bypass DI
@@ -197,11 +209,6 @@ export class BookingRepository {
   }
 }
 
-// Usage (wrong - no DI)
-const booking = await BookingRepository.findById("123");
-```
-
-```typescript
 // Good - Instance methods with constructor injection
 export class BookingRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -210,36 +217,21 @@ export class BookingRepository {
     return this.prismaClient.booking.findUnique({ where: { id } });
   }
 }
-
-// Usage (correct - via DI container)
-const bookingRepo = getBookingRepository();
-const booking = await bookingRepo.findById("123");
 ```
 
 **Mistake 2: Manually instantiating a class instead of using the DI container**
 
-Even if you define a class with constructor injection, manually calling `new` bypasses the DI system and its benefits.
-
 ```typescript
 // Bad - Manual instantiation bypasses DI
-import { MyService } from "@calcom/features/myfeature/services/MyService";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import prisma from "@calcom/prisma";
-
 const bookingRepo = new BookingRepository(prisma);
 const myService = new MyService({ bookingRepo });
-```
 
-```typescript
 // Good - Use the DI container's getter function
 import { getMyService } from "@calcom/features/myfeature/di/MyService.container";
-
 const myService = getMyService();
 ```
 
 **Mistake 3: Importing Prisma directly in a service instead of using repository injection**
-
-Services should depend on repositories, not directly on Prisma. This maintains proper separation of concerns.
 
 ```typescript
 // Bad - Service imports Prisma directly
@@ -247,17 +239,11 @@ import prisma from "@calcom/prisma";
 
 export class MyService {
   async doSomething() {
-    const bookings = await prisma.booking.findMany({...}); // Wrong!
+    const bookings = await prisma.booking.findMany({...});
   }
 }
-```
 
-```typescript
 // Good - Service depends on repository via DI
-export interface IMyServiceDeps {
-  bookingRepo: BookingRepository;
-}
-
 export class MyService {
   constructor(private deps: IMyServiceDeps) {}
 
@@ -269,38 +255,26 @@ export class MyService {
 
 **Mistake 4: Manual module loading in containers (not type-safe)**
 
-Don't manually call `container.load()` for each dependency. This is not type-safe and can lead to runtime errors if you forget to load a dependency.
-
 ```typescript
 // Bad - Manual module loading is not type-safe
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
 container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
-container.load(DI_TOKENS.MY_SERVICE_MODULE, myServiceModule);
-// If MyService adds a new dependency, TypeScript won't catch the missing load()
 
-export function getMyService() {
-  return container.get<MyService>(DI_TOKENS.MY_SERVICE);
-}
-```
-
-```typescript
 // Good - Use moduleLoader for type-safe dependency loading
-import { moduleLoader as myServiceModuleLoader } from "./MyService.module";
-
-const container = createContainer();
-
 export function getMyService(): MyService {
-  myServiceModuleLoader.loadModule(container); // Automatically loads all dependencies
+  myServiceModuleLoader.loadModule(container);
   return container.get<MyService>(myServiceModuleLoader.token);
 }
 ```
 
 ## Why Use DI?
 
-- **Build-time safety**: TypeScript catches missing dependencies before runtime when using the moduleLoader pattern
-- **Testability**: Dependencies can be easily mocked in tests by providing alternative implementations
+- **Build-time safety**: TypeScript catches missing dependencies before runtime
+- **Testability**: Dependencies can be easily mocked in tests
 - **Consistency**: All instances are created the same way with proper dependencies
-- **Maintainability**: Changing a dependency only requires updating the module binding, not every usage site
+- **Maintainability**: Changing a dependency only requires updating the module binding
 - **Automatic dependency resolution**: The moduleLoader automatically loads all dependencies recursively
-- **Self-documenting**: Each module declares its own dependencies, making the dependency graph explicit
+- **Self-documenting**: Each module declares its own dependencies explicitly
+
+Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
