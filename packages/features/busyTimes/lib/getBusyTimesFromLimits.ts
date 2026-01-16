@@ -112,7 +112,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
 
       // special handling of yearly limits to improve performance
-      if (unit === "year") {
+      // For seated events, we need to use the regular seat-aware counting logic
+      if (unit === "year" && !seatsPerTimeSlot) {
         try {
           const checkBookingLimitsService = getCheckBookingLimitsService();
           await checkBookingLimitsService.checkBookingLimit({
