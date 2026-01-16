@@ -35,6 +35,7 @@ import localFont from "next/font/local";
 export const yourNewFont = localFont({
   src: "./YourFont.woff2",
   variable: "--font-your-name",
+  display: "swap",
 });
 ```
 
