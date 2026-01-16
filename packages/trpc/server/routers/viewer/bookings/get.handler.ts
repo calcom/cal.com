@@ -14,9 +14,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType, BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -114,7 +112,7 @@ export async function getBookings({
   skip: number;
 }) {
   const permissionCheckService = new PermissionCheckService();
-  const fallbackRoles: MembershipRole[] = ["ADMIN", "OWNER"];
+  const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
 
   const teamIdsWithBookingPermission = await permissionCheckService.getTeamIdsWithPermission({
     userId: user.id,
