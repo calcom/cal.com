@@ -49,12 +49,7 @@ export class EventTypesService_2024_06_14 {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
 
-    const {
-      destinationCalendar: _destinationCalendar,
-      useEventLevelSelectedCalendars,
-      selectedCalendars,
-      ...rest
-    } = body;
+    const { destinationCalendar: _destinationCalendar, selectedCalendars, ...rest } = body;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -82,12 +77,7 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    await this.updateEventTypeSelectedCalendars(
-      eventTypeCreated.id,
-      user.id,
-      useEventLevelSelectedCalendars,
-      selectedCalendars
-    );
+    await this.updateEventTypeSelectedCalendars(eventTypeCreated.id, user.id, selectedCalendars);
 
     const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeCreated.id);
 
@@ -329,7 +319,7 @@ export class EventTypesService_2024_06_14 {
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
-    const { useEventLevelSelectedCalendars, selectedCalendars, ...rest } = body;
+    const { selectedCalendars, ...rest } = body;
 
     await updateEventType({
       input: { id: eventTypeId, ...rest },
@@ -341,12 +331,7 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    await this.updateEventTypeSelectedCalendars(
-      eventTypeId,
-      user.id,
-      useEventLevelSelectedCalendars,
-      selectedCalendars
-    );
+    await this.updateEventTypeSelectedCalendars(eventTypeId, user.id, selectedCalendars);
 
     const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeId);
 
@@ -415,10 +400,9 @@ export class EventTypesService_2024_06_14 {
   async updateEventTypeSelectedCalendars(
     eventTypeId: number,
     userId: number,
-    useEventLevelSelectedCalendars: boolean | undefined,
     selectedCalendars: SelectedCalendar_2024_06_14[] | undefined
   ) {
-    if (useEventLevelSelectedCalendars === undefined && selectedCalendars === undefined) {
+    if (selectedCalendars === undefined) {
       return;
     }
 
@@ -428,16 +412,8 @@ export class EventTypesService_2024_06_14 {
     }
     this.checkUserOwnsEventType(userId, existingEventType);
 
-    let shouldUseEventLevelCalendars: boolean;
-    if (selectedCalendars !== undefined) {
-      shouldUseEventLevelCalendars = selectedCalendars.length > 0;
-    } else if (useEventLevelSelectedCalendars !== undefined) {
-      shouldUseEventLevelCalendars = useEventLevelSelectedCalendars;
-    } else {
-      return;
-    }
-
-    const hasSelectedCalendars = selectedCalendars && selectedCalendars.length > 0;
+    const shouldUseEventLevelCalendars = selectedCalendars.length > 0;
+    const hasSelectedCalendars = selectedCalendars.length > 0;
 
     const userSelectedCalendars = hasSelectedCalendars
       ? await this.selectedCalendarsRepository.getUserSelectedCalendars(userId)

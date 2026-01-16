@@ -134,7 +134,6 @@ export class InputEventTypesService_2024_06_14 {
       disableRescheduling,
       disableCancelling,
       calVideoSettings,
-      useEventLevelSelectedCalendars,
       selectedCalendars,
       ...rest
     } = inputEventType;
@@ -188,7 +187,6 @@ export class InputEventTypesService_2024_06_14 {
       ...disableReschedulingTransformed,
       ...disableCancellingTransformed,
       ...calVideoSettingsTransformed,
-      useEventLevelSelectedCalendars,
       selectedCalendars,
     };
 
@@ -232,7 +230,6 @@ export class InputEventTypesService_2024_06_14 {
       disableRescheduling,
       disableCancelling,
       calVideoSettings,
-      useEventLevelSelectedCalendars,
       selectedCalendars,
       ...rest
     } = inputEventType;
@@ -302,7 +299,6 @@ export class InputEventTypesService_2024_06_14 {
       ...disableReschedulingTransformed,
       ...disableCancellingTransformed,
       ...calVideoSettingsTransformed,
-      useEventLevelSelectedCalendars,
       selectedCalendars,
     };
 

@@ -558,21 +558,12 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   bookingUrl!: string;
 
   @IsOptional()
-  @IsBoolean()
-  @ApiPropertyOptional({
-    description:
-      "If true, the event type uses its own selected calendars for conflict checking instead of the user's selected calendars.",
-    default: false,
-  })
-  useEventLevelSelectedCalendars?: boolean;
-
-  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SelectedCalendarOutput_2024_06_14)
   @ApiPropertyOptional({
     description:
-      "An array of calendars used for conflict checking for this event type. Only populated when useEventLevelSelectedCalendars is true.",
+      "An array of calendars used for conflict checking for this event type. When non-empty, the event type uses these calendars instead of the user's default selected calendars.",
     type: [SelectedCalendarOutput_2024_06_14],
   })
   selectedCalendars?: SelectedCalendarOutput_2024_06_14[];
