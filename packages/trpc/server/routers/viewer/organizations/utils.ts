@@ -16,14 +16,18 @@ interface AddBulkToTeamProps {
   input: TAddMembersToTeams;
 }
 
-export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => {
+export const addMembersToTeams = async ({
+  user,
+  input,
+}: AddBulkToTeamProps) => {
   if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const teamRepository = new TeamRepository(prisma);
-  const teamsNotBelongingToOrg = await teamRepository.findTeamsNotBelongingToOrgByIds({
-    teamIds: input.teamIds,
-    orgId: user.organizationId,
-  });
+  const teamsNotBelongingToOrg =
+    await teamRepository.findTeamsNotBelongingToOrgByIds({
+      teamIds: input.teamIds,
+      orgId: user.organizationId,
+    });
 
   if (teamsNotBelongingToOrg.length > 0) {
     throw new TRPCError({
@@ -62,7 +66,8 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   if (!hasPermission) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "You are not authorized to add members to teams in this organization",
+      message:
+        "You are not authorized to add members to teams in this organization",
     });
   }
 
@@ -107,7 +112,9 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   // Loop over all users and add them to all teams in the array
   const membershipData = filteredUserIds.flatMap((userId) =>
     input.teamIds.map((teamId) => {
-      const userMembership = usersInOrganization.find((membership) => membership.userId === userId);
+      const userMembership = usersInOrganization.find(
+        (membership) => membership.userId === userId
+      );
       const accepted = userMembership && userMembership.accepted;
       return {
         createdAt: new Date(),
@@ -128,7 +135,8 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
     const additionsByTeam = Array.from(topLevelTeamIds)
       .map((teamId) => ({
         teamId,
-        seatCount: membershipData.filter((entry) => entry.teamId === teamId).length,
+        seatCount: membershipData.filter((entry) => entry.teamId === teamId)
+          .length,
       }))
       .filter((entry) => entry.seatCount > 0);
 

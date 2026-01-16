@@ -103,10 +103,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
   }
 
-  let event: Partial<EventType> = {};
-  if (bookingToReschedule.eventType) {
-    event = bookingToReschedule.eventType;
-  }
+  const event: Partial<EventType> = bookingToReschedule.eventType ?? {};
   await bookingRepository.updateBookingStatus({
     bookingId: bookingToReschedule.id,
     status: BookingStatus.CANCELLED,
@@ -133,6 +130,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
   const usersToPeopleType = (users: PersonAttendeeCommonFields[], selectedLanguage: TFunction): Person[] => {
     return users?.map((user) => {
       return {
+        id: user.id,
         email: user.email || "",
         name: user.name || "",
         username: user?.username || "",
@@ -168,6 +166,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     ),
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
+    iCalSequence: (bookingToReschedule.iCalSequence ?? 0) + 1,
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: bookingToReschedule.eventType?.team
       ? {
@@ -274,6 +273,11 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
       smsReminderNumber: bookingToReschedule.smsReminderNumber,
     }),
     cancelledBy: user.email,
+    eventTypeId: bookingToReschedule.eventTypeId,
+    length: bookingToReschedule.eventType?.length ?? null,
+    iCalSequence: builder.calendarEvent.iCalSequence,
+    eventTitle: bookingToReschedule.eventType?.title ?? null,
+    requestReschedule: true,
   });
 
   // Send webhook

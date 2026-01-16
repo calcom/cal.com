@@ -1,13 +1,18 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 
+import type { EffectiveStateReason } from "../lib/computeEffectiveState";
+import type { OptInFeatureScope } from "../types";
+
+export type { EffectiveStateReason };
+
 export type ResolvedFeatureState = {
   featureId: FeatureId;
   globalEnabled: boolean;
-  orgState: FeatureState; // Raw state (before auto-opt-in transform)
-  teamStates: FeatureState[]; // Raw states
-  userState: FeatureState | undefined; // Raw state
+  orgState: FeatureState;
+  teamStates: FeatureState[];
+  userState: FeatureState | undefined;
   effectiveEnabled: boolean;
-  // Auto-opt-in flags for UI to show checkbox state
+  effectiveReason: EffectiveStateReason;
   orgAutoOptIn: boolean;
   teamAutoOptIns: boolean[];
   userAutoOptIn: boolean;
@@ -20,12 +25,18 @@ export interface IFeatureOptInService {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, ResolvedFeatureState>>;
-  listFeaturesForUser(input: { userId: number; orgId: number | null; teamIds: number[] }): Promise<
-    ResolvedFeatureState[]
+  listFeaturesForUser(input: {
+    userId: number;
+    orgId: number | null;
+    teamIds: number[];
+  }): Promise<ResolvedFeatureState[]>;
+  listFeaturesForTeam(input: {
+    teamId: number;
+    parentOrgId?: number | null;
+    scope?: OptInFeatureScope;
+  }): Promise<
+    { featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState; orgState: FeatureState }[]
   >;
-  listFeaturesForTeam(
-    input: { teamId: number }
-  ): Promise<{ featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState }[]>;
   setUserFeatureState(
     input:
       | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
@@ -33,7 +44,7 @@ export interface IFeatureOptInService {
   ): Promise<void>;
   setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
-      | { teamId: number; featureId: FeatureId; state: "inherit" }
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number; scope?: OptInFeatureScope }
+      | { teamId: number; featureId: FeatureId; state: "inherit"; scope?: OptInFeatureScope }
   ): Promise<void>;
 }

@@ -124,7 +124,13 @@
             "noNestedTernary": "warn"
           },
           "complexity": {
-            "noExcessiveLinesPerFunction": "warn"
+            "noExcessiveLinesPerFunction": {
+              "level": "warn",
+              "options": {
+                "maxLines": 100,
+                "skipBlankLines": true
+              }
+            }
           },
           "performance": {
             "noImgElement": "warn"
@@ -164,6 +170,7 @@
     {
       "includes": [
         "apps/api/v2/src/config/app.ts",
+        "apps/api/v2/src/main.ts",
         "apps/api/v2/src/bootstrap.ts",
         "apps/api/v2/src/config/env.ts",
         "apps/api/v2/src/env.ts",
@@ -178,7 +185,7 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts", "**/*.integration-test.ts"],
       "linter": {
         "rules": {
           "complexity": {
@@ -325,9 +332,7 @@
       }
     },
     {
-      "includes": [
-        "packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
-      ],
+      "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
           "style": {
@@ -336,17 +341,11 @@
               "options": {
                 "patterns": [
                   {
-                    "group": [
-                      "@calcom/trpc",
-                      "@calcom/trpc/**"
-                    ],
+                    "group": ["@calcom/trpc", "@calcom/trpc/**"],
                     "message": "atoms package should not import from @calcom/trpc."
                   },
                   {
-                    "group": [
-                      "../../trpc",
-                      "../../trpc/**"
-                    ],
+                    "group": ["../../trpc", "../../trpc/**"],
                     "message": "atoms package should not import from trpc."
                   }
                 ]
