@@ -16,6 +16,7 @@ export const AnimatedPopover = ({
   Trigger,
   defaultOpen,
   prefix,
+  modal = true,
 }: {
   text: string;
   PrefixComponent?: React.ReactNode;
@@ -25,6 +26,7 @@ export const AnimatedPopover = ({
   Trigger?: React.ReactNode;
   defaultOpen?: boolean;
   prefix?: string;
+  modal?: boolean;
 }) => {
   const [open, setOpen] = React.useState(defaultOpen ?? false);
   const ref = React.useRef<HTMLButtonElement>(null);
@@ -52,7 +54,7 @@ export const AnimatedPopover = ({
   }, [setAlign]);
 
   return (
-    <Popover.Root defaultOpen={defaultOpen} onOpenChange={setOpen} modal={true}>
+    <Popover.Root defaultOpen={defaultOpen} onOpenChange={setOpen} modal={modal}>
       <Popover.Trigger asChild>
         <button
           ref={ref}
