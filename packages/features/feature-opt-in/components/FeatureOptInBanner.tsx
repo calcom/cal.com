@@ -26,7 +26,7 @@ export function FeatureOptInBanner({
           <Icon name="sparkles" className="text-emphasis h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-emphasis text-sm font-semibold">{t(featureConfig.i18n.name)}</h3>
+          <h3 className="text-emphasis text-sm font-semibold">{t(featureConfig.i18n.title)}</h3>
           <p className="text-subtle mt-1 text-sm">{t(featureConfig.i18n.description)}</p>
           <div className="mt-3 flex items-center gap-2">
             <Button size="sm" onClick={onOpenDialog}>
