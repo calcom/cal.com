@@ -45,6 +45,25 @@ type EnabledAppType = App & {
   locationOption: LocationOption | null;
 };
 
+/**
+ * Normalizes a period date to UTC midnight for the date.
+ * Handles both Date objects and ISO strings.
+ * For strings, extracts the date part (YYYY-MM-DD) to avoid timezone shifts.
+ * For Date objects, extracts UTC components and creates UTC midnight.
+ */
+function normalizePeriodDate(date: Date | string | null | undefined): Date | undefined {
+  if (!date) return undefined;
+
+  if (typeof date === "string") {
+    // Extract date part from ISO string to avoid timezone shifts
+    const dateOnly = date.slice(0, 10);
+    return new Date(dateOnly);
+  }
+
+  // For Date objects, extract UTC components and create UTC midnight
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
 @Injectable()
 export class EventTypesAtomService {
   constructor(
@@ -134,8 +153,12 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight
+    const periodStartDate = normalizePeriodDate(body.periodStartDate);
+    const periodEndDate = normalizePeriodDate(body.periodEndDate);
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, periodStartDate, periodEndDate },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,
@@ -162,8 +185,12 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight
+    const periodStartDate = normalizePeriodDate(body.periodStartDate);
+    const periodEndDate = normalizePeriodDate(body.periodEndDate);
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, periodStartDate, periodEndDate },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,
