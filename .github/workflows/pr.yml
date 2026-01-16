@@ -169,7 +169,7 @@ jobs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
       has_companion: ${{ steps.filter.outputs.has_companion }}
       has-api-v2-changes: ${{ steps.filter.outputs.has-api-v2-changes }}
-      has-prisma-changes: ${{ steps.filter.outputs.has-prisma-changes }}
+      has-prisma-changes: ${{ steps.prisma-check.outputs.has-prisma-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
@@ -216,9 +216,14 @@ jobs:
               - "packages/trpc/**"
               - "packages/prisma/schema.prisma"
               - "docs/api-reference/v2/**"
-            has-prisma-changes:
-              - "packages/prisma/schema.prisma"
-              - "packages/prisma/migrations/**"
+      - name: Check for Prisma changes
+        id: prisma-check
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -qE '^packages/prisma/(schema\.prisma|migrations/)'; then
+            echo "has-prisma-changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-prisma-changes=false" >> $GITHUB_OUTPUT
+          fi
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
