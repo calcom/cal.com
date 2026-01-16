@@ -83,9 +83,7 @@ describe("UserDropdown", () => {
   });
 
   afterEach(() => {
-    // @ts-expect-error - cleaning up mock
     delete window.Beacon;
-    // @ts-expect-error - cleaning up mock
     delete window.Support;
   });
 
@@ -125,7 +123,6 @@ describe("UserDropdown", () => {
     });
 
     it("should not throw error when Beacon is undefined", async () => {
-      // @ts-expect-error - cleaning up mock
       delete window.Beacon;
 
       mockUseMeQuery.mockReturnValue({
