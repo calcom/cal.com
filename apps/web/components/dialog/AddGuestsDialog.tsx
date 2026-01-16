@@ -1,6 +1,13 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { z } from "zod";
@@ -8,7 +15,6 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { MultiEmail } from "@calcom/ui/components/address";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 interface IAddGuestsDialog {
   isOpenDialog: boolean;
@@ -41,7 +47,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   });
 
   const handleAdd = () => {
-    const validEmails = multiEmailValue.filter(email => email.trim() !== "");
+    const validEmails = multiEmailValue.filter((email) => email.trim() !== "");
     if (validEmails.length === 0) {
       return;
     }
@@ -54,7 +60,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   };
 
   // Check if there are any valid emails to enable/disable the Add button
-  const hasValidEmails = multiEmailValue.some(email => email.trim() !== "");
+  const hasValidEmails = multiEmailValue.some((email) => email.trim() !== "");
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>

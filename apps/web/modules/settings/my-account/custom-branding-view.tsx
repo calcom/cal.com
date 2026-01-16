@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar } from "@calid/features/ui/components/avatar";
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { SocialIcon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
@@ -227,8 +228,12 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
       borderInShellHeader={false}>
       <div className="border-subtle mt-6 rounded-md border p-6">
         <div className="flex flex-col">
-          <Label>{t("booking_page_banner")}</Label>
-          <span className="text-subtle mb-4 text-sm">{t("booking_page_banner_description")}</span>
+          <div className="flex flex-row items-baseline gap-2">
+            <Label>{t("booking_page_banner")}</Label>
+            <Badge variant="secondary">({t("image_limits", { limit: "3200 x 320" })})</Badge>
+            {/* <span className="text-subtle mb-2 text-sm"> </span> */}
+          </div>
+          <span className="text-subtle text-sm">{t("booking_page_banner_description")}</span>
           <div className="bg-muted mb-4 flex aspect-[10/1] w-full items-center justify-start overflow-hidden rounded-lg">
             {!bannerUrl ? (
               <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
@@ -244,7 +249,7 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
               buttonMsg={t("upload_image")}
               uploading={uploadingBanner}
               fieldName="Banner"
-              mimeType={["image/svg+xml", "image/png"]}
+              mimeType="image/*"
               height={320}
               width={3200}
               handleAvatarChange={async (newHeaderUrl) => {
@@ -543,18 +548,24 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                   <div>
                     <div className="mt-6 flex flex-row justify-between">
                       <div className="flex flex-col">
-                        <div className="text-sm font-medium">{t("brand_logo")}</div>
+                        <div className="flex flex-row items-baseline gap-2">
+                          <Label>{t("brand_logo")}</Label>
+                          <Badge variant="secondary">({t("image_limits", { limit: "600 x 400" })})</Badge>
+                          {/* <span className="text-subtle mb-2 text-sm"> </span> */}
+                        </div>
+
                         <div className="text-subtle text-sm">{t("brand_logo_description")}</div>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-row items-center gap-6">
+                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                       <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
-                      <div className="flex items-center gap-3">
-                        <div className="w-[105px]">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex">
                           <CustomBannerUploader
                             target="logo"
-                            fieldName="Logo"
+                            startIcon="upload"
+                            fieldName="logo"
                             id="logo-upload"
                             buttonMsg={t("upload_logo")}
                             uploading={mutation.isPending}
@@ -569,7 +580,8 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                         </div>
                         {showRemoveAvatarButton && (
                           <Button
-                            color="secondary"
+                            color="destructive"
+                            StartIcon="trash"
                             onClick={() => {
                               onChange(null);
                               mutation.mutate({ bannerUrl: "delete" });
@@ -605,45 +617,48 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                   <div>
                     <div className="mt-6 flex flex-row justify-between">
                       <div className="flex flex-col">
-                        <div className="text-sm font-medium">{t("brand_favicon")}</div>
+                        <div className="flex flex-row items-baseline gap-2">
+                          <Label>{t("brand_favicon")}</Label>
+                          <Badge variant="secondary">({t("image_limits_only_size")})</Badge>
+                          {/* <span className="text-subtle mb-2 text-sm"> </span> */}
+                        </div>
+
                         <div className="text-subtle text-sm">{t("brand_favicon_description")}</div>
                       </div>
                     </div>
 
-                    <div className="mt-3 flex gap-2">
-                      <div className="flex">
-                        <Avatar
-                          alt={user.name || "User Favicon"}
-                          imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
-                          size="lg"
+                    <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                      <Avatar
+                        alt={user.name || "User Favicon"}
+                        imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                        size="lg"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CustomImageUploader
+                          target="avatar"
+                          startIcon="upload"
+                          fieldName="favicon"
+                          id="avatar-upload"
+                          buttonMsg={t("upload_favicon")}
+                          handleAvatarChange={(newAvatar) => {
+                            setOrgBase64(newAvatar);
+                            onChange(newAvatar);
+                            mutation.mutate({ faviconUrl: newAvatar });
+                          }}
+                          imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
                         />
-                        <div className="ms-4 flex items-center">
-                          <div className="flex gap-2">
-                            <CustomImageUploader
-                              target="avatar"
-                              fieldName="favicon"
-                              id="avatar-upload"
-                              buttonMsg={t("upload_favicon")}
-                              handleAvatarChange={(newAvatar) => {
-                                setOrgBase64(newAvatar);
-                                onChange(newAvatar);
-                                mutation.mutate({ faviconUrl: newAvatar });
-                              }}
-                              imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
-                            />
 
-                            {showRemoveFaviconButton && (
-                              <Button
-                                color="secondary"
-                                onClick={() => {
-                                  onChange(null);
-                                  mutation.mutate({ faviconUrl: "delete" });
-                                }}>
-                                {t("remove")}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
+                        {showRemoveFaviconButton && (
+                          <Button
+                            color="destructive"
+                            StartIcon="trash"
+                            onClick={() => {
+                              onChange(null);
+                              mutation.mutate({ faviconUrl: "delete" });
+                            }}>
+                            {t("remove")}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

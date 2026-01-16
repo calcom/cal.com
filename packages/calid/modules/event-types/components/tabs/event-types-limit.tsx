@@ -459,7 +459,7 @@ const IntervalLimitItem = memo(
           <button
             className="flex items-center rounded-lg border border-red-200 px-2 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
             onClick={handleDelete}>
-            <Icon name="trash-2" className="h-4 w-4" />
+            <Icon name="trash" className="h-4 w-4" />
           </button>
         )}
       </div>

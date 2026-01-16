@@ -104,7 +104,7 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
                       {t("duplicate")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      StartIcon="trash-2"
+                      StartIcon="trash"
                       onClick={() => onDelete(workflow.id)}
                       className="text-destructive hover:bg-error">
                       {t("delete")}

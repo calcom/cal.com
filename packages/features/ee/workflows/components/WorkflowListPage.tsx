@@ -271,7 +271,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               color="secondary"
                               variant="icon"
                               disabled={workflow.readOnly}
-                              StartIcon="trash-2"
+                              StartIcon="trash"
                               data-testid="delete-button"
                             />
                           </Tooltip>
@@ -296,7 +296,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <DropdownItem
                                   type="button"
                                   color="destructive"
-                                  StartIcon="trash-2"
+                                  StartIcon="trash"
                                   onClick={() => {
                                     setDeleteDialogOpen(true);
                                     setwWorkflowToDeleteId(workflow.id);
