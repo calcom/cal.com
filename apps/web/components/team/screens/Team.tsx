@@ -40,6 +40,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
                 <div
                   className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   // eslint-disable-next-line react/no-danger
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
                 />
               </>

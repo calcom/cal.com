@@ -1,3 +1,23 @@
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { MembershipRole } from "@calcom/platform-libraries";
+import type { User } from "@calcom/prisma/client";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
@@ -11,40 +31,19 @@ import { TOKENS_DOCS } from "@/modules/oauth-clients/controllers/oauth-flow/oaut
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Body,
-  Controller,
-  Post,
-  Logger,
-  UseGuards,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Delete,
-  Query,
-  NotFoundException,
-  ParseIntPipe,
-} from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { MembershipRole } from "@calcom/platform-libraries";
-import type { User } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, OAuthClientGuard, OrganizationRolesGuard)
-@DocsTags("Platform / Managed Users")
+@DocsTags("Deprecated: Platform / Managed Users")
 @ApiHeader({
   name: X_CAL_SECRET_KEY,
   description: "OAuth client secret key",
