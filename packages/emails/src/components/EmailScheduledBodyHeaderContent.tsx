@@ -2,6 +2,40 @@ import type { CSSProperties } from "react";
 
 import EmailCommonDivider from "./EmailCommonDivider";
 
+/**
+ * Decodes ONLY safe HTML entities in subtitle text
+ * Fixes issue #26938 where special characters like / display as &#x2F; in emails
+ * 
+ * Security: Only decodes safe entities. Does NOT decode &lt; or &gt; to prevent HTML injection.
+ */
+const getDecodedSubtitle = (subtitle: React.ReactNode): React.ReactNode => {
+  if (typeof subtitle !== "string") {
+    return subtitle;
+  }
+
+  // Map of safe HTML entities to decode
+  // Explicitly excludes &lt; and &gt; to prevent HTML injection attacks
+  const safeEntities: Record<string, string> = {
+    "&#x2F;": "/",
+    "&#47;": "/",
+    "&#x27;": "'",
+    "&#39;": "'",
+    "&quot;": '"',
+    "&apos;": "'",
+    "&amp;": "&",
+    "&#34;": '"',
+  };
+
+  let result = subtitle;
+  
+  // Replace each safe entity with its character
+  for (const [entity, char] of Object.entries(safeEntities)) {
+    result = result.replace(new RegExp(entity, "g"), char);
+  }
+  
+  return result;
+};
+
 const EmailScheduledBodyHeaderContent = (props: {
   title: string;
   subtitle?: React.ReactNode;
@@ -45,7 +79,7 @@ const EmailScheduledBodyHeaderContent = (props: {
               textAlign: "center",
               color: "#4B5563",
             }}>
-            {props.subtitle}
+            {getDecodedSubtitle(props.subtitle)}
           </div>
         </td>
       </tr>
