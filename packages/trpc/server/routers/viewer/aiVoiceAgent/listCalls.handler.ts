@@ -20,7 +20,8 @@ export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) 
   const organizationId = ctx.user.organizationId ?? ctx.user.profiles?.[0]?.organizationId;
 
   try {
-    const userMemberships = await MembershipRepository.findAllByUserId({
+    const membershipRepository = new MembershipRepository();
+    const userMemberships = await membershipRepository.findAllByUserId({
       userId: ctx.user.id,
       filters: {
         accepted: true,

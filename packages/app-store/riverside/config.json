@@ -14,7 +14,7 @@
   "appData": {
     "location": {
       "label": "Riverside Video",
-      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?riverside.fm\\/studio\\/[a-zA-Z0-9]*",
+      "urlRegExp": "^https?:\\/\\/(www\\.)?riverside\\.(fm|com)\\/studio\\/.+",
       "type": "integrations:riverside_video",
       "linkType": "static"
     }

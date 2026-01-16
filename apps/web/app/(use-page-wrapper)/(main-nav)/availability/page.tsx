@@ -8,10 +8,10 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
+import { AvailabilitySliderTable } from "@calcom/web/modules/timezone-buddy/components/AvailabilitySliderTable";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -64,8 +64,8 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const organizationRepository = getOrganizationRepository();
   const isOrgPrivate = organizationId
     ? await organizationRepository.checkIfPrivate({
-      orgId: organizationId,
-    })
+        orgId: organizationId,
+      })
     : false;
 
   const permissionService = new PermissionCheckService();
@@ -80,9 +80,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("availability")}
       subtitle={t("configure_availability")}
-      CTA={
-        <AvailabilityCTA canViewTeamAvailability={canViewTeamAvailability} />
-      }>
+      CTA={<AvailabilityCTA canViewTeamAvailability={canViewTeamAvailability} />}>
       {searchParams?.type === "team" && canViewTeamAvailability ? (
         <AvailabilitySliderTable isOrg={!!organizationId} />
       ) : (

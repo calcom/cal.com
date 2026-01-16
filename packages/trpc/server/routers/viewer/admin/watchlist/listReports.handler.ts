@@ -18,5 +18,6 @@ export const listReportsHandler = async ({ input }: ListReportsOptions) => {
     offset: input.offset,
     searchTerm: input.searchTerm,
     filters: input.filters,
+    systemFilters: input.systemFilters,
   });
 };

@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
+// NOTE: All imports except vitest are deferred to inside the skipped describe blocks
+// to prevent module loading side effects during test collection (which can cause
+// "Closing rpc while fetch was pending" errors from Salesforce GraphQL module imports)
 import { describe, beforeEach, vi, expect, test } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
-
-import type { TrpcSessionUser } from "../../../types";
-import { confirmHandler } from "./confirm.handler";
 
 //eslint-disable-next-line playwright/no-skipped-test
 describe.skip("confirmHandler", () => {

@@ -6,6 +6,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { prisma } from "@calcom/prisma";
 
 export const ZSendWorkflowEmailsSchemaEager = z.object({
@@ -53,12 +54,23 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
     if (!calendarEvent) {
       throw new Error("Calendar event could not be built");
     }
+
+    // Check if videoCallUrl exists in booking metadata and add it to evt.metadata
+    const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
+    const metadata = bookingMetadata?.videoCallUrl
+    ? {
+      videoCallUrl: bookingMetadata.videoCallUrl,
+    }
+    : undefined;
+
+    const evtWithMetadata = { ...calendarEvent, metadata };
+
     const workflowReminderRepository = new WorkflowReminderRepository(prisma);
     const bookingSeatRepository = new BookingSeatRepository(prisma);
     const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
 
     await emailWorkflowService.handleSendEmailWorkflowTask({
-      evt: calendarEvent,
+      evt: evtWithMetadata,
       workflowReminderId: mailData.workflowReminderId,
     });
 

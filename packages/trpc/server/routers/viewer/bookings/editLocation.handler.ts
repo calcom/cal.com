@@ -307,7 +307,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {
-    console.log("Error sending LocationChangeEmails", safeStringify(error));
+    logger.error("Error sending LocationChangeEmails", safeStringify(error));
   }
 
   return { message: "Location updated" };

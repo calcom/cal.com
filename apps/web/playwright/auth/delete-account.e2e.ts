@@ -10,6 +10,7 @@ test("Can delete user account", async ({ page, users }) => {
   });
   await user.apiLogin();
   await page.goto(`/settings/my-account/profile`);
+  await page.waitForLoadState("networkidle");
   await page.waitForSelector("[data-testid=dashboard-shell]");
 
   await page.click("[data-testid=delete-account]");
