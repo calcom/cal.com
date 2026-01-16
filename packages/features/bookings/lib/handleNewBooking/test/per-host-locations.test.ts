@@ -485,6 +485,9 @@ describe("Per-Host Locations - handleNewBooking", () => {
             eventTypeId: 1,
           },
         },
+        select: {
+          credentialId: true,
+        },
       });
       expect(hostLocation?.credentialId).not.toBeNull();
     });

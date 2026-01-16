@@ -331,7 +331,11 @@ const HostLocationRow = ({
         onSave={handleDialogSave}
         title="set_location"
         saveButtonText="save"
-        initialValue={currentLocationValue}
+        initialValue={
+          pendingLocationOption && pendingLocationOption.value !== currentLocation?.type
+            ? ""
+            : currentLocationValue
+        }
       />
     </>
   );

@@ -600,19 +600,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         };
       }),
     };
-
-    // Delete host locations for hosts that no longer have locations
-    const hostsWithoutLocations = existingHosts.filter((host) => host.location === null);
-    if (hostsWithoutLocations.length > 0) {
-      await ctx.prisma.hostLocation.deleteMany({
-        where: {
-          OR: hostsWithoutLocations.map((host) => ({
-            userId: host.userId,
-            eventTypeId: id,
-          })),
-        },
-      });
-    }
   }
 
   if (input.metadata?.disableStandardEmails?.all) {
@@ -799,6 +786,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     throw e;
   }
+
+  if (existingHosts?.length) {
+    const hostsWithoutLocations = existingHosts.filter((host) => host.location === null);
+    if (hostsWithoutLocations.length > 0) {
+      await ctx.prisma.hostLocation.deleteMany({
+        where: {
+          OR: hostsWithoutLocations.map((host) => ({
+            userId: host.userId,
+            eventTypeId: id,
+          })),
+        },
+      });
+    }
+  }
+
   const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
     if (value !== undefined) {
       // @ts-expect-error Element implicitly has any type
