@@ -55,7 +55,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
     return (
       <DialogFooter>
         <DialogClose />
-        <Button type="submit" loading={isPending}>
+        <Button type="submit" StartIcon="plus" loading={isPending}>
           {t("continue")}
         </Button>
       </DialogFooter>
