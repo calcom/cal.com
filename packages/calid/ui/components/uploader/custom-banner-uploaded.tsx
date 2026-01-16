@@ -7,7 +7,7 @@ import Cropper from "react-easy-crop";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
-import type { ButtonColor } from "../button";
+import type { ButtonColor, ButtonProps } from "../button";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ type BannerUploaderProps = {
   height?: number;
   width?: number;
   mimeType: string | string[];
+  startIcon?: ButtonProps["StartIcon"];
 };
 
 function CropContainer({
@@ -193,6 +194,7 @@ export default function BannerUploader({
   disabled = false,
   height,
   width,
+  startIcon,
 }: BannerUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -306,6 +308,7 @@ export default function BannerUploader({
           loading={uploading}
           type="button"
           disabled={disabled}
+          StartIcon={startIcon}
           data-testid={`open-upload-${target}-dialog`}>
           {buttonMsg}
         </Button>

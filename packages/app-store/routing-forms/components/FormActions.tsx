@@ -249,12 +249,16 @@ function Dialogs({
       />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader showIcon variant="warning">
             <DialogTitle>{t("delete_form")}</DialogTitle>
+            <DialogDescription>
+              {t("delete_form_confirmation")} {t("delete_form_confirmation_2")}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
             <Button
               color="destructive"
+              StartIcon="trash"
               loading={deleteMutation.isPending}
               onClick={() => {
                 if (deleteDialogFormId) {
@@ -541,7 +545,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       variant: "button",
       color: "minimal",
       size: "sm",
-      icon: "trash-2",
+      icon: "trash",
     },
     create: {
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),

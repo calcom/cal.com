@@ -219,7 +219,7 @@ const ProfileView = () => {
               <Button
                 color="destructive"
                 className="border"
-                StartIcon="trash-2"
+                StartIcon="trash"
                 data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>

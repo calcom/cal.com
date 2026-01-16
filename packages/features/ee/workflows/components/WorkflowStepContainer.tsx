@@ -293,7 +293,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className="min-w-80 bg-default border-subtle w-full rounded-md border p-7">
+          <div className="bg-default border-subtle w-full min-w-80 rounded-md border p-7">
             <div className="flex">
               <div className="bg-subtle text-default mt-[3px] flex h-5 w-5 items-center justify-center rounded-full p-1 text-xs font-medium ltr:mr-5 rtl:ml-5">
                 1
@@ -390,7 +390,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
         </div>
         <div className="flex justify-center">
-          <div className="min-w-80 bg-default border-subtle flex w-full rounded-md border p-7">
+          <div className="bg-default border-subtle flex w-full min-w-80 rounded-md border p-7">
             <div className="w-full">
               <div className="flex">
                 <div className="w-full">
@@ -414,7 +414,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <DropdownMenuItem>
                           <DropdownItem
                             type="button"
-                            StartIcon="trash-2"
+                            StartIcon="trash"
                             color="destructive"
                             onClick={() => {
                               const steps = form.getValues("steps");

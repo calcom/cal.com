@@ -887,7 +887,7 @@ const IntervalLimitItem = ({
       {hasDeleteButton && !disabled && (
         <Button
           variant="icon"
-          StartIcon="trash-2"
+          StartIcon="trash"
           color="destructive"
           className={classNames("border-none", customClassNames?.addLimitButton)}
           onClick={() => onDelete(limitKey)}
