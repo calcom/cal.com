@@ -186,7 +186,7 @@ export default function Login({
             ? !totpEmail
               ? TwoFactorFooter
               : ExternalTotpFooter
-            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
+            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false"
             ? LoginFooter
             : null
         }>
