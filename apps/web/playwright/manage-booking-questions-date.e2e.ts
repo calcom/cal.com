@@ -402,11 +402,16 @@ async function toggleQuestionRequireStatusAndSave({
     page: Page;
 }) {
     await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
-    await page
+    const requiredCheckbox = page
         .locator('[data-testid="edit-field-dialog"]')
         .locator('[data-testid="field-required"]')
-        .first()
-        .click();
+        .first();
+
+    const isCurrentlyChecked = await requiredCheckbox.isChecked();
+    if (isCurrentlyChecked !== required) {
+        await requiredCheckbox.click();
+    }
+
     await page.locator('[data-testid="field-add-save"]').click();
     await saveEventType(page);
 }
