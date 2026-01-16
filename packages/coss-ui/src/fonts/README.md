@@ -1,6 +1,6 @@
 # Shared Fonts
 
-This directory contains shared font files and configurations used across all apps in the monorepo.
+This directory contains shared font configurations used across all apps in the monorepo.
 
 ## Usage
 
@@ -22,23 +22,23 @@ export default function RootLayout({ children }) {
 
 ## Available Fonts
 
-- `fontSans` - Inter font from Google Fonts (body text)
-- `fontHeading` - Cal Sans SemiBold font (headings)
+- `fontSans` - Inter font from Google Fonts (body text, all weights)
+- `fontHeading` - Inter font at weight 600/semibold (headings)
 
 ## Adding New Fonts
 
-1. Place the font file in this directory (`packages/coss-ui/src/fonts/`)
-2. Add a new font configuration in `index.ts`:
+Add a new font configuration in `index.ts`:
 
 ```typescript
-export const yourNewFont = localFont({
-  display: "swap",
-  src: "./YourFont.woff2",
+import { YourFont } from "next/font/google";
+
+export const yourNewFont = YourFont({
+  subsets: ["latin"],
   variable: "--font-your-name",
 });
 ```
 
-3. Use it in any app by importing from `@coss/ui/fonts`
+Then use it in any app by importing from `@coss/ui/fonts`.
 
 ## Benefits of This Approach
 
