@@ -372,7 +372,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
         const nodes = $generateNodesFromDOM(editor, dom);
 
-        $getRoot().select();
+        const root = $getRoot();
+        root.clear(); // Clear existing content first
+        root.select();
         try {
           $insertNodes(nodes);
         } catch (e: unknown) {
@@ -380,12 +382,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
           const paragraphNode = $createParagraphNode();
           nodes.forEach((n) => paragraphNode.append(n));
-          $getRoot().append(paragraphNode);
+          root.append(paragraphNode);
         }
 
         editor.registerUpdateListener(({ editorState, prevEditorState }) => {
           editorState.read(() => {
-            const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+            const textInHtml = $generateHtmlFromNodes(editor).replace(/</g, "<").replace(/>/g, ">");
             props.setText(
               textInHtml.replace(
                 /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,

@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -38,10 +38,13 @@ export const useEventTypeForm = ({
   }) => void;
 }) => {
   const { t } = useLocale();
-  const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: new Date(eventType.periodStartDate || Date.now()),
-    endDate: new Date(eventType.periodEndDate || Date.now()),
-  });
+  const periodDates = useMemo(
+    () => ({
+      startDate: new Date(eventType.periodStartDate || Date.now()),
+      endDate: new Date(eventType.periodEndDate || Date.now()),
+    }),
+    [eventType.periodStartDate, eventType.periodEndDate]
+  );
 
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -152,12 +155,11 @@ export const useEventTypeForm = ({
   }, [eventType, periodDates]);
 
   const form = useForm<FormValues>({
+    mode: "onChange",
     defaultValues,
     resolver: zodResolver(
       z
         .object({
-          // Length if string, is converted to a number or it can be a number
-          // Make it optional because it's not submitted from all tabs of the page
           eventName: z
             .string()
             .superRefine((val, ctx) => {
@@ -185,7 +187,6 @@ export const useEventTypeForm = ({
             .url({
               message: t("invalid_url_error_message", {
                 label: t("redirect_success_booking"),
-                //pass raw sampleUrl below, as // is being encoded to https:&#x2F;&#x2F;example.com
                 sampleUrl: "https://example.com",
                 interpolation: { escapeValue: false },
               }),
@@ -205,7 +206,6 @@ export const useEventTypeForm = ({
             .optional()
             .nullable(),
         })
-        // TODO: Add schema for other fields later.
         .passthrough()
     ),
   });
@@ -214,8 +214,40 @@ export const useEventTypeForm = ({
     formState: { isDirty: isFormDirty, dirtyFields },
   } = form;
 
-  // Watch all form values to trigger onFormStateChange on any change
-  const watchedValues = form.watch();
+  const hasInitialized = useRef(false);
+  const [isReady, setIsReady] = useState(false);
+  const [watchedValues, setWatchedValues] = useState<FormValues>(defaultValues as FormValues);
+
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      setWatchedValues(values as FormValues);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  useEffect(() => {
+    // Reset initialization flag
+    hasInitialized.current = false;
+    setIsReady(false);
+
+    const timer = setTimeout(() => {
+      setIsReady(true);
+
+      // Wait longer for form to fully settle
+      setTimeout(() => {
+        // Force clear dirty state by resetting to current values
+        const currentValues = form.getValues();
+        form.reset(currentValues, { keepDefaultValues: false });
+
+        // Wait for reset to propagate
+        setTimeout(() => {
+          hasInitialized.current = true;
+        }, 100);
+      }, 100);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [eventType.id, form]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -432,15 +464,43 @@ export const useEventTypeForm = ({
     }
   };
 
+  // Custom dirty check that actually verifies if there are real changes
+  const hasRealChanges = useMemo(() => {
+    if (!hasInitialized.current) return false;
+    if (!isFormDirty) return false;
+
+    // Check if dirtyFields has any actual dirty values
+    const checkDirty = (obj: any): boolean => {
+      if (typeof obj !== "object" || obj === null) return obj === true;
+
+      for (const key in obj) {
+        if (obj[key] === true) return true;
+        if (typeof obj[key] === "object" && checkDirty(obj[key])) return true;
+      }
+      return false;
+    };
+
+    return checkDirty(dirtyFields);
+  }, [isFormDirty, dirtyFields]);
+
   useEffect(() => {
     if (onFormStateChange) {
       onFormStateChange({
-        isDirty: isFormDirty,
+        isDirty: hasRealChanges,
         dirtyFields: dirtyFields as Partial<FormValues>,
         values: watchedValues,
       });
     }
-  }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
+  }, [hasRealChanges, dirtyFields, watchedValues, onFormStateChange]);
 
-  return { form, handleSubmit };
+  return {
+    form: {
+      ...form,
+      formState: {
+        ...form.formState,
+        isDirty: isReady && hasInitialized.current && isFormDirty,
+      },
+    } as typeof form,
+    handleSubmit,
+  };
 };

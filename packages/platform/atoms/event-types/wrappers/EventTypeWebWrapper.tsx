@@ -183,7 +183,19 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
 
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
+  // Track if we've done the initial reset
+  const hasInitializedRef = useRef(false);
 
+  useEffect(() => {
+    if (!hasInitializedRef.current) {
+      // Reset after a delay to allow Locations component to append
+      const timer = setTimeout(() => {
+        form.reset(form.getValues(), { keepDefaultValues: true });
+        hasInitializedRef.current = true;
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [form]);
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
     eventType: {
       id,

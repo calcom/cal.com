@@ -164,6 +164,15 @@ const EventType = forwardRef<
     onFormStateChange: onFormStateChange,
   });
 
+  // Reset form after tabs initialize to clear dirty flags from Locations component
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const currentValues = form.getValues();
+      form.reset(currentValues, { keepDefaultValues: false });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [eventType.id, form]);
+
   // Create a ref for the save button to trigger its click
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 

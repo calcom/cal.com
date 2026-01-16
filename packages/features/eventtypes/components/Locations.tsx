@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
@@ -242,10 +239,13 @@ const Locations: React.FC<LocationsProps> = ({
       const canAppendLocation = !validLocations.find((location) => location.type === newLocationType);
 
       if (canAppendLocation && !seatsEnabled) {
-        append({
-          type: newLocationType,
-          credentialId: prefillLocation?.credentialId,
-        });
+        append(
+          {
+            type: newLocationType,
+            credentialId: prefillLocation?.credentialId,
+          },
+          { shouldFocus: false }
+        );
         setSelectedNewOption(prefillLocation);
       }
     }
@@ -323,7 +323,7 @@ const Locations: React.FC<LocationsProps> = ({
                 {!(disableLocationProp && isChildrenManagedEventType) && (
                   <button
                     data-testid={`delete-locations.${index}.type`}
-                    className={classNames("min-h-9 block h-9 px-2", customClassNames?.removeLocationButton)}
+                    className={classNames("block h-9 min-h-9 px-2", customClassNames?.removeLocationButton)}
                     type="button"
                     onClick={() => {
                       remove(index);
