@@ -89,17 +89,15 @@ export const AnimatedPopover = ({
           )}
         </button>
       </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content side="bottom" align={align} asChild>
-                <div
-                  className={classNames(
-                    "bg-default border-subtle scroll-bar z-50 mt-1 max-h-64 w-56 select-none overflow-y-auto rounded-md border py-[2px] shadow-md focus-within:outline-none",
-                    align === "end" && "-translate-x-[228px]"
-                  )}>
-                  {children}
-                </div>
-              </Popover.Content>
-            </Popover.Portal>
+      <Popover.Content side="bottom" align={align} asChild>
+        <div
+          className={classNames(
+            "bg-default border-subtle scroll-bar absolute z-50 mt-1 max-h-64 w-56 select-none overflow-y-auto rounded-md border py-[2px] shadow-md focus-within:outline-none",
+            align === "end" && "-translate-x-[228px]"
+          )}>
+          {children}
+        </div>
+      </Popover.Content>
     </Popover.Root>
   );
 };
