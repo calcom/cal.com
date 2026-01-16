@@ -181,13 +181,11 @@ export function FeatureOptInConfirmDialog({
   };
 
   const handleViewSettings = (): void => {
-    onDismissBanner();
     resetAndClose();
     router.push(getSettingsRedirectPath());
   };
 
   const handleDismiss = (): void => {
-    onDismissBanner();
     resetAndClose();
   };
 
