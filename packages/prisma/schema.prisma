@@ -1567,6 +1567,7 @@ enum WorkflowTemplates {
   COMPLETED
   RATING
   THANKYOU
+  CONFIRMATION
 }
 
 enum WorkflowMethods {

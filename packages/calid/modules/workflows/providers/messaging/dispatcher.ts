@@ -29,11 +29,27 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Get the active messaging provider from database
+ * @param forceProvider - Optional provider name to force (e.g., for CUSTOM workflows)
  */
-async function getActiveMessagingProvider(): Promise<{
+async function getActiveMessagingProvider(forceProvider?: ServiceProvider): Promise<{
   provider: SmsProvider;
   providerName: ServiceProvider;
 }> {
+  // If a specific provider is forced (e.g., Twilio for CUSTOM workflows), use it
+  if (forceProvider) {
+    const providerKey = forceProvider.toLowerCase();
+    const provider = smsProviderRegistry[providerKey];
+
+    if (!provider) {
+      throw new Error(
+        `Forced messaging provider "${forceProvider}" is not configured in registry. Please check your environment variables.`
+      );
+    }
+
+    messagingLogger.info(`Forcing messaging provider: ${forceProvider}`);
+    return { provider, providerName: forceProvider };
+  }
+
   // Check cache first
   if (cachedProvider && Date.now() - cachedProvider.cachedAt < CACHE_TTL) {
     return {
@@ -124,6 +140,20 @@ async function executeWithFallback<T>(
 }
 
 /**
+ * Determine if we should force Twilio provider based on workflow template
+ * CUSTOM workflows require Twilio because other providers don't support custom SMS bodies
+ */
+function shouldForceTwilio(template?: WorkflowTemplates): ServiceProvider | undefined {
+  if (template === "CUSTOM") {
+    messagingLogger.info(
+      "CUSTOM workflow detected - forcing Twilio provider (only provider that supports custom SMS bodies)"
+    );
+    return ServiceProvider.TWILIO;
+  }
+  return undefined;
+}
+
+/**
  * Clear the provider cache (useful for testing or when provider changes)
  */
 export function clearMessagingProviderCache(): void {
@@ -142,11 +172,12 @@ export async function sendSMS(
   teamId?: number | null,
   whatsapp = false,
   template?: WorkflowTemplates,
-  contentVariables?: string,
-  customArgs?: Record<string, any>
+  contentVariables?: string
 ): Promise<SendSmsResponse> {
   try {
-    const { provider, providerName } = await getActiveMessagingProvider();
+    // Force Twilio for CUSTOM workflows (other providers don't support custom bodies)
+    const forcedProvider = shouldForceTwilio(template);
+    const { provider, providerName } = await getActiveMessagingProvider(forcedProvider);
     const fallbackProvider = getFallbackSmsProvider();
 
     messagingLogger.debug(`Sending SMS via ${providerName}`, {
@@ -154,6 +185,8 @@ export async function sendSMS(
       isWhatsApp: whatsapp,
       userId,
       teamId,
+      template,
+      forcedProvider: forcedProvider ? "Yes (CUSTOM workflow)" : "No",
     });
 
     const options: SendSmsOptions = {
@@ -165,7 +198,6 @@ export async function sendSMS(
       isWhatsApp: whatsapp,
       template,
       contentVariables,
-      customArgs,
     };
 
     return await executeWithFallback(
@@ -197,11 +229,12 @@ export async function scheduleSMS(
   teamId?: number | null,
   whatsapp = false,
   template?: WorkflowTemplates,
-  contentVariables?: string,
-  customArgs?: Record<string, any>
+  contentVariables?: string
 ): Promise<SendSmsResponse> {
   try {
-    const { provider, providerName } = await getActiveMessagingProvider();
+    // Force Twilio for CUSTOM workflows (other providers don't support custom bodies)
+    const forcedProvider = shouldForceTwilio(template);
+    const { provider, providerName } = await getActiveMessagingProvider(forcedProvider);
     const fallbackProvider = getFallbackSmsProvider();
 
     messagingLogger.debug(`Scheduling SMS via ${providerName}`, {
@@ -210,6 +243,8 @@ export async function scheduleSMS(
       isWhatsApp: whatsapp,
       userId,
       teamId,
+      template,
+      forcedProvider: forcedProvider ? "Yes (CUSTOM workflow)" : "No",
     });
 
     const options: ScheduleSmsOptions = {
@@ -222,7 +257,6 @@ export async function scheduleSMS(
       isWhatsApp: whatsapp,
       template,
       contentVariables,
-      customArgs,
     };
 
     return await executeWithFallback(

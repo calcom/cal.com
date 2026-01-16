@@ -18,9 +18,9 @@ import type {
   SendSmsResponse,
   CancelSmsOptions,
   VerifyPhoneOptions,
-  ValidateWebhookOptions,
   PhoneInfoResponse,
   VerifyNumberResponse,
+  ValidateWebhookOptions,
 } from "../config/type";
 
 export interface TwilioConfig {
@@ -111,19 +111,14 @@ export class TwilioSmsProvider implements SmsProvider {
   /**
    * Build webhook callback URL
    */
-  private buildWebhookCallback(params?: Record<string, any>, isWhatsApp = false): string | undefined {
-    if (!params) return undefined;
-
+  private buildWebhookCallback(useWhatsApp = false): string | undefined {
     const baseUrl = `${IS_DEV ? NGROK_URL : WEBAPP_URL}/api/twilio/webhook`;
 
-    const enhancedParams = {
-      ...params,
-      msgId: uuidv4(),
-      channel: isWhatsApp ? "WHATSAPP" : "SMS",
+    const params = {
+      channel: useWhatsApp ? "WHATSAPP" : "SMS",
     };
 
-    return `${baseUrl}?${Object.entries(enhancedParams)
-      .filter(([_, value]) => value !== undefined && value !== null)
+    return `${baseUrl}?${Object.entries(params)
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       .join("&")}`;
   }
@@ -176,7 +171,7 @@ export class TwilioSmsProvider implements SmsProvider {
         });
       }
 
-      const webhookCallback = this.buildWebhookCallback(options.customArgs, options.isWhatsApp);
+      const webhookCallback = this.buildWebhookCallback(options.isWhatsApp);
 
       const messagePayload: {
         messagingServiceSid: string;
@@ -257,7 +252,7 @@ export class TwilioSmsProvider implements SmsProvider {
         });
       }
 
-      const webhookCallback = this.buildWebhookCallback(options.customArgs, options.isWhatsApp);
+      const webhookCallback = this.buildWebhookCallback(options.isWhatsApp);
 
       const scheduledPayload: {
         messagingServiceSid: string;
@@ -438,23 +433,6 @@ export class TwilioSmsProvider implements SmsProvider {
   }
 
   /**
-   * Validate a webhook request signature
-   */
-  async validateWebhook(options: ValidateWebhookOptions): Promise<boolean> {
-    try {
-      return TwilioClient.validateRequest(
-        this.config.authToken,
-        options.signature,
-        options.requestUrl,
-        options.params
-      );
-    } catch (error) {
-      this.logger.error("Error validating webhook", error);
-      return false;
-    }
-  }
-
-  /**
    * Get country code for a phone number
    */
   async getCountryCode(phoneNumber: string): Promise<string> {
@@ -483,27 +461,26 @@ export class TwilioSmsProvider implements SmsProvider {
     }
   }
 
-  async validateWebhookRequest({
-    requestUrl,
-    params,
-    signature,
-  }: {
-    requestUrl: string;
-    params: object;
-    signature: string;
-  }) {
-    if (!process.env.TWILIO_TOKEN) {
-      throw new Error("TWILIO_TOKEN is not set");
+  /**
+   * Validate a webhook request signature
+   */
+  async validateWebhook(options: ValidateWebhookOptions): Promise<boolean> {
+    try {
+      if (!process.env.TWILIO_TOKEN) {
+        throw new Error("TWILIO_TOKEN is not set");
+      }
+      return TwilioClient.validateRequest(
+        this.config.authToken,
+        options.signature,
+        options.requestUrl,
+        options.params
+      );
+    } catch (error) {
+      this.logger.error("Error validating webhook", error);
+      return false;
     }
-
-    const isSignatureValid = TwilioClient.validateRequest(
-      process.env.TWILIO_TOKEN,
-      signature,
-      requestUrl,
-      params
-    );
-    return isSignatureValid;
   }
+
   async determineOptOutType(
     req: NextRequest
   ): Promise<{ phoneNumber: string; optOutStatus: boolean } | { error: string }> {
@@ -513,7 +490,7 @@ export class TwilioSmsProvider implements SmsProvider {
     const formData = await req.formData();
     const params = Object.fromEntries(formData.entries());
 
-    const isSignatureValid = await this.validateWebhookRequest({
+    const isSignatureValid = await this.validateWebhook({
       requestUrl: `${WEBAPP_URL}${req.nextUrl.pathname}`,
       params,
       signature,

@@ -15,10 +15,60 @@ import type {
 import * as smsService from "../providers/messaging/dispatcher";
 import type { VariablesType } from "../templates/customTemplate";
 import customTemplate from "../templates/customTemplate";
-import smsReminderTemplate from "../templates/sms/reminder";
 import { getSenderId } from "../utils/getSenderId";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
+
+/**
+ * Mapping of workflow templates to their default message templates
+ * Uses numbered placeholders: {{1}}, {{2}}, {{3}}, {{4}}, {{5}}
+ * {{1}} - Recipient's Name
+ * {{2}} - Meeting Title
+ * {{3}} - Date
+ * {{4}} - Time
+ * {{5}} - Timezone
+ */
+const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
+  [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}}" is coming up on {{3}} at {{4}} {{5}}. See you then!
+
+- Cal ID`,
+  [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}}" scheduled for {{3}} at {{4}} {{5}} has been cancelled.
+
+- Cal ID`,
+  [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}}" has a new time: {{3}} at {{4}} {{5}}. See you then!
+
+- Cal ID`,
+  [WorkflowTemplates.COMPLETED]: `Hi {{1}} - Your meeting "{{2}}" on {{3}} at {{4}} {{5}} is all wrapped up. Thanks for joining!
+
+- Cal ID`,
+  [WorkflowTemplates.CONFIRMATION]: `Hi {{1}} - You are all set! Your meeting "{{2}}" is confirmed for {{3}} at {{4}} {{5}}. See you then!
+
+- Cal ID`,
+  // CUSTOM workflow uses user-provided messageTemplate, so no default needed
+  [WorkflowTemplates.CUSTOM]: "",
+  // RATING and THANKYOU currently have no default templates - will throw error if used
+  [WorkflowTemplates.RATING]: "",
+  [WorkflowTemplates.THANKYOU]: "",
+};
+
+/**
+ * Interpolate numbered placeholders in default templates with actual values
+ */
+const interpolateDefaultTemplate = (
+  template: string,
+  recipientName: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime: string,
+  timezone: string
+): string => {
+  return template
+    .replace(/\{\{1\}\}/g, recipientName)
+    .replace(/\{\{2\}\}/g, eventTitle)
+    .replace(/\{\{3\}\}/g, eventDate)
+    .replace(/\{\{4\}\}/g, eventTime)
+    .replace(/\{\{5\}\}/g, timezone);
+};
 
 const validateNumberVerification = async (
   actionType: CalIdScheduleTextReminderAction,
@@ -96,7 +146,7 @@ const buildMessageVariables = (
   attendeeEmail: targetAttendee.email,
   eventDate: dayjs(eventInfo.startTime).tz(targetAttendee.timeZone),
   eventEndTime: dayjs(eventInfo.endTime).tz(targetAttendee.timeZone),
-  timeZone: targetAttendee.timeZone,
+  timezone: targetAttendee.timeZone,
   location: eventInfo.location,
   additionalNotes: eventInfo.additionalNotes,
   responses: eventInfo.responses,
@@ -117,7 +167,7 @@ const generateMessageContent = (
   recipientLocale: string,
   recipientTimezone: string
 ): string => {
-  if (messageTemplate) {
+  if (workflowTemplate === WorkflowTemplates.CUSTOM && messageTemplate) {
     const templateVariables = buildMessageVariables(eventDetails, targetParticipant);
     const processedMessage = customTemplate(
       messageTemplate,
@@ -128,27 +178,40 @@ const generateMessageContent = (
     return processedMessage.text;
   }
 
-  if (workflowTemplate === WorkflowTemplates.REMINDER) {
-    const recipientName = actionType === WorkflowActions.SMS_ATTENDEE ? targetParticipant.name : "";
-    const organizerName =
-      actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name;
+  // For all other workflow templates, use the default template mapping
+  if (workflowTemplate && workflowTemplate !== WorkflowTemplates.CUSTOM) {
+    const defaultTemplate = WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE[workflowTemplate];
 
-    return (
-      smsReminderTemplate(
-        false,
-        eventDetails.organizer.language.locale,
-        actionType,
-        eventDetails.organizer.timeFormat,
-        eventDetails.startTime,
-        eventDetails.title,
-        recipientTimezone,
-        organizerName,
-        recipientName
-      ) || messageTemplate
+    if (!defaultTemplate) {
+      throw new Error(
+        `No default message template found for workflow template: ${workflowTemplate}. Please add a default template or use CUSTOM workflow type.`
+      );
+    }
+
+    // Determine recipient name and event details for interpolation
+    const recipientName =
+      actionType === WorkflowActions.SMS_ATTENDEE ? targetParticipant.name : eventDetails.organizer.name;
+    const eventTitle = eventDetails.title;
+
+    // Format date and time according to recipient's locale and timezone
+    const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
+    const formattedDate = eventMoment.format("DD MMM YYYY");
+    const formattedTime = eventMoment.format(eventDetails.organizer.timeFormat);
+
+    // Interpolate the default template with actual values
+    return interpolateDefaultTemplate(
+      defaultTemplate,
+      recipientName,
+      eventTitle,
+      formattedDate,
+      formattedTime,
+      recipientTimezone
     );
   }
 
-  return messageTemplate;
+  // Fallback: if no workflowTemplate provided, return empty string
+  moduleLogger.warn("No workflowTemplate provided for message generation");
+  return "";
 };
 
 const createWorkflowInsight = async (
@@ -177,6 +240,7 @@ const executeImmediateNotification = async (
   phoneDestination: string,
   textContent: string,
   senderIdentifier: string,
+  workflowTemplate: WorkflowTemplates | undefined,
   userRef?: number | null,
   teamRef?: number | null,
   eventTypeRef?: number | null,
@@ -193,7 +257,7 @@ const executeImmediateNotification = async (
       userRef,
       teamRef,
       false,
-      undefined,
+      workflowTemplate,
       undefined
     );
     const msgId = msgRes.response.sid;
@@ -213,6 +277,7 @@ const scheduleDelayedNotification = async (
   senderIdentifier: string,
   bookingReference: string,
   stepReference: number,
+  workflowTemplate: WorkflowTemplates | undefined,
   seatReference?: string | null,
   userRef?: number | null,
   teamRef?: number | null,
@@ -228,22 +293,9 @@ const scheduleDelayedNotification = async (
       userRef,
       teamRef,
       false,
-      undefined,
+      workflowTemplate,
       undefined
     );
-    // //
-    // const scheduledMessage = await twilio.scheduleSMS(
-    //   phoneDestination,
-    //   textContent,
-    //   dispatchTime.toDate(),
-    //   senderIdentifier,
-    //   userRef,
-    //   teamRef,
-    //   false,
-    //   undefined,
-    //   undefined,
-    //   { eventTypeId: eventTypeRef }
-    // );
 
     if (scheduledMessage.response.sid) {
       await prisma.calIdWorkflowReminder.create({
@@ -298,6 +350,7 @@ const processScheduledReminder = async (
   senderIdentifier: string,
   bookingReference: string,
   stepReference: number,
+  workflowTemplate: WorkflowTemplates | undefined,
   seatReference?: string | null,
   userRef?: number | null,
   teamRef?: number | null,
@@ -316,6 +369,7 @@ const processScheduledReminder = async (
       senderIdentifier,
       bookingReference,
       stepReference,
+      workflowTemplate,
       seatReference,
       userRef,
       teamRef,
@@ -411,6 +465,7 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
       phoneDestination,
       messageContent,
       senderIdentifier,
+      workflowTemplate ?? undefined,
       userReference,
       teamReference,
       eventData.eventType.id,
@@ -429,6 +484,7 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
         senderIdentifier,
         bookingId as string,
         stepReference,
+        workflowTemplate ?? undefined,
         seatReference,
         userReference,
         teamReference,

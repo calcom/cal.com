@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { ICSMOBILE_SENDERID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
@@ -44,7 +45,6 @@ interface IcsMobileSendResponse {
   to: string;
   from?: string;
   mid?: string;
-  smsgid?: string;
   Error?: string;
 }
 
@@ -157,7 +157,8 @@ export class IcsMobileSmsProvider implements SmsProvider {
       if (this.config.isTestMode) {
         setTestSMS({
           to: options.to,
-          from: options.from || "ICSMBL",
+          // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
+          from: ICSMOBILE_SENDERID,
           message: options.message,
         });
         console.log("Skipped sending SMS (test mode). SMS available in globalThis.testSMS");
@@ -187,12 +188,9 @@ export class IcsMobileSmsProvider implements SmsProvider {
         smstosend: [
           {
             to: this.formatPhoneNumber(options.to),
-            from: options.from || "ICSMBL",
+            // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
+            from: ICSMOBILE_SENDERID,
             smstext: options.message,
-            //passing eventTypeId as smsgid for tracking
-            ...(options.customArgs?.eventTypeId && { smsgid: options.customArgs.eventTypeId }),
-            // ...(options.customArgs?.peid && { peid: options.customArgs.peid }),
-            // ...(options.customArgs?.templateid && { templateid: options.customArgs.templateid }),
           },
         ],
       };
@@ -232,7 +230,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
           sid: firstResponse.mid,
           to: firstResponse.to,
           from: firstResponse.from,
-          smsgid: firstResponse.smsgid,
         },
       };
     } catch (error) {
@@ -280,7 +277,8 @@ export class IcsMobileSmsProvider implements SmsProvider {
       if (this.config.isTestMode) {
         setTestSMS({
           to: options.to,
-          from: options.from || "ICSMBL",
+          // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
+          from: ICSMOBILE_SENDERID,
           message: options.message,
         });
         console.log("Skipped scheduling SMS (test mode). SMS available in globalThis.testSMS");
@@ -304,8 +302,11 @@ export class IcsMobileSmsProvider implements SmsProvider {
         );
       }
 
-      // Format schedule time as "YYYY-MM-DD HH:mm:ss"
-      const scheduleTime = options.scheduledDate.toISOString().replace("T", " ").substring(0, 19);
+      // Format schedule time as "YYYY-MM-DD HH:mm:ss" and IST Adjusted
+      const scheduleTime = new Date(options.scheduledDate.getTime() + 5.5 * 60 * 60 * 1000)
+        .toISOString()
+        .replace("T", " ")
+        .substring(0, 19);
 
       // Prepare request payload
       const requestPayload: IcsMobileSendRequest = {
@@ -314,11 +315,9 @@ export class IcsMobileSmsProvider implements SmsProvider {
         smstosend: [
           {
             to: this.formatPhoneNumber(options.to),
-            from: options.from || "ICSMBL",
+            // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
+            from: ICSMOBILE_SENDERID,
             smstext: options.message,
-            ...(options.customArgs?.smsgid && { smsgid: options.customArgs.smsgid }),
-            ...(options.customArgs?.peid && { peid: options.customArgs.peid }),
-            ...(options.customArgs?.templateid && { templateid: options.customArgs.templateid }),
           },
         ],
       };
@@ -362,7 +361,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
           sid: firstResponse.mid,
           to: firstResponse.to,
           from: firstResponse.from,
-          smsgid: firstResponse.smsgid,
         },
       };
     } catch (error) {

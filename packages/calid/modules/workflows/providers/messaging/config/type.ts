@@ -11,7 +11,6 @@ export interface SendSmsOptions {
   isWhatsApp?: boolean;
   template?: WorkflowTemplates;
   contentVariables?: string;
-  customArgs?: Record<string, any>;
 }
 
 export interface ScheduleSmsOptions extends SendSmsOptions {
