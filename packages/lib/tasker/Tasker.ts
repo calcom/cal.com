@@ -3,6 +3,7 @@
 import process from "node:process";
 import { configure } from "@trigger.dev/sdk";
 import { ENABLE_ASYNC_TASKER } from "../constants";
+import { redactError } from "../redactError";
 import type { ILogger } from "./types";
 
 const isAsyncTaskerEnabled =
@@ -80,14 +81,15 @@ export abstract class Tasker<T> {
   }
 
   private getErrorDetails(err: unknown) {
-    if (err instanceof Error) {
+    const redactedError = redactError(err);
+    if (redactedError instanceof Error) {
       return {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
+        name: redactedError.name,
+        message: redactedError.message,
+        stack: redactedError.stack,
       };
     }
 
-    return { message: String(err) };
+    return { message: String(redactedError) };
   }
 }

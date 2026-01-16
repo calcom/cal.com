@@ -8,12 +8,11 @@ export const processMonthlyProrationBatch = schemaTask({
   ...monthlyProrationTaskConfig,
   schema: monthlyProrationBatchSchema,
   run: async (payload) => {
-    const { TriggerDevLogger } = await import("@calcom/lib/triggerDevLogger");
-    const { MonthlyProrationService } = await import("../../MonthlyProrationService");
+    const { getMonthlyProrationService } = await import(
+      "@calcom/features/ee/billing/di/containers/MonthlyProrationService"
+    );
 
-    const triggerDevLogger = new TriggerDevLogger();
-    const taskLogger = triggerDevLogger.getSubLogger({ name: "MonthlyProrationTask" });
-    const prorationService = new MonthlyProrationService(taskLogger);
+    const prorationService = getMonthlyProrationService();
 
     await prorationService.processMonthlyProrations({
       monthKey: payload.monthKey,
