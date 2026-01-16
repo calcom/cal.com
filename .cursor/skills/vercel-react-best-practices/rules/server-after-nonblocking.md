@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
 ```tsx
 import { after } from 'next/server'
-import { headers, cookies } from 'next/headers'
+import { headers } from 'next/headers'
 import { logUserAction } from '@/app/utils'
 
 export async function POST(request: Request) {
@@ -43,9 +43,8 @@ export async function POST(request: Request) {
   // Log after response is sent
   after(async () => {
     const userAgent = (await headers()).get('user-agent') || 'unknown'
-    const sessionCookie = (await cookies()).get('session-id')?.value || 'anonymous'
     
-    logUserAction({ sessionCookie, userAgent })
+    await logUserAction({ userAgent })
   })
   
   return new Response(JSON.stringify({ status: 'success' }), {
