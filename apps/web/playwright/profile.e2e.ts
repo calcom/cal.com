@@ -55,7 +55,7 @@ test.describe("Update Profile", () => {
     await page.goto("/settings/my-account/profile");
     await page.waitForLoadState("networkidle");
 
-    const emailInput = page.getByTestId("profile-form-email-0").first();
+    const emailInput = page.getByTestId("profile-form-email-0");
 
     await emailInput.fill(email);
 

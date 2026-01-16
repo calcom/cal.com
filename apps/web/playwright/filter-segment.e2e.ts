@@ -118,6 +118,7 @@ test.describe("Filter Segment Functionality", () => {
     const segmentName = "Admin Users Persistent";
     await createFilterSegment(page, segmentName);
 
+    await page.reload();
     await expect(dataTable).toBeVisible();
 
     await selectSegment(page, segmentName);
