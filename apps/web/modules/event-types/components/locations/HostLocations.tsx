@@ -44,7 +44,7 @@ type HostWithLocationOptions = {
     appLink?: string;
   } | null;
   location: {
-    id: number;
+    id: string;
     type: string;
     credentialId: number | null;
     link: string | null;
@@ -77,6 +77,18 @@ const getLocationFromOptions = (
     if (option) return option;
   }
   return undefined;
+};
+
+const filterOutBookerInputLocations = (options: TLocationOptions): TLocationOptions => {
+  return options
+    .map((group) => ({
+      ...group,
+      options: group.options.filter((opt) => {
+        const locationType = getEventLocationType(opt.value);
+        return !locationType?.attendeeInputType;
+      }),
+    }))
+    .filter((group) => group.options.length > 0);
 };
 
 type LocationInputDialogProps = {
@@ -406,7 +418,12 @@ const useMassApplyDialogState = (isOpen: boolean) => {
 const MassApplyLocationDialog = ({ isOpen, onClose, onApply, isApplying }: MassApplyLocationDialogProps) => {
   const { t } = useLocale();
   const { selectedType, setSelectedType, inputValue, setInputValue, reset } = useMassApplyDialogState(isOpen);
-  const allLocationOptions = useMemo(() => getAllLocationOptions(), []);
+  const allLocationOptions = useMemo(() => {
+    return getAllLocationOptions().filter((opt) => {
+      const locationType = getEventLocationType(opt.value);
+      return !locationType?.attendeeInputType;
+    });
+  }, []);
 
   const selectedOption = allLocationOptions.find((o) => o.value === selectedType);
   const eventLocationType = selectedType ? getEventLocationType(selectedType) : null;
@@ -675,10 +692,10 @@ const useHostLocationsData = (eventTypeId: number, enabled: boolean, locationOpt
 
   const hostsWithApps = useMemo(() => data?.pages.flatMap((page) => page.hosts) ?? [], [data]);
   const hostDataMap = useMemo(() => new Map(hostsWithApps.map((h) => [h.userId, h])), [hostsWithApps]);
-  const mergedLocationOptions = useMemo(
-    () => mergeLocationOptionsWithHostApps(locationOptions, hostsWithApps, t),
-    [locationOptions, hostsWithApps, t]
-  );
+  const mergedLocationOptions = useMemo(() => {
+    const merged = mergeLocationOptionsWithHostApps(locationOptions, hostsWithApps, t);
+    return filterOutBookerInputLocations(merged);
+  }, [locationOptions, hostsWithApps, t]);
 
   useFetchMoreOnScroll(containerRef, hasNextPage, isFetchingNextPage, fetchNextPage);
 

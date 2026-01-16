@@ -28,7 +28,7 @@ export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type HostLocation = {
-  id?: number;
+  id?: string;
   userId: number;
   eventTypeId: number;
   type: EventLocationType["type"];

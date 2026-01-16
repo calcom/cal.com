@@ -3,7 +3,7 @@ ALTER TABLE "public"."EventType" ADD COLUMN     "enablePerHostLocations" BOOLEAN
 
 -- CreateTable
 CREATE TABLE "public"."HostLocation" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,
     "eventTypeId" INTEGER NOT NULL,
     "type" TEXT NOT NULL,

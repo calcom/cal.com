@@ -98,7 +98,7 @@ model HostGroup {
 }
 
 model HostLocation {
-  id           Int         @id @default(autoincrement())
+  id           String      @id @default(uuid())
   userId       Int
   eventTypeId  Int
   host         Host        @relation(fields: [userId, eventTypeId], references: [userId, eventTypeId], onDelete: Cascade)
