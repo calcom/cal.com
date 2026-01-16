@@ -56,18 +56,9 @@ export const BookingSeatsDialog = ({
   userTimeFormat,
   eventFields,
 }: BookingSeatsDialogProps) => {
-  console.log("Event fields in BookingSeatsDialog:", eventFields);
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSeats, setExpandedSeats] = useState<Set<string>>(new Set());
-
-  console.log("BookingSeatsDialog rendered with bookingSeats:", {
-    isOpenDialog,
-    setIsOpenDialog,
-    bookingUid,
-    bookingSeats,
-    userTimeFormat,
-  });
 
   // Filter booking seats based on search query
   const filteredSeats = useMemo(() => {
