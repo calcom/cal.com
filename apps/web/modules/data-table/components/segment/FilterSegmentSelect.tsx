@@ -1,27 +1,25 @@
-import { useSession } from "next-auth/react";
-import { useState, useMemo } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { useDataTable } from "@calcom/features/data-table/hooks";
+import type {
+  CombinedFilterSegment,
+  FilterSegmentOutput,
+  SystemFilterSegmentInternal,
+  UserFilterSegment,
+} from "@calcom/features/data-table/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownItem,
-  DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
-
-import { useDataTable } from "@calcom/features/data-table/hooks";
-import type {
-  FilterSegmentOutput,
-  CombinedFilterSegment,
-  SystemFilterSegmentInternal,
-  UserFilterSegment,
-} from "@calcom/features/data-table/lib/types";
+import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 import { DeleteSegmentDialog } from "./DeleteSegmentDialog";
 import { DuplicateSegmentDialog } from "./DuplicateSegmentDialog";
 import { RenameSegmentDialog } from "./RenameSegmentDialog";
@@ -43,7 +41,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
   const { t } = useLocale();
   const session = useSession();
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
-  const { segments, selectedSegment, segmentId, setSegmentId, isSegmentEnabled } = useDataTable();
+  const { segments, selectedSegment, segmentId, setSegmentId, isSegmentEnabled, clearAll } = useDataTable();
   const [segmentToRename, setSegmentToRename] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDuplicate, setSegmentToDuplicate] = useState<CombinedFilterSegment | undefined>();
   const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
@@ -192,7 +190,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
                       segment={segment}
                       onSelect={() => {
                         if (segmentId && segmentId.type === segment.type && segmentId.id === segment.id) {
-                          setSegmentId(null);
+                          clearAll();
                         } else {
                           if (segment.type === "system") {
                             setSegmentId({ id: segment.id, type: "system" });
@@ -247,9 +245,7 @@ function DropdownItemWithSubmenu({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <DropdownMenuItem
-      className="cursor-pointer rounded-lg last-of-type:rounded-b-lg"
-      onSelect={onSelect}>
+    <DropdownMenuItem className="cursor-pointer rounded-lg last-of-type:rounded-b-lg" onSelect={onSelect}>
       <div className="flex items-center">
         {children}
         <div className="grow" />
