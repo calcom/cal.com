@@ -2,11 +2,12 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ViewRecordingsScreenComponent from "@/components/screens/ViewRecordingsScreen";
 import { CalComAPIService } from "@/services/calcom";
 import type { BookingRecording } from "@/services/types/bookings.types";
+import { showErrorAlert } from "@/utils/alerts";
 import { safeLogError } from "@/utils/safeLogger";
 
 function getPresentationStyle(): "formSheet" | "modal" {
@@ -30,13 +31,13 @@ export default function ViewRecordingsIOS() {
         .then(setRecordings)
         .catch((error) => {
           safeLogError("Failed to load recordings:", error);
-          Alert.alert("Error", "Failed to load recordings");
+          showErrorAlert("Error", "Failed to load recordings");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);

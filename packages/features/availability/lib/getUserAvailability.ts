@@ -1,6 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
-import { z } from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -10,7 +7,7 @@ import {
   getBusyTimesFromTeamLimits,
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
@@ -29,20 +26,23 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type {
+  Availability,
   Booking,
-  User,
   OutOfOfficeEntry,
   OutOfOfficeReason,
   EventType as PrismaEventType,
-  Availability,
   SelectedCalendar,
   TravelSchedule,
+  User,
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarFetchMode, EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
-import type { TimeRange } from "@calcom/types/schedule";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { TimeRange, WorkingHours as WorkingHoursWithUserId } from "@calcom/types/schedule";
+import * as Sentry from "@sentry/nextjs";
+import { z } from "zod";
+import { detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 
@@ -169,9 +169,30 @@ export type CurrentSeats = Awaited<
   ReturnType<(typeof UserAvailabilityService)["prototype"]["_getCurrentSeats"]>
 >;
 
-export type GetUserAvailabilityResult = Awaited<
-  ReturnType<(typeof UserAvailabilityService)["prototype"]["_getUserAvailability"]>
->;
+export type GetUserAvailabilityResult = {
+  busy: EventBusyDetails[];
+  timeZone: string;
+  dateRanges: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+  }[];
+  oooExcludedDateRanges: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+  }[];
+  workingHours: WorkingHoursWithUserId[];
+  dateOverrides: TimeRange[];
+  currentSeats:
+    | {
+        uid: string;
+        startTime: Date;
+        _count: {
+          attendees: number;
+        };
+      }[]
+    | null;
+  datesOutOfOffice?: IOutOfOfficeData;
+};
 
 export interface IFromUser {
   id: number;
@@ -323,7 +344,7 @@ export class UserAvailabilityService {
   async _getUserAvailability(
     params: GetUserAvailabilityParams,
     initialData?: GetUserAvailabilityInitialData
-  ) {
+  ): Promise<GetUserAvailabilityResult> {
     const {
       username,
       userId,
@@ -360,38 +381,10 @@ export class UserAvailabilityService {
       currentSeats = await this.getCurrentSeats(eventType, dateFrom, dateTo);
     }
 
-    const userSchedule = user.schedules.filter(
-      (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-    )[0];
-
-    const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
-
-    // TODO: It uses default timezone of user. Should we use timezone of team ?
-    const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
-
-    const fallbackSchedule = {
-      availability: [
-        {
-          startTime: new Date("1970-01-01T09:00:00Z"),
-          endTime: new Date("1970-01-01T17:00:00Z"),
-          days: [1, 2, 3, 4, 5], // Monday to Friday
-          date: null,
-        },
-      ],
-      id: 0,
-
-      timeZone: fallbackTimezoneIfScheduleIsMissing,
-    };
-
-    // possible timezones that have been set by or for a user
-    const potentialSchedule = eventType?.schedule
-      ? eventType.schedule
-      : hostSchedule
-        ? hostSchedule
-        : userSchedule;
-
-    // if no schedules set by or for a user, use fallbackSchedule
-    const schedule = potentialSchedule ?? fallbackSchedule;
+    const { isDefaultSchedule, isTimezoneSet, schedule } = detectEventTypeScheduleForUser({
+      eventType,
+      user,
+    });
 
     const bookingLimits =
       eventType?.bookingLimits &&
@@ -412,19 +405,22 @@ export class UserAvailabilityService {
     const getBusyTimesEnd = dateTo.toISOString();
 
     const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+      ? user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventType.id)
       : user.userLevelSelectedCalendars;
 
-    const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
+    let calendarTimezone: string | null = null;
+    let finalTimezone: string | null = null;
 
-    // this timezone is synced with google/outlook calendars timezone usingg delegated credentials
-    // it's a fallback for delegated credentials users who want to sync their timezone with third party calendars
-    const calendarTimezone = !isTimezoneSet ? await this.getTimezoneFromDelegatedCalendars(user) : null;
+    if (!isTimezoneSet) {
+      calendarTimezone = await this.getTimezoneFromDelegatedCalendars(user);
+      if (calendarTimezone) {
+        finalTimezone = calendarTimezone;
+      }
+    }
 
-    const finalTimezone =
-      !isTimezoneSet && calendarTimezone
-        ? calendarTimezone
-        : schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
+    if (!finalTimezone) {
+      finalTimezone = schedule.timeZone;
+    }
 
     let busyTimesFromLimits: EventBusyDetails[] = [];
 
@@ -517,17 +513,6 @@ export class UserAvailabilityService {
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
     ];
-
-    const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
-
-    log.debug(
-      `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({
-        chosenSchedule: schedule,
-        eventTypeSchedule: eventType?.schedule,
-        userSchedule: userSchedule,
-        hostSchedule: hostSchedule,
-      })}`
-    );
 
     if (
       !(

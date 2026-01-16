@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
@@ -24,19 +25,15 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
     } as const;
   }
 
-  // Check if logged in user has OWNER/ADMIN role in organization
-  const membership = await prisma.membership.findUnique({
-    where: {
-      userId_teamId: {
-        userId: session?.user.id,
-        teamId: session?.user.profile.organizationId,
-      },
-    },
-    select: {
-      role: true,
-    },
+  const permissionCheckService = new PermissionCheckService();
+  const canManageOrganization = await permissionCheckService.checkPermission({
+    userId: session.user.id,
+    teamId: session.user.profile.organizationId,
+    permission: "organization.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
   });
-  if (!membership?.role || membership?.role === MembershipRole.MEMBER) {
+
+  if (!canManageOrganization) {
     return {
       notFound: true,
     } as const;

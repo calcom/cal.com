@@ -1,0 +1,124 @@
+name: 'Devin Session Checker'
+description: 'Check for existing Devin sessions on a PR'
+
+inputs:
+  devin-api-key:
+    description: 'Devin API key'
+    required: true
+  github-token:
+    description: 'GitHub token for API calls'
+    required: true
+  pr-number:
+    description: 'PR number to check for existing sessions'
+    required: true
+
+outputs:
+  has-existing-session:
+    description: 'Whether an existing active session was found (true/false)'
+    value: ${{ steps.check-session.outputs.has-existing-session }}
+  session-id:
+    description: 'ID of the existing session (if found)'
+    value: ${{ steps.check-session.outputs.session-id }}
+  session-url:
+    description: 'URL of the existing session (if found)'
+    value: ${{ steps.check-session.outputs.session-url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check for existing Devin session
+      id: check-session
+      uses: actions/github-script@v7
+      env:
+        DEVIN_API_KEY: ${{ inputs.devin-api-key }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const { owner, repo } = context.repo;
+          const prNumber = parseInt(process.env.PR_NUMBER, 10);
+          const SESSION_URL_REGEX = /app\.devin\.ai\/sessions\/([a-f0-9-]+)/;
+          const ACTIVE_STATUSES = ['working', 'blocked', 'resumed'];
+
+          async function checkSessionStatus(sessionId) {
+            const response = await fetch(`https://api.devin.ai/v1/sessions/${sessionId}`, {
+              headers: {
+                'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                'Content-Type': 'application/json'
+              }
+            });
+
+            if (!response.ok) {
+              console.log(`Failed to fetch session ${sessionId}: ${response.status}`);
+              return null;
+            }
+
+            return await response.json();
+          }
+
+          const { data: pr } = await github.rest.pulls.get({
+            owner,
+            repo,
+            pull_number: prNumber
+          });
+
+          const prBody = pr.body || '';
+          const prSessionMatch = prBody.match(SESSION_URL_REGEX);
+
+          if (prSessionMatch) {
+            const sessionId = prSessionMatch[1];
+            console.log(`PR was created by Devin session: ${sessionId}`);
+            const session = await checkSessionStatus(sessionId);
+            if (session) {
+              console.log(`PR creator session status: ${session.status_enum}`);
+              if (ACTIVE_STATUSES.includes(session.status_enum)) {
+                core.setOutput('has-existing-session', 'true');
+                core.setOutput('session-id', sessionId);
+                core.setOutput('session-url', `https://app.devin.ai/sessions/${sessionId}`);
+                return;
+              } else {
+                console.log(`PR creator session ${sessionId} is not active, will check comments`);
+              }
+            }
+          }
+
+          const devinSessionPatterns = [
+            'Devin AI is completing this stale PR',
+            'Devin AI is addressing Cubic AI',
+            'Devin AI is resolving merge conflicts'
+          ];
+
+          const comments = await github.rest.issues.listComments({
+            owner,
+            repo,
+            issue_number: prNumber
+          });
+
+          for (const comment of comments.data.reverse()) {
+            const hasDevinSession = devinSessionPatterns.some(pattern => comment.body?.includes(pattern));
+            if (hasDevinSession) {
+              const match = comment.body?.match(SESSION_URL_REGEX);
+              if (match) {
+                const sessionId = match[1];
+                console.log(`Found existing Devin session from comment: ${sessionId}`);
+
+                  const session = await checkSessionStatus(sessionId);
+                  if (session) {
+                    if (ACTIVE_STATUSES.includes(session.status_enum)) {
+                    console.log(`Session ${sessionId} is active (status: ${session.status_enum})`);
+                    core.setOutput('has-existing-session', 'true');
+                    core.setOutput('session-id', sessionId);
+                    core.setOutput('session-url', `https://app.devin.ai/sessions/${sessionId}`);
+                    return;
+                  } else {
+                    console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
+                  }
+                }
+              }
+            }
+          }
+
+          console.log('No existing active Devin session found');
+          core.setOutput('has-existing-session', 'false');
+          core.setOutput('session-id', '');
+          core.setOutput('session-url', '');
