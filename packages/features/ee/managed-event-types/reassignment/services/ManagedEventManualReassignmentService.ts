@@ -702,6 +702,7 @@ export class ManagedEventManualReassignmentService {
           slug: targetEventTypeDetails.slug,
           description: newBooking.description,
           schedulingType: parentEventType.schedulingType,
+          seatsPerTimeSlot: targetEventTypeDetails.seatsPerTimeSlot,
         })
         .withOrganizer({
           id: newUser.id,
