@@ -187,22 +187,32 @@ export function useUpdateSchedule() {
       );
       const previousSchedules = queryClient.getQueryData<Schedule[]>(queryKeys.schedules.lists());
 
-      // Optimistically update the detail cache
+      // Optimistically update the detail cache if it exists
       if (previousSchedule) {
         const optimisticSchedule: Schedule = {
           ...previousSchedule,
           ...updates,
-          // Ensure name and timeZone are updated if provided
           name: updates.name ?? previousSchedule.name,
           timeZone: updates.timeZone ?? previousSchedule.timeZone,
         };
         queryClient.setQueryData(queryKeys.schedules.detail(id), optimisticSchedule);
+      }
 
-        // Also update the list cache optimistically
-        if (previousSchedules) {
-          const updatedList = previousSchedules.map((s) => (s.id === id ? optimisticSchedule : s));
-          queryClient.setQueryData(queryKeys.schedules.lists(), sortSchedules(updatedList));
-        }
+      // Update the list cache optimistically (even if detail cache doesn't exist)
+      if (previousSchedules) {
+        const updatedList = previousSchedules.map((s) => {
+          if (s.id === id) {
+            // Merge updates into the existing schedule from the list
+            return {
+              ...s,
+              ...updates,
+              name: updates.name ?? s.name,
+              timeZone: updates.timeZone ?? s.timeZone,
+            };
+          }
+          return s;
+        });
+        queryClient.setQueryData(queryKeys.schedules.lists(), sortSchedules(updatedList));
       }
 
       return { previousSchedule, previousSchedules };
@@ -218,6 +228,9 @@ export function useUpdateSchedule() {
           s.id === variables.id ? updatedSchedule : s
         );
         queryClient.setQueryData(queryKeys.schedules.lists(), sortSchedules(updatedList));
+      } else {
+        // If list cache doesn't exist, invalidate to trigger refetch when user navigates to list
+        queryClient.invalidateQueries({ queryKey: queryKeys.schedules.lists() });
       }
     },
     onError: (_error, variables, context) => {
@@ -232,11 +245,6 @@ export function useUpdateSchedule() {
         queryClient.setQueryData(queryKeys.schedules.lists(), context.previousSchedules);
       }
       console.error("Failed to update schedule");
-    },
-    onSettled: (_data, _error, variables) => {
-      // Always invalidate to ensure consistency with server
-      queryClient.invalidateQueries({ queryKey: queryKeys.schedules.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.schedules.lists() });
     },
   });
 }
