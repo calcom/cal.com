@@ -65,7 +65,7 @@ export const OnboardingCard = ({
 
           {/* Content */}
           <div
-            className={`flex h-full min-h-0 w-full flex-1 flex-col gap-4 @container-[size] ${
+            className={`flex h-full min-h-0 w-full flex-1 flex-col gap-4 [container-type:size] ${
               floatingFooter ? "pb-10" : ""
             }`}>
             {isLoading ? (
