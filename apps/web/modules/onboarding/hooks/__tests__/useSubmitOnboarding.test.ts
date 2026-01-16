@@ -85,7 +85,7 @@ describe("useSubmitOnboarding", () => {
       ],
       invites: [{ email: "invite@example.com", team: "New Team", role: "MEMBER" }],
       inviteRole: "MEMBER",
-      migratedMembers: [{ email: "migrated@example.com", teamId: 1 }],
+      migratedMembers: [{ email: "migrated@example.com", teamId: 1, role: "MEMBER" as const }],
       resetOnboarding: mockResetOnboarding,
     } as unknown as OnboardingState;
 
