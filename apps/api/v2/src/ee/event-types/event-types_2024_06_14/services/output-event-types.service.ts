@@ -131,7 +131,6 @@ type Input = Pick<
   | "allowReschedulingCancelledBookings"
   | "showOptimizedSlots"
   | "selectedCalendars"
-  | "useEventLevelSelectedCalendars"
 >;
 
 @Injectable()
@@ -283,7 +282,6 @@ export class OutputEventTypesService_2024_06_14 {
       allowReschedulingPastBookings,
       allowReschedulingCancelledBookings,
       showOptimizedSlots,
-      useEventLevelSelectedCalendars: databaseEventType.useEventLevelSelectedCalendars ?? undefined,
       selectedCalendars: selectedCalendarsOutput,
     };
   }
