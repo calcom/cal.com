@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZMassApplyHostLocationInputSchema = z.object({
-  eventTypeId: z.number(),
+  eventTypeId: z.number().int(),
   locationType: z.string(),
   link: z.string().optional(),
   address: z.string().optional(),
