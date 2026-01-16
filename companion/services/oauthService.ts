@@ -133,6 +133,10 @@ export class CalComOAuthService {
       code_challenge_method: "S256",
     });
 
+    if (Platform.OS === "ios") {
+      params.append("register", "false");
+    }
+
     return `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
   }
 

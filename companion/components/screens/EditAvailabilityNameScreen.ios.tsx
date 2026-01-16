@@ -6,8 +6,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } fro
 import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TIMEZONES as ALL_TIMEZONES } from "@/constants/timezones";
-import type { Schedule } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
+import { type Schedule, useUpdateSchedule } from "@/hooks/useSchedules";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Format timezones for display
@@ -39,7 +38,9 @@ export const EditAvailabilityNameScreen = forwardRef<
 
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState("UTC");
-  const [isSaving, setIsSaving] = useState(false);
+
+  // Use the mutation hook for updating schedules with optimistic updates
+  const { mutate: updateSchedule, isPending: isSaving } = useUpdateSchedule();
 
   // Initialize from schedule
   useEffect(() => {
@@ -58,7 +59,7 @@ export const EditAvailabilityNameScreen = forwardRef<
     setTimezone(tz);
   }, []);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (!schedule || isSaving) return;
 
     const trimmedName = name.trim();
@@ -67,19 +68,26 @@ export const EditAvailabilityNameScreen = forwardRef<
       return;
     }
 
-    setIsSaving(true);
-    try {
-      await CalComAPIService.updateSchedule(schedule.id, {
-        name: trimmedName,
-        timeZone: timezone,
-      });
-      Alert.alert("Success", "Schedule updated successfully", [{ text: "OK", onPress: onSuccess }]);
-      setIsSaving(false);
-    } catch {
-      showErrorAlert("Error", "Failed to update schedule. Please try again.");
-      setIsSaving(false);
-    }
-  }, [schedule, name, timezone, onSuccess, isSaving]);
+    updateSchedule(
+      {
+        id: schedule.id,
+        updates: {
+          name: trimmedName,
+          timeZone: timezone,
+        },
+      },
+      {
+        onSuccess: () => {
+          Alert.alert("Success", "Schedule updated successfully", [
+            { text: "OK", onPress: onSuccess },
+          ]);
+        },
+        onError: () => {
+          showErrorAlert("Error", "Failed to update schedule. Please try again.");
+        },
+      }
+    );
+  }, [schedule, name, timezone, onSuccess, isSaving, updateSchedule]);
 
   // Expose submit to parent via ref
   useImperativeHandle(

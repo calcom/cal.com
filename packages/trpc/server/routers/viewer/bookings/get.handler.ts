@@ -5,6 +5,7 @@ import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 import dayjs from "@calcom/dayjs";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
@@ -13,8 +14,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { SchedulingType, BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -111,63 +111,39 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-        ...(user.orgId && {
-          OR: [
-            {
-              teamId: user.orgId,
-            },
-            {
-              team: {
-                parentId: user.orgId,
-              },
-            },
-          ],
-        }),
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((membership) => membership.id);
+  const permissionCheckService = new PermissionCheckService();
+  const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
 
-  const membershipConditionWhereUserIsAdminOwner = {
-    some: {
-      id: { in: membershipIdsWhereUserIsAdminOwner },
-    },
-  };
+  const teamIdsWithBookingPermission = await permissionCheckService.getTeamIdsWithPermission({
+    userId: user.id,
+    permission: "booking.read",
+    fallbackRoles,
+    orgId: user.orgId ?? undefined,
+  });
 
   const [
     eventTypeIdsFromTeamIdsFilter,
     attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
-    eventTypeIdsWhereUserIsAdminOrOwner,
-    userIdsAndEmailsWhereUserIsAdminOrOwner,
+    eventTypeIdsWhereUserHasBookingPermission,
+    userIdsAndEmailsWhereUserHasBookingPermission,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
-    getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
+    getEventTypeIdsFromTeamIdsFilter(prisma, teamIdsWithBookingPermission),
+    getUserIdsAndEmailsFromTeamIds(prisma, teamIdsWithBookingPermission),
   ]);
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
 
-  // If user is organization owner/admin, contains organization members emails and ids (organization plan)
-  // If user is only team owner/admin, contain team members emails and ids (teams plan)
-  const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
-    userIdsAndEmailsWhereUserIsAdminOrOwner;
+  // Get user IDs and emails from teams where user has booking permission
+  const [allAccessibleUserIds, allAccessibleUserEmails] = userIdsAndEmailsWhereUserHasBookingPermission;
 
   // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
     const areUserIdsWithinUserOrgOrTeam = filters.userIds.every((userId) =>
-      userIdsWhereUserIsAdminOrOwner.includes(userId)
+      allAccessibleUserIds.includes(userId)
     );
 
     const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
@@ -268,9 +244,8 @@ export async function getBookings({
       tables: ["Booking", "Attendee", "BookingSeat"],
     });
     // 4. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
-    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees
+    if (allAccessibleUserEmails?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -280,14 +255,13 @@ export async function getBookings({
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+          .where("Attendee.email", "in", allAccessibleUserEmails),
         tables: ["Booking", "Attendee"],
       });
     }
     // 5. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
-    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees via seatsReference
+    if (allAccessibleUserEmails?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -298,15 +272,14 @@ export async function getBookings({
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+          .where("Attendee.email", "in", allAccessibleUserEmails),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
     }
 
     // 6. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
-    // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get booking created for an event type within the organization/team
+    if (eventTypeIdsWhereUserHasBookingPermission?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -316,15 +289,14 @@ export async function getBookings({
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
           .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
+          .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserHasBookingPermission),
         tables: ["Booking", "EventType"],
       });
     }
 
     // 7. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
-    // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    if (userIdsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings created by users within the same organization/team
+    if (allAccessibleUserIds?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -333,7 +305,7 @@ export async function getBookings({
           .select("Booking.endTime")
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
-          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
+          .where("Booking.userId", "in", allAccessibleUserIds),
         tables: ["Booking"],
       });
     }
@@ -971,59 +943,26 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
   return eventTypeIdsFromDb;
 }
 
-async function getEventTypeIdsWhereUserIsAdminOrOwner(
-  prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
-) {
-  const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
-    prisma.eventType
-      .findMany({
-        where: {
-          team: {
-            members: membershipCondition,
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-
-    prisma.eventType
-      .findMany({
-        where: {
-          parent: {
-            team: {
-              members: membershipCondition,
-            },
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-  ]);
-
-  return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
-}
-
 /**
- * Gets [IDs, Emails] of members where the auth user is team/org admin/owner.
+ * Gets [IDs, Emails] of members from specified team IDs.
  * @param prisma The Prisma client.
- * @param membershipCondition Filter containing the team/org ids where user is ADMIN/OWNER
- * @returns {Promise<[number[], string[]]>} [UserIDs, UserEmails] for members in the determined scope.
+ * @param teamIds Array of team IDs to get members from
+ * @returns {Promise<[number[], string[]]>} [UserIDs, UserEmails] for members in the specified teams.
  */
-async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
+async function getUserIdsAndEmailsFromTeamIds(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
+  teamIds: number[]
 ): Promise<[number[], string[]]> {
+  if (teamIds.length === 0) {
+    return [[], []];
+  }
+
   const users = await prisma.user.findMany({
     where: {
       teams: {
         some: {
-          team: {
-            members: membershipCondition,
+          teamId: {
+            in: teamIds,
           },
         },
       },

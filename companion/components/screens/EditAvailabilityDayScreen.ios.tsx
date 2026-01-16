@@ -4,8 +4,8 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } fro
 import { Alert, ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
+import { useUpdateSchedule } from "@/hooks/useSchedules";
 import type { Schedule } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
 
@@ -169,9 +169,11 @@ export const EditAvailabilityDayScreen = forwardRef<
   const insets = useSafeAreaInsets();
   const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
 
+  // Use mutation hook for cache-synchronized updates
+  const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();
+
   const [isEnabled, setIsEnabled] = useState(false);
   const [slots, setSlots] = useState<{ startTime: Date; endTime: Date }[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
 
   const dayName = DAYS[dayIndex] || "Day";
 
@@ -201,8 +203,8 @@ export const EditAvailabilityDayScreen = forwardRef<
 
   // Notify parent of saving state
   useEffect(() => {
-    onSavingChange?.(isSaving);
-  }, [isSaving, onSavingChange]);
+    onSavingChange?.(isMutating);
+  }, [isMutating, onSavingChange]);
 
   const handleToggle = useCallback(
     (value: boolean) => {
@@ -249,8 +251,8 @@ export const EditAvailabilityDayScreen = forwardRef<
     });
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    if (!schedule || isSaving) return;
+  const handleSubmit = useCallback(() => {
+    if (!schedule || isMutating) return;
 
     // Validate all slots have end time after start time
     // Compare time strings to avoid issues with Date object day components
@@ -276,20 +278,20 @@ export const EditAvailabilityDayScreen = forwardRef<
 
     const fullAvailability = buildFullAvailability(schedule, dayIndex, daySlots);
 
-    setIsSaving(true);
-    try {
-      await CalComAPIService.updateSchedule(schedule.id, {
-        availability: fullAvailability,
-      });
-      Alert.alert("Success", `${dayName} updated successfully`, [
-        { text: "OK", onPress: onSuccess },
-      ]);
-      setIsSaving(false);
-    } catch {
-      showErrorAlert("Error", "Failed to update schedule. Please try again.");
-      setIsSaving(false);
-    }
-  }, [schedule, dayIndex, dayName, isEnabled, slots, onSuccess, isSaving]);
+    updateSchedule(
+      { id: schedule.id, updates: { availability: fullAvailability } },
+      {
+        onSuccess: () => {
+          Alert.alert("Success", `${dayName} updated successfully`, [
+            { text: "OK", onPress: onSuccess },
+          ]);
+        },
+        onError: () => {
+          showErrorAlert("Error", "Failed to update schedule. Please try again.");
+        },
+      }
+    );
+  }, [schedule, dayIndex, dayName, isEnabled, slots, onSuccess, isMutating, updateSchedule]);
 
   // Expose submit to parent via ref
   useImperativeHandle(

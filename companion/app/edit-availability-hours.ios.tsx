@@ -1,11 +1,11 @@
 import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import EditAvailabilityHoursScreenComponent from "@/components/screens/EditAvailabilityHoursScreen.ios";
-import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { useScheduleById } from "@/hooks/useSchedules";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
@@ -22,25 +22,20 @@ export default function EditAvailabilityHoursIOS() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Use React Query hook to read from cache (syncs with mutations)
+  const { data: schedule, isLoading, isError } = useScheduleById(id ? Number(id) : undefined);
+
+  // Handle missing ID or error
   useEffect(() => {
-    if (id) {
-      setIsLoading(true);
-      CalComAPIService.getScheduleById(Number(id))
-        .then(setSchedule)
-        .catch(() => {
-          showErrorAlert("Error", "Failed to load schedule details");
-          router.back();
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
+    if (!id) {
       showErrorAlert("Error", "Schedule ID is missing");
       router.back();
+    } else if (isError) {
+      showErrorAlert("Error", "Failed to load schedule details");
+      router.back();
     }
-  }, [id, router]);
+  }, [id, isError, router]);
 
   const handleDayPress = useCallback(
     (dayIndex: number) => {

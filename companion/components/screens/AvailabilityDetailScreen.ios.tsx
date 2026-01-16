@@ -3,15 +3,16 @@
  *
  * iOS-specific read-only display of availability schedule.
  * Editing is done via separate bottom sheet screens.
+ * Uses React Query for cache synchronization with edit screens.
  */
 
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { forwardRef, useCallback, useImperativeHandle, useMemo } from "react";
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
-import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { useDeleteSchedule, useScheduleById, useSetScheduleAsDefault } from "@/hooks/useSchedules";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 
@@ -69,137 +70,93 @@ export const AvailabilityDetailScreen = forwardRef<
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
-  const [_schedule, setSchedule] = useState<Schedule | null>(null);
-  const [scheduleName, setScheduleName] = useState("");
-  const [timeZone, setTimeZone] = useState("");
-  const [isDefault, setIsDefault] = useState(false);
-  const [availability, setAvailability] = useState<Record<number, ScheduleAvailability[]>>({});
-  const [overrides, setOverrides] = useState<
-    {
-      date: string;
-      startTime: string;
-      endTime: string;
-    }[]
-  >([]);
+  // Use React Query hook for data fetching and cache synchronization
+  const { data: schedule, isLoading, error, refetch, isRefetching } = useScheduleById(Number(id));
 
-  const processScheduleData = useCallback(
-    (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {
-      const name = scheduleData.name ?? "";
-      const tz = scheduleData.timeZone ?? "UTC";
-      const isDefaultSchedule = scheduleData.isDefault ?? false;
+  // Mutation hooks for actions
+  const { mutate: setAsDefaultMutation } = useSetScheduleAsDefault();
+  const { mutate: deleteScheduleMutation } = useDeleteSchedule();
 
-      setSchedule(scheduleData);
-      setScheduleName(name);
-      setTimeZone(tz);
-      setIsDefault(isDefaultSchedule);
+  // Derive schedule properties from the query data
+  const scheduleName = schedule?.name ?? "";
+  const timeZone = schedule?.timeZone ?? "";
+  const isDefault = schedule?.isDefault ?? false;
 
-      const availabilityMap: Record<number, ScheduleAvailability[]> = {};
+  // Process availability data into a map by day number
+  const availability = useMemo(() => {
+    const availabilityMap: Record<number, ScheduleAvailability[]> = {};
 
-      const availabilityArray = scheduleData.availability;
-      if (availabilityArray && Array.isArray(availabilityArray)) {
-        availabilityArray.forEach((slot) => {
-          let days: number[] = [];
-          if (Array.isArray(slot.days)) {
-            days = slot.days
-              .map((day) => {
-                if (typeof day === "string" && DAY_NAME_TO_NUMBER[day] !== undefined) {
-                  return DAY_NAME_TO_NUMBER[day];
+    const availabilityArray = schedule?.availability;
+    if (availabilityArray && Array.isArray(availabilityArray)) {
+      availabilityArray.forEach((slot) => {
+        let days: number[] = [];
+        if (Array.isArray(slot.days)) {
+          days = slot.days
+            .map((day) => {
+              if (typeof day === "string" && DAY_NAME_TO_NUMBER[day] !== undefined) {
+                return DAY_NAME_TO_NUMBER[day];
+              }
+              if (typeof day === "string") {
+                const parsed = parseInt(day, 10);
+                if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 6) {
+                  return parsed;
                 }
-                if (typeof day === "string") {
-                  const parsed = parseInt(day, 10);
-                  if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 6) {
-                    return parsed;
-                  }
-                }
-                if (typeof day === "number" && day >= 0 && day <= 6) {
-                  return day;
-                }
-                return null;
-              })
-              .filter((day): day is number => day !== null);
+              }
+              if (typeof day === "number" && day >= 0 && day <= 6) {
+                return day;
+              }
+              return null;
+            })
+            .filter((day): day is number => day !== null);
+        }
+
+        days.forEach((day) => {
+          if (!availabilityMap[day]) {
+            availabilityMap[day] = [];
           }
-
-          days.forEach((day) => {
-            if (!availabilityMap[day]) {
-              availabilityMap[day] = [];
-            }
-            const startTime = slot.startTime ?? "09:00:00";
-            const endTime = slot.endTime ?? "17:00:00";
-            availabilityMap[day].push({
-              days: [day.toString()],
-              startTime,
-              endTime,
-            });
+          const startTime = slot.startTime ?? "09:00:00";
+          const endTime = slot.endTime ?? "17:00:00";
+          availabilityMap[day].push({
+            days: [day.toString()],
+            startTime,
+            endTime,
           });
         });
-      }
-
-      setAvailability(availabilityMap);
-
-      const overridesArray = scheduleData.overrides;
-      if (overridesArray && Array.isArray(overridesArray)) {
-        const formattedOverrides = overridesArray.map((override) => {
-          const date = override.date ?? "";
-          const startTime = override.startTime ?? "00:00";
-          const endTime = override.endTime ?? "00:00";
-          return { date, startTime, endTime };
-        });
-        setOverrides(formattedOverrides);
-      } else {
-        setOverrides([]);
-      }
-    },
-    []
-  );
-
-  const fetchSchedule = useCallback(async () => {
-    setLoading(true);
-    let scheduleData: Awaited<ReturnType<typeof CalComAPIService.getScheduleById>> = null;
-    try {
-      scheduleData = await CalComAPIService.getScheduleById(Number(id));
-    } catch (error) {
-      console.error("Error fetching schedule");
-      if (__DEV__) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.debug("[AvailabilityDetailScreen.ios] fetchSchedule failed", {
-          message,
-        });
-      }
-      showErrorAlert("Error", "Failed to load availability. Please try again.");
-      router.back();
-      setLoading(false);
-      return;
+      });
     }
 
-    if (scheduleData) {
-      processScheduleData(scheduleData);
-    }
-    setLoading(false);
-  }, [id, router, processScheduleData]);
+    return availabilityMap;
+  }, [schedule?.availability]);
 
-  useEffect(() => {
-    if (id) {
-      fetchSchedule();
+  // Process overrides data
+  const overrides = useMemo(() => {
+    const overridesArray = schedule?.overrides;
+    if (overridesArray && Array.isArray(overridesArray)) {
+      return overridesArray.map((override) => {
+        const date = override.date ?? "";
+        const startTime = override.startTime ?? "00:00";
+        const endTime = override.endTime ?? "00:00";
+        return { date, startTime, endTime };
+      });
     }
-  }, [id, fetchSchedule]);
+    return [];
+  }, [schedule?.overrides]);
 
-  const handleSetAsDefault = useCallback(async () => {
+  const handleSetAsDefault = useCallback(() => {
     if (isDefault) {
       showInfoAlert("Info", "This schedule is already set as default");
       return;
     }
 
-    try {
-      await CalComAPIService.updateSchedule(Number(id), {
-        isDefault: true,
-      });
-      setIsDefault(true);
-      showSuccessAlert("Success", "Availability set as default successfully");
-    } catch {
-      showErrorAlert("Error", "Failed to set availability as default. Please try again.");
-    }
-  }, [isDefault, id]);
+    setAsDefaultMutation(Number(id), {
+      onSuccess: () => {
+        showSuccessAlert("Success", "Availability set as default successfully");
+      },
+      onError: () => {
+        showErrorAlert("Error", "Failed to set availability as default. Please try again.");
+      },
+    });
+  }, [isDefault, id, setAsDefaultMutation]);
 
   const handleDelete = useCallback(() => {
     if (isDefault) {
@@ -215,19 +172,21 @@ export const AvailabilityDetailScreen = forwardRef<
       {
         text: "Delete",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await CalComAPIService.deleteSchedule(Number(id));
-            Alert.alert("Success", "Availability deleted successfully", [
-              { text: "OK", onPress: () => router.back() },
-            ]);
-          } catch {
-            showErrorAlert("Error", "Failed to delete availability. Please try again.");
-          }
+        onPress: () => {
+          deleteScheduleMutation(Number(id), {
+            onSuccess: () => {
+              Alert.alert("Success", "Availability deleted successfully", [
+                { text: "OK", onPress: () => router.back() },
+              ]);
+            },
+            onError: () => {
+              showErrorAlert("Error", "Failed to delete availability. Please try again.");
+            },
+          });
         },
       },
     ]);
-  }, [isDefault, scheduleName, id, router]);
+  }, [isDefault, scheduleName, id, router, deleteScheduleMutation]);
 
   // Expose handlers via ref
   useImperativeHandle(
@@ -235,9 +194,9 @@ export const AvailabilityDetailScreen = forwardRef<
     () => ({
       setAsDefault: handleSetAsDefault,
       delete: handleDelete,
-      refresh: fetchSchedule,
+      refresh: () => refetch(),
     }),
-    [handleSetAsDefault, handleDelete, fetchSchedule]
+    [handleSetAsDefault, handleDelete, refetch]
   );
 
   // Expose handlers to parent for iOS header menu
@@ -250,10 +209,23 @@ export const AvailabilityDetailScreen = forwardRef<
     }
   }, [onActionsReady, handleSetAsDefault, handleDelete]);
 
+  // Handle error state - must be in useEffect to avoid side effects during render
+  useEffect(() => {
+    if (error) {
+      showErrorAlert("Error", "Failed to load availability. Please try again.");
+      router.back();
+    }
+  }, [error, router]);
+
   // Count enabled days
   const enabledDaysCount = Object.keys(availability).length;
 
-  if (loading) {
+  // Early return for error state (after useEffect hooks)
+  if (error) {
+    return null;
+  }
+
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f2f2f7]">
         <ActivityIndicator size="large" color="#000000" />
@@ -272,6 +244,7 @@ export const AvailabilityDetailScreen = forwardRef<
           paddingBottom: insets.bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />}
       >
         {/* Schedule Title Section - iOS Calendar Style */}
         <View className="mb-4">
@@ -409,13 +382,20 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
         )}
 
-        {/* No Overrides Message */}
+        {/* No Overrides Message - Still navigable to add overrides */}
         {overrides.length === 0 && (
           <View className="mb-4 overflow-hidden rounded-xl bg-white">
-            <View className="px-4 py-3.5">
-              <Text className="text-[17px] text-black">Date Overrides</Text>
-              <Text className="mt-1 text-[15px] text-[#8E8E93]">No date overrides set</Text>
-            </View>
+            <AppPressable
+              onPress={() => router.push(`/edit-availability-override?id=${id}` as never)}
+            >
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <View>
+                  <Text className="text-[17px] text-black">Date Overrides</Text>
+                  <Text className="mt-1 text-[15px] text-[#8E8E93]">No date overrides set</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </View>
+            </AppPressable>
           </View>
         )}
       </ScrollView>

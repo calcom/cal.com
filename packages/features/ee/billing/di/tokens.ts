@@ -9,4 +9,6 @@ export const DI_TOKENS = {
   TEAM_BILLING_DATA_REPOSITORY_MODULE: Symbol("TeamBillingDataRepositoryModule"),
   TEAM_BILLING_SERVICE_FACTORY: Symbol("TeamBillingServiceFactory"),
   TEAM_BILLING_SERVICE_FACTORY_MODULE: Symbol("TeamBillingServiceFactoryModule"),
+  MONTHLY_PRORATION_SERVICE: Symbol("MonthlyProrationService"),
+  MONTHLY_PRORATION_SERVICE_MODULE: Symbol("MonthlyProrationServiceModule"),
 };
