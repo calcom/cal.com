@@ -15,7 +15,7 @@ import { AppConfig } from "@/config/type";
 import { PlatformBillingTasker } from "@/lib/services/tasker/platform-billing-tasker.service";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
-import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
+import { BillingData, IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -40,11 +40,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
   }
 
-  async getBillingData(teamId: number): Promise<{
-    team: Awaited<ReturnType<(typeof OrganizationsRepository.prototype)["findByIdIncludeBilling"]>>;
-    status: "valid" | "no_subscription" | "no_billing";
-    plan: PlatformPlan | "none";
-  }> {
+  async getBillingData(teamId: number): Promise<BillingData> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
 
     if (teamWithBilling?.platformBilling) {
