@@ -524,11 +524,13 @@ describe("Event types Endpoints", () => {
         slug: "invalid-date-field-test",
         lengthInMinutes: 30,
         bookingFields: [
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - intentionally missing required `label` field to test validation
           {
             type: "date",
             slug: "invalid-date",
             required: true,
-          } as any,
+          },
         ],
       };
 
