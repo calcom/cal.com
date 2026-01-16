@@ -60,7 +60,7 @@ type CalVideoSettings = {
 } | null;
 
 type HostLocationInput = {
-  id?: number;
+  id?: string;
   userId: number;
   eventTypeId: number;
   type: string;
@@ -290,7 +290,7 @@ const calVideoSettingsSchema: z.ZodType<CalVideoSettings | undefined> = z
   .nullable();
 
 const hostLocationSchema = z.object({
-  id: z.number().optional(),
+  id: z.string().optional(),
   userId: z.number(),
   eventTypeId: z.number(),
   type: z.string(),
