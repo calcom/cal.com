@@ -67,6 +67,8 @@ export type TimezoneSelectComponentProps = SelectProps & {
   size?: "sm" | "md";
   grow?: boolean;
   isWebTimezoneSelect?: boolean;
+  menuPortal?: boolean;
+  menuPortalTarget?: HTMLElement;
 };
 
 // TODO: I wonder if we move this to ui package, and keep the TRPC version in features
@@ -81,6 +83,8 @@ export function TimezoneSelectComponent({
   size = "md",
   grow = false,
   isWebTimezoneSelect = true,
+  menuPortal = true,
+  menuPortalTarget,
   ...props
 }: TimezoneSelectComponentProps) {
   const data = [...(props.data || [])];
@@ -102,6 +106,9 @@ export function TimezoneSelectComponent({
     });
   }, [components]);
 
+  // Default to document.body for portal target if not specified and menuPortal is enabled
+  const portalTarget = menuPortalTarget || (typeof document !== "undefined" && menuPortal ? document.body : undefined);
+
   return (
     <BaseSelect
       value={value}
@@ -110,6 +117,8 @@ export function TimezoneSelectComponent({
       isLoading={isPending}
       data-testid="timezone-select"
       isDisabled={isPending}
+      menuPortal={menuPortal}
+      menuPortalTarget={portalTarget}
       {...reactSelectProps}
       timezones={{
         ...(props.data ? addTimezonesToDropdown(data) : {}),
@@ -198,7 +207,7 @@ export function TimezoneSelectComponent({
           ),
         menu: (state) =>
           classNames(
-            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle z-50",
             state.selectProps.menuIsOpen && "shadow-dropdown", // Add box-shadow when menu is open
             timezoneClassNames?.menu && timezoneClassNames.menu(state)
           ),
