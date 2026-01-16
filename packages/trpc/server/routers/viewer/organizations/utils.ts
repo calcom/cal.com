@@ -151,9 +151,9 @@ export const addMembersToTeams = async ({
     );
   }
 
-  membershipData.forEach(async ({ userId, teamId }) => {
-    await updateNewTeamMemberEventTypes(userId, teamId);
-  });
+  await Promise.all(
+    membershipData.map(({ userId, teamId }) => updateNewTeamMemberEventTypes(userId, teamId))
+  );
 
   return {
     success: true,

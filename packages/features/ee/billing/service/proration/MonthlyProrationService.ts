@@ -335,8 +335,9 @@ export class MonthlyProrationService {
       chargedAt: new Date(),
     });
 
-    const currentMemberCount = await this.teamRepository.getTeamMemberCount(proration.teamId);
-    const seatsToApply = currentMemberCount ?? proration.seatsAtEnd;
+    // Use the seat count that was captured when the proration was created.
+    // Any member changes after proration creation will be captured in the next month's cycle.
+    const seatsToApply = proration.seatsAtEnd;
 
     await updateSubscriptionQuantity({
       billingService: this.billingService,

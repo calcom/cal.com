@@ -444,7 +444,7 @@ describe("MonthlyProrationService", () => {
   });
 
   describe("handleProrationPaymentSuccess", () => {
-    it("should update proration status to CHARGED", async () => {
+    it("should update proration status to CHARGED using seatsAtEnd from proration record", async () => {
       mockProrationRepository.findById.mockResolvedValueOnce({
         id: "proration-123",
         status: "INVOICE_CREATED",
@@ -457,20 +457,20 @@ describe("MonthlyProrationService", () => {
       } as any);
 
       mockProrationRepository.updateProrationStatus.mockResolvedValueOnce(undefined);
-      mockTeamRepository.getTeamMemberCount.mockResolvedValueOnce(15);
 
       await service.handleProrationPaymentSuccess("proration-123");
 
       expect(mockProrationRepository.updateProrationStatus).toHaveBeenCalledWith("proration-123", "CHARGED", {
         chargedAt: expect.any(Date),
       });
+      // Should use seatsAtEnd from proration record, not current member count
       expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
         subscriptionId: "sub_123",
         subscriptionItemId: "si_123",
-        membershipCount: 15,
+        membershipCount: 13,
         prorationBehavior: "none",
       });
-      expect(mockTeamRepository.updatePaidSeats).toHaveBeenCalledWith(1, false, "billing-123", 15);
+      expect(mockTeamRepository.updatePaidSeats).toHaveBeenCalledWith(1, false, "billing-123", 13);
     });
   });
 

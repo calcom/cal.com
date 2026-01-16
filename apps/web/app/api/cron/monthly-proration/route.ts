@@ -14,9 +14,7 @@ import { NextResponse } from "next/server";
 const log = logger.getSubLogger({ prefix: ["monthly-proration-cron"] });
 
 async function getHandler(request: NextRequest) {
-  const apiKey =
-    request.headers.get("authorization") ||
-    request.nextUrl.searchParams.get("apiKey");
+  const apiKey = request.headers.get("authorization");
 
   if (process.env.CRON_API_KEY !== apiKey) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
@@ -48,16 +46,33 @@ async function getHandler(request: NextRequest) {
   const defaultMonthKey = formatMonthKey(previousMonthUtc);
   const monthKey = requestedMonthKey || defaultMonthKey;
 
+  // Validate monthKey is not in the future and is within a reasonable range (12 months)
+  if (requestedMonthKey) {
+    const [year, month] = requestedMonthKey.split("-").map(Number);
+    const requestedDate = new Date(Date.UTC(year, month - 1, 1));
+    const twelveMonthsAgo = subMonths(startOfCurrentMonthUtc, 12);
+
+    if (requestedDate >= startOfCurrentMonthUtc) {
+      return NextResponse.json(
+        { message: "monthKey cannot be the current month or in the future." },
+        { status: 400 }
+      );
+    }
+
+    if (requestedDate < twelveMonthsAgo) {
+      return NextResponse.json(
+        { message: "monthKey cannot be more than 12 months in the past." },
+        { status: 400 }
+      );
+    }
+  }
+
   log.info(`Scheduling monthly proration tasks for ${monthKey}`);
 
   const teamRepository = new MonthlyProrationTeamRepository(prisma);
   const teamIdsList = await teamRepository.getAnnualTeamsWithSeatChanges(
     monthKey
   );
-
-  console.log({
-    teamIdsList,
-  });
 
   if (teamIdsList.length === 0) {
     return NextResponse.json({

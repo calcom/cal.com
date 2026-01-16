@@ -1,7 +1,10 @@
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["subscription-updated-webhook"] });
 import type { Prisma } from "@calcom/prisma/client";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
@@ -122,6 +125,11 @@ async function handleTeamBillingRenewal(
     });
     return { success: true, type: "organization", teamId: orgBilling.teamId };
   }
+
+  log.warn("Subscription renewal received but no billing record found", {
+    subscriptionId: subscription.id,
+    customerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
+  });
 
   return { skipped: true, reason: "no billing record found" };
 }
