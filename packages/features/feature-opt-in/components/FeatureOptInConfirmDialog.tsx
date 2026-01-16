@@ -23,6 +23,8 @@ import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
 
+import { FeatureOptInSuccessDialog } from "./FeatureOptInSuccessDialog";
+
 type UserRoleContext = {
   isOrgAdmin: boolean;
   orgId: number | null;
@@ -205,20 +207,12 @@ export function FeatureOptInConfirmDialog({
 
   if (isSuccess) {
     return (
-      <Dialog open={isOpen} onOpenChange={resetAndClose}>
-        <DialogPopup className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("feature_enabled_successfully")}</DialogTitle>
-            <DialogDescription>{t("feature_enabled_description")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" />} onClick={handleDismiss}>
-              {t("dismiss")}
-            </DialogClose>
-            <Button onClick={handleViewSettings}>{t("view_settings")}</Button>
-          </DialogFooter>
-        </DialogPopup>
-      </Dialog>
+      <FeatureOptInSuccessDialog
+        isOpen={isOpen}
+        onClose={resetAndClose}
+        onDismiss={handleDismiss}
+        onViewSettings={handleViewSettings}
+      />
     );
   }
 
