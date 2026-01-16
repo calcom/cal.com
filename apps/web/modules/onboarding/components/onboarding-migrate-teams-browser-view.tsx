@@ -101,7 +101,7 @@ export const OnboardingMigrateTeamsBrowserView = ({
                       size="lg"
                       imageSrc={organizationLogo}
                       alt={organizationName || ""}
-                      className="border-4 border-white"
+                      className="border-default border-4"
                     />
                   </div>
                 )}
@@ -131,12 +131,10 @@ export const OnboardingMigrateTeamsBrowserView = ({
                         <Avatar
                           size="md"
                           alt={team.name}
-                          className="border-2 border-white"
+                          className="border-default border-2"
                           fallback={
                             <div className="bg-emphasis flex h-full w-full items-center justify-center text-white">
-                              <span className="text-sm font-semibold">
-                                {team.name.charAt(0).toUpperCase()}
-                              </span>
+                              <span className="text-sm font-semibold uppercase">{team.name.charAt(0)}</span>
                             </div>
                           }
                         />

@@ -79,7 +79,7 @@ export const useSubmitOnboarding = () => {
       const migratedMembersData = migratedMembers.map((member) => ({
         email: member.email,
         teamId: member.teamId,
-        role: "MEMBER" as const,
+        role: member.role,
       }));
 
       const allInvitedMembers = [...invitedMembersData, ...migratedMembersData];

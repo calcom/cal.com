@@ -71,22 +71,22 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
   const moveTeams = watch("moveTeams");
 
   useEffect(() => {
-    if (teams.length > 0) {
-      const currentMoveTeams = getValues("moveTeams");
-      if (currentMoveTeams.length === 0 || currentMoveTeams.length !== teams.length) {
-        reset({
-          moveTeams: teams.map((team) => {
-            const teamToMigrateInStore = teamsToMigrateFromStore.find((t) => t.id === team.id);
-            const slugConflictsWithOrg = team.slug === orgSlug;
-            return {
-              id: team.id,
-              shouldMove: slugConflictsWithOrg || !!teamToMigrateInStore,
-              newSlug:
-                teamToMigrateInStore?.slug ?? getSuggestedSlug({ teamSlug: team.slug, orgSlug }) ?? undefined,
-            };
-          }),
-        });
-      }
+    if (teams.length === 0) return;
+
+    const currentMoveTeams = getValues("moveTeams");
+    if (currentMoveTeams.length === 0 || currentMoveTeams.length !== teams.length) {
+      reset({
+        moveTeams: teams.map((team) => {
+          const teamToMigrateInStore = teamsToMigrateFromStore.find((t) => t.id === team.id);
+          const slugConflictsWithOrg = team.slug === orgSlug;
+          return {
+            id: team.id,
+            shouldMove: slugConflictsWithOrg || !!teamToMigrateInStore,
+            newSlug:
+              teamToMigrateInStore?.slug ?? getSuggestedSlug({ teamSlug: team.slug, orgSlug }) ?? undefined,
+          };
+        }),
+      });
     }
   }, [teams, reset, teamsToMigrateFromStore, orgSlug, getValues]);
 

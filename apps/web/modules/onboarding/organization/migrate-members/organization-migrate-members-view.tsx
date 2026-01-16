@@ -27,6 +27,7 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { isLoading: isMigrationFlowLoading } = useMigrationFlow();
   const { teams, organizationBrand, organizationDetails, setMigratedMembers } = useOnboardingStore();
 
   const teamsToMigrate = teams.filter((team) => team.isBeingMigrated && team.id > 0);
@@ -50,6 +51,7 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
       email: member.email,
       name: member.name || undefined,
       teamId: member.teamId,
+      role: member.role === "OWNER" ? ("ADMIN" as const) : member.role,
     }));
 
     setMigratedMembers(migratedMembersData);
@@ -86,7 +88,11 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
-              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+              <Button
+                color="primary"
+                className="rounded-[10px]"
+                onClick={handleContinue}
+                disabled={isLoading || isMigrationFlowLoading}>
                 {t("continue")}
               </Button>
             </div>

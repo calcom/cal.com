@@ -63,7 +63,7 @@ export interface OnboardingState {
   inviteRole: InviteRole;
 
   // Migration state
-  migratedMembers: { email: string; name?: string; teamId: number }[];
+  migratedMembers: { email: string; name?: string; teamId: number; role: "MEMBER" | "ADMIN" }[];
 
   // Team-specific state
   teamDetails: TeamDetails;
@@ -83,7 +83,7 @@ export interface OnboardingState {
   setInviteRole: (role: InviteRole) => void;
 
   // Migration actions
-  setMigratedMembers: (members: { email: string; name?: string; teamId: number }[]) => void;
+  setMigratedMembers: (members: { email: string; name?: string; teamId: number; role: "MEMBER" | "ADMIN" }[]) => void;
 
   // Team actions
   setTeamDetails: (details: Partial<TeamDetails>) => void;
