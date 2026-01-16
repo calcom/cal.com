@@ -1,17 +1,15 @@
-import type { Kysely } from "kysely";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
+import type { Kysely } from "kysely";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getBookings, getHandler } from "./get.handler";
 
-import { getHandler } from "./get.handler";
-import { getBookings } from "./get.handler";
-
-vi.mock("@calcom/features/pbac/services/permission-check.service");
+vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
+  PermissionCheckService: vi.fn(),
+}));
 vi.mock("@calcom/features/bookings/lib/getAllUserBookings");
 vi.mock("@calcom/kysely", () => ({
   default: {
@@ -156,19 +154,22 @@ describe("getBookings - PBAC Permission Checks", () => {
 
   let mockKysely: Kysely<DB>;
 
-  const mockPermissionCheckService = {
-    getTeamIdsWithPermission: vi.fn(),
-  };
+  const mockGetTeamIdsWithPermission = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
+    mockGetTeamIdsWithPermission.mockReset();
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return {
+        getTeamIdsWithPermission: mockGetTeamIdsWithPermission,
+      } as unknown as PermissionCheckService;
+    });
     mockKysely = createMockKysely();
   });
 
   describe("PBAC permission checks with userIds filter", () => {
     it("should call PermissionCheckService with correct parameters", async () => {
-      mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1]);
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([{ id: 2, email: "member@example.com" }]);
       mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -185,7 +186,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      expect(mockPermissionCheckService.getTeamIdsWithPermission).toHaveBeenCalledWith({
+      expect(mockGetTeamIdsWithPermission).toHaveBeenCalledWith({
         userId: 1,
         permission: "booking.read",
         fallbackRoles: ["ADMIN", "OWNER"],
@@ -194,7 +195,7 @@ describe("getBookings - PBAC Permission Checks", () => {
 
     it("should throw FORBIDDEN when user doesn't have booking.read permission for filtered userIds", async () => {
       // User has booking.read permission for team 1, but user 4 is not in that team
-      mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1]);
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       // getUserIdsAndEmailsFromTeamIds returns only users from team 1 (ids 2, 3)
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([
         { id: 2, email: "member@example.com" },
@@ -246,7 +247,7 @@ describe("getBookings - PBAC Permission Checks", () => {
     });
 
     it("should allow access when filtering by own userId", async () => {
-      mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([]);
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
       // When userIds filter is provided, getAttendeeEmailsFromUserIdsFilter is called
       // which looks up users by the userIds
       mockPrisma.user.findMany = vi.fn((args: any) => {
@@ -278,7 +279,7 @@ describe("getBookings - PBAC Permission Checks", () => {
 
     it("should use fallback ADMIN/OWNER roles when PBAC is not enabled", async () => {
       // User is ADMIN in team 1 (fallback role)
-      mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1]);
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([{ id: 2, email: "member@example.com" }]);
       mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -298,7 +299,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       ).resolves.not.toThrow();
 
       // Verify fallback roles are passed
-      expect(mockPermissionCheckService.getTeamIdsWithPermission).toHaveBeenCalledWith({
+      expect(mockGetTeamIdsWithPermission).toHaveBeenCalledWith({
         userId: 1,
         permission: "booking.read",
         fallbackRoles: ["ADMIN", "OWNER"],
@@ -308,7 +309,7 @@ describe("getBookings - PBAC Permission Checks", () => {
     it("should combine PBAC permissions and ADMIN/OWNER roles", async () => {
       // User has booking.read permission for team 1 via PBAC
       // User is ADMIN in team 2 (fallback)
-      mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1, 2]);
+      mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([
         { id: 2, email: "member-team1@example.com" },
         { id: 3, email: "member-team2@example.com" },
@@ -335,7 +336,7 @@ describe("getBookings - PBAC Permission Checks", () => {
 
   describe("Event type filtering", () => {
     it("should get event types from teams where user has booking.read permission", async () => {
-      mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1]);
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([{ id: 10 }, { id: 11 }]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -357,7 +358,7 @@ describe("getBookings - PBAC Permission Checks", () => {
 
   describe("User IDs and emails retrieval", () => {
     it("should get user IDs and emails from teams with booking permission", async () => {
-      mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1, 2]);
+      mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([
         { id: 2, email: "user2@example.com" },
         { id: 3, email: "user3@example.com" },
