@@ -2,8 +2,6 @@ import "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
-import OfficeCalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -21,79 +19,36 @@ vi.mock("@calcom/lib/crypto", () => ({
 
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 
+const mockGoogleGetAvailability = vi.fn().mockResolvedValue([]);
+const mockGoogleGetAvailabilityWithTimeZones = vi.fn().mockResolvedValue([]);
+const mockOfficeGetAvailability = vi.fn().mockResolvedValue([]);
+const mockOfficeGetAvailabilityWithTimeZones = vi.fn().mockResolvedValue([]);
+
 vi.mock("@calcom/app-store/calendar.services.generated", () => {
-  class MockGoogleCalendarService {
-    constructor(credential: any) {
-      this.credential = credential;
-    }
-
-    getCredentialId() {
-      return this.credential.id;
-    }
-
-    async createEvent() {
-      return {};
-    }
-
-    async updateEvent() {
-      return {};
-    }
-
-    async deleteEvent() {
-      return {};
-    }
-
-    async getAvailability() {
-      return [];
-    }
-
-    async getAvailabilityWithTimeZones() {
-      return [];
-    }
-
-    async listCalendars() {
-      return [];
-    }
-  }
-
-  class MockOfficeCalendarService {
-    constructor(credential: any) {
-      this.credential = credential;
-    }
-
-    getCredentialId() {
-      return this.credential.id;
-    }
-
-    async createEvent() {
-      return {};
-    }
-
-    async updateEvent() {
-      return {};
-    }
-
-    async deleteEvent() {
-      return {};
-    }
-
-    async getAvailability() {
-      return [];
-    }
-
-    async getAvailabilityWithTimeZones() {
-      return [];
-    }
-
-    async listCalendars() {
-      return [];
-    }
-  }
-
   return {
     CalendarServiceMap: {
-      googlecalendar: vi.importActual("@calcom/app-store/googlecalendar/lib/CalendarService"),
-      office365calendar: vi.importActual("@calcom/app-store/office365calendar/lib/CalendarService"),
+      googlecalendar: Promise.resolve({
+        default: (credential: { id: number }) => ({
+          getCredentialId: () => credential.id,
+          createEvent: vi.fn().mockResolvedValue({}),
+          updateEvent: vi.fn().mockResolvedValue({}),
+          deleteEvent: vi.fn().mockResolvedValue({}),
+          getAvailability: mockGoogleGetAvailability,
+          getAvailabilityWithTimeZones: mockGoogleGetAvailabilityWithTimeZones,
+          listCalendars: vi.fn().mockResolvedValue([]),
+        }),
+      }),
+      office365calendar: Promise.resolve({
+        default: (credential: { id: number }) => ({
+          getCredentialId: () => credential.id,
+          createEvent: vi.fn().mockResolvedValue({}),
+          updateEvent: vi.fn().mockResolvedValue({}),
+          deleteEvent: vi.fn().mockResolvedValue({}),
+          getAvailability: mockOfficeGetAvailability,
+          getAvailabilityWithTimeZones: mockOfficeGetAvailabilityWithTimeZones,
+          listCalendars: vi.fn().mockResolvedValue([]),
+        }),
+      }),
     },
   };
 });
@@ -250,9 +205,7 @@ describe("getCalendarsEvents", () => {
         },
       ];
 
-      const getAvailabilitySpy = vi
-        .spyOn(GoogleCalendarService.prototype, "getAvailability")
-        .mockReturnValue(Promise.resolve(availability));
+      mockGoogleGetAvailability.mockResolvedValueOnce(availability);
 
       const selectedCalendar: SelectedCalendar = buildSelectedCalendar({
         credentialId: 100,
@@ -274,7 +227,7 @@ describe("getCalendarsEvents", () => {
         "slots"
       );
 
-      expect(getAvailabilitySpy).toHaveBeenCalledWith({
+      expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
         dateFrom: "2010-12-01",
         dateTo: "2010-12-04",
         selectedCalendars: [selectedCalendar],
@@ -303,12 +256,8 @@ describe("getCalendarsEvents", () => {
         },
       ];
 
-      const getGoogleAvailabilitySpy = vi
-        .spyOn(GoogleCalendarService.prototype, "getAvailability")
-        .mockReturnValue(Promise.resolve(googleAvailability));
-      const getOfficeAvailabilitySpy = vi
-        .spyOn(OfficeCalendarService.prototype, "getAvailability")
-        .mockReturnValue(Promise.resolve(officeAvailability));
+      mockGoogleGetAvailability.mockResolvedValueOnce(googleAvailability);
+      mockOfficeGetAvailability.mockResolvedValueOnce(officeAvailability);
 
       const selectedGoogleCalendar: SelectedCalendar = buildSelectedCalendar({
         credentialId: 100,
@@ -346,14 +295,14 @@ describe("getCalendarsEvents", () => {
         "slots"
       );
 
-      expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith({
+      expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
         dateFrom: "2010-12-01",
         dateTo: "2010-12-04",
         selectedCalendars: [selectedGoogleCalendar],
         mode: "slots",
         fallbackToPrimary: false,
       });
-      expect(getOfficeAvailabilitySpy).toHaveBeenCalledWith({
+      expect(mockOfficeGetAvailability).toHaveBeenCalledWith({
         dateFrom: "2010-12-01",
         dateTo: "2010-12-04",
         selectedCalendars: [selectedOfficeCalendar],
@@ -373,9 +322,7 @@ describe("getCalendarsEvents", () => {
     });
 
     it("should not call getAvailability if selectedCalendars is empty", async () => {
-      const getAvailabilitySpy = vi
-        .spyOn(GoogleCalendarService.prototype, "getAvailability")
-        .mockReturnValue(Promise.resolve([]));
+      mockGoogleGetAvailability.mockClear();
 
       const result = await getCalendarsEvents(
         [buildRegularCredential(credential)],
@@ -385,7 +332,7 @@ describe("getCalendarsEvents", () => {
         "slots"
       );
 
-      expect(getAvailabilitySpy).not.toHaveBeenCalled();
+      expect(mockGoogleGetAvailability).not.toHaveBeenCalled();
       expect(result).toEqual([[]]);
     });
   });
@@ -396,13 +343,11 @@ describe("getCalendarsEvents", () => {
       const endDate = "2010-12-02";
       const delegationCredential: CredentialForCalendarService = buildDelegationCredential(credential);
       const credentials = [delegationCredential];
-      const getAvailabilitySpy = vi
-        .spyOn(GoogleCalendarService.prototype, "getAvailability")
-        .mockReturnValue(Promise.resolve([]));
+      mockGoogleGetAvailability.mockResolvedValueOnce([]);
 
       const result = await getCalendarsEvents(credentials, startDate, endDate, [], "slots");
 
-      expect(getAvailabilitySpy).toHaveBeenCalledWith({
+      expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
         dateFrom: startDate,
         dateTo: endDate,
         selectedCalendars: [],
@@ -515,9 +460,7 @@ describe("getCalendarsEventsWithTimezones", () => {
         },
       ];
 
-      const getAvailabilityWithTimezonesSpy = vi
-        .spyOn(GoogleCalendarService.prototype, "getAvailabilityWithTimeZones")
-        .mockReturnValue(Promise.resolve(availability));
+      mockGoogleGetAvailabilityWithTimeZones.mockResolvedValueOnce(availability);
 
       const selectedCalendar: SelectedCalendar = buildSelectedCalendar({
         credentialId: 100,
@@ -538,7 +481,7 @@ describe("getCalendarsEventsWithTimezones", () => {
         [selectedCalendar]
       );
 
-      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith({
+      expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith({
         dateFrom: "2010-12-01",
         dateTo: "2010-12-04",
         selectedCalendars: [selectedCalendar],
@@ -553,9 +496,7 @@ describe("getCalendarsEventsWithTimezones", () => {
     });
 
     it("should not call getAvailabilityWithTimezones if selectedCalendars is empty", async () => {
-      const getAvailabilityWithTimezonesSpy = vi
-        .spyOn(GoogleCalendarService.prototype, "getAvailabilityWithTimeZones")
-        .mockReturnValue(Promise.resolve([]));
+      mockGoogleGetAvailabilityWithTimeZones.mockClear();
 
       const result = await getCalendarsEventsWithTimezones(
         [buildRegularCredential(credential)],
@@ -564,7 +505,7 @@ describe("getCalendarsEventsWithTimezones", () => {
         []
       );
 
-      expect(getAvailabilityWithTimezonesSpy).not.toHaveBeenCalled();
+      expect(mockGoogleGetAvailabilityWithTimeZones).not.toHaveBeenCalled();
       expect(result).toEqual([[]]);
     });
   });
@@ -575,13 +516,11 @@ describe("getCalendarsEventsWithTimezones", () => {
       const endDate = "2010-12-02";
       const delegationCredential: CredentialForCalendarService = buildDelegationCredential(credential);
       const credentials = [delegationCredential];
-      const getAvailabilityWithTimezonesSpy = vi
-        .spyOn(GoogleCalendarService.prototype, "getAvailabilityWithTimeZones")
-        .mockReturnValue(Promise.resolve([]));
+      mockGoogleGetAvailabilityWithTimeZones.mockResolvedValueOnce([]);
 
       const result = await getCalendarsEventsWithTimezones(credentials, startDate, endDate, []);
 
-      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith({
+      expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith({
         dateFrom: startDate,
         dateTo: endDate,
         selectedCalendars: [],

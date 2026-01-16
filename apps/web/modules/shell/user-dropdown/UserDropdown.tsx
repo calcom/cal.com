@@ -28,8 +28,16 @@ declare global {
       open: () => void;
       shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
+    Beacon?: BeaconFunction;
   }
 }
+
+// NOTE: This interface only includes types for commands we currently use.
+type BeaconFunction = {
+  (command: "session-data", data: Record<string, string | number>): void;
+  // Catch-all for other methods - add explicit types above if using new commands
+  (...args: unknown[]): void;
+};
 
 interface UserDropdownProps {
   small?: boolean;
@@ -43,16 +51,31 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const isPlatformPages = pathname?.startsWith("/settings/platform");
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    const Beacon = window.Beacon;
-    // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
-    Beacon &&
-      Beacon("session-data", {
-        username: user?.username || "Unknown",
-        screenResolution: `${screen.width}x${screen.height}`,
-      });
-  });
+    if (typeof window === "undefined") return;
+
+    const sendSessionData = () => {
+      const Beacon = window.Beacon;
+      if (Beacon) {
+        Beacon("session-data", {
+          username: user?.username || "Unknown",
+          screenResolution: `${screen.width}x${screen.height}`,
+        });
+        return true;
+      }
+      return false;
+    };
+
+    // Try immediately, then poll if Beacon isn't loaded yet
+    if (!sendSessionData()) {
+      const intervalId = setInterval(() => {
+        if (sendSessionData()) {
+          clearInterval(intervalId);
+        }
+      }, 1000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [user?.username]);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [openSupportAfterClose, setOpenSupportAfterClose] = useState(false);
@@ -66,6 +89,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!menuOpen && openSupportAfterClose) {
       setTimeout(() => {
         window.Support?.open();

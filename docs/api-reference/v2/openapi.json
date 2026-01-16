@@ -19317,11 +19317,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -21634,11 +21634,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -23617,11 +23617,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -24210,11 +24210,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",

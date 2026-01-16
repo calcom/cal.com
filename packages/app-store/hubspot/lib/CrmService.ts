@@ -26,7 +26,7 @@ import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTr
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
 
-export default class HubspotCalendarService implements CRM {
+class HubspotCalendarService implements CRM {
   private url = "";
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<HubspotToken | void | never[]> }>;
@@ -566,4 +566,17 @@ export default class HubspotCalendarService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+}
+
+/**
+ * Factory function that creates a HubSpot CRM service instance.
+ * This is exported instead of the class to prevent SDK types (like hubspot.Client)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all 1,800+ HubSpot SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>
+): CRM {
+  return new HubspotCalendarService(credential, appOptions);
 }

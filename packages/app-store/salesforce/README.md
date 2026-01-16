@@ -18,3 +18,77 @@ When working with graphql files ensure that `yarn codegen:watch` is running in t
 The SFDC package is written using Apex. To develop this package, you need to have the Salesforce CLI installed. Then you can run `yarn sfdc:deploy:preview` to see what changes will be deployed to the scratch org. Running `yarn sfdc:deploy` will deploy the changes to the scratch org.
 
 Note that if you want to call your local development instances you need to change the "Named Credential" on the scratch org settings to point the `CalCom_Development` credential to the local instance.
+
+# Publishing the SFDC Package
+
+All commands should be run from the `sfdc-package` directory:
+
+```bash
+cd packages/app-store/salesforce/sfdc-package
+```
+
+### Initial Setup (One-time)
+
+If the package doesn't exist yet in the Dev Hub, create it:
+
+```bash
+sf package create \
+  --name "calcom-sfdc-package" \
+  --package-type Unlocked \
+  --path force-app \
+  --target-dev-hub team@cal.com
+```
+
+This registers the package and updates `sfdx-project.json` with the package ID.
+
+### Creating a New Package Version
+
+Each time you want to release changes, create a new version:
+
+```bash
+sf package version create \
+  --package "calcom-sfdc-package" \
+  --installation-key-bypass \
+  --wait 20 \
+  --target-dev-hub team@cal.com
+```
+
+Options:
+- `--installation-key-bypass`: Allows installation without a password
+- `--wait 20`: Waits up to 20 minutes for completion
+- `--code-coverage`: Add this flag when ready to promote (requires 75% Apex test coverage)
+
+### Viewing Packages and Installation URLs
+
+List all package versions:
+
+```bash
+sf package version list --target-dev-hub team@cal.com
+```
+
+The installation URL format is:
+
+```
+https://login.salesforce.com/packaging/installPackage.apexp?p0=<04t_SUBSCRIBER_PACKAGE_VERSION_ID>
+```
+
+### Promoting for Production
+
+Beta versions can only be installed in sandboxes/scratch orgs. To allow installation in production orgs, promote the version:
+
+```bash
+sf package version promote \
+  --package "calcom-sfdc-package@X.X.X-X" \
+  --target-dev-hub team@cal.com
+```
+
+Replace `X.X.X-X` with the version number (e.g., `0.1.0-1`).
+
+### Running Tests
+
+To run Apex tests and check code coverage:
+
+```bash
+sf project deploy start --target-org <org-alias>
+sf apex run test --test-level RunLocalTests --wait 10 --target-org <org-alias>
+```

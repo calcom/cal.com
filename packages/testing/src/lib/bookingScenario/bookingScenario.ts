@@ -1813,9 +1813,7 @@ export async function mockCalendar(
   const calendarServicePromise = CalendarServiceMap[calendarServiceKey];
   if (calendarServicePromise) {
     const resolvedService = await calendarServicePromise;
-    vi.mocked(resolvedService.default).mockImplementation(
-      // @ts-expect-error - Mock implementation satisfies Calendar interface but TypeScript expects specific calendar service types
-      function MockCalendarService(credential) {
+    vi.mocked(resolvedService.default).mockImplementation(function MockCalendarService(credential) {
         return {
           createEvent: async function (
             ...rest: Parameters<Calendar["createEvent"]>

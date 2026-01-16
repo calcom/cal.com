@@ -16,12 +16,7 @@ import { UserWithProfile, UsersRepository } from "@/modules/users/users.reposito
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
-import {
-  createEventType,
-  updateEventType,
-  getEventTypesPublic,
-  EventTypesPublic,
-} from "@calcom/platform-libraries/event-types";
+import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
@@ -134,7 +129,10 @@ export class EventTypesService_2024_06_14 {
     orgId?: number;
     authUser?: AuthOptionalUser;
   }) {
-    const user = await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId);
+    const user =
+      params.orgSlug || params.orgId
+        ? await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId)
+        : await this.usersRepository.findByUsernameExcludingOrgUsers(params.username);
     if (!user) {
       return null;
     }
@@ -226,15 +224,6 @@ export class EventTypesService_2024_06_14 {
     return eventTypes.map((eventType) => {
       return { ownerId: userId, ...eventType };
     });
-  }
-
-  async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
-    const user = await this.usersRepository.findByUsername(username);
-    if (!user) {
-      throw new NotFoundException(`User with username "${username}" not found`);
-    }
-
-    return await getEventTypesPublic(user.id);
   }
 
   async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14, authUser?: AuthOptionalUser) {

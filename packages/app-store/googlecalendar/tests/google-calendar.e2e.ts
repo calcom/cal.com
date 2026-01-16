@@ -79,11 +79,11 @@ test.describe("Google Calendar", async () => {
 
         test.skip(!qaUsername, "QA username not found");
 
-        const googleCalendarService = new GoogleCalendarService(qaGCalCredential);
+        const googleCalendarService = GoogleCalendarService(qaGCalCredential);
 
         const calendars = await googleCalendarService.listCalendars();
 
-        const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
+        const primaryCalendarName = calendars.find((calendar: { primary?: boolean; name?: string }) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
 
         await prisma.destinationCalendar.upsert({

@@ -19,13 +19,14 @@ const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum([
 const featureOptInService = getFeatureOptInService();
 const featuresRepository = new FeaturesRepository(prisma);
 const teamRepository = new TeamRepository(prisma);
+const membershipRepository = new MembershipRepository(prisma);
 
 /**
  * Helper to get user's org and team IDs from their memberships.
  * Returns orgId (if user belongs to an org) and teamIds (non-org teams).
  */
 async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-  const memberships = await MembershipRepository.findAllByUserId({
+  const memberships = await membershipRepository.findAllByUserId({
     userId,
     filters: { accepted: true },
   });

@@ -508,7 +508,7 @@ export class MembershipRepository {
     return teams;
   }
 
-  static async findAllByUserId({
+  async findAllByUserId({
     userId,
     filters,
   }: {
@@ -518,7 +518,7 @@ export class MembershipRepository {
       roles?: MembershipRole[];
     };
   }) {
-    return prisma.membership.findMany({
+    return this.prismaClient.membership.findMany({
       where: {
         userId,
         ...(filters?.accepted !== undefined && { accepted: filters.accepted }),

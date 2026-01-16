@@ -55,7 +55,7 @@ interface BodyValue {
   start: { dateTime: string };
 }
 
-export default class Office365CalendarService implements Calendar {
+class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
@@ -784,4 +784,16 @@ export default class Office365CalendarService implements Calendar {
       throw error;
     }
   }
+}
+
+/**
+ * Factory function that creates an Office365 Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like Microsoft Graph types)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all Microsoft Graph SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCalendarService(
+  credential: CredentialForCalendarServiceWithTenantId
+): Calendar {
+  return new Office365CalendarService(credential);
 }

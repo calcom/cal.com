@@ -74,6 +74,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
 }) => {
   const { watch, setValue } = useFormContext();
   const watchDayRange = watch(name);
+  const lastNonEmptyDayRangeRef = useRef<TimeRange[] | null>(null);
 
   return (
     <div
@@ -97,7 +98,20 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 checked={watchDayRange && !!watchDayRange.length}
                 data-testid={`${weekday}-switch`}
                 onCheckedChange={(isChecked) => {
-                  setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
+                  if (isChecked) {
+                    const previousDayRange = lastNonEmptyDayRangeRef.current;
+                    const newValue =
+                      (previousDayRange && previousDayRange.length > 0
+                        ? previousDayRange
+                        : [DEFAULT_DAY_RANGE]) as TFieldValues[typeof name];
+
+                    setValue(name, newValue);
+                  } else {
+                    if (watchDayRange && watchDayRange.length > 0) {
+                      lastNonEmptyDayRangeRef.current = watchDayRange as unknown as TimeRange[];
+                    }
+                    setValue(name, [] as TFieldValues[typeof name]);
+                  }
                 }}
               />
             </div>

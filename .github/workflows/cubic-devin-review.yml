@@ -149,6 +149,7 @@ jobs:
 
       - name: Post comment with Devin session link
         if: steps.extract-prompt.outputs.has-prompt == 'true' && env.SESSION_URL != ''
+        id: post-comment
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -160,9 +161,50 @@ jobs:
               ? `### Devin AI is addressing Cubic AI's review feedback\n\nA Devin session has been created to address the issues identified by Cubic AI.\n\n[View Devin Session](${sessionUrl})`
               : `### Devin AI is addressing Cubic AI's review feedback\n\nNew feedback has been sent to the existing Devin session.\n\n[View Devin Session](${sessionUrl})`;
             
-            await github.rest.issues.createComment({
+            const { data: comment } = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
               body: message
             });
+            
+            core.setOutput('comment-id', comment.id);
+
+      - name: Send completion instructions to Devin
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && env.SESSION_URL != '' && steps.post-comment.outputs.comment-id != ''
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        run: |
+          SESSION_ID="${EXISTING_SESSION_ID:-}"
+          if [ -z "$SESSION_ID" ]; then
+            SESSION_ID=$(cat /tmp/devin-response.json | jq -r '.session_id // .id // empty')
+          fi
+          
+          if [ -z "$SESSION_ID" ]; then
+            echo "No session ID found, skipping completion instructions"
+            exit 0
+          fi
+          
+          COMMENT_ID="${{ steps.post-comment.outputs.comment-id }}"
+          
+          MESSAGE="IMPORTANT: When you have finished addressing Cubic AI's feedback (whether you pushed changes or not), you MUST update the GitHub comment to show completion status.
+
+          Use the GitHub API to update comment ID ${COMMENT_ID} on PR #${{ github.event.pull_request.number }} in repository ${{ github.repository }}.
+
+          Add a completion status section at the bottom of the comment:
+          - If you pushed changes: Add '\n\n---\n:white_check_mark: Pushed commit [\`{SHORT_HASH}\`](https://github.com/${{ github.repository }}/commit/{FULL_HASH})' where {SHORT_HASH} is the first 7 characters of the commit hash and {FULL_HASH} is the full commit hash.
+          - If no changes were needed: Add '\n\n---\n:white_check_mark: No changes pushed'
+
+          To update the comment, use: gh api repos/${{ github.repository }}/issues/comments/${COMMENT_ID} -X PATCH -f body='<updated comment body>'"
+
+          HTTP_CODE=$(curl -s -o /tmp/devin-instructions-response.json -w "%{http_code}" -X POST "https://api.devin.ai/v1/sessions/${SESSION_ID}/message" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg message "$MESSAGE" '{message: $message}')")
+          
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Warning: Failed to send completion instructions to Devin session: HTTP $HTTP_CODE"
+            cat /tmp/devin-instructions-response.json
+          else
+            echo "Completion instructions sent to Devin session successfully"
+          fi
