@@ -290,11 +290,11 @@ jobs:
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
       - uses: ./.github/actions/yarn-install
-        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        if: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks == 'true' }}
         with:
           skip-install-if-cache-hit: "true"
       - uses: ./.github/actions/yarn-playwright-install
-        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        if: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks == 'true' }}
         with:
           skip-install-if-cache-hit: "true"
 
