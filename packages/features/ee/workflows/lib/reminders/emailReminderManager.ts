@@ -7,9 +7,9 @@ import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowMethods, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowMethods, type WorkflowTemplates, type WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-import type { BookingInfo, ScheduleEmailReminderAction, FormSubmissionData } from "../types";
+import type { BookingInfo, FormSubmissionData, ScheduleEmailReminderAction } from "../types";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import type { WorkflowContextData } from "./reminderScheduler";
 import type { VariablesType } from "./templates/customTemplate";
@@ -38,6 +38,7 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   verifiedAt: Date | null;
+  isOrganization?: boolean;
 };
 
 type SendEmailReminderParams = {
@@ -64,7 +65,7 @@ type SendEmailReminderParams = {
 const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminderParams) => {
   const { mailData, sendTo, scheduledDate, uid, workflowStepId } = params;
 
-  let reminderUid = undefined;
+  let reminderUid;
   if (scheduledDate) {
     const reminder = await prisma.workflowReminder.create({
       data: {
@@ -115,6 +116,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
+    isOrganization,
   } = args;
 
   const uid = evt.uid as string;
@@ -140,6 +142,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     template,
     includeCalendarEvent,
     triggerEvent,
+    isOrganization,
   });
 
   await sendOrScheduleWorkflowEmailWithReminder({
@@ -168,6 +171,7 @@ const scheduleEmailReminderForForm = async (
     emailSubject = "",
     emailBody = "",
     hideBranding,
+    isOrganization,
   } = args;
 
   const emailContent = {
@@ -196,9 +200,15 @@ const scheduleEmailReminderForForm = async (
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
 
+  // Organization accounts are allowed to use cloaked links (URL behind text)
+  // since they are paid accounts with lower spam/scam risk
+  const processedEmailBody = isOrganization
+    ? emailContent.emailBody
+    : replaceCloakedLinksInHtml(emailContent.emailBody);
+
   const mailData = {
     subject: emailContent.emailSubject,
-    html: replaceCloakedLinksInHtml(emailContent.emailBody),
+    html: processedEmailBody,
     sender,
   };
 
