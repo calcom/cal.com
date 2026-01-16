@@ -193,6 +193,35 @@ export class UsersRepository {
     });
   }
 
+  async findManyByUsernames(usernames: string[], orgSlug?: string, orgId?: number) {
+    if (orgId || orgSlug) {
+      return this.dbRead.prisma.user.findMany({
+        where: {
+          profiles: {
+            some: {
+              organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+              username: { in: usernames },
+            },
+          },
+        },
+      });
+    }
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username: { in: usernames },
+      },
+    });
+  }
+
+  async findManyByUsernamesExcludingOrgUsers(usernames: string[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username: { in: usernames },
+        profiles: { none: {} },
+      },
+    });
+  }
+
   async findManagedUsersByOAuthClientId(oauthClientId: string, cursor: number, limit: number) {
     return this.dbRead.prisma.user.findMany({
       where: {

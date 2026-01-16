@@ -153,10 +153,26 @@ export class EventTypesController_2024_06_14 {
   @Get("/")
   @ApiOperation({
     summary: "Get all event types",
-    description: `Hidden event types are returned only if authentication is provided and it belongs to the event type owner.
-      
-      Use the optional \`sortCreatedAt\` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.
-      
+    description: `This endpoint supports multiple use cases depending on the query parameters provided:
+
+      **Get authenticated user's event types (no query params):**
+      When called with authentication and no query parameters, returns all event types belonging to the authenticated user. This is the simplest way to fetch your own event types.
+
+      **Get event types by username:**
+      Use the \`username\` query parameter to fetch public event types for a specific user. If the authenticated user matches the username, hidden event types are also returned.
+
+      **Get specific event type by username and slug:**
+      Combine \`username\` and \`eventSlug\` query parameters to fetch a specific event type.
+
+      **Get dynamic event type for multiple users:**
+      Use the \`usernames\` query parameter (comma-separated) to get a dynamic/collective event type for multiple users.
+
+      **Organization context:**
+      Use \`orgSlug\` or \`orgId\` query parameters to scope the lookup to users within a specific organization. When not provided, the endpoint returns event types for non-organization users only.
+
+      **Sorting:**
+      Use the optional \`sortCreatedAt\` query parameter to order results by creation date. Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.
+
       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })

@@ -271,16 +271,10 @@ export class EventTypesService_2024_06_14 {
     orgId?: number
   ): Promise<DatabaseEventType & { ownerId: number }> {
     const users = await this.usersService.getByUsernames(usernames, orgSlug, orgId);
-    const usersFiltered: UserWithProfile[] = [];
-    for (const user of users) {
-      if (user) {
-        usersFiltered.push(user);
-      }
-    }
     return {
       ownerId: 0,
       ...dynamicEvent,
-      users: usersFiltered,
+      users,
       isInstantEvent: false,
     };
   }
@@ -356,7 +350,7 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async deleteEventType(eventTypeId: number, userId: number): Promise<void> {
+  async deleteEventType(eventTypeId: number, userId: number) {
     const existingEventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
     if (!existingEventType) {
       throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);

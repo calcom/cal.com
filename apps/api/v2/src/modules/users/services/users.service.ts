@@ -25,18 +25,9 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async getByUsernames(usernames: string[], orgSlug?: string, orgId?: number) {
-    const users = await Promise.all(
-      usernames.map((username) => this.usersRepository.findByUsername(username, orgSlug, orgId))
-    );
-    const usersFiltered: User[] = [];
-
-    for (const user of users) {
-      if (user) {
-        usersFiltered.push(user);
-      }
-    }
-
-    return users;
+    return orgSlug || orgId
+      ? await this.usersRepository.findManyByUsernames(usernames, orgSlug, orgId)
+      : await this.usersRepository.findManyByUsernamesExcludingOrgUsers(usernames);
   }
 
   getUserMainProfile(user: UserWithProfileMinimal): ProfileMinimal | undefined {
