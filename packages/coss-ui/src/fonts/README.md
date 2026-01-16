@@ -22,23 +22,23 @@ export default function RootLayout({ children }) {
 
 ## Available Fonts
 
-- `fontSans` - Cal Sans UI variable font (supports multiple weights and modes)
-- `fontHeading` - Cal Sans Regular font
+- `fontSans` - Inter font from Google Fonts (body text)
+- `fontHeading` - Cal Sans SemiBold font (headings)
 
 ## Adding New Fonts
 
-1. Place the font file in this directory (`packages/coss-ui/src/fonts/`)
-2. Add a new font configuration in `index.ts`:
+For local fonts, place the font file in this directory and add a configuration in `index.ts`:
 
 ```typescript
+import localFont from "next/font/local";
+
 export const yourNewFont = localFont({
-  display: "swap",
   src: "./YourFont.woff2",
   variable: "--font-your-name",
 });
 ```
 
-3. Use it in any app by importing from `@coss/ui/fonts`
+Then use it in any app by importing from `@coss/ui/fonts`.
 
 ## Benefits of This Approach
 
