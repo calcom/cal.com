@@ -3,7 +3,7 @@ on:
   workflow_call:
 
 env:
-  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
 
 jobs:
   check-prisma-migrations:
@@ -11,14 +11,17 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     services:
       postgres:
-        image: postgres:15
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: calendso
         options: >-
           --health-cmd pg_isready
-          --health-interval 5s
+          --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
