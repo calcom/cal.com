@@ -93,7 +93,7 @@ export const getCalendar = async (
   let calendar: Calendar = originalCalendar;
 
   if (useCache) {
-    log.info(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
+    log.debug(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
     const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
     calendar = new CalendarCacheWrapper({
       originalCalendar: calendar,
@@ -104,7 +104,7 @@ export const getCalendar = async (
   // Wrap ALL calendars with telemetry when telemetry is enabled
   // This provides consistent metrics for all calendar types
   if (isTelemetryEnabled()) {
-    log.info(
+    log.debug(
       `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheSupported: ${isCacheSupported}, cacheEnabled: ${useCache})`
     );
     calendar = new CalendarTelemetryWrapper({
