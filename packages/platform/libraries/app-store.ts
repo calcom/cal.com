@@ -1,16 +1,16 @@
+import getEnabledAppsFromCredentials from "@calcom/app-store/_utils/getEnabledAppsFromCredentials";
 import getApps from "@calcom/app-store/utils";
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
 
 export type { TDependencyData } from "@calcom/app-store/_appRegistry";
 
 export type { CredentialOwner } from "@calcom/app-store/types";
-export { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
+export { BuildCalendarService as BuildIcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
 export { getAppFromSlug } from "@calcom/app-store/utils";
 export type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
 
-export { CalendarService } from "@calcom/app-store/applecalendar/lib";
+export { BuildCalendarService } from "@calcom/app-store/applecalendar/lib";
 
 export { getApps };
 
@@ -32,7 +32,7 @@ export type { CredentialPayload } from "@calcom/types/Credential";
 
 export { addDelegationCredential };
 
-export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/app-store/delegationCredential";
 export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
 export {
   CalendarAppError,
@@ -43,7 +43,7 @@ export {
   CalendarAppDelegationCredentialNotSetupError,
 } from "@calcom/lib/CalendarAppError";
 
-export { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+export { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 
 export { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
-export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
+export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";

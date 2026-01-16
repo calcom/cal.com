@@ -1,8 +1,8 @@
-import { Logger } from "tslog";
+import { Logger, ISettingsParam } from "tslog";
 
 import { IS_PRODUCTION } from "./constants";
 
-const logger = new Logger({
+export const loggerConfig: ISettingsParam<unknown> = {
   minLevel: parseInt(process.env.NEXT_PUBLIC_LOGGER_LEVEL || "4"),
   maskValuesOfKeys: ["password", "passwordConfirmation", "credentials", "credential"],
   prettyLogTimeZone: IS_PRODUCTION ? "UTC" : "local",
@@ -15,6 +15,8 @@ const logger = new Logger({
     dateIsoStr: "blue",
   },
   type: IS_PRODUCTION ? "json" : "pretty",
-});
+};
+
+const logger = new Logger(loggerConfig);
 
 export default logger;

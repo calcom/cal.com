@@ -60,18 +60,22 @@ yarn-error.log*
 .history/
 
 # Typescript
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # turbo
 .turbo
 
 # Prisma generated files
 packages/prisma/client/*
+!packages/prisma/client/index.ts
+apps/api/v2/generated/prisma/*
+packages/prisma/generated/prisma/*
 packages/prisma/zod/**/*.ts
 packages/prisma/enums
 
 # Builds
 dist
+packages/app-store/types
 
 # Linting
 lint-results
@@ -102,3 +106,6 @@ packages/**/.yarn/ci-cache/
 
 # AI
 .claude
+
+# trigger.dev
+.trigger

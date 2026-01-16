@@ -30,6 +30,7 @@ export type InternalGetSlotsQuery = {
   timeZone: string | undefined;
   orgSlug: string | null | undefined;
   rescheduleUid: string | null;
+  rrHostSubsetIds?: number[];
 };
 
 export type InternalGetSlotsQueryWithRouting = InternalGetSlotsQuery & {
@@ -79,6 +80,7 @@ export class SlotsInputService_2024_09_04 {
       timeZone,
       orgSlug,
       rescheduleUid,
+      rrHostSubsetIds: query.rrHostSubsetIds,
     };
   }
 

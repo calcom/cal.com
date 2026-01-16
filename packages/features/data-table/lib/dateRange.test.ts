@@ -5,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import {
   getDateRangeFromPreset,
   recalculateDateRange,
+  getCompatiblePresets,
   PRESET_OPTIONS,
   CUSTOM_PRESET,
   DEFAULT_PRESET,
@@ -110,5 +111,56 @@ describe("PRESET_OPTIONS", () => {
   it("should have correct custom preset", () => {
     expect(CUSTOM_PRESET.value).toBe(CUSTOM_PRESET_VALUE);
     expect(CUSTOM_PRESET.labelKey).toBe("custom_range");
+  });
+
+  it("should have correct direction for each preset", () => {
+    expect(PRESET_OPTIONS[0].direction).toBe("past"); // Today
+    expect(PRESET_OPTIONS[1].direction).toBe("past"); // Last 7 days
+    expect(PRESET_OPTIONS[2].direction).toBe("past"); // Last 30 days
+    expect(PRESET_OPTIONS[3].direction).toBe("past"); // Month to date
+    expect(PRESET_OPTIONS[4].direction).toBe("past"); // Year to date
+    expect(PRESET_OPTIONS[5].direction).toBe("any"); // Custom
+  });
+});
+
+describe("getCompatiblePresets", () => {
+  it("should return empty array for customOnly range", () => {
+    const result = getCompatiblePresets("customOnly");
+    expect(result).toEqual([]);
+  });
+
+  it("should return all presets for any range", () => {
+    const result = getCompatiblePresets("any");
+    expect(result.length).toBe(6); // All 6 presets
+    expect(result.map((p) => p.value)).toEqual(["tdy", "w", "t", "m", "y", "c"]);
+  });
+
+  it("should return all presets for past range (including direction:any)", () => {
+    const result = getCompatiblePresets("past");
+    expect(result.length).toBe(6); // All 6 presets (5 past + 1 any)
+    // Should include both "past" direction and "any" direction presets
+    const directions = result.map((p) => p.direction);
+    expect(directions).toContain("past");
+    expect(directions).toContain("any");
+    expect(result.map((p) => p.value)).toEqual(["tdy", "w", "t", "m", "y", "c"]);
+  });
+
+  it("should return only any-direction presets for future range", () => {
+    const result = getCompatiblePresets("future");
+    expect(result.length).toBe(1); // Only Custom (Today is now past-direction)
+    expect(result.map((p) => p.value)).toEqual(["c"]);
+    // All returned presets should have direction "any"
+    expect(result.every((p) => p.direction === "any")).toBe(true);
+  });
+
+  it("should not return past-only presets for future range", () => {
+    const result = getCompatiblePresets("future");
+    const values = result.map((p) => p.value);
+    // Should NOT include past-only presets (including Today)
+    expect(values).not.toContain("tdy"); // Today (now past-direction)
+    expect(values).not.toContain("w"); // Last 7 days
+    expect(values).not.toContain("t"); // Last 30 days
+    expect(values).not.toContain("m"); // Month to date
+    expect(values).not.toContain("y"); // Year to date
   });
 });

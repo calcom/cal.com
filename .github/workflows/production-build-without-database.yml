@@ -4,13 +4,13 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
-  DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
   E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
   E2E_TEST_APPLE_CALENDAR_PASSWORD: ${{ secrets.E2E_TEST_APPLE_CALENDAR_PASSWORD }}
   GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
@@ -36,14 +36,38 @@ env:
   NEXT_PUBLIC_API_V2_ROOT_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_ROOT_URL }}
   NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED: ${{ vars.CI_NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED }}
 
-
 jobs:
   build:
     name: Build Web App
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
+      - name: Generate cache key
+        id: cache-key
+        uses: ./.github/actions/cache-build-key
+        with:
+          branch_key: ${{ github.head_ref || github.ref_name }}
+      - name: Check if production build cache exists
+        uses: actions/cache@v4
+        id: cache-check
+        with:
+          path: |
+            ${{ github.workspace }}/apps/web/.next
+            ${{ github.workspace }}/apps/web/public/embed
+            **/.turbo/**
+            **/dist/**
+          key: ${{ steps.cache-key.outputs.key }}
+          lookup-only: true
+      - name: Delete old production build caches for this branch
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: prod-build-${{ github.head_ref || github.ref_name }}
+          prefix: "true"
       - uses: ./.github/actions/cache-build

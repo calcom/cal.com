@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react-dom/test-utils";
 import { vi } from "vitest";
@@ -43,9 +43,9 @@ describe("Tests for ColorPicker component", () => {
       fireEvent.change(colorPickerInput, { target: { value: "#000000" } });
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(colorPickerButton).toHaveStyle("background-color: #000000");
+    await waitFor(() => {
+      expect(colorPickerButton).toHaveStyle("background-color: #000000");
+    });
   });
 
   test("Should change the color value using the input field", async () => {

@@ -2,7 +2,7 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import type { ParsedUrlQuery } from "querystring";
+import type { ParsedUrlQuery } from "node:querystring";
 import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -43,7 +43,7 @@ export function Logout(props: PageProps) {
   return (
     <AuthContainer showLogo>
       <div className="mb-4">
-        <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+        <div className="bg-cal-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
           <Icon name="check" className="h-6 w-6 text-green-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">

@@ -107,7 +107,7 @@ export class MembershipsRepository {
       },
     });
 
-    return userOrgAdminMemberships.map((m) => m.teamId);
+    return userOrgAdminMemberships.map((m: { teamId: number }) => m.teamId);
   }
 
   async createMembership(teamId: number, userId: number, role: MembershipRole, accepted: boolean) {

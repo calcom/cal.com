@@ -1,6 +1,6 @@
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 
-import { renderEmail } from "../";
+import renderEmail from "../src/renderEmail";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail {

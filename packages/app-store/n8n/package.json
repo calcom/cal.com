@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "Automate without limits. The workflow automation platform that doesn't box you in, that you never outgrow",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

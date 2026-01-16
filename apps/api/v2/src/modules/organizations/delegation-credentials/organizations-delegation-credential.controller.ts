@@ -34,7 +34,7 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { User } from "@calcom/prisma/client";
 
-import type { CreateDelegationCredentialInput } from "./inputs/create-delegation-credential.input";
+import { CreateDelegationCredentialInput } from "./inputs/create-delegation-credential.input";
 
 @Controller({
   path: "/v2/organizations/:orgId/delegation-credentials",
