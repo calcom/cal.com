@@ -7,11 +7,8 @@ import {
 } from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Divider } from "@calcom/ui/components/divider";
-import { CheckboxField, Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@coss/ui/components/button";
+import { Checkbox } from "@coss/ui/components/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -22,8 +19,11 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@coss/ui/components/dialog";
+import { Label } from "@coss/ui/components/label";
 import { Popover, PopoverPopup, PopoverTrigger } from "@coss/ui/components/popover";
-import { ChevronDownIcon } from "lucide-react";
+import { Separator } from "@coss/ui/components/separator";
+import { toastManager } from "@coss/ui/components/toast";
+import { BuildingIcon, CheckIcon, ChevronDownIcon, UserIcon, UsersIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
@@ -167,7 +167,7 @@ export function FeatureOptInConfirmDialog({
       setShouldInvalidate(true);
       onOptInSuccess?.();
     } catch (_error) {
-      showToast(t("error_enabling_feature"), "error");
+      toastManager.add({ title: t("error_enabling_feature"), type: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -219,7 +219,7 @@ export function FeatureOptInConfirmDialog({
           <DialogPanel>
             <div className="flex flex-col items-center py-6 text-center">
               <div className="bg-success/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-                <Icon name="check" className="text-success h-6 w-6" />
+                <CheckIcon className="text-success h-6 w-6" />
               </div>
             </div>
           </DialogPanel>
@@ -261,7 +261,7 @@ export function FeatureOptInConfirmDialog({
                     <FilterCheckboxFieldsContainer>
                       <FilterCheckboxField
                         id="just-for-me"
-                        icon={<Icon name="user" className="h-4 w-4" />}
+                        icon={<UserIcon className="h-4 w-4" />}
                         checked={enableForUser}
                         onChange={(e) => handleUserChange(e.target.checked)}
                         label={t("just_for_me")}
@@ -269,10 +269,10 @@ export function FeatureOptInConfirmDialog({
 
                       {canEnableForOrg && (
                         <>
-                          <Divider />
+                          <Separator />
                           <FilterCheckboxField
                             id="entire-org"
-                            icon={<Icon name="building" className="h-4 w-4" />}
+                            icon={<BuildingIcon className="h-4 w-4" />}
                             checked={enableForOrg}
                             onChange={(e) => handleOrgChange(e.target.checked)}
                             label={t("entire_organization")}
@@ -282,12 +282,12 @@ export function FeatureOptInConfirmDialog({
 
                       {canEnableForTeams && adminTeamNames.length > 0 && (
                         <>
-                          <Divider />
+                          <Separator />
                           {adminTeamNames.map((team) => (
                             <FilterCheckboxField
                               key={team.id}
                               id={`team-${team.id}`}
-                              icon={<Icon name="users" className="h-4 w-4" />}
+                              icon={<UsersIcon className="h-4 w-4" />}
                               checked={selectedTeamIds.includes(team.id)}
                               onChange={(e) => handleTeamChange(team.id, e.target.checked)}
                               label={team.name}
@@ -301,11 +301,10 @@ export function FeatureOptInConfirmDialog({
               </div>
             )}
 
-            <CheckboxField
-              checked={autoOptIn}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoOptIn(e.target.checked)}
-              description={getAutoOptInText()}
-            />
+            <Label className="hover:bg-subtle flex cursor-pointer items-center gap-2 rounded-md p-1">
+              <Checkbox checked={autoOptIn} onCheckedChange={(checked) => setAutoOptIn(checked === true)} />
+              <span className="text-default text-sm">{getAutoOptInText()}</span>
+            </Label>
           </div>
         </DialogPanel>
         <DialogFooter>
