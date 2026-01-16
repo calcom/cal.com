@@ -306,14 +306,6 @@ export function useFeatureOptIn() {
 
 This separation ensures that `packages/features` remains portable and can be used by other apps (like `apps/api/v2`) without pulling in web-specific dependencies like tRPC React hooks.
 
-## Basic Performance Guidelines
-
-See `agents/rules/` for detailed performance rules including:
-- `performance-avoid-quadratic.md` - Avoid O(n²) complexity
-- `performance-dayjs-usage.md` - Day.js performance guidelines
-- `data-prefer-select-over-include.md` - Prisma query optimization
-- `quality-avoid-barrel-imports.md` - Import best practices
-
 ## File Naming Conventions
 
 ### Repository Files
