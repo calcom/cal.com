@@ -2,7 +2,6 @@
  * Ensures URL has a protocol prefix. If the URL doesn't start with http:// or https://,
  * prepends https:// to make it valid for URL parsing.
  * This handles cases where environment variables have their protocol stripped
- * (e.g., by container orchestration tools like Coolify).
  */
 function ensureProtocol(url: string | undefined): string {
   if (!url) return "";
