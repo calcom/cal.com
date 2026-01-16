@@ -102,8 +102,8 @@ export class EmailDefaultFieldOutput_2024_06_14 extends EmailDefaultFieldInput_2
 
   @IsBoolean()
   @DocsProperty({
-    description: `If true show under event type settings but don't show this booking field in the Booker. If false show in both. Can only be hidden
-      for organization team event types when also providing attendee phone number booking field.`,
+    description:
+      'Can be set to true if you also pass booking field {type: "phone", slug: "attendeePhoneNumber", required: true, hidden: false, label: "whatever label"} of booking field type PhoneFieldInput_2024_06_14 to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}. If true show under event type settings but don\'t show this booking field in the Booker. If false show in both.',
   })
   hidden!: boolean;
 }

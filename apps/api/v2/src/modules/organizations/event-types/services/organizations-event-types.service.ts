@@ -13,7 +13,6 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger } from "@nestjs/common";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import { createEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
@@ -54,7 +53,7 @@ export class OrganizationsEventTypesService {
       JSON.stringify(eventTypeCreated, null, 2)
     );
 
-    return this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user, true);
+    return this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user);
   }
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
@@ -109,7 +108,7 @@ export class OrganizationsEventTypesService {
     body: TransformedUpdateTeamEventTypeInput,
     user: UserWithProfile
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
-    return this.teamsEventTypesService.updateTeamEventType(eventTypeId, teamId, body, user, true);
+    return this.teamsEventTypesService.updateTeamEventType(eventTypeId, teamId, body, user);
   }
 
   async deleteTeamEventType(teamId: number, eventTypeId: number) {
