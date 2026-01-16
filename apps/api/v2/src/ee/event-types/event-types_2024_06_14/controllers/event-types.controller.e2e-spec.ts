@@ -3335,6 +3335,44 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data[0].title).toEqual("Org User Event Type");
     });
 
+    it("should return dynamic event type with non-org user when querying by usernames without org context", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?usernames=${sharedUsername}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].title).toEqual("Dynamic");
+      expect(responseBody.data[0].users).toBeDefined();
+      expect(responseBody.data[0].users?.length).toEqual(1);
+      expect(responseBody.data[0].users?.[0].username).toEqual(sharedUsername);
+      expect(responseBody.data[0].users?.[0].id).toEqual(nonOrgUser.id);
+    });
+
+    it("should return dynamic event type with org user when querying by usernames with orgSlug", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?usernames=${sharedUsername}&orgSlug=${organization.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toEqual(1);
+      expect(responseBody.data[0].title).toEqual("Dynamic");
+      expect(responseBody.data[0].users).toBeDefined();
+      expect(responseBody.data[0].users?.length).toEqual(1);
+      expect(responseBody.data[0].users?.[0].username).toEqual(sharedUsername);
+      expect(responseBody.data[0].users?.[0].id).toEqual(orgUser.id);
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       try {
