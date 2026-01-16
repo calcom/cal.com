@@ -205,6 +205,52 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(404);
     });
 
+    it("should not be able to create managed event-type for user outside team", async () => {
+      const userId = falseTestUser.id;
+
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: `managed-outside-team-${randomString()}`,
+        slug: `managed-outside-team-${randomString()}`,
+        description: "Managed event type with non-team member.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "MANAGED",
+        hosts: [
+          {
+            userId,
+            mandatory: true,
+            priority: "high",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(404);
+    });
+
+    it("should not be able to update managed event-type with user outside team", async () => {
+      await ensureManagedEventType();
+
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        hosts: [
+          {
+            userId: falseTestUser.id,
+            mandatory: true,
+            priority: "high",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/teams/${team.id}/event-types/${managedEventType?.id}`)
+        .send(body)
+        .expect(404);
+    });
+
     it("should not be able to create phone-only event type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Phone coding consultation",
