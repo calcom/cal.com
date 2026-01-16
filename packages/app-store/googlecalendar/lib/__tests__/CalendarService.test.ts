@@ -20,8 +20,8 @@ import "vitest-fetch-mock";
 import logger from "@calcom/lib/logger";
 import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
-import CalendarService from "../CalendarService";
-import { createMockJWTInstance } from "./utils";
+import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
+import { createMockJWTInstance, createCredentialForCalendarService } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -56,7 +56,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
 
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
       {
@@ -125,7 +125,7 @@ describe("getAvailability", () => {
 
 describe("getPrimaryCalendar", () => {
   test("should fetch primary calendar using 'primary' keyword", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = createGoogleCalendarServiceWithGoogleType(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockPrimaryCalendar = {
       id: "user@example.com",
@@ -327,7 +327,7 @@ describe("Date Optimization Benchmarks", () => {
   });
 
   test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockBusyData = [
@@ -371,7 +371,7 @@ describe("Date Optimization Benchmarks", () => {
 
 describe("createEvent", () => {
   test("should create event with correct input/output format and handle all expected properties", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock Google Calendar API response
@@ -570,7 +570,7 @@ describe("createEvent", () => {
   });
 
   test("should handle recurring events correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock recurring event response
@@ -672,7 +672,7 @@ describe("createEvent", () => {
   });
 
   test("should use default reminders when no custom reminder is configured", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockGoogleEvent = {
@@ -736,7 +736,7 @@ describe("createEvent", () => {
   });
 
   test("should handle 'just in time' reminder (0 minutes) correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock the getReminderDuration method to return 0 (just in time)
