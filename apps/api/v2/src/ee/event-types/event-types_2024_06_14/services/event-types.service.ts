@@ -49,7 +49,12 @@ export class EventTypesService_2024_06_14 {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
 
-    const { destinationCalendar: _destinationCalendar, ...rest } = body;
+    const {
+      destinationCalendar: _destinationCalendar,
+      useEventLevelSelectedCalendars,
+      selectedCalendars,
+      ...rest
+    } = body;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -66,7 +71,7 @@ export class EventTypesService_2024_06_14 {
     await updateEventType({
       input: {
         id: eventTypeCreated.id,
-        ...body,
+        ...rest,
       },
       ctx: {
         user: eventTypeUser,
@@ -76,7 +81,14 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeCreated.id);
+    await this.updateEventTypeSelectedCalendars(
+      eventTypeCreated.id,
+      user.id,
+      useEventLevelSelectedCalendars,
+      selectedCalendars
+    );
+
+    const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeCreated.id);
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
@@ -316,8 +328,10 @@ export class EventTypesService_2024_06_14 {
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
+    const { useEventLevelSelectedCalendars, selectedCalendars, ...rest } = body;
+
     await updateEventType({
-      input: { id: eventTypeId, ...body },
+      input: { id: eventTypeId, ...rest },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -326,7 +340,14 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    await this.updateEventTypeSelectedCalendars(
+      eventTypeId,
+      user.id,
+      useEventLevelSelectedCalendars,
+      selectedCalendars
+    );
+
+    const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeId);
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
@@ -406,8 +427,16 @@ export class EventTypesService_2024_06_14 {
     }
     this.checkUserOwnsEventType(userId, existingEventType);
 
+    let shouldUseEventLevelCalendars: boolean;
+    if (selectedCalendars !== undefined) {
+      shouldUseEventLevelCalendars = selectedCalendars.length > 0;
+    } else if (useEventLevelSelectedCalendars !== undefined) {
+      shouldUseEventLevelCalendars = useEventLevelSelectedCalendars;
+    } else {
+      return;
+    }
+
     const hasSelectedCalendars = selectedCalendars && selectedCalendars.length > 0;
-    const shouldUseEventLevelCalendars = useEventLevelSelectedCalendars ?? hasSelectedCalendars ?? false;
 
     const userSelectedCalendars = hasSelectedCalendars
       ? await this.selectedCalendarsRepository.getUserSelectedCalendars(userId)

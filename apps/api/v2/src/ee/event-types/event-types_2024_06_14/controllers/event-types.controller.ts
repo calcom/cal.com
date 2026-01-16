@@ -100,21 +100,9 @@ export class EventTypesController_2024_06_14 {
 
     const eventType = await this.eventTypesService.createUserEventType(user, transformedBody);
 
-    await this.eventTypesService.updateEventTypeSelectedCalendars(
-      eventType.id,
-      user.id,
-      body.useEventLevelSelectedCalendars,
-      body.selectedCalendars
-    );
-
-    const eventTypeWithSelectedCalendars = await this.eventTypesService.getEventTypeWithSelectedCalendars(
-      eventType.id,
-      user.id
-    );
-
     return {
       status: SUCCESS_STATUS,
-      data: this.eventTypeResponseTransformPipe.transform(eventTypeWithSelectedCalendars ?? eventType),
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
@@ -183,7 +171,7 @@ export class EventTypesController_2024_06_14 {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams, authUser);
     const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
     const eventTypesWithoutHiddenFields =
-      this.outputEventTypesService.getResponseEventTypesWithoutHiddenFields(eventTypesFormatted);
+      this.outputEventTypesService.getResponseEventTypesForPublicEndpoint(eventTypesFormatted);
 
     return {
       status: SUCCESS_STATUS,
@@ -213,21 +201,9 @@ export class EventTypesController_2024_06_14 {
 
     const eventType = await this.eventTypesService.updateEventType(eventTypeId, transformedBody, user);
 
-    await this.eventTypesService.updateEventTypeSelectedCalendars(
-      eventTypeId,
-      user.id,
-      body.useEventLevelSelectedCalendars,
-      body.selectedCalendars
-    );
-
-    const eventTypeWithSelectedCalendars = await this.eventTypesService.getEventTypeWithSelectedCalendars(
-      eventTypeId,
-      user.id
-    );
-
     return {
       status: SUCCESS_STATUS,
-      data: this.eventTypeResponseTransformPipe.transform(eventTypeWithSelectedCalendars ?? eventType),
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 

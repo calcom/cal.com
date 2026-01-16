@@ -12,6 +12,7 @@ import type { z } from "zod";
 import type {
   CreateEventTypeInput_2024_06_14,
   ConfirmationPolicyTransformedSchema,
+  SelectedCalendar_2024_06_14,
 } from "@calcom/platform-types";
 
 export type InputEventTransformed_2024_06_14 = Omit<
@@ -33,8 +34,6 @@ export type InputEventTransformed_2024_06_14 = Omit<
   | "disableCancelling"
   | "calVideoSettings"
   | "bookerActiveBookingsLimit"
-  | "selectedCalendars"
-  | "useEventLevelSelectedCalendars"
 > & {
   length: number;
   slug: string;

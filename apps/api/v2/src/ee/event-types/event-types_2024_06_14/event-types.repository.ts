@@ -14,7 +14,7 @@ export class EventTypesRepository_2024_06_14 {
 
   async createUserEventType(
     userId: number,
-    body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar">
+    body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar" | "selectedCalendars" | "useEventLevelSelectedCalendars">
   ) {
     const { calVideoSettings, ...restBody } = body;
 
