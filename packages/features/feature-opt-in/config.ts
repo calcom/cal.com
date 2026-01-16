@@ -4,6 +4,7 @@ import type { OptInFeaturePolicy, OptInFeatureScope } from "./types";
 export interface OptInFeatureConfig {
   slug: FeatureId;
   i18n: {
+    title: string;
     name: string;
     description: string;
   };
@@ -24,7 +25,8 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   // {
   //   slug: "bookings-v3",
   //   i18n: {
-  //     name: "bookings_v3_title",
+  //     title: "bookings_v3_title",
+  //     name: "bookings_v3_name",
   //     description: "bookings_v3_description",
   //   },
   //   policy: "permissive",
