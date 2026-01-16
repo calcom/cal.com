@@ -473,6 +473,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
+  let hostLocationDeletions: { userId: number; eventTypeId: number }[] = [];
+
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
@@ -489,6 +491,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
 
     const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+    hostLocationDeletions = existingHosts
+      .filter((host) => host.location === null)
+      .map((host) => ({ userId: host.userId, eventTypeId: id }));
     const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
     const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
@@ -787,18 +792,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw e;
   }
 
-  if (existingHosts?.length) {
-    const hostsWithoutLocations = existingHosts.filter((host) => host.location === null);
-    if (hostsWithoutLocations.length > 0) {
-      await ctx.prisma.hostLocation.deleteMany({
-        where: {
-          OR: hostsWithoutLocations.map((host) => ({
-            userId: host.userId,
-            eventTypeId: id,
-          })),
-        },
-      });
-    }
+  if (hostLocationDeletions.length > 0) {
+    await ctx.prisma.hostLocation.deleteMany({
+      where: {
+        OR: hostLocationDeletions,
+      },
+    });
   }
 
   const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
