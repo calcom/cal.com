@@ -278,6 +278,9 @@ export interface EventType {
 
   // Optimized slots (API V2)
   showOptimizedSlots?: boolean;
+
+  // Booking URL (API V2) - full booking URL for this event type
+  bookingUrl?: string;
 }
 
 export interface CreateEventTypeInput {
