@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
@@ -131,6 +131,7 @@ describe("createCRMEvent", () => {
     // Set up Prisma mocks with proper return values
     prismaMock.booking.findUnique.mockResolvedValueOnce(mockBooking);
     prismaMock.credential.findUnique.mockResolvedValueOnce(mockCredential);
+    prismaMock.credential.findMany.mockResolvedValueOnce([mockCredential]);
     prismaMock.bookingReference.createMany.mockResolvedValueOnce({ count: 1 });
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([]);
     const payload = JSON.stringify({
@@ -198,6 +199,7 @@ describe("createCRMEvent", () => {
     };
 
     prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
+    prismaMock.credential.findMany.mockResolvedValueOnce([]);
 
     const payload = JSON.stringify({
       bookingUid: "booking-123",
@@ -238,6 +240,7 @@ describe("createCRMEvent", () => {
 
     prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
     prismaMock.credential.findUnique.mockResolvedValue(null);
+    prismaMock.credential.findMany.mockResolvedValueOnce([]);
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([]);
 
     mockCreateEvent.mockRejectedValue(new Error("Salesforce API error"));
@@ -288,6 +291,7 @@ describe("createCRMEvent", () => {
 
     prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
     prismaMock.credential.findUnique.mockResolvedValue(mockCredential);
+    prismaMock.credential.findMany.mockResolvedValueOnce([mockCredential]);
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([]);
 
     mockCreateEvent.mockRejectedValue(new RetryableError("Salesforce API Retryable error"));
@@ -334,6 +338,7 @@ describe("createCRMEvent", () => {
 
     prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
     prismaMock.credential.findUnique.mockResolvedValue(mockCredential);
+    prismaMock.credential.findMany.mockResolvedValueOnce([mockCredential]);
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([]);
 
     mockCreateEvent.mockRejectedValue(new Error("Salesforce API error"));
@@ -401,6 +406,11 @@ describe("createCRMEvent", () => {
       .mockResolvedValueOnce(mockSalesforceCredential)
       .mockResolvedValueOnce(mockHubspotCredential);
 
+    prismaMock.credential.findMany.mockResolvedValueOnce([
+      mockSalesforceCredential,
+      mockHubspotCredential,
+    ]);
+
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([]);
 
     // Throw error for first app and resolve for second app
@@ -462,6 +472,7 @@ describe("createCRMEvent", () => {
 
     prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
     prismaMock.credential.findUnique.mockResolvedValueOnce(mockSalesforceCredential);
+    prismaMock.credential.findMany.mockResolvedValueOnce([mockSalesforceCredential]);
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([
       { id: 1, type: "salesforce_crm", uid: "sf-event-123", credentialId: 1, bookingId: 1 },
     ]);

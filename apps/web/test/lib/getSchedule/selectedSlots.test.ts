@@ -5,9 +5,9 @@ import {
   TestData,
   mockCalendarToHaveNoBusySlots,
   type ScenarioData,
-} from "../../utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import { describe, test, beforeEach, vi } from "vitest";
 import type { z } from "zod";
 

@@ -12,22 +12,21 @@
     "directory": "packages/embeds/embed-snippet"
   },
   "scripts": {
-    "build": "rm -rf dist && vite build && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "npx rimraf dist && vite build && tsc --emitDeclarationOnly --declarationDir dist",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
-    "lint": "eslint --ext .ts,.js src",
+    "lint": "biome lint src",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-snippet' && yarn withEmbedPublishEnv build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "clean": "npx rimraf .turbo node_modules dist"
   },
   "files": [
     "dist"
   ],
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
-    "typescript": "^5.9.0-beta",
-    "vite": "^4.1.2"
+    "typescript": "5.9.3",
+    "vite": "6.4.1"
   },
   "dependencies": {
     "@calcom/embed-core": "workspace:*"

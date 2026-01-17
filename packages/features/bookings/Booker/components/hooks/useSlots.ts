@@ -11,7 +11,7 @@ import {
   PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
 } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
@@ -51,7 +51,7 @@ const useQuickAvailabilityChecks = ({
     {
       slots: slotsToCheck,
       // enabled flag can't be true if eventTypeId is nullish
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       eventTypeId: eventTypeId!,
     },
     {

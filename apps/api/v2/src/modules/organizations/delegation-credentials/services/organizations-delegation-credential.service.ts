@@ -87,27 +87,73 @@ export class OrganizationsDelegationCredentialService {
       const delegatedUserProfiles =
         await this.organizationsDelegationCredentialRepository.findDelegatedUserProfiles(orgId, domain);
 
-      delegatedUserProfiles.forEach(async (profile) => {
-        if (profile.userId) {
-          const job = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${profile.userId}`);
-          if (job) {
-            await job.remove();
-            this.logger.log(`Removed default calendar job for user with id: ${profile.userId}`);
+      const results = await Promise.allSettled(
+        delegatedUserProfiles.map(async (profile) => {
+          if (profile.userId) {
+            const job = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${profile.userId}`);
+            if (job) {
+              await job.remove();
+              this.logger.log(`Removed default calendar job for user with id: ${profile.userId}`);
+            }
+            this.logger.log(`Adding default calendar job for user with id: ${profile.userId}`);
+            await this.calendarsQueue.add(
+              DEFAULT_CALENDARS_JOB,
+              {
+                userId: profile.userId,
+              } satisfies DefaultCalendarsJobDataType,
+              { jobId: `${DEFAULT_CALENDARS_JOB}_${profile.userId}`, removeOnComplete: true }
+            );
           }
-          this.logger.log(`Adding default calendar job for user with id: ${profile.userId}`);
-          await this.calendarsQueue.add(
-            DEFAULT_CALENDARS_JOB,
-            {
-              userId: profile.userId,
-            } satisfies DefaultCalendarsJobDataType,
-            { jobId: `${DEFAULT_CALENDARS_JOB}_${profile.userId}`, removeOnComplete: true }
-          );
-        }
-      });
+        })
+      );
+
+      const failures = results.filter(
+        (result): result is PromiseRejectedResult => result.status === "rejected"
+      );
+      if (failures.length > 0) {
+        this.logger.error(
+          `Failed to ensure default calendars for ${failures.length} users in org ${orgId}: ${failures.map((f) => f.reason).join(", ")}`
+        );
+      }
     } catch (err) {
       this.logger.error(
         err,
         `Could not ensure default calendars for delegated users in org with id:${orgId}`
+      );
+    }
+  }
+
+  async ensureDefaultCalendarsForUser(orgId: number, userId: number, userEmail: string) {
+    try {
+      const emailParts = userEmail.split("@");
+      if (emailParts.length < 2 || !emailParts[1]) {
+        this.logger.warn(`Invalid email format for user ${userId}: missing domain`);
+        return;
+      }
+      const emailDomain = `@${emailParts[1]}`;
+
+      const delegationCredential =
+        await this.organizationsDelegationCredentialRepository.findEnabledByOrgIdAndDomain(orgId, emailDomain);
+
+      if (!delegationCredential) {
+        return;
+      }
+
+      const existingJob = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${userId}`);
+      if (existingJob) {
+        await existingJob.remove();
+        this.logger.log(`Removed existing default calendar job for user with id: ${userId}`);
+      }
+      this.logger.log(`Adding default calendar job for user with id: ${userId}`);
+      await this.calendarsQueue.add(
+        DEFAULT_CALENDARS_JOB,
+        { userId } satisfies DefaultCalendarsJobDataType,
+        { jobId: `${DEFAULT_CALENDARS_JOB}_${userId}`, removeOnComplete: true }
+      );
+    } catch (err) {
+      this.logger.error(
+        err,
+        `Could not ensure default calendars for user with id: ${userId} in org with id: ${orgId}`
       );
     }
   }
