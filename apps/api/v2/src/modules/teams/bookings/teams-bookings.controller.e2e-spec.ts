@@ -333,9 +333,38 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
+            // Verify all bookings are upcoming (in the future)
             data.forEach((booking) => {
               if (!Array.isArray(booking)) {
                 expect(new Date(booking.start).getTime()).toBeGreaterThan(Date.now());
+              }
+            });
+          });
+      });
+
+      it("should filter by multiple statuses", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?status=upcoming,past`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            // Verify all bookings are either upcoming (future) or past
+            const now = Date.now();
+            data.forEach((booking) => {
+              if (!Array.isArray(booking)) {
+                const bookingEnd = new Date(booking.end).getTime();
+                // Booking is either upcoming (starts in future) or past (ended in past)
+                const isUpcoming = new Date(booking.start).getTime() > now;
+                const isPast = bookingEnd < now;
+                expect(isUpcoming || isPast).toBe(true);
               }
             });
           });
@@ -415,6 +444,42 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            // Verify bookings have the team admin as a host
+            data.forEach((booking) => {
+              if (!Array.isArray(booking) && "hosts" in booking) {
+                expect(booking.hosts.some((host) => host.id === teamAdmin.id)).toBe(true);
+              }
+            });
+          });
+      });
+
+      it("should get team bookings with teamMemberEmails filter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?teamMemberEmails=${teamAdminEmail}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            // Verify bookings have a host with the team admin email
+            data.forEach((booking) => {
+              if (!Array.isArray(booking) && "hosts" in booking) {
+                expect(
+                  booking.hosts.some((host) => host.email === teamAdminEmail)
+                ).toBe(true);
+              }
+            });
           });
       });
 
