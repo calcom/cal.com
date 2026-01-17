@@ -113,7 +113,7 @@ export abstract class WatchlistOperationsService {
     }
 
     const results: Array<{ reportId: string; watchlistId: string }> = [];
-    for (const [normalizedValue, reports] of reportsByNormalizedValue) {
+    for (const [normalizedValue, reports] of reportsByNormalizedValue.entries()) {
       const { watchlistEntry } = await this.deps.watchlistRepo.createEntryFromReport({
         type: input.type,
         value: normalizedValue,

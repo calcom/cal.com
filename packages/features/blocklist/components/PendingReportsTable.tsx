@@ -14,6 +14,8 @@ import type { GroupedBookingReport, BlocklistScope } from "../types";
 import { BookingReportDetailsModal } from "./BookingReportDetailsModal";
 import { usePendingReportsColumns } from "./PendingReportsColumns";
 
+export type SortByOption = "createdAt" | "reportCount";
+
 export interface PendingReportsTableProps<T extends GroupedBookingReport> {
   scope: BlocklistScope;
   data: T[];

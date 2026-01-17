@@ -44,7 +44,7 @@ describe("dismissBookingReportHandler", () => {
 
   const mockReportRepo = {
     findReportsByIds: vi.fn(),
-    updateReportStatus: vi.fn(),
+    bulkUpdateReportStatus: vi.fn(),
   };
 
   beforeEach(() => {
@@ -64,7 +64,7 @@ describe("dismissBookingReportHandler", () => {
       await expect(
         dismissBookingReportHandler({
           ctx: { user: userWithoutOrg },
-          input: { reportId: "report-1" },
+          input: { reportIds: ["report-1"] },
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -80,7 +80,7 @@ describe("dismissBookingReportHandler", () => {
       await expect(
         dismissBookingReportHandler({
           ctx: { user: mockUser },
-          input: { reportId: "report-1" },
+          input: { reportIds: ["report-1"] },
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -93,11 +93,11 @@ describe("dismissBookingReportHandler", () => {
     it("should check for watchlist.update permission", async () => {
       mockPermissionCheckService.checkPermission.mockResolvedValue(true);
       mockReportRepo.findReportsByIds.mockResolvedValue([mockReport]);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
+      mockReportRepo.bulkUpdateReportStatus.mockResolvedValue(undefined);
 
       await dismissBookingReportHandler({
         ctx: { user: mockUser },
-        input: { reportId: "report-1" },
+        input: { reportIds: ["report-1"] },
       });
 
       expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
@@ -120,12 +120,12 @@ describe("dismissBookingReportHandler", () => {
       await expect(
         dismissBookingReportHandler({
           ctx: { user: mockUser },
-          input: { reportId: "non-existent-report" },
+          input: { reportIds: ["non-existent-report"] },
         })
       ).rejects.toThrow(
         expect.objectContaining({
           code: "NOT_FOUND",
-          message: "Booking report not found",
+          message: "Booking report(s) not found",
         })
       );
 
@@ -142,16 +142,16 @@ describe("dismissBookingReportHandler", () => {
       await expect(
         dismissBookingReportHandler({
           ctx: { user: mockUser },
-          input: { reportId: "report-1" },
+          input: { reportIds: ["report-1"] },
         })
       ).rejects.toThrow(
         expect.objectContaining({
           code: "BAD_REQUEST",
-          message: "Cannot dismiss a report that has already been added to the blocklist",
+          message: "Cannot dismiss reports that have already been added to the blocklist",
         })
       );
 
-      expect(mockReportRepo.updateReportStatus).not.toHaveBeenCalled();
+      expect(mockReportRepo.bulkUpdateReportStatus).not.toHaveBeenCalled();
     });
   });
 
@@ -159,13 +159,13 @@ describe("dismissBookingReportHandler", () => {
     beforeEach(() => {
       mockPermissionCheckService.checkPermission.mockResolvedValue(true);
       mockReportRepo.findReportsByIds.mockResolvedValue([mockReport]);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
+      mockReportRepo.bulkUpdateReportStatus.mockResolvedValue(undefined);
     });
 
     it("should successfully dismiss a booking report after verifying it belongs to organization", async () => {
       const result = await dismissBookingReportHandler({
         ctx: { user: mockUser },
-        input: { reportId: "report-1" },
+        input: { reportIds: ["report-1"] },
       });
 
       expect(result).toEqual({ success: true });
@@ -173,8 +173,8 @@ describe("dismissBookingReportHandler", () => {
         reportIds: ["report-1"],
         organizationId: 100,
       });
-      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
-        reportId: "report-1",
+      expect(mockReportRepo.bulkUpdateReportStatus).toHaveBeenCalledWith({
+        reportIds: ["report-1"],
         status: "DISMISSED",
         organizationId: 100,
       });

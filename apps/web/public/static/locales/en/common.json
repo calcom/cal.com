@@ -4098,6 +4098,8 @@
   "blocked": "Blocked",
   "reported_by": "Reported by",
   "no_pending_reports": "No pending reports",
+  "most_recent": "Most recent",
+  "most_reports": "Most reports",
   "spam": "Spam",
   "dont_know_person": "Don't know person",
   "booking_report_dismissed": "Booking report dismissed",

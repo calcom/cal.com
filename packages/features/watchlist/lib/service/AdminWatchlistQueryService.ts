@@ -30,6 +30,7 @@ export interface ListBookingReportsInput {
   searchTerm?: string;
   filters?: ListBookingReportsFilters;
   systemFilters?: SystemBookingReportsFilters;
+  sortBy?: "createdAt" | "reportCount";
 }
 
 type Deps = {
@@ -121,6 +122,7 @@ export class AdminWatchlistQueryService {
       searchTerm: input.searchTerm,
       filters: input.filters,
       systemFilters: input.systemFilters,
+      sortBy: input.sortBy,
     });
 
     return result;

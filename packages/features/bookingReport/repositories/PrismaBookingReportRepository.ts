@@ -133,18 +133,24 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     searchTerm?: string;
     filters?: ListBookingReportsFilters;
     systemFilters?: SystemBookingReportsFilters;
+    sortBy?: "createdAt" | "reportCount";
   }): Promise<{
     rows: GroupedBookingReportWithDetails[];
     meta: { totalRowCount: number };
   }> {
     const where = this.buildWhereClause(params);
 
+    const orderBy =
+      params.sortBy === "reportCount"
+        ? { _count: { bookerEmail: "desc" as const } }
+        : { _max: { createdAt: "desc" as const } };
+
     const groupedEmails = await this.prismaClient.bookingReport.groupBy({
       by: ["bookerEmail"],
       where,
       _count: { bookerEmail: true },
       _max: { createdAt: true },
-      orderBy: { _max: { createdAt: "desc" } },
+      orderBy,
     });
 
     const totalRowCount = groupedEmails.length;

@@ -49,6 +49,7 @@ export const listBookingReportsHandler = async ({ ctx, input }: ListBookingRepor
     take: input.limit,
     searchTerm: input.searchTerm,
     filters: input.filters,
+    sortBy: input.sortBy,
   });
 
   return result;
