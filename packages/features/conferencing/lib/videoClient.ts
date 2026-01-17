@@ -30,7 +30,7 @@ const createMeeting = async (
   credential: CredentialPayload | CredentialForCalendarService,
   calEvent: CalendarEvent
 ) => {
-  const uid: string = getUid(calEvent);
+  const uid: string = getUid(calEvent.uid);
   log.debug(
     "createMeeting",
     safeStringify({
