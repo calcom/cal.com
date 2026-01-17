@@ -29,10 +29,11 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import logger from "@calcom/lib/logger";
 import { v4 as uuidv4 } from "uuid";
 
 import { getCalEventResponses } from "./getCalEventResponses";
@@ -168,6 +169,8 @@ export async function handleConfirmation(args: {
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
+
+  const log = logger.getSubLogger({ prefix: ["[handleConfirmation]"] });
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
