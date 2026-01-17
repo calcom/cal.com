@@ -1,4 +1,4 @@
-import type { Logger } from "tslog";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
 
@@ -10,7 +10,7 @@ export async function updateSubscriptionQuantity(params: {
   subscriptionItemId: string;
   quantity: number;
   prorationBehavior?: ProrationBehavior;
-  logger?: Logger<unknown>;
+  logger?: ISimpleLogger;
 }): Promise<void> {
   const { billingService, subscriptionId, subscriptionItemId, quantity, prorationBehavior, logger } = params;
 

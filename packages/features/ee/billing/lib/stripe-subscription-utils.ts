@@ -22,9 +22,9 @@ export interface BillingData {
   billingPeriod: BillingPeriod;
   pricePerSeat: number | undefined;
   paidSeats: number | undefined;
-  subscriptionStart: Date | null;
-  subscriptionEnd: Date | null;
-  subscriptionTrialEnd: Date | null;
+  subscriptionStart: Date | undefined;
+  subscriptionEnd: Date | undefined;
+  subscriptionTrialEnd: Date | undefined;
 }
 
 const getSubscriptionItems = (subscription: StripeSubscriptionLike) =>
@@ -43,13 +43,13 @@ export function extractBillingDataFromStripeSubscription(subscription: StripeSub
 
   const subscriptionStart = subscription.current_period_start
     ? new Date(subscription.current_period_start * 1000)
-    : null;
+    : undefined;
 
   const subscriptionEnd = subscription.current_period_end
     ? new Date(subscription.current_period_end * 1000)
-    : null;
+    : undefined;
 
-  const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+  const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined;
 
   return {
     billingPeriod,
