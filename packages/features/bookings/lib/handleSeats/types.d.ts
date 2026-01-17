@@ -7,6 +7,10 @@ import type { Booking } from "../handleNewBooking/createBooking";
 import type { NewBookingEventType } from "../handleNewBooking/getEventTypesFromDB";
 import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 
+export type BookingSeatData = {
+  responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
+};
+
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 
 export type NewSeatedBookingObject = {

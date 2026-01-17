@@ -1,4 +1,6 @@
 {
+  "view_response": "View response",
+  "hide_response": "Hide response",
   "hide_field_warning_title": "Are you sure you want to hide this field?",
   "hide_field_warning_description": "This field is attached with one or more workflows, hiding this will cause the related workflows to not trigger for this event",
   "hide_anyway": "Hide anyway",

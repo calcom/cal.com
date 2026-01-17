@@ -6,6 +6,7 @@ import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
+import { BookingSeatData } from "@calcom/features/bookings/lib/handleSeats/types";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
@@ -718,11 +719,21 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
+                sql<BookingSeatData>`${eb.ref("data")}`.as("data"),
+                "BookingSeat.createdAt",
+
+                sql<Date>`${eb.ref("createdAt")} AT TIME ZONE 'UTC'`.as("createdAtUTC"),
                 "BookingSeat.attendeeId",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.id", "Attendee.email", "Attendee.name", "Attendee.timeZone"])
+                    .select([
+                      "Attendee.id",
+                      "Attendee.email",
+                      "Attendee.name",
+                      "Attendee.timeZone",
+                      "Attendee.phoneNumber",
+                    ])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
                 ).as("attendee"),
                 jsonArrayFrom(
