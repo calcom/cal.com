@@ -106,7 +106,9 @@ export const CheckedTeamSelect = ({
       options.map((o) => (o as CheckedSelectOption & { email?: string }).email?.toLowerCase()).filter(Boolean)
     );
 
-    const newOptions: CheckedSelectOption[] = emails
+    const uniqueEmails = Array.from(new Set(emails));
+
+    const newOptions: CheckedSelectOption[] = uniqueEmails
       .filter((email) => !existingEmails.has(email) && !existingMemberEmails.has(email))
       .map((email) => ({
         value: `email-${email}`,
@@ -146,6 +148,7 @@ export const CheckedTeamSelect = ({
     <>
       <CreatableSelect<CheckedSelectOption, true>
         {...reactSelectProps}
+        {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}

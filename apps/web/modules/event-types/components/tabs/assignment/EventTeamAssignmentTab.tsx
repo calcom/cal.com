@@ -664,7 +664,13 @@ const Hosts = ({
   const updatedHosts = (changedHosts: Host[]) => {
     const existingHosts = getValues("hosts");
     return changedHosts.map((newValue) => {
-      const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
+      // For email invites, match by email instead of userId (since all have userId=0)
+      const existingHost = existingHosts.find((host: Host) => {
+        if (newValue.isEmailInvite && host.isEmailInvite) {
+          return host.email === newValue.email;
+        }
+        return host.userId === newValue.userId;
+      });
 
       return existingHost
         ? {
