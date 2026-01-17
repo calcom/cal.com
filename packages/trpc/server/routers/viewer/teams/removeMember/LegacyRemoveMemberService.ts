@@ -8,12 +8,35 @@ import { BaseRemoveMemberService } from "./BaseRemoveMemberService";
 import type { RemoveMemberContext, RemoveMemberPermissionResult } from "./IRemoveMemberService";
 
 export class LegacyRemoveMemberService extends BaseRemoveMemberService {
-  async checkRemovePermissions(context: RemoveMemberContext): Promise<RemoveMemberPermissionResult> {
-    const { userId, isOrgAdmin, teamIds } = context;
+  private async validateTeamsBelongToOrganization(
+    teamIds: number[],
+    organizationId: number
+  ): Promise<boolean> {
+    const teams = await prisma.team.findMany({
+      where: {
+        id: { in: teamIds },
+        OR: [{ id: organizationId }, { parentId: organizationId }],
+      },
+      select: { id: true },
+    });
 
-    // Org admins have full permission
+    const validTeamIds = new Set(teams.map((t) => t.id));
+    return teamIds.every((id) => validTeamIds.has(id));
+  }
+
+  async checkRemovePermissions(context: RemoveMemberContext): Promise<RemoveMemberPermissionResult> {
+    const { userId, isOrgAdmin, organizationId, teamIds } = context;
+
     if (isOrgAdmin) {
-      // Return admin role for all teams
+      if (!organizationId) {
+        return { hasPermission: false };
+      }
+
+      const teamsValid = await this.validateTeamsBelongToOrganization(teamIds, organizationId);
+      if (!teamsValid) {
+        return { hasPermission: false };
+      }
+
       const userRoles = new Map<number, MembershipRole | null>();
       teamIds.forEach((teamId) => {
         userRoles.set(teamId, MembershipRole.ADMIN);
