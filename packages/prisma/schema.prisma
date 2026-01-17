@@ -2035,6 +2035,7 @@ model PlatformOAuthClient {
   authorizationTokens PlatformAuthorizationToken[]
   webhook             Webhook[]
 
+  previousSecret               String?
   bookingRedirectUri           String?
   bookingCancelRedirectUri     String?
   bookingRescheduleRedirectUri String?

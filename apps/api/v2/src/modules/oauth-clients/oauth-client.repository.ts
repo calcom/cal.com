@@ -80,15 +80,37 @@ export class OAuthClientRepository {
     });
   }
 
-  async updateOAuthClient(
-    clientId: string,
-    updateData: Prisma.PlatformOAuthClientUpdateInput
-  ): Promise<PlatformOAuthClient> {
+ async updateOAuthClient(
+  clientId: string,
+  updateData: Prisma.PlatformOAuthClientUpdateInput
+): Promise<PlatformOAuthClient> {
+
+  // If secret is NOT being changed → normal update
+  if (!updateData.secret) {
     return this.dbWrite.prisma.platformOAuthClient.update({
       where: { id: clientId },
       data: updateData,
     });
   }
+
+  // Secret is being rotated → fetch old one
+  const existing = await this.dbWrite.prisma.platformOAuthClient.findUnique({
+    where: { id: clientId },
+  });
+
+  if (!existing) {
+    throw new Error("OAuth client not found");
+  }
+
+  return this.dbWrite.prisma.platformOAuthClient.update({
+    where: { id: clientId },
+    data: {
+      ...updateData,
+      previousSecret: existing.secret,
+      secret: updateData.secret,
+    },
+  });
+}
 
   async deleteOAuthClient(clientId: string): Promise<PlatformOAuthClient> {
     return this.dbWrite.prisma.platformOAuthClient.delete({
