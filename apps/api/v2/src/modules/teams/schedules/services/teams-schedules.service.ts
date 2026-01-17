@@ -3,6 +3,7 @@ import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
+import type { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
 
 @Injectable()
 export class TeamsSchedulesService {
@@ -11,7 +12,7 @@ export class TeamsSchedulesService {
     private readonly schedulesRepository: SchedulesRepository_2024_06_11,
     private readonly outputSchedulesService: OutputSchedulesService_2024_06_11,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository
-  ) {}
+  ) { }
 
   async getTeamSchedules(teamId: number, skip = 0, take = 250, eventTypeId?: number) {
     if (!eventTypeId) {
