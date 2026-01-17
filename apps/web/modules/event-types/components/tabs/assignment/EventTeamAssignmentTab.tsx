@@ -228,6 +228,7 @@ const FixedHosts = ({
               isFixed={true}
               customClassNames={customClassNames?.addMembers}
               onActive={handleFixedHostsActivation}
+              allowEmailInvites={true}
             />
           </div>
         </>
@@ -259,6 +260,7 @@ const FixedHosts = ({
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
               onActive={handleFixedHostsActivation}
+              allowEmailInvites={true}
             />
           </div>
         </SettingsToggle>
@@ -434,6 +436,7 @@ const RoundRobinHosts = ({
         containerClassName={containerClassName || (assignAllTeamMembers ? "-mt-4" : "")}
         onActive={() => handleMembersActivation(groupId)}
         customClassNames={customClassNames?.addMembers}
+        allowEmailInvites={true}
       />
     );
   };
@@ -887,7 +890,7 @@ export const EventTeamAssignmentTab = ({
                         <Tooltip
                           content={
                             eventType.team?.rrTimestampBasis &&
-                              eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                            eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
                               ? t("rr_load_balancing_disabled")
                               : t("rr_load_balancing_disabled_with_groups")
                           }>
