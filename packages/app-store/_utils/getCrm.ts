@@ -4,7 +4,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import { CrmServiceMap } from "../crm.apps.generated";
 
 const log = logger.getSubLogger({ prefix: ["CrmManager"] });
-export const getCrm = async (credential: CredentialPayload, appOptions: any) => {
+export const getCrm = async (credential: CredentialPayload, appOptions?: Record<string, unknown>) => {
   if (!credential || !credential.key) return null;
   const { type: crmType } = credential;
 
@@ -17,14 +17,16 @@ export const getCrm = async (credential: CredentialPayload, appOptions: any) => 
     return null;
   }
 
-  const CrmService = crmServiceImportFn.default;
+  const createCrmService = crmServiceImportFn.default;
 
-  if (!CrmService) {
+  if (!createCrmService) {
     log.warn(`crm of type ${crmType} is not implemented`);
     return null;
   }
 
-  return new CrmService(credential, appOptions);
+  // CRM services now export factory functions instead of classes
+  // to prevent SDK types from leaking into the type system
+  return createCrmService(credential, appOptions);
 };
 
 export default getCrm;
