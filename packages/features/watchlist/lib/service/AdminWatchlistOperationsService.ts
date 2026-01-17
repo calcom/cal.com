@@ -111,7 +111,7 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     const results: Array<{ reportId: string; watchlistId: string }> = [];
-    for (const [normalizedValue, reports] of reportsByNormalizedValue.entries()) {
+    for (const [normalizedValue, reports] of Array.from(reportsByNormalizedValue.entries())) {
       const { watchlistEntry } = await this.deps.watchlistRepo.createEntryFromReport({
         type: input.type,
         value: normalizedValue,
