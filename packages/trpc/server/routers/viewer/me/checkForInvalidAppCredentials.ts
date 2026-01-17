@@ -1,4 +1,5 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/types/invalidAppCredentials";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -13,21 +14,16 @@ type checkInvalidAppCredentialsOptions = {
 export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredentialsOptions) => {
   const userId = ctx.user.id;
 
-  // First get the teams where user is admin/owner
-  const userTeamIds = await prisma.membership.findMany({
-    where: {
-      userId: userId,
-      accepted: true,
-      role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-    },
-    select: {
-      teamId: true,
-    },
+  const permissionCheckService = new PermissionCheckService();
+  const userTeamIds = await permissionCheckService.getTeamIdsWithPermission({
+    userId,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
   });
 
   const apps = await prisma.credential.findMany({
     where: {
-      OR: [{ userId }, { teamId: { in: userTeamIds.map((membership) => membership.teamId) } }],
+      OR: [{ userId }, { teamId: { in: userTeamIds } }],
       invalid: true,
     },
     select: {

@@ -106,6 +106,10 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
   }> {
     const where = this.buildWhereClause(params);
 
+    if (params.systemFilters?.systemStatus && params.systemFilters.systemStatus.length > 0) {
+      where.systemStatus = { in: params.systemFilters.systemStatus };
+    }
+
     const [reports, totalCount] = await Promise.all([
       this.prismaClient.bookingReport.findMany({
         where,
