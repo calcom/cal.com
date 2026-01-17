@@ -1,4 +1,4 @@
-name: Companion Builds
+name: Companion Checks & Builds
 
 on:
   workflow_call:
@@ -31,6 +31,14 @@ jobs:
       - name: Install dependencies
         working-directory: companion
         run: bun install --frozen-lockfile
+
+      - name: Run lint checks
+        working-directory: companion
+        run: bun lint:all
+
+      - name: Run type checks
+        working-directory: companion
+        run: bun typecheck:all
 
       - name: Build Expo web app
         working-directory: companion
