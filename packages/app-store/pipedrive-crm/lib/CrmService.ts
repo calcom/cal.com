@@ -43,8 +43,7 @@ type PipedriveActivity = {
   person_id: number;
 };
 
-export default class PipedriveCrmService implements CRM {
-  private credential: CredentialPayload;
+class PipedriveCrmService implements CRM {
   private log: typeof logger;
   private auth: OAuthManager;
   private apiDomain: string;
@@ -358,4 +357,16 @@ export default class PipedriveCrmService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+}
+
+/**
+ * Factory function that creates a Pipedrive CRM service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  _appOptions?: Record<string, unknown>
+): CRM {
+  return new PipedriveCrmService(credential);
 }
