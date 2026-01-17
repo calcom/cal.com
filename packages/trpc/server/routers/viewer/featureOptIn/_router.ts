@@ -19,13 +19,14 @@ const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum([
 const featureOptInService = getFeatureOptInService();
 const featuresRepository = new FeaturesRepository(prisma);
 const teamRepository = new TeamRepository(prisma);
+const membershipRepository = new MembershipRepository(prisma);
 
 /**
  * Helper to get user's org and team IDs from their memberships.
  * Returns orgId (if user belongs to an org) and teamIds (non-org teams).
  */
 async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-  const memberships = await MembershipRepository.findAllByUserId({
+  const memberships = await membershipRepository.findAllByUserId({
     userId,
     filters: { accepted: true },
   });
@@ -69,7 +70,7 @@ export const featureOptInRouter = router({
     const parentOrg = await teamRepository.findParentOrganizationByTeamId(input.teamId);
     const parentOrgId = parentOrg?.id ?? null;
 
-    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId });
+    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId, scope: "team" });
   }),
 
   /**
@@ -78,7 +79,8 @@ export const featureOptInRouter = router({
    */
   listForOrganization: createOrgPbacProcedure("featureOptIn.read").query(async ({ ctx }) => {
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
-    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId });
+    // Pass scope: "org" to filter features that are scoped to organizations
+    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId, scope: "org" });
   }),
 
   /**
@@ -132,6 +134,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "team",
       });
 
       return { success: true };
@@ -161,6 +164,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "org",
       });
 
       return { success: true };

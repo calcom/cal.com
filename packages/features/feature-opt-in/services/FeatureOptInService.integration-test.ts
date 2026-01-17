@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
@@ -7,6 +7,16 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import { prisma } from "@calcom/prisma";
 
 import type { IFeatureOptInService } from "./IFeatureOptInService";
+
+// Mock isFeatureAllowedForScope to always return true for integration tests.
+// The scope validation logic is tested in unit tests; integration tests focus on database behavior.
+vi.mock("../config", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config")>();
+  return {
+    ...actual,
+    isFeatureAllowedForScope: () => true,
+  };
+});
 
 // Helper to generate unique identifiers per test
 const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
