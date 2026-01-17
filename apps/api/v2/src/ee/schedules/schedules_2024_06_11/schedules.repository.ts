@@ -252,9 +252,21 @@ export class SchedulesRepository_2024_06_11 {
           in: scheduleIds,
         },
       },
-      include: {
-        availability: true,
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        timeZone: true,
+        availability: {
+          select: {
+            days: true,
+            startTime: true,
+            endTime: true,
+            date: true,
+          },
+        },
       },
+      orderBy: { id: 'asc' },
       skip,
       take,
     });

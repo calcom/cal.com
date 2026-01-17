@@ -390,7 +390,7 @@ describe("Organizations Teams Schedules Endpoints", () => {
               `/v2/organizations/${org.id}/teams/${orgTeam.id}/users/${user2.id}/schedules?eventTypeId=${otherUserEventType.id}`
             )
             .expect(404)
-            .then(async () => {
+            .finally(async () => {
               await eventTypesRepositoryFixture.delete(otherUserEventType.id);
             });
         });

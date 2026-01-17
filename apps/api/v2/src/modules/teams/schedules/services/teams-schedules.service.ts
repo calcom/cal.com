@@ -4,6 +4,7 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
+import type { Availability, Schedule } from "@calcom/prisma/client";
 
 @Injectable()
 export class TeamsSchedulesService {
@@ -60,6 +61,8 @@ export class TeamsSchedulesService {
       take
     );
 
-    return this.outputSchedulesService.getResponseSchedules(schedules);
+    return this.outputSchedulesService.getResponseSchedules(
+      schedules as (Schedule & { availability: Availability[] })[]
+    );
   }
 }

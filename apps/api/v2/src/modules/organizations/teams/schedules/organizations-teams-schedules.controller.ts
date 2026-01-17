@@ -47,7 +47,7 @@ export class OrganizationsTeamsSchedulesController {
   @DocsTags("Orgs / Teams / Schedules")
   @ApiOperation({ summary: "Get all team member schedules" })
   async getTeamSchedules(
-    // note(Lauris): putting orgId so swagger is generacted correctly
+    // note(Lauris): putting orgId so swagger is generated correctly
     @Param("orgId", ParseIntPipe) _orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamSchedulesQuery
@@ -71,7 +71,7 @@ export class OrganizationsTeamsSchedulesController {
     summary: "Get schedules of a team member",
   })
   async getUserSchedules(
-    // note(Lauris): putting orgId and teamId so swagger is generacted correctly
+    // note(Lauris): putting orgId and teamId so swagger is generated correctly
     @Param("orgId", ParseIntPipe) _orgId: number,
     @Param("teamId", ParseIntPipe) _teamId: number,
     @Param("userId", ParseIntPipe) userId: number,
