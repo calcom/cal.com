@@ -404,7 +404,7 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
 
       it("should get team bookings with eventTypeIds filter", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings?status=upcoming,past`)
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?eventTypeIds=${teamEventTypeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
