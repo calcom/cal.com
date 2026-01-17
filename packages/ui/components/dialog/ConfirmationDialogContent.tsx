@@ -72,7 +72,7 @@ export const ConfirmationContent = (
           </div>
         )}
         <div className="w-full">
-          <DialogPrimitive.Title className="font-cal text-emphasis mt-1 text-xl">
+          <DialogPrimitive.Title className="font-heading text-emphasis mt-1 text-xl">
             {title}
           </DialogPrimitive.Title>
           <DialogPrimitive.Description asChild>

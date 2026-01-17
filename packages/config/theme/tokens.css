@@ -15,7 +15,8 @@
 
 @theme inline {
   --font-sans: var(--font-sans);
-  --font-cal: var(--font-cal);
+  --font-heading: var(--font-heading);
+  --font-inter: var(--font-inter);
 
   /* Resets the preference from coss-ui which was to "use single --radius variable for all radius values" */
   --radius: var(--radius);

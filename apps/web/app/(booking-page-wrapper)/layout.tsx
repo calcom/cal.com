@@ -7,10 +7,10 @@ export default async function BookingPageWrapperLayout({ children }: { children:
   const nonce = h.get("x-csp-nonce") ?? undefined;
 
   return (
-    <>
+    <div className="font-inter">
       <PageWrapper isBookingPage={true} requiresLicense={false} nonce={nonce}>
         {children}
       </PageWrapper>
-    </>
+    </div>
   );
 }
