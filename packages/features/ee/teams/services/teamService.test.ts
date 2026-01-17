@@ -14,6 +14,14 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TeamService } from "./teamService";
 
+const { MockSeatChangeTrackingService } = vi.hoisted(() => {
+  class MockSeatChangeTrackingService {
+    logSeatAddition = vi.fn().mockResolvedValue(undefined);
+    logSeatRemoval = vi.fn().mockResolvedValue(undefined);
+  }
+  return { MockSeatChangeTrackingService };
+});
+
 vi.mock("@calcom/ee/billing/di/containers/Billing");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
@@ -21,6 +29,9 @@ vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");
 vi.mock("@calcom/features/ee/teams/lib/queries");
+vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService", () => ({
+  SeatChangeTrackingService: MockSeatChangeTrackingService,
+}));
 
 const mockTeamBilling = {
   cancel: vi.fn(),
