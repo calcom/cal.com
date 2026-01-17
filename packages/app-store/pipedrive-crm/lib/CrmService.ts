@@ -44,6 +44,7 @@ type PipedriveActivity = {
 };
 
 class PipedriveCrmService implements CRM {
+  private credential: CredentialPayload;
   private log: typeof logger;
   private auth: OAuthManager;
   private apiDomain: string;
