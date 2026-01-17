@@ -158,7 +158,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     const emailList = paginatedEmails.map((g) => g.bookerEmail);
 
     if (emailList.length === 0) {
-      return { rows: [], meta: { totalRowCount: 0 } };
+      return { rows: [], meta: { totalRowCount } };
     }
 
     const reports = await this.prismaClient.bookingReport.findMany({
