@@ -2428,6 +2428,7 @@
   "reschedule_reason_info": "The reason for rescheduling the booking",
   "invalid_event_name_variables": "{{item}} is an invalid variable in your event name",
   "select_all": "Select all",
+  "select_row": "Select row",
   "default_conferencing_bulk_title": "Bulk update existing event types",
   "members_default_schedule": "Member's default schedule",
   "set_by_admin": "Set by team admin",
