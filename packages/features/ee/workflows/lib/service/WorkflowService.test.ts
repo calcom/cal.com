@@ -18,11 +18,13 @@ vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
   getHideBranding: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock("@calcom/features/profile/repositories/BrandingRepository", () => ({
-  BrandingRepository: vi.fn().mockImplementation(() => ({
-    getHideBrandingByIds: vi.fn().mockResolvedValue(false),
-  })),
-}));
+vi.mock("@calcom/features/profile/repositories/BrandingRepository", () => {
+  return {
+    BrandingRepository: class {
+      getHideBrandingByIds = vi.fn().mockResolvedValue(false);
+    },
+  };
+});
 
 const mockWorkflowReminderCreate = vi.fn();
 vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({
