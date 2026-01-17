@@ -376,6 +376,7 @@ export const roundRobinReassignment = async ({
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
     organizationId: orgId,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
   if (hasOrganizerChanged) {
@@ -569,6 +570,7 @@ export const roundRobinReassignment = async ({
       await sendReassignedUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
+        showAttendees: !!eventType.seatsShowAttendees,
       });
     }
 
