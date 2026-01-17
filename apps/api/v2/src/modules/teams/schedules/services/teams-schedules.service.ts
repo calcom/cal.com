@@ -4,8 +4,6 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
-
 @Injectable()
 export class TeamsSchedulesService {
   constructor(
@@ -20,12 +18,7 @@ export class TeamsSchedulesService {
       const userIds = await this.teamsRepository.getTeamUsersIds(teamId);
       const schedules = await this.schedulesRepository.getSchedulesByUserIds(userIds, skip, take);
 
-      const responseSchedules: ScheduleOutput_2024_06_11[] = [];
-      for (const schedule of schedules) {
-        responseSchedules.push(await this.outputSchedulesService.getResponseSchedule(schedule));
-      }
-
-      return responseSchedules;
+      return this.outputSchedulesService.getResponseSchedules(schedules);
     }
 
     return this.getTeamSchedulesForEventType(teamId, eventTypeId, skip, take);
@@ -66,11 +59,6 @@ export class TeamsSchedulesService {
       take
     );
 
-    const responseSchedules: ScheduleOutput_2024_06_11[] = [];
-    for (const schedule of schedules) {
-      responseSchedules.push(await this.outputSchedulesService.getResponseSchedule(schedule));
-    }
-
-    return responseSchedules;
+    return this.outputSchedulesService.getResponseSchedules(schedules);
   }
 }

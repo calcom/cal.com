@@ -295,7 +295,7 @@ export const createEvent = async (
 ): Promise<EventResult<NewCalendarEventType>> => {
   // Some calendar libraries may edit the original event so let's clone it
   const formattedEvent = formatCalEvent(originalEvent);
-  const uid: string = getUid(formattedEvent);
+  const uid: string = getUid(formattedEvent.uid);
   const calendar = await getCalendar(credential, "booking");
   let success = true;
   let calError: string | undefined = undefined;
@@ -388,8 +388,13 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const formattedEvent = formatCalEvent(rawCalEvent);
+
+  if (formattedEvent.hideCalendarNotes) {
+    formattedEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
+  }
+
   const calEvent = processEvent(formattedEvent);
-  const uid = getUid(calEvent);
+  const uid = getUid(calEvent.uid);
   const calendar = await getCalendar(credential, "booking");
   let success = false;
   let calError: string | undefined = undefined;
@@ -500,7 +505,7 @@ export const deleteEvent = async ({
  * Process the calendar event by generating description and removing attendees if needed
  */
 const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
-  if (calEvent.seatsPerTimeSlot){
+  if (calEvent.seatsPerTimeSlot) {
     calEvent.responses = null;
     calEvent.userFieldsResponses = null;
     calEvent.additionalNotes = null;

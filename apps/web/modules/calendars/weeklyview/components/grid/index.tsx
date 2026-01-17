@@ -14,7 +14,7 @@ export const SchedulerColumns = React.forwardRef<HTMLOListElement, Props>(functi
   return (
     <ol
       ref={ref}
-      className="scheduler-grid-row-template col-start-1 col-end-2 row-start-1 grid auto-cols-auto text-[0px]"
+      className="scheduler-grid-row-template col-start-1 col-end-2 row-start-1 grid auto-cols-auto text-[0px] scheduler-wrapper"
       style={{ marginTop: offsetHeight || "var(--gridDefaultSize)", zIndex }}
       data-gridstopsperday={gridStopsPerDay}>
       {children}
