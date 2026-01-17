@@ -111,6 +111,11 @@ export default function Authorize() {
       const urlSearchParams = new URLSearchParams({
         callbackUrl: `auth/oauth2/authorize?${queryString}`,
       });
+      // Pass register param directly so login page can hide "Don't have an account" link
+      const registerParam = searchParams?.get("register");
+      if (registerParam) {
+        urlSearchParams.set("register", registerParam);
+      }
       router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
   }, [status]);

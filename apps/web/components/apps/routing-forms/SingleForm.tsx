@@ -132,6 +132,8 @@ function SingleForm({
   }, [form]);
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
+      const currentValues = hookForm.getValues();
+      hookForm.reset(currentValues);
       showToast(t("form_updated_successfully"), "success");
     },
     onError(e) {
