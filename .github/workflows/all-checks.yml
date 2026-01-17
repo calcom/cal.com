@@ -24,6 +24,11 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
+  code-coverage:
+    name: Coverage
+    uses: ./.github/workflows/code-coverage.yml
+    secrets: inherit
+
   api-v2-unit-test:
     name: Tests
     uses: ./.github/workflows/api-v2-unit-tests.yml
