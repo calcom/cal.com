@@ -385,14 +385,15 @@ describe("Organizations Teams Schedules Endpoints", () => {
             user.id
           );
 
-          return request(app.getHttpServer())
-            .get(
-              `/v2/organizations/${org.id}/teams/${orgTeam.id}/users/${user2.id}/schedules?eventTypeId=${otherUserEventType.id}`
-            )
-            .expect(404)
-            .finally(async () => {
-              await eventTypesRepositoryFixture.delete(otherUserEventType.id);
-            });
+          try {
+            await request(app.getHttpServer())
+              .get(
+                `/v2/organizations/${org.id}/teams/${orgTeam.id}/users/${user2.id}/schedules?eventTypeId=${otherUserEventType.id}`
+              )
+              .expect(404);
+          } finally {
+            await eventTypesRepositoryFixture.delete(otherUserEventType.id);
+          }
         });
 
         it("should return empty array when event type has no schedule and user has no default schedule", async () => {
@@ -416,24 +417,24 @@ describe("Organizations Teams Schedules Endpoints", () => {
             data: { defaultScheduleId: null },
           });
 
-          return request(app.getHttpServer())
-            .get(
-              `/v2/organizations/${org.id}/teams/${orgTeam.id}/users/${user2.id}/schedules?eventTypeId=${eventTypeWithoutSchedule.id}`
-            )
-            .expect(200)
-            .then((response) => {
-              const responseBody: ApiSuccessResponse<ScheduleOutput_2024_06_11[]> = response.body;
-              expect(responseBody.status).toEqual(SUCCESS_STATUS);
-              expect(Array.isArray(responseBody.data)).toBe(true);
-              expect(responseBody.data.length).toEqual(0);
-            })
-            .finally(async () => {
-              await prismaWriteService.prisma.user.update({
-                where: { id: user2.id },
-                data: { defaultScheduleId: originalDefaultScheduleId },
-              });
-              await eventTypesRepositoryFixture.delete(eventTypeWithoutSchedule.id);
+          try {
+            const response = await request(app.getHttpServer())
+              .get(
+                `/v2/organizations/${org.id}/teams/${orgTeam.id}/users/${user2.id}/schedules?eventTypeId=${eventTypeWithoutSchedule.id}`
+              )
+              .expect(200);
+
+            const responseBody: ApiSuccessResponse<ScheduleOutput_2024_06_11[]> = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+            expect(responseBody.data.length).toEqual(0);
+          } finally {
+            await prismaWriteService.prisma.user.update({
+              where: { id: user2.id },
+              data: { defaultScheduleId: originalDefaultScheduleId },
             });
+            await eventTypesRepositoryFixture.delete(eventTypeWithoutSchedule.id);
+          }
         });
       });
 
@@ -474,20 +475,20 @@ describe("Organizations Teams Schedules Endpoints", () => {
             },
           });
 
-          return request(app.getHttpServer())
-            .get(
-              `/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules?eventTypeId=${teamEventTypeNoHosts.id}`
-            )
-            .expect(200)
-            .then((response) => {
-              const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
-              expect(responseBody.status).toEqual(SUCCESS_STATUS);
-              expect(Array.isArray(responseBody.data)).toBe(true);
-              expect(responseBody.data.length).toEqual(0);
-            })
-            .finally(async () => {
-              await eventTypesRepositoryFixture.delete(teamEventTypeNoHosts.id);
-            });
+          try {
+            const response = await request(app.getHttpServer())
+              .get(
+                `/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules?eventTypeId=${teamEventTypeNoHosts.id}`
+              )
+              .expect(200);
+
+            const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+            expect(responseBody.data.length).toEqual(0);
+          } finally {
+            await eventTypesRepositoryFixture.delete(teamEventTypeNoHosts.id);
+          }
         });
       });
     });
