@@ -46,41 +46,22 @@ type EnabledAppType = App & {
 };
 
 /**
- * Normalizes a period date to UTC midnight for the date.
- * Handles Date objects, ISO strings, and timestamps.
- * For strings, extracts the date part (YYYY-MM-DD) to avoid timezone shifts.
- * For Date objects/timestamps, extracts UTC components and creates UTC midnight.
+ * Normalizes a period date to UTC midnight.
+ * Atoms receives JSON where dates are strings (e.g., "2024-01-20T00:00:00.000Z" or "2024-01-20"),
+ * but TypeScript types them as Date. This function handles both cases.
+ * We extract the date part (YYYY-MM-DD) to avoid timezone shifts.
  */
-function normalizePeriodDate(date: Date | string | number | null | undefined): Date | undefined {
-  if (date === null || date === undefined) return undefined;
+function normalizePeriodDate(date: Date | string | null | undefined): Date | null | undefined {
+  if (date === undefined) return undefined;
+  if (date === null) return null;
 
-  // Handle string input - extract date part to avoid timezone shifts
-  if (typeof date === "string") {
-    // Check if it looks like an ISO date string (starts with YYYY-MM-DD)
-    if (/^\d{4}-\d{2}-\d{2}/.test(date)) {
-      const dateOnly = date.slice(0, 10);
-      return new Date(dateOnly);
-    }
-    // Try parsing as a date string
-    const parsed = new Date(date);
-    if (!Number.isNaN(parsed.getTime())) {
-      return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
-    }
-    return undefined;
-  }
+  // Handle both string (from JSON) and Date object (if already parsed)
+  const dateStr = typeof date === "string" ? date : date.toISOString();
 
-  // Handle number (timestamp)
-  if (typeof date === "number") {
-    const parsed = new Date(date);
-    return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
-  }
-
-  // Handle Date object - extract UTC components and create UTC midnight
-  if (date instanceof Date && !Number.isNaN(date.getTime())) {
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  }
-
-  return undefined;
+  // Extract the date part (first 10 chars: YYYY-MM-DD) to avoid timezone shifts
+  // e.g., "2024-01-20T00:00:00.000+04:00" -> "2024-01-20" -> UTC midnight Jan 20
+  const dateOnly = dateStr.slice(0, 10);
+  return new Date(dateOnly);
 }
 
 @Injectable()
