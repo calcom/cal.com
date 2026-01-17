@@ -48,10 +48,10 @@ yarn vitest run path/to/file.test.ts
 yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
 
 # Integration test specific file
-yarn test path/to/file.integration-test.ts -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts
 
 # Integration test specific file + specific test
-yarn test path/to/file.integration-test.ts --testNamePattern="specific test name" -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts --testNamePattern="specific test name"
 
 # E2E test specific file
 PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts
@@ -233,6 +233,7 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 For detailed information, see the `agents/` directory:
 
 - **[agents/README.md](agents/README.md)** - Architecture overview and patterns
+- **[agents/rules/](agents/rules/)** - Modular engineering rules (performance, architecture, data layer, etc.)
 - **[agents/commands.md](agents/commands.md)** - Complete command reference
 - **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and best practices
 - **[agents/coding-standards.md](agents/coding-standards.md)** - Coding standards with examples

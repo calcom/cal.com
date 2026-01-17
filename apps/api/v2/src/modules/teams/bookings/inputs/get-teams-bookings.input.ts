@@ -144,7 +144,7 @@ export class GetTeamsBookingsInput_2024_08_13 {
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === "string") {
-      return value.split(",").map((email: string) => email.trim());
+      return value.split(",").map((email: string) => email.trim()).filter(Boolean);
     }
     return value;
   })

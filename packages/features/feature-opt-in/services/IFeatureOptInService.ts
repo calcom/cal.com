@@ -1,6 +1,7 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 
 import type { EffectiveStateReason } from "../lib/computeEffectiveState";
+import type { OptInFeatureScope } from "../types";
 
 export type { EffectiveStateReason };
 
@@ -24,12 +25,18 @@ export interface IFeatureOptInService {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, ResolvedFeatureState>>;
-  listFeaturesForUser(input: { userId: number; orgId: number | null; teamIds: number[] }): Promise<
-    ResolvedFeatureState[]
+  listFeaturesForUser(input: {
+    userId: number;
+    orgId: number | null;
+    teamIds: number[];
+  }): Promise<ResolvedFeatureState[]>;
+  listFeaturesForTeam(input: {
+    teamId: number;
+    parentOrgId?: number | null;
+    scope?: OptInFeatureScope;
+  }): Promise<
+    { featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState; orgState: FeatureState }[]
   >;
-  listFeaturesForTeam(
-    input: { teamId: number; parentOrgId?: number | null }
-  ): Promise<{ featureId: FeatureId; globalEnabled: boolean; teamState: FeatureState; orgState: FeatureState }[]>;
   setUserFeatureState(
     input:
       | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
@@ -37,7 +44,7 @@ export interface IFeatureOptInService {
   ): Promise<void>;
   setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
-      | { teamId: number; featureId: FeatureId; state: "inherit" }
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number; scope?: OptInFeatureScope }
+      | { teamId: number; featureId: FeatureId; state: "inherit"; scope?: OptInFeatureScope }
   ): Promise<void>;
 }

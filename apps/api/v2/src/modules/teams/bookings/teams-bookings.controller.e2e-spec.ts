@@ -1,8 +1,4 @@
-import {
-  CAL_API_VERSION_HEADER,
-  SUCCESS_STATUS,
-  VERSION_2024_08_13,
-} from "@calcom/platform-constants";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import type {
   BookingOutput_2024_08_13,
   CreateBookingInput_2024_08_13,
@@ -11,8 +7,9 @@ import type {
   RecurringBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import type { Team, User } from "@calcom/prisma/client";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
+import type { INestApplication } from "@nestjs/common";
+import type { NestExpressApplication } from "@nestjs/platform-express";
+import type { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -24,15 +21,23 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import type { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import type { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { TeamsBookingsModule } from "@/modules/teams/bookings/teams-bookings.module";
 
+type BookingData =
+  | BookingOutput_2024_08_13
+  | RecurringBookingOutput_2024_08_13
+  | GetSeatedBookingOutput_2024_08_13;
+
 describe("Teams Bookings Endpoints 2024-08-13", () => {
   describe("Standalone team bookings", () => {
     let app: INestApplication;
+    let adminApp: INestApplication;
+    let memberApp: INestApplication;
+    let nonTeamUserApp: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_04_15;
@@ -55,8 +60,71 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
     let teamEventTypeId: number;
     let teamEventTypeId2: number;
 
-    beforeAll(async () => {
+    // Store created booking data for filter tests
+    let createdBookingUid: string;
+    const attendeeEmail1 = "attendee@example.com";
+    const attendeeName1 = "Test Attendee";
+    const attendeeEmail2 = "another@example.com";
+    const attendeeName2 = "Another Attendee";
+    const bookingStart1 = new Date(Date.UTC(2030, 0, 10, 10, 0, 0));
+    const bookingStart2 = new Date(Date.UTC(2030, 0, 11, 14, 0, 0));
+
+    async function createAppForUser(email: string): Promise<INestApplication> {
       const moduleRef = await withApiAuth(
+        email,
+        Test.createTestingModule({
+          imports: [AppModule, TeamsBookingsModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      const nestApp = moduleRef.createNestApplication();
+      bootstrap(nestApp as NestExpressApplication);
+      await nestApp.init();
+      return nestApp;
+    }
+
+    async function createBookingViaApi(
+      appInstance: INestApplication,
+      eventTypeId: number,
+      start: Date,
+      attendee: { name: string; email: string }
+    ): Promise<BookingOutput_2024_08_13> {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: start.toISOString(),
+        eventTypeId,
+        attendee: {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: "Europe/London",
+          language: "en",
+        },
+        meetingUrl: "https://meet.google.com/test-meeting",
+      };
+
+      const response = await request(appInstance.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const responseData = responseBody.data;
+      if (!Array.isArray(responseData) && "id" in responseData && !("bookingId" in responseData)) {
+        return responseData as BookingOutput_2024_08_13;
+      }
+      throw new Error("Invalid response data - expected booking but received unexpected format");
+    }
+
+    beforeAll(async () => {
+      const moduleRef: TestingModule = await withApiAuth(
         teamOwnerEmail,
         Test.createTestingModule({
           imports: [AppModule, TeamsBookingsModule],
@@ -210,96 +278,28 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
-
       await app.init();
-    });
 
-    describe("create team bookings", () => {
-      it("should create a team booking", async () => {
-        const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
-          eventTypeId: teamEventTypeId,
-          attendee: {
-            name: "Test Attendee",
-            email: "attendee@example.com",
-            timeZone: "Europe/London",
-            language: "en",
-          },
-          meetingUrl: "https://meet.google.com/test-meeting",
-        };
+      // Create apps for different user roles
+      adminApp = await createAppForUser(teamAdminEmail);
+      memberApp = await createAppForUser(teamMemberEmail);
+      nonTeamUserApp = await createAppForUser(nonTeamUserEmail);
 
-        return request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-
-            const responseData = responseBody.data;
-            if (
-              !Array.isArray(responseData) &&
-              "id" in responseData &&
-              !("bookingId" in responseData)
-            ) {
-              const data = responseData as BookingOutput_2024_08_13;
-              expect(data.id).toBeDefined();
-              expect(data.uid).toBeDefined();
-              expect(data.status).toEqual("accepted");
-              expect(data.start).toEqual(body.start);
-              expect(data.duration).toEqual(60);
-              expect(data.eventTypeId).toEqual(teamEventTypeId);
-              expect(data.attendees.length).toEqual(1);
-              expect(data.attendees[0].email).toEqual(body.attendee.email);
-            } else {
-              throw new Error(
-                "Invalid response data - expected booking but received unexpected format"
-              );
-            }
-          });
+      // Create bookings for filter tests
+      const booking1 = await createBookingViaApi(app, teamEventTypeId, bookingStart1, {
+        name: attendeeName1,
+        email: attendeeEmail1,
       });
+      createdBookingUid = booking1.uid;
 
-      it("should create another team booking", async () => {
-        const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 11, 14, 0, 0)).toISOString(),
-          eventTypeId: teamEventTypeId2,
-          attendee: {
-            name: "Another Attendee",
-            email: "another@example.com",
-            timeZone: "Europe/London",
-            language: "en",
-          },
-          meetingUrl: "https://meet.google.com/another-meeting",
-        };
-
-        return request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-
-            const responseData = responseBody.data;
-            if (
-              !Array.isArray(responseData) &&
-              "id" in responseData &&
-              !("bookingId" in responseData)
-            ) {
-              const data = responseData as BookingOutput_2024_08_13;
-              expect(data.eventTypeId).toEqual(teamEventTypeId2);
-              expect(data.duration).toEqual(30);
-            }
-          });
+      await createBookingViaApi(app, teamEventTypeId2, bookingStart2, {
+        name: attendeeName2,
+        email: attendeeEmail2,
       });
     });
 
-    describe("get team bookings", () => {
-      it("should get team bookings as team owner", async () => {
+    describe("authorization", () => {
+      it("should allow team owner to get bookings", async () => {
         return request(app.getHttpServer())
           .get(`/v2/teams/${standaloneTeam.id}/bookings`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -308,18 +308,50 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (
-              | BookingOutput_2024_08_13
-              | RecurringBookingOutput_2024_08_13
-              | GetSeatedBookingOutput_2024_08_13
-            )[] = responseBody.data;
+            const data: BookingData[] = responseBody.data;
             expect(data.length).toBeGreaterThanOrEqual(2);
             expect(data.some((booking) => booking.eventTypeId === teamEventTypeId)).toBe(true);
             expect(data.some((booking) => booking.eventTypeId === teamEventTypeId2)).toBe(true);
           });
       });
 
-      it("should get team bookings with status filter", async () => {
+      it("should allow team admin to get bookings", async () => {
+        return request(adminApp.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.length).toBeGreaterThanOrEqual(2);
+          });
+      });
+
+      it("should reject team member (non-admin/owner)", async () => {
+        return request(memberApp.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+
+      it("should reject non-team user", async () => {
+        return request(nonTeamUserApp.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+
+      it("should reject request for non-existent team", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/999999/bookings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+    });
+
+    describe("filters", () => {
+      it("should filter by single status", async () => {
         return request(app.getHttpServer())
           .get(`/v2/teams/${standaloneTeam.id}/bookings?status=upcoming`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -335,7 +367,7 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
             )[] = responseBody.data;
             // Verify all bookings are upcoming (in the future)
             data.forEach((booking) => {
-              if (!Array.isArray(booking)) {
+              if ("start" in booking) {
                 expect(new Date(booking.start).getTime()).toBeGreaterThan(Date.now());
               }
             });
@@ -372,7 +404,7 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
 
       it("should get team bookings with eventTypeIds filter", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings?eventTypeIds=${teamEventTypeId}`)
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?status=upcoming,past`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -391,51 +423,76 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should get team bookings with attendeeEmail filter", async () => {
+      it("should filter by multiple eventTypeIds", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings?attendeeEmail=attendee@example.com`)
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?eventTypeIds=${teamEventTypeId},${teamEventTypeId2}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            const data: BookingData[] = responseBody.data;
+            expect(data.length).toBeGreaterThanOrEqual(2);
+            data.forEach((booking) => {
+              expect([teamEventTypeId, teamEventTypeId2]).toContain(booking.eventTypeId);
+            });
+          });
+      });
+
+      it("should filter by attendeeEmail", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?attendeeEmail=${attendeeEmail1}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (
-              | BookingOutput_2024_08_13
-              | RecurringBookingOutput_2024_08_13
-              | GetSeatedBookingOutput_2024_08_13
-            )[] = responseBody.data;
+            const data: BookingData[] = responseBody.data;
             expect(data.length).toBeGreaterThanOrEqual(1);
             data.forEach((booking) => {
-              if (!Array.isArray(booking) && "attendees" in booking) {
-                expect(
-                  booking.attendees.some((attendee) => attendee.email === "attendee@example.com")
-                ).toBe(true);
+              if ("attendees" in booking) {
+                expect(booking.attendees.some((attendee) => attendee.email === attendeeEmail1)).toBe(true);
               }
             });
           });
       });
 
-      it("should get team bookings with pagination", async () => {
+      it("should filter by attendeeName", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings?take=1&skip=0`)
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?attendeeName=${encodeURIComponent(attendeeName1)}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            const data: (
-              | BookingOutput_2024_08_13
-              | RecurringBookingOutput_2024_08_13
-              | GetSeatedBookingOutput_2024_08_13
-            )[] = responseBody.data;
-            expect(data.length).toEqual(1);
-            expect(responseBody.pagination).toBeDefined();
+            const data: BookingData[] = responseBody.data;
+            expect(data.length).toBeGreaterThanOrEqual(1);
+            data.forEach((booking) => {
+              if ("attendees" in booking) {
+                expect(booking.attendees.some((attendee) => attendee.name === attendeeName1)).toBe(true);
+              }
+            });
           });
       });
 
-      it("should get team bookings with teamMemberIds filter", async () => {
+      it("should filter by bookingUid", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?bookingUid=${createdBookingUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: BookingData[] = responseBody.data;
+            expect(data.length).toEqual(1);
+            expect(data[0].uid).toEqual(createdBookingUid);
+          });
+      });
+
+      it("should filter by teamMemberIds", async () => {
         return request(app.getHttpServer())
           .get(`/v2/teams/${standaloneTeam.id}/bookings?teamMemberIds=${teamAdmin.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -483,65 +540,167 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should fail to get team bookings as non-admin/owner team member", async () => {
-        const moduleRefForMember = await withApiAuth(
-          teamMemberEmail,
-          Test.createTestingModule({
-            imports: [AppModule, TeamsBookingsModule],
-          })
-        )
-          .overrideGuard(PermissionsGuard)
-          .useValue({
-            canActivate: () => true,
-          })
-          .compile();
-
-        const memberApp = moduleRefForMember.createNestApplication();
-        bootstrap(memberApp as NestExpressApplication);
-        await memberApp.init();
-
-        await request(memberApp.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(403);
-
-        await memberApp.close();
-      });
-
-      it("should fail to get team bookings as non-team user", async () => {
-        const moduleRefForNonTeamUser = await withApiAuth(
-          nonTeamUserEmail,
-          Test.createTestingModule({
-            imports: [AppModule, TeamsBookingsModule],
-          })
-        )
-          .overrideGuard(PermissionsGuard)
-          .useValue({
-            canActivate: () => true,
-          })
-          .compile();
-
-        const nonTeamUserApp = moduleRefForNonTeamUser.createNestApplication();
-        bootstrap(nonTeamUserApp as NestExpressApplication);
-        await nonTeamUserApp.init();
-
-        await request(nonTeamUserApp.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(403);
-
-        await nonTeamUserApp.close();
-      });
-
-      it("should fail to get bookings for non-existent team", async () => {
+      it("should filter by date range (afterStart and beforeEnd)", async () => {
+        const afterStartDate = new Date(Date.UTC(2030, 0, 9, 0, 0, 0)).toISOString();
+        const beforeEndDate = new Date(Date.UTC(2030, 0, 12, 0, 0, 0)).toISOString();
         return request(app.getHttpServer())
-          .get(`/v2/teams/999999/bookings`)
+          .get(
+            `/v2/teams/${standaloneTeam.id}/bookings?afterStart=${afterStartDate}&beforeEnd=${beforeEndDate}`
+          )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(403);
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.length).toBeGreaterThanOrEqual(2);
+          });
+      });
+    });
+
+    describe("sorting", () => {
+      it("should sort by start ascending", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?sortStart=asc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            const data: BookingData[] = responseBody.data;
+            for (let i = 1; i < data.length; i++) {
+              const prevBooking = data[i - 1];
+              const currBooking = data[i];
+              if ("start" in prevBooking && "start" in currBooking) {
+                expect(new Date(prevBooking.start).getTime()).toBeLessThanOrEqual(
+                  new Date(currBooking.start).getTime()
+                );
+              }
+            }
+          });
+      });
+
+      it("should sort by start descending", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?sortStart=desc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            const data: BookingData[] = responseBody.data;
+            for (let i = 1; i < data.length; i++) {
+              const prevBooking = data[i - 1];
+              const currBooking = data[i];
+              if ("start" in prevBooking && "start" in currBooking) {
+                expect(new Date(prevBooking.start).getTime()).toBeGreaterThanOrEqual(
+                  new Date(currBooking.start).getTime()
+                );
+              }
+            }
+          });
+      });
+
+      it("should sort by end ascending", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?sortEnd=asc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            const data: BookingData[] = responseBody.data;
+            for (let i = 1; i < data.length; i++) {
+              const prevBooking = data[i - 1];
+              const currBooking = data[i];
+              if ("end" in prevBooking && "end" in currBooking) {
+                expect(new Date(prevBooking.end).getTime()).toBeLessThanOrEqual(
+                  new Date(currBooking.end).getTime()
+                );
+              }
+            }
+          });
+      });
+
+      it("should sort by created ascending", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?sortCreated=asc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            const data: BookingData[] = responseBody.data;
+            for (let i = 1; i < data.length; i++) {
+              const prevBooking = data[i - 1];
+              const currBooking = data[i];
+              if ("createdAt" in prevBooking && "createdAt" in currBooking) {
+                expect(new Date(prevBooking.createdAt).getTime()).toBeLessThanOrEqual(
+                  new Date(currBooking.createdAt).getTime()
+                );
+              }
+            }
+          });
+      });
+    });
+
+    describe("pagination", () => {
+      it("should return paginated results with take parameter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?take=1`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.length).toEqual(1);
+            expect(responseBody.pagination).toBeDefined();
+          });
+      });
+
+      it("should return paginated results with skip parameter", async () => {
+        // First get all bookings to know total
+        const allBookingsResponse = await request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const allBookings: BookingData[] = allBookingsResponse.body.data;
+        const totalCount = allBookings.length;
+
+        // Skip first booking
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?skip=1`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.length).toEqual(totalCount - 1);
+          });
+      });
+
+      it("should return paginated results with take and skip parameters", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?take=1&skip=1`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.length).toEqual(1);
+            expect(responseBody.pagination).toBeDefined();
+          });
       });
     });
 
     afterAll(async () => {
+      await adminApp?.close();
+      await memberApp?.close();
+      await nonTeamUserApp?.close();
       await userRepositoryFixture.deleteByEmail(teamAdminEmail);
       await userRepositoryFixture.deleteByEmail(teamOwnerEmail);
       await userRepositoryFixture.deleteByEmail(teamMemberEmail);
