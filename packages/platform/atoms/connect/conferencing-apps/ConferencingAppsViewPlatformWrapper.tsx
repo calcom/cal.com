@@ -4,8 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useReducer, useState } from "react";
 
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
-import { AppList } from "@calcom/features/apps/components/AppList";
-import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import { AppList } from "@calcom/web/modules/apps/components/AppList";
+import DisconnectIntegrationModal from "@calcom/web/modules/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
@@ -58,7 +58,7 @@ type RemoveAppParams = { callback: () => void; app?: App["slug"] };
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
+      <div className="divide-subtle border-subtle stack-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>

@@ -7,16 +7,16 @@ import classNames from "@calcom/ui/classNames";
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
 
-export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
+export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded-[4px] gap-x-1", {
   variants: {
     variant: {
       default: "bg-attention text-attention",
       warning: "bg-attention text-attention",
       orange: "bg-attention text-attention",
-      success: "bg-success text-success",
-      green: "bg-success text-success",
+      success: "bg-cal-success text-success",
+      green: "bg-cal-success text-success",
       gray: "bg-emphasis text-emphasis",
-      blue: "bg-info text-info",
+      blue: "bg-cal-info text-info",
       red: "bg-error text-error",
       error: "bg-error text-error",
       grayWithoutHover: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800",

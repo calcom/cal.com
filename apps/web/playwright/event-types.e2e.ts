@@ -1,8 +1,7 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import {
@@ -182,6 +181,9 @@ test.describe("Event Types tests", () => {
        * Verify first organizer address
        */
       await page.goto(previewLink ?? "");
+      await page.waitForURL((url) => {
+        return url.searchParams.get("overlayCalendar") === "true";
+      });
       await selectFirstAvailableTimeSlotNextMonth(page);
       await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);
@@ -212,14 +214,16 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+19199999999")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toHaveCount(2);
+        await expect(page.locator("text=+19199999999").first()).toBeVisible();
+        await expect(page.locator("text=+19199999999").nth(1)).toBeVisible();
       });
 
       test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
         await gotoFirstEventType(page);
 
         await page.getByTestId("location-select").click();
-        await page.locator(`text="Organizer Phone Number"`).click();
+        await page.getByTestId("location-select-item-userPhone").click();
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
         await page.locator(`input[name="${locationInputName}"]`).clear();
@@ -274,7 +278,6 @@ test.describe("Event Types tests", () => {
       });
 
       // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-      // eslint-disable-next-line playwright/no-skipped-test
       test.skip("Can remove location from multiple locations that are saved", async ({ page }) => {
         await gotoFirstEventType(page);
 
@@ -364,7 +367,7 @@ test.describe("Event Types tests", () => {
 
         // Add Multiple Organizer Phone Number options
         await page.getByTestId("location-select").last().click();
-        await page.locator(`text="Organizer Phone Number"`).click();
+        await page.getByTestId("location-select-item-userPhone").click();
 
         const organizerPhoneNumberInputName = (idx: number) => `locations[${idx}].hostPhoneNumber`;
 
@@ -377,7 +380,7 @@ test.describe("Event Types tests", () => {
         await page.locator("[data-testid=add-location]").click();
 
         const testPhoneInputValue2 = "9188888888";
-        await page.locator(`text="Organizer Phone Number"`).last().click();
+        await page.getByTestId("location-select-item-userPhone").last().click();
         await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).waitFor();
         await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).fill(testPhoneInputValue2);
         await checkDisplayLocation(page);
@@ -419,7 +422,6 @@ test.describe("Event Types tests", () => {
     });
     test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
       page,
-      users,
     }) => {
       await gotoFirstEventType(page);
       await expect(page.locator("[data-testid=event-title]")).toBeVisible();
@@ -547,7 +549,7 @@ test.describe("Event Types tests", () => {
         await expect(page.locator(`text="Ihr Name"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="E-Mail Adresse"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zusätzliche Notizen"`).nth(0)).toBeVisible();
-        await expect(page.locator(`text="+ Weitere Gäste"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Weitere Gäste"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zurück"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Bestätigen"`).nth(0)).toBeVisible();
       });
@@ -627,9 +629,8 @@ test.describe("Event Types tests", () => {
 });
 
 const selectAttendeePhoneNumber = async (page: Page) => {
-  const locationOptionText = "Attendee Phone Number";
   await page.getByTestId("location-select").click();
-  await page.locator(`text=${locationOptionText}`).click();
+  await page.getByTestId("location-select-item-phone").click();
 };
 
 /**

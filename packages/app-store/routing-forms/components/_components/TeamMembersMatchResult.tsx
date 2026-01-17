@@ -83,7 +83,7 @@ export const TeamMembersMatchResult = ({
   };
 
   return (
-    <div className="text-default mt-2 space-y-2">
+    <div className="text-default mt-2 stack-y-2">
       <div className="mt-4">
         {membersMatchResult.contactOwnerEmail ? (
           <div data-testid="contact-owner-email">

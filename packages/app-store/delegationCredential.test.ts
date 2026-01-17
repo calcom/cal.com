@@ -1,4 +1,6 @@
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
+
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -6,7 +8,6 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -20,11 +21,8 @@ import {
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
 } from "./delegationCredential";
 
-// Mock OrganizationRepository
-vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository", () => ({
-  OrganizationRepository: {
-    findByMemberEmail: vi.fn(),
-  },
+vi.mock("@calcom/prisma", () => ({
+  prisma: {},
 }));
 
 // Mock DelegationCredentialRepository
@@ -108,6 +106,7 @@ const mockOrganization = {
   hideTeamProfileLink: false,
   rrResetInterval: null,
   rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+  autoOptInFeatures: false,
 };
 
 // Credential Builders
@@ -117,7 +116,7 @@ const buildDelegationCredential = (overrides = {}) => ({
   id: -1,
   delegatedToId: mockDelegationCredential.id,
   userId: mockUser.id,
-  user: { email: mockUser.email },
+  user: { email: mockUser.email, name: null },
   key: { access_token: "NOOP_UNUSED_DELEGATION_TOKEN" },
   invalid: false,
   teamId: null,
@@ -187,7 +186,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
   });
 
   it("should return empty array when no DelegationCredential found", async () => {

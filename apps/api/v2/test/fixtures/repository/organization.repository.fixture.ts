@@ -37,6 +37,20 @@ export class OrganizationRepositoryFixture {
     });
   }
 
+  async updateSettings(
+    teamId: Team["id"],
+    settings: {
+      orgAutoAcceptEmail?: string;
+      isOrganizationVerified?: boolean;
+      isOrganizationConfigured?: boolean;
+    }
+  ) {
+    return this.prismaWriteClient.organizationSettings.update({
+      where: { organizationId: teamId },
+      data: settings,
+    });
+  }
+
   async delete(teamId: Team["id"]) {
     return await this.prismaWriteClient.$transaction(async (prisma) => {
       await prisma.organizationSettings.delete({

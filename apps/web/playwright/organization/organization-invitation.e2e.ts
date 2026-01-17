@@ -19,81 +19,75 @@ test.afterEach(async ({ users, orgs }) => {
 
 test.describe("Organization", () => {
   test.describe("Email not matching orgAutoAcceptEmail", () => {
-    test("nonexisting user invited to an organization", async ({ browser, page, users, emails }) => {
+    test("nonexisting user invited to an organization by email", async ({ browser, page, users, emails }) => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
       await page.goto(`/settings/organizations/${org.slug}/members`);
 
-      await test.step("By email", async () => {
-        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
-        // '-domain' because the email doesn't match orgAutoAcceptEmail
-        const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
+      const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
 
-        await inviteAnEmail(page, invitedUserEmail);
-        const inviteLink = await expectInvitationEmailToBeReceived(
-          page,
-          emails,
-          invitedUserEmail,
-          `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
-          "signup?token"
-        );
+      await inviteAnEmail(page, invitedUserEmail);
+      const inviteLink = await expectInvitationEmailToBeReceived(
+        page,
+        emails,
+        invitedUserEmail,
+        `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
+        "signup?token"
+      );
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: false,
-          email: invitedUserEmail,
-        });
-
-        assertInviteLink(inviteLink);
-        await signupFromEmailInviteLink({
-          browser,
-          inviteLink,
-          expectedEmail: invitedUserEmail,
-          expectedUsername: usernameDerivedFromEmail,
-        });
-
-        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
+      assertInviteLink(inviteLink);
+      await signupFromEmailInviteLink({
+        browser,
+        inviteLink,
+        expectedEmail: invitedUserEmail,
+        expectedUsername: usernameDerivedFromEmail,
       });
 
-      await test.step("By invite link", async () => {
-        const inviteLink = await copyInviteLink(page);
-        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
-        // '-domain' because the email doesn't match orgAutoAcceptEmail
-        const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
-        await signupFromInviteLink({ browser, inviteLink, email });
-        const dbUser = await prisma.user.findUnique({ where: { email } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email,
-        });
+      const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: invitedUserEmail,
+      });
+    });
+
+    test("nonexisting user invited to an organization by invite link", async ({ browser, page, users }) => {
+      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
+      const { team: org } = await orgOwner.getOrgMembership();
+      await orgOwner.apiLogin();
+      await page.goto(`/settings/organizations/${org.slug}/members`);
+
+      const inviteLink = await copyInviteLink(page);
+      const email = users.trackEmail({ username: "rick", domain: "domain.com" });
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
+      await signupFromInviteLink({ browser, inviteLink, email });
+      const dbUser = await prisma.user.findUnique({ where: { email } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email,
       });
     });
 
     // This test is already covered by booking.e2e.ts where existing user is invited and his booking links are tested.
     // We can re-test here when we want to test some more scenarios.
-     
+
     test("existing user invited to an organization", () => {});
 
-    test("nonexisting user invited to a Team inside organization", async ({
+    test("nonexisting user invited to a Team inside organization by email", async ({
       browser,
       page,
       users,
@@ -104,102 +98,91 @@ test.describe("Organization", () => {
       const { team } = await orgOwner.getFirstTeamMembership();
       const { team: org } = await orgOwner.getOrgMembership();
 
-      await test.step("By email", async () => {
-        await page.goto(`/settings/teams/${team.id}/settings`);
-        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
-        // '-domain' because the email doesn't match orgAutoAcceptEmail
-        const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
-        await inviteAnEmail(page, invitedUserEmail, true);
-        await expectUserToBeAMemberOfTeam({
-          page,
-          teamId: team.id,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: false,
-          email: invitedUserEmail,
-        });
+      await page.goto(`/settings/teams/${team.id}/settings`);
+      const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
+      await inviteAnEmail(page, invitedUserEmail, true);
+      const inviteLink = await expectInvitationEmailToBeReceived(
+        page,
+        emails,
+        invitedUserEmail,
+        `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
+        "signup?token"
+      );
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: false,
-          email: invitedUserEmail,
-        });
+      assertInviteLink(inviteLink);
 
-        const inviteLink = await expectInvitationEmailToBeReceived(
-          page,
-          emails,
-          invitedUserEmail,
-          `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
-          "signup?token"
-        );
-
-        assertInviteLink(inviteLink);
-
-        await signupFromEmailInviteLink({
-          browser,
-          inviteLink,
-          expectedEmail: invitedUserEmail,
-          expectedUsername: usernameDerivedFromEmail,
-        });
-
-        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-
-        await expectUserToBeAMemberOfTeam({
-          page,
-          teamId: team.id,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
-
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
+      await signupFromEmailInviteLink({
+        browser,
+        inviteLink,
+        expectedEmail: invitedUserEmail,
+        expectedUsername: usernameDerivedFromEmail,
       });
 
-      await test.step("By invite link", async () => {
-        await page.goto(`/settings/teams/${team.id}/settings`);
-        const inviteLink = await copyInviteLink(page, true);
-        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
-        // '-domain' because the email doesn't match orgAutoAcceptEmail
-        const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
-        await signupFromInviteLink({ browser, inviteLink, email });
+      const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
 
-        const dbUser = await prisma.user.findUnique({ where: { email } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-        await expectUserToBeAMemberOfTeam({
-          teamId: team.id,
-          page,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: email,
-        });
+      await expectUserToBeAMemberOfTeam({
+        page,
+        teamId: team.id,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: invitedUserEmail,
+      });
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: email,
-        });
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: invitedUserEmail,
+      });
+    });
+
+    test("nonexisting user invited to a Team inside organization by invite link", async ({
+      browser,
+      page,
+      users,
+    }) => {
+      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, hasSubteam: true });
+      await orgOwner.apiLogin();
+      const { team } = await orgOwner.getFirstTeamMembership();
+      const { team: org } = await orgOwner.getOrgMembership();
+
+      await page.goto(`/settings/teams/${team.id}/settings`);
+      const inviteLink = await copyInviteLink(page, true);
+      const email = users.trackEmail({ username: "rick", domain: "domain.com" });
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
+      await signupFromInviteLink({ browser, inviteLink, email });
+
+      const dbUser = await prisma.user.findUnique({ where: { email } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+      await expectUserToBeAMemberOfTeam({
+        teamId: team.id,
+        page,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: email,
+      });
+
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: email,
       });
     });
   });
 
   test.describe("Email matching orgAutoAcceptEmail and a Verified Organization with DNS Setup Done", () => {
-    test("nonexisting user is invited to Org", async ({ browser, page, users, emails }) => {
+    test("nonexisting user is invited to Org by email", async ({ browser, page, users, emails }) => {
       const orgOwner = await users.create(undefined, {
         hasTeam: true,
         isOrg: true,
@@ -210,69 +193,39 @@ test.describe("Organization", () => {
       await orgOwner.apiLogin();
       await page.goto(`/settings/organizations/${org.slug}/members`);
 
-      await test.step("By email", async () => {
-        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
-        const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
-        await inviteAnEmail(page, invitedUserEmail);
-        const inviteLink = await expectInvitationEmailToBeReceived(
-          page,
-          emails,
-          invitedUserEmail,
-          `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
-          "signup?token"
-        );
+      const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
+      const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
+      await inviteAnEmail(page, invitedUserEmail);
+      const inviteLink = await expectInvitationEmailToBeReceived(
+        page,
+        emails,
+        invitedUserEmail,
+        `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
+        "signup?token"
+      );
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
-
-        assertInviteLink(inviteLink);
-        await signupFromEmailInviteLink({
-          browser,
-          inviteLink,
-          expectedEmail: invitedUserEmail,
-          expectedUsername: usernameDerivedFromEmail,
-        });
-
-        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
+      assertInviteLink(inviteLink);
+      await signupFromEmailInviteLink({
+        browser,
+        inviteLink,
+        expectedEmail: invitedUserEmail,
+        expectedUsername: usernameDerivedFromEmail,
       });
 
-      await test.step("By invite link", async () => {
-        const inviteLink = await copyInviteLink(page);
-        const email = users.trackEmail({ username: "rick", domain: "example.com" });
-        const usernameDerivedFromEmail = email.split("@")[0];
-        await signupFromInviteLink({ browser, inviteLink, email });
+      const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
 
-        const dbUser = await prisma.user.findUnique({ where: { email } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email,
-        });
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: invitedUserEmail,
       });
     });
 
-    // Such a user has user.username changed directly in addition to having the new username in the profile.username
-    test("existing user migrated to an organization", async ({ users, page, emails }) => {
+    test("nonexisting user is invited to Org by invite link", async ({ browser, page, users }) => {
       const orgOwner = await users.create(undefined, {
         hasTeam: true,
         isOrg: true,
@@ -281,49 +234,102 @@ test.describe("Organization", () => {
       });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
-      const { existingUser } = await test.step("Invite an existing user to an organization", async () => {
-        const existingUser = await users.create({
-          username: "john",
-          emailDomain: org.organizationSettings?.orgAutoAcceptEmail ?? "",
-          name: "John Outside Organization",
-        });
+      await page.goto(`/settings/organizations/${org.slug}/members`);
 
-        await moveUserToOrg({
-          user: existingUser,
-          targetOrg: {
-            username: `${existingUser.username}-org`,
-            id: org.id,
-            membership: {
-              role: MembershipRole.MEMBER,
-              accepted: true,
-            },
-          },
-          shouldMoveTeams: false,
-        });
-        return { existingUser };
-      });
+      const inviteLink = await copyInviteLink(page);
+      const email = users.trackEmail({ username: "rick", domain: "example.com" });
+      const usernameDerivedFromEmail = email.split("@")[0];
+      await signupFromInviteLink({ browser, inviteLink, email });
 
-      await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
-        await orgOwner.logout();
-        await page.goto("/");
-        await page.waitForLoadState();
-        await page.goto("/signup");
-        await expect(page.locator("text=Create your account")).toBeVisible();
-        await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-        await page.locator('[data-testid="continue-with-email-button"]').click();
-        await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
-
-         
-        await page.locator('input[name="username"]').fill(existingUser.username!);
-        await page
-          .locator('input[name="email"]')
-          .fill(`${existingUser.username}-differnet-email@example.com`);
-        await page.locator('input[name="password"]').fill("Password99!");
-        await expect(page.locator('button[type="submit"]')).toBeDisabled();
+      const dbUser = await prisma.user.findUnique({ where: { email } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email,
       });
     });
 
-    test("nonexisting user is invited to a team inside organization", async ({
+    // Such a user has user.username changed directly in addition to having the new username in the profile.username
+    test("existing user migrated to an organization", async ({ users }) => {
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        isOrgVerified: true,
+        isDnsSetup: true,
+      });
+      const { team: org } = await orgOwner.getOrgMembership();
+      await orgOwner.apiLogin();
+      const existingUser = await users.create({
+        username: "john",
+        emailDomain: org.organizationSettings?.orgAutoAcceptEmail ?? "",
+        name: "John Outside Organization",
+      });
+
+      await moveUserToOrg({
+        user: existingUser,
+        targetOrg: {
+          username: `${existingUser.username}-org`,
+          id: org.id,
+          membership: {
+            role: MembershipRole.MEMBER,
+            accepted: true,
+          },
+        },
+        shouldMoveTeams: false,
+      });
+    });
+
+    test("signing up with the previous username of the migrated user - shouldn't be allowed", async ({
+      users,
+      page,
+    }) => {
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        isOrgVerified: true,
+        isDnsSetup: true,
+      });
+      const { team: org } = await orgOwner.getOrgMembership();
+      await orgOwner.apiLogin();
+      const existingUser = await users.create({
+        username: "john",
+        emailDomain: org.organizationSettings?.orgAutoAcceptEmail ?? "",
+        name: "John Outside Organization",
+      });
+
+      await moveUserToOrg({
+        user: existingUser,
+        targetOrg: {
+          username: `${existingUser.username}-org`,
+          id: org.id,
+          membership: {
+            role: MembershipRole.MEMBER,
+            accepted: true,
+          },
+        },
+        shouldMoveTeams: false,
+      });
+
+      await orgOwner.logout();
+      await page.goto("/");
+      await page.waitForLoadState();
+      await page.goto("/signup");
+      await expect(page.locator("text=Create your account")).toBeVisible();
+      await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+      await page.locator('[data-testid="continue-with-email-button"]').click();
+      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+
+      await page.locator('input[name="username"]').fill(existingUser.username!);
+      await page.locator('input[name="email"]').fill(`${existingUser.username}-differnet-email@example.com`);
+      await page.locator('input[name="password"]').fill("Password99!");
+      await expect(page.locator('button[type="submit"]')).toBeDisabled();
+    });
+
+    test("nonexisting user is invited to a team inside organization by email", async ({
       browser,
       page,
       users,
@@ -341,95 +347,93 @@ test.describe("Organization", () => {
 
       await orgOwner.apiLogin();
 
-      await test.step("By email", async () => {
-        await page.goto(`/settings/teams/${team.id}/settings`);
-        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
-        const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
-        await inviteAnEmail(page, invitedUserEmail, true);
-        await expectUserToBeAMemberOfTeam({
-          page,
-          teamId: team.id,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
+      await page.goto(`/settings/teams/${team.id}/settings`);
+      const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
+      const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
+      await inviteAnEmail(page, invitedUserEmail, true);
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
-        const inviteLink = await expectInvitationEmailToBeReceived(
-          page,
-          emails,
-          invitedUserEmail,
-          `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
-          "signup?token"
-        );
+      const inviteLink = await expectInvitationEmailToBeReceived(
+        page,
+        emails,
+        invitedUserEmail,
+        `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
+        "signup?token"
+      );
 
-        assertInviteLink(inviteLink);
+      assertInviteLink(inviteLink);
 
-        await signupFromEmailInviteLink({
-          browser,
-          inviteLink,
-          expectedEmail: invitedUserEmail,
-          expectedUsername: usernameDerivedFromEmail,
-        });
-
-        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-
-        await expectUserToBeAMemberOfTeam({
-          page,
-          teamId: team.id,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
-
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
+      await signupFromEmailInviteLink({
+        browser,
+        inviteLink,
+        expectedEmail: invitedUserEmail,
+        expectedUsername: usernameDerivedFromEmail,
       });
 
-      await test.step("By invite link", async () => {
-        await page.goto(`/settings/teams/${team.id}/settings`);
+      const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
 
-        const inviteLink = await copyInviteLink(page, true);
-        const email = users.trackEmail({ username: "rick", domain: "example.com" });
-        // '-domain' because the email doesn't match orgAutoAcceptEmail
-        const usernameDerivedFromEmail = `${email.split("@")[0]}`;
+      await expectUserToBeAMemberOfTeam({
+        page,
+        teamId: team.id,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: invitedUserEmail,
+      });
 
-        await signupFromInviteLink({ browser, inviteLink, email });
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: invitedUserEmail,
+      });
+    });
 
-        const dbUser = await prisma.user.findUnique({ where: { email } });
-        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
-        await expectUserToBeAMemberOfTeam({
-          teamId: team.id,
-          page,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: email,
-        });
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: email,
-        });
+    test("nonexisting user is invited to a team inside organization by invite link", async ({
+      browser,
+      page,
+      users,
+    }) => {
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        hasSubteam: true,
+        isOrgVerified: true,
+        isDnsSetup: true,
+      });
+      const { team: org } = await orgOwner.getOrgMembership();
+      const { team } = await orgOwner.getFirstTeamMembership();
+
+      await orgOwner.apiLogin();
+
+      await page.goto(`/settings/teams/${team.id}/settings`);
+
+      const inviteLink = await copyInviteLink(page, true);
+      const email = users.trackEmail({ username: "rick", domain: "example.com" });
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${email.split("@")[0]}`;
+
+      await signupFromInviteLink({ browser, inviteLink, email });
+
+      const dbUser = await prisma.user.findUnique({ where: { email } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+      await expectUserToBeAMemberOfTeam({
+        teamId: team.id,
+        page,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: email,
+      });
+      await expectUserToBeAMemberOfOrganization({
+        page,
+        orgSlug: org.slug,
+        username: usernameDerivedFromEmail,
+        role: "member",
+        isMemberShipAccepted: true,
+        email: email,
       });
     });
 
@@ -594,7 +598,7 @@ async function expectUserToBeAMemberOfTeam({
   page,
   teamId,
   email,
-  role,
+  role: _role,
   username,
   isMemberShipAccepted,
 }: {

@@ -1,4 +1,4 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   getOrganizer,
@@ -6,17 +6,21 @@ import {
   TestData,
   createBookingScenario,
   createOrganization,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/scheduleBookingReminders";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import tasker from "@calcom/features/tasker";
+import * as rateLimitModule from "@calcom/lib/checkRateLimitAndThrowError";
 import type { Prisma } from "@calcom/prisma/client";
 import {
   BookingStatus,
@@ -25,16 +29,14 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
 } from "@calcom/prisma/enums";
-import {
-  deleteRemindersOfActiveOnIds,
-  scheduleBookingReminders,
-  bookingSelect,
-} from "@calcom/trpc/server/routers/viewer/workflows/util";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
+import { deleteRemindersOfActiveOnIds } from "../deleteRemindersOfActiveOnIds";
+import { scheduleAIPhoneCall } from "../reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";
+import { bookingSelect } from "../scheduleWorkflowNotifications";
 
 const workflowSelect = {
   id: true,
@@ -261,7 +263,7 @@ vi.mock("@calcom/lib/constants", async () => {
 });
 
 describe("deleteRemindersOfActiveOnIds", () => {
-  test("should delete all reminders and tasks from removed event types", async ({}) => {
+  test("should delete all reminders and tasks from removed event types", async () => {
     const organizer = getOrganizer({
       name: "Organizer",
       email: "organizer@example.com",
@@ -326,7 +328,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
     );
   });
 
-  test("should delete all reminders from removed event types (org workflow)", async ({}) => {
+  test("should delete all reminders from removed event types (org workflow)", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",
@@ -454,7 +456,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
 describe("scheduleBookingReminders", () => {
   setupAndTeardown();
 
-  test("schedules workflow notifications with before event trigger and email to host action", async ({}) => {
+  test("schedules workflow notifications with before event trigger and email to host action", async () => {
     // organizer is part of org and two teams
     const organizer = getOrganizer({
       name: "Organizer",
@@ -547,7 +549,7 @@ describe("scheduleBookingReminders", () => {
     });
   });
 
-  test("schedules workflow notifications with after event trigger and email to host action", async ({}) => {
+  test("schedules workflow notifications with after event trigger and email to host action", async () => {
     // organizer is part of org and two teams
     const organizer = getOrganizer({
       name: "Organizer",
@@ -773,7 +775,7 @@ describe("scheduleBookingReminders", () => {
     });
   });
 
-  test("should not schedule reminders if date is already in the past", async ({}) => {
+  test("should not schedule reminders if date is already in the past", async () => {
     const organizer = getOrganizer({
       name: "Organizer",
       email: "organizer@example.com",
@@ -850,7 +852,7 @@ describe("scheduleBookingReminders", () => {
 });
 
 describe("deleteWorkfowRemindersOfRemovedMember", () => {
-  test("deletes all workflow reminders when member is removed from org", async ({}) => {
+  test("deletes all workflow reminders when member is removed from org", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",
@@ -926,7 +928,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
     expect(tasks.length).toBe(0);
   });
 
-  test("deletes reminders if member is removed from an org team ", async ({}) => {
+  test("deletes reminders if member is removed from an org team ", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",
@@ -1098,5 +1100,237 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   test("should use SMTP", async () => {
     await scheduleEmailReminder(baseArgs);
     expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+  });
+});
+
+describe("Routing Form Variables", () => {
+  beforeEach(() => {
+    // Reset global test storage
+    globalThis.testEmails = [];
+    globalThis.testSMS = [];
+  });
+
+  test("should substitute routing form variables in email subject and body", async () => {
+    const mockFormData = {
+      responses: {
+        "contact person": {
+          value: "Jane Smith",
+          response: "Jane Smith",
+        },
+        "company name": {
+          value: "Acme Solutions",
+          response: "Acme Solutions",
+        },
+        department: {
+          value: "Engineering",
+          response: "Engineering",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
+
+    const emailArgs = {
+      emailBody: "Dear {CONTACT_PERSON} from {COMPANY_NAME} ({DEPARTMENT}), thank you for your submission.",
+      emailSubject: "Welcome {COMPANY_NAME} - {DEPARTMENT} Team",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      sendTo: ["recipient@test.com"],
+      action: WorkflowActions.EMAIL_HOST,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+    };
+
+    await scheduleEmailReminder(emailArgs);
+
+    // Check that email was sent with processed variables
+    expect(globalThis.testEmails).toHaveLength(1);
+    const sentEmail = globalThis.testEmails[0];
+
+    expect(sentEmail.subject).toBe("Welcome Acme Solutions - Engineering Team");
+    expect(sentEmail.html).toContain("Dear Jane Smith from Acme Solutions (Engineering)");
+  });
+
+  test("should handle array values in routing form variables", async () => {
+    // Using actual structure - for multi-select fields, value is array of labels, response is array of objects
+    const mockFormData = {
+      responses: {
+        "selected services": {
+          value: ["web development", "mobile app", "consulting"],
+          response: [
+            { label: "web development", id: "web-dev" },
+            { label: "mobile app", id: "mobile" },
+            { label: "consulting", id: "consulting" },
+          ],
+        },
+        "company name": {
+          value: "Digital Corp",
+          response: "Digital Corp",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
+
+    const emailArgs = {
+      emailBody: "Hello {COMPANY_NAME}, you selected: {SELECTED_SERVICES}",
+      emailSubject: "Services for {COMPANY_NAME}",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      sendTo: ["test@example.com"],
+      action: WorkflowActions.EMAIL_HOST,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+    };
+
+    await scheduleEmailReminder(emailArgs);
+
+    expect(globalThis.testEmails).toHaveLength(1);
+    const sentEmail = globalThis.testEmails[0];
+
+    expect(sentEmail.subject).toBe("Services for Digital Corp");
+    expect(sentEmail.html).toContain(
+      "Hello Digital Corp, you selected: web development, mobile app, consulting"
+    );
+  });
+
+  test("should handle field names with special characters in routing forms", async () => {
+    const mockFormData = {
+      responses: {
+        "company-name!@#": {
+          value: "Special Characters LLC",
+          response: "Special Characters LLC",
+        },
+        "phone number (primary)": {
+          value: "+1-555-0123",
+          response: "+1-555-0123",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
+
+    const emailArgs = {
+      emailBody: "Company: {COMPANYNAME}, Phone: {PHONE_NUMBER_PRIMARY}",
+      emailSubject: "Contact info for {COMPANYNAME}",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      sendTo: ["test@example.com"],
+      action: WorkflowActions.EMAIL_HOST,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+    };
+
+    await scheduleEmailReminder(emailArgs);
+
+    expect(globalThis.testEmails).toHaveLength(1);
+    const sentEmail = globalThis.testEmails[0];
+
+    expect(sentEmail.subject).toBe("Contact info for Special Characters LLC");
+    expect(sentEmail.html).toContain("Company: Special Characters LLC, Phone: +1-555-0123");
+  });
+
+  test("should pass routing form responses to AI phone call workflows", async () => {
+    // Mock the feature flag
+    const mockCheckFeature = vi
+      .spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally")
+      .mockResolvedValue(true);
+
+    // Mock rate limiting
+    const mockRateLimit = vi
+      .spyOn(rateLimitModule, "checkRateLimitAndThrowError")
+      .mockResolvedValue(undefined);
+
+    // Mock the AI agent setup
+    await prismock.agent.create({
+      data: {
+        id: "test-agent-id",
+        providerAgentId: "provider-123",
+        outboundPhoneNumbers: {
+          create: {
+            phoneNumber: "+1234567890",
+            subscriptionStatus: "ACTIVE",
+          },
+        },
+      },
+    });
+
+    await prismock.workflowStep.create({
+      data: {
+        id: 999,
+        stepNumber: 1,
+        action: WorkflowActions.CAL_AI_PHONE_CALL,
+        workflowId: 1,
+        agentId: "test-agent-id",
+        verifiedAt: new Date(),
+      },
+    });
+
+    const mockFormData = {
+      responses: {
+        "customer name": {
+          value: "John Doe",
+          response: "John Doe",
+        },
+        "phone preference": {
+          value: "mobile",
+          response: { label: "mobile", id: "mobile" },
+        },
+        priority: {
+          value: "high",
+          response: { label: "high", id: "high" },
+        },
+      },
+      routedEventTypeId: 123,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
+
+    const aiPhoneArgs = {
+      submittedPhoneNumber: "+1-555-9999",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      timeSpan: { time: null, timeUnit: null },
+      workflowStepId: 999,
+      userId: 1,
+      teamId: null,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+      routedEventTypeId: 123,
+    };
+
+    const mockTaskerCreate = vi.spyOn(tasker, "create").mockResolvedValue("task-id");
+
+    await scheduleAIPhoneCall(aiPhoneArgs);
+
+    // Verify that the task was created with form responses
+    expect(mockTaskerCreate).toHaveBeenCalled();
+    expect(mockTaskerCreate).toHaveBeenCalledWith(
+      "executeAIPhoneCall",
+      expect.any(Object),
+      expect.any(Object)
+    );
+    const taskData = mockTaskerCreate.mock.calls[0][1] as {
+      responses?: typeof mockFormData.responses;
+      routedEventTypeId?: number;
+    };
+    expect(taskData.responses).toEqual(mockFormData.responses);
+    expect(taskData.routedEventTypeId).toBe(123);
+
+    // Clean up
+    mockTaskerCreate.mockRestore();
+    mockCheckFeature.mockRestore();
+    mockRateLimit.mockRestore();
   });
 });

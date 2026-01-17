@@ -37,7 +37,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
 
   const existingForm = await prisma.app_RoutingForms_Form.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, name: true },
   });
   if (existingForm) {
     // Check PBAC permissions for updating routing forms only
@@ -144,6 +144,8 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     delete settings.sendUpdatesTo;
   }
 
+  const oldFormName = existingForm?.name;
+
   return await prisma.app_RoutingForms_Form.upsert({
     where: {
       id: id,
@@ -173,7 +175,9 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     update: {
       disabled: disabled,
       fields,
-      name: name,
+      // Don't update name field if the name is the same as the old name to ensure that it doesn't change "name" update triggers which are very costly.
+      // This is an immediate quick workaround. Correct fix is to decouple trigger related work from the transaction.
+      name: oldFormName !== name ? name : undefined,
       description,
       settings: settings === null ? Prisma.JsonNull : settings,
       routes: routes === null ? Prisma.JsonNull : routes,

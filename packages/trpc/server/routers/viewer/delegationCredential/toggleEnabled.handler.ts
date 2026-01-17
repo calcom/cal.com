@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredential";
-import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/email-manager";
+import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/integration-email-service";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import logger from "@calcom/lib/logger";
@@ -50,6 +50,14 @@ export async function toggleDelegationCredentialEnabled(
   });
 
   if (!currentDelegationCredential) {
+    throw new Error("Delegation credential not found");
+  }
+
+  if (!loggedInUser.organizationId) {
+    throw new Error("You must be part of an organization to toggle a delegation credential");
+  }
+
+  if (currentDelegationCredential.organizationId !== loggedInUser.organizationId) {
     throw new Error("Delegation credential not found");
   }
 

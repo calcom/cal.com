@@ -30,7 +30,7 @@ title: "Stripe"
         as the webhook for connected applications.
     </Step>
     <Step title="Select webhook events">
-        Select all `payment_intent` events for the webhook.
+        Select all `payment_intent` and `setup_intent` events for the webhook.
     </Step>
     <Step title="Save the webhook secret">
         Copy the webhook secret (`whsec_...`) to `STRIPE_WEBHOOK_SECRET` in the `.env` file.

@@ -33,7 +33,7 @@ type ContactCreateResult = {
   };
 };
 
-export default class PipedriveCrmService implements CRM {
+class PipedriveCrmService implements CRM {
   private log: typeof logger;
   private tenantId: string;
   private revertApiKey: string;
@@ -52,7 +52,7 @@ export default class PipedriveCrmService implements CRM {
       headers.append("x-revert-t-id", this.tenantId);
       headers.append("Content-Type", "application/json");
 
-      const [firstname, lastname] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
+      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
       const bodyRaw = JSON.stringify({
         firstName: firstname,
         lastName: lastname || "-",
@@ -99,7 +99,7 @@ export default class PipedriveCrmService implements CRM {
         const response = await fetch(`${this.revertApiUrl}crm/contacts/search`, requestOptions);
         const result = (await response.json()) as ContactSearchResult;
         return result;
-      } catch (error) {
+      } catch {
         return { status: "error", results: [] };
       }
     });
@@ -121,7 +121,12 @@ export default class PipedriveCrmService implements CRM {
       startDateTime: event.startTime,
       endDateTime: event.endTime,
       description: this.getMeetingBody(event),
-      location: getLocation(event),
+      location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       associations: {
         contactId: String(contacts[0].id),
       },
@@ -147,7 +152,12 @@ export default class PipedriveCrmService implements CRM {
       startDateTime: event.startTime,
       endDateTime: event.endTime,
       description: this.getMeetingBody(event),
-      location: getLocation(event),
+      location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
     };
     const headers = new Headers();
     headers.append("x-revert-api-token", this.revertApiKey);
@@ -238,4 +248,16 @@ export default class PipedriveCrmService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+}
+
+/**
+ * Factory function that creates a Pipedrive CRM service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  _appOptions?: Record<string, unknown>
+): CRM {
+  return new PipedriveCrmService(credential);
 }

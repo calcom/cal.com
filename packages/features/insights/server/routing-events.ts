@@ -1,6 +1,4 @@
- 
 import mapKeys from "lodash/mapKeys";
- 
 import startCase from "lodash/startCase";
 
 import {
@@ -265,6 +263,7 @@ class RoutingEventsInsights {
     const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
     const ids = new Set<string>();
     const headers = (fields || [])
+      .filter((f) => !f.deleted)
       .map((f) => {
         return {
           id: f.id,
