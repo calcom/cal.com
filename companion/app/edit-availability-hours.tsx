@@ -76,7 +76,10 @@ export default function EditAvailabilityHours() {
           ),
         }}
       />
-      <EditAvailabilityHoursScreenComponent schedule={schedule} onDayPress={handleDayPress} />
+      <EditAvailabilityHoursScreenComponent
+        schedule={schedule ?? null}
+        onDayPress={handleDayPress}
+      />
     </View>
   );
 }
