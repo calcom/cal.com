@@ -1,4 +1,5 @@
 import process from "node:process";
+import { syncVercelEnvVars } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 import dotEnv from "dotenv";
 
@@ -18,7 +19,7 @@ export default defineConfig({
   dirs: [
     "./bookings/lib/tasker/trigger/notifications",
     "./ee/billing/service/proration/tasker/trigger",
-  ],
+  ], // Customize based on your project structure
 
   // Retry configuration
   retries: {
