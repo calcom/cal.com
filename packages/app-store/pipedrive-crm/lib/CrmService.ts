@@ -121,7 +121,12 @@ class PipedriveCrmService implements CRM {
       startDateTime: event.startTime,
       endDateTime: event.endTime,
       description: this.getMeetingBody(event),
-      location: getLocation(event),
+      location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       associations: {
         contactId: String(contacts[0].id),
       },
@@ -147,7 +152,12 @@ class PipedriveCrmService implements CRM {
       startDateTime: event.startTime,
       endDateTime: event.endTime,
       description: this.getMeetingBody(event),
-      location: getLocation(event),
+      location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
     };
     const headers = new Headers();
     headers.append("x-revert-api-token", this.revertApiKey);

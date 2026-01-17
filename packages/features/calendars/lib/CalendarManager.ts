@@ -295,7 +295,7 @@ export const createEvent = async (
 ): Promise<EventResult<NewCalendarEventType>> => {
   // Some calendar libraries may edit the original event so let's clone it
   const formattedEvent = formatCalEvent(originalEvent);
-  const uid: string = getUid(formattedEvent);
+  const uid: string = getUid(formattedEvent.uid);
   const calendar = await getCalendar(credential, "booking");
   let success = true;
   let calError: string | undefined = undefined;
@@ -394,7 +394,7 @@ export const updateEvent = async (
   }
 
   const calEvent = processEvent(formattedEvent);
-  const uid = getUid(calEvent);
+  const uid = getUid(calEvent.uid);
   const calendar = await getCalendar(credential, "booking");
   let success = false;
   let calError: string | undefined = undefined;

@@ -189,7 +189,12 @@ class GoogleCalendarService implements Calendar {
     }
 
     if (calEvent.location) {
-      payload["location"] = getLocation(calEvent);
+      payload["location"] = getLocation({
+        videoCallData: calEvent.videoCallData,
+        additionalInformation: calEvent.additionalInformation,
+        location: calEvent.location,
+        uid: calEvent.uid,
+      });
     }
 
     if (calEvent.recurringEvent) {
@@ -246,7 +251,12 @@ class GoogleCalendarService implements Calendar {
             calendarId: selectedCalendar,
             eventId: event.id || "",
             requestBody: {
-              location: getLocation(calEvent),
+              location: getLocation({
+                videoCallData: calEvent.videoCallData,
+                additionalInformation: calEvent.additionalInformation,
+                location: calEvent.location,
+                uid: calEvent.uid,
+              }),
               description: calEvent.calendarDescription,
             },
           });
@@ -345,7 +355,12 @@ class GoogleCalendarService implements Calendar {
     };
 
     if (event.location) {
-      payload["location"] = getLocation(event);
+      payload["location"] = getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      });
     }
 
     if (event.conferenceData && event.location === MeetLocationType) {
