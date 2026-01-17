@@ -12,6 +12,9 @@ vi.mock("@calcom/prisma", () => ({
     membership: {
       findMany: vi.fn(),
     },
+    team: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -31,31 +34,46 @@ describe("LegacyRemoveMemberService", () => {
       it("should allow org admin to remove members from teams they are NOT part of", async () => {
         const userId = 1;
         const isOrgAdmin = true;
+        const organizationId = 10;
         const teamIds = [100, 200]; // Teams the org admin is not part of
         const memberIds = [2, 3];
+
+        // Mock teams belong to the organization
+        vi.mocked(prisma.team.findMany).mockResolvedValue(
+          teamIds.map((id) => ({ id })) as { id: number }[]
+        );
 
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
+          organizationId,
           memberIds,
           teamIds,
           isOrg: true,
         });
 
         expect(result.hasPermission).toBe(true);
-        // Should not query database for org admin
+        // Should query team.findMany for org validation, but not membership.findMany
+        expect(prisma.team.findMany).toHaveBeenCalled();
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
       });
 
       it("should bypass membership checks for org admins", async () => {
         const userId = 1;
         const isOrgAdmin = true;
+        const organizationId = 10;
         const teamIds = [1, 2, 3];
         const memberIds = [4, 5, 6];
+
+        // Mock teams belong to the organization
+        vi.mocked(prisma.team.findMany).mockResolvedValue(
+          teamIds.map((id) => ({ id })) as { id: number }[]
+        );
 
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
+          organizationId,
           memberIds,
           teamIds,
           isOrg: true,
@@ -69,19 +87,26 @@ describe("LegacyRemoveMemberService", () => {
           expect(result.userRoles?.get(teamId)).toBe(MembershipRole.ADMIN);
         });
 
-        // Should not query database
+        // Should not query membership database for org admin
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
       });
 
       it("should allow org admin to remove from multiple teams at once", async () => {
         const userId = 1;
         const isOrgAdmin = true;
+        const organizationId = 10;
         const teamIds = [1, 2, 3, 4, 5];
         const memberIds = [10, 20];
+
+        // Mock teams belong to the organization
+        vi.mocked(prisma.team.findMany).mockResolvedValue(
+          teamIds.map((id) => ({ id })) as { id: number }[]
+        );
 
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
+          organizationId,
           memberIds,
           teamIds,
           isOrg: true,
@@ -94,12 +119,19 @@ describe("LegacyRemoveMemberService", () => {
       it("should work for org admin even with isOrg=false", async () => {
         const userId = 1;
         const isOrgAdmin = true;
+        const organizationId = 10;
         const teamIds = [1];
         const memberIds = [2];
+
+        // Mock teams belong to the organization
+        vi.mocked(prisma.team.findMany).mockResolvedValue(
+          teamIds.map((id) => ({ id })) as { id: number }[]
+        );
 
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
+          organizationId,
           memberIds,
           teamIds,
           isOrg: false, // Note: isOrg is false
@@ -107,6 +139,49 @@ describe("LegacyRemoveMemberService", () => {
 
         expect(result.hasPermission).toBe(true);
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
+      });
+
+      it("should deny org admin when teams do not belong to their organization", async () => {
+        const userId = 1;
+        const isOrgAdmin = true;
+        const organizationId = 10;
+        const teamIds = [100, 200]; // Teams from another organization
+        const memberIds = [2, 3];
+
+        // Mock: no teams returned (none belong to the organization)
+        vi.mocked(prisma.team.findMany).mockResolvedValue([]);
+
+        const result = await service.checkRemovePermissions({
+          userId,
+          isOrgAdmin,
+          organizationId,
+          memberIds,
+          teamIds,
+          isOrg: true,
+        });
+
+        expect(result.hasPermission).toBe(false);
+      });
+
+      it("should deny org admin when organizationId is null", async () => {
+        const userId = 1;
+        const isOrgAdmin = true;
+        const organizationId = null;
+        const teamIds = [1];
+        const memberIds = [2];
+
+        const result = await service.checkRemovePermissions({
+          userId,
+          isOrgAdmin,
+          organizationId,
+          memberIds,
+          teamIds,
+          isOrg: true,
+        });
+
+        expect(result.hasPermission).toBe(false);
+        // Should not query database when organizationId is null
+        expect(prisma.team.findMany).not.toHaveBeenCalled();
       });
     });
 
@@ -124,6 +199,7 @@ describe("LegacyRemoveMemberService", () => {
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
+          organizationId: null,
           memberIds,
           teamIds,
           isOrg: false,
@@ -146,6 +222,7 @@ describe("LegacyRemoveMemberService", () => {
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
+          organizationId: null,
           memberIds,
           teamIds,
           isOrg: false,
@@ -167,6 +244,7 @@ describe("LegacyRemoveMemberService", () => {
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
+          organizationId: null,
           memberIds,
           teamIds,
           isOrg: false,
@@ -185,6 +263,7 @@ describe("LegacyRemoveMemberService", () => {
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
+          organizationId: null,
           memberIds,
           teamIds,
           isOrg: false,
@@ -207,6 +286,7 @@ describe("LegacyRemoveMemberService", () => {
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
+          organizationId: null,
           memberIds,
           teamIds,
           isOrg: false,
@@ -229,6 +309,7 @@ describe("LegacyRemoveMemberService", () => {
         const result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
+          organizationId: null,
           memberIds,
           teamIds,
           isOrg: false,
@@ -257,6 +338,7 @@ describe("LegacyRemoveMemberService", () => {
             {
               userId,
               isOrgAdmin: false,
+              organizationId: null,
               memberIds,
               teamIds,
               isOrg: false,
@@ -284,6 +366,7 @@ describe("LegacyRemoveMemberService", () => {
             {
               userId,
               isOrgAdmin: false,
+              organizationId: null,
               memberIds,
               teamIds,
               isOrg: false,
@@ -307,6 +390,7 @@ describe("LegacyRemoveMemberService", () => {
             {
               userId,
               isOrgAdmin: true, // Org admin
+              organizationId: 10,
               memberIds,
               teamIds,
               isOrg: true,
@@ -334,6 +418,7 @@ describe("LegacyRemoveMemberService", () => {
             {
               userId,
               isOrgAdmin: false,
+              organizationId: null,
               memberIds,
               teamIds,
               isOrg: false,
@@ -361,6 +446,7 @@ describe("LegacyRemoveMemberService", () => {
             {
               userId,
               isOrgAdmin: false,
+              organizationId: null,
               memberIds,
               teamIds,
               isOrg: false,
@@ -383,6 +469,7 @@ describe("LegacyRemoveMemberService", () => {
             {
               userId,
               isOrgAdmin: false,
+              organizationId: null,
               memberIds,
               teamIds,
               isOrg: false,
@@ -413,6 +500,7 @@ describe("LegacyRemoveMemberService", () => {
             {
               userId,
               isOrgAdmin: false,
+              organizationId: null,
               memberIds,
               teamIds,
               isOrg: false,
@@ -469,6 +557,7 @@ describe("LegacyRemoveMemberService", () => {
       const result = await service.checkRemovePermissions({
         userId,
         isOrgAdmin: false,
+        organizationId: null,
         memberIds,
         teamIds,
         isOrg: false,
@@ -488,6 +577,7 @@ describe("LegacyRemoveMemberService", () => {
       const result = await service.checkRemovePermissions({
         userId,
         isOrgAdmin: false,
+        organizationId: null,
         memberIds,
         teamIds,
         isOrg: false,
