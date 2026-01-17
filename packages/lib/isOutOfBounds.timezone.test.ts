@@ -599,4 +599,61 @@ describe("calculatePeriodLimits - PeriodType.RANGE", () => {
       expect(result.startOfRangeStartDayInEventTz!.toISOString()).toBe("2024-01-19T22:00:00.000Z");
     });
   });
+
+  describe("backward compatibility with old format data", () => {
+    it("Old format: Dubai user selected Jan 20 with Dubai event timezone (two bugs canceled out)", () => {
+      // Before this PR, frontend stored dates in browser timezone
+      // Dubai user selecting Jan 20 stored as midnight Jan 20 Dubai = 2024-01-19T20:00:00Z
+      // This "accidentally worked" when event timezone matched browser timezone
+      const periodStartDate = new Date("2024-01-19T20:00:00.000Z"); // Midnight Jan 20 Dubai (old format)
+      const periodEndDate = new Date("2024-01-19T20:00:00.000Z");
+
+      const eventUtcOffset = 240; // Dubai UTC+4 (matches where the user selected the date)
+      const bookerUtcOffset = 240;
+
+      const result = calculatePeriodLimits({
+        periodType: PeriodType.RANGE,
+        periodDays: null,
+        periodCountCalendarDays: null,
+        periodStartDate,
+        periodEndDate,
+        allDatesWithBookabilityStatusInBookerTz: null,
+        eventUtcOffset,
+        bookerUtcOffset,
+      });
+
+      // Old format is detected (time is not 00:00:00 UTC)
+      // Legacy behavior: convert to event timezone → Jan 20 00:00 Dubai → correct!
+      expect(result.startOfRangeStartDayInEventTz!.date()).toBe(20);
+      expect(result.endOfRangeEndDayInEventTz!.date()).toBe(20);
+    });
+
+    it("Old format: Dubai user selected Jan 20 with UTC event timezone (was already broken, stays broken)", () => {
+      // Before this PR, this case was already broken
+      // Dubai user selecting Jan 20 stored as midnight Jan 20 Dubai = 2024-01-19T20:00:00Z
+      // With UTC event timezone, this converts to Jan 19 20:00 UTC → startOf day → Jan 19
+      const periodStartDate = new Date("2024-01-19T20:00:00.000Z"); // Midnight Jan 20 Dubai (old format)
+      const periodEndDate = new Date("2024-01-19T20:00:00.000Z");
+
+      const eventUtcOffset = 0; // UTC event timezone
+      const bookerUtcOffset = 240; // Dubai booker
+
+      const result = calculatePeriodLimits({
+        periodType: PeriodType.RANGE,
+        periodDays: null,
+        periodCountCalendarDays: null,
+        periodStartDate,
+        periodEndDate,
+        allDatesWithBookabilityStatusInBookerTz: null,
+        eventUtcOffset,
+        bookerUtcOffset,
+      });
+
+      // Old format is detected (time is not 00:00:00 UTC)
+      // Legacy behavior: convert to UTC → Jan 19 20:00 UTC → startOf day → Jan 19
+      // This was already broken before, and stays broken (no regression)
+      expect(result.startOfRangeStartDayInEventTz!.date()).toBe(19);
+      expect(result.endOfRangeEndDayInEventTz!.date()).toBe(19);
+    });
+  });
 });

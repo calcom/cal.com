@@ -47,21 +47,40 @@ type EnabledAppType = App & {
 
 /**
  * Normalizes a period date to UTC midnight for the date.
- * Handles both Date objects and ISO strings.
+ * Handles Date objects, ISO strings, and timestamps.
  * For strings, extracts the date part (YYYY-MM-DD) to avoid timezone shifts.
- * For Date objects, extracts UTC components and creates UTC midnight.
+ * For Date objects/timestamps, extracts UTC components and creates UTC midnight.
  */
-function normalizePeriodDate(date: Date | string | null | undefined): Date | undefined {
-  if (!date) return undefined;
+function normalizePeriodDate(date: Date | string | number | null | undefined): Date | undefined {
+  if (date === null || date === undefined) return undefined;
 
+  // Handle string input - extract date part to avoid timezone shifts
   if (typeof date === "string") {
-    // Extract date part from ISO string to avoid timezone shifts
-    const dateOnly = date.slice(0, 10);
-    return new Date(dateOnly);
+    // Check if it looks like an ISO date string (starts with YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}/.test(date)) {
+      const dateOnly = date.slice(0, 10);
+      return new Date(dateOnly);
+    }
+    // Try parsing as a date string
+    const parsed = new Date(date);
+    if (!Number.isNaN(parsed.getTime())) {
+      return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
+    }
+    return undefined;
   }
 
-  // For Date objects, extract UTC components and create UTC midnight
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  // Handle number (timestamp)
+  if (typeof date === "number") {
+    const parsed = new Date(date);
+    return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
+  }
+
+  // Handle Date object - extract UTC components and create UTC midnight
+  if (date instanceof Date && !Number.isNaN(date.getTime())) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  }
+
+  return undefined;
 }
 
 @Injectable()
@@ -153,12 +172,21 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
-    // Normalize period dates to UTC midnight
-    const periodStartDate = normalizePeriodDate(body.periodStartDate);
-    const periodEndDate = normalizePeriodDate(body.periodEndDate);
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
 
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields, periodStartDate, periodEndDate },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,
@@ -185,12 +213,21 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
-    // Normalize period dates to UTC midnight
-    const periodStartDate = normalizePeriodDate(body.periodStartDate);
-    const periodEndDate = normalizePeriodDate(body.periodEndDate);
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
 
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields, periodStartDate, periodEndDate },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,
