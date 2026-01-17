@@ -60,6 +60,7 @@ const CheckedHostField = ({
   isRRWeightsEnabled,
   groupId,
   customClassNames,
+  allowEmailInvites = false,
   ...rest
 }: {
   labelText?: string;
@@ -71,7 +72,9 @@ const CheckedHostField = ({
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
+  allowEmailInvites?: boolean;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
+  const { t } = useLocale();
   return (
     <div className="flex flex-col rounded-md">
       <div>
@@ -83,17 +86,38 @@ const CheckedHostField = ({
               onChange(
                 options.map((option) => ({
                   isFixed,
-                  userId: parseInt(option.value, 10),
+                  userId: option.isEmailInvite ? 0 : parseInt(option.value, 10),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
+                  isEmailInvite: option.isEmailInvite,
+                  email: option.email,
                 }))
               );
           }}
+          allowEmailInvites={allowEmailInvites}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
+              // Handle email invite hosts
+              if ((host as Host & { isEmailInvite?: boolean; email?: string }).isEmailInvite) {
+                const emailHost = host as Host & { isEmailInvite: boolean; email: string };
+                acc.push({
+                  value: `email-${emailHost.email}`,
+                  label: `${emailHost.email} (${t("invite")})`,
+                  avatar: "",
+                  priority: host.priority ?? 2,
+                  isFixed,
+                  weight: host.weight ?? 100,
+                  groupId: host.groupId,
+                  defaultScheduleId: null,
+                  isEmailInvite: true,
+                  email: emailHost.email,
+                });
+                return acc;
+              }
+
               const option = options.find((member) => member.value === host.userId.toString());
               if (!option) return acc;
 
@@ -191,6 +215,7 @@ export type AddMembersWithSwitchProps = {
   groupId: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
+  allowEmailInvites?: boolean;
 };
 
 enum AssignmentState {
@@ -257,6 +282,7 @@ export function AddMembersWithSwitch({
   isSegmentApplicable,
   groupId,
   customClassNames,
+  allowEmailInvites = false,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -342,6 +368,7 @@ export function AddMembersWithSwitch({
               isRRWeightsEnabled={isRRWeightsEnabled}
               groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}
+              allowEmailInvites={allowEmailInvites}
             />
           </div>
         </>
