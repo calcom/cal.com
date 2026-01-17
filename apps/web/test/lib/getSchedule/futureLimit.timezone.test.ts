@@ -59,13 +59,17 @@ function getPeriodTypeData({
   }
 }
 
-vi.mock("@calcom/lib/constants", () => ({
-  IS_PRODUCTION: true,
-  WEBAPP_URL: "http://localhost:3000",
-  RESERVED_SUBDOMAINS: ["auth", "docs"],
-  ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK: 61,
-  SINGLE_ORG_SLUG: "",
-}));
+vi.mock("@calcom/lib/constants", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
+  return {
+    ...actual,
+    IS_PRODUCTION: true,
+    WEBAPP_URL: "http://localhost:3000",
+    RESERVED_SUBDOMAINS: ["auth", "docs"],
+    ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK: 61,
+    SINGLE_ORG_SLUG: "",
+  };
+});
 
 describe("getSchedule", () => {
   const availableSlotsService = getAvailableSlotsService();
