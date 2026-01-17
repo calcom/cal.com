@@ -377,6 +377,13 @@ jobs:
     uses: ./.github/workflows/companion-build.yml
     secrets: inherit
 
+  typecheck-companion:
+    name: Companion type check
+    needs: [prepare]
+    if: needs.prepare.outputs.has-companion == 'true'
+    uses: ./.github/workflows/companion-typecheck.yml
+    secrets: inherit
+
   build:
     name: Production builds
     needs: [prepare]
@@ -457,6 +464,7 @@ jobs:
         build-atoms,
         build-docs,
         build-companion,
+        typecheck-companion,
         setup-db,
         e2e,
         e2e-api-v2,
@@ -506,5 +514,8 @@ jobs:
           ) ||
           (
             needs.prepare.outputs.has-companion == 'true' &&
-            needs.build-companion.result != 'success'
+            (
+              needs.build-companion.result != 'success' ||
+              needs.typecheck-companion.result != 'success'
+            )
           )
