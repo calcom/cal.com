@@ -65,8 +65,7 @@ describe("Organizations Event Types Endpoints", () => {
     let managedEventTypeSlug: string;
 
     beforeAll(async () => {
-      // Generate unique slug inside beforeAll to ensure uniqueness across test runs
-      managedEventTypeSlug = `organizations-event-types-managed-${Date.now()}-${randomString()}`;
+      managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
       const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
@@ -206,6 +205,10 @@ describe("Organizations Event Types Endpoints", () => {
         team: { connect: { id: falseTestTeam.id } },
         accepted: true,
       });
+
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate1.id);
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate2.id);
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(team.id);
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);

@@ -318,18 +318,6 @@ async function getUserProfile(): Promise<UserProfile> {
   return _userProfilePromise;
 }
 
-// Get cached username or fetch if not available
-async function getUsername(): Promise<string> {
-  const profile = await getUserProfile();
-  return profile.username;
-}
-
-// Build shareable link for event type
-async function buildEventTypeLink(eventTypeSlug: string): Promise<string> {
-  const username = await getUsername();
-  return `https://cal.com/${username}/${eventTypeSlug}`;
-}
-
 // Clear cached profile (useful for logout)
 function clearUserProfile(): void {
   _userProfile = null;
@@ -874,20 +862,28 @@ async function getTranscripts(bookingUid: string): Promise<BookingTranscript[]> 
 }
 
 async function getEventTypes(): Promise<EventType[]> {
-  // Get cached user profile to extract username (uses in-flight deduplication)
+  // Get cached user profile to extract username and org slug (uses in-flight deduplication)
   let username: string | undefined;
+  let orgSlug: string | undefined;
   try {
     const userProfile = await getUserProfile();
     // Extract username from response
     if (userProfile?.username) {
       username = userProfile.username;
     }
+    // For org users, include org slug to avoid username collisions across orgs
+    if (userProfile?.organization?.slug) {
+      orgSlug = userProfile.organization.slug;
+    }
   } catch (_error) {}
 
-  // Build query string with username and sorting
+  // Build query string with username, orgSlug, and sorting
   const params = new URLSearchParams();
   if (username) {
     params.append("username", username);
+  }
+  if (orgSlug) {
+    params.append("orgSlug", orgSlug);
   }
   // Sort by creation date descending (newer first) to match main codebase behavior
   // Main codebase uses position: "desc", id: "desc" - since API doesn't expose position,
@@ -1663,6 +1659,12 @@ async function deleteEventTypePrivateLink(eventTypeId: number, linkId: number): 
   }
 }
 
+// Helper to get username
+async function getUsername(): Promise<string> {
+  const profile = await getUserProfile();
+  return profile.username;
+}
+
 // Export as object to satisfy noStaticOnlyClass rule
 export const CalComAPIService = {
   setAccessToken,
@@ -1673,7 +1675,6 @@ export const CalComAPIService = {
   updateUserProfile,
   getUserProfile,
   getUsername,
-  buildEventTypeLink,
   clearUserProfile,
   testRawBookingsAPI,
   deleteEventType,
