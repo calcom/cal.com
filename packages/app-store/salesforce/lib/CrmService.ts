@@ -29,6 +29,26 @@ import {
   DateFieldTypeData,
   RoutingReasons,
 } from "./enums";
+
+/**
+ * Extended CRM interface with Salesforce-specific methods.
+ * This interface is used by internal Salesforce modules (routing forms, etc.)
+ * that need access to Salesforce-specific functionality beyond the generic CRM interface.
+ */
+export interface SalesforceCRM extends CRM {
+  findUserEmailFromLookupField(
+    attendeeEmail: string,
+    fieldName: string,
+    salesforceObject: SalesforceRecordEnum
+  ): Promise<{ email: string; recordType: RoutingReasons } | undefined>;
+
+  incompleteBookingWriteToRecord(
+    email: string,
+    writeToRecordObject: z.infer<typeof writeToRecordDataSchema>
+  ): Promise<void>;
+
+  getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string): string;
+}
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
@@ -92,7 +112,7 @@ const salesforceTokenSchema = z.object({
   token_type: z.string(),
 });
 
-export default class SalesforceCRMService implements CRM {
+class SalesforceCRMService implements CRM {
   private integrationName = "";
   private conn!: Promise<Connection>;
   private log: typeof logger;
@@ -206,7 +226,12 @@ export default class SalesforceCRMService implements CRM {
       EndDateTime: new Date(event.endTime).toISOString(),
       Subject: event.title,
       Description: this.getSalesforceEventBody(event),
-      Location: getLocation(event),
+      Location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       ...options,
       ...(event.recurringEvent && {
         IsRecurrence2: true,
@@ -314,7 +339,12 @@ export default class SalesforceCRMService implements CRM {
       EndDateTime: new Date(event.endTime).toISOString(),
       Subject: event.title,
       Description: this.getSalesforceEventBody(event),
-      Location: getLocation(event),
+      Location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       ...(event.recurringEvent && {
         IsRecurrence2: true,
         Recurrence2PatternText: new RRule(event.recurringEvent).toString(),
@@ -1698,4 +1728,30 @@ export default class SalesforceCRMService implements CRM {
       return leadsQuery.records[0] as { Id: string; Email: string };
     }
   }
+}
+
+/**
+ * Factory function that creates a Salesforce CRM service instance.
+ * This is exported instead of the class to prevent SDK types (like jsforce.Connection)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all jsforce SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>
+): CRM {
+  return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>);
+}
+
+/**
+ * Factory function that creates a Salesforce CRM service instance with the extended SalesforceCRM type.
+ * This is used by internal Salesforce modules (routing forms, etc.) that need access to
+ * Salesforce-specific methods beyond the generic CRM interface.
+ */
+export function createSalesforceCrmServiceWithSalesforceType(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>,
+  testMode = false
+): SalesforceCRM {
+  return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>, testMode);
 }

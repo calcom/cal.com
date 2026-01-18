@@ -1,3 +1,5 @@
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
+import type { EventType, Team, User } from "@calcom/prisma/client";
 import {
   BadRequestException,
   ConflictException,
@@ -37,38 +39,6 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-
-export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
-
-import {
-  confirmBookingHandler,
-  getAllUserBookings,
-  getCalendarLinks,
-  getTranslation,
-  handleCancelBooking,
-  handleMarkNoShow,
-  roundRobinManualReassignment,
-  roundRobinReassignment,
-} from "@calcom/platform-libraries";
-import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
-import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
-import {
-  BookingOutput_2024_08_13,
-  CancelBookingInput,
-  CreateBookingInput,
-  CreateBookingInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-  GetBookingsInput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  MarkAbsentBookingInput_2024_08_13,
-  ReassignToUserBookingInput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  RescheduleBookingInput,
-} from "@calcom/platform-types";
-import type { PrismaClient } from "@calcom/prisma";
-import type { EventType, Team, User } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -464,6 +434,7 @@ export class BookingsService_2024_08_13 {
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -488,6 +459,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
@@ -1150,6 +1122,8 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
@@ -1183,6 +1157,8 @@ export class BookingsService_2024_08_13 {
         reason,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
