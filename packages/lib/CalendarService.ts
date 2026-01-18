@@ -137,32 +137,32 @@ const foldLine = (line: string, maxOctets = 75): string => {
 };
 
 /**
- * RFC 5545 Section 3.1: Unfolds lines by removing CRLF followed by whitespace.
- * This must be done before processing to handle multi-line properties.
- */
-const unfoldLines = (iCalString: string): string => {
-  return iCalString.replace(/\r?\n[ \t]/g, "");
-};
-
-/**
  * Adds SCHEDULE-AGENT=CLIENT to ATTENDEE lines to prevent CalDAV servers
  * (Fastmail, NextCloud, etc.) from sending duplicate invitation emails.
  * Per RFC 6638 Section 7.1, this tells the server the client handles scheduling.
  *
- * Also applies RFC 5545 line folding if the resulting line exceeds 75 octets.
+ * Handles folded lines per RFC 5545 and re-folds if needed.
  */
 const addScheduleAgentClient = (iCalString: string): string => {
-  // First unfold any folded lines per RFC 5545
-  const unfolded = unfoldLines(iCalString);
+  // Match ATTENDEE lines including any folded continuation lines (CRLF + whitespace)
+  // Case-insensitive per RFC 5545
+  return iCalString.replace(
+    /^(ATTENDEE)((?:[^\r\n]|\r?\n[ \t])*)(\r?\n(?![ \t]))/gim,
+    (match, attendee, rest, lineEnding) => {
+      // Unfold this specific line by removing CRLF + whitespace
+      const unfolded = rest.replace(/\r?\n[ \t]/g, "");
 
-  return unfolded.replace(
-    /^(ATTENDEE)([^:\r\n]*)(:[^\r\n]*)(\r?\n)/gim, // Case-insensitive per RFC 5545
-    (match, attendee, params, value, lineEnding) => {
       // Skip if SCHEDULE-AGENT is already present (case-insensitive check)
-      if (params.toUpperCase().includes("SCHEDULE-AGENT")) {
-        return foldLine(attendee + params + value) + lineEnding;
+      if (unfolded.toUpperCase().includes("SCHEDULE-AGENT")) {
+        return foldLine(attendee + unfolded) + lineEnding;
       }
 
+      // Find the colon that separates params from value
+      const colonIndex = unfolded.indexOf(":");
+      if (colonIndex === -1) return match;
+
+      const params = unfolded.slice(0, colonIndex);
+      const value = unfolded.slice(colonIndex);
       const newLine = attendee + params + ";SCHEDULE-AGENT=CLIENT" + value;
       return foldLine(newLine) + lineEnding;
     }
