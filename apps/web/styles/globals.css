@@ -93,10 +93,6 @@ html.todesktop.dark {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
-
-  .font-sans-booking {
-    font-family: var(--font-sans-booking), ui-sans-serif, system-ui, sans-serif;
-  }
 }
 
 /**

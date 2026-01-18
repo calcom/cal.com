@@ -1,5 +1,4 @@
 import { dir } from "i18next";
-import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import React from "react";
@@ -15,7 +14,6 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
-const fontSansBooking = Inter({ subsets: ["latin"], variable: "--font-sans-booking", preload: true, display: "swap" });
 const fontSans = localFont({
   src: "../fonts/CalSansUI[MODE,wght].woff2",
   variable: "--font-sans",
@@ -121,7 +119,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <body
-        className={`${fontSans.variable} ${fontHeading.variable} ${fontSansBooking.variable} font-sans dark:bg-default bg-subtle antialiased`}
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans dark:bg-default bg-subtle antialiased`}
         style={
           isEmbed
             ? {

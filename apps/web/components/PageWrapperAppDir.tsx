@@ -10,7 +10,6 @@ export type PageWrapperProps = Readonly<{
   requiresLicense: boolean;
   nonce: string | undefined;
   isBookingPage?: boolean;
-  className?: string;
 }>;
 
 function PageWrapper(props: PageWrapperProps) {
@@ -26,7 +25,7 @@ function PageWrapper(props: PageWrapperProps) {
   };
 
   return (
-    <div className={props.className}>
+    <>
       <AppProviders {...providerProps}>
         <>
           {props.requiresLicense ? (
@@ -36,7 +35,7 @@ function PageWrapper(props: PageWrapperProps) {
           )}
         </>
       </AppProviders>
-    </div>
+    </>
   );
 }
 
