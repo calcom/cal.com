@@ -161,7 +161,9 @@ const UserProfile = ({ user }: UserProfileProps) => {
           setText={(value: string) => {
             let markdown = turndown(value);
             if (markdown.length > MAX_BIO_LENGTH) {
-              markdown = markdown.slice(0, MAX_BIO_LENGTH);
+              const sliced = markdown.slice(0, MAX_BIO_LENGTH);
+              const lastSpace = sliced.lastIndexOf(" ");
+              markdown = lastSpace > 0 ? sliced.slice(0, lastSpace) : sliced;
             }
             setValue("bio", markdown);
           }}
