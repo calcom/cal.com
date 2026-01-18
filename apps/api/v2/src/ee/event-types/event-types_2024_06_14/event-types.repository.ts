@@ -282,28 +282,4 @@ export class EventTypesRepository_2024_06_14 {
       data: { useEventLevelSelectedCalendars },
     });
   }
-
-  async deleteSelectedCalendarsByEventTypeIdWithTx(tx: Prisma.TransactionClient, eventTypeId: number) {
-    return tx.selectedCalendar.deleteMany({
-      where: { eventTypeId },
-    });
-  }
-
-  async createManySelectedCalendarsWithTx(
-    tx: Prisma.TransactionClient,
-    calendars: {
-      eventTypeId: number;
-      userId: number;
-      integration: string;
-      externalId: string;
-      credentialId: number | null;
-    }[]
-  ) {
-    if (calendars.length === 0) {
-      return { count: 0 };
-    }
-    return tx.selectedCalendar.createMany({
-      data: calendars,
-    });
-  }
 }

@@ -443,10 +443,10 @@ export class EventTypesService_2024_06_14 {
         shouldUseEventLevelCalendars
       );
 
-      await this.eventTypesRepository.deleteSelectedCalendarsByEventTypeIdWithTx(tx, eventTypeId);
+      await this.selectedCalendarsRepository.deleteByEventTypeIdWithTx(tx, eventTypeId);
 
       if (calendarsToCreate.length > 0) {
-        await this.eventTypesRepository.createManySelectedCalendarsWithTx(tx, calendarsToCreate);
+        await this.selectedCalendarsRepository.createManyForEventTypeWithTx(tx, calendarsToCreate);
       }
     });
   }

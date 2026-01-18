@@ -1,6 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import type { Prisma } from "@calcom/prisma/client";
 
 // It ensures that we work on userLevel calendars only
 const ensureUserLevelWhere = {
@@ -191,6 +192,30 @@ export class SelectedCalendarsRepository {
       return { count: 0 };
     }
     return this.dbWrite.prisma.selectedCalendar.createMany({
+      data: calendars,
+    });
+  }
+
+  async deleteByEventTypeIdWithTx(tx: Prisma.TransactionClient, eventTypeId: number) {
+    return tx.selectedCalendar.deleteMany({
+      where: { eventTypeId },
+    });
+  }
+
+  async createManyForEventTypeWithTx(
+    tx: Prisma.TransactionClient,
+    calendars: {
+      eventTypeId: number;
+      userId: number;
+      integration: string;
+      externalId: string;
+      credentialId: number | null;
+    }[]
+  ) {
+    if (calendars.length === 0) {
+      return { count: 0 };
+    }
+    return tx.selectedCalendar.createMany({
       data: calendars,
     });
   }
