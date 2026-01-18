@@ -572,12 +572,13 @@ test.describe("Reschedule for booking with seats", () => {
       await expect(rescheduleLink).toHaveAttribute("href", /.+/);
     }
     await rescheduleLink.click();
-    await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await page.waitForURL((url) => {
       const rescheduleUid = url.searchParams.get("rescheduleUid");
       return !!rescheduleUid && rescheduleUid === references[1].referenceUid;
     });
+
+    await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 

@@ -7,7 +7,7 @@ const TwoFactorModalHeader = ({ title, description }: { title: string; descripti
         <Icon name="shield" className="text-inverted h-6 w-6" />
       </div>
       <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-        <h3 className="font-heading text-emphasis text-lg leading-6" id="modal-title">
+        <h3 className="font-cal text-emphasis text-lg font-medium leading-6" id="modal-title">
           {title}
         </h3>
         <p className="text-muted text-sm">{description}</p>
