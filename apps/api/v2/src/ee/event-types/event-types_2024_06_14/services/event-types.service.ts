@@ -436,11 +436,19 @@ export class EventTypesService_2024_06_14 {
         })
       : [];
 
-    await this.eventTypesRepository.updateSelectedCalendarsWithTransaction(
-      eventTypeId,
-      shouldUseEventLevelCalendars,
-      calendarsToCreate
-    );
+    await this.dbWrite.prisma.$transaction(async (tx) => {
+      await this.eventTypesRepository.updateUseEventLevelSelectedCalendarsWithTx(
+        tx,
+        eventTypeId,
+        shouldUseEventLevelCalendars
+      );
+
+      await this.eventTypesRepository.deleteSelectedCalendarsByEventTypeIdWithTx(tx, eventTypeId);
+
+      if (calendarsToCreate.length > 0) {
+        await this.eventTypesRepository.createManySelectedCalendarsWithTx(tx, calendarsToCreate);
+      }
+    });
   }
 
   async getEventTypeWithSelectedCalendars(eventTypeId: number, userId: number) {

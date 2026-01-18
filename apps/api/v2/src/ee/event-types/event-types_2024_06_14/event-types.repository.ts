@@ -272,10 +272,26 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
-  async updateSelectedCalendarsWithTransaction(
+  async updateUseEventLevelSelectedCalendarsWithTx(
+    tx: Prisma.TransactionClient,
     eventTypeId: number,
-    useEventLevelSelectedCalendars: boolean,
-    calendarsToCreate: {
+    useEventLevelSelectedCalendars: boolean
+  ) {
+    return tx.eventType.update({
+      where: { id: eventTypeId },
+      data: { useEventLevelSelectedCalendars },
+    });
+  }
+
+  async deleteSelectedCalendarsByEventTypeIdWithTx(tx: Prisma.TransactionClient, eventTypeId: number) {
+    return tx.selectedCalendar.deleteMany({
+      where: { eventTypeId },
+    });
+  }
+
+  async createManySelectedCalendarsWithTx(
+    tx: Prisma.TransactionClient,
+    calendars: {
       eventTypeId: number;
       userId: number;
       integration: string;
@@ -283,21 +299,11 @@ export class EventTypesRepository_2024_06_14 {
       credentialId: number | null;
     }[]
   ) {
-    return this.dbWrite.prisma.$transaction(async (tx) => {
-      await tx.eventType.update({
-        where: { id: eventTypeId },
-        data: { useEventLevelSelectedCalendars },
-      });
-
-      await tx.selectedCalendar.deleteMany({
-        where: { eventTypeId },
-      });
-
-      if (calendarsToCreate.length > 0) {
-        await tx.selectedCalendar.createMany({
-          data: calendarsToCreate,
-        });
-      }
+    if (calendars.length === 0) {
+      return { count: 0 };
+    }
+    return tx.selectedCalendar.createMany({
+      data: calendars,
     });
   }
 }
