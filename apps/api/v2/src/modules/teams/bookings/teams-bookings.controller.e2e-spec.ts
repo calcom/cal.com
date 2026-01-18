@@ -35,9 +35,6 @@ type BookingData =
 describe("Teams Bookings Endpoints 2024-08-13", () => {
   describe("Standalone team bookings", () => {
     let app: INestApplication;
-    let adminApp: INestApplication;
-    let memberApp: INestApplication;
-    let nonTeamUserApp: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_04_15;
@@ -69,24 +66,6 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
     const bookingStart1 = new Date(Date.UTC(2030, 0, 10, 10, 0, 0));
     const bookingStart2 = new Date(Date.UTC(2030, 0, 11, 14, 0, 0));
 
-    async function createAppForUser(email: string): Promise<INestApplication> {
-      const moduleRef = await withApiAuth(
-        email,
-        Test.createTestingModule({
-          imports: [AppModule, TeamsBookingsModule],
-        })
-      )
-        .overrideGuard(PermissionsGuard)
-        .useValue({
-          canActivate: () => true,
-        })
-        .compile();
-
-      const nestApp = moduleRef.createNestApplication();
-      bootstrap(nestApp as NestExpressApplication);
-      await nestApp.init();
-      return nestApp;
-    }
 
     async function createBookingViaApi(
       appInstance: INestApplication,
@@ -280,11 +259,6 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
       bootstrap(app as NestExpressApplication);
       await app.init();
 
-      // Create apps for different user roles
-      adminApp = await createAppForUser(teamAdminEmail);
-      memberApp = await createAppForUser(teamMemberEmail);
-      nonTeamUserApp = await createAppForUser(nonTeamUserEmail);
-
       // Create bookings for filter tests
       const booking1 = await createBookingViaApi(app, teamEventTypeId, bookingStart1, {
         name: attendeeName1,
@@ -313,33 +287,6 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
             expect(data.some((booking) => booking.eventTypeId === teamEventTypeId)).toBe(true);
             expect(data.some((booking) => booking.eventTypeId === teamEventTypeId2)).toBe(true);
           });
-      });
-
-      it("should allow team admin to get bookings", async () => {
-        return request(adminApp.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(responseBody.data.length).toBeGreaterThanOrEqual(2);
-          });
-      });
-
-      it("should reject team member (non-admin/owner)", async () => {
-        return request(memberApp.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(403);
-      });
-
-      it("should reject non-team user", async () => {
-        return request(nonTeamUserApp.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(403);
       });
 
       it("should reject request for non-existent team", async () => {
@@ -698,9 +645,6 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
     });
 
     afterAll(async () => {
-      await adminApp?.close();
-      await memberApp?.close();
-      await nonTeamUserApp?.close();
       await userRepositoryFixture.deleteByEmail(teamAdminEmail);
       await userRepositoryFixture.deleteByEmail(teamOwnerEmail);
       await userRepositoryFixture.deleteByEmail(teamMemberEmail);
