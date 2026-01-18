@@ -1,4 +1,5 @@
 import { shallow } from "zustand/shallow";
+import { useEffect, useRef } from "react";
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
@@ -93,6 +94,10 @@ export const useScheduleForEvent = ({
     columnViewExtraDays: { current: number };
   };
 }) => {
+  const event = useEvent();
+  const useBookerTimezone = event.data?.useBookerTimezone;
+  const hasRestrictionSchedule = !!event.data?.restrictionScheduleId;
+
   const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
@@ -118,6 +123,20 @@ export const useScheduleForEvent = ({
     useApiV2: useApiV2,
     bookerLayout,
   });
+
+  const prevTimezoneRef = useRef<string | null>(null);
+
+  const invalidateSchedule = schedule.invalidate;
+
+  useEffect(() => {
+    const hasTimezoneChanged = prevTimezoneRef.current !== null && timezone !== prevTimezoneRef.current;
+
+    if (useBookerTimezone && hasRestrictionSchedule && timezone && hasTimezoneChanged) {
+      invalidateSchedule();
+    }
+
+    prevTimezoneRef.current = timezone;
+  }, [timezone, useBookerTimezone, hasRestrictionSchedule, invalidateSchedule]);
 
   return {
     data: schedule?.data,
