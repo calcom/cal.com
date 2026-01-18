@@ -152,15 +152,37 @@ const addScheduleAgentClient = (iCalString: string): string => {
       // Unfold this specific line by removing CRLF + whitespace
       const unfolded = rest.replace(/\r?\n[ \t]/g, "");
 
-      // Find the colon that separates params from value
-      const colonIndex = unfolded.indexOf(":");
-      if (colonIndex === -1) return match;
+      // Find the colon that separates params from value (not inside quotes)
+      // The value colon is followed by mailto:, http:, urn:, or similar
+      const valueColonMatch = unfolded.match(/:(mailto:|http:|https:|urn:)/i);
+      if (!valueColonMatch || valueColonMatch.index === undefined) {
+        // Fallback: find colon not inside quotes
+        let colonIndex = -1;
+        let inQuotes = false;
+        for (let i = 0; i < unfolded.length; i++) {
+          if (unfolded[i] === '"') inQuotes = !inQuotes;
+          if (unfolded[i] === ":" && !inQuotes) {
+            colonIndex = i;
+            break;
+          }
+        }
+        if (colonIndex === -1) return match;
+        const params = unfolded.slice(0, colonIndex);
+        const value = unfolded.slice(colonIndex);
+        // Check for exact SCHEDULE-AGENT parameter (not substring)
+        if (/[;]SCHEDULE-AGENT=/i.test(params) || /^SCHEDULE-AGENT=/i.test(params)) {
+          return foldLine(attendee + unfolded) + lineEnding;
+        }
+        const newLine = attendee + params + ";SCHEDULE-AGENT=CLIENT" + value;
+        return foldLine(newLine) + lineEnding;
+      }
 
+      const colonIndex = valueColonMatch.index;
       const params = unfolded.slice(0, colonIndex);
       const value = unfolded.slice(colonIndex);
 
-      // Skip if SCHEDULE-AGENT is already present in params (not value)
-      if (params.toUpperCase().includes("SCHEDULE-AGENT")) {
+      // Check for exact SCHEDULE-AGENT parameter (preceded by ; or at start)
+      if (/[;]SCHEDULE-AGENT=/i.test(params) || /^SCHEDULE-AGENT=/i.test(params)) {
         return foldLine(attendee + unfolded) + lineEnding;
       }
 
