@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 import { memo, useCallback, useMemo, useState } from "react";
-import type { CSSObjectWithLabel } from "react-select";
+import type { StylesConfig } from "react-select";
 import type { ITimezone, ITimezoneOption, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
@@ -113,14 +113,14 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
     [props.data, data, isWebTimezoneSelect, additionalTimezones]
   );
 
-  const selectStyles = useMemo(
+  const selectStyles: StylesConfig<ITimezoneOption, false> = useMemo(
     () => ({
-      control: (base: CSSObjectWithLabel) => ({
+      control: (base) => ({
         ...base,
         minHeight: size === "sm" ? "28px" : "36px",
         height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
       }),
-      menuList: (base: CSSObjectWithLabel) => ({
+      menuList: (base) => ({
         ...base,
         height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
       }),
@@ -133,7 +133,7 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
       if (!props.onChange) return;
 
       if (!selectedOption) {
-        props.onChange(selectedOption);
+        props.onChange(selectedOption as unknown as ITimezoneOption);
         return;
       }
 
@@ -150,12 +150,12 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
   );
 
   const formatOption = useCallback(
-    (option: ITimezoneOption) => <p className="truncate">{option.value.replace(/_/g, " ")}</p>,
+    (option: unknown) => <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>,
     []
   );
 
   const getLabel = useCallback(
-    (option: ITimezoneOption) => handleOptionLabel(option, additionalTimezones),
+    (option: unknown) => handleOptionLabel(option as ITimezoneOption, additionalTimezones),
     [additionalTimezones]
   );
 
