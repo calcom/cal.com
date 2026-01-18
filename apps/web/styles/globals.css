@@ -94,8 +94,8 @@ html.todesktop.dark {
     scrollbar-width: none; /* Firefox */
   }
 
-  .font-inter {
-    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  .font-sans-booking {
+    font-family: var(--font-sans-booking), ui-sans-serif, system-ui, sans-serif;
   }
 }
 

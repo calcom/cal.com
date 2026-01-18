@@ -15,7 +15,7 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const fontSansBooking = Inter({ subsets: ["latin"], variable: "--font-sans-booking", preload: true, display: "swap" });
 const fontSans = localFont({
   src: "../fonts/CalSansUI[MODE,wght].woff2",
   variable: "--font-sans",
@@ -121,7 +121,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <body
-        className={`${fontSans.variable} ${fontHeading.variable} ${interFont.variable} font-sans dark:bg-default bg-subtle antialiased`}
+        className={`${fontSans.variable} ${fontHeading.variable} ${fontSansBooking.variable} font-sans dark:bg-default bg-subtle antialiased`}
         style={
           isEmbed
             ? {
