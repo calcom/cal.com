@@ -23,8 +23,7 @@ const clientIdSchema = z
   .refine((val) => val === "" || /^[A-Za-z0-9_-]+$/.test(val), {
     message: "Invalid Client ID format. Expected alphanumeric characters",
   })
-  .optional()
-  .default("");
+;
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

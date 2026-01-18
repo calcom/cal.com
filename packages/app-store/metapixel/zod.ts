@@ -9,8 +9,7 @@ const metaPixelIdSchema = z
   .refine((val) => val === "" || /^[0-9]{1,20}$/.test(val), {
     message: "Invalid Meta Pixel ID format. Expected a numeric ID (e.g., 1234567890123456)",
   })
-  .optional()
-  .default("");
+;
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

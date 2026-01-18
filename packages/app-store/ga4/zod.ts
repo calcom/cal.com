@@ -9,8 +9,7 @@ const ga4IdSchema = z
   .refine((val) => val === "" || /^G-[A-Z0-9]{1,20}$/.test(val), {
     message: "Invalid GA4 Measurement ID format. Expected format: G-XXXXXXXXXX",
   })
-  .optional()
-  .default("");
+;
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
