@@ -65,6 +65,7 @@ export class EventTypesRepository_2024_06_14 {
       id: true,
       name: true,
       username: true,
+      isPlatformManaged: true,
       avatarUrl: true,
       brandColor: true,
       darkBrandColor: true,
