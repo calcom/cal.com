@@ -27,7 +27,10 @@ type BookerEventUser = Pick<
   bookerUrl: string;
 };
 
-type BookerEventProfile = Pick<PublicEvent["profile"], "name" | "image" | "bookerLayouts">;
+type BookerEventProfile = Pick<
+  PublicEvent["profile"],
+  "name" | "image" | "bookerLayouts" | "brandColor" | "darkBrandColor" | "theme" | "weekStart" | "username"
+>;
 
 // Re-export Slots from the server-safe location
 export type { Slots };
@@ -44,6 +47,7 @@ export type BookerEvent = Pick<
   | "metadata"
   | "isDynamic"
   | "requiresConfirmation"
+  | "requiresBookerEmailVerification"
   | "price"
   | "currency"
   | "lockTimeZoneToggleOnBookingPage"
@@ -66,11 +70,11 @@ export type BookerEvent = Pick<
   | "interfaceLanguage"
   | "team"
   | "owner"
+  | "useBookerTimezone"
+  | "restrictionScheduleId"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
-  restrictionScheduleId?: number | null;
-  useBookerTimezone?: boolean;
 } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
