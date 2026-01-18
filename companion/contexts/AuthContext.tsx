@@ -145,7 +145,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       await clearAuth();
       // Clear all cached queries to ensure fresh data on re-login
-      await clearQueryCache();
+      try {
+        await clearQueryCache();
+      } catch (cacheError) {
+        console.warn("Failed to clear query cache during logout:", cacheError);
+      }
       resetAuthState();
     } catch (error) {
       const message = getErrorMessage(error);
