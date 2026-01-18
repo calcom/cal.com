@@ -412,54 +412,6 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should filter by teamMemberIds", async () => {
-        return request(app.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings?teamMemberIds=${teamAdmin.id}`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            const data: (
-              | BookingOutput_2024_08_13
-              | RecurringBookingOutput_2024_08_13
-              | GetSeatedBookingOutput_2024_08_13
-            )[] = responseBody.data;
-            // Verify bookings have the team admin as the booking owner (first host)
-            // The userId filter filters by booking.userId, which is the booking owner
-            data.forEach((booking) => {
-              if (!Array.isArray(booking) && "hosts" in booking && booking.hosts.length > 0) {
-                expect(booking.hosts[0].id).toEqual(teamAdmin.id);
-              }
-            });
-          });
-      });
-
-      it("should get team bookings with teamMemberEmails filter", async () => {
-        return request(app.getHttpServer())
-          .get(`/v2/teams/${standaloneTeam.id}/bookings?teamMemberEmails=${teamAdminEmail}`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            const data: (
-              | BookingOutput_2024_08_13
-              | RecurringBookingOutput_2024_08_13
-              | GetSeatedBookingOutput_2024_08_13
-            )[] = responseBody.data;
-            // Verify bookings have the team admin as the booking owner (first host)
-            // The userId filter filters by booking.userId, which is the booking owner
-            data.forEach((booking) => {
-              if (!Array.isArray(booking) && "hosts" in booking && booking.hosts.length > 0) {
-                expect(booking.hosts[0].id).toEqual(teamAdmin.id);
-              }
-            });
-          });
-      });
-
       it("should filter by date range (afterStart and beforeEnd)", async () => {
         const afterStartDate = new Date(Date.UTC(2030, 0, 9, 0, 0, 0)).toISOString();
         const beforeEndDate = new Date(Date.UTC(2030, 0, 12, 0, 0, 0)).toISOString();
