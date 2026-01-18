@@ -14,7 +14,7 @@
  * formatDuration(90) // "1h 30m"
  */
 export const formatDuration = (minutes: number | string | undefined): string => {
-  const mins = typeof minutes === "string" ? parseInt(minutes) || 0 : minutes || 0;
+  const mins = typeof minutes === "string" ? parseInt(minutes, 10) || 0 : minutes || 0;
   if (mins <= 0) return "0m";
   if (mins < 60) return `${mins}m`;
   const hours = Math.floor(mins / 60);

@@ -1,16 +1,16 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type {
+  BookingOutput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import type { EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -19,14 +19,16 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import type {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import type { PlatformOAuthClient, Team, EventType, User } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("User bookings", () => {
@@ -317,6 +319,78 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(400);
+      });
+    });
+
+    describe("reschedule bookings with non-default duration", () => {
+      let bookingWithNonDefaultDuration: BookingOutput_2024_08_13;
+      const nonDefaultLengthInMinutes = 30;
+
+      it("should create a booking with non-default duration to be rescheduled", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          lengthInMinutes: nonDefaultLengthInMinutes,
+          start: new Date(Date.UTC(2030, 0, 9, 10, 0, 0)).toISOString(),
+          eventTypeId: variableLengthEventType.id,
+          attendee: {
+            name: "Mr Reschedule",
+            email: "mr_reschedule@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: "https://meet.google.com/abc-def-ghi",
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              bookingWithNonDefaultDuration = responseBody.data;
+              expect(bookingWithNonDefaultDuration.duration).toEqual(nonDefaultLengthInMinutes);
+            } else {
+              throw new Error("Invalid response data - expected booking");
+            }
+          });
+      });
+
+      it("should reschedule and preserve the original non-default duration", async () => {
+        const newStartTime = new Date(Date.UTC(2030, 0, 9, 12, 0, 0)).toISOString();
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: newStartTime,
+          reschedulingReason: "Testing duration preservation",
+        };
+
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${bookingWithNonDefaultDuration.uid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+
+            const rescheduledBooking = responseBody.data as BookingOutput_2024_08_13;
+
+            // verify the duration is preserved (should be 30 minutes, not the default 15)
+            expect(rescheduledBooking.duration).toEqual(nonDefaultLengthInMinutes);
+            expect(rescheduledBooking.duration).toEqual(bookingWithNonDefaultDuration.duration);
+
+            // verify the end time is correct (start + 30 minutes)
+            const expectedEndTime = new Date(Date.UTC(2030, 0, 9, 12, nonDefaultLengthInMinutes, 0)).toISOString();
+            expect(rescheduledBooking.start).toEqual(newStartTime);
+            expect(rescheduledBooking.end).toEqual(expectedEndTime);
+
+            // verify it's linked to the original booking
+            expect(rescheduledBooking.rescheduledFromUid).toEqual(bookingWithNonDefaultDuration.uid);
+          });
       });
     });
 

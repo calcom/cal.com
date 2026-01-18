@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { EventType, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
@@ -9,6 +8,9 @@ type PartialWorkflowStep =
       workflow: {
         userId?: number;
         teamId?: number;
+        team?: {
+          isOrganization: boolean;
+        } | null;
       };
     })
   | null;
@@ -148,6 +150,11 @@ export const select = {
         select: {
           userId: true,
           teamId: true,
+          team: {
+            select: {
+              isOrganization: true,
+            },
+          },
         },
       },
     },

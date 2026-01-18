@@ -13,9 +13,11 @@ export interface UserProfile {
   organizationId?: number;
   organization?: {
     id: number;
+    slug?: string;
+    name?: string;
     isPlatform: boolean;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   brandColor?: string;
   darkBrandColor?: string;
   theme?: string;

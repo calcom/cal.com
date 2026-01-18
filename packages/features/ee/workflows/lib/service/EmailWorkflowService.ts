@@ -12,6 +12,7 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -20,12 +21,14 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import { isEmailAction } from "../actionHelperFunctions";
+import { isEmailAction, getTemplateBodyForAction, getTemplateSubjectForAction } from "../actionHelperFunctions";
+import { detectMatchedTemplate } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
 } from "../reminders/templates/customTemplate";
+import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
 import type {
@@ -50,9 +53,8 @@ export class EmailWorkflowService {
     evt: CalendarEvent;
     workflowReminderId: number;
   }) {
-    const workflowReminder = await this.workflowReminderRepository.findByIdIncludeStepAndWorkflow(
-      workflowReminderId
-    );
+    const workflowReminder =
+      await this.workflowReminderRepository.findByIdIncludeStepAndWorkflow(workflowReminderId);
 
     if (!workflowReminder) {
       throw new Error(`Workflow reminder not found with id ${workflowReminderId}`);
@@ -67,6 +69,7 @@ export class EmailWorkflowService {
     }
 
     const workflow = workflowReminder.workflowStep.workflow;
+    const isOrganization = workflow.team?.isOrganization ?? false;
 
     let emailAttendeeSendToOverride: string | null = null;
     if (workflowReminder.seatReferenceId) {
@@ -93,7 +96,9 @@ export class EmailWorkflowService {
 
     const emailWorkflowContentParams = await this.generateParametersToBuildEmailWorkflowContent({
       evt,
-      workflowStep: workflowReminder.workflowStep as WorkflowStep & { action: ScheduleEmailReminderAction },
+      workflowStep: workflowReminder.workflowStep as WorkflowStep & {
+        action: ScheduleEmailReminderAction;
+      },
       workflow: workflowReminder.workflowStep.workflow,
       emailAttendeeSendToOverride,
       commonScheduleFunctionParams,
@@ -106,6 +111,7 @@ export class EmailWorkflowService {
       action: workflowReminder.workflowStep.action as ScheduleEmailReminderAction,
       template: workflowReminder.workflowStep.template,
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
+      isOrganization,
     });
 
     const results = await Promise.allSettled(
@@ -246,6 +252,7 @@ export class EmailWorkflowService {
     template,
     includeCalendarEvent,
     triggerEvent,
+    isOrganization,
   }: {
     evt: BookingInfo;
     sendTo: string[];
@@ -258,6 +265,7 @@ export class EmailWorkflowService {
     template?: WorkflowTemplates;
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
+    isOrganization?: boolean;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
@@ -283,13 +291,36 @@ export class EmailWorkflowService {
         timeZone = evt.organizer.timeZone;
         break;
       case WorkflowActions.EMAIL_ATTENDEE: {
-        // check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
-        const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
-          (attendee) => attendee.email === sendTo[0]
-        );
-        attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
-          ? attendeeEmailToBeUsedInMailFromEvt
-          : evt.attendees[0];
+        // For seated events, get the correct attendee based on seatReferenceUid
+        if (seatReferenceUid) {
+          const seatAttendeeData =
+            await this.bookingSeatRepository.getByReferenceUidWithAttendeeDetails(seatReferenceUid);
+          if (seatAttendeeData?.attendee) {
+            const nameParts = seatAttendeeData.attendee.name.split(" ").map((part: string) => part.trim());
+            const firstName = nameParts[0];
+            const lastName = nameParts.slice(1).join(" ");
+            attendeeToBeUsedInMail = {
+              name: seatAttendeeData.attendee.name,
+              firstName,
+              lastName: lastName || undefined,
+              email: seatAttendeeData.attendee.email,
+              phoneNumber: seatAttendeeData.attendee.phoneNumber || null,
+              timeZone: seatAttendeeData.attendee.timeZone,
+              language: { locale: seatAttendeeData.attendee.locale || "en" },
+            };
+          } else {
+            // Fallback to first attendee if seat attendee not found
+            attendeeToBeUsedInMail = evt.attendees[0];
+          }
+        } else {
+          // For non-seated events, check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
+          const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
+            (attendee) => attendee.email === sendTo[0]
+          );
+          attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
+            ? attendeeEmailToBeUsedInMailFromEvt
+            : evt.attendees[0];
+        }
         name = attendeeToBeUsedInMail.name;
         attendeeName = evt.organizer.name;
         timeZone = attendeeToBeUsedInMail.timeZone;
@@ -301,14 +332,105 @@ export class EmailWorkflowService {
       throw new Error("Failed to determine attendee email");
     }
 
+    const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
+    const locale = isEmailAttendeeAction
+      ? attendeeToBeUsedInMail.language?.locale || "en"
+      : evt.organizer.language.locale || "en";
+
     let emailContent = {
       emailSubject,
       emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
     };
     const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
+    // Detect if the email content matches a default template for locale-based regeneration
+    const timeFormat = evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+    let defaultTemplates = {
+      reminder: { body: null as string | null, subject: null as string | null },
+      rating: { body: null as string | null, subject: null as string | null },
+    };
+
     if (emailBody) {
-      const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
+      const tEn = await getTranslation("en", "common");
+      defaultTemplates = {
+        reminder: {
+          body: getTemplateBodyForAction({
+            action,
+            template: WorkflowTemplates.REMINDER,
+            locale: "en",
+            t: tEn,
+            timeFormat,
+          }),
+          subject: getTemplateSubjectForAction({
+            action,
+            template: WorkflowTemplates.REMINDER,
+            locale: "en",
+            t: tEn,
+            timeFormat,
+          }),
+        },
+        rating: {
+          body: getTemplateBodyForAction({
+            action,
+            template: WorkflowTemplates.RATING,
+            locale: "en",
+            t: tEn,
+            timeFormat,
+          }),
+          subject: getTemplateSubjectForAction({
+            action,
+            template: WorkflowTemplates.RATING,
+            locale: "en",
+            t: tEn,
+            timeFormat,
+          }),
+        },
+      };
+    }
+
+    const matchedTemplate = detectMatchedTemplate({
+      emailBody,
+      emailSubject,
+      template,
+      defaultTemplates,
+    });
+
+    if (matchedTemplate === WorkflowTemplates.REMINDER) {
+      const t = await getTranslation(locale, "common");
+
+      emailContent = emailReminderTemplate({
+        isEditingMode: false,
+        locale,
+        t,
+        action,
+        timeFormat: evt.organizer.timeFormat,
+        startTime,
+        endTime,
+        eventName: evt.title,
+        timeZone,
+        location: evt.location || "",
+        meetingUrl:
+          evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
+        otherPerson: attendeeName,
+        name,
+      });
+    } else if (matchedTemplate === WorkflowTemplates.RATING) {
+      emailContent = emailRatingTemplate({
+        isEditingMode: false,
+        locale,
+        action,
+        t: await getTranslation(locale, "common"),
+        timeFormat: evt.organizer.timeFormat,
+        startTime,
+        endTime,
+        eventName: evt.title,
+        timeZone,
+        organizer: evt.organizer.name,
+        name,
+        ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
+        noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
+      });
+    } else if (emailBody) {
       const recipientEmail = getWorkflowRecipientEmail({
         action,
         attendeeEmail: attendeeToBeUsedInMail.email,
@@ -316,7 +438,7 @@ export class EmailWorkflowService {
         sendToEmail: sendTo[0],
       });
       const meetingUrl =
-        getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+        getVideoCallUrlFromCalEvent({ videoCallData: evt.videoCallData }) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -343,21 +465,17 @@ export class EmailWorkflowService {
                   : ""
               }`
             : isEmailAttendeeAction && seatReferenceUid
-            ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
-            : ""
+              ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+              : ""
         }`,
 
         rescheduleReason: evt.rescheduleReason,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
-        attendeeTimezone: evt.attendees[0].timeZone,
-        eventTimeInAttendeeTimezone: dayjs(startTime).tz(evt.attendees[0].timeZone),
-        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(evt.attendees[0].timeZone),
+        attendeeTimezone: attendeeToBeUsedInMail.timeZone,
+        eventTimeInAttendeeTimezone: dayjs(startTime).tz(attendeeToBeUsedInMail.timeZone),
+        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
       };
-
-      const locale = isEmailAttendeeAction
-        ? attendeeToBeUsedInMail.language?.locale
-        : evt.organizer.language.locale;
 
       const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
       emailContent.emailSubject = emailSubjectTemplate.text;
@@ -368,39 +486,6 @@ export class EmailWorkflowService {
         evt.organizer.timeFormat,
         hideBranding
       ).html;
-    } else if (template === WorkflowTemplates.REMINDER) {
-      emailContent = emailReminderTemplate({
-        isEditingMode: false,
-        locale: evt.organizer.language.locale,
-        t: await getTranslation(evt.organizer.language.locale || "en", "common"),
-        action,
-        timeFormat: evt.organizer.timeFormat,
-        startTime,
-        endTime,
-        eventName: evt.title,
-        timeZone,
-        location: evt.location || "",
-        meetingUrl:
-          evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
-        otherPerson: attendeeName,
-        name,
-      });
-    } else if (template === WorkflowTemplates.RATING) {
-      emailContent = emailRatingTemplate({
-        isEditingMode: true,
-        locale: evt.organizer.language.locale,
-        action,
-        t: await getTranslation(evt.organizer.language.locale || "en", "common"),
-        timeFormat: evt.organizer.timeFormat,
-        startTime,
-        endTime,
-        eventName: evt.title,
-        timeZone,
-        organizer: evt.organizer.name,
-        name,
-        ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
-        noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
-      });
     }
 
     // Allows debugging generated email content without waiting for sendgrid to send emails
@@ -425,12 +510,19 @@ export class EmailWorkflowService {
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
-      organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
+      organizer: {
+        ...evt.organizer,
+        language: { ...evt.organizer.language, translate: organizerT },
+      },
       attendees: processedAttendees,
       location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
-    const attachments = includeCalendarEvent
+    const shouldIncludeCalendarEvent =
+    includeCalendarEvent &&
+    triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
+
+  const attachments = shouldIncludeCalendarEvent
       ? [
           {
             content:
@@ -448,9 +540,15 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
+    // Organization accounts are allowed to use cloaked links (URL behind text)
+    // since they are paid accounts with lower spam/scam risk
+    const processedEmailBody = isOrganization
+      ? emailContent.emailBody
+      : replaceCloakedLinksInHtml(emailContent.emailBody);
+
     return {
       subject: emailContent.emailSubject,
-      html: emailContent.emailBody,
+      html: processedEmailBody,
       ...(!evt.hideOrganizerEmail && {
         replyTo: customReplyToEmail || evt.organizer.email,
       }),

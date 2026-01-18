@@ -7,35 +7,26 @@ import { InstallAppButtonChild } from "./InstallAppButtonChild";
 type MockCredential = {
   id: number;
   delegatedToId: string;
-  userId: number;
-  user: { email: string };
+  userId: number | null;
+  user: { email: string; name: string | null } | null;
   key: { access_token: string };
-  invalid: boolean;
-  teamId: null;
-  team: null;
-  delegationCredentialId: string;
-  type:
-    | `${string}_calendar`
-    | `${string}_messaging`
-    | `${string}_payment`
-    | `${string}_video`
-    | `${string}_other`
-    | `${string}_automation`
-    | `${string}_analytics`
-    | `${string}_crm`
-    | `${string}_other_calendar`;
-  appId: string;
+  invalid: boolean | null;
+  teamId: number | null;
+  team: { name: string } | null;
+  delegationCredentialId: string | null;
+  type: string;
+  appId: string | null;
 };
 
 // Factory function to create mock credentials
 const createMockCredential = (overrides: Partial<MockCredential> = {}): MockCredential => ({
   id: 1,
-  type: "google_calendar" as const,
+  type: "google_calendar",
   userId: 1,
   delegatedToId: "delegation-123",
   teamId: null,
   team: null,
-  user: { email: "test@example.com" },
+  user: { email: "test@example.com", name: "Test User" },
   key: { access_token: "mock_token_123" },
   delegationCredentialId: "delegation-123",
   appId: "google-calendar",
