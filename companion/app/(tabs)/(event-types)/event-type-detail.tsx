@@ -34,6 +34,7 @@ import {
   type EventType,
   type Schedule,
 } from "@/services/calcom";
+import { useCreateEventType, useDeleteEventType, useUpdateEventType } from "@/hooks";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -140,6 +141,11 @@ export default function EventTypeDetail() {
     slug?: string;
   }>();
 
+  // Mutation hooks for optimistic updates
+  const { mutateAsync: updateEventType, isPending: isUpdating } = useUpdateEventType();
+  const { mutateAsync: createEventType, isPending: isCreating } = useCreateEventType();
+  const { mutateAsync: deleteEventType } = useDeleteEventType();
+
   const [activeTab, setActiveTab] = useState("basics");
 
   // Form state
@@ -178,7 +184,8 @@ export default function EventTypeDetail() {
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
   const [bookingUrl, setBookingUrl] = useState<string>("");
-  const [saving, setSaving] = useState(false);
+  // Use mutation hooks' isPending states instead of local saving state
+  const isSaving = isUpdating || isCreating;
   const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
   const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
   const [showBeforeBufferDropdown, setShowBeforeBufferDropdown] = useState(false);
@@ -220,6 +227,7 @@ export default function EventTypeDetail() {
   const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
   const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
   const [hideCalendarEventDetails, setHideCalendarEventDetails] = useState(false);
+  const [redirectEnabled, setRedirectEnabled] = useState(false);
   const [successRedirectUrl, setSuccessRedirectUrl] = useState("");
   const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
   const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
@@ -231,6 +239,7 @@ export default function EventTypeDetail() {
   const [customReplyToEmail, setCustomReplyToEmail] = useState("");
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
+  const [interfaceLanguageEnabled, setInterfaceLanguageEnabled] = useState(false);
   const [interfaceLanguage, setInterfaceLanguage] = useState("");
   const [showOptimizedSlots, setShowOptimizedSlots] = useState(false);
 
@@ -673,8 +682,8 @@ export default function EventTypeDetail() {
       setSendCalVideoTranscription(false);
     }
 
-    // Load interface language (API V2)
-    if (eventTypeExt.interfaceLanguage !== undefined) {
+    if (eventTypeExt.interfaceLanguage) {
+      setInterfaceLanguageEnabled(true);
       setInterfaceLanguage(eventTypeExt.interfaceLanguage);
     }
 
@@ -737,8 +746,8 @@ export default function EventTypeDetail() {
       setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
     }
 
-    // Load redirect URL
     if (eventType.successRedirectUrl) {
+      setRedirectEnabled(true);
       setSuccessRedirectUrl(eventType.successRedirectUrl);
     }
     if (eventType.forwardParamsSuccessRedirect !== undefined) {
@@ -921,25 +930,34 @@ export default function EventTypeDetail() {
       const dayShort = day.substring(0, 3).toLowerCase(); // mon, tue, etc.
       const dayShortUpper = day.substring(0, 3).toUpperCase();
 
-      const availability = selectedScheduleDetails.availability?.find((avail) => {
-        if (!avail.days || !Array.isArray(avail.days)) return false;
+      // Find ALL matching availability slots for this day (not just the first one)
+      const matchingSlots =
+        selectedScheduleDetails.availability?.filter((avail) => {
+          if (!avail.days || !Array.isArray(avail.days)) return false;
 
-        return avail.days.some(
-          (d) =>
-            d === dayLower ||
-            d === dayUpper ||
-            d === day ||
-            d === dayShort ||
-            d === dayShortUpper ||
-            d.toLowerCase() === dayLower
-        );
-      });
+          return avail.days.some(
+            (d) =>
+              d === dayLower ||
+              d === dayUpper ||
+              d === day ||
+              d === dayShort ||
+              d === dayShortUpper ||
+              d.toLowerCase() === dayLower
+          );
+        }) || [];
+
+      // Map to time slots array
+      const timeSlots = matchingSlots.map((slot) => ({
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }));
 
       return {
         day,
-        available: !!availability,
-        startTime: availability?.startTime,
-        endTime: availability?.endTime,
+        available: timeSlots.length > 0,
+        startTime: timeSlots[0]?.startTime,
+        endTime: timeSlots[0]?.endTime,
+        timeSlots, // Include all time slots for this day
       };
     });
 
@@ -978,7 +996,7 @@ export default function EventTypeDetail() {
           }
 
           try {
-            await CalComAPIService.deleteEventType(eventTypeId);
+            await deleteEventType(eventTypeId);
 
             showSuccessAlert("Success", "Event type deleted successfully");
             router.back();
@@ -1191,8 +1209,6 @@ export default function EventTypeDetail() {
     // Extract values with optional chaining outside try/catch for React Compiler
     const selectedScheduleId = selectedSchedule?.id;
 
-    setSaving(true);
-
     if (isCreateMode) {
       // For CREATE mode, build full payload
       const payload: CreateEventTypePayload = {
@@ -1215,18 +1231,16 @@ export default function EventTypeDetail() {
 
       payload.hidden = isHidden;
 
-      // Create new event type
+      // Create new event type using mutation hook
       try {
-        await CalComAPIService.createEventType(payload);
+        await createEventType(payload);
       } catch (error) {
         safeLogError("Failed to save event type:", error);
         showErrorAlert("Error", "Failed to create event type. Please try again.");
-        setSaving(false);
         return;
       }
       showSuccessAlert("Success", "Event type created successfully");
       router.back();
-      setSaving(false);
     } else {
       // For UPDATE mode, use partial update - only send changed fields
       // Using the memoized currentFormState
@@ -1235,22 +1249,19 @@ export default function EventTypeDetail() {
       if (Object.keys(payload).length === 0) {
         // This should theoretically strictly not be reached if button is disabled,
         // but it acts as a safeguard.
-        // setSaving(false);
         // return;
       }
 
+      // Update event type using mutation hook with optimistic updates
       try {
-        await CalComAPIService.updateEventType(parseInt(id, 10), payload);
+        await updateEventType({ id: parseInt(id, 10), updates: payload });
       } catch (error) {
         safeLogError("Failed to save event type:", error);
         showErrorAlert("Error", "Failed to update event type. Please try again.");
-        setSaving(false);
         return;
       }
       showSuccessAlert("Success", "Event type updated successfully");
-      // Refresh event type data to sync with server
-      await fetchEventTypeData();
-      setSaving(false);
+      // No need to manually refresh - cache is updated by the mutation hook
     }
   };
 
@@ -1320,12 +1331,12 @@ export default function EventTypeDetail() {
         {/* Save Button */}
         <AppPressable
           onPress={handleSave}
-          disabled={saving || !isDirty}
-          className={`px-2 py-2 ${saving || !isDirty ? "opacity-50" : ""}`}
+          disabled={isSaving || !isDirty}
+          className={`px-2 py-2 ${isSaving || !isDirty ? "opacity-50" : ""}`}
         >
           <Text
             className={`text-[16px] font-semibold ${
-              saving || !isDirty ? "text-[#C7C7CC]" : "text-[#000000]"
+              isSaving || !isDirty ? "text-[#C7C7CC]" : "text-[#000000]"
             }`}
           >
             {saveButtonText}
@@ -1385,7 +1396,7 @@ export default function EventTypeDetail() {
             </Stack.Header.Menu>
             <Stack.Header.Button
               onPress={handleSave}
-              disabled={saving || !isDirty}
+              disabled={isSaving || !isDirty}
               variant="prominent"
               tintColor="#000"
             >
@@ -1400,7 +1411,10 @@ export default function EventTypeDetail() {
           style={{
             flex: 1,
           }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: activeTab === "limits" || activeTab === "advanced" ? 280 : 200,
+          }}
           contentInsetAdjustmentBehavior="automatic"
         >
           {activeTab === "basics" ? (
@@ -2161,6 +2175,8 @@ export default function EventTypeDetail() {
               setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
               allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
               setAllowBookingThroughRescheduleLink={setAllowBookingThroughRescheduleLink}
+              redirectEnabled={redirectEnabled}
+              setRedirectEnabled={setRedirectEnabled}
               successRedirectUrl={successRedirectUrl}
               setSuccessRedirectUrl={setSuccessRedirectUrl}
               forwardParamsSuccessRedirect={forwardParamsSuccessRedirect}
@@ -2189,6 +2205,8 @@ export default function EventTypeDetail() {
               setDisableRescheduling={setDisableRescheduling}
               sendCalVideoTranscription={sendCalVideoTranscription}
               setSendCalVideoTranscription={setSendCalVideoTranscription}
+              interfaceLanguageEnabled={interfaceLanguageEnabled}
+              setInterfaceLanguageEnabled={setInterfaceLanguageEnabled}
               interfaceLanguage={interfaceLanguage}
               setInterfaceLanguage={setInterfaceLanguage}
               showOptimizedSlots={showOptimizedSlots}

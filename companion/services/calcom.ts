@@ -862,20 +862,28 @@ async function getTranscripts(bookingUid: string): Promise<BookingTranscript[]> 
 }
 
 async function getEventTypes(): Promise<EventType[]> {
-  // Get cached user profile to extract username (uses in-flight deduplication)
+  // Get cached user profile to extract username and org slug (uses in-flight deduplication)
   let username: string | undefined;
+  let orgSlug: string | undefined;
   try {
     const userProfile = await getUserProfile();
     // Extract username from response
     if (userProfile?.username) {
       username = userProfile.username;
     }
+    // For org users, include org slug to avoid username collisions across orgs
+    if (userProfile?.organization?.slug) {
+      orgSlug = userProfile.organization.slug;
+    }
   } catch (_error) {}
 
-  // Build query string with username and sorting
+  // Build query string with username, orgSlug, and sorting
   const params = new URLSearchParams();
   if (username) {
     params.append("username", username);
+  }
+  if (orgSlug) {
+    params.append("orgSlug", orgSlug);
   }
   // Sort by creation date descending (newer first) to match main codebase behavior
   // Main codebase uses position: "desc", id: "desc" - since API doesn't expose position,

@@ -3,8 +3,6 @@ import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
-
 @Injectable()
 export class OrganizationsSchedulesService {
   constructor(
@@ -19,12 +17,6 @@ export class OrganizationsSchedulesService {
 
     const schedules = await this.schedulesRepository.getSchedulesByUserIds(usersIds, skip, take);
 
-    const responseSchedules: ScheduleOutput_2024_06_11[] = [];
-
-    for (const schedule of schedules) {
-      responseSchedules.push(await this.outputSchedulesService.getResponseSchedule(schedule));
-    }
-
-    return responseSchedules;
+    return this.outputSchedulesService.getResponseSchedules(schedules);
   }
 }
