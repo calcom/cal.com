@@ -473,7 +473,14 @@ class ZohoCalendarService implements Calendar {
           action: "popup",
         },
       ],
-      location: event.location ? getLocation(event) : undefined,
+      location: event.location
+        ? getLocation({
+            videoCallData: event.videoCallData,
+            additionalInformation: event.additionalInformation,
+            location: event.location,
+            uid: event.uid,
+          })
+        : undefined,
     };
 
     return zohoEvent;
