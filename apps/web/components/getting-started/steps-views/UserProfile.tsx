@@ -26,12 +26,16 @@ interface UserProfileProps {
   user: RouterOutputs["viewer"]["me"]["get"];
 }
 
+const MAX_BIO_LENGTH = 256;
+
 const UserProfile = ({ user }: UserProfileProps) => {
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
-  const { setValue, handleSubmit, getValues } = useForm<FormData>({
+  const { setValue, handleSubmit, getValues, watch } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
+
+  const bio = watch("bio");
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
@@ -152,13 +156,24 @@ const UserProfile = ({ user }: UserProfileProps) => {
       <fieldset className="mt-8">
         <Label className="text-default mb-2 block text-sm font-medium">{t("about")}</Label>
         <Editor
+          maxHeight="200px"
           getText={() => md.render(getValues("bio") || user?.bio || "")}
-          setText={(value: string) => setValue("bio", turndown(value))}
+          setText={(value: string) => {
+            const markdown = turndown(value);
+            if (markdown.length <= MAX_BIO_LENGTH) {
+              setValue("bio", markdown);
+            }
+          }}
           excludedToolbarItems={["blockType"]}
           firstRender={firstRender}
           setFirstRender={setFirstRender}
         />
-        <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
+        <div className="mt-2 flex items-center justify-between">
+          <p className="text-default font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
+          <p className="text-subtle text-xs">
+            {bio.length}/{MAX_BIO_LENGTH}
+          </p>
+        </div>
       </fieldset>
       <Button
         loading={mutation.isPending}
