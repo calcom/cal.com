@@ -98,6 +98,24 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
+/**
+ * Adds SCHEDULE-AGENT=CLIENT to ATTENDEE lines to prevent CalDAV servers
+ * (Fastmail, NextCloud, etc.) from sending duplicate invitation emails.
+ * Per RFC 6638 Section 7.1, this tells the server the client handles scheduling.
+ */
+const addScheduleAgentClient = (iCalString: string): string => {
+  return iCalString.replace(
+    /^(ATTENDEE)([^:]*)(:.*)$/gm,
+    (match, attendee, params, value) => {
+      // Skip if SCHEDULE-AGENT is already present
+      if (params.toUpperCase().includes("SCHEDULE-AGENT")) {
+        return match;
+      }
+      return `${attendee}${params};SCHEDULE-AGENT=CLIENT${value}`;
+    }
+  );
+};
+
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -188,7 +206,8 @@ export default abstract class BaseCalendarService implements Calendar {
               },
               filename: `${uid}.ics`,
               // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              // Add SCHEDULE-AGENT=CLIENT to prevent CalDAV servers from sending duplicate invitations (RFC 6638)
+              iCalString: addScheduleAgentClient(iCalString.replace(/METHOD:[^\r\n]+\r\n/g, "")),
               headers: this.headers,
             })
           )
@@ -256,7 +275,8 @@ export default abstract class BaseCalendarService implements Calendar {
             calendarObject: {
               url: calendarEvent.url,
               // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              // Add SCHEDULE-AGENT=CLIENT to prevent CalDAV servers from sending duplicate invitations (RFC 6638)
+              data: addScheduleAgentClient(iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, "") ?? ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
