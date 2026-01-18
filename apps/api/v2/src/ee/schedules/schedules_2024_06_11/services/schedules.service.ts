@@ -109,7 +109,7 @@ export class SchedulesService_2024_06_11 {
 
       const user = await this.usersRepository.findById(userId);
 
-      effectiveScheduleId = userHost.scheduleId ?? user?.defaultScheduleId ?? eventType.scheduleId ?? null;
+      effectiveScheduleId = eventType.scheduleId ?? userHost.scheduleId ?? user?.defaultScheduleId ?? null;
     }
 
     if (!effectiveScheduleId) {

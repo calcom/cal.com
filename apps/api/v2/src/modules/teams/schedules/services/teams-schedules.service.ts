@@ -49,7 +49,7 @@ export class TeamsSchedulesService {
     const effectiveScheduleIds = new Set<number>();
 
     for (const host of eventType.hosts) {
-      const effectiveScheduleId = host.scheduleId ?? host.user.defaultScheduleId ?? eventType.scheduleId;
+      const effectiveScheduleId = eventType.scheduleId ?? host.scheduleId ?? host.user.defaultScheduleId;
 
       if (effectiveScheduleId) {
         effectiveScheduleIds.add(effectiveScheduleId);
