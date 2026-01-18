@@ -35,7 +35,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
     defaultValues: { bio: user?.bio || "" },
   });
 
-  const bio = watch("bio");
+  const bio = watch("bio") ?? "";
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
