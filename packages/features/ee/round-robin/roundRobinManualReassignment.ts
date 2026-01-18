@@ -243,6 +243,19 @@ export const roundRobinManualReassignment = async ({
     });
   }
 
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onReassignment({
+    bookingUid: booking.uid,
+    actor: makeUserActor(reassignedByUuid),
+    organizationId: orgId,
+    source: actionSource,
+    auditData: {
+      assignedToUuid: { old: originalOrganizer.uuid, new: newUser.uuid },
+      reassignmentReason: reassignReason ?? null,
+      reassignmentType: "manual",
+    },
+  });
+
   // When organizer hasn't changed, still extract conferenceCredentialId from event type locations
   if (!hasOrganizerChanged && bookingLocation) {
     const { conferenceCredentialId: extractedCredentialId } =
@@ -263,7 +276,6 @@ export const roundRobinManualReassignment = async ({
   });
 
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
-
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
     if (
@@ -465,23 +477,6 @@ export const roundRobinManualReassignment = async ({
       orgId,
     });
   }
-
-  // Audit logging for manual reassignment
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  await bookingEventHandlerService.onReassignment({
-    bookingUid: booking.uid,
-    actor: makeUserActor(reassignedByUuid),
-    organizationId: orgId,
-    source: actionSource,
-    auditData: {
-      assignedToId: { old: originalOrganizer.id, new: newUser.id },
-      assignedById: reassignedById,
-      reassignmentReason: reassignReason ?? null,
-      reassignmentType: "manual",
-      userPrimaryEmail: { old: originalOrganizer.email, new: newUser.email },
-      hostName: { old: originalOrganizer.name ?? null, new: newUser.name ?? null },
-    },
-  });
 
   return booking;
 };

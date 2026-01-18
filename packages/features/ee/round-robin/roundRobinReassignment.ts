@@ -287,6 +287,19 @@ export const roundRobinReassignment = async ({
     });
   }
 
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onReassignment({
+    bookingUid: booking.uid,
+    actor: makeUserActor(reassignedByUuid),
+    organizationId: orgId,
+    source: actionSource,
+    auditData: {
+      assignedToUuid: { old: originalOrganizer.uuid ?? null, new: reassignedRRHost.uuid ?? null },
+      reassignmentReason: null,
+      reassignmentType: "roundRobin",
+    },
+  });
+
   roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);
 
   await AssignmentReasonRecorder.roundRobinReassignment({
@@ -516,23 +529,6 @@ export const roundRobinReassignment = async ({
       orgId,
     });
   }
-
-  // Audit logging for round robin reassignment
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  await bookingEventHandlerService.onReassignment({
-    bookingUid: booking.uid,
-    actor: makeUserActor(reassignedByUuid),
-    organizationId: orgId,
-    source: actionSource,
-    auditData: {
-      assignedToId: { old: originalOrganizer.id, new: reassignedRRHost.id },
-      assignedById: reassignedById,
-      reassignmentReason: null,
-      reassignmentType: "roundRobin",
-      userPrimaryEmail: { old: originalOrganizer.email, new: reassignedRRHost.email },
-      hostName: { old: originalOrganizer.name ?? null, new: reassignedRRHost.name ?? null },
-    },
-  });
 
   return {
     bookingId,

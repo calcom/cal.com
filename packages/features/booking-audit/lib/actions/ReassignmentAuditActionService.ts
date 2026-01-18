@@ -1,6 +1,6 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { z } from "zod";
-import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
+import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
   BaseStoredAuditData,
@@ -17,15 +17,9 @@ import type {
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-  assignedToId: NumberChangeSchema,
-  // assignedById doesn't need old/new pattern - it's always a new value (who performed the reassignment)
-  assignedById: z.number(),
-  // reassignmentReason doesn't need old/new pattern - it's always a new value
+  assignedToUuid: StringChangeSchema,
   reassignmentReason: z.string().nullable(),
   reassignmentType: z.enum(["manual", "roundRobin"]),
-  userPrimaryEmail: StringChangeSchema.optional(),
-  // hostName tracks the name change (old host name -> new host name)
-  hostName: StringChangeSchema.optional(),
 });
 
 export class ReassignmentAuditActionService implements IAuditActionService {
@@ -58,8 +52,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     return this.helper.getVersionedData(fields);
   }
 
-  parseStored(data: unknown) {
-    return this.helper.parseStored(data);
+  parseStored(data: unknown): BaseStoredAuditData {
+    return this.helper.parseStored(data) as BaseStoredAuditData;
   }
 
   getVersion(data: unknown): number {
@@ -74,7 +68,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
   async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
     const { fields } = this.parseStored(storedData);
-    const user = await this.userRepository.findById({ id: fields.assignedToId.new });
+    const typedFields = fields as ReassignmentAuditData;
+    const user = await this.userRepository.findByUuid({ uuid: typedFields.assignedToUuid.new || "" });
     const reassignedToName = user?.name || "Unknown";
     return {
       key: "booking_audit_action.booking_reassigned_to_host",
@@ -84,9 +79,10 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
   getDisplayJson({ storedData }: GetDisplayJsonParams): ReassignmentAuditDisplayData {
     const { fields } = this.parseStored(storedData);
+    const typedFields = fields as ReassignmentAuditData;
     return {
-      newAssignedToId: fields.assignedToId.new,
-      reassignmentReason: fields.reassignmentReason ?? null,
+      newAssignedToUuid: typedFields.assignedToUuid.new ?? "",
+      reassignmentReason: typedFields.reassignmentReason ?? null,
     };
   }
 
@@ -95,11 +91,12 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     valueKey: string;
   }> {
     const { fields } = this.parseStored(storedData);
+    const typedFields = fields as ReassignmentAuditData;
     const map = {
       manual: "manual",
       roundRobin: "round_robin",
     };
-    const typeTranslationKey = `booking_audit_action.assignment_type_${map[fields.reassignmentType]}`;
+    const typeTranslationKey = `booking_audit_action.assignment_type_${map[typedFields.reassignmentType]}`;
 
     return [
       {
@@ -113,6 +110,6 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 export type ReassignmentAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type ReassignmentAuditDisplayData = {
-  newAssignedToId: number;
+  newAssignedToUuid: string;
   reassignmentReason: string | null;
 };
