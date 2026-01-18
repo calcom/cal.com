@@ -152,17 +152,18 @@ const addScheduleAgentClient = (iCalString: string): string => {
       // Unfold this specific line by removing CRLF + whitespace
       const unfolded = rest.replace(/\r?\n[ \t]/g, "");
 
-      // Skip if SCHEDULE-AGENT is already present (case-insensitive check)
-      if (unfolded.toUpperCase().includes("SCHEDULE-AGENT")) {
-        return foldLine(attendee + unfolded) + lineEnding;
-      }
-
       // Find the colon that separates params from value
       const colonIndex = unfolded.indexOf(":");
       if (colonIndex === -1) return match;
 
       const params = unfolded.slice(0, colonIndex);
       const value = unfolded.slice(colonIndex);
+
+      // Skip if SCHEDULE-AGENT is already present in params (not value)
+      if (params.toUpperCase().includes("SCHEDULE-AGENT")) {
+        return foldLine(attendee + unfolded) + lineEnding;
+      }
+
       const newLine = attendee + params + ";SCHEDULE-AGENT=CLIENT" + value;
       return foldLine(newLine) + lineEnding;
     }
