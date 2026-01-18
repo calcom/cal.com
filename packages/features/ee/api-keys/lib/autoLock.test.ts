@@ -1,10 +1,9 @@
-import type { RatelimitResponse } from "@unkey/ratelimit";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-
+import process from "node:process";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import prisma from "@calcom/prisma";
-
+import type { RatelimitResponse } from "@unkey/ratelimit";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleAutoLock } from "./autoLock";
 
 // Mock the dependencies
@@ -12,10 +11,10 @@ vi.mock("@calcom/features/redis/RedisService");
 vi.mock("@calcom/features/ee/api-keys/lib/apiKeys", () => ({
   hashAPIKey: vi.fn((key) => `hashed_${key}`),
 }));
-vi.mock("@calcom/features/tasker", () => ({
-  default: {
-    create: vi.fn(),
-  },
+vi.mock("@calcom/features/ee/api-keys/di/tasker/UserLockedEmailTasker.container", () => ({
+  getUserLockedEmailTasker: vi.fn(() => ({
+    sendEmail: vi.fn().mockResolvedValue({ runId: "test-run-id" }),
+  })),
 }));
 vi.mock("@calcom/prisma", () => ({
   default: {
@@ -39,7 +38,9 @@ describe("autoLock", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
-    vi.mocked(RedisService).mockImplementation(function() { return mockRedis as any; });
+    vi.mocked(RedisService).mockImplementation(function () {
+      return mockRedis as any;
+    });
 
     // Mock environment variables
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";

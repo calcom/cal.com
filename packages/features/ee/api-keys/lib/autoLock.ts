@@ -1,6 +1,6 @@
 import process from "node:process";
+import { getUserLockedEmailTasker } from "@calcom/features/ee/api-keys/di/tasker/UserLockedEmailTasker.container";
 import { RedisService } from "@calcom/features/redis/RedisService";
-import tasker from "@calcom/features/tasker";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { RatelimitResponse } from "@unkey/ratelimit";
@@ -207,7 +207,8 @@ export interface SendUserLockedEmailParams {
 
 export async function sendUserLockedEmailAsync(params: SendUserLockedEmailParams): Promise<void> {
   try {
-    await tasker.create("sendUserLockedEmail", {
+    const tasker = getUserLockedEmailTasker();
+    await tasker.sendEmail({
       userId: params.userId,
       email: params.email,
       name: params.name,
@@ -221,8 +222,16 @@ export async function sendUserLockedEmailAsync(params: SendUserLockedEmailParams
 }
 
 export async function sendUserLockedEmailSync(params: SendUserLockedEmailParams): Promise<void> {
-  const { sendUserLockedEmailSync: sendEmailSync } = await import(
-    "@calcom/features/tasker/tasks/sendUserLockedEmail"
+  const { UserLockedEmailSyncTasker } = await import(
+    "@calcom/features/ee/api-keys/service/userLockedEmail/tasker/UserLockedEmailSyncTasker"
   );
-  await sendEmailSync(params);
+  const { default: logger } = await import("@calcom/lib/logger");
+  const syncTasker = new UserLockedEmailSyncTasker(logger);
+  await syncTasker.sendEmail({
+    userId: params.userId,
+    email: params.email,
+    name: params.name,
+    lockReason: params.lockReason,
+    locale: params.locale,
+  });
 }
