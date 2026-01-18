@@ -426,10 +426,11 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            // Verify bookings have the team admin as a host
+            // Verify bookings have the team admin as the booking owner (first host)
+            // The userId filter filters by booking.userId, which is the booking owner
             data.forEach((booking) => {
-              if (!Array.isArray(booking) && "hosts" in booking) {
-                expect(booking.hosts.some((host) => host.id === teamAdmin.id)).toBe(true);
+              if (!Array.isArray(booking) && "hosts" in booking && booking.hosts.length > 0) {
+                expect(booking.hosts[0].id).toEqual(teamAdmin.id);
               }
             });
           });
@@ -449,10 +450,11 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            // Verify bookings have a host with the team admin email
+            // Verify bookings have the team admin as the booking owner (first host)
+            // The userId filter filters by booking.userId, which is the booking owner
             data.forEach((booking) => {
-              if (!Array.isArray(booking) && "hosts" in booking) {
-                expect(booking.hosts.some((host) => host.email === teamAdminEmail)).toBe(true);
+              if (!Array.isArray(booking) && "hosts" in booking && booking.hosts.length > 0) {
+                expect(booking.hosts[0].id).toEqual(teamAdmin.id);
               }
             });
           });
