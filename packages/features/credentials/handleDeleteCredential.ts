@@ -1,13 +1,11 @@
-import z from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import {
   type EventTypeAppMetadataSchema,
   eventTypeAppMetadataOptionalSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/app-store/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
@@ -22,8 +20,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import z from "zod";
 
 type App = {
   slug: string;
@@ -349,12 +347,16 @@ const handleDeleteCredential = async ({
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
 
-            const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
+            const organizationId =
+              booking.eventType?.team?.parentId ??
+              booking.user?.organizationId ??
+              booking.user?.profiles?.[0]?.organizationId ??
+              null;
 
             const hideBranding = await shouldHideBrandingForEvent({
               eventTypeId: booking.eventTypeId ?? 0,
               team: booking.eventType?.team ?? null,
-              owner: booking.eventType?.team ? null : booking.user ?? null,
+              owner: booking.eventType?.team ? null : (booking.user ?? null),
               organizationId: organizationId,
             });
 
@@ -383,8 +385,8 @@ const handleDeleteCredential = async ({
                 destinationCalendar: booking.destinationCalendar
                   ? [booking.destinationCalendar]
                   : booking.user?.destinationCalendar
-                  ? [booking.user?.destinationCalendar]
-                  : [],
+                    ? [booking.user?.destinationCalendar]
+                    : [],
                 cancellationReason: "Payment method removed by organizer",
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
@@ -514,12 +516,15 @@ const removeAppFromEventTypeMetadata = (
   }
 ) => {
   const appMetadata = eventTypeMetadata?.apps
-    ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {
-        if (appName !== appSlugToDelete) {
-          filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
-        }
-        return filteredApps;
-      }, {} as z.infer<typeof EventTypeAppMetadataSchema>)
+    ? Object.entries(eventTypeMetadata.apps).reduce(
+        (filteredApps, [appName, appData]) => {
+          if (appName !== appSlugToDelete) {
+            filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
+          }
+          return filteredApps;
+        },
+        {} as z.infer<typeof EventTypeAppMetadataSchema>
+      )
     : {};
 
   return appMetadata;

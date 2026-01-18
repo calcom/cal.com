@@ -1,25 +1,25 @@
-import { randomBytes, createHash } from "node:crypto";
-import { totp } from "otplib";
-
+import { createHash, randomBytes } from "node:crypto";
+import process from "node:process";
 import {
+  sendChangeOfEmailVerificationLink,
   sendEmailVerificationCode,
   sendEmailVerificationLink,
-  sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/auth-email-service";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { prisma } from "@calcom/prisma";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
+import { totp } from "otplib";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -43,10 +43,7 @@ export const sendEmailVerification = async ({
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification =
-    await featuresRepository.checkIfFeatureIsEnabledGlobally(
-      "email-verification"
-    );
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
@@ -135,10 +132,9 @@ export const sendEmailVerificationByCode = async ({
     let teamId: number | undefined;
     let userId: number | undefined;
 
-    const eventType =
-      await eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
-        id: eventTypeId,
-      });
+    const eventType = await eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
+      id: eventTypeId,
+    });
 
     teamId = eventType?.teamId ?? undefined;
     userId = eventType?.userId ?? undefined;
@@ -174,17 +170,11 @@ interface ChangeOfEmail {
   language?: string;
 }
 
-export const sendChangeOfEmailVerification = async ({
-  user,
-  language,
-}: ChangeOfEmail) => {
+export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification =
-    await featuresRepository.checkIfFeatureIsEnabledGlobally(
-      "email-verification"
-    );
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
@@ -198,10 +188,7 @@ export const sendChangeOfEmailVerification = async ({
       span: sentrySpan,
     })
   ) {
-    log.warn(
-      "Email is blocked - not sending verification email",
-      user.emailFrom
-    );
+    log.warn("Email is blocked - not sending verification email");
     return { ok: false, skipped: false };
   }
 

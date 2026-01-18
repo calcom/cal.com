@@ -1,11 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  IsEmail,
-  IsOptional,
-  IsString,
-  IsBoolean,
-  IsNumber,
-} from "class-validator";
+import { IsBoolean, IsEmail, IsInt, IsOptional, IsString } from "class-validator";
 
 export class SendVerificationEmailInput {
   @ApiProperty({ example: "user@example.com" })
@@ -29,6 +23,6 @@ export class SendVerificationEmailInput {
 
   @ApiPropertyOptional({ example: 123 })
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   eventTypeId?: number;
 }
