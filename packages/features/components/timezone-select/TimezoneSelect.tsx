@@ -7,7 +7,6 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 import { memo, useCallback, useMemo, useState } from "react";
-import type { StylesConfig } from "react-select";
 import type { ITimezone, ITimezoneOption, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
@@ -113,20 +112,6 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
     [props.data, data, isWebTimezoneSelect, additionalTimezones]
   );
 
-  const selectStyles: StylesConfig<ITimezoneOption, false> = useMemo(
-    () => ({
-      control: (base) => ({
-        ...base,
-        minHeight: size === "sm" ? "28px" : "36px",
-        height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
-      }),
-      menuList: (base) => ({
-        ...base,
-        height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
-      }),
-    }),
-    [size, grow]
-  );
 
   const handleChange = useCallback(
     (selectedOption: ITimezoneOption | null) => {
@@ -169,7 +154,17 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
       isDisabled={isPending}
       {...reactSelectProps}
       timezones={timezones}
-      styles={selectStyles}
+      styles={{
+        control: (base) => ({
+          ...base,
+          minHeight: size === "sm" ? "28px" : "36px",
+          height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
+        }),
+        menuList: (base) => ({
+          ...base,
+          height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
+        }),
+      }}
       onInputChange={handleInputChange}
       {...props}
       onChange={handleChange}
