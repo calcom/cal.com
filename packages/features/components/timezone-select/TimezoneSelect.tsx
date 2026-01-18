@@ -6,7 +6,7 @@ import { addTimezonesToDropdown, filterBySearchText, handleOptionLabel } from "@
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
-import { memo, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ITimezone, ITimezoneOption, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
@@ -72,7 +72,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
 };
 
 // TODO: I wonder if we move this to ui package, and keep the TRPC version in features
-export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
+export function TimezoneSelectComponent({
   className,
   classNames: timezoneClassNames,
   timezoneSelectCustomClassname,
@@ -85,7 +85,8 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
   isWebTimezoneSelect = true,
   ...props
 }: TimezoneSelectComponentProps) {
-  const data = useMemo(() => [...(props.data || [])], [props.data]);
+  const data = useMemo(() => props.data || [], [props.data?.length]);
+
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
@@ -106,12 +107,11 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
 
   const timezones = useMemo(
     () => ({
-      ...(props.data ? addTimezonesToDropdown(data) : {}),
+      ...(data.length > 0 ? addTimezonesToDropdown(data) : {}),
       ...(isWebTimezoneSelect ? addTimezonesToDropdown(additionalTimezones) : {}),
     }),
-    [props.data, data, isWebTimezoneSelect, additionalTimezones]
+    [data, isWebTimezoneSelect, additionalTimezones]
   );
-
 
   const handleChange = useCallback(
     (selectedOption: ITimezoneOption | null) => {
@@ -242,6 +242,6 @@ export const TimezoneSelectComponent = memo(function TimezoneSelectComponent({
       }}
     />
   );
-});
+}
 
 export type { ITimezone, ITimezoneOption };
