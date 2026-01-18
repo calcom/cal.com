@@ -159,10 +159,11 @@ const UserProfile = ({ user }: UserProfileProps) => {
           maxHeight="200px"
           getText={() => md.render(getValues("bio") || user?.bio || "")}
           setText={(value: string) => {
-            const markdown = turndown(value);
-            if (markdown.length <= MAX_BIO_LENGTH) {
-              setValue("bio", markdown);
+            let markdown = turndown(value);
+            if (markdown.length > MAX_BIO_LENGTH) {
+              markdown = markdown.slice(0, MAX_BIO_LENGTH);
             }
+            setValue("bio", markdown);
           }}
           excludedToolbarItems={["blockType"]}
           firstRender={firstRender}
