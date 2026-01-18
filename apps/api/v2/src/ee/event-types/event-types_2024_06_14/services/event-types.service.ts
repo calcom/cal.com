@@ -9,7 +9,6 @@ import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.st
 import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
@@ -37,7 +36,6 @@ export class EventTypesService_2024_06_14 {
     private readonly usersRepository: UsersRepository,
     private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly dbWrite: PrismaWriteService,
     private readonly schedulesRepository: SchedulesRepository_2024_06_11,
     private readonly eventTypeAccessService: EventTypeAccessService
   ) {}
@@ -436,24 +434,11 @@ export class EventTypesService_2024_06_14 {
         })
       : [];
 
-    await this.dbWrite.prisma.$transaction(async (tx) => {
-      await tx.eventType.update({
-        where: { id: eventTypeId },
-        data: { useEventLevelSelectedCalendars: shouldUseEventLevelCalendars },
-      });
-
-      if (selectedCalendars !== undefined) {
-        await tx.selectedCalendar.deleteMany({
-          where: { eventTypeId },
-        });
-
-        if (calendarsToCreate.length > 0) {
-          await tx.selectedCalendar.createMany({
-            data: calendarsToCreate,
-          });
-        }
-      }
-    });
+    await this.eventTypesRepository.updateSelectedCalendarsWithTransaction(
+      eventTypeId,
+      shouldUseEventLevelCalendars,
+      calendarsToCreate
+    );
   }
 
   async getEventTypeWithSelectedCalendars(eventTypeId: number, userId: number) {

@@ -270,4 +270,33 @@ export class EventTypesRepository_2024_06_14 {
       },
     });
   }
+
+  async updateSelectedCalendarsWithTransaction(
+    eventTypeId: number,
+    useEventLevelSelectedCalendars: boolean,
+    calendarsToCreate: {
+      eventTypeId: number;
+      userId: number;
+      integration: string;
+      externalId: string;
+      credentialId: number | null;
+    }[]
+  ) {
+    return this.dbWrite.prisma.$transaction(async (tx) => {
+      await tx.eventType.update({
+        where: { id: eventTypeId },
+        data: { useEventLevelSelectedCalendars },
+      });
+
+      await tx.selectedCalendar.deleteMany({
+        where: { eventTypeId },
+      });
+
+      if (calendarsToCreate.length > 0) {
+        await tx.selectedCalendar.createMany({
+          data: calendarsToCreate,
+        });
+      }
+    });
+  }
 }

@@ -177,4 +177,21 @@ export class SelectedCalendarsRepository {
       },
     });
   }
+
+  async createManyForEventType(
+    calendars: {
+      eventTypeId: number;
+      userId: number;
+      integration: string;
+      externalId: string;
+      credentialId: number | null;
+    }[]
+  ) {
+    if (calendars.length === 0) {
+      return { count: 0 };
+    }
+    return this.dbWrite.prisma.selectedCalendar.createMany({
+      data: calendars,
+    });
+  }
 }
