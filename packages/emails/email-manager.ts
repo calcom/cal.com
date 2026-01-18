@@ -6,6 +6,7 @@ import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
+import type { CalendarEventWithBranding } from "@calcom/features/profile/lib/hideBranding";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -45,12 +46,6 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
-
-type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
-
-export function withHideBranding(calEvent: CalendarEvent, explicit?: boolean): CalendarEventWithBranding {
-  return { ...calEvent, hideBranding: explicit ?? calEvent.hideBranding ?? false };
-}
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 

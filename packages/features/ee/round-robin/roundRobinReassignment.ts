@@ -11,8 +11,8 @@ import {
   sendRoundRobinReassignedEmailsAndSMS,
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
-  withHideBranding,
 } from "@calcom/emails/email-manager";
+import { withHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";

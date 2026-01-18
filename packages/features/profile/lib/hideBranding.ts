@@ -2,6 +2,7 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
 export type TeamWithBranding = {
@@ -250,5 +251,23 @@ export function shouldHideBrandingForUserEvent({
     team: null,
     eventTypeId,
   });
+}
+
+/**
+ * A CalendarEvent with hideBranding explicitly set as a boolean.
+ * Used when preparing calendar events for email sending.
+ */
+export type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
+
+/**
+ * Transforms a CalendarEvent to include an explicit hideBranding boolean value.
+ *
+ * @param calEvent - The calendar event to transform
+ * @param explicit - Optional explicit value for hideBranding. If provided, this value is used.
+ *                   Otherwise falls back to calEvent.hideBranding, then to false.
+ * @returns CalendarEvent with hideBranding guaranteed to be a boolean
+ */
+export function withHideBranding(calEvent: CalendarEvent, explicit?: boolean): CalendarEventWithBranding {
+  return { ...calEvent, hideBranding: explicit ?? calEvent.hideBranding ?? false };
 }
 

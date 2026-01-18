@@ -3,9 +3,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { sendOrganizerRequestReminderEmail, withHideBranding } from "@calcom/emails/email-manager";
+import { sendOrganizerRequestReminderEmail } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent, withHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";

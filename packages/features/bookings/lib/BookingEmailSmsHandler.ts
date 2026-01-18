@@ -7,8 +7,8 @@ import {
   allowDisablingAttendeeConfirmationEmails,
 } from "@calcom/ee/workflows/lib/allowDisablingStandardEmails";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
-import { withHideBranding } from "@calcom/emails/email-manager";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
+import { withHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
