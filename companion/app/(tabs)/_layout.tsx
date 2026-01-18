@@ -20,6 +20,7 @@ export default function TabLayout() {
     <NativeTabs
       tintColor={SELECTED_COLOR}
       iconColor={Platform.select({ android: "#8E8E93", ios: undefined })}
+      indicatorColor={Platform.select({ android: "#00000015", ios: undefined })}
       backgroundColor={Platform.select({ android: "#F8F8F8", ios: undefined })}
       labelStyle={{
         default: { color: "#8E8E93", fontSize: Platform.select({ android: 11, ios: 8.5 }) },
