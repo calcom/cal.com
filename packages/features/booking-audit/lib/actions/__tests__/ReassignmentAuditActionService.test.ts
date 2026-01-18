@@ -7,12 +7,12 @@ import { ReassignmentAuditActionService } from "../ReassignmentAuditActionServic
 describe("ReassignmentAuditActionService", () => {
   let service: ReassignmentAuditActionService;
   let mockUserRepository: {
-    findById: ReturnType<typeof vi.fn>;
+    findByUuid: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
     mockUserRepository = {
-      findById: vi.fn(),
+      findByUuid: vi.fn(),
     };
     service = new ReassignmentAuditActionService(mockUserRepository as unknown as UserRepository);
   });
@@ -20,12 +20,9 @@ describe("ReassignmentAuditActionService", () => {
   describe("getVersionedData", () => {
     it("should wrap fields with version number", () => {
       const fields = {
-        assignedToId: { old: 1, new: 2 },
-        assignedById: 3,
+        assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
         reassignmentReason: "Host unavailable",
         reassignmentType: "manual" as const,
-        userPrimaryEmail: { old: "old@example.com", new: "new@example.com" },
-        hostName: { old: "Old Host", new: "New Host" },
       };
 
       const result = service.getVersionedData(fields);
@@ -38,12 +35,9 @@ describe("ReassignmentAuditActionService", () => {
 
     it("should handle roundRobin reassignment type", () => {
       const fields = {
-        assignedToId: { old: 1, new: 2 },
-        assignedById: 3,
+        assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
         reassignmentReason: null,
         reassignmentType: "roundRobin" as const,
-        userPrimaryEmail: { old: "old@example.com", new: "new@example.com" },
-        hostName: { old: "Old Host", new: "New Host" },
       };
 
       const result = service.getVersionedData(fields);
@@ -54,10 +48,9 @@ describe("ReassignmentAuditActionService", () => {
       });
     });
 
-    it("should handle optional fields being undefined", () => {
+    it("should handle null reassignment reason", () => {
       const fields = {
-        assignedToId: { old: 1, new: 2 },
-        assignedById: 3,
+        assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
         reassignmentReason: null,
         reassignmentType: "manual" as const,
       };
@@ -76,30 +69,27 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: "Host unavailable",
           reassignmentType: "manual",
-          userPrimaryEmail: { old: "old@example.com", new: "new@example.com" },
-          hostName: { old: "Old Host", new: "New Host" },
         },
       };
 
       const result = service.parseStored(storedData);
 
       expect(result.version).toBe(1);
-      expect(result.fields.assignedToId).toEqual({ old: 1, new: 2 });
-      expect(result.fields.assignedById).toBe(3);
-      expect(result.fields.reassignmentReason).toBe("Host unavailable");
-      expect(result.fields.reassignmentType).toBe("manual");
+      expect(result.fields).toEqual({
+        assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
+        reassignmentReason: "Host unavailable",
+        reassignmentType: "manual",
+      });
     });
 
     it("should throw error for invalid data", () => {
       const invalidData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          // Missing required fields
+          reassignmentReason: "Host unavailable",
         },
       };
 
@@ -112,8 +102,7 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: null,
           reassignmentType: "manual",
         },
@@ -128,8 +117,7 @@ describe("ReassignmentAuditActionService", () => {
   describe("migrateToLatest", () => {
     it("should return data as-is for V1 (no migration needed)", () => {
       const fields = {
-        assignedToId: { old: 1, new: 2 },
-        assignedById: 3,
+        assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
         reassignmentReason: "Host unavailable",
         reassignmentType: "manual" as const,
       };
@@ -146,18 +134,17 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: "Host unavailable",
           reassignmentType: "manual",
         },
       };
 
-      mockUserRepository.findById.mockResolvedValue({ id: 2, name: "New Host" });
+      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "new-uuid-456", name: "New Host" });
 
       const result = await service.getDisplayTitle({ storedData });
 
-      expect(mockUserRepository.findById).toHaveBeenCalledWith({ id: 2 });
+      expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "new-uuid-456" });
       expect(result).toEqual({
         key: "booking_audit_action.booking_reassigned_to_host",
         params: { host: "New Host" },
@@ -168,14 +155,13 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: null,
           reassignmentType: "roundRobin",
         },
       };
 
-      mockUserRepository.findById.mockResolvedValue(null);
+      mockUserRepository.findByUuid.mockResolvedValue(null);
 
       const result = await service.getDisplayTitle({ storedData });
 
@@ -189,14 +175,13 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: null,
           reassignmentType: "manual",
         },
       };
 
-      mockUserRepository.findById.mockResolvedValue({ id: 2, name: null });
+      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "new-uuid-456", name: null });
 
       const result = await service.getDisplayTitle({ storedData });
 
@@ -212,8 +197,7 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: "Host unavailable",
           reassignmentType: "manual",
         },
@@ -222,7 +206,7 @@ describe("ReassignmentAuditActionService", () => {
       const result = service.getDisplayJson({ storedData, userTimeZone: "UTC" });
 
       expect(result).toEqual({
-        newAssignedToId: 2,
+        newAssignedToUuid: "new-uuid-456",
         reassignmentReason: "Host unavailable",
       });
     });
@@ -231,8 +215,7 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: null,
           reassignmentType: "roundRobin",
         },
@@ -241,7 +224,7 @@ describe("ReassignmentAuditActionService", () => {
       const result = service.getDisplayJson({ storedData, userTimeZone: "UTC" });
 
       expect(result).toEqual({
-        newAssignedToId: 2,
+        newAssignedToUuid: "new-uuid-456",
         reassignmentReason: null,
       });
     });
@@ -252,8 +235,7 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: "Host unavailable",
           reassignmentType: "manual",
         },
@@ -273,8 +255,7 @@ describe("ReassignmentAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          assignedToId: { old: 1, new: 2 },
-          assignedById: 3,
+          assignedToUuid: { old: "old-uuid-123", new: "new-uuid-456" },
           reassignmentReason: null,
           reassignmentType: "roundRobin",
         },
