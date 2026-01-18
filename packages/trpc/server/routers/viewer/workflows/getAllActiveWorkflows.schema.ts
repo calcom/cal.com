@@ -8,7 +8,31 @@ import {
 } from "@calcom/ee/workflows/lib/constants";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-export const ZWorkflow = z.object({
+// Define types first to use with z.ZodType annotations
+type TWorkflow = {
+  id: number;
+  name: string;
+  trigger: (typeof WORKFLOW_TRIGGER_EVENTS)[number];
+  time: number | null;
+  timeUnit: (typeof TIME_UNIT)[number] | null;
+  userId: number | null;
+  teamId: number | null;
+  steps: {
+    id: number;
+    action: (typeof WORKFLOW_ACTIONS)[number];
+    sendTo: string | null;
+    template: (typeof WORKFLOW_TEMPLATES)[number];
+    reminderBody: string | null;
+    emailSubject: string | null;
+    numberRequired: boolean | null;
+    sender: string | null;
+    includeCalendarEvent: boolean;
+    numberVerificationPending: boolean;
+    verifiedAt?: Date | null;
+  }[];
+};
+
+export const ZWorkflow: z.ZodType<TWorkflow> = z.object({
   id: z.number(),
   name: z.string(),
   trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -33,14 +57,29 @@ export const ZWorkflow = z.object({
     .array(),
 });
 
-export const ZWorkflows = z
+type TWorkflows = { workflow: TWorkflow }[] | undefined;
+
+export const ZWorkflows: z.ZodType<TWorkflows> = z
   .object({
     workflow: ZWorkflow,
   })
   .array()
   .optional();
 
-export const ZGetAllActiveWorkflowsInputSchema = z.object({
+export type TGetAllActiveWorkflowsInputSchema = {
+  eventType: {
+    id: number;
+    teamId?: number | null;
+    parent?: {
+      id: number | null;
+      teamId: number | null;
+    } | null;
+    metadata: z.infer<typeof EventTypeMetaDataSchema>;
+    userId?: number | null;
+  };
+};
+
+export const ZGetAllActiveWorkflowsInputSchema: z.ZodType<TGetAllActiveWorkflowsInputSchema> = z.object({
   eventType: z.object({
     id: z.number(),
     teamId: z.number().optional().nullable(),
@@ -55,5 +94,3 @@ export const ZGetAllActiveWorkflowsInputSchema = z.object({
     userId: z.number().optional().nullable(),
   }),
 });
-
-export type TGetAllActiveWorkflowsInputSchema = z.infer<typeof ZGetAllActiveWorkflowsInputSchema>;

@@ -19,12 +19,7 @@ webhookContainer.load(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.OOO_WEBHOOK_SERVICE, webhookModule);
-webhookContainer.load(WEBHOOK_TOKENS.BOOKING_PAYLOAD_BUILDER, webhookModule);
-webhookContainer.load(WEBHOOK_TOKENS.FORM_PAYLOAD_BUILDER, webhookModule);
-webhookContainer.load(WEBHOOK_TOKENS.OOO_PAYLOAD_BUILDER, webhookModule);
-webhookContainer.load(WEBHOOK_TOKENS.RECORDING_PAYLOAD_BUILDER, webhookModule);
-webhookContainer.load(WEBHOOK_TOKENS.MEETING_PAYLOAD_BUILDER, webhookModule);
-webhookContainer.load(WEBHOOK_TOKENS.INSTANT_MEETING_BUILDER, webhookModule);
+webhookContainer.load(WEBHOOK_TOKENS.PAYLOAD_BUILDER_FACTORY, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFICATION_HANDLER, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, webhookModule);
 

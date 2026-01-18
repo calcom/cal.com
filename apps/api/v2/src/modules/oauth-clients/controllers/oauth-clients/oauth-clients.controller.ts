@@ -1,3 +1,28 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { MembershipRole } from "@calcom/platform-libraries";
+import { CreateOAuthClientInput, Pagination, UpdateOAuthClientInput } from "@calcom/platform-types";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiExcludeEndpoint,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+  ApiCreatedResponse as DocsCreatedResponse,
+} from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
@@ -9,42 +34,16 @@ import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controller
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
-import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Body,
-  Controller,
-  Query,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  UseGuards,
-  BadRequestException,
-} from "@nestjs/common";
-import {
-  ApiCreatedResponse as DocsCreatedResponse,
-  ApiTags,
-  ApiOperation,
-  ApiExcludeEndpoint,
-  ApiHeader,
-} from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { MembershipRole } from "@calcom/platform-libraries";
-import { CreateOAuthClientInput, UpdateOAuthClientInput, Pagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/oauth-clients",
   version: API_VERSIONS_VALUES,
 })
-@ApiTags("OAuth Clients")
+@ApiTags("Deprecated: Platform OAuth Clients")
 @UseGuards(ApiAuthGuard, OrganizationRolesGuard)
 @ApiHeader(API_KEY_HEADER)
 export class OAuthClientsController {
@@ -69,9 +68,7 @@ export class OAuthClientsController {
     @GetOrgId() organizationId: number,
     @Body() body: CreateOAuthClientInput
   ): Promise<CreateOAuthClientResponseDto> {
-    this.logger.log(
-      `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
-    );
+    this.logger.log(`Creating OAuth Client for organisation ${organizationId}`);
 
     const organization = await this.teamsRepository.findByIdIncludeBilling(organizationId);
     if (!organization?.platformBilling || !organization?.platformBilling?.subscriptionId) {
@@ -140,7 +137,7 @@ export class OAuthClientsController {
     @Param("clientId") clientId: string,
     @Body() body: UpdateOAuthClientInput
   ): Promise<GetOAuthClientResponseDto> {
-    this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
+    this.logger.log(`Updating OAuth Client ${clientId}`);
     const client = await this.oAuthClientsService.updateOAuthClient(clientId, body);
     return { status: SUCCESS_STATUS, data: client };
   }

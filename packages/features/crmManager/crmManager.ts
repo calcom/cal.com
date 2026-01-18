@@ -20,7 +20,6 @@ export default class CrmManager {
     this.crmService = crmService;
 
     if (!this.crmService) {
-      console.log("💀 Error initializing CRM service");
       log.error("CRM service initialization failed");
     }
 

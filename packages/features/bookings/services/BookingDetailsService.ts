@@ -43,6 +43,7 @@ export class BookingDetailsService {
     return {
       rescheduledToBooking,
       previousBooking,
+      tracking: booking.tracking,
     };
   }
 }

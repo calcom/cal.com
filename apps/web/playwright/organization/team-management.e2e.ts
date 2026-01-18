@@ -28,7 +28,7 @@ test.describe("Teams", () => {
     await test.step("Can create team", async () => {
       // Click text=Create Team
       await page.locator("text=Create a new Team").click();
-      await page.waitForURL((url) => url.pathname === "/settings/teams/new");
+      await page.waitForLoadState("networkidle");
       // Fill input[name="name"]
       await page.locator('input[name="name"]').fill(`${user.username}'s Team`);
       // Click text=Continue

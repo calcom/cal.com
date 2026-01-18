@@ -6,3 +6,4 @@
 @source "../../../packages/features/**/*.{js,ts,jsx,tsx}";
 @source "../../../packages/ui/**/*.{js,ts,jsx,tsx}";
 @source "../../../packages/platform/atoms/**/*.{js,ts,jsx,tsx}";
+@source "../../../packages/coss-ui/src/**/*.{js,ts,jsx,tsx}";

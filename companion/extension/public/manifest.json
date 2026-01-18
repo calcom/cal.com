@@ -7,6 +7,15 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com;"
   },
+  "data_collection_permissions": {
+    "libraries": [
+      {
+        "name": "cal.com",
+        "url": "https://cal.com/privacy",
+        "purpose": "Booking and scheduling"
+      }
+    ]
+  },
   "action": {
     "default_title": "Cal.com Companion"
   },

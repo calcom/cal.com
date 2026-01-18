@@ -1,19 +1,19 @@
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
+import getICalUID from "@calcom/emails/lib/getICalUID";
+import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import type { EventManagerInitParams } from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
-import type { EventManagerInitParams } from "@calcom/features/bookings/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent, AdditionalInformation } from "@calcom/types/Calendar";
-import getICalUID from "@calcom/emails/lib/getICalUID";
 
 type InitParams = {
   user: {
@@ -165,9 +165,9 @@ export const handleRescheduleEventManager = async ({
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
     if (changedOrganizer) {
-      const providerICalUID = evt.iCalUID = Array.isArray(calendarResult?.createdEvent)
+      const providerICalUID = (evt.iCalUID = Array.isArray(calendarResult?.createdEvent)
         ? calendarResult?.createdEvent[0]?.iCalUID
-        : calendarResult?.createdEvent?.iCalUID;
+        : calendarResult?.createdEvent?.iCalUID);
       evt.iCalUID = providerICalUID || getICalUID({});
     } else {
       evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)

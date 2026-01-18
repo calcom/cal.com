@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 
-import GuestNotificationsView from "@calcom/features/ee/organizations/pages/settings/guest-notifications";
+import GuestNotificationsView from "~/ee/organizations/guest-notifications";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";

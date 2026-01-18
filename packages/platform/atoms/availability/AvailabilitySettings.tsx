@@ -19,18 +19,17 @@ import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components
 import type {
   BulkUpdatParams,
   EventTypes,
-} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+} from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
+import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
-import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -43,6 +42,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import WebShell from "@calcom/web/modules/shell/Shell";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
@@ -99,7 +99,7 @@ export type AvailabilitySettingsScheduleType = {
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
   schedule: AvailabilitySettingsScheduleType;
-  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
   handleDelete: () => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
@@ -195,7 +195,7 @@ const DateOverride = ({
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
-  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
   classNames?: {
@@ -320,7 +320,10 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const form = useForm<AvailabilityFormValues>({
       defaultValues: {
-        ...schedule,
+        name: schedule.name,
+        timeZone: schedule.timeZone,
+        isDefault: schedule.isDefault,
+        dateOverrides: schedule.dateOverrides,
         schedule: schedule.availability || [],
       },
     });
@@ -328,6 +331,20 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     const watchedValues = useWatch({
       control: form.control,
     });
+
+    const initialValuesRef = useRef<AvailabilityFormValues | null>(null);
+    useEffect(() => {
+      initialValuesRef.current = form.getValues() as AvailabilityFormValues;
+    }, [form, schedule]);
+
+    const formHasChanges = useMemo(() => {
+      if (!initialValuesRef.current) return false;
+      try {
+        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) || JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
+      } catch {
+        return form.formState.isDirty;
+      }
+    }, [watchedValues, form.formState.isDirty]);
 
     // Trigger callback whenever the form state changes
     useEffect(() => {
@@ -623,7 +640,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               className="ml-4 lg:ml-0"
               type="submit"
               form="availability-form"
-              loading={isSaving}>
+              loading={isSaving}
+              disabled={isLoading || !formHasChanges}
+            >
               {t("save")}
             </Button>
             <Button
@@ -679,7 +698,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <div className="border-subtle rounded-md border">
+                <div className="border-subtle rounded-md border mb-6">
                   <BookerStoreProvider>
                     <DateOverride
                       isDryRun={isDryRun}

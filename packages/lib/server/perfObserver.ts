@@ -1,4 +1,4 @@
-import { PerformanceObserver } from "perf_hooks";
+import { PerformanceObserver } from "node:perf_hooks";
 
 import logger from "../logger";
 
@@ -23,4 +23,4 @@ if (process.env.NODE_ENV !== "production") {
 
 export default perfObserver;
 
-export { performance } from "perf_hooks";
+export { performance } from "node:perf_hooks";
