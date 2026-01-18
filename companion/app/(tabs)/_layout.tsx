@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import type { ColorValue, ImageSourcePropType } from "react-native";
 import { Tabs, VectorIcon } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
@@ -19,10 +19,11 @@ export default function TabLayout() {
   return (
     <NativeTabs
       tintColor={SELECTED_COLOR}
+      iconColor={Platform.select({ android: "#8E8E93", ios: undefined })}
       backgroundColor={Platform.select({ android: "#F8F8F8", ios: undefined })}
       labelStyle={{
-        default: { color: "#8E8E93", fontSize: 8.5 },
-        selected: { color: SELECTED_COLOR, fontSize: 10 },
+        default: { color: "#8E8E93", fontSize: Platform.select({ android: 11, ios: 8.5 }) },
+        selected: { color: SELECTED_COLOR, fontSize: Platform.select({ android: 12, ios: 10 }) },
       }}
       disableTransparentOnScrollEdge={true}
     >
@@ -31,7 +32,7 @@ export default function TabLayout() {
           ios: <NativeTabs.Trigger.Icon sf="link" />,
           android: (
             <NativeTabs.Trigger.Icon
-              src={<VectorIcon family={MaterialCommunityIcons as VectorIconFamily} name="link" />}
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="link-outline" />}
               selectedColor={SELECTED_COLOR}
             />
           ),
@@ -44,9 +45,7 @@ export default function TabLayout() {
           ios: <NativeTabs.Trigger.Icon sf="calendar" />,
           android: (
             <NativeTabs.Trigger.Icon
-              src={
-                <VectorIcon family={MaterialCommunityIcons as VectorIconFamily} name="calendar" />
-              }
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="calendar-outline" />}
               selectedColor={SELECTED_COLOR}
             />
           ),
@@ -59,7 +58,7 @@ export default function TabLayout() {
           ios: <NativeTabs.Trigger.Icon sf={{ default: "clock", selected: "clock.fill" }} />,
           android: (
             <NativeTabs.Trigger.Icon
-              src={<VectorIcon family={MaterialCommunityIcons as VectorIconFamily} name="clock" />}
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="time-outline" />}
               selectedColor={SELECTED_COLOR}
             />
           ),
@@ -72,12 +71,7 @@ export default function TabLayout() {
           ios: <NativeTabs.Trigger.Icon sf={{ default: "ellipsis", selected: "ellipsis" }} />,
           android: (
             <NativeTabs.Trigger.Icon
-              src={
-                <VectorIcon
-                  family={MaterialCommunityIcons as VectorIconFamily}
-                  name="dots-horizontal"
-                />
-              }
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="ellipsis-horizontal" />}
               selectedColor={SELECTED_COLOR}
             />
           ),
