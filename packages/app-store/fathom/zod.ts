@@ -9,7 +9,7 @@ const fathomIdSchema = z
   .refine((val) => val === "" || /^[A-Z0-9]{1,20}$/.test(val), {
     message: "Invalid Fathom Site ID format. Expected alphanumeric characters only",
   })
-;
+  .optional();
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

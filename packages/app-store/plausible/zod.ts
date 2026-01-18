@@ -23,7 +23,7 @@ const domainSchema = z
   .refine((val) => val === "" || /^[a-z0-9][a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/.test(val), {
     message: "Invalid domain format. Expected format: example.com",
   })
-;
+  .optional();
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
