@@ -98,6 +98,77 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
+/**
+ * RFC 5545 Section 3.1: Lines should not exceed 75 octets.
+ * Folds long lines by inserting CRLF followed by a single whitespace.
+ */
+const foldLine = (line: string, maxOctets = 75): string => {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(line);
+
+  if (bytes.length <= maxOctets) {
+    return line;
+  }
+
+  const result: string[] = [];
+  let currentLine = "";
+  let currentBytes = 0;
+
+  for (const char of line) {
+    const charBytes = encoder.encode(char).length;
+    // Use 74 for continuation lines to account for the leading space
+    const limit = result.length === 0 ? maxOctets : maxOctets - 1;
+
+    if (currentBytes + charBytes > limit) {
+      result.push(currentLine);
+      currentLine = char;
+      currentBytes = charBytes;
+    } else {
+      currentLine += char;
+      currentBytes += charBytes;
+    }
+  }
+
+  if (currentLine) {
+    result.push(currentLine);
+  }
+
+  return result.join("\r\n ");
+};
+
+/**
+ * Adds SCHEDULE-AGENT=CLIENT to ATTENDEE lines to prevent CalDAV servers
+ * (Fastmail, NextCloud, etc.) from sending duplicate invitation emails.
+ * Per RFC 6638 Section 7.1, this tells the server the client handles scheduling.
+ *
+ * Also applies RFC 5545 line folding if the resulting line exceeds 75 octets.
+ */
+const addScheduleAgentClient = (iCalString: string): string => {
+  return iCalString.replace(
+    /^(ATTENDEE[^\r\n]*)(\r?\n)/gm,
+    (match, attendeeLine, lineEnding) => {
+      // Skip if SCHEDULE-AGENT is already present
+      if (attendeeLine.toUpperCase().includes("SCHEDULE-AGENT")) {
+        return match;
+      }
+
+      // Find the position to insert (before the colon that precedes the mailto:)
+      const colonIndex = attendeeLine.indexOf(":mailto:");
+      if (colonIndex === -1) {
+        // Fallback: find last colon
+        const lastColon = attendeeLine.lastIndexOf(":");
+        if (lastColon === -1) return match;
+
+        const newLine = attendeeLine.slice(0, lastColon) + ";SCHEDULE-AGENT=CLIENT" + attendeeLine.slice(lastColon);
+        return foldLine(newLine) + lineEnding;
+      }
+
+      const newLine = attendeeLine.slice(0, colonIndex) + ";SCHEDULE-AGENT=CLIENT" + attendeeLine.slice(colonIndex);
+      return foldLine(newLine) + lineEnding;
+    }
+  );
+};
+
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -188,7 +259,8 @@ export default abstract class BaseCalendarService implements Calendar {
               },
               filename: `${uid}.ics`,
               // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              // RFC 6638: Add SCHEDULE-AGENT=CLIENT to prevent CalDAV servers from sending duplicate invitations
+              iCalString: addScheduleAgentClient(iCalString.replace(/METHOD:[^\r\n]+\r\n/g, "")),
               headers: this.headers,
             })
           )
@@ -256,7 +328,8 @@ export default abstract class BaseCalendarService implements Calendar {
             calendarObject: {
               url: calendarEvent.url,
               // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              // RFC 6638: Add SCHEDULE-AGENT=CLIENT to prevent CalDAV servers from sending duplicate invitations
+              data: addScheduleAgentClient(iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, "") ?? ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
