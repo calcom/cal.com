@@ -85,7 +85,7 @@ export function TimezoneSelectComponent({
   isWebTimezoneSelect = true,
   ...props
 }: TimezoneSelectComponentProps) {
-  const data = useMemo(() => props.data || [], [props.data]);
+  const data = useMemo(() => props.data || [], [props.data?.length]);
 
   /*
    * we support multiple timezones for the different labels
