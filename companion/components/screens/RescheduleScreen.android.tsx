@@ -1,8 +1,8 @@
 /**
  * RescheduleScreen Component (Android)
  *
- * Android-specific implementation with modal-based date/time picker.
- * Uses custom modal dialogs with Material Design 3 inspired styling.
+ * Android-specific implementation using the DateTimePickerAndroid imperative API
+ * for native Material Design date/time picker dialogs.
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +11,6 @@ import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useStat
 import {
   Alert,
   KeyboardAvoidingView,
-  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -24,6 +23,7 @@ import { useRescheduleBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 
 export interface RescheduleScreenProps {
   booking: Booking | null;
@@ -50,8 +50,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
     const [reason, setReason] = useState("");
 
     // Use React Query mutation for automatic cache invalidation
@@ -100,6 +98,40 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       );
     }, [booking, selectedDateTime, reason, onSuccess, isSaving, rescheduleBooking]);
 
+    const openDatePicker = useCallback(() => {
+      DateTimePickerAndroid.open({
+        value: selectedDateTime,
+        mode: "date",
+        onChange: (event, date) => {
+          if (event.type === "set" && date) {
+            // Preserve the current time when changing date
+            const newDate = new Date(date);
+            newDate.setHours(selectedDateTime.getHours());
+            newDate.setMinutes(selectedDateTime.getMinutes());
+            setSelectedDateTime(newDate);
+          }
+        },
+        minimumDate: new Date(), // Prevent selecting past dates
+      });
+    }, [selectedDateTime]);
+
+    const openTimePicker = useCallback(() => {
+      DateTimePickerAndroid.open({
+        value: selectedDateTime,
+        mode: "time",
+        is24Hour: false, // Match current 12-hour format
+        onChange: (event, date) => {
+          if (event.type === "set" && date) {
+            // Preserve the current date when changing time
+            const newDate = new Date(selectedDateTime);
+            newDate.setHours(date.getHours());
+            newDate.setMinutes(date.getMinutes());
+            setSelectedDateTime(newDate);
+          }
+        },
+      });
+    }, [selectedDateTime]);
+
     // Format date for display
     const formattedDate = selectedDateTime.toLocaleDateString(undefined, {
       weekday: "short",
@@ -110,73 +142,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     // Format time for display (12-hour)
     const formattedTime = formatTime12Hour(selectedDateTime);
-
-    // Generate date options for picker (next 90 days)
-    const dateOptions = React.useMemo(() => {
-      const options: { label: string; sublabel: string; value: Date }[] = [];
-      const today = new Date();
-      for (let i = 0; i < 90; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        const isToday = i === 0;
-        const isTomorrow = i === 1;
-        options.push({
-          label: isToday
-            ? "Today"
-            : isTomorrow
-              ? "Tomorrow"
-              : date.toLocaleDateString(undefined, {
-                  weekday: "long",
-                }),
-          sublabel: date.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
-          value: date,
-        });
-      }
-      return options;
-    }, []);
-
-    // Extract booking times for stable dependency references
-    const bookingStartTime = booking?.startTime;
-    const bookingEndTime = booking?.endTime;
-
-    // Calculate booking duration in minutes
-    const bookingDurationMinutes = React.useMemo(() => {
-      if (!bookingStartTime || !bookingEndTime) return 30; // Default to 30 min
-      const start = new Date(bookingStartTime);
-      const end = new Date(bookingEndTime);
-      const durationMs = end.getTime() - start.getTime();
-      const durationMin = Math.round(durationMs / (1000 * 60));
-      // Ensure slot interval is reasonable (minimum 5 min, maximum 60 min)
-      if (durationMin < 5) return 5;
-      if (durationMin > 60) return 60;
-      return durationMin;
-    }, [bookingStartTime, bookingEndTime]);
-
-    // Generate time options based on booking duration
-    const timeOptions = React.useMemo(() => {
-      const options: {
-        label: string;
-        value: { hour: number; minute: number };
-      }[] = [];
-      const interval = bookingDurationMinutes;
-
-      for (let totalMinutes = 0; totalMinutes < 24 * 60; totalMinutes += interval) {
-        const hour = Math.floor(totalMinutes / 60);
-        const minute = totalMinutes % 60;
-        const ampm = hour >= 12 ? "PM" : "AM";
-        const displayHour = hour % 12 || 12;
-        const time = `${displayHour}:${String(minute).padStart(2, "0")} ${ampm}`;
-        options.push({
-          label: time,
-          value: { hour, minute },
-        });
-      }
-      return options;
-    }, [bookingDurationMinutes]);
 
     useImperativeHandle(
       ref,
@@ -302,7 +267,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 })}
                 onPress={() => {
                   safeLogInfo("[RescheduleScreen] Opening date picker");
-                  setShowDatePicker(true);
+                  openDatePicker();
                 }}
                 disabled={isSaving}
               >
@@ -321,7 +286,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 })}
                 onPress={() => {
                   safeLogInfo("[RescheduleScreen] Opening time picker");
-                  setShowTimePicker(true);
+                  openTimePicker();
                 }}
                 disabled={isSaving}
               >
@@ -351,187 +316,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-
-        {/* Date Picker Modal */}
-        <Modal
-          visible={showDatePicker}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0, 0, 0, 0.4)",
-              justifyContent: "flex-end",
-            }}
-          >
-            <Pressable
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-              onPress={() => setShowDatePicker(false)}
-            />
-            <View
-              style={{
-                backgroundColor: "#fff",
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                maxHeight: "70%",
-                paddingBottom: insets.bottom,
-              }}
-            >
-              {/* Header */}
-              <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
-                <Pressable onPress={() => setShowDatePicker(false)}>
-                  <Text className="text-[17px] text-gray-500">Cancel</Text>
-                </Pressable>
-                <Text className="text-[17px] font-semibold text-[#000]">Select Date</Text>
-                <Pressable onPress={() => setShowDatePicker(false)}>
-                  <Text className="text-[17px] font-semibold text-[#007AFF]">Done</Text>
-                </Pressable>
-              </View>
-
-              {/* Date List */}
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {dateOptions.map((option, index) => {
-                  const isSelected =
-                    option.value.toDateString() === selectedDateTime.toDateString();
-                  return (
-                    <Pressable
-                      key={option.value.toISOString()}
-                      className="flex-row items-center justify-between px-4 py-3.5"
-                      style={({ pressed }) => ({
-                        backgroundColor: isSelected
-                          ? "rgba(0, 122, 255, 0.1)"
-                          : pressed
-                            ? "#F5F5F5"
-                            : "#fff",
-                        borderBottomWidth: index < dateOptions.length - 1 ? 1 : 0,
-                        borderBottomColor: "#F2F2F7",
-                      })}
-                      onPress={() => {
-                        const newDate = new Date(option.value);
-                        newDate.setHours(selectedDateTime.getHours());
-                        newDate.setMinutes(selectedDateTime.getMinutes());
-                        setSelectedDateTime(newDate);
-                      }}
-                    >
-                      <View>
-                        <Text
-                          className={`text-[17px] ${
-                            isSelected ? "font-semibold text-[#007AFF]" : "font-medium text-[#000]"
-                          }`}
-                        >
-                          {option.label}
-                        </Text>
-                        <Text
-                          className={`mt-0.5 text-[13px] ${isSelected ? "text-[#007AFF]" : "text-gray-500"}`}
-                        >
-                          {option.sublabel}
-                        </Text>
-                      </View>
-                      {isSelected && <Ionicons name="checkmark" size={22} color="#007AFF" />}
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Time Picker Modal */}
-        <Modal
-          visible={showTimePicker}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowTimePicker(false)}
-        >
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0, 0, 0, 0.4)",
-              justifyContent: "flex-end",
-            }}
-          >
-            <Pressable
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-              onPress={() => setShowTimePicker(false)}
-            />
-            <View
-              style={{
-                backgroundColor: "#fff",
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                maxHeight: "60%",
-                paddingBottom: insets.bottom,
-              }}
-            >
-              {/* Header */}
-              <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
-                <Pressable onPress={() => setShowTimePicker(false)}>
-                  <Text className="text-[17px] text-gray-500">Cancel</Text>
-                </Pressable>
-                <Text className="text-[17px] font-semibold text-[#000]">Select Time</Text>
-                <Pressable onPress={() => setShowTimePicker(false)}>
-                  <Text className="text-[17px] font-semibold text-[#007AFF]">Done</Text>
-                </Pressable>
-              </View>
-
-              {/* Time Grid */}
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  padding: 16,
-                }}
-              >
-                {timeOptions.map((option) => {
-                  const isSelected =
-                    selectedDateTime.getHours() === option.value.hour &&
-                    selectedDateTime.getMinutes() === option.value.minute;
-                  return (
-                    <Pressable
-                      key={option.label}
-                      style={{ width: "25%", padding: 4 }}
-                      onPress={() => {
-                        const newDate = new Date(selectedDateTime);
-                        newDate.setHours(option.value.hour);
-                        newDate.setMinutes(option.value.minute);
-                        setSelectedDateTime(newDate);
-                      }}
-                    >
-                      <View
-                        className={`items-center justify-center rounded-lg py-3 ${
-                          isSelected ? "bg-[#007AFF]" : "bg-[#F2F2F7]"
-                        }`}
-                      >
-                        <Text
-                          className={`text-[13px] ${
-                            isSelected ? "font-semibold text-white" : "font-medium text-[#000]"
-                          }`}
-                        >
-                          {option.label}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
       </>
     );
   }
