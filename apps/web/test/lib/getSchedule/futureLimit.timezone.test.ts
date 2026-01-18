@@ -67,6 +67,7 @@ vi.mock("@calcom/lib/constants", () => ({
   RESERVED_SUBDOMAINS: ["auth", "docs"],
   ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK: 61,
   SINGLE_ORG_SLUG: "",
+  ENABLE_ASYNC_TASKER: false,
 }));
 
 describe("getSchedule", () => {
