@@ -86,7 +86,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["pkce_required"],
+          message: OAUTH_ERROR_REASONS.pkce_required,
         })
       );
 
@@ -108,7 +108,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -131,7 +131,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputMD5 })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -148,7 +148,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -266,7 +266,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -290,7 +290,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "UNAUTHORIZED",
-          message: OAUTH_ERROR_REASONS["client_not_found"],
+          message: OAUTH_ERROR_REASONS.client_not_found,
         })
       );
 
@@ -349,7 +349,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputInvalid })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -366,7 +366,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
     });

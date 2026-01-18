@@ -5,10 +5,7 @@
  * Uses native iOS pickers via ContextMenu and grouped rows for consistency.
  */
 
-import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { useState } from "react";
 import {
   Alert,
@@ -24,6 +21,7 @@ import {
 
 import { showInfoAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { IOSPickerTrigger } from "./IOSPickerTrigger";
 
 // Interface language options matching API V2 enum
 const interfaceLanguageOptions = [
@@ -140,7 +138,7 @@ function SettingRow({
     <View className="bg-white pl-4">
       <View
         className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height }}
+        style={{ height, flexDirection: "row", alignItems: "center" }}
       >
         <TouchableOpacity
           className="flex-1 flex-row items-center"
@@ -156,12 +154,12 @@ function SettingRow({
             <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
           ) : null}
         </TouchableOpacity>
-        <View style={{ alignSelf: "center" }}>
+        <View style={{ alignSelf: "center", justifyContent: "center" }}>
           <Switch
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
@@ -229,42 +227,6 @@ function NavigationRow({
   );
 }
 
-// iOS Native Picker trigger component
-function IOSPickerTrigger({
-  options,
-  selectedValue,
-  onSelect,
-}: {
-  options: { label: string; value: string }[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {options.map((opt) => (
-            <Button
-              key={opt.value}
-              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
-              onPress={() => onSelect(opt.value)}
-              label={opt.label}
-            />
-          ))}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>
-          <HStack>
-            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
-          </HStack>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
-  );
-}
-
 interface AdvancedTabProps {
   requiresConfirmation: boolean;
   setRequiresConfirmation: (value: boolean) => void;
@@ -284,6 +246,8 @@ interface AdvancedTabProps {
   setAllowReschedulingPastEvents: (value: boolean) => void;
   allowBookingThroughRescheduleLink: boolean;
   setAllowBookingThroughRescheduleLink: (value: boolean) => void;
+  redirectEnabled: boolean;
+  setRedirectEnabled: (value: boolean) => void;
   successRedirectUrl: string;
   setSuccessRedirectUrl: (value: string) => void;
   forwardParamsSuccessRedirect: boolean;
@@ -309,6 +273,8 @@ interface AdvancedTabProps {
   setDisableRescheduling: (value: boolean) => void;
   sendCalVideoTranscription: boolean;
   setSendCalVideoTranscription: (value: boolean) => void;
+  interfaceLanguageEnabled: boolean;
+  setInterfaceLanguageEnabled: (value: boolean) => void;
   interfaceLanguage: string;
   setInterfaceLanguage: (value: string) => void;
   showOptimizedSlots: boolean;
@@ -332,10 +298,19 @@ export function AdvancedTab(props: AdvancedTabProps) {
           title="Requires confirmation"
           description="The booking needs to be manually confirmed before it is pushed to your calendar and a confirmation is sent."
           value={props.requiresConfirmation}
-          onValueChange={props.setRequiresConfirmation}
+          onValueChange={(value) => {
+            if (value && props.seatsEnabled) {
+              Alert.alert(
+                "Disable 'Offer seats' first",
+                "You need to:\n1. Disable 'Offer seats' and Save\n2. Then enable 'Requires confirmation' and Save again"
+              );
+              return;
+            }
+            props.setRequiresConfirmation(value);
+          }}
         />
         <SettingRow
-          title="Email verification"
+          title="Booker email verification"
           description="To ensure booker's email verification before scheduling events."
           value={props.requiresBookerEmailVerification}
           onValueChange={props.setRequiresBookerEmailVerification}
@@ -423,7 +398,16 @@ export function AdvancedTab(props: AdvancedTabProps) {
           title="Offer seats"
           description="Offer seats for booking. This automatically disables guest & opt-in bookings."
           value={props.seatsEnabled}
-          onValueChange={props.setSeatsEnabled}
+          onValueChange={(value) => {
+            if (value && props.requiresConfirmation) {
+              Alert.alert(
+                "Disable 'Requires confirmation' first",
+                "You need to:\n1. Disable 'Requires confirmation' and Save\n2. Then enable 'Offer seats' and Save again"
+              );
+              return;
+            }
+            props.setSeatsEnabled(value);
+          }}
           learnMoreUrl="https://cal.com/help/event-types/offer-seats"
           isLast
         />
@@ -476,15 +460,24 @@ export function AdvancedTab(props: AdvancedTabProps) {
 
       {/* Language */}
       <SettingsGroup header="Language">
-        <NavigationRow
+        <SettingRow
           isFirst
-          isLast
-          title="Interface Language"
-          value={getLanguageLabel(props.interfaceLanguage)}
-          onPress={() => setShowLanguagePicker(true)}
-          options={interfaceLanguageOptions}
-          onSelect={props.setInterfaceLanguage}
+          title="Custom interface language"
+          description="Override the default browser language for the booking page."
+          value={props.interfaceLanguageEnabled}
+          onValueChange={props.setInterfaceLanguageEnabled}
+          isLast={!props.interfaceLanguageEnabled}
         />
+        {props.interfaceLanguageEnabled ? (
+          <NavigationRow
+            isLast
+            title="Select Language"
+            value={getLanguageLabel(props.interfaceLanguage)}
+            onPress={() => setShowLanguagePicker(true)}
+            options={interfaceLanguageOptions}
+            onSelect={props.setInterfaceLanguage}
+          />
+        ) : null}
       </SettingsGroup>
 
       {/* Language Picker Modal */}
@@ -565,34 +558,42 @@ export function AdvancedTab(props: AdvancedTabProps) {
 
       {/* Redirect */}
       <SettingsGroup header="Redirect">
-        <View className="bg-white pl-4">
-          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">
-              Redirect URL after successful booking
-            </Text>
-            <TextInput
-              className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
-              value={props.successRedirectUrl}
-              onChangeText={props.setSuccessRedirectUrl}
-              placeholder="https://example.com/thank-you"
-              placeholderTextColor="#8E8E93"
-              keyboardType="url"
-              autoCapitalize="none"
-            />
-            {props.successRedirectUrl ? (
-              <Text className="mt-2 text-[13px] text-[#FF9500]">
-                Adding a redirect will disable the success page.
-              </Text>
-            ) : null}
-          </View>
-        </View>
         <SettingRow
-          title="Forward parameters"
-          description="Forward parameters such as ?email=...&name=... to the redirect URL."
-          value={props.forwardParamsSuccessRedirect}
-          onValueChange={props.setForwardParamsSuccessRedirect}
-          isLast
+          isFirst
+          title="Redirect on booking"
+          description="Redirect to a custom URL after a successful booking."
+          value={props.redirectEnabled}
+          onValueChange={props.setRedirectEnabled}
+          isLast={!props.redirectEnabled}
         />
+        {props.redirectEnabled ? (
+          <>
+            <View className="bg-white pl-4">
+              <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
+                <Text className="mb-2 text-[13px] text-[#6D6D72]">Redirect URL</Text>
+                <TextInput
+                  className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                  value={props.successRedirectUrl}
+                  onChangeText={props.setSuccessRedirectUrl}
+                  placeholder="https://example.com/thank-you"
+                  placeholderTextColor="#8E8E93"
+                  keyboardType="url"
+                  autoCapitalize="none"
+                />
+                <Text className="mt-2 text-[13px] text-[#FF9500]">
+                  Adding a redirect will disable the success page.
+                </Text>
+              </View>
+            </View>
+            <SettingRow
+              title="Forward parameters"
+              description="Forward parameters such as ?email=...&name=... to the redirect URL."
+              value={props.forwardParamsSuccessRedirect}
+              onValueChange={props.setForwardParamsSuccessRedirect}
+              isLast
+            />
+          </>
+        ) : null}
       </SettingsGroup>
 
       {/* Configure on Web Section */}

@@ -5,13 +5,10 @@
  * Uses native iOS ContextMenu for pickers on iOS, Modal-based dropdowns on Android/Web.
  */
 
-import { Button, ContextMenu, Host, HStack, Image, Text as SwiftUIText } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import {
   Alert,
-  Animated,
+  type Animated,
   Platform,
   Switch,
   Text,
@@ -20,7 +17,8 @@ import {
   View,
 } from "react-native";
 
-import { openInAppBrowser } from "@/utils/browser";
+import { LimitsTabDatePicker } from "./LimitsTabDatePicker";
+import { LimitsTabIOSPicker } from "./LimitsTabIOSPicker";
 
 interface FrequencyLimit {
   id: number;
@@ -127,7 +125,7 @@ function SettingRow({
     <View className="bg-white pl-4">
       <View
         className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height: 44 }}
+        style={{ height: 44, flexDirection: "row", alignItems: "center" }}
       >
         <TouchableOpacity
           className="flex-1 flex-row items-center"
@@ -143,52 +141,16 @@ function SettingRow({
             <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
           ) : null}
         </TouchableOpacity>
-        <View style={{ alignSelf: "center" }}>
+        <View style={{ alignSelf: "center", justifyContent: "center" }}>
           <Switch
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
     </View>
-  );
-}
-
-// iOS Native Picker using ContextMenu - only renders the chevron trigger
-function IOSPickerTrigger({
-  options,
-  selectedValue,
-  onSelect,
-}: {
-  options: string[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {options.map((opt) => (
-            <Button
-              key={opt}
-              systemImage={selectedValue === opt ? "checkmark" : undefined}
-              onPress={() => onSelect(opt)}
-              label={opt}
-            />
-          ))}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>
-          <HStack>
-            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
-          </HStack>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
   );
 }
 
@@ -236,7 +198,7 @@ function PickerNavigationRow({
           {Platform.OS === "ios" ? (
             <>
               <Text className="mr-2 text-[17px] text-[#8E8E93]">{value}</Text>
-              <IOSPickerTrigger options={options} selectedValue={value} onSelect={onSelect} />
+              <LimitsTabIOSPicker options={options} selectedValue={value} onSelect={onSelect} />
             </>
           ) : (
             <TouchableOpacity
@@ -340,10 +302,7 @@ export function LimitsTab(props: LimitsTabProps) {
                 value={props.minimumNoticeValue}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue, 10) || 0;
-                  if (num >= 0) {
-                    props.setMinimumNoticeValue(numericValue || "0");
-                  }
+                  props.setMinimumNoticeValue(numericValue);
                 }}
                 placeholder="1"
                 placeholderTextColor="#8E8E93"
@@ -352,7 +311,7 @@ export function LimitsTab(props: LimitsTabProps) {
               {Platform.OS === "ios" ? (
                 <View className="flex-row items-center">
                   <Text className="mr-1 text-[17px] text-[#8E8E93]">{props.minimumNoticeUnit}</Text>
-                  <IOSPickerTrigger
+                  <LimitsTabIOSPicker
                     options={TIME_UNIT_OPTIONS}
                     selectedValue={props.minimumNoticeUnit}
                     onSelect={props.setMinimumNoticeUnit}
@@ -428,10 +387,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue, 10) || 0;
-                      if (num >= 0) {
-                        props.updateFrequencyLimit(limit.id, "value", numericValue || "0");
-                      }
+                      props.updateFrequencyLimit(limit.id, "value", numericValue);
                     }}
                     placeholder="1"
                     placeholderTextColor="#8E8E93"
@@ -441,7 +397,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
                       <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
-                      <IOSPickerTrigger
+                      <LimitsTabIOSPicker
                         options={FREQUENCY_UNIT_OPTIONS}
                         selectedValue={limit.unit}
                         onSelect={(value: string) =>
@@ -490,10 +446,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue, 10) || 0;
-                      if (num >= 0) {
-                        props.updateDurationLimit(limit.id, "value", numericValue || "0");
-                      }
+                      props.updateDurationLimit(limit.id, "value", numericValue);
                     }}
                     placeholder="60"
                     placeholderTextColor="#8E8E93"
@@ -503,7 +456,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
                       <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
-                      <IOSPickerTrigger
+                      <LimitsTabIOSPicker
                         options={DURATION_UNIT_OPTIONS}
                         selectedValue={limit.unit}
                         onSelect={(value: string) =>
@@ -551,10 +504,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   value={props.maxActiveBookingsValue}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
-                    const num = parseInt(numericValue, 10) || 0;
-                    if (num >= 0) {
-                      props.setMaxActiveBookingsValue(numericValue || "1");
-                    }
+                    props.setMaxActiveBookingsValue(numericValue);
                   }}
                   placeholder="1"
                   placeholderTextColor="#8E8E93"
@@ -599,7 +549,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   value={props.rollingDays}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
-                    props.setRollingDays(numericValue || "30");
+                    props.setRollingDays(numericValue);
                     props.setFutureBookingType("rolling");
                   }}
                   placeholder="30"
@@ -641,21 +591,23 @@ export function LimitsTab(props: LimitsTabProps) {
               <View className="flex-1">
                 <Text className="mb-2 text-[17px] text-black">Within a date range</Text>
                 {props.futureBookingType === "range" ? (
-                  <View className="gap-2">
-                    <TextInput
-                      className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[15px] text-black"
-                      value={props.rangeStartDate}
-                      onChangeText={props.setRangeStartDate}
-                      placeholder="Start date (YYYY-MM-DD)"
-                      placeholderTextColor="#8E8E93"
-                    />
-                    <TextInput
-                      className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[15px] text-black"
-                      value={props.rangeEndDate}
-                      onChangeText={props.setRangeEndDate}
-                      placeholder="End date (YYYY-MM-DD)"
-                      placeholderTextColor="#8E8E93"
-                    />
+                  <View className="gap-3">
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px] text-[#6D6D72]">Start date</Text>
+                      <LimitsTabDatePicker
+                        value={props.rangeStartDate}
+                        onChange={props.setRangeStartDate}
+                        placeholder="Select start date"
+                      />
+                    </View>
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px] text-[#6D6D72]">End date</Text>
+                      <LimitsTabDatePicker
+                        value={props.rangeEndDate}
+                        onChange={props.setRangeEndDate}
+                        placeholder="Select end date"
+                      />
+                    </View>
                   </View>
                 ) : null}
               </View>

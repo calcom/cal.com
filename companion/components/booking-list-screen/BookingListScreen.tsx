@@ -14,10 +14,10 @@ import {
 } from "react-native";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
+import { BookingListSkeleton } from "@/components/booking-list-item/BookingListItemSkeleton";
 import { RecurringBookingListItem } from "@/components/booking-list-item/RecurringBookingListItem";
 import { BookingModals } from "@/components/booking-modals/BookingModals";
 import { EmptyScreen } from "@/components/EmptyScreen";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import {
   AlertDialog,
@@ -636,9 +636,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       <View className="flex-1 bg-gray-50">
         {renderHeader?.()}
         {renderFilterControls?.()}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <LoadingSpinner size="large" />
-        </View>
+        <BookingListSkeleton count={4} iosStyle={iosStyle} />
       </View>
     );
   }
@@ -717,37 +715,39 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
       {/* Bookings list */}
       <Activity mode={showList ? "visible" : "hidden"}>
-        <Activity mode={iosStyle ? "visible" : "hidden"}>
-          <FlatList
-            data={listItems}
-            keyExtractor={(item) => item.key}
-            renderItem={renderListItem}
-            contentContainerStyle={{ paddingBottom: 90 }}
-            refreshControl={
-              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-            }
-            showsVerticalScrollIndicator={false}
-            contentInsetAdjustmentBehavior="automatic"
-            style={{ backgroundColor: "white" }}
-          />
-        </Activity>
-
-        <Activity mode={!iosStyle ? "visible" : "hidden"}>
-          <View className="flex-1 px-2 pt-4 md:px-4">
-            <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+        {isManualRefreshing ? (
+          <BookingListSkeleton count={4} iosStyle={iosStyle} />
+        ) : (
+          <>
+            <Activity mode={iosStyle ? "visible" : "hidden"}>
               <FlatList
                 data={listItems}
                 keyExtractor={(item) => item.key}
                 renderItem={renderListItem}
                 contentContainerStyle={{ paddingBottom: 90 }}
-                refreshControl={
-                  <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-                }
+                refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
                 showsVerticalScrollIndicator={false}
+                contentInsetAdjustmentBehavior="automatic"
+                style={{ backgroundColor: "white" }}
               />
-            </View>
-          </View>
-        </Activity>
+            </Activity>
+
+            <Activity mode={!iosStyle ? "visible" : "hidden"}>
+              <View className="flex-1 px-2 pt-4 md:px-4">
+                <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+                  <FlatList
+                    data={listItems}
+                    keyExtractor={(item) => item.key}
+                    renderItem={renderListItem}
+                    contentContainerStyle={{ paddingBottom: 90 }}
+                    refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
+                    showsVerticalScrollIndicator={false}
+                  />
+                </View>
+              </View>
+            </Activity>
+          </>
+        )}
       </Activity>
 
       {/* Modals */}

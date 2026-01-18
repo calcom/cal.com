@@ -16,9 +16,9 @@ import {
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
+import { EventTypeListSkeleton } from "@/components/event-type-list-item/EventTypeListItemSkeleton";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import { Header } from "@/components/Header";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +37,7 @@ import {
   useEventTypes,
 } from "@/hooks";
 import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
-import { CalComAPIService, type EventType } from "@/services/calcom";
+import type { EventType } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getEventDuration } from "@/utils/getEventDuration";
@@ -133,10 +133,12 @@ export default function EventTypes() {
   };
 
   const handleCopyLink = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      await Clipboard.setStringAsync(link);
-
+      await Clipboard.setStringAsync(eventType.bookingUrl);
       showSuccessAlert("Link Copied", "Event type link copied!");
     } catch {
       showErrorAlert("Error", "Failed to copy link. Please try again.");
@@ -144,11 +146,14 @@ export default function EventTypes() {
   };
 
   const _handleShare = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Share.share({
         message: `Book a meeting: ${eventType.title}`,
-        url: link,
+        url: eventType.bookingUrl,
       });
     } catch {
       showErrorAlert("Error", "Failed to share link. Please try again.");
@@ -280,14 +285,15 @@ export default function EventTypes() {
   };
 
   const handlePreview = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      // Open in browser
       if (Platform.OS === "web") {
-        window.open(link, "_blank");
+        window.open(eventType.bookingUrl, "_blank");
       } else {
-        // For mobile, use in-app browser
-        await openInAppBrowser(link, "event type preview");
+        await openInAppBrowser(eventType.bookingUrl, "event type preview");
       }
     } catch {
       console.error("Failed to open preview");
@@ -375,11 +381,16 @@ export default function EventTypes() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1 bg-white">
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <LoadingSpinner size="large" />
-        </View>
+        <ScrollView
+          style={{ backgroundColor: "white" }}
+          contentContainerStyle={{ paddingBottom: 90 }}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <EventTypeListSkeleton />
+        </ScrollView>
       </View>
     );
   }
@@ -438,6 +449,7 @@ export default function EventTypes() {
               />
               <TouchableOpacity
                 className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
                 onPress={handleCreateNew}
               >
                 <Ionicons name="add" size={18} color="#fff" />
@@ -502,6 +514,7 @@ export default function EventTypes() {
             />
             <TouchableOpacity
               className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
               onPress={handleCreateNew}
             >
               <Ionicons name="add" size={18} color="#fff" />
@@ -514,11 +527,13 @@ export default function EventTypes() {
       <ScrollView
         style={{ backgroundColor: "white" }}
         contentContainerStyle={{ paddingBottom: 90 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        {filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+        {refreshing ? (
+          <EventTypeListSkeleton />
+        ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
           <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
             <EmptyScreen
               icon="filter-outline"

@@ -82,8 +82,6 @@ jobs:
         with:
           sparse-checkout: .github
       - uses: ./.github/actions/cache-checkout
-        with:
-          mode: restore
       - uses: ./.github/actions/yarn-install
       - run: yarn prisma generate
       - uses: ./.github/actions/cache-db
