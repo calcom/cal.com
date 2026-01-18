@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   API_KEY_PREFIX: ${{ secrets.CI_API_KEY_PREFIX }}
@@ -25,7 +25,7 @@ env:
 
 jobs:
   check-openapi-json:
-    name: Check OpenAPI JSON is up-to-date
+    name: Check and update OpenAPI JSON
     timeout-minutes: 10
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
@@ -33,10 +33,15 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: actions/checkout@v4
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
         with:
-          sparse-checkout: .github
-      - uses: ./.github/actions/cache-checkout
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 2
+
       - uses: ./.github/actions/yarn-install
 
       - name: Build platform packages
@@ -55,16 +60,29 @@ jobs:
           yarn prisma generate
           yarn generate-swagger
 
-      - name: Check if OpenAPI JSON is up-to-date
+      - name: Check and commit OpenAPI JSON changes
+        env:
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
           if git diff --exit-code docs/api-reference/v2/openapi.json; then
             echo "OpenAPI JSON is up-to-date"
           else
-            echo "::error::OpenAPI JSON is out of date. Please run 'yarn generate-swagger' from apps/api/v2 directory and commit the changes."
-            echo ""
-            echo "To fix this:"
-            echo "1. cd apps/api/v2"
-            echo "2. yarn generate-swagger"
-            echo "3. Commit the updated docs/api-reference/v2/openapi.json"
-            exit 1
+            echo "OpenAPI JSON has changed"
+            
+            if [ "$IS_FORK" = "true" ]; then
+              echo "::error::OpenAPI JSON is out of date. Since this PR is from a fork, automatic commit is not possible."
+              echo ""
+              echo "To fix this:"
+              echo "1. cd apps/api/v2"
+              echo "2. yarn generate-swagger"
+              echo "3. Commit the updated docs/api-reference/v2/openapi.json"
+              exit 1
+            fi
+            
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docs/api-reference/v2/openapi.json
+            git commit -m "chore: update openapi.json [skip ci]"
+            git push
+            echo "OpenAPI JSON has been automatically updated and committed"
           fi
