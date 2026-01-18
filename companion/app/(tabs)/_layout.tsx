@@ -21,7 +21,7 @@ export default function TabLayout() {
       tintColor={SELECTED_COLOR}
       iconColor={Platform.select({ android: "#8E8E93", ios: undefined })}
       indicatorColor={Platform.select({ android: "#00000015", ios: undefined })}
-      backgroundColor={Platform.select({ android: "#F8F8F8", ios: undefined })}
+      backgroundColor={Platform.select({ android: "#FFFFFFFF", ios: undefined })}
       labelStyle={{
         default: { color: "#8E8E93", fontSize: Platform.select({ android: 11, ios: 8.5 }) },
         selected: { color: SELECTED_COLOR, fontSize: Platform.select({ android: 12, ios: 10 }) },
