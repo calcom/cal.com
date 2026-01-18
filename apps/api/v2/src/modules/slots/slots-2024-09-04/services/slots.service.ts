@@ -92,79 +92,6 @@ export class SlotsService_2024_09_04 {
     return this.fetchAndFormatSlots(queryTransformed, query.format);
   }
 
-  async getAllSlotsForDay(input: { date: string; timeZone?: string; format?: SlotFormat }) {
-    const { date, timeZone, format } = input;
-    const start = DateTime.fromISO(date, { zone: "utc" }).startOf("day");
-    const end = DateTime.fromISO(date, { zone: "utc" }).endOf("day");
-
-    if (!start.isValid || !end.isValid) {
-      throw new BadRequestException("Invalid date. Expected ISO 8601 like 2050-09-05");
-    }
-
-    const eventTypes = await this.dbRead.prisma.eventType.findMany({
-      where: {
-        // Skip hidden event types to avoid noise
-        hidden: { equals: false },
-        // Only individual event types (owned by a user, not a team)
-        userId: { not: null },
-        teamId: null,
-      },
-      select: {
-        id: true,
-        slug: true,
-        userId: true,
-        teamId: true,
-      },
-    });
-
-    const startIso = start.toISO();
-    const endIso = end.toISO();
-
-    const results = await Promise.all(
-      eventTypes.map(async (et) => {
-        const internalQuery: InternalGetSlotsQuery = {
-          isTeamEvent: !!et.teamId,
-          startTime: startIso!,
-          endTime: endIso!,
-          duration: undefined,
-          eventTypeId: et.id,
-          eventTypeSlug: et.slug,
-          usernameList: [],
-          timeZone,
-          orgSlug: null,
-          rescheduleUid: null,
-        };
-
-        try {
-          const formatted = await this.fetchAndFormatSlots(internalQuery, format);
-          // The formatter returns a map keyed by dates in the requested TZ.
-          // Keep only the requested date key if present.
-          const formattedMap = formatted as Record<string, unknown[]>;
-          const onlyRequested = formattedMap && formattedMap[date] ? { [date]: formattedMap[date] } : {};
-
-          return {
-            eventTypeId: et.id,
-            eventTypeSlug: et.slug,
-            ownerUserId: et.userId ?? null,
-            ownerTeamId: et.teamId ?? null,
-            slotsByDate: onlyRequested,
-          };
-        } catch {
-          // Swallow per-event type errors to not fail the whole aggregation
-          return {
-            eventTypeId: et.id,
-            eventTypeSlug: et.slug,
-            ownerUserId: et.userId ?? null,
-            ownerTeamId: et.teamId ?? null,
-            slotsByDate: {},
-          };
-        }
-      })
-    );
-
-    return results;
-  }
-
   async getSlotsByUsers(input: { date: string; timeZone: string; userIds: string; format?: SlotFormat }) {
     const { date, timeZone, userIds, format } = input;
 
@@ -180,8 +107,8 @@ export class SlotsService_2024_09_04 {
     }
 
     // Validate and parse date
-    const start = DateTime.fromISO(date, { zone: "utc" }).startOf("day");
-    const end = DateTime.fromISO(date, { zone: "utc" }).endOf("day");
+    const start = DateTime.fromISO(date, { zone: timeZone }).startOf("day");
+    const end = DateTime.fromISO(date, { zone: timeZone }).endOf("day");
 
     if (!start.isValid || !end.isValid) {
       throw new BadRequestException("Invalid date format. Expected ISO 8601 like 2050-09-05");

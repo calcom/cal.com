@@ -11867,67 +11867,6 @@
         "tags": ["Slots"]
       }
     },
-    "/v2/slots/all-of-day": {
-      "get": {
-        "operationId": "SlotsController_2024_09_04_getAllSlotsForDay",
-        "summary": "Get all available slots for all event types on a given day",
-        "description": "Aggregates available slots across all non-archived, non-hidden event types for the specified date.",
-        "parameters": [
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to 2024-09-04",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "2024-09-04"
-            }
-          },
-          {
-            "name": "date",
-            "required": true,
-            "in": "query",
-            "example": "2050-09-05",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "timeZone",
-            "required": false,
-            "in": "query",
-            "description": "Time zone for slot formatting. Defaults to UTC.",
-            "example": "Europe/London",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "format",
-            "required": false,
-            "in": "query",
-            "description": "Format of slot times in response. Use 'range' to get start and end times.",
-            "example": "range",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Slots"]
-      }
-    },
     "/v2/slots/by-users": {
       "get": {
         "operationId": "SlotsController_2024_09_04_getSlotsByUsers",
