@@ -12,6 +12,11 @@ vi.mock("@calcom/features/redis/RedisService");
 vi.mock("@calcom/features/ee/api-keys/lib/apiKeys", () => ({
   hashAPIKey: vi.fn((key) => `hashed_${key}`),
 }));
+vi.mock("@calcom/features/tasker", () => ({
+  default: {
+    create: vi.fn(),
+  },
+}));
 vi.mock("@calcom/prisma", () => ({
   default: {
     user: {
@@ -129,6 +134,8 @@ describe("autoLock", () => {
           id: true,
           email: true,
           username: true,
+          name: true,
+          locale: true,
         },
       });
       expect(mockRedis.del).toHaveBeenCalledWith("autolock:email:test@example.com.count");
@@ -191,6 +198,8 @@ describe("autoLock", () => {
           id: true,
           email: true,
           username: true,
+          name: true,
+          locale: true,
         },
       });
     });
@@ -301,6 +310,8 @@ describe("autoLock", () => {
           id: true,
           email: true,
           username: true,
+          name: true,
+          locale: true,
         },
       });
     });
@@ -328,6 +339,8 @@ describe("autoLock", () => {
           id: true,
           email: true,
           username: true,
+          name: true,
+          locale: true,
         },
       });
     });
