@@ -1,4 +1,31 @@
-import { makeUserActor } from "@calcom/platform-libraries/bookings";
+import {
+  confirmBookingHandler,
+  getAllUserBookings,
+  getCalendarLinks,
+  getTranslation,
+  handleCancelBooking,
+  handleMarkNoShow,
+  roundRobinManualReassignment,
+  roundRobinReassignment,
+} from "@calcom/platform-libraries";
+import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
+import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
+import {
+  BookingOutput_2024_08_13,
+  CancelBookingInput,
+  CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  GetBookingsInput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput,
+} from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Team, User } from "@calcom/prisma/client";
 import {
   BadRequestException,
@@ -39,6 +66,8 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
+
+export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
 
 type CreatedBooking = {
   hosts: { id: number }[];
