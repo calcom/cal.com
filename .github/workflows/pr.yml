@@ -299,7 +299,7 @@ jobs:
           skip-install-if-cache-hit: "true"
 
   type-check:
-    name: Type check
+    name: Type Checks
     needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
@@ -378,14 +378,14 @@ jobs:
     secrets: inherit
 
   typecheck-companion:
-    name: Companion type check
+    name: Type Checks
     needs: [prepare]
     if: needs.prepare.outputs.has-companion == 'true'
     uses: ./.github/workflows/companion-typecheck.yml
     secrets: inherit
 
   lint-companion:
-    name: Companion lint
+    name: Linters
     needs: [prepare]
     if: needs.prepare.outputs.has-companion == 'true'
     uses: ./.github/workflows/companion-lint.yml
