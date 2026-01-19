@@ -37,7 +37,38 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
+<<<<<<< HEAD
 
+||||||| 0cf5de5ef8
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
+import { Request } from "express";
+import { DateTime } from "luxon";
+import { z } from "zod";
+
+=======
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
+import { Request } from "express";
+import { DateTime } from "luxon";
+import { z } from "zod";
+>>>>>>> origin/main
 export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
 
 import {
@@ -68,7 +99,14 @@ import {
   RescheduleBookingInput,
 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
+<<<<<<< HEAD
 import type { EventType, Team, User } from "@calcom/prisma/client";
+||||||| 0cf5de5ef8
+import type { EventType, User, Team } from "@calcom/prisma/client";
+=======
+import type { EventType, User, Team } from "@calcom/prisma/client";
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
+>>>>>>> origin/main
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -115,7 +153,7 @@ export class BookingsService_2024_08_13 {
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeAccessService: EventTypeAccessService
-  ) {}
+  ) { }
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
     let bookingTeamEventType = false;
@@ -321,8 +359,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -336,8 +373,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -351,8 +387,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -367,8 +402,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -464,6 +498,7 @@ export class BookingsService_2024_08_13 {
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -488,6 +523,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
@@ -1147,6 +1183,8 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
@@ -1180,6 +1218,8 @@ export class BookingsService_2024_08_13 {
         reason,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 

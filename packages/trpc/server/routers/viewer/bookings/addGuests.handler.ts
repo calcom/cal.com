@@ -1,6 +1,9 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -21,7 +24,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
-type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
+type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId" | "uuid"> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
 
 type AddGuestsOptions = {
@@ -30,12 +33,18 @@ type AddGuestsOptions = {
   };
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
+  actionSource: ActionSource;
 };
 
 type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
-export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
+export const addGuestsHandler = async ({
+  ctx,
+  input,
+  emailsEnabled = true,
+  actionSource,
+}: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
 
@@ -65,6 +74,9 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
     booking
   );
 
+  // Capture new attendee emails after update for audit logging
+  const newAttendeeEmails = bookingAttendees.attendees.map((attendee) => attendee.email);
+
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
   const evt = await buildCalendarEvent(booking, organizer, attendeesList);
@@ -74,6 +86,17 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
   if (emailsEnabled) {
     await sendGuestNotifications(evt, booking, uniqueGuestEmails);
   }
+
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onAttendeeAdded({
+    bookingUid: booking.uid,
+    actor: makeUserActor(user.uuid),
+    organizationId: user.organizationId ?? null,
+    source: actionSource,
+    auditData: {
+      added: uniqueGuestEmails,
+    },
+  });
 
   return { message: "Guests added" };
 };
@@ -286,8 +309,8 @@ async function buildCalendarEvent(
     destinationCalendar: booking?.destinationCalendar
       ? [booking?.destinationCalendar]
       : booking?.user?.destinationCalendar
-      ? [booking?.user?.destinationCalendar]
-      : [],
+        ? [booking?.user?.destinationCalendar]
+        : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
