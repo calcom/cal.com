@@ -135,6 +135,8 @@ When modifying the app-store-cli build.ts file, you must ensure it correctly han
 
 The lazyImport parameter in getExportedObject() determines whether to use dynamic imports (for browser components) or static imports (for server-side services).
 
+When creating factory functions that replace class exports, use the naming convention `Build[ServiceName]` instead of just `[ServiceName]`. For example, use `BuildPaymentService` instead of `PaymentService` to make it clear the export is a factory function rather than a class.
+
 ## When working with branches in the Cal.com repository
 
 When asked to move changes to a different branch in the Cal.com repository, use git commands to commit existing changes to the specified branch rather than redoing the work. This is more efficient and prevents duplication of effort. The user prefers direct branch operations over reimplementing the same changes multiple times.
@@ -149,6 +151,12 @@ When reviewing CI check failures in Cal.com:
 1. E2E tests can be flaky and may fail intermittently
 2. Focus only on CI failures that are directly related to your code changes
 3. Infrastructure-related failures (like dependency installation issues) can be disregarded if all code-specific checks (type checking, linting, unit tests) are passing
+4. The errors "password authentication failed for user postgres" and "Invalid URL" are related to SAML database misconfiguration on CI and should be ignored
+
+**E2E tests skipping is expected behavior:**
+- When E2E tests are skipped, it's because the `ready-for-e2e` label has not been added to the PR
+- The "required" check intentionally fails when E2E tests are skipped to prevent merging without E2E
+- Do not try to fix anything related to skipped E2E tests - this is completely expected and normal
 
 ## When working with database models in Cal.com
 
@@ -170,6 +178,8 @@ When fixing imports in Cal.com's generated files (like packages/app-store/apps.b
 ## When working with git and CI systems
 
 Always push committed changes to the remote repository before waiting for or checking CI status. Waiting for CI checks on unpushed local commits is backwards - the CI runs on the remote repository state, not local commits. The proper sequence is: commit locally, run local checks, push to remote, then monitor CI status.
+
+**Never force push to main or production branches** - under any circumstances.
 
 ## When working with imports/exports in the Cal.com codebase
 
@@ -305,6 +315,26 @@ export function useFeatureOptIn() {
 ```
 
 This separation ensures that `packages/features` remains portable and can be used by other apps (like `apps/api/v2`) without pulling in web-specific dependencies like tRPC React hooks.
+
+## When working with DataTable
+
+Refer to the DataTable guide at `packages/features/data-table/GUIDE.md` for implementation patterns and best practices.
+
+## When working on API documentation in the Cal.com repository
+
+The OpenAPI specification at `docs/api-reference/v2/openapi.json` is auto-generated from NestJS controllers - manual edits will be wiped out. To make persistent changes to API documentation, use NestJS decorators like `@ApiQuery`, `@ApiOperation`, etc. in the controller files at `apps/api/v2/src/modules/*/controllers/*.controller.ts`.
+
+## When working on round-robin scheduling or host prioritization
+
+Reuse existing code in `packages/features/bookings/lib/getLuckyUser.ts` which handles weight-based selection, priority ranking, and round-robin fairness algorithms. Check if existing functions can be extended before creating new implementations.
+
+## When importing into apps/api/v2
+
+If you need to import and reuse something from `@calcom/features` or `@calcom/trpc` into `apps/api/v2`, use the platform-libraries package instead. This maintains proper architectural boundaries.
+
+## When writing code comments
+
+Keep comments limited and avoid obvious ones. Comments should explain "why" not "what" - the code itself should be clear enough to explain what it does.
 
 ## File Naming Conventions
 
