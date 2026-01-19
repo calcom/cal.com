@@ -11482,6 +11482,7 @@
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
         "summary": "Get all managed users",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11553,6 +11554,7 @@
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
         "summary": "Create a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11603,6 +11605,7 @@
       "get": {
         "operationId": "OAuthClientUsersController_getUserById",
         "summary": "Get a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11649,6 +11652,7 @@
       "patch": {
         "operationId": "OAuthClientUsersController_updateUser",
         "summary": "Update a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11705,6 +11709,7 @@
       "delete": {
         "operationId": "OAuthClientUsersController_deleteUser",
         "summary": "Delete a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11753,7 +11758,7 @@
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11802,7 +11807,7 @@
       "post": {
         "operationId": "OAuthFlowController_refreshTokens",
         "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
           {
             "name": "clientId",
@@ -11853,6 +11858,7 @@
       "post": {
         "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
         "summary": "Create a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11901,6 +11907,7 @@
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
         "summary": "Get all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11964,6 +11971,7 @@
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
         "summary": "Delete all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12004,6 +12012,7 @@
       "patch": {
         "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
         "summary": "Update a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12052,6 +12061,7 @@
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
         "summary": "Get a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12082,6 +12092,7 @@
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
         "summary": "Delete a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12114,6 +12125,7 @@
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
         "summary": "Create an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12154,6 +12166,7 @@
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
         "summary": "Get all OAuth clients",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12186,6 +12199,7 @@
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientById",
         "summary": "Get an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12224,6 +12238,7 @@
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
         "summary": "Update an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12272,6 +12287,7 @@
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
         "summary": "Delete an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -15166,6 +15182,211 @@
         ]
       }
     },
+    "/v2/teams/{teamId}/bookings": {
+      "get": {
+        "operationId": "TeamsBookingsController_getAllTeamBookings",
+        "summary": "Get team bookings",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "schema": {
+              "example": "?status=upcoming,past",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "upcoming",
+                  "recurring",
+                  "past",
+                  "cancelled",
+                  "unconfirmed"
+                ]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "schema": {
+              "example": "example@domain.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "schema": {
+              "example": "John Doe",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "schema": {
+              "example": "2NtaeaVcKfpmSZ4CthFdfk",
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
+            "schema": {
+              "example": "100,200",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that start after this date-time (ISO 8601).",
+            "schema": {
+              "example": "2024-08-13T10:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that end before this date-time (ISO 8601).",
+            "schema": {
+              "example": "2024-08-20T10:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team member user ids. Multiple ids can be separated by a comma. Only works for team events.",
+            "schema": {
+              "example": "10,20",
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberEmails",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team member emails. Multiple emails can be separated by a comma. Only works for team events.",
+            "schema": {
+              "example": "alice@example.com,bob@example.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time (when booking is scheduled for) in ascending or descending order.",
+            "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time (when booking is scheduled to end) in ascending or descending order.",
+            "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "schema": {
+              "example": "?sortCreated=asc OR ?sortCreated=desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Bookings"
+        ]
+      }
+    },
     "/v2/teams/{teamId}/event-types": {
       "post": {
         "operationId": "TeamsEventTypesController_createTeamEventType",
@@ -15743,6 +15964,46 @@
         },
         "tags": [
           "Teams / Event Types / Webhooks"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/invite": {
+      "post": {
+        "operationId": "TeamsInviteController_createInvite",
+        "summary": "Create team invite link",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateInviteOutputDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Invite"
         ]
       }
     },
@@ -24734,7 +24995,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success"
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/InviteDataDto"
