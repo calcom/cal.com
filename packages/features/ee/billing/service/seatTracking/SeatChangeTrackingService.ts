@@ -5,6 +5,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { SeatChangeType } from "@calcom/prisma/enums";
 import type { Logger } from "tslog";
 
+import { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
+
 const log = logger.getSubLogger({ prefix: ["SeatChangeTrackingService"] });
 
 export interface SeatChangeLogParams {
@@ -44,6 +46,14 @@ export class SeatChangeTrackingService {
       monthKey: providedMonthKey,
       operationId,
     } = params;
+
+    // Only log seat changes if monthly proration is enabled
+    const billingPeriodService = new BillingPeriodService();
+    const shouldLog = await billingPeriodService.shouldApplyMonthlyProration(teamId);
+    if (!shouldLog) {
+      return;
+    }
+
     const monthKey = providedMonthKey || formatMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
@@ -72,6 +82,14 @@ export class SeatChangeTrackingService {
       monthKey: providedMonthKey,
       operationId,
     } = params;
+
+    // Only log seat changes if monthly proration is enabled
+    const billingPeriodService = new BillingPeriodService();
+    const shouldLog = await billingPeriodService.shouldApplyMonthlyProration(teamId);
+    if (!shouldLog) {
+      return;
+    }
+
     const monthKey = providedMonthKey || formatMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
