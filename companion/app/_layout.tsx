@@ -1,6 +1,7 @@
 import { PortalHost } from "@rn-primitives/portal";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
+import { useColorScheme } from "nativewind";
 import { Platform, StatusBar, View } from "react-native";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
@@ -12,6 +13,14 @@ import "../global.css";
 
 function RootLayoutContent() {
   const { isAuthenticated } = useAuth();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    background: isDark ? "#000000" : "#FFFFFF",
+    secondaryBackground: isDark ? "#1C1C1E" : "#F2F2F7",
+    border: isDark ? "#38383A" : "#C6C6C8",
+  };
 
   const content = isAuthenticated ? (
     <Stack>
@@ -35,12 +44,17 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#FFFFFF",
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : colors.background,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#FFFFFF",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.background,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -62,12 +76,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -88,12 +109,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -114,12 +142,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -140,12 +175,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -166,12 +208,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -192,12 +241,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -218,12 +274,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -244,12 +307,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -270,12 +340,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
       <Stack.Screen
@@ -296,12 +373,19 @@ function RootLayoutContent() {
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
             backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              Platform.OS === "ios" && isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.secondaryBackground,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
           },
-          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect:
+            Platform.OS === "ios" && isLiquidGlassAvailable()
+              ? undefined
+              : isDark
+                ? "dark"
+                : "light",
         }}
       />
     </Stack>
@@ -311,8 +395,10 @@ function RootLayoutContent() {
 
   const containerClass =
     Platform.OS === "web"
-      ? "w-[400px] flex-1 flex-col self-end border-l border-gray-200 bg-white"
-      : "bg-white";
+      ? `w-[400px] flex-1 flex-col self-end border-l ${isDark ? "border-gray-700 bg-black" : "border-gray-200 bg-white"}`
+      : isDark
+        ? "bg-black"
+        : "bg-white";
 
   const containerStyle =
     Platform.OS === "web"
@@ -329,7 +415,10 @@ function RootLayoutContent() {
       style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
       className={containerClass}
     >
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
       {content}
       <NetworkStatusBanner />
       <PortalHost />
