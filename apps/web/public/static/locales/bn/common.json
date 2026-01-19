@@ -2477,7 +2477,6 @@
   "insights_user_filter": "ব্যবহারকারী: {{userName}}",
   "insights_subtitle": "আপনার শিডিউলিং কার্যক্রমের জন্য অ্যানালিটিক্স এবং পারফরম্যান্স মেট্রিক্স",
   "location_options": "{{locationCount}} অবস্থান বিকল্প",
-  "location_options_label": "লোকেশন অপশন",
   "custom_plan": "কাস্টম পরিকল্পনা",
   "email_embed": "ইমেল এম্বেড",
   "add_times_to_your_email": "কয়েকটি উপলভ্য সময় নির্বাচন করুন এবং সেগুলি আপনার ইমেলটিতে এম্বেড করুন",
