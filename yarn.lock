@@ -2607,11 +2607,13 @@ __metadata:
     "@tanstack/react-virtual": "npm:3.10.9"
     "@testing-library/react-hooks": "npm:8.0.1"
     "@trigger.dev/sdk": "npm:4.3.2"
+    "@types/deasync": "npm:^0"
     "@types/web-push": "npm:3.6.3"
     "@vercel/functions": "npm:1.4.0"
     city-timezones: "npm:1.2.1"
     class-variance-authority: "npm:0.7.1"
     date-fns-tz: "npm:3.2.0"
+    deasync: "npm:^0.1.31"
     framer-motion: "npm:10.12.8"
     p-limit: "npm:6.2.0"
     react-awesome-query-builder: "npm:5.1.2"
@@ -15798,6 +15800,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/deasync@npm:^0":
+  version: 0.1.5
+  resolution: "@types/deasync@npm:0.1.5"
+  checksum: 10/5a8fec89572abc6fbcce7b4f5b5357ba58b2d6d6860b640eb452eb9e87a8d44f787a40450e456b6e2d7fa12cf52bac2ab0d2f9be431dd51bd40584e316ffaa2c
+  languageName: node
+  linkType: hard
+
 "@types/debug@npm:^4.0.0":
   version: 4.1.12
   resolution: "@types/debug@npm:4.1.12"
@@ -20793,6 +20802,16 @@ __metadata:
   version: 1.0.2
   resolution: "de-indent@npm:1.0.2"
   checksum: 10/30bf43744dca005f9252dbb34ed95dcb3c30dfe52bfed84973b89c29eccff04e27769f222a34c61a93354acf47457785e9032e6184be390ed1d324fb9ab3f427
+  languageName: node
+  linkType: hard
+
+"deasync@npm:^0.1.31":
+  version: 0.1.31
+  resolution: "deasync@npm:0.1.31"
+  dependencies:
+    bindings: "npm:^1.5.0"
+    node-addon-api: "npm:^1.7.1"
+  checksum: 10/e3430cea041d7de593e0cc80a88f9f9b9b8c4f5cc635bcd3a237b7a5371d62dbd50daed0f14ed4d148754a345b993aa7a1e4da848bda69f69c60fb58fd5fac07
   languageName: node
   linkType: hard
 
@@ -30422,6 +30441,15 @@ __metadata:
   version: 3.0.1
   resolution: "node-abort-controller@npm:3.0.1"
   checksum: 10/7437b015830a2f714692fd372c01ce5c8c66f332a205455f58ddc8b3228314e588a20abd34a2b037c9cc438ced74e75492c7fc04f4dc0cf7bf0c0ac4160175e3
+  languageName: node
+  linkType: hard
+
+"node-addon-api@npm:^1.7.1":
+  version: 1.7.2
+  resolution: "node-addon-api@npm:1.7.2"
+  dependencies:
+    node-gyp: "npm:latest"
+  checksum: 10/6bf8217a8cd8148f4bbfd319b46d33587e9fb2e63e3c856ded67a76715167f7a6b17e1d9b8bbf3b8508befeb6a4adb10d92b8998ed5c19ca8448343f4cea11d6
   languageName: node
   linkType: hard
 
