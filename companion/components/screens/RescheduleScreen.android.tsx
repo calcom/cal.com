@@ -7,7 +7,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -160,163 +160,161 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     }
 
     return (
-      <>
-        <KeyboardAvoidingView behavior="height" className="flex-1 bg-[#F2F2F7]">
-          {/* Header - only shown when not using native header */}
-          {!useNativeHeader && (
+      <KeyboardAvoidingView behavior="height" className="flex-1 bg-[#F2F2F7]">
+        {/* Header - only shown when not using native header */}
+        {!useNativeHeader && (
+          <View
+            style={{
+              backgroundColor: "#fff",
+              paddingTop: insets.top,
+              paddingBottom: 12,
+              paddingHorizontal: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: "#E5E5EA",
+              elevation: 2,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 2,
+            }}
+          >
             <View
               style={{
-                backgroundColor: "#fff",
-                paddingTop: insets.top,
-                paddingBottom: 12,
-                paddingHorizontal: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: "#E5E5EA",
-                elevation: 2,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 2,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                minHeight: 44,
               }}
             >
-              <View
+              <AppPressable
+                onPress={() => router.back()}
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  minHeight: 44,
+                  width: 40,
+                  height: 40,
+                  alignItems: "flex-start",
+                  justifyContent: "center",
                 }}
               >
-                <AppPressable
-                  onPress={() => router.back()}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    alignItems: "flex-start",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="chevron-back" size={24} color="#000" />
-                </AppPressable>
+                <Ionicons name="chevron-back" size={24} color="#000" />
+              </AppPressable>
 
+              <Text
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  fontSize: 18,
+                  fontWeight: "600",
+                  color: "#000",
+                  marginHorizontal: 10,
+                }}
+                numberOfLines={1}
+              >
+                Reschedule
+              </Text>
+
+              <AppPressable
+                onPress={handleSubmit}
+                disabled={isSaving}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  opacity: isSaving ? 0.5 : 1,
+                }}
+              >
                 <Text
                   style={{
-                    flex: 1,
-                    textAlign: "center",
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: "600",
-                    color: "#000",
-                    marginHorizontal: 10,
+                    color: "#007AFF",
                   }}
-                  numberOfLines={1}
                 >
-                  Reschedule
+                  Save
                 </Text>
-
-                <AppPressable
-                  onPress={handleSubmit}
-                  disabled={isSaving}
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    opacity: isSaving ? 0.5 : 1,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: "600",
-                      color: "#007AFF",
-                    }}
-                  >
-                    Save
-                  </Text>
-                </AppPressable>
-              </View>
+              </AppPressable>
             </View>
-          )}
+          </View>
+        )}
 
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{
-              padding: 16,
-              paddingBottom: insets.bottom + 16,
-            }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Booking Title Card */}
-            <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
-              <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
-                <Ionicons name="calendar" size={20} color="#6B7280" />
-              </View>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 16,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Booking Title Card */}
+          <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
+            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
+              <Ionicons name="calendar" size={20} color="#6B7280" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[13px] font-medium text-gray-500">Rescheduling</Text>
+              <Text className="mt-0.5 text-[17px] font-medium text-[#000]" numberOfLines={2}>
+                {booking.title}
+              </Text>
+            </View>
+          </View>
+
+          {/* Form Card */}
+          <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            {/* Date picker trigger */}
+            <Pressable
+              className="flex-row items-center justify-between border-b border-gray-100 px-4 py-3"
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? "#F9F9F9" : "transparent",
+              })}
+              onPress={() => {
+                safeLogInfo("[RescheduleScreen] Opening date picker");
+                openDatePicker();
+              }}
+              disabled={isSaving}
+            >
               <View className="flex-1">
-                <Text className="text-[13px] font-medium text-gray-500">Rescheduling</Text>
-                <Text className="mt-0.5 text-[17px] font-medium text-[#000]" numberOfLines={2}>
-                  {booking.title}
-                </Text>
+                <Text className="mb-1 text-[13px] font-medium text-gray-500">New Date</Text>
+                <Text className="text-[17px] text-[#000]">{formattedDate}</Text>
               </View>
-            </View>
+              <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+            </Pressable>
 
-            {/* Form Card */}
-            <View className="mb-4 overflow-hidden rounded-xl bg-white">
-              {/* Date picker trigger */}
-              <Pressable
-                className="flex-row items-center justify-between border-b border-gray-100 px-4 py-3"
-                style={({ pressed }) => ({
-                  backgroundColor: pressed ? "#F9F9F9" : "transparent",
-                })}
-                onPress={() => {
-                  safeLogInfo("[RescheduleScreen] Opening date picker");
-                  openDatePicker();
-                }}
-                disabled={isSaving}
-              >
-                <View className="flex-1">
-                  <Text className="mb-1 text-[13px] font-medium text-gray-500">New Date</Text>
-                  <Text className="text-[17px] text-[#000]">{formattedDate}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
-              </Pressable>
-
-              {/* Time picker trigger */}
-              <Pressable
-                className="flex-row items-center justify-between border-b border-gray-100 px-4 py-3"
-                style={({ pressed }) => ({
-                  backgroundColor: pressed ? "#F9F9F9" : "transparent",
-                })}
-                onPress={() => {
-                  safeLogInfo("[RescheduleScreen] Opening time picker");
-                  openTimePicker();
-                }}
-                disabled={isSaving}
-              >
-                <View className="flex-1">
-                  <Text className="mb-1 text-[13px] font-medium text-gray-500">New Time</Text>
-                  <Text className="text-[17px] text-[#000]">{formattedTime}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
-              </Pressable>
-
-              {/* Reason input */}
-              <View className="px-4 py-3">
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
-                  Reason (optional)
-                </Text>
-                <TextInput
-                  className="min-h-[80px] text-[17px] text-[#000]"
-                  placeholder="Enter reason for rescheduling..."
-                  placeholderTextColor="#9CA3AF"
-                  value={reason}
-                  onChangeText={setReason}
-                  multiline
-                  textAlignVertical="top"
-                  editable={!isSaving}
-                />
+            {/* Time picker trigger */}
+            <Pressable
+              className="flex-row items-center justify-between border-b border-gray-100 px-4 py-3"
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? "#F9F9F9" : "transparent",
+              })}
+              onPress={() => {
+                safeLogInfo("[RescheduleScreen] Opening time picker");
+                openTimePicker();
+              }}
+              disabled={isSaving}
+            >
+              <View className="flex-1">
+                <Text className="mb-1 text-[13px] font-medium text-gray-500">New Time</Text>
+                <Text className="text-[17px] text-[#000]">{formattedTime}</Text>
               </View>
+              <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+            </Pressable>
+
+            {/* Reason input */}
+            <View className="px-4 py-3">
+              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
+                Reason (optional)
+              </Text>
+              <TextInput
+                className="min-h-[80px] text-[17px] text-[#000]"
+                placeholder="Enter reason for rescheduling..."
+                placeholderTextColor="#9CA3AF"
+                value={reason}
+                onChangeText={setReason}
+                multiline
+                textAlignVertical="top"
+                editable={!isSaving}
+              />
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 );
