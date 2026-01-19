@@ -21,6 +21,16 @@ type UserRoleContext = {
   adminTeamNames: { id: number; name: string }[];
 };
 
+export type FeatureOptInMutations = {
+  setUserState: (params: { slug: string; state: "enabled" }) => Promise<unknown>;
+  setTeamState: (params: { teamId: number; slug: string; state: "enabled" }) => Promise<unknown>;
+  setOrganizationState: (params: { slug: string; state: "enabled" }) => Promise<unknown>;
+  setUserAutoOptIn: (params: { autoOptIn: boolean }) => Promise<unknown>;
+  setTeamAutoOptIn: (params: { teamId: number; autoOptIn: boolean }) => Promise<unknown>;
+  setOrganizationAutoOptIn: (params: { autoOptIn: boolean }) => Promise<unknown>;
+  invalidateQueries: () => void;
+};
+
 export type UseFeatureOptInBannerResult = {
   shouldShow: boolean;
   isLoading: boolean;
@@ -33,6 +43,7 @@ export type UseFeatureOptInBannerResult = {
   closeDialog: () => void;
   dismiss: () => void;
   markOptedIn: () => void;
+  mutations: FeatureOptInMutations;
 };
 
 function getFeaturesMap(storageKey: string): FeaturesMap {
@@ -67,6 +78,7 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
   const [isOptedIn, setIsOptedIn] = useState(() => isFeatureInMap(OPTED_IN_STORAGE_KEY, featureId));
 
   const featureConfig = useMemo(() => getOptInFeatureConfig(featureId) ?? null, [featureId]);
+  const utils = trpc.useUtils();
 
   const eligibilityQuery = trpc.viewer.featureOptIn.checkFeatureOptInEligibility.useQuery(
     { featureId },
@@ -75,6 +87,37 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 5,
     }
+  );
+
+  const setUserStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation();
+  const setTeamStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation();
+  const setOrganizationStateMutation = trpc.viewer.featureOptIn.setOrganizationState.useMutation();
+  const setUserAutoOptInMutation = trpc.viewer.featureOptIn.setUserAutoOptIn.useMutation();
+  const setTeamAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation();
+  const setOrganizationAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation();
+
+  const mutations: FeatureOptInMutations = useMemo(
+    () => ({
+      setUserState: (params) => setUserStateMutation.mutateAsync(params),
+      setTeamState: (params) => setTeamStateMutation.mutateAsync(params),
+      setOrganizationState: (params) => setOrganizationStateMutation.mutateAsync(params),
+      setUserAutoOptIn: (params) => setUserAutoOptInMutation.mutateAsync(params),
+      setTeamAutoOptIn: (params) => setTeamAutoOptInMutation.mutateAsync(params),
+      setOrganizationAutoOptIn: (params) => setOrganizationAutoOptInMutation.mutateAsync(params),
+      invalidateQueries: () => {
+        utils.viewer.featureOptIn.checkFeatureOptInEligibility.invalidate();
+        utils.viewer.featureOptIn.listForUser.invalidate();
+      },
+    }),
+    [
+      setUserStateMutation,
+      setTeamStateMutation,
+      setOrganizationStateMutation,
+      setUserAutoOptInMutation,
+      setTeamAutoOptInMutation,
+      setOrganizationAutoOptInMutation,
+      utils,
+    ]
   );
 
   const dismiss = useCallback(() => {
@@ -116,5 +159,6 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
     closeDialog,
     dismiss,
     markOptedIn,
+    mutations,
   };
 }

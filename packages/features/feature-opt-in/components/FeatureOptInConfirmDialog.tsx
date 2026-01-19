@@ -2,7 +2,6 @@
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";
 import { Checkbox } from "@coss/ui/components/checkbox";
 import {
@@ -32,6 +31,16 @@ type UserRoleContext = {
   adminTeamNames: { id: number; name: string }[];
 };
 
+export type FeatureOptInMutations = {
+  setUserState: (params: { slug: string; state: "enabled" }) => Promise<unknown>;
+  setTeamState: (params: { teamId: number; slug: string; state: "enabled" }) => Promise<unknown>;
+  setOrganizationState: (params: { slug: string; state: "enabled" }) => Promise<unknown>;
+  setUserAutoOptIn: (params: { autoOptIn: boolean }) => Promise<unknown>;
+  setTeamAutoOptIn: (params: { teamId: number; autoOptIn: boolean }) => Promise<unknown>;
+  setOrganizationAutoOptIn: (params: { autoOptIn: boolean }) => Promise<unknown>;
+  invalidateQueries: () => void;
+};
+
 interface FeatureOptInConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,6 +48,7 @@ interface FeatureOptInConfirmDialogProps {
   onOptInSuccess?: () => void;
   featureConfig: OptInFeatureConfig;
   userRoleContext: UserRoleContext;
+  mutations: FeatureOptInMutations;
 }
 
 export function FeatureOptInConfirmDialog({
@@ -48,10 +58,10 @@ export function FeatureOptInConfirmDialog({
   onOptInSuccess,
   featureConfig,
   userRoleContext,
+  mutations,
 }: FeatureOptInConfirmDialogProps): ReactElement {
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useUtils();
 
   const { isOrgAdmin, orgId, adminTeamIds, adminTeamNames } = userRoleContext;
   const hasAdminTeams = adminTeamIds.length > 0;
@@ -66,13 +76,6 @@ export function FeatureOptInConfirmDialog({
   const [isSuccess, setIsSuccess] = useState(false);
   const [shouldInvalidate, setShouldInvalidate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const setUserStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation();
-  const setTeamStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation();
-  const setOrganizationStateMutation = trpc.viewer.featureOptIn.setOrganizationState.useMutation();
-  const setUserAutoOptInMutation = trpc.viewer.featureOptIn.setUserAutoOptIn.useMutation();
-  const setTeamAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation();
-  const setOrganizationAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation();
 
   const hasTeamsSelected = selectedTeamIds.length > 0;
   const hasAnySelection = enableForUser || enableForOrg || hasTeamsSelected;
@@ -132,29 +135,25 @@ export function FeatureOptInConfirmDialog({
       const promises: Promise<unknown>[] = [];
 
       if (enableForOrg && orgId) {
-        promises.push(
-          setOrganizationStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" })
-        );
+        promises.push(mutations.setOrganizationState({ slug: featureConfig.slug, state: "enabled" }));
         if (autoOptIn) {
-          promises.push(setOrganizationAutoOptInMutation.mutateAsync({ autoOptIn: true }));
+          promises.push(mutations.setOrganizationAutoOptIn({ autoOptIn: true }));
         }
       }
 
       if (hasTeamsSelected) {
         selectedTeamIds.forEach((teamId) => {
-          promises.push(
-            setTeamStateMutation.mutateAsync({ teamId, slug: featureConfig.slug, state: "enabled" })
-          );
+          promises.push(mutations.setTeamState({ teamId, slug: featureConfig.slug, state: "enabled" }));
           if (autoOptIn) {
-            promises.push(setTeamAutoOptInMutation.mutateAsync({ teamId, autoOptIn: true }));
+            promises.push(mutations.setTeamAutoOptIn({ teamId, autoOptIn: true }));
           }
         });
       }
 
       if (enableForUser) {
-        promises.push(setUserStateMutation.mutateAsync({ slug: featureConfig.slug, state: "enabled" }));
+        promises.push(mutations.setUserState({ slug: featureConfig.slug, state: "enabled" }));
         if (autoOptIn) {
-          promises.push(setUserAutoOptInMutation.mutateAsync({ autoOptIn: true }));
+          promises.push(mutations.setUserAutoOptIn({ autoOptIn: true }));
         }
       }
 
@@ -191,8 +190,7 @@ export function FeatureOptInConfirmDialog({
 
   const resetAndClose = (): void => {
     if (shouldInvalidate) {
-      utils.viewer.featureOptIn.checkFeatureOptInEligibility.invalidate();
-      utils.viewer.featureOptIn.listForUser.invalidate();
+      mutations.invalidateQueries();
       setShouldInvalidate(false);
     }
     setIsSuccess(false);

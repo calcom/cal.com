@@ -4,6 +4,7 @@ import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config"
 import type { ReactElement } from "react";
 
 import { FeatureOptInBanner } from "./FeatureOptInBanner";
+import type { FeatureOptInMutations } from "./FeatureOptInConfirmDialog";
 import { FeatureOptInConfirmDialog } from "./FeatureOptInConfirmDialog";
 
 type UserRoleContext = {
@@ -25,6 +26,7 @@ type FeatureOptInBannerState = {
   closeDialog: () => void;
   dismiss: () => void;
   markOptedIn: () => void;
+  mutations: FeatureOptInMutations;
 };
 
 interface FeatureOptInBannerWrapperProps {
@@ -53,6 +55,7 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           onOptInSuccess={state.markOptedIn}
           featureConfig={state.featureConfig}
           userRoleContext={state.userRoleContext}
+          mutations={state.mutations}
         />
       )}
     </>
