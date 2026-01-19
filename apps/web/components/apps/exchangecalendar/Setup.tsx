@@ -142,30 +142,28 @@ export default function ExchangeSetup() {
                         );
                       }}
                     />
-                    {authenticationMethod === ExchangeAuthentication.STANDARD ? (
-                      <Controller
-                        name="exchangeVersion"
-                        control={form.control}
-                        render={({ field: { onChange } }) => {
-                          const exchangeVersion2016 = exchangeVersions.find(
-                            (exchangeVersion) => exchangeVersion.value === ExchangeVersion.Exchange2016
-                          );
-                          return (
-                            <SelectField
-                              label={t("exchange_version")}
-                              options={exchangeVersions}
-                              defaultValue={exchangeVersion2016}
-                              onChange={(version) => {
-                                onChange(version?.value);
-                                if (version) {
-                                  form.setValue("exchangeVersion", version.value);
-                                }
-                              }}
-                            />
-                          );
-                        }}
-                      />
-                    ) : null}
+                    <Controller
+                      name="exchangeVersion"
+                      control={form.control}
+                      render={({ field: { onChange } }) => {
+                        const exchangeVersion2016 = exchangeVersions.find(
+                          (exchangeVersion) => exchangeVersion.value === ExchangeVersion.Exchange2016
+                        );
+                        return (
+                          <SelectField
+                            label={t("exchange_version")}
+                            options={exchangeVersions}
+                            defaultValue={exchangeVersion2016}
+                            onChange={(version) => {
+                              onChange(version?.value);
+                              if (version) {
+                                form.setValue("exchangeVersion", version.value);
+                              }
+                            }}
+                          />
+                        );
+                      }}
+                    />
                   </fieldset>
                   {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
                   <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
