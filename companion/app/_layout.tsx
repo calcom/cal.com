@@ -395,10 +395,8 @@ function RootLayoutContent() {
 
   const containerClass =
     Platform.OS === "web"
-      ? `w-[400px] flex-1 flex-col self-end border-l ${isDark ? "border-gray-700 bg-black" : "border-gray-200 bg-white"}`
-      : isDark
-        ? "bg-black"
-        : "bg-white";
+      ? "w-[400px] flex-1 flex-col self-end border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-black"
+      : "bg-white dark:bg-black";
 
   const containerStyle =
     Platform.OS === "web"
