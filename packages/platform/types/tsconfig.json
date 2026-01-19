@@ -1,12 +1,13 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES2021",
+    "module": "CommonJS",
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "outDir": "dist"
   },
-  "include": [".", "../../types/business-days-plugin.d.ts", "../../types/window.d.ts"],
+  "include": ["src", "index.ts", "../../types/business-days-plugin.d.ts", "../../types/window.d.ts"],
   "exclude": ["dist", "build", "**/node_modules/**"]
 }

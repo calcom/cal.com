@@ -4,6 +4,13 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "private": true,
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "test": "jest ./tests",
     "build": "tsc --build --force tsconfig.json",
@@ -11,8 +18,7 @@
     "post-install": "yarn build"
   },
   "dependencies": {
-    "@calcom/platform-constants": "workspace:*",
-    "@calcom/platform-types": "workspace:*"
+    "@calcom/platform-constants": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
