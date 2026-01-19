@@ -79,25 +79,6 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
     );
   }, [telemetry, pathname]);
 
-  // useEffect(() => {
-  //   if (team.faviconUrl) {
-  //     const faviconUrl = getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true);
-  //     const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
-  //     defaultFavicons.forEach((link) => {
-  //       link.rel = "icon";
-  //       link.href = faviconUrl;
-  //       link.type = "image/png";
-  //     });
-  //     if (defaultFavicons.length === 0) {
-  //       const link: HTMLLinkElement = document.createElement("link");
-  //       link.rel = "icon";
-  //       link.href = faviconUrl;
-  //       link.type = "image/png";
-  //       document.head.appendChild(link);
-  //     }
-  //   }
-  // }, [team.faviconUrl]);
-
   if (considerUnpublished) {
     const teamSlug = team.slug || metadata?.requestedSlug;
     // Show unpublished state for Organization itself if the team is an organization
@@ -226,69 +207,53 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
     : "/calid_favicon.svg";
 
   return (
-    <div className="bg-default flex min-h-screen w-full flex-col">
+    <>
       <Head>
         <link rel="icon" href={finalFaviconUrl} />
         <link rel="shortcut icon" href={finalFaviconUrl} />
         <link rel="apple-touch-icon" href={finalFaviconUrl} />
-        <style
+      </Head>
+      <style
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: generateBrandColorStyles(team.brandColor, team.darkBrandColor),
         }}
       />
-      </Head>
-      <main className="bg-default h-full w-full">
-        <div
-          className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
-          style={{
-            backgroundImage: resolvedHeader ? `url(${resolvedHeader})` : undefined,
-          }}>
-          <Avatar
-            size="xl"
-            imageSrc={profileImageSrc}
-            alt={teamName || "Team Avatar"}
-            title={teamName || "Team"}
-          />
-          <h1 className="text-default mt-2 text-2xl font-bold" data-testid="team-name">
-            {teamName}
-          </h1>
-          {!isBioEmpty && (
-            <>
-              <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
-                {isBioLong && !isBioExpanded ? (
-                  <div className="relative inline-block w-full">
-                    <div
-                      className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
-                      // eslint-disable-next-line react/no-danger
-                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
-                    />
-                    <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
-                      <button
-                        onClick={() => setIsBioExpanded(!isBioExpanded)}
-                        className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
-                        type="button">
-                        Read more
-                      </button>
-                    </div>
-                    <div className="mt-2 flex w-full justify-center md:hidden">
-                      <button
-                        onClick={() => setIsBioExpanded(!isBioExpanded)}
-                        className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
-                        type="button">
-                        Read more
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div
-                      className="overflow-visible"
-                      // eslint-disable-next-line react/no-danger
-                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
-                    />
-                    {isBioLong && (
-                      <div className="mt-2">
+      <div className="bg-default flex min-h-screen w-full flex-col">
+        <main className="bg-default h-full w-full">
+          <div
+            className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
+            style={{
+              backgroundImage: resolvedHeader ? `url(${resolvedHeader})` : undefined,
+            }}>
+            <Avatar
+              size="xl"
+              imageSrc={profileImageSrc}
+              alt={teamName || "Team Avatar"}
+              title={teamName || "Team"}
+            />
+            <h1 className="text-default mt-2 text-2xl font-bold" data-testid="team-name">
+              {teamName}
+            </h1>
+            {!isBioEmpty && (
+              <>
+                <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
+                  {isBioLong && !isBioExpanded ? (
+                    <div className="relative inline-block w-full">
+                      <div
+                        className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{ __html: team.safeBio }}
+                      />
+                      <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
+                        <button
+                          onClick={() => setIsBioExpanded(!isBioExpanded)}
+                          className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
+                          type="button">
+                          Read more
+                        </button>
+                      </div>
+                      <div className="mt-2 flex w-full justify-center md:hidden">
                         <button
                           onClick={() => setIsBioExpanded(!isBioExpanded)}
                           className="text-subtle hover:text-default text-sm font-medium underline transition-colors"

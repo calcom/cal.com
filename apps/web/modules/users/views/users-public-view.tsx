@@ -14,8 +14,8 @@ import type { z } from "zod";
 import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
+import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -88,21 +88,6 @@ export function UserPage(props: PageProps) {
     })
     .filter(Boolean) as Array<{ key: SocialIconName; url: string }>;
 
-  // useEffect(() => {
-  //   const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
-  //   defaultFavicons.forEach((link) => {
-  //     link.rel = "icon";
-  //     link.href = user?.faviconUrl || "";
-  //     link.type = "image/png";
-  //   });
-  //   if (defaultFavicons.length === 0) {
-  //     const link: HTMLLinkElement = document.createElement("link");
-  //     link.rel = "icon";
-  //     link.href = user?.faviconUrl ?? "/favicon.ico";
-  //     link.type = "image/png";
-  //     document.head.appendChild(link);
-  //   }
-  // }, [user?.faviconUrl]);
   const faviconUrl = user?.faviconUrl
     ? `${getBrandLogoUrl({ faviconUrl: user.faviconUrl }, true)}?v=${Date.now()}`
     : "/calid_favicon.svg";
@@ -137,13 +122,13 @@ export function UserPage(props: PageProps) {
         <link rel="shortcut icon" type="image/png" href={faviconUrl} key="shortcut-icon" />
         <link rel="apple-touch-icon" type="image/png" href={faviconUrl} key="apple-touch-icon" />
         <link rel="manifest" href="data:application/manifest+json,{}" />
-        <style
+      </Head>
+      <style
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: generateBrandColorStyles(profile?.brandColor, profile?.darkBrandColor),
         }}
       />
-      </Head>
       <div
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
