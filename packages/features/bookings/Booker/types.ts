@@ -4,7 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { GetBookingType } from "../lib/get-booking";
 
@@ -48,7 +47,7 @@ export type UseBookingFormReturnType = {
 };
 
 export type UseBookingsReturnType = {
-  handleBookEvent: () => void;
+  handleBookEvent: (inputTimeSlot?: string) => void;
   expiryTime: Date | undefined;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   bookerFormErrorRef: React.RefObject<HTMLDivElement>;
@@ -65,7 +64,7 @@ export type UseBookingsReturnType = {
   instantConnectCooldownMs: number;
 };
 
-export type UseCalendarsReturnType = {
+export type UseCalendarsReturnType<TConnectedCalendars = unknown> = {
   overlayBusyDates:
     | {
         start: string | Date;
@@ -73,7 +72,7 @@ export type UseCalendarsReturnType = {
       }[]
     | undefined;
   isOverlayCalendarEnabled: boolean;
-  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
+  connectedCalendars: TConnectedCalendars;
   loadingConnectedCalendar: boolean;
   onToggleCalendar: (
     data: Set<{
@@ -133,13 +132,13 @@ export interface IUseBookingErrors {
   dataErrors: unknown;
 }
 
-export type useScheduleForEventReturnType = {
-  data: RouterOutputs["viewer"]["slots"]["getSchedule"] | undefined;
+export type useScheduleForEventReturnType<TScheduleData = unknown> = {
+  data: TScheduleData | undefined;
   isPending: boolean;
   isError: boolean;
   isSuccess: boolean;
   isLoading: boolean;
-  invalidate: () => Promise<any>;
+  invalidate: () => Promise<void>;
   dataUpdatedAt: number;
 };
 
