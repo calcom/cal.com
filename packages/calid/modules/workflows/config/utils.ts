@@ -298,7 +298,6 @@ function getTemplateBodyForAction({
   template: WorkflowTemplates;
   timeFormat: TimeFormat;
 }): string | null {
-  // NEW: For SMS actions, use the new default template mapping
   if (isSMSAction(action)) {
     return getSMSDefaultTemplateBody(template, action);
   }

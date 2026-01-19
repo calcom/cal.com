@@ -29,21 +29,11 @@ const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
  * {{5}} - Timezone
  */
 const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
-  [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}}" is coming up on {{3}} at {{4}} {{5}}. See you then!
-
-- Cal ID`,
-  [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}}" scheduled for {{3}} at {{4}} {{5}} has been cancelled.
-
-- Cal ID`,
-  [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}}" has a new time: {{3}} at {{4}} {{5}}. See you then!
-
-- Cal ID`,
-  [WorkflowTemplates.COMPLETED]: `Hi {{1}} - Your meeting "{{2}}" on {{3}} at {{4}} {{5}} is all wrapped up. Thanks for joining!
-
-- Cal ID`,
-  [WorkflowTemplates.CONFIRMATION]: `Hi {{1}} - You are all set! Your meeting "{{2}}" is confirmed for {{3}} at {{4}} {{5}}. See you then!
-
-- Cal ID`,
+  [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}}" is coming up on {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
+  [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}}" scheduled for {{3}} at {{4}} {{5}} has been cancelled.\n\n- Cal ID`,
+  [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}}" has a new time: {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
+  [WorkflowTemplates.COMPLETED]: `Hi {{1}} - Your meeting "{{2}}" on {{3}} at {{4}} {{5}} is all wrapped up. Thanks for joining!\n\n- Cal ID`,
+  [WorkflowTemplates.CONFIRMATION]: `Hi {{1}} - You are all set! Your meeting "{{2}}" is confirmed for {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
   // CUSTOM workflow uses user-provided messageTemplate, so no default needed
   [WorkflowTemplates.CUSTOM]: "",
   // RATING and THANKYOU currently have no default templates - will throw error if used
@@ -196,16 +186,17 @@ const generateMessageContent = (
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
     const formattedDate = eventMoment.format("DD MMM YYYY");
-    const formattedTime = eventMoment.format(eventDetails.organizer.timeFormat);
+    const formattedTimeWithLocalizedTimeZone = eventMoment.format("h:mma [GMT]Z");
+    const [formattedTime, localizedRecipientTimezone] = formattedTimeWithLocalizedTimeZone.split(" ");
 
     // Interpolate the default template with actual values
     return interpolateDefaultTemplate(
       defaultTemplate,
-      recipientName,
+      recipientName.split(" ")[0],
       eventTitle,
       formattedDate,
       formattedTime,
-      recipientTimezone
+      localizedRecipientTimezone
     );
   }
 
@@ -358,10 +349,10 @@ const processScheduledReminder = async (
   workflowId?: number | null
 ): Promise<void> => {
   const currentMoment = dayjs();
-  const minimumAdvanceTime = currentMoment.add(1, "hour");
-  const maximumAdvanceTime = currentMoment.add(7, "day");
+  const twoHourWindow = currentMoment.add(2, "hour");
 
-  if (currentMoment.isBefore(dispatchTime.subtract(1, "hour")) && !dispatchTime.isAfter(maximumAdvanceTime)) {
+  // within next 2 hours → schedule delayed notification
+  if (dispatchTime.isBefore(twoHourWindow)) {
     await scheduleDelayedNotification(
       phoneDestination,
       textContent,
@@ -376,7 +367,9 @@ const processScheduledReminder = async (
       eventTypeRef,
       workflowId
     );
-  } else if (dispatchTime.isAfter(maximumAdvanceTime)) {
+  }
+  // beyond 2 hours → store as future reminder
+  else {
     await storeFutureReminder(bookingReference, stepReference, dispatchTime, seatReference);
   }
 };

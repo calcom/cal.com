@@ -1,5 +1,7 @@
 import type { AxiosInstance } from "axios";
 import axios from "axios";
+import { hash, compare } from "bcryptjs";
+import crypto from "crypto";
 import type { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
@@ -25,6 +27,7 @@ import type {
 
 export interface IcsMobileConfig {
   authKey: string; // Base64 encoded authkey for Basic Authorization
+  otpAuthKey?: string; // Separate auth key for OTP messages
   isTestMode?: boolean;
 }
 
@@ -45,6 +48,7 @@ interface IcsMobileSendResponse {
   to: string;
   from?: string;
   mid?: string;
+  smsgid?: string;
   Error?: string;
 }
 
@@ -55,6 +59,12 @@ export class IcsMobileSmsProvider implements SmsProvider {
 
   private readonly DEFAULT_API_ENDPOINT = "https://sms.sendmsg.in/datasend";
   private readonly DEFAULT_CANCEL_ENDPOINT = "https://services.sendmsg.in/cancel-scheduled/sms";
+  private readonly OTP_EXPIRY_MINUTES = 5;
+  private readonly MAX_OTP_ATTEMPTS = 5;
+  private readonly OTP_LENGTH = 6;
+  private readonly BCRYPT_ROUNDS = 10;
+
+  private otpAuthKey?: string;
 
   constructor(config: IcsMobileConfig) {
     if (!config.authKey) {
@@ -62,6 +72,7 @@ export class IcsMobileSmsProvider implements SmsProvider {
     }
 
     this.config = config;
+    this.otpAuthKey = config.otpAuthKey; // Store OTP-specific auth key
 
     // Create axios instance with default configuration
     this.client = axios.create({
@@ -153,13 +164,19 @@ export class IcsMobileSmsProvider implements SmsProvider {
         return { success: false, response: { error: "SMS sending is locked for this user/team" } };
       }
 
+      const normalizedMessage = Array.isArray(options.message)
+        ? options.message.join("")
+        : String(options.message)
+            .replace(/"\s*\+\s*"/g, "") // defensive: strip accidental concatenation artifacts
+            .replace(/\n\s*\n/g, "\n\n"); // normalize blank lines
+
       // Handle test mode
       if (this.config.isTestMode) {
         setTestSMS({
           to: options.to,
           // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
           from: ICSMOBILE_SENDERID,
-          message: options.message,
+          message: normalizedMessage,
         });
         console.log("Skipped sending SMS (test mode). SMS available in globalThis.testSMS");
         return { success: true, response: { sid: `test-${uuidv4()}` } };
@@ -190,7 +207,8 @@ export class IcsMobileSmsProvider implements SmsProvider {
             to: this.formatPhoneNumber(options.to),
             // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
             from: ICSMOBILE_SENDERID,
-            smstext: options.message,
+            smstext: normalizedMessage,
+            smsgid: uuidv4(),
           },
         ],
       };
@@ -227,7 +245,8 @@ export class IcsMobileSmsProvider implements SmsProvider {
         success: true,
         response: {
           // masking as sid to maintain consistency
-          sid: firstResponse.mid,
+          // sid: String(firstResponse.mid),
+          sid: String(firstResponse.smsgid),
           to: firstResponse.to,
           from: firstResponse.from,
         },
@@ -273,13 +292,19 @@ export class IcsMobileSmsProvider implements SmsProvider {
         return { success: false, response: { error: "SMS sending is locked for this user/team" } };
       }
 
+      const normalizedMessage = Array.isArray(options.message)
+        ? options.message.join("")
+        : String(options.message)
+            .replace(/"\s*\+\s*"/g, "") // defensive: strip accidental concatenation artifacts
+            .replace(/\n\s*\n/g, "\n\n"); // normalize blank lines
+
       // Handle test mode
       if (this.config.isTestMode) {
         setTestSMS({
           to: options.to,
           // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
           from: ICSMOBILE_SENDERID,
-          message: options.message,
+          message: normalizedMessage,
         });
         console.log("Skipped scheduling SMS (test mode). SMS available in globalThis.testSMS");
         return { success: true, response: { mid: `test-scheduled-${uuidv4()}` } };
@@ -317,7 +342,8 @@ export class IcsMobileSmsProvider implements SmsProvider {
             to: this.formatPhoneNumber(options.to),
             // from: options.from || ICSMOBILE_SENDERID, //NO support for custom sender here
             from: ICSMOBILE_SENDERID,
-            smstext: options.message,
+            smstext: normalizedMessage,
+            smsgid: uuidv4(),
           },
         ],
       };
@@ -358,7 +384,8 @@ export class IcsMobileSmsProvider implements SmsProvider {
         success: true,
         response: {
           // masking as sid to maintain consistency
-          sid: firstResponse.mid,
+          // sid: firstResponse.mid,
+          sid: String(firstResponse.smsgid),
           to: firstResponse.to,
           from: firstResponse.from,
         },
@@ -468,25 +495,336 @@ export class IcsMobileSmsProvider implements SmsProvider {
   }
 
   /**
-   * Send verification code - NOT SUPPORTED by ICSMobile
+   * Generate a cryptographically secure 6-digit OTP
    */
-  async sendVerificationCode(options: VerifyPhoneOptions): Promise<SendSmsResponse> {
-    throw new FunctionNotImplementedError(
-      "ICSMobile",
-      "sendVerificationCode",
-      "Phone verification is not supported by ICSMobile API"
-    );
+  private generateSecureOtp(): string {
+    // Generate cryptographically secure random bytes
+    const buffer = crypto.randomBytes(4);
+    const randomNumber = buffer.readUInt32BE(0);
+
+    // Convert to 6-digit number (000000 - 999999)
+    const otp = (randomNumber % 1000000).toString().padStart(this.OTP_LENGTH, "0");
+
+    return otp;
   }
 
   /**
-   * Verify code - NOT SUPPORTED by ICSMobile
+   * Hash OTP using bcrypt
+   */
+  private async hashOtp(otp: string): Promise<string> {
+    return await hash(otp, this.BCRYPT_ROUNDS);
+  }
+
+  /**
+   * Verify OTP against hashed value
+   */
+  private async verifyOtpHash(otp: string, hashedOtp: string): Promise<boolean> {
+    return await compare(otp, hashedOtp);
+  }
+
+  /**
+   * Invalidate all previous active OTPs for a phone number
+   */
+  private async invalidatePreviousOtps(phoneNumber: string): Promise<void> {
+    await prisma.otpVerification.updateMany({
+      where: {
+        phoneNumber,
+        isVerified: false,
+        isInvalidated: false,
+      },
+      data: {
+        isInvalidated: true,
+      },
+    });
+  }
+
+  /**
+   * Clean up expired OTPs (optional background job)
+   */
+  private async cleanupExpiredOtps(): Promise<void> {
+    const now = new Date();
+
+    await prisma.otpVerification.deleteMany({
+      where: {
+        OR: [
+          { expiresAt: { lt: now } },
+          { isVerified: true, updatedAt: { lt: new Date(now.getTime() - 24 * 60 * 60 * 1000) } },
+        ],
+      },
+    });
+  }
+
+  /**
+   * Send verification code via SMS
+   */
+  async sendVerificationCode(options: VerifyPhoneOptions): Promise<SendSmsResponse> {
+    try {
+      this.logger.debug("Sending verification code", { phoneNumber: options.phoneNumber });
+
+      const formattedPhone = this.formatPhoneNumber(options.phoneNumber);
+
+      // Generate secure OTP
+      const otp = this.generateSecureOtp();
+
+      // Hash the OTP
+      const hashedOtp = await this.hashOtp(otp);
+
+      // Calculate expiration time
+      const expiresAt = new Date(Date.now() + this.OTP_EXPIRY_MINUTES * 60 * 1000);
+
+      // Invalidate previous OTPs for this phone number
+      await this.invalidatePreviousOtps(formattedPhone);
+
+      // Clean up old expired OTPs (async, don't await)
+      this.cleanupExpiredOtps().catch((err) => {
+        this.logger.error("Error cleaning up expired OTPs", err);
+      });
+
+      // Create new OTP record
+      const otpRecord = await prisma.otpVerification.create({
+        data: {
+          phoneNumber: formattedPhone,
+          hashedOtp,
+          expiresAt,
+          attemptCount: 0,
+          isVerified: false,
+          isInvalidated: false,
+        },
+      });
+
+      // Prepare SMS message
+      const message = `Your verification code for Cal ID is ${otp}. This code will expire in ${this.OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`;
+
+      // Create OTP-specific axios client if otpAuthKey is provided
+      const otpClient = this.otpAuthKey
+        ? axios.create({
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Basic ${this.otpAuthKey}`,
+            },
+            timeout: 30000,
+          })
+        : this.client;
+
+      // Prepare request payload for direct API call
+      const requestPayload: IcsMobileSendRequest = {
+        allowunicode: true,
+        smstosend: [
+          {
+            to: formattedPhone,
+            from: ICSMOBILE_SENDERID,
+            smstext: message,
+            smsgid: uuidv4(),
+          },
+        ],
+      };
+
+      const endpoint = this.DEFAULT_API_ENDPOINT;
+
+      this.logger.debug("Sending OTP SMS via ICSMobile", {
+        endpoint,
+        to: formattedPhone,
+        usingOtpAuthKey: !!this.otpAuthKey,
+      });
+
+      // Send SMS directly with OTP-specific auth
+      const response = await otpClient.post<IcsMobileSendResponse[]>(endpoint, requestPayload);
+      const responseData = response.data;
+
+      // Check if response is an array
+      if (!Array.isArray(responseData) || responseData.length === 0) {
+        // If SMS fails, invalidate the OTP record
+        await prisma.otpVerification.update({
+          where: { id: otpRecord.id },
+          data: { isInvalidated: true },
+        });
+
+        return {
+          success: false,
+          response: {
+            error: "Invalid response from ICSMobile API",
+          },
+        };
+      }
+
+      const firstResponse = responseData[0];
+
+      // Check for errors in response
+      if (firstResponse.Error) {
+        this.logger.error("ICSMobile API error", { error: firstResponse.Error });
+
+        // If SMS fails, invalidate the OTP record
+        await prisma.otpVerification.update({
+          where: { id: otpRecord.id },
+          data: { isInvalidated: true },
+        });
+
+        return {
+          success: false,
+          response: {
+            error: `ICSMobile error code: ${firstResponse.Error}`,
+          },
+        };
+      }
+
+      this.logger.info("Verification code sent successfully", {
+        phoneNumber: formattedPhone,
+        otpId: otpRecord.id,
+        sid: firstResponse.smsgid,
+      });
+
+      return {
+        success: true,
+        response: {
+          sid: String(firstResponse.smsgid),
+          message: "Verification code sent successfully",
+          expiresIn: this.OTP_EXPIRY_MINUTES * 60, // seconds
+        },
+      };
+    } catch (error) {
+      this.logger.error("Error sending verification code", error);
+
+      return {
+        success: false,
+        response: {
+          error: error instanceof Error ? error.message : "Unknown error occurred",
+        },
+      };
+    }
+  }
+
+  /**
+   * Verify the submitted OTP code
    */
   async verifyCode(options: VerifyPhoneOptions): Promise<VerifyNumberResponse> {
-    throw new FunctionNotImplementedError(
-      "ICSMobile",
-      "verifyCode",
-      "Phone verification is not supported by ICSMobile API"
-    );
+    try {
+      this.logger.debug("Verifying code", { phoneNumber: options.phoneNumber });
+
+      // Validate input
+      if (!options.code || options.code.length !== this.OTP_LENGTH) {
+        return {
+          success: false,
+          response: {
+            status: "invalid",
+            error: "Invalid verification code format",
+          },
+        };
+      }
+
+      const formattedPhone = this.formatPhoneNumber(options.phoneNumber);
+      const now = new Date();
+
+      // Find the most recent active OTP for this phone number
+      const otpRecord = await prisma.otpVerification.findFirst({
+        where: {
+          phoneNumber: formattedPhone,
+          isVerified: false,
+          isInvalidated: false,
+          expiresAt: { gt: now },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      // Check if OTP exists
+      if (!otpRecord) {
+        this.logger.warn("No active OTP found", { phoneNumber: formattedPhone });
+
+        return {
+          success: false,
+          response: {
+            status: "not_found",
+            error: "No active verification code found or code has expired",
+          },
+        };
+      }
+
+      // Check if maximum attempts exceeded
+      if (otpRecord.attemptCount >= this.MAX_OTP_ATTEMPTS) {
+        this.logger.warn("Maximum OTP attempts exceeded", {
+          phoneNumber: formattedPhone,
+          otpId: otpRecord.id,
+        });
+
+        // Invalidate the OTP
+        await prisma.otpVerification.update({
+          where: { id: otpRecord.id },
+          data: { isInvalidated: true },
+        });
+
+        return {
+          success: false,
+          response: {
+            status: "attempts_exceeded",
+            error: "Maximum verification attempts exceeded. Please request a new code.",
+          },
+        };
+      }
+
+      // Verify the OTP
+      const isValid = await this.verifyOtpHash(options.code, otpRecord.hashedOtp);
+
+      if (!isValid) {
+        // Increment attempt count
+        await prisma.otpVerification.update({
+          where: { id: otpRecord.id },
+          data: {
+            attemptCount: otpRecord.attemptCount + 1,
+          },
+        });
+
+        const remainingAttempts = this.MAX_OTP_ATTEMPTS - otpRecord.attemptCount - 1;
+
+        this.logger.warn("Invalid OTP attempt", {
+          phoneNumber: formattedPhone,
+          otpId: otpRecord.id,
+          attempts: otpRecord.attemptCount + 1,
+        });
+
+        return {
+          success: false,
+          response: {
+            status: "invalid",
+            error: `Invalid verification code. ${remainingAttempts} attempt(s) remaining.`,
+            remainingAttempts,
+          },
+        };
+      }
+
+      // OTP is valid - mark as verified
+      await prisma.otpVerification.update({
+        where: { id: otpRecord.id },
+        data: {
+          isVerified: true,
+          attemptCount: otpRecord.attemptCount + 1,
+        },
+      });
+
+      this.logger.info("OTP verified successfully", {
+        phoneNumber: formattedPhone,
+        otpId: otpRecord.id,
+      });
+
+      return {
+        success: true,
+        response: {
+          status: "approved",
+          message: "Phone number verified successfully",
+          phoneNumber: formattedPhone,
+        },
+      };
+    } catch (error) {
+      this.logger.error("Error verifying code", error);
+
+      return {
+        success: false,
+        response: {
+          status: "error",
+          error: error instanceof Error ? error.message : "Unknown error occurred",
+        },
+      };
+    }
   }
 
   /**

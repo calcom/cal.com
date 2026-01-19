@@ -24,7 +24,8 @@ const fetchPendingNotifications = async () => {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        //we only schedule coming 2 hours sms,so that the number of cancellation calls made to smsprovider reduce
+        lte: dayjs().add(2, "hour").toISOString(),
         gte: dayjs().toISOString(),
       },
       OR: [{ cancelled: null }, { cancelled: false }],

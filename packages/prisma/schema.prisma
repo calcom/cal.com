@@ -2876,3 +2876,18 @@ model CalIdRateLimit {
 
   @@index([calIdApiKeyId])
 }
+
+model OtpVerification {
+  id            String   @id @default(cuid())
+  phoneNumber   String
+  hashedOtp     String
+  expiresAt     DateTime
+  attemptCount  Int      @default(0)
+  isVerified    Boolean  @default(false)
+  isInvalidated Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([phoneNumber, isVerified, isInvalidated, expiresAt])
+  @@map("otp_verification")
+}

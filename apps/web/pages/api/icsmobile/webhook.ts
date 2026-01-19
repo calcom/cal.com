@@ -2,17 +2,15 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/client";
+import { WorkflowStatus } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["api/webhook/icsmobile"] });
 
-// Map ICSMobile delivery statuses to workflow statuses
+// Map ICSMobile statuses to workflow statuses
 const statusMap = {
   DELIVERED: WorkflowStatus.DELIVERED,
   FAILED: WorkflowStatus.FAILED,
-  // Add other ICSMobile statuses as needed based on their documentation
-  // PENDING: WorkflowStatus.PENDING,
-  // SENT: WorkflowStatus.SENT,
+  SENT: WorkflowStatus.DELIVERED,
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -21,68 +19,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // ICSMobile sends data via GET query parameters
-    const { qStatus, qMsgRef, SMSMSGID, qNotes } = req.query;
+    const { qStatus, qMobile, qMsgRef, qDTime, SMSMSGID, qNotes } = req.query;
 
-    // qMsgRef is ICSMobile's MESSAGEID which maps to our internal msgId
-    const msgId = qMsgRef as string;
-
-    // SMSMSGID contains our metadata (eventTypeId and channel)
-    // Expected format: "eventTypeId:123|channel:SMS" or similar
-    if (!msgId || !qStatus || !SMSMSGID) {
-      log.warn(`Webhook fields not found: msgId=${msgId}, qStatus=${qStatus}, SMSMSGID=${SMSMSGID}`);
-      return res.status(400).json({ error: "Missing required fields" });
+    // Validate required parameters
+    if (!SMSMSGID || !qStatus) {
+      log.warn(`Webhook fields not found: SMSMSGID=${SMSMSGID}, qStatus=${qStatus}`);
+      return res.status(400).json({ error: "Missing required fields (SMSMSGID or qStatus)" });
     }
 
-    // Parse metadata from SMSMSGID
-    // Format expected: "eventTypeId:123"
-    const metadata = String(SMSMSGID);
-    const eventTypeIdMatch = metadata.match(/eventTypeId:(\d+)/);
+    // Extract values (query params can be string or string[])
+    const msgId = Array.isArray(SMSMSGID) ? SMSMSGID[0] : SMSMSGID;
+    const statusString = Array.isArray(qStatus) ? qStatus[0] : qStatus;
+    const mobile = Array.isArray(qMobile) ? qMobile[0] : qMobile;
+    const icsMsgRef = Array.isArray(qMsgRef) ? qMsgRef[0] : qMsgRef;
+    const deliveryTime = Array.isArray(qDTime) ? qDTime[0] : qDTime;
+    const notes = Array.isArray(qNotes) ? qNotes[0] : qNotes;
 
-    if (!eventTypeIdMatch) {
-      log.warn(`Could not parse eventTypeId from SMSMSGID: ${metadata}`);
-      return res.status(400).json({ error: "Invalid metadata format" });
-    }
-
-    const eventTypeId = Number(eventTypeIdMatch[1]);
-    const channel = "SMS";
-
-    // Verify event type exists
-    const eventType = await prisma.eventType.findUnique({
-      where: { id: eventTypeId },
-    });
-
-    if (!eventType) {
-      log.warn(`Event not found with ID ${eventTypeId} skipping operation`);
-      console.warn(`Event not found with ID ${eventTypeId} skipping operation`);
-      return res.status(200).json({ error: `EventType not found skipping operation` });
-    }
-
-    // Map ICSMobile status to internal workflow status
-    const status = statusMap[qStatus as keyof typeof statusMap];
+    // Normalize status
+    const status = statusMap[statusString as keyof typeof statusMap];
     if (!status) {
-      log.warn(`Unhandled status: ${qStatus}`);
+      log.warn(`Unhandled status: ${statusString}`);
       return res.status(200).json({ error: "Status not handled" });
     }
 
-    // Log additional information for failed messages
-    if (status === WorkflowStatus.FAILED && qNotes) {
-      log.info(`Message failed with reason: ${qNotes} for msgId: ${msgId}`);
-    }
+    log.info("Processing ICSMobile webhook", {
+      msgId,
+      status: statusString,
+      mobile,
+      icsMsgRef,
+      deliveryTime,
+      notes,
+    });
 
-    // Upsert workflow insights
-    await prisma.calIdWorkflowInsights.upsert({
-      where: { msgId },
-      update: { status },
-      create: {
-        msgId,
-        eventTypeId,
-        type: WorkflowMethods.SMS,
-        status,
+    // ONLY update existing workflow insights - never create new ones
+    const existingInsight = await prisma.calIdWorkflowInsights.findFirst({
+      where: {
+        msgId: msgId,
+        status: {
+          not: WorkflowStatus.DELIVERED,
+        },
       },
     });
 
-    log.info(`Successfully processed ICSMobile webhook for msgId: ${msgId}, status: ${qStatus}`);
+    if (!existingInsight) {
+      log.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+      console.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+      return res.status(200).json({ warning: "No existing insight found, skipped update" });
+    }
+
+    // Build metadata with all ICSMobile fields
+    const metadata = {
+      ...(existingInsight.metadata as object),
+      icsMobile: {
+        qStatus: statusString,
+        qMobile: mobile,
+        qMsgRef: icsMsgRef,
+        qDTime: deliveryTime,
+        qNotes: notes,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+
+    await prisma.calIdWorkflowInsights.update({
+      where: { msgId: msgId },
+      data: {
+        status: status,
+        metadata: metadata,
+      },
+    });
+
+    log.info("Successfully updated workflow insights for ICSMobile event", {
+      msgId,
+      status: statusString,
+      normalizedStatus: status,
+    });
+
     res.status(200).json({ success: true });
   } catch (err) {
     console.error("Error in /api/webhook/icsmobile", err);
@@ -90,10 +101,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
-
-// No need to disable bodyParser for GET requests, but keeping config for consistency
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};

@@ -36,7 +36,6 @@ const WORKFLOW_TEMPLATES = [
 const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
 
 const SMS_WORKFLOW_TEMPLATES = [
-  WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.CANCELLED,
   WorkflowTemplates.RESCHEDULED,
