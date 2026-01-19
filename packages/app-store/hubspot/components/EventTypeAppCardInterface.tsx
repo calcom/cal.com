@@ -28,6 +28,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
   const skipContactCreation = getAppData("skipContactCreation") ?? false;
+  const setOrganizerAsOwner = getAppData("setOrganizerAsOwner") ?? false;
+  const overwriteContactOwner = getAppData("overwriteContactOwner") ?? false;
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
   const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
 
@@ -37,7 +39,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
       app={app}
       teamId={eventType.team?.id || undefined}
-      switchOnClick={(e) => {
+      switchOnClick={(e: boolean): void => {
         updateEnabled(e);
       }}
       switchChecked={enabled}
@@ -52,7 +54,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               size="sm"
               labelOnLeading
               checked={ignoreGuests}
-              onCheckedChange={(checked) => {
+              onCheckedChange={(checked: boolean): void => {
                 setAppData("ignoreGuests", checked);
               }}
             />
@@ -67,12 +69,47 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               size="sm"
               labelOnLeading
               checked={skipContactCreation}
-              onCheckedChange={(checked) => {
+              onCheckedChange={(checked: boolean): void => {
                 setAppData("skipContactCreation", checked);
               }}
             />
           </Section.SubSectionHeader>
         </Section.SubSection>
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-check"
+            title={t("set_organizer_as_contact_owner")}
+            labelFor="set-organizer-as-owner">
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={setOrganizerAsOwner}
+              onCheckedChange={(checked: boolean): void => {
+                setAppData("setOrganizerAsOwner", checked);
+                if (!checked) {
+                  setAppData("overwriteContactOwner", false);
+                }
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+        {setOrganizerAsOwner && (
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="refresh-cw"
+              title={t("overwrite_existing_contact_owner")}
+              labelFor="overwrite-contact-owner">
+              <Switch
+                size="sm"
+                labelOnLeading
+                checked={overwriteContactOwner}
+                onCheckedChange={(checked: boolean): void => {
+                  setAppData("overwriteContactOwner", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+          </Section.SubSection>
+        )}
 
         <Section.SubSection>
           <WriteToObjectSettings
@@ -80,10 +117,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             optionLabel={t("on_booking_write_to_event_object")}
             optionEnabled={onBookingWriteToEventObject}
             writeToObjectData={onBookingWriteToEventObjectFields}
-            optionSwitchOnChange={(checked) => {
+            optionSwitchOnChange={(checked: boolean): void => {
               setAppData("onBookingWriteToEventObject", checked);
             }}
-            updateWriteToObjectData={(data) => setAppData("onBookingWriteToEventObjectFields", data)}
+            updateWriteToObjectData={(data): void => setAppData("onBookingWriteToEventObjectFields", data)}
             supportedFieldTypes={[
               CrmFieldType.TEXT,
               CrmFieldType.DATE,

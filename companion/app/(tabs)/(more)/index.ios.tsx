@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryContext } from "@/contexts/QueryContext";
 import { useUserProfile } from "@/hooks";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -22,11 +23,14 @@ interface MoreMenuItem {
 export default function More() {
   const router = useRouter();
   const { logout } = useAuth();
+  const { clearCache } = useQueryContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { data: userProfile } = useUserProfile();
 
   const performLogout = async () => {
     try {
+      // Clear in-memory cache before logout
+      await clearCache();
       await logout();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -111,7 +115,7 @@ export default function More() {
 
       {/* Content */}
       <ScrollView
-        style={{ backgroundColor: "#f8f9fa" }}
+        style={{ backgroundColor: "white" }}
         contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"

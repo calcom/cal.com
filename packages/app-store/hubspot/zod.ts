@@ -9,6 +9,8 @@ export { CrmFieldType, WhenToWrite, DateFieldType } from "../_lib/crm-enums";
 export const appDataSchema = eventTypeAppCardZod.extend({
   ignoreGuests: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),
+  setOrganizerAsOwner: z.boolean().optional(),
+  overwriteContactOwner: z.boolean().optional(),
   onBookingWriteToEventObject: z.boolean().optional(),
   onBookingWriteToEventObjectFields: z.record(z.string(), writeToBookingEntry).optional(),
 });

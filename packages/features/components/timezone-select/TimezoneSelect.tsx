@@ -1,15 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
-import BaseSelect from "react-timezone-select";
-
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
+import { addTimezonesToDropdown, filterBySearchText, handleOptionLabel } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
+import { useCallback, useMemo, useState } from "react";
+import type { ITimezone, ITimezoneOption, Props as SelectProps } from "react-timezone-select";
+import BaseSelect from "react-timezone-select";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
@@ -48,15 +47,18 @@ export function TimezoneSelect(props: TimezoneSelectProps) {
       trpc: { context: { skipBatch: true } },
     }
   );
-  const cityTimezonesFormatted = data.map(({ city, timezone }) => ({ label: city, timezone }));
 
-  return (
-    <TimezoneSelectComponent
-      data={[...cityTimezonesFormatted, ...SELECT_SEARCH_DATA]}
-      isPending={isPending}
-      {...props}
-    />
+  const cityTimezonesFormatted = useMemo(
+    () => data.map(({ city, timezone }) => ({ label: city, timezone })),
+    [data]
   );
+
+  const combinedData = useMemo(
+    () => [...cityTimezonesFormatted, ...SELECT_SEARCH_DATA],
+    [cityTimezonesFormatted]
+  );
+
+  return <TimezoneSelectComponent data={combinedData} isPending={isPending} {...props} />;
 }
 
 export type TimezoneSelectComponentProps = SelectProps & {
@@ -83,7 +85,8 @@ export function TimezoneSelectComponent({
   isWebTimezoneSelect = true,
   ...props
 }: TimezoneSelectComponentProps) {
-  const data = [...(props.data || [])];
+  const data = useMemo(() => props.data || [], [props.data]);
+
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
@@ -92,15 +95,54 @@ export function TimezoneSelectComponent({
    * We make sure to be able to search through both options, and flip the key/value on final display.
    */
   const [additionalTimezones, setAdditionalTimezones] = useState<Timezones>([]);
-  const handleInputChange = (searchText: string) => {
-    if (data) setAdditionalTimezones(filterBySearchText(searchText, data));
-  };
 
-  const reactSelectProps = useMemo(() => {
-    return getReactSelectProps({
-      components: components || {},
-    });
-  }, [components]);
+  const handleInputChange = useCallback(
+    (searchText: string) => {
+      if (data) setAdditionalTimezones(filterBySearchText(searchText, data));
+    },
+    [data]
+  );
+
+  const reactSelectProps = useMemo(() => getReactSelectProps({ components: components || {} }), [components]);
+
+  const timezones = useMemo(
+    () => ({
+      ...(data.length > 0 ? addTimezonesToDropdown(data) : {}),
+      ...(isWebTimezoneSelect ? addTimezonesToDropdown(additionalTimezones) : {}),
+    }),
+    [data, isWebTimezoneSelect, additionalTimezones]
+  );
+
+  const handleChange = useCallback(
+    (selectedOption: ITimezoneOption | null) => {
+      if (!props.onChange) return;
+
+      if (!selectedOption) {
+        props.onChange(selectedOption as unknown as ITimezoneOption);
+        return;
+      }
+
+      const corrections: Record<string, string> = {
+        "America/Port_Of_Spain": "America/Port_of_Spain",
+        "Africa/Porto-novo": "Africa/Porto-Novo",
+        "Africa/Dar_Es_Salaam": "Africa/Dar_es_Salaam",
+      };
+
+      const correctedValue = corrections[selectedOption.value] || selectedOption.value;
+      props.onChange({ ...selectedOption, value: correctedValue });
+    },
+    [props.onChange]
+  );
+
+  const formatOption = useCallback(
+    (option: unknown) => <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>,
+    []
+  );
+
+  const getLabel = useCallback(
+    (option: unknown) => handleOptionLabel(option as ITimezoneOption, additionalTimezones),
+    [additionalTimezones]
+  );
 
   return (
     <BaseSelect
@@ -111,10 +153,7 @@ export function TimezoneSelectComponent({
       data-testid="timezone-select"
       isDisabled={isPending}
       {...reactSelectProps}
-      timezones={{
-        ...(props.data ? addTimezonesToDropdown(data) : {}),
-        ...(isWebTimezoneSelect ? addTimezonesToDropdown(additionalTimezones) : {}),
-      }}
+      timezones={timezones}
       styles={{
         control: (base) =>
           Object.assign({}, base, {
@@ -128,28 +167,9 @@ export function TimezoneSelectComponent({
       }}
       onInputChange={handleInputChange}
       {...props}
-      onChange={(selectedOption) => {
-        if (!props.onChange) return;
-
-        if (!selectedOption) {
-          props.onChange(selectedOption);
-          return;
-        }
-
-        // Fix inconsistent timezone naming formats
-        const corrections: Record<string, string> = {
-          "America/Port_Of_Spain": "America/Port_of_Spain",
-          "Africa/Porto-novo": "Africa/Porto-Novo",
-          "Africa/Dar_Es_Salaam": "Africa/Dar_es_Salaam",
-        };
-
-        const correctedValue = corrections[selectedOption.value] || selectedOption.value;
-        props.onChange({ ...selectedOption, value: correctedValue });
-      }}
-      formatOptionLabel={(option) => (
-        <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
-      )}
-      getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, additionalTimezones)}
+      onChange={handleChange}
+      formatOptionLabel={formatOption}
+      getOptionLabel={getLabel}
       classNames={{
         ...timezoneClassNames,
         input: (state) =>
@@ -175,8 +195,8 @@ export function TimezoneSelectComponent({
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2"
-              : "h-9 py-0 px-3",
+                ? "h-7 px-2"
+                : "h-9 py-0 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             timezoneClassNames?.control && timezoneClassNames.control(state)

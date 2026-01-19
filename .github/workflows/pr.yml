@@ -299,7 +299,7 @@ jobs:
           skip-install-if-cache-hit: "true"
 
   type-check:
-    name: Type check
+    name: Type Checks
     needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
@@ -375,6 +375,20 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.has-companion == 'true'
     uses: ./.github/workflows/companion-build.yml
+    secrets: inherit
+
+  typecheck-companion:
+    name: Type Checks
+    needs: [prepare]
+    if: needs.prepare.outputs.has-companion == 'true'
+    uses: ./.github/workflows/companion-typecheck.yml
+    secrets: inherit
+
+  lint-companion:
+    name: Linters
+    needs: [prepare]
+    if: needs.prepare.outputs.has-companion == 'true'
+    uses: ./.github/workflows/companion-lint.yml
     secrets: inherit
 
   build:
@@ -457,6 +471,8 @@ jobs:
         build-atoms,
         build-docs,
         build-companion,
+        typecheck-companion,
+        lint-companion,
         setup-db,
         e2e,
         e2e-api-v2,
@@ -506,5 +522,9 @@ jobs:
           ) ||
           (
             needs.prepare.outputs.has-companion == 'true' &&
-            needs.build-companion.result != 'success'
+            (
+              needs.build-companion.result != 'success' ||
+              needs.typecheck-companion.result != 'success' ||
+              needs.lint-companion.result != 'success'
+            )
           )

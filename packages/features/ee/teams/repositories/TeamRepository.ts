@@ -614,6 +614,16 @@ export class TeamRepository {
     });
   }
 
+  async findByIdsAndOrgId({ teamIds, orgId }: { teamIds: number[]; orgId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        OR: [{ id: orgId }, { parentId: orgId }],
+      },
+      select: { id: true },
+    });
+  }
+
   async findTeamBySlugWithAdminRole(teamSlug: string, userId: number) {
     return this.prismaClient.team.findFirst({
       select: { id: true },

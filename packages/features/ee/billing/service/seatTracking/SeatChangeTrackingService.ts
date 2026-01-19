@@ -1,9 +1,9 @@
-import type { Logger } from "tslog";
-
+import { formatMonthKey } from "@calcom/features/ee/billing/lib/month-key";
 import { SeatChangeLogRepository } from "@calcom/features/ee/billing/repository/seatChangeLogs/SeatChangeLogRepository";
 import logger from "@calcom/lib/logger";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SeatChangeType } from "@calcom/prisma/enums";
+import type { Logger } from "tslog";
 
 const log = logger.getSubLogger({ prefix: ["SeatChangeTrackingService"] });
 
@@ -14,6 +14,9 @@ export interface SeatChangeLogParams {
   seatCount?: number;
   metadata?: Prisma.InputJsonValue;
   monthKey?: string;
+  // Idempotency key to prevent duplicate seat change logs from race conditions
+  // Format: "{source}-{uniqueId}" e.g., "membership-123" or "invite-abc"
+  operationId?: string;
 }
 
 export interface MonthlyChanges {
@@ -32,8 +35,16 @@ export class SeatChangeTrackingService {
   }
 
   async logSeatAddition(params: SeatChangeLogParams): Promise<void> {
-    const { teamId, userId, triggeredBy, seatCount = 1, metadata, monthKey: providedMonthKey } = params;
-    const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
+    const {
+      teamId,
+      userId,
+      triggeredBy,
+      seatCount = 1,
+      metadata,
+      monthKey: providedMonthKey,
+      operationId,
+    } = params;
+    const monthKey = providedMonthKey || formatMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
 
@@ -44,6 +55,7 @@ export class SeatChangeTrackingService {
       userId,
       triggeredBy,
       monthKey,
+      operationId,
       metadata: (metadata || {}) as Prisma.InputJsonValue,
       teamBillingId,
       organizationBillingId,
@@ -51,8 +63,16 @@ export class SeatChangeTrackingService {
   }
 
   async logSeatRemoval(params: SeatChangeLogParams): Promise<void> {
-    const { teamId, userId, triggeredBy, seatCount = 1, metadata, monthKey: providedMonthKey } = params;
-    const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
+    const {
+      teamId,
+      userId,
+      triggeredBy,
+      seatCount = 1,
+      metadata,
+      monthKey: providedMonthKey,
+      operationId,
+    } = params;
+    const monthKey = providedMonthKey || formatMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
 
@@ -63,6 +83,7 @@ export class SeatChangeTrackingService {
       userId,
       triggeredBy,
       monthKey,
+      operationId,
       metadata: (metadata || {}) as Prisma.InputJsonValue,
       teamBillingId,
       organizationBillingId,
@@ -93,11 +114,5 @@ export class SeatChangeTrackingService {
     const { teamId, monthKey, prorationId } = params;
 
     return await this.repository.markAsProcessed({ teamId, monthKey, prorationId });
-  }
-
-  private calculateMonthKey(date: Date): string {
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
   }
 }
