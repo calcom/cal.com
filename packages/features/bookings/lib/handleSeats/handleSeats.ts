@@ -172,7 +172,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
                 title: eventType.title,
                 schedulingType: eventType.schedulingType,
                 hosts: eventType.hosts,
-                title: eventType.title,
               },
             },
           },
