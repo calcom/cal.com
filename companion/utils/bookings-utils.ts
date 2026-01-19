@@ -9,38 +9,38 @@ export const getEmptyStateContent = (activeFilter: BookingFilter) => {
     case "upcoming":
       return {
         icon: "calendar-outline" as const,
-        title: t("bookings.no_upcoming_bookings"),
-        text: t("bookings.no_upcoming_bookings_description"),
+        title: t("no_upcoming_bookings"),
+        text: t("no_upcoming_bookings_description"),
       };
     case "unconfirmed":
       return {
         icon: "calendar-outline" as const,
-        title: t("bookings.no_unconfirmed_bookings"),
-        text: t("bookings.no_unconfirmed_bookings_description"),
+        title: t("no_unconfirmed_bookings"),
+        text: t("no_unconfirmed_bookings_description"),
       };
     case "past":
       return {
         icon: "calendar-outline" as const,
-        title: t("bookings.no_past_bookings"),
-        text: t("bookings.no_past_bookings_description"),
+        title: t("no_past_bookings"),
+        text: t("no_past_bookings_description"),
       };
     case "cancelled":
       return {
         icon: "calendar-outline" as const,
-        title: t("bookings.no_cancelled_bookings"),
-        text: t("bookings.no_cancelled_bookings_description"),
+        title: t("no_cancelled_bookings"),
+        text: t("no_cancelled_bookings_description"),
       };
     case "recurring":
       return {
         icon: "repeat-outline" as const,
-        title: t("bookings.no_recurring_bookings"),
-        text: t("bookings.no_recurring_bookings_description"),
+        title: t("no_recurring_bookings"),
+        text: t("no_recurring_bookings_description"),
       };
     default:
       return {
         icon: "calendar-outline" as const,
-        title: t("bookings.no_bookings_found"),
-        text: t("bookings.no_bookings_found_description"),
+        title: t("no_bookings_found"),
+        text: t("no_bookings_found_description"),
       };
   }
 };
@@ -131,7 +131,7 @@ export const formatMonthYear = (dateString: string): string => {
       date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
 
     if (isCurrentMonth) {
-      return t("common.this_month");
+      return t("this_month");
     }
 
     return date.toLocaleDateString("en-US", {
@@ -455,7 +455,7 @@ export const getHostAndAttendeesDisplay = (
     currentUserEmail && hostEmail && currentUserEmail.toLowerCase() === hostEmail;
 
   const hostName = isCurrentUserHost
-    ? t("common.you")
+    ? t("you")
     : booking.hosts?.[0]?.name ||
       booking.hosts?.[0]?.email ||
       booking.user?.name ||

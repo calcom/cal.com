@@ -23,7 +23,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: Platform.OS === "ios" ? t("screens.you") : t("screens.profile"),
+          title: Platform.OS === "ios" ? t("you") : t("profile"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -50,7 +50,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.session_details"),
+          title: t("session_details"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -77,7 +77,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.edit_location"),
+          title: t("edit_location"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -103,7 +103,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.mark_no_show"),
+          title: t("mark_no_show"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -129,7 +129,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.recordings"),
+          title: t("recordings"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -155,7 +155,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.add_guests"),
+          title: t("add_guests"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -181,7 +181,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.reschedule"),
+          title: t("reschedule"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -207,7 +207,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.edit_name_timezone"),
+          title: t("edit_name_timezone"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -233,7 +233,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.working_hours"),
+          title: t("working_hours"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -259,7 +259,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.edit_day"),
+          title: t("edit_day"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -285,7 +285,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: t("screens.date_override"),
+          title: t("date_override"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()

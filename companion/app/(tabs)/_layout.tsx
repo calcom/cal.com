@@ -39,7 +39,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>{t("tabs.event_types")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("event_types")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(bookings)">
@@ -52,7 +52,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>{t("tabs.bookings")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("bookings")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(availability)">
@@ -65,7 +65,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>{t("tabs.availability")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("availability")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(more)">
@@ -78,7 +78,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>{t("tabs.more")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("more")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -111,7 +111,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(event-types)"
         options={{
-          title: t("tabs.event_types"),
+          title: t("event_types"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "link" : "link-outline"} size={24} color={color} />
           ),
@@ -121,7 +121,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(bookings)"
         options={{
-          title: t("tabs.bookings"),
+          title: t("bookings"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "calendar" : "calendar-outline"} size={24} color={color} />
           ),
@@ -131,7 +131,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(availability)"
         options={{
-          title: t("tabs.availability"),
+          title: t("availability"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "time" : "time-outline"} size={24} color={color} />
           ),
@@ -141,7 +141,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(more)"
         options={{
-          title: t("tabs.more"),
+          title: t("more"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "ellipsis-horizontal" : "ellipsis-horizontal-outline"}

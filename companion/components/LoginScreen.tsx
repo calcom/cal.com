@@ -16,8 +16,8 @@ export function LoginScreen() {
     } catch (error) {
       console.error("OAuth login error");
       showErrorAlert(
-        t("login.login_failed"),
-        error instanceof Error ? error.message : t("login.login_failed_message")
+        t("login_failed"),
+        error instanceof Error ? error.message : t("login_failed_message")
       );
     }
   };
@@ -57,9 +57,7 @@ export function LoginScreen() {
           ]}
           activeOpacity={0.9}
         >
-          <Text className="text-[17px] font-semibold text-white">
-            {t("login.continue_with_calcom")}
-          </Text>
+          <Text className="text-[17px] font-semibold text-white">{t("continue_with_calcom")}</Text>
         </TouchableOpacity>
 
         {/* Sign up link - hidden on iOS */}
@@ -72,8 +70,8 @@ export function LoginScreen() {
           >
             <View>
               <Text className="text-[15px] text-gray-500">
-                {t("login.dont_have_account")}{" "}
-                <Text className="font-semibold text-gray-900">{t("login.sign_up")}</Text>
+                {t("dont_have_account")}{" "}
+                <Text className="font-semibold text-gray-900">{t("sign_up")}</Text>
               </Text>
               <View className="h-px bg-gray-400" style={{ marginTop: 2 }} />
             </View>
