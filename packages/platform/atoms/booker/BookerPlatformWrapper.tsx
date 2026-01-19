@@ -12,7 +12,7 @@ import {
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { Booker as BookerComponent } from "@calcom/web/modules/bookings/components/Booker";
+import { Booker as BookerComponent } from "@calcom/features/bookings/components/Booker";
 import {
   BookerStoreProvider,
   useInitializeBookerStoreContext,

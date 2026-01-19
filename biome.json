@@ -347,6 +347,15 @@
                   {
                     "group": ["../../trpc", "../../trpc/**"],
                     "message": "atoms package should not import from trpc."
+                  },
+                  {
+                    "group": [
+                      "@calcom/web",
+                      "@calcom/web/**",
+                      "!@calcom/web/public/static/locales/**",
+                      "!@calcom/web/modules/shell/Shell"
+                    ],
+                    "message": "atoms package should not import from @calcom/web. Move shared components to @calcom/features instead."
                   }
                 ]
               }
