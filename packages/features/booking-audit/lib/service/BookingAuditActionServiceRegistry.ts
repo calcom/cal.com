@@ -2,7 +2,6 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import type { IAuditActionService } from "../actions/IAuditActionService";
 import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
 
-// Import all action services
 import { CreatedAuditActionService, type CreatedAuditData } from "../actions/CreatedAuditActionService";
 import { CancelledAuditActionService, type CancelledAuditData } from "../actions/CancelledAuditActionService";
 import { RescheduledAuditActionService, type RescheduledAuditData } from "../actions/RescheduledAuditActionService";
@@ -54,7 +53,7 @@ export class BookingAuditActionServiceRegistry {
 
     constructor(private deps: BookingAuditActionServiceRegistryDeps) {
         const services: Array<[BookingAuditAction, IAuditActionService]> = [
-            ["CREATED", new CreatedAuditActionService()],
+            ["CREATED", new CreatedAuditActionService(deps)],
             ["CANCELLED", new CancelledAuditActionService()],
             ["RESCHEDULED", new RescheduledAuditActionService()],
             ["ACCEPTED", new AcceptedAuditActionService()],

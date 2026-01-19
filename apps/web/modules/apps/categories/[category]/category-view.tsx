@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { AppCard } from "@calcom/features/apps/components/AppCard";
+import { AppCard } from "@calcom/web/modules/apps/components/AppCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 

@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { hashSync } from "bcryptjs";
 import { randomBytes } from "node:crypto";
 import process from "node:process";
 
@@ -141,6 +142,85 @@ test.describe("Email Signup Flow Test", async () => {
       expect(alertMessageInner).toContain(alertMessage);
     });
   });
+
+  test("Signup with org invite token for existing user redirects to login without overwriting password", async ({
+    page,
+    prisma,
+  }) => {
+    const originalPassword = "OriginalPass99!";
+    const attackerPassword = "AttackerPass99!";
+    const testEmail = `existing-user-${Date.now()}@example.com`;
+
+    // Create existing user without emailVerified to bypass server-side check
+    const hashedPassword = hashSync(originalPassword, 12);
+    const existingUser = await prisma.user.create({
+      data: {
+        email: testEmail,
+        username: `existing-user-${Date.now()}`,
+        password: { create: { hash: hashedPassword } },
+        emailVerified: null,
+      },
+    });
+
+    // Create org invite token for the existing user's email
+    const token = randomBytes(32).toString("hex");
+    const org = await prisma.team.create({
+      data: {
+        name: "Test Org",
+        slug: `test-org-${Date.now()}`,
+        isOrganization: true,
+      },
+    });
+
+    await prisma.verificationToken.create({
+      data: {
+        identifier: existingUser.email,
+        token,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        teamId: org.id,
+      },
+    });
+
+    // Clear any existing session before attempting signup
+    await page.context().clearCookies();
+
+    // Try to signup with the invite token using a different password
+    await page.goto(`/signup?token=${token}`);
+    await expect(page.getByTestId("signup-submit-button")).toBeVisible();
+
+    await page.locator('input[name="password"]').fill(attackerPassword);
+
+    // Intercept the signup API request to verify 409 response
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes("/api/auth/signup") && response.request().method() === "POST"
+    );
+
+    const submitButton = page.getByTestId("signup-submit-button");
+    await submitButton.click();
+
+    // Verify API returns 409 (user already exists)
+    const response = await responsePromise;
+    expect(response.status()).toBe(409);
+
+    const responseBody = await response.json();
+    expect(responseBody.message).toBe("user_already_exists");
+
+    // Should redirect to login (toast shows and redirects after 3s)
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 8000 });
+
+    // Verify original password still works by logging in
+    await page.locator('input[name="email"]').fill(existingUser.email);
+    await page.locator('input[name="password"]').fill(originalPassword);
+    await page.locator('button[type="submit"]').click();
+
+    // Should successfully login with original password
+    await expect(page).toHaveURL(/\/(getting-started|event-types|teams)/, { timeout: 8000 });
+
+    // Cleanup
+    await prisma.verificationToken.deleteMany({ where: { token } });
+    await prisma.user.delete({ where: { id: existingUser.id } });
+    await prisma.team.delete({ where: { id: org.id } });
+  });
   test("Signup with valid (non premium) username", async ({ page, users }) => {
     const userToCreate = users.buildForSignup({
       username: "rick-jones",
@@ -178,7 +258,8 @@ test.describe("Email Signup Flow Test", async () => {
     // Track user for cleanup
     await users.set(userToCreate.email);
   });
-  test("Signup fields prefilled with query params", async ({ page }) => {
+
+  test("Signup fields prefilled with query params", async ({ page, users: _users }) => {
     const signupUrlWithParams =
       "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
@@ -393,6 +474,7 @@ test.describe("Email Signup Flow Test", async () => {
 
   test("Checkbox for cookie consent does not need to be checked", async ({
     page,
+    users: _users,
   }) => {
     await page.goto("/signup");
     await preventFlakyTest(page);

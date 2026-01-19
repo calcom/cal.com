@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Activity, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -13,13 +13,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
 import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
 import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
 import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { truncateTitle } from "@/components/event-type-detail/utils";
 import { buildPartialUpdatePayload } from "@/components/event-type-detail/utils/buildPartialUpdatePayload";
 import {
@@ -28,8 +34,9 @@ import {
   type EventType,
   type Schedule,
 } from "@/services/calcom";
+import { useCreateEventType, useDeleteEventType, useUpdateEventType } from "@/hooks";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import {
   buildLocationOptions,
@@ -38,15 +45,16 @@ import {
   validateLocationItem,
 } from "@/utils/locationHelpers";
 import { safeLogError } from "@/utils/safeLogger";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
   lengthInMinutesOptions?: number[];
-  disableCancelling?: boolean;
-  disableRescheduling?: boolean;
+  // API V2 format - these can be objects or booleans from older data
+  disableCancelling?: boolean | { disabled: boolean };
+  disableRescheduling?: boolean | { disabled: boolean; minutesBefore?: number };
   sendCalVideoTranscription?: boolean;
-  autoTranslate?: boolean;
+
   lockedTimeZone?: string;
   hideCalendarEventDetails?: boolean;
   hideOrganizerEmail?: boolean;
@@ -54,6 +62,12 @@ interface EventTypeExtended {
     lightThemeHex?: string;
     darkThemeHex?: string;
   };
+  // API V2 new fields
+  calVideoSettings?: {
+    sendTranscriptionEmails?: boolean;
+  };
+  interfaceLanguage?: string;
+  showOptimizedSlots?: boolean;
 }
 
 interface BookerActiveBookingsLimitExtended {
@@ -127,7 +141,11 @@ export default function EventTypeDetail() {
     slug?: string;
   }>();
 
-  const insets = useSafeAreaInsets();
+  // Mutation hooks for optimistic updates
+  const { mutateAsync: updateEventType, isPending: isUpdating } = useUpdateEventType();
+  const { mutateAsync: createEventType, isPending: isCreating } = useCreateEventType();
+  const { mutateAsync: deleteEventType } = useDeleteEventType();
+
   const [activeTab, setActiveTab] = useState("basics");
 
   // Form state
@@ -151,13 +169,23 @@ export default function EventTypeDetail() {
   const [showScheduleDropdown, setShowScheduleDropdown] = useState(false);
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
+  const [initialScheduleId, setInitialScheduleId] = useState<number | null>(null);
+  const hasAutoSelectedScheduleRef = useRef(false);
+
+  // Reset auto-selection ref when event type id changes (e.g., navigation reuse)
+  useEffect(() => {
+    hasAutoSelectedScheduleRef.current = false;
+  }, []);
+
   const [isHidden, setIsHidden] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState("");
   const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false);
   const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [bookingUrl, setBookingUrl] = useState<string>("");
+  // Use mutation hooks' isPending states instead of local saving state
+  const isSaving = isUpdating || isCreating;
   const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
   const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
   const [showBeforeBufferDropdown, setShowBeforeBufferDropdown] = useState(false);
@@ -194,11 +222,12 @@ export default function EventTypeDetail() {
   const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [disableCancelling, setDisableCancelling] = useState(false);
   const [disableRescheduling, setDisableRescheduling] = useState(false);
-  const [sendCalVideoTranscription, setSendCalVideoTranscription] = useState(false);
-  const [autoTranslate, setAutoTranslate] = useState(false);
+  const [sendCalVideoTranscription, setSendCalVideoTranscription] = useState(true);
+
   const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
   const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
   const [hideCalendarEventDetails, setHideCalendarEventDetails] = useState(false);
+  const [redirectEnabled, setRedirectEnabled] = useState(false);
   const [successRedirectUrl, setSuccessRedirectUrl] = useState("");
   const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
   const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
@@ -210,6 +239,9 @@ export default function EventTypeDetail() {
   const [customReplyToEmail, setCustomReplyToEmail] = useState("");
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
+  const [interfaceLanguageEnabled, setInterfaceLanguageEnabled] = useState(false);
+  const [interfaceLanguage, setInterfaceLanguage] = useState("");
+  const [showOptimizedSlots, setShowOptimizedSlots] = useState(false);
 
   const [seatsEnabled, setSeatsEnabled] = useState(false);
   const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState("2");
@@ -386,18 +418,32 @@ export default function EventTypeDetail() {
       const schedulesData = await CalComAPIService.getSchedules();
       setSchedules(schedulesData);
 
-      // Set default schedule if one exists
-      const defaultSchedule = schedulesData.find((schedule) => schedule.isDefault);
-      if (defaultSchedule) {
-        setSelectedSchedule(defaultSchedule);
-        await fetchScheduleDetails(defaultSchedule.id);
+      // Only auto-select a schedule if we haven't already done so
+      // This prevents unnecessary re-fetches when the callback is recreated
+      if (!hasAutoSelectedScheduleRef.current) {
+        // Use the event type's schedule if we have it, otherwise use default
+        let scheduleToSelect: Schedule | undefined;
+
+        if (initialScheduleId) {
+          scheduleToSelect = schedulesData.find((schedule) => schedule.id === initialScheduleId);
+        }
+
+        if (!scheduleToSelect) {
+          scheduleToSelect = schedulesData.find((schedule) => schedule.isDefault);
+        }
+
+        if (scheduleToSelect) {
+          hasAutoSelectedScheduleRef.current = true;
+          setSelectedSchedule(scheduleToSelect);
+          await fetchScheduleDetails(scheduleToSelect.id);
+        }
       }
       setSchedulesLoading(false);
     } catch (error) {
       safeLogError("Failed to fetch schedules:", error);
       setSchedulesLoading(false);
     }
-  }, [fetchScheduleDetails]);
+  }, [fetchScheduleDetails, initialScheduleId]);
 
   const fetchConferencingOptions = useCallback(async () => {
     setConferencingLoading(true);
@@ -420,6 +466,12 @@ export default function EventTypeDetail() {
     if (eventType.description) setEventDescription(eventType.description);
     if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
     if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+    if (eventType.bookingUrl) setBookingUrl(eventType.bookingUrl);
+
+    // Load schedule ID - this will be used by fetchSchedules to select the correct schedule
+    if (eventType.scheduleId) {
+      setInitialScheduleId(eventType.scheduleId);
+    }
 
     const eventTypeExt = eventType as EventType & EventTypeExtended;
     const lengthOptions = eventTypeExt.lengthInMinutesOptions;
@@ -589,28 +641,55 @@ export default function EventTypeDetail() {
 
     const metadata = eventType.metadata;
 
-    if (eventTypeExt.disableCancelling !== undefined) {
-      setDisableCancelling(eventTypeExt.disableCancelling);
+    // Handle disableCancelling - can be boolean or object { disabled: boolean }
+    const disableCancellingValue = eventTypeExt.disableCancelling;
+    if (disableCancellingValue !== undefined) {
+      if (typeof disableCancellingValue === "boolean") {
+        setDisableCancelling(disableCancellingValue);
+      } else if (
+        typeof disableCancellingValue === "object" &&
+        "disabled" in disableCancellingValue
+      ) {
+        setDisableCancelling(disableCancellingValue.disabled);
+      }
     } else if (metadata?.disableCancelling) {
       setDisableCancelling(true);
     }
 
-    if (eventTypeExt.disableRescheduling !== undefined) {
-      setDisableRescheduling(eventTypeExt.disableRescheduling);
+    // Handle disableRescheduling - can be boolean or object { disabled: boolean, minutesBefore?: number }
+    const disableReschedulingValue = eventTypeExt.disableRescheduling;
+    if (disableReschedulingValue !== undefined) {
+      if (typeof disableReschedulingValue === "boolean") {
+        setDisableRescheduling(disableReschedulingValue);
+      } else if (
+        typeof disableReschedulingValue === "object" &&
+        "disabled" in disableReschedulingValue
+      ) {
+        setDisableRescheduling(disableReschedulingValue.disabled);
+      }
     } else if (metadata?.disableRescheduling) {
       setDisableRescheduling(true);
     }
 
-    if (eventTypeExt.sendCalVideoTranscription !== undefined) {
+    // Handle calVideoSettings.sendTranscriptionEmails (API V2) or sendCalVideoTranscription (legacy)
+    if (eventTypeExt.calVideoSettings?.sendTranscriptionEmails !== undefined) {
+      setSendCalVideoTranscription(eventTypeExt.calVideoSettings.sendTranscriptionEmails);
+    } else if (eventTypeExt.sendCalVideoTranscription !== undefined) {
       setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
     } else if (metadata?.sendCalVideoTranscription) {
       setSendCalVideoTranscription(true);
+    } else {
+      setSendCalVideoTranscription(false);
     }
 
-    if (eventTypeExt.autoTranslate !== undefined) {
-      setAutoTranslate(eventTypeExt.autoTranslate);
-    } else if (metadata?.autoTranslate) {
-      setAutoTranslate(true);
+    if (eventTypeExt.interfaceLanguage) {
+      setInterfaceLanguageEnabled(true);
+      setInterfaceLanguage(eventTypeExt.interfaceLanguage);
+    }
+
+    // Load showOptimizedSlots (API V2)
+    if (eventTypeExt.showOptimizedSlots !== undefined) {
+      setShowOptimizedSlots(eventTypeExt.showOptimizedSlots);
     }
 
     if (metadata) {
@@ -667,8 +746,8 @@ export default function EventTypeDetail() {
       setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
     }
 
-    // Load redirect URL
     if (eventType.successRedirectUrl) {
+      setRedirectEnabled(true);
       setSuccessRedirectUrl(eventType.successRedirectUrl);
     }
     if (eventType.forwardParamsSuccessRedirect !== undefined) {
@@ -851,25 +930,34 @@ export default function EventTypeDetail() {
       const dayShort = day.substring(0, 3).toLowerCase(); // mon, tue, etc.
       const dayShortUpper = day.substring(0, 3).toUpperCase();
 
-      const availability = selectedScheduleDetails.availability?.find((avail) => {
-        if (!avail.days || !Array.isArray(avail.days)) return false;
+      // Find ALL matching availability slots for this day (not just the first one)
+      const matchingSlots =
+        selectedScheduleDetails.availability?.filter((avail) => {
+          if (!avail.days || !Array.isArray(avail.days)) return false;
 
-        return avail.days.some(
-          (d) =>
-            d === dayLower ||
-            d === dayUpper ||
-            d === day ||
-            d === dayShort ||
-            d === dayShortUpper ||
-            d.toLowerCase() === dayLower
-        );
-      });
+          return avail.days.some(
+            (d) =>
+              d === dayLower ||
+              d === dayUpper ||
+              d === day ||
+              d === dayShort ||
+              d === dayShortUpper ||
+              d.toLowerCase() === dayLower
+          );
+        }) || [];
+
+      // Map to time slots array
+      const timeSlots = matchingSlots.map((slot) => ({
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }));
 
       return {
         day,
-        available: !!availability,
-        startTime: availability?.startTime,
-        endTime: availability?.endTime,
+        available: timeSlots.length > 0,
+        startTime: timeSlots[0]?.startTime,
+        endTime: timeSlots[0]?.endTime,
+        timeSlots, // Include all time slots for this day
       };
     });
 
@@ -877,30 +965,20 @@ export default function EventTypeDetail() {
   };
 
   const handlePreview = async () => {
-    const eventTypeSlug = eventSlug || "preview";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to generate preview link:", error);
-      showErrorAlert("Error", "Failed to generate preview link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await openInAppBrowser(link, "event type preview");
+    await openInAppBrowser(bookingUrl, "event type preview");
   };
 
   const handleCopyLink = async () => {
-    const eventTypeSlug = eventSlug || "event-link";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to copy link:", error);
-      showErrorAlert("Error", "Failed to copy link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await Clipboard.setStringAsync(link);
-    Alert.alert("Success", "Link copied!");
+    await Clipboard.setStringAsync(bookingUrl);
+    showSuccessAlert("Success", "Link copied!");
   };
 
   const handleDelete = () => {
@@ -918,14 +996,10 @@ export default function EventTypeDetail() {
           }
 
           try {
-            await CalComAPIService.deleteEventType(eventTypeId);
+            await deleteEventType(eventTypeId);
 
-            Alert.alert("Success", "Event type deleted successfully", [
-              {
-                text: "OK",
-                onPress: () => router.back(),
-              },
-            ]);
+            showSuccessAlert("Success", "Event type deleted successfully");
+            router.back();
           } catch (error) {
             safeLogError("Failed to delete event type:", error);
             showErrorAlert("Error", "Failed to delete event type. Please try again.");
@@ -935,21 +1009,186 @@ export default function EventTypeDetail() {
     ]);
   };
 
+  // Calculate current form state efficiently
+  const currentFormState = useMemo(
+    () => ({
+      // Basics
+      eventTitle,
+      eventSlug,
+      eventDescription,
+      eventDuration,
+      isHidden,
+      locations,
+      disableGuests,
+
+      // Multiple durations
+      allowMultipleDurations,
+      selectedDurations,
+      defaultDuration,
+
+      // Availability
+      selectedScheduleId: selectedSchedule?.id,
+
+      // Limits
+      beforeEventBuffer,
+      afterEventBuffer,
+      minimumNoticeValue,
+      minimumNoticeUnit,
+      slotInterval,
+      limitBookingFrequency,
+      frequencyLimits,
+      limitTotalDuration,
+      durationLimits,
+      onlyShowFirstAvailableSlot,
+      maxActiveBookingsPerBooker,
+      maxActiveBookingsValue,
+      offerReschedule,
+      limitFutureBookings,
+      futureBookingType,
+      rollingDays,
+      rollingCalendarDays,
+      rangeStartDate,
+      rangeEndDate,
+
+      // Advanced
+      requiresConfirmation,
+      requiresBookerEmailVerification,
+      hideCalendarNotes,
+      hideCalendarEventDetails,
+      hideOrganizerEmail,
+      lockTimezone,
+      allowReschedulingPastEvents,
+      allowBookingThroughRescheduleLink,
+      successRedirectUrl,
+      forwardParamsSuccessRedirect,
+      customReplyToEmail,
+      eventTypeColorLight,
+      eventTypeColorDark,
+      calendarEventName,
+      addToCalendarEmail,
+      selectedLayouts,
+      defaultLayout,
+      disableCancelling,
+      disableRescheduling,
+      sendCalVideoTranscription,
+
+      interfaceLanguage,
+      showOptimizedSlots,
+
+      // Seats
+      seatsEnabled,
+      seatsPerTimeSlot,
+      showAttendeeInfo,
+      showAvailabilityCount,
+
+      // Recurring
+      recurringEnabled,
+      recurringInterval,
+      recurringFrequency,
+      recurringOccurrences,
+    }),
+    [
+      eventTitle,
+      eventSlug,
+      eventDescription,
+      eventDuration,
+      isHidden,
+      locations,
+      disableGuests,
+      allowMultipleDurations,
+      selectedDurations,
+      defaultDuration,
+      selectedSchedule,
+      beforeEventBuffer,
+      afterEventBuffer,
+      minimumNoticeValue,
+      minimumNoticeUnit,
+      slotInterval,
+      limitBookingFrequency,
+      frequencyLimits,
+      limitTotalDuration,
+      durationLimits,
+      onlyShowFirstAvailableSlot,
+      maxActiveBookingsPerBooker,
+      maxActiveBookingsValue,
+      offerReschedule,
+      limitFutureBookings,
+      futureBookingType,
+      rollingDays,
+      rollingCalendarDays,
+      rangeStartDate,
+      rangeEndDate,
+      requiresConfirmation,
+      requiresBookerEmailVerification,
+      hideCalendarNotes,
+      hideCalendarEventDetails,
+      hideOrganizerEmail,
+      lockTimezone,
+      allowReschedulingPastEvents,
+      allowBookingThroughRescheduleLink,
+      successRedirectUrl,
+      forwardParamsSuccessRedirect,
+      customReplyToEmail,
+      eventTypeColorLight,
+      eventTypeColorDark,
+      calendarEventName,
+      addToCalendarEmail,
+      selectedLayouts,
+      defaultLayout,
+      disableCancelling,
+      disableRescheduling,
+      sendCalVideoTranscription,
+      interfaceLanguage,
+      showOptimizedSlots,
+      seatsEnabled,
+      seatsPerTimeSlot,
+      showAttendeeInfo,
+      showAvailabilityCount,
+      recurringEnabled,
+      recurringInterval,
+      recurringFrequency,
+      recurringOccurrences,
+    ]
+  );
+
+  // Calculate isDirty state
+  const isDirty = useMemo(() => {
+    // For new event types (id="new"), we always want to enable save if required fields are filled
+    // But for now, let's stick to the dirty check logic which applies mostly to updates
+    if (id === "new") {
+      // For create mode, we can consider it "dirty" if title and slug are present
+      // or just always enabled. The requirement was "when user changes something".
+      // Usually for "new" forms, the button IS enabled, or disabled until valid.
+      // Let's assume the requirement "enable/disable based on changes" specifically targets the EDIT flow.
+      // But to be safe and consistent with "disable until change", we can check if it differs from initial empty state?
+      // Actually, for "Create", it's usually better to be enabled or validated.
+      // However, the user request: "we have this save button in event types, so when user changes something then only i want this save button to enable"
+      // This strongly implies the Edit case.
+      // For "new", returning true (always dirty/ready) is a safe default to avoid blocking creation.
+      return true;
+    }
+
+    if (!eventTypeData) return false;
+
+    const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
+    return Object.keys(payload).length > 0;
+  }, [currentFormState, eventTypeData, id]);
+
   const handleSave = async () => {
     if (!id) {
-      Alert.alert("Error", "Event type ID is missing");
+      showErrorAlert("Error", "Event type ID is missing");
       return;
     }
 
     // Validate required fields
     if (!eventTitle || !eventSlug) {
-      Alert.alert("Error", "Title and slug are required");
+      showErrorAlert("Error", "Title and slug are required");
       return;
     }
 
     const durationNum = parseInt(eventDuration, 10);
     if (Number.isNaN(durationNum) || durationNum <= 0) {
-      Alert.alert("Error", "Duration must be a positive number");
+      showErrorAlert("Error", "Duration must be a positive number");
       return;
     }
 
@@ -958,7 +1197,7 @@ export default function EventTypeDetail() {
       for (const loc of locations) {
         const validation = validateLocationItem(loc);
         if (!validation.valid) {
-          Alert.alert("Error", validation.error || "Invalid location");
+          showErrorAlert("Error", validation.error || "Invalid location");
           return;
         }
       }
@@ -969,8 +1208,6 @@ export default function EventTypeDetail() {
 
     // Extract values with optional chaining outside try/catch for React Compiler
     const selectedScheduleId = selectedSchedule?.id;
-
-    setSaving(true);
 
     if (isCreateMode) {
       // For CREATE mode, build full payload
@@ -994,120 +1231,37 @@ export default function EventTypeDetail() {
 
       payload.hidden = isHidden;
 
-      // Create new event type
+      // Create new event type using mutation hook
       try {
-        await CalComAPIService.createEventType(payload);
+        await createEventType(payload);
       } catch (error) {
         safeLogError("Failed to save event type:", error);
         showErrorAlert("Error", "Failed to create event type. Please try again.");
-        setSaving(false);
         return;
       }
-      Alert.alert("Success", "Event type created successfully", [
-        {
-          text: "OK",
-          onPress: () => router.back(),
-        },
-      ]);
-      setSaving(false);
+      showSuccessAlert("Success", "Event type created successfully");
+      router.back();
     } else {
       // For UPDATE mode, use partial update - only send changed fields
-      const currentFormState = {
-        // Basics
-        eventTitle,
-        eventSlug,
-        eventDescription,
-        eventDuration,
-        isHidden,
-        locations,
-        disableGuests,
-
-        // Multiple durations
-        allowMultipleDurations,
-        selectedDurations,
-        defaultDuration,
-
-        // Availability
-        selectedScheduleId,
-
-        // Limits
-        beforeEventBuffer,
-        afterEventBuffer,
-        minimumNoticeValue,
-        minimumNoticeUnit,
-        slotInterval,
-        limitBookingFrequency,
-        frequencyLimits,
-        limitTotalDuration,
-        durationLimits,
-        onlyShowFirstAvailableSlot,
-        maxActiveBookingsPerBooker,
-        maxActiveBookingsValue,
-        offerReschedule,
-        limitFutureBookings,
-        futureBookingType,
-        rollingDays,
-        rollingCalendarDays,
-        rangeStartDate,
-        rangeEndDate,
-
-        // Advanced
-        requiresConfirmation,
-        requiresBookerEmailVerification,
-        hideCalendarNotes,
-        hideCalendarEventDetails,
-        hideOrganizerEmail,
-        lockTimezone,
-        allowReschedulingPastEvents,
-        allowBookingThroughRescheduleLink,
-        successRedirectUrl,
-        forwardParamsSuccessRedirect,
-        customReplyToEmail,
-        eventTypeColorLight,
-        eventTypeColorDark,
-        calendarEventName,
-        addToCalendarEmail,
-        selectedLayouts,
-        defaultLayout,
-        disableCancelling,
-        disableRescheduling,
-        sendCalVideoTranscription,
-        autoTranslate,
-
-        // Seats
-        seatsEnabled,
-        seatsPerTimeSlot,
-        showAttendeeInfo,
-        showAvailabilityCount,
-
-        // Recurring
-        recurringEnabled,
-        recurringInterval,
-        recurringFrequency,
-        recurringOccurrences,
-      };
-
-      // Build partial payload with only changed fields
+      // Using the memoized currentFormState
       const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
 
       if (Object.keys(payload).length === 0) {
-        Alert.alert("No Changes", "No changes were made to the event type.");
-        setSaving(false);
-        return;
+        // This should theoretically strictly not be reached if button is disabled,
+        // but it acts as a safeguard.
+        // return;
       }
 
+      // Update event type using mutation hook with optimistic updates
       try {
-        await CalComAPIService.updateEventType(parseInt(id, 10), payload);
+        await updateEventType({ id: parseInt(id, 10), updates: payload });
       } catch (error) {
         safeLogError("Failed to save event type:", error);
         showErrorAlert("Error", "Failed to update event type. Please try again.");
-        setSaving(false);
         return;
       }
-      Alert.alert("Success", "Event type updated successfully");
-      // Refresh event type data to sync with server
-      await fetchEventTypeData();
-      setSaving(false);
+      showSuccessAlert("Success", "Event type updated successfully");
+      // No need to manually refresh - cache is updated by the mutation hook
     }
   };
 
@@ -1115,19 +1269,81 @@ export default function EventTypeDetail() {
   const saveButtonText = id === "new" ? "Create" : "Save";
 
   const renderHeaderLeft = () => (
-    <AppPressable onPress={() => router.back()} className="px-2 py-2">
-      <Ionicons name="close" size={24} color="#007AFF" />
-    </AppPressable>
+    <HeaderButtonWrapper side="left">
+      <AppPressable onPress={() => router.back()} className="px-2 py-2">
+        <Ionicons name="close" size={24} color="#000000" />
+      </AppPressable>
+    </HeaderButtonWrapper>
   );
 
   const renderHeaderRight = () => (
-    <AppPressable
-      onPress={handleSave}
-      disabled={saving}
-      className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
-    >
-      <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
-    </AppPressable>
+    <HeaderButtonWrapper side="right">
+      <View className="flex-row items-center" style={{ gap: Platform.OS === "web" ? 24 : 8 }}>
+        {/* Tab Navigation Dropdown Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <AppPressable
+              className="flex-row items-center gap-1 px-2 py-2"
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
+              <Text className="text-[16px] font-semibold text-[#000000]" numberOfLines={1}>
+                {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
+              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={16}
+                color="#000000"
+                style={{ marginLeft: 2, flexShrink: 0 }}
+              />
+            </AppPressable>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
+            sideOffset={8}
+            className="w-44"
+            align="end"
+          >
+            {tabs.map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <DropdownMenuItem key={tab.id} onPress={() => setActiveTab(tab.id)}>
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={isSelected ? "checkmark-circle" : tab.icon}
+                      size={16}
+                      color={isSelected ? "#000000" : "#666"}
+                    />
+                    <Text
+                      className={
+                        isSelected ? "text-base font-semibold text-[#000000]" : "text-base"
+                      }
+                    >
+                      {tab.label}
+                    </Text>
+                  </View>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Save Button */}
+        <AppPressable
+          onPress={handleSave}
+          disabled={isSaving || !isDirty}
+          className={`px-2 py-2 ${isSaving || !isDirty ? "opacity-50" : ""}`}
+        >
+          <Text
+            className={`text-[16px] font-semibold ${
+              isSaving || !isDirty ? "text-[#C7C7CC]" : "text-[#000000]"
+            }`}
+          >
+            {saveButtonText}
+          </Text>
+        </AppPressable>
+      </View>
+    </HeaderButtonWrapper>
   );
 
   return (
@@ -1157,10 +1373,9 @@ export default function EventTypeDetail() {
               {tabs.map((tab) => (
                 <Stack.Header.MenuAction
                   key={tab.id}
-                  isOn={activeTab === tab.id}
                   icon={
                     activeTab === tab.id
-                      ? "checkmark"
+                      ? "checkmark.circle.fill"
                       : tab.icon === "link"
                         ? "link"
                         : tab.icon === "calendar"
@@ -1181,7 +1396,7 @@ export default function EventTypeDetail() {
             </Stack.Header.Menu>
             <Stack.Header.Button
               onPress={handleSave}
-              disabled={saving}
+              disabled={isSaving || !isDirty}
               variant="prominent"
               tintColor="#000"
             >
@@ -1196,48 +1411,12 @@ export default function EventTypeDetail() {
           style={{
             flex: 1,
           }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: activeTab === "limits" || activeTab === "advanced" ? 280 : 200,
+          }}
           contentInsetAdjustmentBehavior="automatic"
         >
-          <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
-            <View
-              style={{
-                paddingBottom: 12,
-              }}
-            >
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
-              >
-                {tabs.map((tab) => (
-                  <TouchableOpacity
-                    key={tab.id}
-                    className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
-                      activeTab === tab.id ? "bg-[#EEEFF2]" : ""
-                    }`}
-                    onPress={() => setActiveTab(tab.id)}
-                  >
-                    <View className="flex-row items-center gap-2">
-                      <Ionicons
-                        name={tab.icon}
-                        size={18}
-                        color={activeTab === tab.id ? "#007AFF" : "#666"}
-                      />
-                      <Text
-                        className={`text-base font-medium ${
-                          activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
-                        }`}
-                      >
-                        {tab.label}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </Activity>
-
           {activeTab === "basics" ? (
             <BasicsTab
               eventTitle={eventTitle}
@@ -1254,6 +1433,7 @@ export default function EventTypeDetail() {
               selectedDurations={selectedDurations}
               setShowDurationDropdown={setShowDurationDropdown}
               defaultDuration={defaultDuration}
+              setDefaultDuration={setDefaultDuration}
               setShowDefaultDurationDropdown={setShowDefaultDurationDropdown}
               // Multiple locations support
               locations={locations}
@@ -1262,6 +1442,7 @@ export default function EventTypeDetail() {
               onUpdateLocation={handleUpdateLocation}
               locationOptions={getLocationOptionsForDropdown()}
               conferencingLoading={conferencingLoading}
+              bookingUrl={bookingUrl}
             />
           ) : null}
 
@@ -1273,41 +1454,88 @@ export default function EventTypeDetail() {
             onRequestClose={() => setShowDurationDropdown(false)}
           >
             <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              className="flex-1 items-center justify-center bg-black/30"
+              activeOpacity={1}
               onPress={() => setShowDurationDropdown(false)}
             >
-              <View className="max-h-[80%] min-w-[300px] max-w-[90%] rounded-2xl bg-white p-5">
-                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
-                  Select Available Durations
-                </Text>
-                <ScrollView style={{ maxHeight: 400, marginBottom: 16 }}>
-                  {availableDurations.map((duration) => (
-                    <TouchableOpacity
-                      key={duration}
-                      className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
-                        selectedDurations.includes(duration) ? "bg-[#F0F0F0]" : ""
-                      }`}
-                      onPress={() => toggleDurationSelection(duration)}
-                    >
-                      <Text
-                        className={`text-base text-[#333] ${
-                          selectedDurations.includes(duration) ? "font-semibold" : ""
-                        }`}
-                      >
-                        {duration}
+              <View className="max-h-[80%] min-w-[320px] max-w-[90%] overflow-hidden rounded-[28px]">
+                {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
+                  <GlassView glassEffectStyle="regular" className="p-0">
+                    <View className="flex-col p-6">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                        Select Available Durations
                       </Text>
-                      {selectedDurations.includes(duration) ? (
-                        <Ionicons name="checkmark" size={20} color="#000" />
-                      ) : null}
+                      <ScrollView style={{ maxHeight: 400, marginBottom: 20 }}>
+                        {availableDurations.map((duration, index) => (
+                          <TouchableOpacity
+                            key={duration}
+                            className={`flex-row items-center justify-between py-3.5 ${
+                              index < availableDurations.length - 1
+                                ? "border-b border-black/10"
+                                : ""
+                            }`}
+                            onPress={() => toggleDurationSelection(duration)}
+                          >
+                            <Text
+                              className={`text-[17px] text-black ${
+                                selectedDurations.includes(duration) ? "font-bold" : "font-medium"
+                              }`}
+                            >
+                              {duration}
+                            </Text>
+                            {selectedDurations.includes(duration) ? (
+                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                            ) : (
+                              <View className="h-6 w-6 rounded-full border-2 border-black/20" />
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                      <TouchableOpacity
+                        className="items-center rounded-2xl bg-black py-4 active:opacity-80"
+                        onPress={() => setShowDurationDropdown(false)}
+                      >
+                        <Text className="text-[17px] font-bold text-white">Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </GlassView>
+                ) : (
+                  <View className="bg-white p-6">
+                    <Text className="mb-5 text-center text-[19px] font-bold text-[#333]">
+                      Select Available Durations
+                    </Text>
+                    <ScrollView style={{ maxHeight: 400, marginBottom: 20 }}>
+                      {availableDurations.map((duration, index) => (
+                        <TouchableOpacity
+                          key={duration}
+                          className={`flex-row items-center justify-between py-3.5 ${
+                            index < availableDurations.length - 1 ? "border-b border-gray-100" : ""
+                          }`}
+                          onPress={() => toggleDurationSelection(duration)}
+                        >
+                          <Text
+                            className={`text-[17px] text-[#333] ${
+                              selectedDurations.includes(duration) ? "font-bold" : "font-medium"
+                            }`}
+                          >
+                            {duration}
+                          </Text>
+                          {selectedDurations.includes(duration) ? (
+                            <Ionicons name="checkmark-circle" size={24} color="#000" />
+                          ) : (
+                            <View className="h-6 w-6 rounded-full border-2 border-gray-200" />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                    <TouchableOpacity
+                      className="items-center rounded-2xl bg-black py-4"
+                      onPress={() => setShowDurationDropdown(false)}
+                    >
+                      <Text className="text-[17px] font-bold text-white">Done</Text>
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
-                <TouchableOpacity
-                  className="items-center rounded-lg bg-black px-6 py-3"
-                  onPress={() => setShowDurationDropdown(false)}
-                >
-                  <Text className="text-base font-semibold text-white">Done</Text>
-                </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1320,36 +1548,76 @@ export default function EventTypeDetail() {
             onRequestClose={() => setShowDefaultDurationDropdown(false)}
           >
             <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              className="flex-1 items-center justify-center bg-black/30"
+              activeOpacity={1}
               onPress={() => setShowDefaultDurationDropdown(false)}
             >
-              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
-                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
-                  Select Default Duration
-                </Text>
-                {selectedDurations.map((duration) => (
-                  <TouchableOpacity
-                    key={duration}
-                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
-                      defaultDuration === duration ? "bg-[#F0F0F0]" : ""
-                    }`}
-                    onPress={() => {
-                      setDefaultDuration(duration);
-                      setShowDefaultDurationDropdown(false);
-                    }}
-                  >
-                    <Text
-                      className={`text-base text-[#333] ${
-                        defaultDuration === duration ? "font-semibold" : ""
-                      }`}
-                    >
-                      {duration}
+              <View className="max-h-[80%] min-w-[320px] max-w-[90%] overflow-hidden rounded-[28px]">
+                {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
+                  <GlassView glassEffectStyle="regular" className="p-0">
+                    <View className="flex-col p-6">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                        Select Default Duration
+                      </Text>
+                      <ScrollView style={{ maxHeight: 400 }}>
+                        {selectedDurations.map((duration, index) => (
+                          <TouchableOpacity
+                            key={duration}
+                            className={`flex-row items-center justify-between py-3.5 ${
+                              index < selectedDurations.length - 1 ? "border-b border-black/10" : ""
+                            }`}
+                            onPress={() => {
+                              setDefaultDuration(duration);
+                              setShowDefaultDurationDropdown(false);
+                            }}
+                          >
+                            <Text
+                              className={`text-[17px] text-black ${
+                                defaultDuration === duration ? "font-bold" : "font-medium"
+                              }`}
+                            >
+                              {duration}
+                            </Text>
+                            {defaultDuration === duration ? (
+                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                            ) : null}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  </GlassView>
+                ) : (
+                  <View className="bg-white p-6">
+                    <Text className="mb-5 text-center text-[19px] font-bold text-[#333]">
+                      Select Default Duration
                     </Text>
-                    {defaultDuration === duration ? (
-                      <Ionicons name="checkmark" size={20} color="#000" />
-                    ) : null}
-                  </TouchableOpacity>
-                ))}
+                    <ScrollView style={{ maxHeight: 400 }}>
+                      {selectedDurations.map((duration, index) => (
+                        <TouchableOpacity
+                          key={duration}
+                          className={`flex-row items-center justify-between py-3.5 ${
+                            index < selectedDurations.length - 1 ? "border-b border-gray-100" : ""
+                          }`}
+                          onPress={() => {
+                            setDefaultDuration(duration);
+                            setShowDefaultDurationDropdown(false);
+                          }}
+                        >
+                          <Text
+                            className={`text-[17px] text-[#333] ${
+                              defaultDuration === duration ? "font-bold" : "font-medium"
+                            }`}
+                          >
+                            {duration}
+                          </Text>
+                          {defaultDuration === duration ? (
+                            <Ionicons name="checkmark-circle" size={24} color="#000" />
+                          ) : null}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1362,44 +1630,88 @@ export default function EventTypeDetail() {
             onRequestClose={() => setShowScheduleDropdown(false)}
           >
             <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              className="flex-1 items-center justify-center bg-black/30"
+              activeOpacity={1}
               onPress={() => setShowScheduleDropdown(false)}
             >
-              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
-                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
-                  Select Schedule
-                </Text>
-                {schedules.map((schedule) => (
-                  <TouchableOpacity
-                    key={schedule.id}
-                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
-                      selectedSchedule?.id === schedule.id ? "bg-[#F0F0F0]" : ""
-                    }`}
-                    onPress={() => {
-                      setSelectedSchedule(schedule);
-                      setShowScheduleDropdown(false);
-                      fetchScheduleDetails(schedule.id);
-                    }}
-                  >
-                    <View className="flex-1 flex-row items-center justify-between">
-                      <Text
-                        className={`text-base text-[#333] ${
-                          selectedSchedule?.id === schedule.id ? "font-semibold" : ""
-                        }`}
-                      >
-                        {schedule.name}
+              <View className="max-h-[80%] min-w-[320px] max-w-[90%] overflow-hidden rounded-[28px]">
+                {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
+                  <GlassView glassEffectStyle="regular" className="p-0">
+                    <View className="flex-col p-6">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                        Select Schedule
                       </Text>
-                      {schedule.isDefault ? (
-                        <Text className="rounded bg-[#E8F5E8] px-1.5 py-0.5 text-xs font-medium text-[#34C759]">
-                          Default
-                        </Text>
-                      ) : null}
+                      <ScrollView style={{ maxHeight: 400 }}>
+                        {schedules.map((schedule, index) => (
+                          <TouchableOpacity
+                            key={schedule.id}
+                            className={`flex-row items-center justify-between py-3.5 ${
+                              index < schedules.length - 1 ? "border-b border-black/10" : ""
+                            }`}
+                            onPress={() => {
+                              setSelectedSchedule(schedule);
+                              fetchScheduleDetails(schedule.id);
+                              setShowScheduleDropdown(false);
+                            }}
+                          >
+                            <View className="flex-1">
+                              <Text
+                                className={`text-[17px] text-black ${
+                                  selectedSchedule?.id === schedule.id ? "font-bold" : "font-medium"
+                                }`}
+                              >
+                                {schedule.name}
+                              </Text>
+                              {schedule.isDefault && (
+                                <Text className="text-[13px] text-black/50">Default</Text>
+                              )}
+                            </View>
+                            {selectedSchedule?.id === schedule.id ? (
+                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                            ) : null}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
                     </View>
-                    {selectedSchedule?.id === schedule.id ? (
-                      <Ionicons name="checkmark" size={20} color="#000" />
-                    ) : null}
-                  </TouchableOpacity>
-                ))}
+                  </GlassView>
+                ) : (
+                  <View className="bg-white p-6">
+                    <Text className="mb-5 text-center text-[19px] font-bold text-[#333]">
+                      Select Schedule
+                    </Text>
+                    <ScrollView style={{ maxHeight: 400 }}>
+                      {schedules.map((schedule, index) => (
+                        <TouchableOpacity
+                          key={schedule.id}
+                          className={`flex-row items-center justify-between py-3.5 ${
+                            index < schedules.length - 1 ? "border-b border-gray-100" : ""
+                          }`}
+                          onPress={() => {
+                            setSelectedSchedule(schedule);
+                            fetchScheduleDetails(schedule.id);
+                            setShowScheduleDropdown(false);
+                          }}
+                        >
+                          <View className="flex-1">
+                            <Text
+                              className={`text-[17px] text-[#333] ${
+                                selectedSchedule?.id === schedule.id ? "font-bold" : "font-medium"
+                              }`}
+                            >
+                              {schedule.name}
+                            </Text>
+                            {schedule.isDefault && (
+                              <Text className="text-[13px] text-gray-500">Default</Text>
+                            )}
+                          </View>
+                          {selectedSchedule?.id === schedule.id ? (
+                            <Ionicons name="checkmark-circle" size={24} color="#000" />
+                          ) : null}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1783,20 +2095,26 @@ export default function EventTypeDetail() {
               getDaySchedules={getDaySchedule}
               formatTime={formatTime}
               selectedTimezone={selectedTimezone}
+              schedules={schedules}
+              setSelectedSchedule={setSelectedSchedule}
             />
           ) : null}
 
           {activeTab === "limits" ? (
             <LimitsTab
               beforeEventBuffer={beforeEventBuffer}
+              setBeforeEventBuffer={setBeforeEventBuffer}
               setShowBeforeBufferDropdown={setShowBeforeBufferDropdown}
               afterEventBuffer={afterEventBuffer}
+              setAfterEventBuffer={setAfterEventBuffer}
               setShowAfterBufferDropdown={setShowAfterBufferDropdown}
               minimumNoticeValue={minimumNoticeValue}
               setMinimumNoticeValue={setMinimumNoticeValue}
               minimumNoticeUnit={minimumNoticeUnit}
+              setMinimumNoticeUnit={setMinimumNoticeUnit}
               setShowMinimumNoticeUnitDropdown={setShowMinimumNoticeUnitDropdown}
               slotInterval={slotInterval}
+              setSlotInterval={setSlotInterval}
               setShowSlotIntervalDropdown={setShowSlotIntervalDropdown}
               limitBookingFrequency={limitBookingFrequency}
               toggleBookingFrequency={toggleBookingFrequency}
@@ -1841,8 +2159,6 @@ export default function EventTypeDetail() {
             <AdvancedTab
               requiresConfirmation={requiresConfirmation}
               setRequiresConfirmation={setRequiresConfirmation}
-              autoTranslate={autoTranslate}
-              setAutoTranslate={setAutoTranslate}
               requiresBookerEmailVerification={requiresBookerEmailVerification}
               setRequiresBookerEmailVerification={setRequiresBookerEmailVerification}
               hideCalendarNotes={hideCalendarNotes}
@@ -1859,6 +2175,8 @@ export default function EventTypeDetail() {
               setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
               allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
               setAllowBookingThroughRescheduleLink={setAllowBookingThroughRescheduleLink}
+              redirectEnabled={redirectEnabled}
+              setRedirectEnabled={setRedirectEnabled}
               successRedirectUrl={successRedirectUrl}
               setSuccessRedirectUrl={setSuccessRedirectUrl}
               forwardParamsSuccessRedirect={forwardParamsSuccessRedirect}
@@ -1880,6 +2198,19 @@ export default function EventTypeDetail() {
               setShowAvailabilityCount={setShowAvailabilityCount}
               // Event type ID for private links
               eventTypeId={id}
+              // New API V2 props
+              disableCancelling={disableCancelling}
+              setDisableCancelling={setDisableCancelling}
+              disableRescheduling={disableRescheduling}
+              setDisableRescheduling={setDisableRescheduling}
+              sendCalVideoTranscription={sendCalVideoTranscription}
+              setSendCalVideoTranscription={setSendCalVideoTranscription}
+              interfaceLanguageEnabled={interfaceLanguageEnabled}
+              setInterfaceLanguageEnabled={setInterfaceLanguageEnabled}
+              interfaceLanguage={interfaceLanguage}
+              setInterfaceLanguage={setInterfaceLanguage}
+              showOptimizedSlots={showOptimizedSlots}
+              setShowOptimizedSlots={setShowOptimizedSlots}
             />
           ) : null}
 
@@ -1898,131 +2229,201 @@ export default function EventTypeDetail() {
           ) : null}
 
           {activeTab === "other" ? (
-            <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-2 text-lg font-semibold text-[#333]">Additional Settings</Text>
-              <Text className="mb-5 text-sm leading-5 text-[#666]">
-                Manage these settings on the web for full functionality.
-              </Text>
-
-              <View className="overflow-hidden rounded-lg border border-[#E5E5EA]">
-                {/* Apps */}
-                <TouchableOpacity
-                  onPress={() => {
-                    if (id === "new") {
-                      Alert.alert("Info", "Save the event type first to configure this setting.");
-                    } else {
-                      openInAppBrowser(
-                        `https://app.cal.com/event-types/${id}?tabName=apps`,
-                        "Apps settings"
-                      );
-                    }
-                  }}
-                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
-                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
+            <View className="gap-6">
+              {/* Configure on Web */}
+              <View>
+                <Text
+                  className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+                  style={{ letterSpacing: 0.5 }}
                 >
-                  <View className="flex-1 flex-row items-center">
-                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
-                      <Ionicons name="grid" size={18} color="#333" />
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text className="text-base font-semibold text-[#333]">Apps</Text>
-                      <Text className="text-sm text-[#666]">Manage app integrations</Text>
-                    </View>
+                  Configure on Web
+                </Text>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  {/* Apps */}
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+                      style={{ minHeight: 56 }}
+                      onPress={() => {
+                        if (id === "new") {
+                          showInfoAlert(
+                            "Info",
+                            "Save the event type first to configure this setting."
+                          );
+                        } else {
+                          openInAppBrowser(
+                            `https://app.cal.com/event-types/${id}?tabName=apps`,
+                            "Apps settings"
+                          );
+                        }
+                      }}
+                      activeOpacity={0.5}
+                    >
+                      <View className="flex-row items-center py-2">
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+                          <Ionicons name="grid" size={18} color="#000000" />
+                        </View>
+                        <View>
+                          <Text className="text-[17px] text-black">Apps</Text>
+                          <Text className="text-[13px] text-[#8E8E93]">Manage integrations</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
                   </View>
-                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-                </TouchableOpacity>
 
-                {/* Workflows */}
-                <TouchableOpacity
-                  onPress={() => {
-                    if (id === "new") {
-                      Alert.alert("Info", "Save the event type first to configure this setting.");
-                    } else {
-                      openInAppBrowser(
-                        `https://app.cal.com/event-types/${id}?tabName=workflows`,
-                        "Workflows settings"
-                      );
-                    }
-                  }}
-                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
-                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
-                >
-                  <View className="flex-1 flex-row items-center">
-                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
-                      <Ionicons name="flash" size={18} color="#333" />
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text className="text-base font-semibold text-[#333]">Workflows</Text>
-                      <Text className="text-sm text-[#666]">Configure automated actions</Text>
-                    </View>
+                  {/* Workflows */}
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+                      style={{ minHeight: 56 }}
+                      onPress={() => {
+                        if (id === "new") {
+                          showInfoAlert(
+                            "Info",
+                            "Save the event type first to configure this setting."
+                          );
+                        } else {
+                          openInAppBrowser(
+                            `https://app.cal.com/event-types/${id}?tabName=workflows`,
+                            "Workflows settings"
+                          );
+                        }
+                      }}
+                      activeOpacity={0.5}
+                    >
+                      <View className="flex-row items-center py-2">
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+                          <Ionicons name="flash" size={18} color="#000000" />
+                        </View>
+                        <View>
+                          <Text className="text-[17px] text-black">Workflows</Text>
+                          <Text className="text-[13px] text-[#8E8E93]">Automated actions</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
                   </View>
-                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-                </TouchableOpacity>
 
-                {/* Webhooks */}
-                <TouchableOpacity
-                  onPress={() => {
-                    if (id === "new") {
-                      Alert.alert("Info", "Save the event type first to configure this setting.");
-                    } else {
-                      openInAppBrowser(
-                        `https://app.cal.com/event-types/${id}?tabName=webhooks`,
-                        "Webhooks settings"
-                      );
-                    }
-                  }}
-                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
-                >
-                  <View className="flex-1 flex-row items-center">
-                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
-                      <Ionicons name="code" size={18} color="#333" />
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text className="text-base font-semibold text-[#333]">Webhooks</Text>
-                      <Text className="text-sm text-[#666]">Set up event notifications</Text>
-                    </View>
+                  {/* Webhooks */}
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ minHeight: 56 }}
+                      onPress={() => {
+                        if (id === "new") {
+                          showInfoAlert(
+                            "Info",
+                            "Save the event type first to configure this setting."
+                          );
+                        } else {
+                          openInAppBrowser(
+                            `https://app.cal.com/event-types/${id}?tabName=webhooks`,
+                            "Webhooks settings"
+                          );
+                        }
+                      }}
+                      activeOpacity={0.5}
+                    >
+                      <View className="flex-row items-center py-2">
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+                          <Ionicons name="code" size={18} color="#000000" />
+                        </View>
+                        <View>
+                          <Text className="text-[17px] text-black">Webhooks</Text>
+                          <Text className="text-[13px] text-[#8E8E93]">Event notifications</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
                   </View>
-                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           ) : null}
 
-          <View className="rounded-2xl bg-white p-5 mt-3 gap-3">
-            <View className="h-12 flex-row items-center justify-between">
-              <Text>Hidden</Text>
-              <Switch
-                value={isHidden}
-                onValueChange={setIsHidden}
-                trackColor={{ false: "#E5E5EA", true: "#000" }}
-                thumbColor="#FFFFFF"
-              />
+          {activeTab === "basics" && (
+            <View className="mt-6 gap-6">
+              {/* Visibility */}
+              <View>
+                <Text
+                  className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+                  style={{ letterSpacing: 0.5 }}
+                >
+                  Visibility
+                </Text>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  <View className="bg-white pl-4">
+                    <View
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ height: 44, flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Text className="text-[17px] text-black">Hidden</Text>
+                      <View style={{ justifyContent: "center", height: "100%" }}>
+                        <Switch
+                          value={isHidden}
+                          onValueChange={setIsHidden}
+                          trackColor={{ false: "#E5E5EA", true: "#000000" }}
+                          thumbColor="#FFFFFF"
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Quick Actions */}
+              <View>
+                <Text
+                  className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+                  style={{ letterSpacing: 0.5 }}
+                >
+                  Quick Actions
+                </Text>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+                      style={{ height: 44 }}
+                      onPress={handlePreview}
+                      activeOpacity={0.5}
+                    >
+                      <Text className="text-[17px] text-black">Preview</Text>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
+                  </View>
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ height: 44 }}
+                      onPress={handleCopyLink}
+                      activeOpacity={0.5}
+                    >
+                      <Text className="text-[17px] text-black">Copy Link</Text>
+                      <Ionicons name="link-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Danger Zone */}
+              <View>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ height: 44 }}
+                      onPress={handleDelete}
+                      activeOpacity={0.5}
+                    >
+                      <Text className="text-[17px] text-[#FF3B30]">Delete Event Type</Text>
+                      <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
             </View>
-
-            <TouchableOpacity
-              className="h-12 flex-row items-center justify-between"
-              onPress={handlePreview}
-            >
-              <Text>Preview</Text>
-              <Ionicons name="open-outline" size={20} color="#000" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="h-12 flex-row items-center justify-between"
-              onPress={handleCopyLink}
-            >
-              <Text>Copy Link</Text>
-              <Ionicons name="link-outline" size={20} color="#000" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="h-12 flex-row items-center justify-between"
-              onPress={handleDelete}
-            >
-              <Text className="text-red-500">Delete</Text>
-              <Ionicons name="trash-outline" size={20} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
+          )}
         </ScrollView>
       </View>
     </>

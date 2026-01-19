@@ -5,7 +5,7 @@ import type { MultiValue } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
+import type { LocationCustomClassNames } from "../../locations/types";
 import type {
   EventTypeSetupProps,
   InputClassNames,

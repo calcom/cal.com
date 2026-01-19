@@ -2,14 +2,34 @@ import { PortalHost } from "@rn-primitives/portal";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
 import { Platform, StatusBar, View } from "react-native";
+import { CalComLogo } from "@/components/CalComLogo";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
+import { GlobalToast } from "@/components/ui/GlobalToast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/contexts/QueryContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import "../global.css";
 
 function RootLayoutContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  // Show Cal.com logo while checking auth state to prevent login flash
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#FFFFFF",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <CalComLogo width={120} height={26} />
+      </View>
+    );
+  }
 
   const content = isAuthenticated ? (
     <Stack>
@@ -198,6 +218,110 @@ function RootLayoutContent() {
           headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
         }}
       />
+      <Stack.Screen
+        name="edit-availability-name"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Edit Name & Timezone",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.5, 0.7] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
+      <Stack.Screen
+        name="edit-availability-hours"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Working Hours",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.7, 1] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
+      <Stack.Screen
+        name="edit-availability-day"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Edit Day",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.6, 0.9] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
+      <Stack.Screen
+        name="edit-availability-override"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Date Override",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.7, 0.9] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
     </Stack>
   ) : (
     <LoginScreenComponent />
@@ -235,7 +359,10 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <AuthProvider>
-        <RootLayoutContent />
+        <ToastProvider>
+          <RootLayoutContent />
+          <GlobalToast />
+        </ToastProvider>
       </AuthProvider>
     </QueryProvider>
   );
