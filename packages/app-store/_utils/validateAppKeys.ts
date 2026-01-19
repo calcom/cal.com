@@ -2,7 +2,6 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import type { Prisma } from "@calcom/prisma/client";
 /**
  * Determines if an app should be enabled based on whether it has valid keys.
- * This is used by app registration scripts to prevent enabling apps without proper configuration.
  * 
  * @param dirName - The directory name of the app
  * @param keys - The keys object (can be undefined/null)
@@ -16,7 +15,6 @@ export function shouldEnableApp(dirName: string, keys?: Prisma.JsonValue | null)
     return true;
   }
 
-  // Validate keys against schema
   const result = keySchema.safeParse(keys);
   return result.success;
 }
