@@ -18,8 +18,6 @@ import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabil
 
 import type { QuickAvailabilityCheck } from "@calcom/features/bookings/Booker/types";
 
-export type { QuickAvailabilityCheck, UseSlotsReturnType } from "@calcom/features/bookings/Booker/types";
-
 const useQuickAvailabilityChecks = ({
   eventTypeId,
   eventDuration,

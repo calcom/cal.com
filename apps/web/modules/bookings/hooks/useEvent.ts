@@ -8,7 +8,6 @@ import { trpc } from "@calcom/trpc/react";
 import { useBookerTime } from "@calcom/atoms/hooks/booker/useBookerTime";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
-export type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/types";
 
 /**
  * Wrapper hook around the trpc query that fetches
