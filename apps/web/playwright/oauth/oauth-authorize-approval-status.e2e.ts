@@ -61,9 +61,6 @@ test.describe("OAuth authorize - client approval status", () => {
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
     );
 
-    await page.waitForSelector('[data-testid="allow-button"]');
-    await page.getByTestId("allow-button").click();
-
     await page.waitForFunction(() => {
       return window.location.href.startsWith("https://example.com");
     });
@@ -91,9 +88,6 @@ test.describe("OAuth authorize - client approval status", () => {
     await page.goto(
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
     );
-
-    await page.waitForSelector('[data-testid="allow-button"]');
-    await page.getByTestId("allow-button").click();
 
     await page.waitForFunction(() => {
       return window.location.href.startsWith("https://example.com");
@@ -136,5 +130,28 @@ test.describe("OAuth authorize - client approval status", () => {
     expect(url.searchParams.get("code")).toBeTruthy();
     expect(url.searchParams.get("state")).toBe("1234");
     expect(url.searchParams.get("error")).toBeNull();
+  });
+
+  test("redirect_uri mismatch renders error on authorize page (no redirect)", async ({ page, users, prisma }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-redirect-uri-mismatch" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}mismatch-${Date.now()}`,
+      status: "APPROVED",
+    });
+
+    const mismatchedRedirectUri = "https://example.com/mismatch";
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${encodeURIComponent(
+        mismatchedRedirectUri
+      )}&state=1234`
+    );
+
+    await expect(page).toHaveURL(/\/auth\/oauth2\/authorize/);
+    await expect(page.getByText(OAUTH_ERROR_REASONS["redirect_uri_mismatch"])).toBeVisible();
   });
 });

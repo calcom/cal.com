@@ -3,20 +3,22 @@ import authedProcedure, { authedAdminProcedure } from "@calcom/trpc/server/proce
 import { router } from "../../../trpc";
 import { ZCreateClientInputSchema } from "./createClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
-import { ZGetClientInputSchema } from "./getClient.schema";
+import { ZGetClientForAuthorizationInputSchema } from "./getClientForAuthorization.schema";
 import { ZListClientsInputSchema } from "./listClients.schema";
 import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClientForReview.schema";
 import { ZUpdateClientInputSchema } from "./updateClient.schema";
 import { ZDeleteClientInputSchema } from "./deleteClient.schema";
 
 export const oAuthRouter = router({
-  getClient: authedProcedure.input(ZGetClientInputSchema).query(async ({ input }) => {
-    const { getClientHandler } = await import("./getClient.handler");
+  getClientForAuthorization: authedProcedure
+    .input(ZGetClientForAuthorizationInputSchema)
+    .query(async ({ input }) => {
+      const { getClientForAuthorizationHandler } = await import("./getClientForAuthorization.handler");
 
-    return getClientHandler({
-      input,
-    });
-  }),
+      return getClientForAuthorizationHandler({
+        input,
+      });
+    }),
 
   createClient: authedAdminProcedure.input(ZCreateClientInputSchema).mutation(async ({ ctx, input }) => {
     const { createClientHandler } = await import("./createClient.handler");

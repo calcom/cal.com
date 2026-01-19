@@ -82,6 +82,27 @@ export class OAuthService {
     };
   }
 
+  async getClientForAuthorization(clientId: string, redirectUri: string): Promise<OAuth2Client> {
+    const client = await this.oAuthClientRepository.findByClientId(clientId);
+
+    if (!client) {
+      throw new ErrorWithCode(ErrorCode.NotFound, "unauthorized_client", { reason: "client_not_found" });
+    }
+
+    this.validateRedirectUri(client.redirectUri, redirectUri);
+
+    this.ensureClientIsApproved(client);
+
+    return {
+      clientId: client.clientId,
+      redirectUri: client.redirectUri,
+      name: client.name,
+      logo: client.logo,
+      isTrusted: client.isTrusted,
+      clientType: client.clientType,
+    };
+  }
+
   async generateAuthorizationCode(
     clientId: string,
     userId: number,
@@ -451,7 +472,7 @@ export type OAuthErrorReason =
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   client_not_found: "OAuth client with ID not found",
   client_not_approved: "OAuth client is not approved",
-  redirect_uri_mismatch: "redirect_uri does not match registered redirect URI",
+  redirect_uri_mismatch: "redirect_uri does not match OAuth client's redirect URI",
   pkce_required: "code_challenge required for public clients",
   invalid_code_challenge_method: "code_challenge_method must be S256",
   team_not_found_or_no_access: "Team not found or user is not an admin/owner",
