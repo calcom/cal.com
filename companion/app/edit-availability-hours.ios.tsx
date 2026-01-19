@@ -85,7 +85,7 @@ export default function EditAvailabilityHoursIOS() {
           </View>
         ) : (
           <EditAvailabilityHoursScreenComponent
-            schedule={schedule}
+            schedule={schedule ?? null}
             onDayPress={handleDayPress}
             transparentBackground={useGlassEffect}
           />
