@@ -34,7 +34,7 @@ const createAttendee = (overrides = {}) => ({
 
 const createBooking = (overrides = {}) => ({
   title: "Test Booking",
-  description: "Test Description",
+  description: "Test Additional Notes",
   startTime: new Date("2023-04-01T10:00:00Z"),
   endTime: new Date("2023-04-01T11:00:00Z"),
   userPrimaryEmail: "user@example.com",
@@ -42,6 +42,7 @@ const createBooking = (overrides = {}) => ({
   attendees: [createAttendee()],
   eventType: {
     title: "Test Event Type",
+    description: "Test Event Type Description",
     seatsPerTimeSlot: 5,
     seatsShowAttendees: true,
     recurringEvent: {
@@ -96,7 +97,8 @@ describe("buildCalEventFromBooking", () => {
     expect(result).toEqual({
       title: booking.title,
       type: booking.eventType.title,
-      description: booking.description,
+      description: booking.eventType.description,
+      additionalNotes: booking.description,
       startTime: dayjs(booking.startTime).format(),
       endTime: dayjs(booking.endTime).format(),
       organizer: {
@@ -162,6 +164,7 @@ describe("buildCalEventFromBooking", () => {
       title: booking.title,
       type: "",
       description: "",
+      additionalNotes: undefined,
       startTime: "",
       endTime: "",
       organizer: {

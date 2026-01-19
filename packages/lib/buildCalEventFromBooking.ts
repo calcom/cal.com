@@ -35,6 +35,7 @@ type Organizer = {
 
 type EventType = {
   title: string;
+  description: string | null;
   recurringEvent: Prisma.JsonValue | null;
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
@@ -91,7 +92,8 @@ export const buildCalEventFromBooking = async ({
   return {
     title: booking.title || "",
     type: (booking.eventType?.title as string) || booking.title || "",
-    description: booking.description || "",
+    description: booking.eventType?.description || "",
+    additionalNotes: booking.description || undefined,
     startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
     endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
     organizer: {
