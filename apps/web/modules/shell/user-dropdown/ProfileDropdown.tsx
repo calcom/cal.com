@@ -42,7 +42,7 @@ export function ProfileDropdown() {
   const currentOption = options.find((option) => option.value === sessionData.upId) || options[0];
 
   return (
-    <Dropdown open={menuOpen}>
+    <Dropdown open={menuOpen} modal={false}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button
           data-testid="user-dropdown-trigger-button"

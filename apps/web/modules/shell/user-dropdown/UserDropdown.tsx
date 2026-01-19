@@ -105,7 +105,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   }
 
   return (
-    <Dropdown open={menuOpen}>
+    <Dropdown open={menuOpen} modal={false}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)} disabled={isPending}>
         <button
           data-testid="user-dropdown-trigger-button"
