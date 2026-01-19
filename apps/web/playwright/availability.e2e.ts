@@ -147,7 +147,9 @@ test.describe("Availability", () => {
     const save = (await localize("en"))("save");
     const copyTimesTo = (await localize("en"))("copy_times_to");
 
-    await page.getByTestId("availablity-title").click();
+    const availTitle = page.getByTestId("availablity-title");
+    await availTitle.locator('xpath=..').locator('span.whitespace-pre').first().click();
+    await expect(availTitle).toBeEditable();
     // change availability name
     await page.getByTestId("availablity-title").fill("Working Hours test");
     await expect(page.getByTestId("subtitle").first()).toBeVisible();

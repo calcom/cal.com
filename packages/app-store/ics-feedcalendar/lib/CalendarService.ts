@@ -39,7 +39,7 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-export default class ICSFeedCalendarService implements Calendar {
+class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
 
@@ -305,4 +305,13 @@ export default class ICSFeedCalendarService implements Calendar {
       };
     });
   }
+}
+
+/**
+ * Factory function that creates an ICS Feed Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+  return new ICSFeedCalendarService(credential);
 }
