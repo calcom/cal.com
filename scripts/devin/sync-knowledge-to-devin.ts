@@ -7,9 +7,10 @@
  * - Updates existing entries (matched by name)
  * - Optionally deletes entries that no longer exist in the source
  *
- * Usage: DEVIN_API_TOKEN=your_token npx ts-node sync-to-devin.ts [--delete-removed]
+ * Usage: DEVIN_API_KEY=your_token npx ts-node sync-to-devin.ts [--delete-removed]
  */
 
+import process from "node:process";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -57,14 +58,10 @@ interface ApiListResponse {
 
 const API_BASE = "https://api.devin.ai/v1";
 
-async function apiRequest<T>(
-  method: string,
-  endpoint: string,
-  body?: Record<string, unknown>
-): Promise<T> {
-  const token = process.env.DEVIN_API_TOKEN;
+async function apiRequest<T>(method: string, endpoint: string, body?: Record<string, unknown>): Promise<T> {
+  const token = process.env.DEVIN_API_KEY;
   if (!token) {
-    throw new Error("DEVIN_API_TOKEN environment variable is not set");
+    throw new Error("DEVIN_API_KEY environment variable is not set");
   }
 
   const url = `${API_BASE}${endpoint}`;
@@ -158,7 +155,9 @@ async function main() {
   console.log("Fetching existing knowledge from Devin API...");
   const remoteData = await listKnowledge();
 
-  console.log(`Found ${remoteData.folders.length} folders and ${remoteData.knowledge.length} entries in Devin\n`);
+  console.log(
+    `Found ${remoteData.folders.length} folders and ${remoteData.knowledge.length} entries in Devin\n`
+  );
 
   // Build folder name -> id map
   const folderMap = new Map<string, string>();

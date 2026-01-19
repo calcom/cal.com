@@ -30,5 +30,5 @@ jobs:
 
       - name: Sync to Devin
         env:
-          DEVIN_API_TOKEN: ${{ secrets.DEVIN_API_TOKEN }}
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         run: npx tsx scripts/devin/sync-knowledge-to-devin.ts

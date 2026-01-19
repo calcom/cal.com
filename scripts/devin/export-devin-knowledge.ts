@@ -2,9 +2,10 @@
 
 /**
  * Export all Devin Knowledge to a backup JSON file
- * Usage: DEVIN_API_TOKEN=your_token npx tsx scripts/devin/export-devin-knowledge.ts
+ * Usage: DEVIN_API_KEY=your_token npx tsx scripts/devin/export-devin-knowledge.ts
  */
 
+import process from "node:process";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -36,10 +37,10 @@ interface ApiListResponse {
 }
 
 async function main() {
-  const token = process.env.DEVIN_API_TOKEN;
+  const token = process.env.DEVIN_API_KEY;
   if (!token) {
-    console.error("Error: DEVIN_API_TOKEN environment variable is not set");
-    console.error("Usage: DEVIN_API_TOKEN=your_token npx tsx scripts/devin/export-devin-knowledge.ts");
+    console.error("Error: DEVIN_API_KEY environment variable is not set");
+    console.error("Usage: DEVIN_API_KEY=your_token npx tsx scripts/devin/export-devin-knowledge.ts");
     console.error("");
     console.error("Get your API token from: https://app.devin.ai/settings/api-keys");
     process.exit(1);
