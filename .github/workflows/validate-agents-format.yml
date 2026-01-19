@@ -22,9 +22,9 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install ts-node
-        run: npm install -g ts-node typescript @types/node
+      - name: Install tsx
+        run: npm install -g tsx
 
       - name: Validate format
         working-directory: agents
-        run: npx ts-node validate-format.ts
+        run: npx tsx validate-format.ts
