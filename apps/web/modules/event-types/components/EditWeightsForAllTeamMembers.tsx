@@ -97,7 +97,6 @@ interface Props {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
-  assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   teamId?: number;
   queryValue?: AttributesQueryValue | null;
