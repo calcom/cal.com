@@ -23,7 +23,7 @@ export class CalendarsTaskService implements CalendarsTasks {
 
     try {
       const userRepository = new UserRepository(prisma);
-      const userWithCalendars = await userRepository.findByIdWithCredentialsAndSelectedCalendars({ userId });
+      const userWithCalendars = await userRepository.findByIdWithSelectedCalendars({ userId });
 
       if (!userWithCalendars) {
         logger.error(`User not found for ensureDefaultCalendars`, { userId });

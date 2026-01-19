@@ -1488,32 +1488,14 @@ export class UserRepository {
     });
   }
 
-  async findByIdWithCredentialsAndSelectedCalendars({ userId }: { userId: number }) {
+  async findByIdWithSelectedCalendars({ userId }: { userId: number }) {
     return this.prismaClient.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         email: true,
-        username: true,
-        timeZone: true,
         selectedCalendars: true,
         destinationCalendar: true,
-        credentials: {
-          select: {
-            id: true,
-            type: true,
-            key: true,
-            userId: true,
-            teamId: true,
-            appId: true,
-            invalid: true,
-            user: {
-              select: {
-                email: true,
-              },
-            },
-          },
-        },
       },
     });
   }
