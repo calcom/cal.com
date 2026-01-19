@@ -29,6 +29,7 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Public Client",
       clientType: "PUBLIC" as const,
+      status: "APPROVED" as const,
     };
 
     it("should generate authorization code for PUBLIC client with valid PKCE", async () => {
@@ -164,6 +165,7 @@ describe("generateAuthCodeHandler", () => {
       clientType: "CONFIDENTIAL" as const,
       isTrusted: undefined,
       logo: undefined,
+      status: "APPROVED" as const,
     };
 
     it("should generate authorization code for CONFIDENTIAL client without PKCE", async () => {
@@ -303,6 +305,7 @@ describe("generateAuthCodeHandler", () => {
         redirectUri: "https://app.example.com/callback",
         name: "Test Public Client",
         clientType: "PUBLIC" as const,
+        status: "APPROVED" as const,
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);

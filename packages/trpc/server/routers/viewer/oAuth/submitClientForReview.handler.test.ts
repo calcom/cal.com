@@ -83,6 +83,7 @@ describe("submitClientHandler", () => {
       name: input.name,
       purpose: input.purpose,
       redirectUri: input.redirectUri,
+      clientSecret: expect.any(String),
       logo: input.logo,
       websiteUrl: input.websiteUrl,
       enablePkce: input.enablePkce,

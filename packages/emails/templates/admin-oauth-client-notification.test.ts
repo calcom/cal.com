@@ -64,7 +64,7 @@ describe("AdminOAuthClientNotification", () => {
 
     const html = "html" in payload ? (payload.html as string) : "";
     expect(html).toContain(`New OAuth Client: ${input.clientName}`);
-    expect(html).toContain("Hi Administrator!");
+    expect(html).toContain("Hi Administrator");
     expect(html).toContain(
       `A new OAuth client has been submitted by ${input.submitterEmail} and is awaiting your review.`
     );
