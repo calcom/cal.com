@@ -1,13 +1,12 @@
 "use client";
 
-import { isSupportedCountry } from "libphonenumber-js";
-import { useState, useEffect } from "react";
-
 import { useCountryCode } from "@calcom/atoms/hooks/useCountryCode";
+import { isSupportedCountry } from "libphonenumber-js";
+import { useEffect, useState } from "react";
 
 import BasePhoneInput, { type PhoneInputProps } from "./PhoneInput";
 
-export function PhoneInputPlatformWrapper(props: Omit<PhoneInputProps, "defaultCountry">) {
+export function PhoneInputPlatformWrapper(props: Omit<PhoneInputProps, "defaultCountry">): JSX.Element {
   const [defaultCountry, setDefaultCountry] = useState("us");
 
   const { data: countryCode } = useCountryCode();
@@ -21,7 +20,11 @@ export function PhoneInputPlatformWrapper(props: Omit<PhoneInputProps, "defaultC
       setDefaultCountry(countryCode.toLowerCase());
     } else {
       const browserCountry = navigator.language.split("-").pop()?.toLowerCase();
-      setDefaultCountry(browserCountry && isSupportedCountry(browserCountry) ? browserCountry : "us");
+      if (browserCountry && isSupportedCountry(browserCountry)) {
+        setDefaultCountry(browserCountry);
+      } else {
+        setDefaultCountry("us");
+      }
     }
   }, [countryCode]);
 
