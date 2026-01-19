@@ -22,6 +22,34 @@ export const EventTypeListItem = ({
     useEventTypeListItemData(item);
   const isLast = index === filteredEventTypes.length - 1;
 
+  // Calculate badge count to force remount when badges change
+  // This fixes SwiftUI Host caching stale layout measurements
+  const hasSeats =
+    item.seats &&
+    !("disabled" in item.seats && item.seats.disabled) &&
+    "seatsPerTimeSlot" in item.seats &&
+    item.seats.seatsPerTimeSlot &&
+    item.seats.seatsPerTimeSlot > 0;
+  const hasRecurrence =
+    item.recurrence &&
+    !("disabled" in item.recurrence && item.recurrence.disabled) &&
+    "occurrences" in item.recurrence &&
+    item.recurrence.occurrences;
+  const requiresConfirmation =
+    item.confirmationPolicy &&
+    !("disabled" in item.confirmationPolicy && item.confirmationPolicy.disabled) &&
+    "type" in item.confirmationPolicy &&
+    item.confirmationPolicy.type === "always";
+
+  const badgeCount = [
+    true, // duration always present
+    item.hidden,
+    hasSeats,
+    hasPrice,
+    hasRecurrence,
+    requiresConfirmation,
+  ].filter(Boolean).length;
+
   type ButtonSystemImage = React.ComponentProps<typeof Button>["systemImage"];
   type EventTypeIcon = Exclude<ButtonSystemImage, undefined>;
 
@@ -63,6 +91,8 @@ export const EventTypeListItem = ({
     },
   ];
 
+  // Use minHeight based on badge count to ensure proper spacing
+  // This fixes SwiftUI Host caching stale layout measurements
   return (
     <View
       className={`bg-cal-bg active:bg-cal-bg-secondary ${!isLast ? "border-b border-cal-border" : ""}`}
@@ -85,13 +115,20 @@ export const EventTypeListItem = ({
             ))}
           </ContextMenu.Items>
           <ContextMenu.Trigger>
-            <View className="flex-row items-center justify-between">
+            {/* Calculate minHeight based on badge rows to ensure proper spacing */}
+            {/* 1-3 badges = 1 row, 4-5 badges = likely 2 rows, 6 badges = 2 rows */}
+            <View
+              className="flex-row items-start justify-between"
+              style={{
+                paddingVertical: 16,
+                minHeight: badgeCount <= 3 ? 100 : badgeCount <= 5 ? 130 : 160,
+              }}
+            >
               <Pressable
                 onPress={() => handleEventTypePress(item)}
                 style={{
-                  paddingTop: 16,
-                  paddingBottom: 22,
                   paddingLeft: 16,
+                  paddingBottom: 10,
                   flex: 1,
                   marginRight: 12,
                 }}
@@ -114,7 +151,7 @@ export const EventTypeListItem = ({
                 />
               </Pressable>
 
-              <View style={{ paddingRight: 16, flexShrink: 0 }}>
+              <View style={{ paddingRight: 16, paddingTop: 4, flexShrink: 0 }}>
                 <Host matchContents>
                   <ContextMenu
                     modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}

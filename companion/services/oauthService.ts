@@ -221,7 +221,7 @@ export class CalComOAuthService {
     authUrl: string
   ): Promise<{ type: "success"; params: Record<string, string> } | { type: "error" }> {
     const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri, {
-      preferEphemeralSession: false,
+      preferEphemeralSession: true,
     });
 
     if (result.type === "success") {
