@@ -1,15 +1,13 @@
-import { useEffect } from "react";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-
-import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
 import { useOverlayCalendar } from "@calcom/features/bookings/Booker/components/hooks/useOverlayCalendar";
+import type { WrappedBookerPropsMain } from "@calcom/features/bookings/Booker/types";
+import { useEffect } from "react";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
 import { OverlayCalendarSettingsModal } from "./OverlayCalendarSettingsModal";
 import { OverlayCalendarSwitch } from "./OverlayCalendarSwitch";
 
 type OverlayCalendarProps = Pick<
-  UseCalendarsReturnType,
+  WrappedBookerPropsMain["calendars"],
   | "connectedCalendars"
   | "overlayBusyDates"
   | "onToggleCalendar"
@@ -32,7 +30,7 @@ export const OverlayCalendar = ({
   handleSwitchStateChange,
   handleClickContinue,
   hasSession,
-}: OverlayCalendarProps) => {
+}: OverlayCalendarProps): JSX.Element | null => {
   const isPlatform = useIsPlatform();
   const {
     handleCloseContinueModal,

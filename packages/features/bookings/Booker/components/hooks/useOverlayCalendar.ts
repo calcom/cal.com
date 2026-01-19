@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-
+import { useEffect, useState } from "react";
+import { shallow } from "zustand/shallow";
+import type { WrappedBookerPropsMain } from "../../types";
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
-import type { UseCalendarsReturnType } from "./useCalendars";
 import { useLocalSet } from "./useLocalSet";
 
 export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
@@ -14,7 +12,10 @@ export const useOverlayCalendar = ({
   connectedCalendars,
   overlayBusyDates,
   onToggleCalendar,
-}: Pick<UseCalendarsReturnType, "connectedCalendars" | "overlayBusyDates" | "onToggleCalendar">) => {
+}: Pick<
+  WrappedBookerPropsMain["calendars"],
+  "overlayBusyDates" | "onToggleCalendar" | "connectedCalendars"
+>) => {
   const { set, toggleValue, hasItem } = useLocalSet<{
     credentialId: number;
     externalId: string;
@@ -65,7 +66,7 @@ export const useOverlayCalendar = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasItem, set, initalised]);
 
-  const handleToggleConnectedCalendar = (externalCalendarId: string, credentialId: number) => {
+  const handleToggleConnectedCalendar = (externalCalendarId: string, credentialId: number): void => {
     const calendarsToLoad = toggleValue({
       credentialId: credentialId,
       externalId: externalCalendarId,

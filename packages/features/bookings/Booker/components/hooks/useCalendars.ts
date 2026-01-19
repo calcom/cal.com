@@ -1,12 +1,11 @@
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { shallow } from "zustand/shallow";
-
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
-
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { shallow } from "zustand/shallow";
 import { useBookerStore } from "../../store";
+import type { ToggledConnectedCalendars } from "../../types";
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import { useLocalSet } from "./useLocalSet";
 
@@ -14,10 +13,6 @@ export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
 type UseCalendarsProps = {
   hasSession: boolean;
 };
-export type ToggledConnectedCalendars = Set<{
-  credentialId: number;
-  externalId: string;
-}>;
 
 export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const searchParams = useSearchParams();
@@ -26,10 +21,7 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const switchEnabled =
     searchParams?.get("overlayCalendar") === "true" ||
     localStorage?.getItem("overlayCalendarSwitchDefault") === "true";
-  const { set, clearSet } = useLocalSet<{
-    credentialId: number;
-    externalId: string;
-  }>("toggledConnectedCalendars", []);
+  const { set, clearSet } = useLocalSet<ToggledConnectedCalendars>("toggledConnectedCalendars", []);
   const utils = trpc.useUtils();
 
   const [calendarSettingsOverlay] = useOverlayCalendarStore(
@@ -60,16 +52,21 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
     [isError]
   );
 
-  const { data, isPending } = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
-    enabled: !!calendarSettingsOverlay || Boolean(searchParams?.get("overlayCalendar")),
-  });
+  const { data, isPending } = trpc.viewer.calendars.connectedCalendars.useQuery(
+    {
+      skipSync: true,
+    },
+    {
+      enabled: !!calendarSettingsOverlay || Boolean(searchParams?.get("overlayCalendar")),
+    }
+  );
 
   return {
     overlayBusyDates,
     isOverlayCalendarEnabled: switchEnabled,
     connectedCalendars: data?.connectedCalendars || [],
     loadingConnectedCalendar: isPending,
-    onToggleCalendar: (data: ToggledConnectedCalendars) => {
+    onToggleCalendar: (data?: ToggledConnectedCalendars): void => {
       utils.viewer.availability.calendarOverlay.reset();
     },
   };

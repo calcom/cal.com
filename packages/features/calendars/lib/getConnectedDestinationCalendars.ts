@@ -12,6 +12,7 @@ import prisma from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { IntegrationCalendar } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
 
@@ -270,11 +271,13 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   onboarding,
   eventTypeId,
   prisma,
+  skipSync,
 }: {
   user: UserWithCalendars;
   onboarding: boolean;
   eventTypeId?: number | null;
   prisma: PrismaClient;
+  skipSync?: boolean;
 }) {
   const userCredentials = await prisma.credential.findMany({
     where: {
@@ -287,92 +290,100 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
-  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
-    user: { id: user.id, email: user.email, credentials: userCredentials },
-  });
-
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
-  // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(allCredentials);
+  let connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"] = [];
+  let destinationCalendar: DestinationCalendar | IntegrationCalendar | null | undefined =
+    user.destinationCalendar ?? null;
 
-  // get all the connected integrations' calendars (from third party)
-  const getConnectedCalendarsResult = await getConnectedCalendars(
-    calendarCredentials,
-    selectedCalendars,
-    user.destinationCalendar?.externalId
-  );
+  if (!skipSync) {
+    const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey(
+      {
+        user: { id: user.id, email: user.email, credentials: userCredentials },
+      }
+    );
+    // get user's credentials + their connected integrations
+    const calendarCredentials = getCalendarCredentials(allCredentials);
 
-  let connectedCalendars = getConnectedCalendarsResult.connectedCalendars;
-  const destinationCalendar = getConnectedCalendarsResult.destinationCalendar;
-
-  let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
-
-  if (connectedCalendars.length === 0) {
-    user = await handleNoConnectedCalendars(user);
-  } else if (!user.destinationCalendar) {
-    ({ user, calendarToEnsureIsEnabledForConflictCheck, connectedCalendars } =
-      await handleNoDestinationCalendar({
-        user,
-        connectedCalendars,
-        onboarding,
-      }));
-  } else {
-    /* There are connected calendars and a destination calendar */
-    log.debug(
-      `There are connected calendars and a destination calendar, so check if destinationCalendar exists in connectedCalendars for user ${user.id}`
+    // get all the connected integrations' calendars (from third party)
+    const getConnectedCalendarsResult = await getConnectedCalendars(
+      calendarCredentials,
+      selectedCalendars,
+      user.destinationCalendar?.externalId
     );
 
-    const destinationCal = findMatchingCalendar({ connectedCalendars, calendar: user.destinationCalendar });
-    if (!destinationCal) {
+    connectedCalendars = getConnectedCalendarsResult.connectedCalendars;
+    destinationCalendar = getConnectedCalendarsResult.destinationCalendar;
+
+    let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
+
+    if (connectedCalendars.length === 0) {
+      user = await handleNoConnectedCalendars(user);
+    } else if (!user.destinationCalendar) {
       ({ user, calendarToEnsureIsEnabledForConflictCheck, connectedCalendars } =
-        await handleDestinationCalendarNotInConnectedCalendars({
+        await handleNoDestinationCalendar({
           user,
           connectedCalendars,
           onboarding,
         }));
-    } else if (onboarding && !destinationCal.isSelected) {
+    } else {
+      /* There are connected calendars and a destination calendar */
       log.debug(
-        `Onboarding:Destination calendar is not selected, but in connectedCalendars, so mark it as selected in the calendar list for user ${user.id}`
+        `There are connected calendars and a destination calendar, so check if destinationCalendar exists in connectedCalendars for user ${user.id}`
       );
-      // Mark the destination calendar as selected in the calendar list
-      // We use every so that we can exit early once we find the matching calendar
-      connectedCalendars.every((cal) => {
-        const index = (cal.calendars || []).findIndex(
-          (calendar) =>
-            calendar.externalId === destinationCal.externalId &&
-            calendar.integration === destinationCal.integration
-        );
-        if (index >= 0 && cal.calendars) {
-          cal.calendars[index].isSelected = true;
-          calendarToEnsureIsEnabledForConflictCheck = {
-            externalId: destinationCal.externalId,
-            integration: destinationCal.integration || "",
-          };
-          return false;
-        }
 
-        return true;
+      const destinationCal = findMatchingCalendar({ connectedCalendars, calendar: user.destinationCalendar });
+      if (!destinationCal) {
+        ({ user, calendarToEnsureIsEnabledForConflictCheck, connectedCalendars } =
+          await handleDestinationCalendarNotInConnectedCalendars({
+            user,
+            connectedCalendars,
+            onboarding,
+          }));
+      } else if (onboarding && !destinationCal.isSelected) {
+        log.debug(
+          `Onboarding:Destination calendar is not selected, but in connectedCalendars, so mark it as selected in the calendar list for user ${user.id}`
+        );
+        // Mark the destination calendar as selected in the calendar list
+        // We use every so that we can exit early once we find the matching calendar
+        connectedCalendars.every((cal) => {
+          const index = (cal.calendars || []).findIndex(
+            (calendar) =>
+              calendar.externalId === destinationCal.externalId &&
+              calendar.integration === destinationCal.integration
+          );
+          if (index >= 0 && cal.calendars) {
+            cal.calendars[index].isSelected = true;
+            calendarToEnsureIsEnabledForConflictCheck = {
+              externalId: destinationCal.externalId,
+              integration: destinationCal.integration || "",
+            };
+            return false;
+          }
+
+          return true;
+        });
+      }
+    }
+
+    // Insert the newly toggled record to the DB
+    if (calendarToEnsureIsEnabledForConflictCheck) {
+      await ensureSelectedCalendarIsInDb({
+        user,
+        selectedCalendar: calendarToEnsureIsEnabledForConflictCheck,
+        eventTypeId: eventTypeId ?? null,
       });
     }
-  }
-
-  // Insert the newly toggled record to the DB
-  if (calendarToEnsureIsEnabledForConflictCheck) {
-    await ensureSelectedCalendarIsInDb({
-      user,
-      selectedCalendar: calendarToEnsureIsEnabledForConflictCheck,
-      eventTypeId: eventTypeId ?? null,
-    });
   }
 
   const noConflictingNonDelegatedConnectedCalendars = _ensureNoConflictingNonDelegatedConnectedCalendar({
     connectedCalendars,
     loggedInUser: { email: user.email },
   });
+
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
     destinationCalendar: {
-      ...(user.destinationCalendar as DestinationCalendar),
+      ...user.destinationCalendar,
       ...destinationCalendar,
     },
   };
