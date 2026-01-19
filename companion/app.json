@@ -21,7 +21,8 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.developer.default-data-protection": "NSFileProtectionComplete"
+        "com.apple.developer.default-data-protection": "NSFileProtectionComplete",
+        "aps-environment": "production"
       },
       "icon": "./assets/cal-logo.icon"
     },
@@ -56,6 +57,13 @@
           "backgroundColor": "#ffffff",
           "image": "./assets/splash-icon.png",
           "imageWidth": 200
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#000000"
         }
       ]
     ],
