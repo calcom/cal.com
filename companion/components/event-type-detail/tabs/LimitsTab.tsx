@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 
+import { LimitsTabDatePicker } from "./LimitsTabDatePicker";
 import { LimitsTabIOSPicker } from "./LimitsTabIOSPicker";
 
 interface FrequencyLimit {
@@ -301,10 +302,7 @@ export function LimitsTab(props: LimitsTabProps) {
                 value={props.minimumNoticeValue}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue, 10) || 0;
-                  if (num >= 0) {
-                    props.setMinimumNoticeValue(numericValue || "0");
-                  }
+                  props.setMinimumNoticeValue(numericValue);
                 }}
                 placeholder="1"
                 placeholderTextColor="#8E8E93"
@@ -389,10 +387,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue, 10) || 0;
-                      if (num >= 0) {
-                        props.updateFrequencyLimit(limit.id, "value", numericValue || "0");
-                      }
+                      props.updateFrequencyLimit(limit.id, "value", numericValue);
                     }}
                     placeholder="1"
                     placeholderTextColor="#8E8E93"
@@ -451,10 +446,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue, 10) || 0;
-                      if (num >= 0) {
-                        props.updateDurationLimit(limit.id, "value", numericValue || "0");
-                      }
+                      props.updateDurationLimit(limit.id, "value", numericValue);
                     }}
                     placeholder="60"
                     placeholderTextColor="#8E8E93"
@@ -512,10 +504,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   value={props.maxActiveBookingsValue}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
-                    const num = parseInt(numericValue, 10) || 0;
-                    if (num >= 0) {
-                      props.setMaxActiveBookingsValue(numericValue || "1");
-                    }
+                    props.setMaxActiveBookingsValue(numericValue);
                   }}
                   placeholder="1"
                   placeholderTextColor="#8E8E93"
@@ -560,7 +549,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   value={props.rollingDays}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
-                    props.setRollingDays(numericValue || "30");
+                    props.setRollingDays(numericValue);
                     props.setFutureBookingType("rolling");
                   }}
                   placeholder="30"
@@ -602,21 +591,23 @@ export function LimitsTab(props: LimitsTabProps) {
               <View className="flex-1">
                 <Text className="mb-2 text-[17px] text-black">Within a date range</Text>
                 {props.futureBookingType === "range" ? (
-                  <View className="gap-2">
-                    <TextInput
-                      className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[15px] text-black"
-                      value={props.rangeStartDate}
-                      onChangeText={props.setRangeStartDate}
-                      placeholder="Start date (YYYY-MM-DD)"
-                      placeholderTextColor="#8E8E93"
-                    />
-                    <TextInput
-                      className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[15px] text-black"
-                      value={props.rangeEndDate}
-                      onChangeText={props.setRangeEndDate}
-                      placeholder="End date (YYYY-MM-DD)"
-                      placeholderTextColor="#8E8E93"
-                    />
+                  <View className="gap-3">
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px] text-[#6D6D72]">Start date</Text>
+                      <LimitsTabDatePicker
+                        value={props.rangeStartDate}
+                        onChange={props.setRangeStartDate}
+                        placeholder="Select start date"
+                      />
+                    </View>
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px] text-[#6D6D72]">End date</Text>
+                      <LimitsTabDatePicker
+                        value={props.rangeEndDate}
+                        onChange={props.setRangeEndDate}
+                        placeholder="Select end date"
+                      />
+                    </View>
                   </View>
                 ) : null}
               </View>

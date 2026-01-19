@@ -1,5 +1,5 @@
-import type { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { IntegrationAttributeSyncOutputMapper } from "../mappers/IntegrationAttributeSyncOutputMapper";
 import type {
@@ -206,5 +206,25 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
         },
       })
       .then(() => {});
+  }
+
+  async getAllByCredentialId(credentialId: number) {
+    const integrationAttributeSyncsQuery = await this.prismaClient.integrationAttributeSync.findMany({
+      where: {
+        credentialId,
+      },
+      select: {
+        id: true,
+        name: true,
+        organizationId: true,
+        integration: true,
+        credentialId: true,
+        enabled: true,
+        attributeSyncRule: true,
+        syncFieldMappings: true,
+      },
+    });
+
+    return IntegrationAttributeSyncOutputMapper.toDomainList(integrationAttributeSyncsQuery);
   }
 }
