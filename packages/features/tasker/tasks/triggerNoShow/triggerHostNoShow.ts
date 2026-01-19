@@ -77,7 +77,7 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
       });
 
       const bookingEventHandlerService = getBookingEventHandlerService();
-      await bookingEventHandlerService.onHostNoShowUpdated({
+      await bookingEventHandlerService.onNoShowUpdated({
         bookingUid: booking.uid,
         actor: makeSystemActor(),
         organizationId: orgId ?? null,

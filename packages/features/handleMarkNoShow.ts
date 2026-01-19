@@ -339,39 +339,47 @@ const handleMarkNoShowInternal = async ({
       responsePayload.setMessage(payload.message);
 
       await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
+    }
 
-      // Log attendee no-show audit for each attendee that was updated
-      if (booking?.eventType) {
-        const bookingEventHandlerService = getBookingEventHandlerService();
+    if (noShowHost) {
+      responsePayload.setNoShowHost(true);
+      responsePayload.setMessage(t("booking_no_show_updated"));
+    }
 
-        for (const attendee of payload.attendees) {
-          await bookingEventHandlerService.onAttendeeNoShowUpdated({
+    // Log combined no-show audit for the action
+    if (booking?.eventType) {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      const auditData: { noShowHost?: { old: null; new: boolean }; noShowAttendee?: { old: null; new: boolean } } = {};
+
+      if (noShowHost) {
+        auditData.noShowHost = { old: null, new: true };
+      }
+
+      // For attendee no-show, we log each attendee update as a separate audit event
+      // since each attendee can have different no-show status
+      if (attendees && attendees.length > 0) {
+        for (const attendee of attendees) {
+          await bookingEventHandlerService.onNoShowUpdated({
             bookingUid,
             actor,
             organizationId: orgId ?? null,
             source: actionSource,
             auditData: {
+              ...auditData,
               noShowAttendee: { old: null, new: attendee.noShow },
             },
           });
         }
+      } else if (noShowHost) {
+        // Only host no-show, no attendees
+        await bookingEventHandlerService.onNoShowUpdated({
+          bookingUid,
+          actor,
+          organizationId: orgId ?? null,
+          source: actionSource,
+          auditData,
+        });
       }
-    }
-
-    if (noShowHost) {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      await bookingEventHandlerService.onHostNoShowUpdated({
-        bookingUid,
-        actor,
-        organizationId: orgId ?? null,
-        source: actionSource,
-        auditData: {
-          noShowHost: { old: null, new: true },
-        },
-      });
-
-      responsePayload.setNoShowHost(true);
-      responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
     return responsePayload.getPayload();

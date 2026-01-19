@@ -55,7 +55,7 @@ const logGuestNoShowAudit = async (booking: {
     });
 
     const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onAttendeeNoShowUpdated({
+    await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
       actor: makeSystemActor(),
       organizationId: orgId ?? null,

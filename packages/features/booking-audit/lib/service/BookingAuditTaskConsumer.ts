@@ -368,6 +368,7 @@ export class BookingAuditTaskConsumer {
             case "LOCATION_CHANGED":
             case "HOST_NO_SHOW_UPDATED":
             case "ATTENDEE_NO_SHOW_UPDATED":
+            case "NO_SHOW_UPDATED":
             case "SEAT_BOOKED":
             case "SEAT_RESCHEDULED":
                 return "RECORD_UPDATED";
