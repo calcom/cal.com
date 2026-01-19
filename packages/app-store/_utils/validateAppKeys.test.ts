@@ -129,4 +129,39 @@ describe("shouldEnableApp", () => {
       expect(result).toBe(false);
     });
   });
+  
+  describe("Apps with empty key schemas (user-configured apps like PayPal, GTM)", () => {
+    // These apps have `appKeysSchema = z.object({})` - they don't need server-side keys
+    // Users configure them after installation, so they should always be enabled
+
+    it("should return true for PayPal when keys are null", () => {
+      const result = shouldEnableApp("paypal", null);
+      expect(result).toBe(true);
+    });
+
+    it("should return true for PayPal when keys are undefined", () => {
+      const result = shouldEnableApp("paypal", undefined);
+      expect(result).toBe(true);
+    });
+
+    it("should return true for PayPal when keys are empty object", () => {
+      const result = shouldEnableApp("paypal", {});
+      expect(result).toBe(true);
+    });
+
+    it("should return true for GTM when keys are null", () => {
+      const result = shouldEnableApp("gtm", null);
+      expect(result).toBe(true);
+    });
+
+    it("should return true for GTM when keys are undefined", () => {
+      const result = shouldEnableApp("gtm", undefined);
+      expect(result).toBe(true);
+    });
+
+    it("should return true for GA4 when keys are null", () => {
+      const result = shouldEnableApp("ga4", null);
+      expect(result).toBe(true);
+    });
+  });
 });
