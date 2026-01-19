@@ -32,7 +32,7 @@ const OAuthClientsView = () => {
         name: data.name,
         purpose: data.purpose ?? "",
         clientSecret: data.clientSecret,
-        status: data.status ?? "APPROVED",
+        status: data.status,
         isPkceEnabled: data.isPkceEnabled,
       });
       showToast(t("oauth_client_submitted"), "success");

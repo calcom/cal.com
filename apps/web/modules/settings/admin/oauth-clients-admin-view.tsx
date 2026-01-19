@@ -41,7 +41,7 @@ export default function OAuthClientsAdminView() {
         clientSecret: data.clientSecret,
         name: data.name,
         purpose: data.purpose ?? "",
-        status: data.status ?? "APPROVED",
+        status: data.status,
         redirectUri: data.redirectUri,
         logo: data.logo || null,
       });
@@ -77,7 +77,7 @@ export default function OAuthClientsAdminView() {
     },
   });
 
-  const handleAddClient = (values: OAuthClientCreateFormValues) => {
+  const handleCreateClient = (values: OAuthClientCreateFormValues) => {
     createMutation.mutate({
       name: values.name,
       purpose: values.purpose,
@@ -178,7 +178,7 @@ export default function OAuthClientsAdminView() {
           open={isCreatingClient}
           onOpenChange={setIsCreatingClient}
           isSubmitting={createMutation.isPending}
-          onSubmit={handleAddClient}
+          onSubmit={handleCreateClient}
           onClose={handleCloseDialog}
         />
       )}
