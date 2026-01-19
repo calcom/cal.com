@@ -8,6 +8,7 @@ import { GlobalToast } from "@/components/ui/GlobalToast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/contexts/QueryContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { t } from "@/lib/i18n";
 import "../global.css";
 
 function RootLayoutContent() {
@@ -22,7 +23,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: Platform.OS === "ios" ? "You" : "Profile",
+          title: Platform.OS === "ios" ? t("screens.you") : t("screens.profile"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -49,7 +50,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Session Details",
+          title: t("screens.session_details"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -76,7 +77,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Edit Location",
+          title: t("screens.edit_location"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -102,7 +103,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Mark No-Show",
+          title: t("screens.mark_no_show"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -128,7 +129,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Recordings",
+          title: t("screens.recordings"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -154,7 +155,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Add Guests",
+          title: t("screens.add_guests"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -180,7 +181,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Reschedule",
+          title: t("screens.reschedule"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -206,7 +207,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Edit Name & Timezone",
+          title: t("screens.edit_name_timezone"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -232,7 +233,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Working Hours",
+          title: t("screens.working_hours"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -258,7 +259,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Edit Day",
+          title: t("screens.edit_day"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()
@@ -284,7 +285,7 @@ function RootLayoutContent() {
           headerShown: true,
           headerTransparent: Platform.OS === "ios",
           headerLargeTitle: false,
-          title: "Date Override",
+          title: t("screens.date_override"),
           presentation:
             Platform.OS === "ios"
               ? isLiquidGlassAvailable()

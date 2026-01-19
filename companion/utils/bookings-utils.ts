@@ -1,4 +1,5 @@
 import type { BookingFilter } from "@/hooks";
+import { t } from "@/lib/i18n";
 import type { Booking } from "@/services/calcom";
 
 import { safeLogError, safeLogWarn } from "./safeLogger";
@@ -8,38 +9,38 @@ export const getEmptyStateContent = (activeFilter: BookingFilter) => {
     case "upcoming":
       return {
         icon: "calendar-outline" as const,
-        title: "No upcoming bookings",
-        text: "As soon as someone books a time with you it will show up here.",
+        title: t("bookings.no_upcoming_bookings"),
+        text: t("bookings.no_upcoming_bookings_description"),
       };
     case "unconfirmed":
       return {
         icon: "calendar-outline" as const,
-        title: "No unconfirmed bookings",
-        text: "Your unconfirmed bookings will show up here.",
+        title: t("bookings.no_unconfirmed_bookings"),
+        text: t("bookings.no_unconfirmed_bookings_description"),
       };
     case "past":
       return {
         icon: "calendar-outline" as const,
-        title: "No past bookings",
-        text: "Your past bookings will show up here.",
+        title: t("bookings.no_past_bookings"),
+        text: t("bookings.no_past_bookings_description"),
       };
     case "cancelled":
       return {
         icon: "calendar-outline" as const,
-        title: "No cancelled bookings",
-        text: "Your canceled bookings will show up here.",
+        title: t("bookings.no_cancelled_bookings"),
+        text: t("bookings.no_cancelled_bookings_description"),
       };
     case "recurring":
       return {
         icon: "repeat-outline" as const,
-        title: "No recurring bookings",
-        text: "Your recurring bookings will show up here.",
+        title: t("bookings.no_recurring_bookings"),
+        text: t("bookings.no_recurring_bookings_description"),
       };
     default:
       return {
         icon: "calendar-outline" as const,
-        title: "No bookings found",
-        text: "Your bookings will appear here.",
+        title: t("bookings.no_bookings_found"),
+        text: t("bookings.no_bookings_found_description"),
       };
   }
 };
@@ -130,7 +131,7 @@ export const formatMonthYear = (dateString: string): string => {
       date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
 
     if (isCurrentMonth) {
-      return "This month";
+      return t("common.this_month");
     }
 
     return date.toLocaleDateString("en-US", {
@@ -454,7 +455,7 @@ export const getHostAndAttendeesDisplay = (
     currentUserEmail && hostEmail && currentUserEmail.toLowerCase() === hostEmail;
 
   const hostName = isCurrentUserHost
-    ? "You"
+    ? t("common.you")
     : booking.hosts?.[0]?.name ||
       booking.hosts?.[0]?.email ||
       booking.user?.name ||

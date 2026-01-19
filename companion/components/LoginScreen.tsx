@@ -1,6 +1,7 @@
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
+import { t } from "@/lib/i18n";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { CalComLogo } from "./CalComLogo";
@@ -15,10 +16,8 @@ export function LoginScreen() {
     } catch (error) {
       console.error("OAuth login error");
       showErrorAlert(
-        "Login Failed",
-        error instanceof Error
-          ? error.message
-          : "Failed to login with OAuth. Please check your configuration and try again."
+        t("login.login_failed"),
+        error instanceof Error ? error.message : t("login.login_failed_message")
       );
     }
   };
@@ -58,7 +57,9 @@ export function LoginScreen() {
           ]}
           activeOpacity={0.9}
         >
-          <Text className="text-[17px] font-semibold text-white">Continue with Cal.com</Text>
+          <Text className="text-[17px] font-semibold text-white">
+            {t("login.continue_with_calcom")}
+          </Text>
         </TouchableOpacity>
 
         {/* Sign up link - hidden on iOS */}
@@ -71,7 +72,8 @@ export function LoginScreen() {
           >
             <View>
               <Text className="text-[15px] text-gray-500">
-                Don't have an account? <Text className="font-semibold text-gray-900">Sign up</Text>
+                {t("login.dont_have_account")}{" "}
+                <Text className="font-semibold text-gray-900">{t("login.sign_up")}</Text>
               </Text>
               <View className="h-px bg-gray-400" style={{ marginTop: 2 }} />
             </View>
