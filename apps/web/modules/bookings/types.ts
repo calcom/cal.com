@@ -1,7 +1,17 @@
 import type { DataTableRow } from "@calcom/features/data-table/lib/separator";
+import type {
+  UseCalendarsReturnType as UseCalendarsReturnTypeBase,
+  useScheduleForEventReturnType as useScheduleForEventReturnTypeBase,
+} from "@calcom/features/bookings/Booker/types";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { validStatuses } from "./lib/validStatuses";
+
+export type ConnectedCalendarsType = RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
+export type ScheduleDataType = RouterOutputs["viewer"]["slots"]["getSchedule"];
+
+export type UseCalendarsReturnType = UseCalendarsReturnTypeBase<ConnectedCalendarsType>;
+export type useScheduleForEventReturnType = useScheduleForEventReturnTypeBase<ScheduleDataType>;
 
 export type BookingsGetOutput = RouterOutputs["viewer"]["bookings"]["get"];
 

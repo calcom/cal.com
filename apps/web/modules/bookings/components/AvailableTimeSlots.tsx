@@ -14,8 +14,9 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/types";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+
+import type { useScheduleForEventReturnType } from "../types";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;

@@ -9,8 +9,9 @@ import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Ca
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/types";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+
+import type { useScheduleForEventReturnType } from "../types";
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 
 export const LargeCalendar = ({

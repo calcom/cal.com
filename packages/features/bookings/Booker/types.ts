@@ -4,8 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
-// biome-ignore lint/style/noRestrictedImports: RouterOutputs is needed for type inference, this is a pre-existing pattern in the features package
-import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { GetBookingType } from "../lib/get-booking";
 
@@ -66,7 +64,7 @@ export type UseBookingsReturnType = {
   instantConnectCooldownMs: number;
 };
 
-export type UseCalendarsReturnType = {
+export type UseCalendarsReturnType<TConnectedCalendars = unknown> = {
   overlayBusyDates:
     | {
         start: string | Date;
@@ -74,7 +72,7 @@ export type UseCalendarsReturnType = {
       }[]
     | undefined;
   isOverlayCalendarEnabled: boolean;
-  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
+  connectedCalendars: TConnectedCalendars;
   loadingConnectedCalendar: boolean;
   onToggleCalendar: (
     data: Set<{
@@ -134,8 +132,8 @@ export interface IUseBookingErrors {
   dataErrors: unknown;
 }
 
-export type useScheduleForEventReturnType = {
-  data: RouterOutputs["viewer"]["slots"]["getSchedule"] | undefined;
+export type useScheduleForEventReturnType<TScheduleData = unknown> = {
+  data: TScheduleData | undefined;
   isPending: boolean;
   isError: boolean;
   isSuccess: boolean;
@@ -238,7 +236,10 @@ export interface BookerProps {
   useApiV2?: boolean;
 }
 
-export type WrappedBookerPropsMain = {
+export type WrappedBookerPropsMain<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
   rescheduledBy: string | null;
@@ -254,10 +255,10 @@ export type WrappedBookerPropsMain = {
   extraOptions: Record<string, string | string[]>;
   bookings: UseBookingsReturnType;
   slots: UseSlotsReturnType;
-  calendars: UseCalendarsReturnType;
+  calendars: UseCalendarsReturnType<TConnectedCalendars>;
   bookerForm: UseBookingFormReturnType;
   event: BookerEventQuery;
-  schedule: useScheduleForEventReturnType;
+  schedule: useScheduleForEventReturnType<TScheduleData>;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
@@ -266,21 +267,30 @@ export type WrappedBookerPropsMain = {
   confirmButtonDisabled?: boolean;
 };
 
-export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
+export type WrappedBookerPropsForPlatform<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = WrappedBookerPropsMain<TConnectedCalendars, TScheduleData> & {
   isPlatform: true;
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
   timeZones?: Timezone[];
   roundRobinHideOrgAndTeam?: boolean;
 };
-export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
+export type WrappedBookerPropsForWeb<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = WrappedBookerPropsMain<TConnectedCalendars, TScheduleData> & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
   timeZones?: Timezone[];
   roundRobinHideOrgAndTeam?: boolean;
 };
 
-export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
+export type WrappedBookerProps<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = WrappedBookerPropsForPlatform<TConnectedCalendars, TScheduleData> | WrappedBookerPropsForWeb<TConnectedCalendars, TScheduleData>;
 export type VIEW_TYPE = "MONTH_VIEW" | "WEEK_VIEW" | "COLUMN_VIEW";
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

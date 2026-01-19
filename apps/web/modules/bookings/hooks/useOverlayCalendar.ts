@@ -5,8 +5,9 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
-import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/types";
 import { useLocalSet } from "@calcom/atoms/hooks/booker/useLocalSet";
+
+import type { UseCalendarsReturnType } from "../types";
 
 export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
 
