@@ -30,14 +30,17 @@ const WORKFLOW_TEMPLATES = [
   WorkflowTemplates.COMPLETED,
   WorkflowTemplates.RESCHEDULED,
   WorkflowTemplates.THANKYOU,
+  WorkflowTemplates.CONFIRMATION,
 ] as const;
 
 const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
 
 const SMS_WORKFLOW_TEMPLATES = [
-  WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED,
+  WorkflowTemplates.COMPLETED,
+  WorkflowTemplates.CONFIRMATION,
 ] as const;
 
 const ATTENDEE_WORKFLOW_TEMPLATES = [

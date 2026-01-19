@@ -9,7 +9,8 @@ import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowStatus, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import * as twilio from "../../providers/twilio";
+// import * as twilio from "../../providers/twilio";
+import * as smsService from "../..//providers/messaging/dispatcher";
 import customTemplate from "../../templates/customTemplate";
 import type { VariablesType } from "../../templates/customTemplate";
 import smsReminderTemplate from "../../templates/sms/reminder";
@@ -23,7 +24,8 @@ const fetchPendingNotifications = async () => {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        //we only schedule coming 2 hours sms,so that the number of cancellation calls made to smsprovider reduce
+        lte: dayjs().add(2, "hour").toISOString(),
         gte: dayjs().toISOString(),
       },
       OR: [{ cancelled: null }, { cancelled: false }],
@@ -133,8 +135,8 @@ const processNotificationQueue = async (): Promise<number> => {
       }
 
       if (messageText?.length && messageText?.length > 0 && recipientNumber) {
-        // 1. Send SMS
-        const dispatchedSMS = await twilio.scheduleSMS(
+        // const dispatchedSMS = await twilio.scheduleSMS(
+        const dispatchedSMS = await smsService.scheduleSMS(
           recipientNumber,
           messageText,
           notification.scheduledDate,
@@ -147,21 +149,22 @@ const processNotificationQueue = async (): Promise<number> => {
         );
 
         // 2. Update reminder
-        if (dispatchedSMS) {
+        //If sms was successfully scheduled by provider and the unique identifier "sid" was returned
+        if (dispatchedSMS && dispatchedSMS.response?.sid) {
           await prisma.calIdWorkflowReminder.update({
             where: {
               id: notification.id,
             },
             data: {
               scheduled: true,
-              referenceId: dispatchedSMS.sid,
+              referenceId: dispatchedSMS.response.sid,
             },
           });
           // 3. Create workflow insight
           if (notification.booking?.eventTypeId) {
             await prisma.calIdWorkflowInsights.create({
               data: {
-                msgId: dispatchedSMS.sid,
+                msgId: dispatchedSMS.response.sid,
                 eventTypeId: notification.booking.eventTypeId,
                 type: WorkflowMethods.SMS,
                 status: WorkflowStatus.QUEUED,
@@ -237,43 +240,43 @@ const executeCancellationProcess = async (): Promise<void> => {
     },
   });
 
-  const cancellationTasks: Promise<void>[] = [];
+  const cancellationTasks: Promise<any>[] = [];
   for (const messageToCancel of messagesToCancel) {
     if (messageToCancel.referenceId) {
-      const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
+      // const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
+      const smsProviderRequest = smsService.cancelSMS(messageToCancel.referenceId);
 
-      const workflowInsightUpdate = prisma.calIdWorkflowInsights
-        .updateMany({
-          where: {
-            msgId: messageToCancel.referenceId,
-            type: WorkflowMethods.SMS,
-            status: WorkflowStatus.QUEUED,
-          },
-          data: {
-            status: WorkflowStatus.CANCELLED,
-          },
+      const dbTransaction = prisma
+        .$transaction(async (tx) => {
+          if (messageToCancel.referenceId)
+            await tx.calIdWorkflowInsights.updateMany({
+              where: {
+                msgId: messageToCancel.referenceId,
+                type: WorkflowMethods.SMS,
+                status: WorkflowStatus.QUEUED,
+              },
+              data: {
+                status: WorkflowStatus.CANCELLED,
+              },
+            });
+
+          await tx.calIdWorkflowReminder.update({
+            where: {
+              id: messageToCancel.id,
+            },
+            data: {
+              referenceId: null,
+              scheduled: false,
+            },
+          });
         })
         .then(() => {
           console.log(
-            `Updated workflow insights for cancelled SMS with reference ID: ${messageToCancel.referenceId}`
+            `Cancelled SMS and updated workflow records for reference ID: ${messageToCancel.referenceId}`
           );
         });
 
-      const databaseUpdate = prisma.calIdWorkflowReminder
-        .update({
-          where: {
-            id: messageToCancel.id,
-          },
-          data: {
-            referenceId: null,
-            scheduled: false,
-          },
-        })
-        .then(() => {
-          console.log(`Cancelled SMS with reference ID: ${messageToCancel.referenceId}`);
-        });
-
-      cancellationTasks.push(twilioRequest, workflowInsightUpdate, databaseUpdate);
+      cancellationTasks.push(smsProviderRequest, dbTransaction);
     }
   }
 

@@ -99,6 +99,10 @@ const VariableDropdown: React.FC<{
 }> = ({ onSelect }) => {
   return <AddVariablesDropdown addVariable={onSelect} variables={DYNAMIC_TEXT_VARIABLES} />;
 };
+interface WorkflowBuilderTemplateFields {
+  action: any;
+  template: any;
+}
 
 export interface WorkflowBuilderProps {
   workflowId?: number;
@@ -1641,7 +1645,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
                                       {!step.metaTemplatePhoneNumberId && (
                                         <div className="mt-5">
-                                          <Label>Message Template</Label>
+                                          <div className="flex items-center justify-between">
+                                            <Label>Message Template</Label>
+                                            {/* {isSMSAction(step.action) &&
+                                              step.template !== WorkflowTemplates.CUSTOM && (
+                                                <span className="text-xs text-gray-500">(Read-only)</span>
+                                              )} */}
+                                          </div>
                                           <Select
                                             value={
                                               templateOptions.find(
@@ -1659,6 +1669,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             isDisabled={readOnly}
                                             className="mt-1"
                                           />
+                                          {isSMSAction(step.action) && (
+                                            <p className="mt-1 text-xs text-gray-500">
+                                              Select &ldquo;Custom&rdquo; to write your own message
+                                            </p>
+                                          )}
                                         </div>
                                       )}
 
@@ -1833,7 +1848,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       )}
 
                                       {/* Sender Configuration for SMS (not WhatsApp) */}
-                                      {isSMSAction(step.action) && (
+                                      {/* {isSMSAction(step.action) && (
                                         <div className="bg-default rounded-md">
                                           <div className="pt-4">
                                             <div className="flex items-center">
@@ -1846,16 +1861,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             <Input
                                               type="text"
                                               placeholder={SENDER_ID}
-                                              disabled={readOnly}
+                                              disabled={true} // Always disabled for SMS
                                               maxLength={11}
-                                              value={step.sender}
-                                              onChange={(e) =>
-                                                updateAction(step.id, "sender", e.target.value)
-                                              }
+                                              value={SENDER_ID} // Always "SENDER_ID" for SMS
+                                              readOnly
+                                              className="cursor-not-allowed bg-gray-50"
                                             />
+                                            <p className="mt-1 text-xs text-gray-500">
+                                              SMS messages will be sent from &quot;CALID&quot; sender ID
+                                            </p>
                                           </div>
                                         </div>
-                                      )}
+                                      )} */}
 
                                       {isWhatsappAction(step.action) && step.metaTemplatePhoneNumberId && (
                                         <div className="bg-default rounded-md">
@@ -2004,9 +2021,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 ? Boolean(step.metaTemplatePhoneNumberId) ===
                                                   Boolean(step.metaTemplateName)
                                                   ? convertWhatsAppTemplateForDisplay(step.reminderBody)
-                                                  : ""
-                                                : step.reminderBody || ""
-                                            }
+                                                  : "";
+                                              }
+                                              // SMS actions - show default template or custom content
+                                              if (isSMSAction(step.action)) {
+                                                return step.reminderBody || "";
+                                              }
+                                              // Email actions
+                                              return step.reminderBody || "";
+                                            }}
                                             setText={(text: string) => {
                                               const stepIndex = steps.findIndex((s) => s.id === step.id);
                                               if (stepIndex !== -1) {
