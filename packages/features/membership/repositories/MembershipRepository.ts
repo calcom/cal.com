@@ -3,8 +3,8 @@ import { withSelectedCalendars } from "@calcom/features/users/repositories/UserR
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
-import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
-import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
+import { availabilityUserSelect, type PrismaTransaction, prisma } from "@calcom/prisma";
+import type { Membership, Prisma, PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -329,8 +329,8 @@ export class MembershipRepository {
     });
   }
 
-  static async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
-    return await prisma.membership.findUnique({
+  async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.membership.findUnique({
       where: {
         userId_teamId: {
           userId,
@@ -508,7 +508,7 @@ export class MembershipRepository {
     return teams;
   }
 
-  static async findAllByUserId({
+  async findAllByUserId({
     userId,
     filters,
   }: {
@@ -518,7 +518,7 @@ export class MembershipRepository {
       roles?: MembershipRole[];
     };
   }) {
-    return prisma.membership.findMany({
+    return this.prismaClient.membership.findMany({
       where: {
         userId,
         ...(filters?.accepted !== undefined && { accepted: filters.accepted }),
@@ -531,6 +531,7 @@ export class MembershipRepository {
           select: {
             id: true,
             parentId: true,
+            isOrganization: true,
           },
         },
       },
@@ -562,13 +563,7 @@ export class MembershipRepository {
   }
 
   // Two indexed lookups instead of JOIN with ILIKE (which bypasses index)
-  async hasAcceptedMembershipByEmail({
-    email,
-    teamId,
-  }: {
-    email: string;
-    teamId: number;
-  }): Promise<boolean> {
+  async hasAcceptedMembershipByEmail({ email, teamId }: { email: string; teamId: number }): Promise<boolean> {
     const user = await this.prismaClient.user.findUnique({
       where: { email: email.toLowerCase() },
       select: { id: true },
@@ -584,5 +579,18 @@ export class MembershipRepository {
     });
 
     return membership?.accepted ?? false;
+  }
+
+  static async hasPendingInviteByUserId({ userId }: { userId: number }): Promise<boolean> {
+    const pendingInvite = await prisma.membership.findFirst({
+      where: {
+        userId,
+        accepted: false,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!pendingInvite;
   }
 }

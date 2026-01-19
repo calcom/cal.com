@@ -41,7 +41,7 @@
   },
   "scripts": {
     "build": "yarn clean && tsc --build --force tsconfig.json",
-    "clean": "rm -rf ./dist",
+    "clean": "npx rimraf dist",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
     "post-install": "yarn build"
   },
