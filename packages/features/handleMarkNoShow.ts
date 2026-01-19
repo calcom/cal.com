@@ -346,32 +346,20 @@ const handleMarkNoShowInternal = async ({
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
-    // Log combined no-show audit for the action
+    // Log combined no-show audit for the action (single audit entry for all changes)
     if (booking?.eventType) {
       const bookingEventHandlerService = getBookingEventHandlerService();
-      const auditData: { noShowHost?: { old: null; new: boolean }; noShowAttendee?: { old: null; new: boolean } } = {};
+      const auditData: { host?: { old: null; new: boolean }; attendees?: { email: string; noShow: boolean }[] } = {};
 
       if (noShowHost) {
-        auditData.noShowHost = { old: null, new: true };
+        auditData.host = { old: null, new: true };
       }
 
-      // For attendee no-show, we log each attendee update as a separate audit event
-      // since each attendee can have different no-show status
       if (attendees && attendees.length > 0) {
-        for (const attendee of attendees) {
-          await bookingEventHandlerService.onNoShowUpdated({
-            bookingUid,
-            actor,
-            organizationId: orgId ?? null,
-            source: actionSource,
-            auditData: {
-              ...auditData,
-              noShowAttendee: { old: null, new: attendee.noShow },
-            },
-          });
-        }
-      } else if (noShowHost) {
-        // Only host no-show, no attendees
+        auditData.attendees = attendees.map((a) => ({ email: a.email, noShow: a.noShow }));
+      }
+
+      if (auditData.host || auditData.attendees) {
         await bookingEventHandlerService.onNoShowUpdated({
           bookingUid,
           actor,

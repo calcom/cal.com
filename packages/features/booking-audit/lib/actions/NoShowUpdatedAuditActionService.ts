@@ -13,10 +13,15 @@ import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams,
  * status, so they should be logged as a single audit event.
  */
 
+const AttendeeNoShowSchema = z.object({
+    email: z.string(),
+    noShow: z.boolean(),
+});
+
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-    noShowHost: BooleanChangeSchema.optional(),
-    noShowAttendee: BooleanChangeSchema.optional(),
+    host: BooleanChangeSchema.optional(),
+    attendees: z.array(AttendeeNoShowSchema).optional(),
 });
 
 export class NoShowUpdatedAuditActionService implements IAuditActionService {
@@ -74,19 +79,19 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     }: GetDisplayJsonParams): NoShowUpdatedAuditDisplayData {
         const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
-            noShowHost: fields.noShowHost?.new ?? null,
-            previousNoShowHost: fields.noShowHost?.old ?? null,
-            noShowAttendee: fields.noShowAttendee?.new ?? null,
-            previousNoShowAttendee: fields.noShowAttendee?.old ?? null,
+            host: fields.host?.new ?? null,
+            previousHost: fields.host?.old ?? null,
+            attendees: fields.attendees ?? null,
         };
     }
 }
 
 export type NoShowUpdatedAuditData = z.infer<typeof fieldsSchemaV1>;
 
+export type AttendeeNoShow = z.infer<typeof AttendeeNoShowSchema>;
+
 export type NoShowUpdatedAuditDisplayData = {
-    noShowHost: boolean | null;
-    previousNoShowHost: boolean | null;
-    noShowAttendee: boolean | null;
-    previousNoShowAttendee: boolean | null;
+    host: boolean | null;
+    previousHost: boolean | null;
+    attendees: AttendeeNoShow[] | null;
 };

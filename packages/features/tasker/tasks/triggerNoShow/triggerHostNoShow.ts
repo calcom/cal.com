@@ -83,7 +83,7 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
         organizationId: orgId ?? null,
         source: "SYSTEM",
         auditData: {
-          noShowHost: { old: null, new: true },
+          host: { old: null, new: true },
         },
       });
     } catch (error) {

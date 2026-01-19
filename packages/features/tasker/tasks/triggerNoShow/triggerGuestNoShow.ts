@@ -43,11 +43,14 @@ const markGuestAsNoshowInBooking = async ({
   }
 };
 
-const logGuestNoShowAudit = async (booking: {
-  uid: string;
-  user?: { id: number } | null;
-  eventType?: { teamId?: number | null } | null;
-}) => {
+const logGuestNoShowAudit = async (
+  booking: {
+    uid: string;
+    user?: { id: number } | null;
+    eventType?: { teamId?: number | null } | null;
+  },
+  attendeesMarkedNoShow: { email: string; noShow: boolean }[]
+) => {
   try {
     const orgId = await getOrgIdFromMemberOrTeamId({
       memberId: booking.user?.id,
@@ -61,7 +64,7 @@ const logGuestNoShowAudit = async (booking: {
       organizationId: orgId ?? null,
       source: "SYSTEM",
       auditData: {
-        noShowAttendee: { old: null, new: true },
+        attendees: attendeesMarkedNoShow,
       },
     });
   } catch (error) {
@@ -111,7 +114,8 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
       );
 
       // Log audit for automatic guest no-show detection
-      await logGuestNoShowAudit(booking);
+      const attendeesMarkedNoShow = guestsThatDidntJoinTheCall.map((g) => ({ email: g.email, noShow: true }));
+      await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
     }
   } else {
     if (!didGuestJoinTheCall) {
@@ -132,8 +136,9 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         originalRescheduledBooking
       );
 
-      // Log audit for automatic guest no-show detection
-      await logGuestNoShowAudit(booking);
+      // Log audit for automatic guest no-show detection - all non-host attendees marked as no-show
+      const attendeesMarkedNoShow = guests.map((g) => ({ email: g.email, noShow: true }));
+      await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
     }
   }
 }
