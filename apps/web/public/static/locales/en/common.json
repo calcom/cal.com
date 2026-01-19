@@ -4340,5 +4340,7 @@
   "pbac_resource_feature_opt_in": "Feature Opt-In",
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
   "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
+  "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
+  "overwrite_existing_contact_owner": "Overwrite existing contact owner",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
