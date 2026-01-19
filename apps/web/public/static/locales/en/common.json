@@ -1582,6 +1582,8 @@
   "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
   "new_seat_title": "Someone has added themselves to an event",
   "variable": "Variable",
+  "event_type_name_variable": "Event Type Name",
+  "event_type_name_info": "The title or name of the event type",
   "event_name_variable": "Event name",
   "attendee_name_variable": "Attendee",
   "event_date_variable": "Event date",

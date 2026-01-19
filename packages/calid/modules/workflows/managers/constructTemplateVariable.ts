@@ -31,6 +31,7 @@ export const constructVariablesForTemplate = (
   }
 
   return {
+    eventTypeName: eventData.eventType.title || "",
     eventName: eventData.title || "",
     organizerName: eventData.organizer.name,
     attendeeName: participantData.name,
