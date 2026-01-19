@@ -2021,7 +2021,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 ? Boolean(step.metaTemplatePhoneNumberId) ===
                                                   Boolean(step.metaTemplateName)
                                                   ? convertWhatsAppTemplateForDisplay(step.reminderBody)
-                                                  : "";
+                                                  : "":step.reminderBody||"";
                                               }
                                               // SMS actions - show default template or custom content
                                               if (isSMSAction(step.action)) {

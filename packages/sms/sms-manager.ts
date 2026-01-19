@@ -40,7 +40,7 @@ const handleSendingSMS = ({
       const sms = smsService.sendSMS(reminderPhone, smsMessage, senderID, teamId);
       resolve(sms);
     } catch (e) {
-      reject(console.error(`twilio.sendSMS failed`, e));
+      reject(console.error(`smsService.sendSMS failed`, e));
     }
   });
 };
