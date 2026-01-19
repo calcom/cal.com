@@ -15182,6 +15182,211 @@
         ]
       }
     },
+    "/v2/teams/{teamId}/bookings": {
+      "get": {
+        "operationId": "TeamsBookingsController_getAllTeamBookings",
+        "summary": "Get team bookings",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "schema": {
+              "example": "?status=upcoming,past",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "upcoming",
+                  "recurring",
+                  "past",
+                  "cancelled",
+                  "unconfirmed"
+                ]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "schema": {
+              "example": "example@domain.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "schema": {
+              "example": "John Doe",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "schema": {
+              "example": "2NtaeaVcKfpmSZ4CthFdfk",
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
+            "schema": {
+              "example": "100,200",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that start after this date-time (ISO 8601).",
+            "schema": {
+              "example": "2024-08-13T10:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that end before this date-time (ISO 8601).",
+            "schema": {
+              "example": "2024-08-20T10:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team member user ids. Multiple ids can be separated by a comma. Only works for team events.",
+            "schema": {
+              "example": "10,20",
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberEmails",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team member emails. Multiple emails can be separated by a comma. Only works for team events.",
+            "schema": {
+              "example": "alice@example.com,bob@example.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time (when booking is scheduled for) in ascending or descending order.",
+            "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time (when booking is scheduled to end) in ascending or descending order.",
+            "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "schema": {
+              "example": "?sortCreated=asc OR ?sortCreated=desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Bookings"
+        ]
+      }
+    },
     "/v2/teams/{teamId}/event-types": {
       "post": {
         "operationId": "TeamsEventTypesController_createTeamEventType",
