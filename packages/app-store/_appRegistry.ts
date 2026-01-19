@@ -1,7 +1,6 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAllDelegationCredentialsForUser } from "@calcom/app-store/delegationCredential";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { hasRequiredAppKeys } from "@calcom/app-store/_utils/hasRequiredAppKeys";
 import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
@@ -41,20 +40,13 @@ export async function getAppWithMetadata(app: { dirName: string } | { slug: stri
 export async function getAppRegistry() {
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
-    select: { dirName: true, slug: true, categories: true, enabled: true, createdAt: true, keys: true },
+    select: { dirName: true, slug: true, categories: true, enabled: true, createdAt: true },
   });
   const apps = [] as App[];
   const installCountPerApp = await getInstallCountPerApp();
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
-    
-    // Skip apps that require keys but don't have them set
-    const hasKeys = await hasRequiredAppKeys(dbapp.dirName, dbapp.keys);
-    if (!hasKeys) {
-      continue;
-    }
-    
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
@@ -77,7 +69,6 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     where: { enabled: true },
     select: {
       ...safeAppSelect,
-      keys: true,
       credentials: {
         where: { OR: [{ userId }, { teamId: { in: userAdminTeams } }] },
         select: safeCredentialSelect,
@@ -119,13 +110,6 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     const allCredentials = [...delegationCredentialsForApp, ...nonDelegationCredentialsForApp];
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
-    
-    // Skip apps that require keys but don't have them set
-    const hasKeys = await hasRequiredAppKeys(dbapp.dirName, dbapp.keys);
-    if (!hasKeys) {
-      continue;
-    }
-    
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
