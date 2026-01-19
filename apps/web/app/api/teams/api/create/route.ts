@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
@@ -59,7 +60,11 @@ async function handler(request: NextRequest) {
 
     if (checkoutSessionSubscription) {
       const billingService = getBillingProviderService();
-      const { subscriptionStart } = billingService.extractSubscriptionDates(checkoutSessionSubscription);
+      const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+        billingService.extractSubscriptionDates(checkoutSessionSubscription);
+
+      const { billingPeriod, pricePerSeat, paidSeats } =
+        extractBillingDataFromStripeSubscription(checkoutSessionSubscription);
 
       const teamBillingServiceFactory = getTeamBillingServiceFactory();
       const teamBillingService = teamBillingServiceFactory.init(finalizedTeam);
@@ -72,6 +77,11 @@ async function handler(request: NextRequest) {
         status: SubscriptionStatus.ACTIVE,
         planName: Plan.TEAM,
         subscriptionStart,
+        subscriptionEnd,
+        subscriptionTrialEnd,
+        billingPeriod,
+        pricePerSeat,
+        paidSeats,
       });
     }
 
