@@ -1,6 +1,11 @@
 version: 1
 checksums:
   76a1ee1ae6f7c2f515beace0bc21adc7:
+    view_response: a34180c5473c6b9f6e191b79f595db45
+    hide_response: 5df48fac71c9161246900d0f0e9f3a73
+    hide_field_warning_title: bfe0defa48fdc9f02d4eeb7bddf85131
+    hide_field_warning_description: 63fc35f209f1326b242cc74f1e77fad2
+    hide_anyway: 6a45ddaf5a7fa72988bdbf0102220094
     configure_your_webhook: 06d812c96c4044447ef7f5daccfaff0c
     select_whatsapp_template: fe2229611d56bcd4e4c368bc9a6a5ddd
     workflow_status: 9c9a2f8324d3f698ec2d788f43bd4849
