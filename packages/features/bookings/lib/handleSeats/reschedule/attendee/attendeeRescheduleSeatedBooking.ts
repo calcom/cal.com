@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { addVideoCallDataToEvent } from "@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -51,10 +52,16 @@ const attendeeRescheduleSeatedBooking = async (
       },
     });
 
+    const originalBookingReferences = originalRescheduledBooking?.references;
+
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
-    await sendRescheduledSeatEmailAndSMS(evt, seatAttendee as Person, eventType.metadata);
+    const evtWithVideoCallData = originalBookingReferences
+      ? addVideoCallDataToEvent(originalBookingReferences, evt)
+      : evt;
+
+    await sendRescheduledSeatEmailAndSMS(evtWithVideoCallData, seatAttendee as Person, eventType.metadata);
 
     return null;
   }
@@ -96,7 +103,11 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmailAndSMS(copyEvent, seatAttendee as Person, eventType.metadata);
+  const copyEventWithVideoCallData = newTimeSlotBooking.references
+    ? addVideoCallDataToEvent(newTimeSlotBooking.references, copyEvent)
+    : copyEvent;
+
+  await sendRescheduledSeatEmailAndSMS(copyEventWithVideoCallData, seatAttendee as Person, eventType.metadata);
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

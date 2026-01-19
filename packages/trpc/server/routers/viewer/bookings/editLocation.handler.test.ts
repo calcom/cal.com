@@ -177,6 +177,7 @@ describe.skip("editLocation.handler", () => {
             ],
           },
         ],
+        // biome-ignore lint/complexity/useLiteralKeys: app keys contain hyphens
         apps: [TestData.apps["zoom"], TestData.apps["google-meet"]],
       };
 
