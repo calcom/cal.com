@@ -121,11 +121,10 @@ const Actions = ({
             action="_delete"
             variant="icon"
             routingForm={form}
-            size="xs"
-            icon="trash"
+            StartIcon="trash"
             type="button"
-            className="h-[34px] w-[40px]"
-            color="destructive"
+            className="text-error enabled:hover:text-error h-[34px] w-[40px]"
+            color="secondary"
           />
           <Button
             data-testid={isMobile ? "update-form-mobile" : "update-form"}

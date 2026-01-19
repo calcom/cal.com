@@ -2477,7 +2477,6 @@
   "insights_user_filter": "المستخدم: {{userName}}",
   "insights_subtitle": "التحليلات ومقاييس الأداء لأنشطة الجدولة الخاصة بك",
   "location_options": "خيارات الموقع {{locationCount}}",
-  "location_options_label": "خيارات الموقع",
   "custom_plan": "الخطة المخصصة",
   "email_embed": "البريد الإلكتروني المضمن",
   "add_times_to_your_email": "حدّد بعض الفترات المتاحة وأدرجها في رسالتك الإلكترونية",

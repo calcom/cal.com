@@ -19,6 +19,10 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   /* If there's no methods it means we're using these components outside a React Hook Form context */
   if (!methods) return null;
   const { formState } = methods;
+
+  /* If there's no formState or errors, return null */
+  if (!formState || !formState.errors || !fieldName) return null;
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
@@ -99,7 +103,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
       <ul className="ml-2">
         {hintErrors.map((key: string) => {
           // if field was changed, as no error exist, show checked status and color
-          const dirty = formState.dirtyFields[fieldName];
+          const dirty = formState.dirtyFields?.[fieldName];
           return (
             <li key={key} className={!!dirty ? "text-green-600" : ""}>
               {!!dirty ? (

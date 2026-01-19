@@ -251,7 +251,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       {(member.role !== "OWNER" || isAdminOrOwner) && member.id !== session.data?.user.id && (
         <Button
           data-testid="remove-member-button"
-          StartIcon="trash-2"
+          StartIcon="trash"
           variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"

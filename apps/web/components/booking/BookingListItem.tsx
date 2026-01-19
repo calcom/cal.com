@@ -559,6 +559,7 @@ export default function BookingListItem(booking: BookingItemProps) {
           isOpenDialog={isBookingSeatsDialogOpen}
           setIsOpenDialog={setIsBookingSeatsDialogOpen}
           bookingUid={booking.uid}
+          eventFields={booking.eventType.bookingFields}
           bookingSeats={booking.seatsReferences}
           userTimeFormat={userTimeFormat ?? 24}
         />

@@ -1,7 +1,7 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
@@ -29,10 +29,21 @@ const ColorPicker = (props: ColorPickerProps) => {
       : props.resetDefaultValue);
   const [color, setColor] = useState(init);
 
+  // Sync internal state with defaultValue changes
+  useEffect(() => {
+    const newColor = !isValidHexCode(props.defaultValue)
+      ? fallBackHex(props.defaultValue, false)
+      : props.defaultValue;
+    setColor((prevColor) => {
+      // Only update if the value actually changed to avoid unnecessary re-renders
+      return newColor !== prevColor ? newColor : prevColor;
+    });
+  }, [props.defaultValue]);
+
   return (
     <div className="mt-1 flex h-[38px] items-center justify-center gap-2">
       <Popover.Root>
-        <div className=" border-default rounded-md min-w-9 flex h-full items-center justify-center border">
+        <div className=" border-default flex h-full min-w-9 items-center justify-center rounded-md border">
           <Popover.Trigger asChild>
             <button
               className="h-5 w-5 rounded-sm"
@@ -42,7 +53,10 @@ const ColorPicker = (props: ColorPickerProps) => {
           </Popover.Trigger>
         </div>
         <Popover.Portal container={props.container}>
-          <Popover.Content align={props.popoverAlign ?? "center"} sideOffset={10}>
+          <Popover.Content
+            align={props.popoverAlign ?? "center"}
+            sideOffset={10}
+            className="bg-default border-default z-[60] rounded-md border p-2 shadow-lg">
             <HexColorPicker
               color={color}
               className="!h-32 !w-32"
@@ -57,7 +71,7 @@ const ColorPicker = (props: ColorPickerProps) => {
 
       <HexColorInput
         className={cx(
-          "border-default rounded-md focus:ring-ring focus:ring-offset-2 text-default bg-default block h-full w-full border px-3 py-2 ltr:rounded-r-md rtl:rounded-l-md sm:text-sm",
+          "border-default focus:ring-ring text-default bg-default block h-full w-full rounded-md border px-3 py-2 focus:ring-offset-2 sm:text-sm ltr:rounded-r-md rtl:rounded-l-md",
           props.className
         )}
         color={color}

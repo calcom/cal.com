@@ -385,7 +385,7 @@ export function TeamMembersList({
                     )}
                     {canEditMember && (
                       <DropdownMenuItem
-                        StartIcon="trash-2"
+                        StartIcon="trash"
                         color="destructive"
                         onClick={() => {
                           if (onMemberRemove) {
@@ -642,7 +642,7 @@ export function TeamMembersList({
       {/* Individual Member Removal Confirmation Dialog */}
       <Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader showIcon variant="warning">
             <DialogTitle>{t("remove_team_member")}</DialogTitle>
             <DialogDescription>{t("remove_team_member_description")}</DialogDescription>
           </DialogHeader>
@@ -650,6 +650,7 @@ export function TeamMembersList({
             <Button
               variant="button"
               color="destructive"
+              StartIcon="trash"
               onClick={() => {
                 if (memberToRemove) {
                   removeMember(memberToRemove.user.id);
@@ -669,7 +670,7 @@ export function TeamMembersList({
       <Dialog open={showBulkRemoveDialog} onOpenChange={setShowBulkRemoveDialog}>
         <DialogContent size="md" type="confirmation" title={t("remove_team_members")}>
           <div className="space-y-4">
-            <DialogHeader>
+            <DialogHeader showIcon variant="warning">
               <DialogTitle>{t("remove_team_members")}</DialogTitle>
               <DialogDescription>{t("remove_team_members_description")}</DialogDescription>
             </DialogHeader>
@@ -687,14 +688,8 @@ export function TeamMembersList({
             <div className="flex items-center justify-end space-x-3">
               <Button
                 variant="button"
-                color="minimal"
-                onClick={() => setShowBulkRemoveDialog(false)}
-                disabled={isRemoving}>
-                {t("cancel")}
-              </Button>
-              <Button
-                variant="button"
                 color="destructive"
+                StartIcon="trash"
                 onClick={() => {
                   membersToRemove.forEach((member) => {
                     removeMember(member.user.id);
@@ -706,6 +701,7 @@ export function TeamMembersList({
                 disabled={isRemoving}>
                 {isRemoving ? t("removing") : t("remove_members")}
               </Button>
+              <DialogClose />
             </div>
           </div>
         </DialogContent>

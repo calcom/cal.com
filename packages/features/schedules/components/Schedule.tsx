@@ -319,7 +319,7 @@ const RemoveTimeButton = ({
       type="button"
       variant="icon"
       color="destructive"
-      StartIcon="trash-2"
+      StartIcon="trash"
       onClick={() => remove(index)}
       className={cn("h-8 w-8", className)}
       tooltip={labels?.deleteTime ?? t("delete")}

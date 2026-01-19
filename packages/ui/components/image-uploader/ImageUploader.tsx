@@ -31,6 +31,7 @@ type ImageUploaderProps = {
   uploadInstruction?: string;
   disabled?: boolean;
   testId?: string;
+  startIcon?: ButtonProps["StartIcon"];
 };
 
 // This is separate to prevent loading the component until file upload
@@ -85,6 +86,7 @@ export default function ImageUploader({
   disabled = false,
   testId,
   buttonSize,
+  startIcon,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -141,8 +143,9 @@ export default function ImageUploader({
           type="button"
           disabled={disabled}
           size={buttonSize}
+          StartIcon={startIcon}
           data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
-          className="cursor-pointer px-2 py-2 text-sm">
+          className="cursor-pointer px-2 py-1 text-sm">
           {buttonMsg}
         </Button>
       </DialogTrigger>
