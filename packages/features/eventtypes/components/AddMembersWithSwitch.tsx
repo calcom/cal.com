@@ -4,7 +4,7 @@ import { Controller } from "react-hook-form";
 import type { Options } from "react-select";
 
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
-import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
+import { AddMembersWithSwitchWebWrapper } from "@calcom/web/modules/event-types/components/AddMembersWithSwitchWebWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Segment } from "@calcom/features/Segment";
 import type {

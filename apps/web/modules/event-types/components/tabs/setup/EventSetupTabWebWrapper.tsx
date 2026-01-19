@@ -4,8 +4,8 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { localeOptions } from "@calcom/lib/i18n";
 
-import type { EventSetupTabProps } from "./EventSetupTab";
-import { EventSetupTab } from "./EventSetupTab";
+import type { EventSetupTabProps } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
+import { EventSetupTab } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 
 const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
   const orgBranding = useOrgBranding();
