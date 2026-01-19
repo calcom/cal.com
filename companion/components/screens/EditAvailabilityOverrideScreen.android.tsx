@@ -35,6 +35,11 @@ const dateToTimeString = (date: Date): string => {
   return `${hours}:${minutes}`;
 };
 
+// Normalize time string to HH:mm format (API may return HH:mm:ss)
+const normalizeTimeString = (time: string): string => {
+  return time.substring(0, 5);
+};
+
 // Convert Date to date string (YYYY-MM-DD)
 const dateToDateString = (date: Date): string => {
   const year = date.getFullYear();
@@ -105,8 +110,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       const override = schedule.overrides[overrideIndex];
       if (override) {
         setSelectedDate(dateStringToDate(override.date ?? ""));
-        const start = override.startTime ?? "00:00";
-        const end = override.endTime ?? "00:00";
+        // Normalize time strings to HH:mm (API may return HH:mm:ss)
+        const start = normalizeTimeString(override.startTime ?? "00:00");
+        const end = normalizeTimeString(override.endTime ?? "00:00");
         setIsUnavailable(start === "00:00" && end === "00:00");
         setStartTime(timeStringToDate(start === "00:00" ? "09:00" : start));
         setEndTime(timeStringToDate(end === "00:00" ? "17:00" : end));
@@ -254,6 +260,32 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       : "Override added successfully";
 
     if (isEditing && overrideIndex !== undefined) {
+      // Check if date was changed to one that already exists (exclude current override)
+      const existingIndex = newOverrides.findIndex(
+        (o, idx) => o.date === dateStr && idx !== overrideIndex
+      );
+      if (existingIndex >= 0) {
+        Alert.alert(
+          "Date Already Exists",
+          "An override for this date already exists. Do you want to replace it?",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Replace",
+              onPress: () => {
+                // Remove the conflicting override and update the current one
+                const filteredOverrides = newOverrides.filter((_, idx) => idx !== existingIndex);
+                // Adjust index if the removed item was before our edit index
+                const adjustedIndex =
+                  existingIndex < overrideIndex ? overrideIndex - 1 : overrideIndex;
+                filteredOverrides[adjustedIndex] = newOverride;
+                saveOverrides(filteredOverrides, "Override updated successfully");
+              },
+            },
+          ]
+        );
+        return;
+      }
       // Update existing override
       newOverrides[overrideIndex] = newOverride;
     } else {
@@ -414,12 +446,13 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                   <Text className="text-[15px] text-black">
                     {formatDateForDisplay(dateStringToDate(override.date ?? ""))}
                   </Text>
-                  {override.startTime === "00:00" && override.endTime === "00:00" ? (
+                  {normalizeTimeString(override.startTime ?? "00:00") === "00:00" &&
+                  normalizeTimeString(override.endTime ?? "00:00") === "00:00" ? (
                     <Text className="text-[13px] text-[#FF3B30]">Unavailable</Text>
                   ) : (
                     <Text className="text-[13px] text-[#8E8E93]">
-                      {formatTime12Hour(override.startTime ?? "00:00")} –{" "}
-                      {formatTime12Hour(override.endTime ?? "00:00")}
+                      {formatTime12Hour(normalizeTimeString(override.startTime ?? "00:00"))} –{" "}
+                      {formatTime12Hour(normalizeTimeString(override.endTime ?? "00:00"))}
                     </Text>
                   )}
                 </View>
