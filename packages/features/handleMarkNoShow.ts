@@ -19,7 +19,6 @@ import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -30,42 +29,7 @@ import type { TFunction } from "i18next";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
-const log = logger.getSubLogger({ prefix: ["handleMarkNoShow"] });
-
 export type NoShowAttendees = { email: string; noShow: boolean }[];
-
-function getAuditActor({
-  userUuid,
-  attendeeEmail,
-  bookingUid,
-}: {
-  userUuid: string | null;
-  attendeeEmail: string | null;
-  bookingUid: string;
-}): Actor {
-  if (userUuid) {
-    return makeUserActor(userUuid);
-  }
-
-  let actorEmail: string;
-  if (!attendeeEmail) {
-    log.warn(
-      "No attendee email available, creating fallback guest actor for audit",
-      safeStringify({ bookingUid })
-    );
-    actorEmail = buildActorEmail({
-      identifier: getUniqueIdentifier({ prefix: "fallback" }),
-      actorType: "guest",
-    });
-  } else {
-    actorEmail = buildActorEmail({
-      identifier: getUniqueIdentifier({ prefix: "attendee" }),
-      actorType: "guest",
-    });
-  }
-
-  return makeGuestActor({ email: actorEmail, name: null });
-}
 
 const buildResultPayload = async (
   bookingUid: string,
@@ -129,32 +93,28 @@ class ResponsePayload {
   }
 }
 
-const handleMarkNoShow = async ({
+/**
+ * Internal function that handles both host and attendee no-show marking.
+ * Use the wrapper functions `handleMarkHostNoShow` and `handleMarkAttendeeNoShow` instead.
+ */
+const handleMarkNoShowInternal = async ({
   bookingUid,
   attendees,
   noShowHost,
   userId,
-  userUuid,
+  actor,
   locale,
   platformClientParams,
   actionSource,
-  attendeeEmail,
 }: TNoShowInputSchema & {
   userId?: number;
-  userUuid?: string;
+  actor: Actor;
   locale?: string;
   platformClientParams?: PlatformClientParams;
   actionSource: ValidActionSource;
-  attendeeEmail?: string;
 }) => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
-
-  const actor = getAuditActor({
-    userUuid: userUuid ?? null,
-    attendeeEmail: attendeeEmail ?? null,
-    bookingUid,
-  });
 
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
@@ -399,8 +359,6 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
-      const bookingRepo = new BookingRepository(prisma);
-
       const bookingEventHandlerService = getBookingEventHandlerService();
       await bookingEventHandlerService.onHostNoShowUpdated({
         bookingUid,
@@ -526,6 +484,114 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
       message: "Cannot mark no-show before the meeting has started.",
     });
   }
+};
+
+// ============================================================================
+// Wrapper Functions for Different Authentication Contexts
+// ============================================================================
+
+/**
+ * Handle marking host as no-show.
+ * This is called from public/unauthenticated endpoints where an attendee marks the host as absent.
+ *
+ * TODO: Track which attendee actually called the endpoint that caused the action.
+ * Currently this endpoint is completely anonymous and public.
+ */
+export const handleMarkHostNoShow = async ({
+  bookingUid,
+  noShowHost,
+  actionSource,
+  locale,
+  platformClientParams,
+}: {
+  bookingUid: string;
+  noShowHost: boolean;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+}) => {
+  const actorEmail = buildActorEmail({
+    identifier: getUniqueIdentifier({ prefix: "attendee" }),
+    actorType: "guest",
+  });
+
+  // TODO: Accept attendee email/name from the caller to track which attendee triggered this action
+  const actor = makeGuestActor({ email: actorEmail, name: null });
+
+  return handleMarkNoShowInternal({
+    bookingUid,
+    noShowHost,
+    actor,
+    actionSource,
+    locale,
+    platformClientParams,
+  });
+};
+
+/**
+ * Handle marking attendees as no-show.
+ * This is called from authenticated endpoints where a logged-in host marks attendees as absent.
+ * Requires userId and userUuid for proper authorization and audit tracking.
+ */
+export const handleMarkAttendeeNoShow = async ({
+  bookingUid,
+  attendees,
+  noShowHost,
+  userId,
+  userUuid,
+  actionSource,
+  locale,
+  platformClientParams,
+}: {
+  bookingUid: string;
+  attendees?: { email: string; noShow: boolean }[];
+  noShowHost?: boolean;
+  userId: number;
+  userUuid: string;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+}) => {
+  const actor = makeUserActor(userUuid);
+
+  return handleMarkNoShowInternal({
+    bookingUid,
+    attendees,
+    noShowHost,
+    userId,
+    actor,
+    actionSource,
+    locale,
+    platformClientParams,
+  });
+};
+
+const handleMarkNoShow = async ({
+  bookingUid,
+  attendees,
+  noShowHost,
+  userId,
+  locale,
+  platformClientParams,
+  actionSource,
+  actor,
+}: TNoShowInputSchema & {
+  userId?: number;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+  actionSource: ValidActionSource;
+  actor: Actor;
+}) => {
+  return handleMarkNoShowInternal({
+    bookingUid,
+    attendees,
+    noShowHost,
+    userId,
+    actor,
+    actionSource,
+    locale,
+    platformClientParams,
+  });
 };
 
 export default handleMarkNoShow;
