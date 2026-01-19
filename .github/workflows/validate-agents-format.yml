@@ -26,4 +26,4 @@ jobs:
         run: npm install -g tsx
 
       - name: Validate format
-        run: npx tsx scripts/validate-format.ts
+        run: npx tsx scripts/devin-knowledge-validate.ts
