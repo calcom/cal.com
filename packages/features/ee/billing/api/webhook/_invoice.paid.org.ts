@@ -141,9 +141,9 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       // TODO: Write actual status when webhook events are added
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
-      subscriptionStart,
-      subscriptionEnd,
-      subscriptionTrialEnd,
+      subscriptionStart: subscriptionStart ?? undefined,
+      subscriptionEnd: subscriptionEnd ?? undefined,
+      subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
       billingPeriod,
       pricePerSeat,
       paidSeats,

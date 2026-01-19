@@ -110,9 +110,9 @@ async function getHandler(req: NextRequest) {
       // TODO: Implement true subscription status when webhook events are implemented
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.TEAM,
-      subscriptionStart,
-      subscriptionEnd,
-      subscriptionTrialEnd,
+      subscriptionStart: subscriptionStart ?? undefined,
+      subscriptionEnd: subscriptionEnd ?? undefined,
+      subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
       billingPeriod,
       pricePerSeat,
       paidSeats,

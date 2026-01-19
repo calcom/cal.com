@@ -490,9 +490,9 @@ export class MonthlyProrationService {
           billingPeriod,
           pricePerSeat,
           paidSeats,
-          subscriptionStart,
-          subscriptionEnd,
-          subscriptionTrialEnd,
+          subscriptionStart: subscriptionStart ?? null,
+          subscriptionEnd: subscriptionEnd ?? null,
+          subscriptionTrialEnd: subscriptionTrialEnd ?? null,
         };
 
         const createdBilling = isOrganization
@@ -518,8 +518,8 @@ export class MonthlyProrationService {
 
       billing.billingPeriod = billingPeriod;
       billing.pricePerSeat = pricePerSeat;
-      billing.subscriptionStart = subscriptionStart;
-      billing.subscriptionEnd = subscriptionEnd;
+      billing.subscriptionStart = subscriptionStart ?? null;
+      billing.subscriptionEnd = subscriptionEnd ?? null;
       billing.subscriptionItemId = subscriptionItemId;
       if (needsCreation) {
         billing.customerId = customerId;
