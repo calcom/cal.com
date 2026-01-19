@@ -1,42 +1,32 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
-  IsNumber,
-  IsString,
   IsArray,
-  ValidateNested,
   IsDateString,
+  IsNumber,
   IsOptional,
-  registerDecorator,
-  type ValidationOptions,
-  type ValidationArguments,
+  IsString,
   IsTimeZone,
+  registerDecorator,
+  ValidateNested,
+  type ValidationArguments,
+  type ValidationOptions,
 } from "class-validator";
 
 import { normalizeTimezone } from "../../utils/normalizeTimezone";
 
-export class Calendar {
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @ApiProperty()
-  credentialId!: number;
-
-  @IsString()
-  @ApiProperty()
-  externalId!: string;
-}
-
-function ValidateTimezoneRequired(validationOptions?: ValidationOptions) {
-  return function (object: new () => object) {
+function ValidateTimezoneRequired(
+  validationOptions?: ValidationOptions
+): (target: new (...args: unknown[]) => unknown) => void {
+  return (target: new (...args: unknown[]) => unknown) => {
     registerDecorator({
       name: "validateTimezoneRequired",
-      target: object,
-      propertyName: "timezone",
+      target: target as new (...args: unknown[]) => unknown,
+      propertyName: "timeZone",
       options: validationOptions,
       constraints: [],
       validator: {
-        validate(_: unknown, args: ValidationArguments) {
+        validate(_: unknown, args: ValidationArguments): boolean {
           const obj = args.object as CalendarBusyTimesInput;
           return !!obj.timeZone || !!obj.loggedInUsersTz;
         },
@@ -46,6 +36,17 @@ function ValidateTimezoneRequired(validationOptions?: ValidationOptions) {
       },
     });
   };
+}
+
+export class Calendar {
+  @Transform(({ value }: { value: string }) => value && parseInt(value, 10))
+  @IsNumber()
+  @ApiProperty()
+  credentialId!: number;
+
+  @IsString()
+  @ApiProperty()
+  externalId!: string;
 }
 
 @ValidateTimezoneRequired()
