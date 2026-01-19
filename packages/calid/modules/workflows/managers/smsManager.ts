@@ -148,6 +148,11 @@ const buildMessageVariables = (
   eventEndTimeInAttendeeTimezone: dayjs(eventInfo.endTime).tz(eventInfo.attendees[0].timeZone),
 });
 
+const getEventTitleFromBookingTitle = (str: string) => {
+  const match = str.match(/^(.*?)\s+between\b/i);
+  return match ? match[1].trim() : "";
+};
+
 const generateMessageContent = (
   messageTemplate: string,
   workflowTemplate: WorkflowTemplates | undefined,
@@ -181,7 +186,12 @@ const generateMessageContent = (
     // Determine recipient name and event details for interpolation
     const recipientName =
       actionType === WorkflowActions.SMS_ATTENDEE ? targetParticipant.name : eventDetails.organizer.name;
-    const eventTitle = eventDetails.title;
+    // const eventTitle = eventDetails.title;
+    const eventTitle = `${
+      eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title)
+    } with ${
+      actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name
+    }`;
 
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
