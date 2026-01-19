@@ -2,6 +2,7 @@ import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Prisma } from "@calcom/prisma/client";
@@ -292,9 +293,10 @@ export default async function handleChildrenEventTypes({
           : key === "beforeBufferTime"
           ? "beforeEventBuffer"
           : key;
+      // @ts-expect-error Element implicitly has any type
       acc[mappedKey] = true;
       return acc;
-    }, {} as Record<string, boolean>);
+    }, {});
 
     // Prepare payload: Omit unlocked fields and the "children" property
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
@@ -322,18 +324,18 @@ export default async function handleChildrenEventTypes({
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            ...(!unlockedFieldProps.schedule ? { scheduleId: eventType.scheduleId || null } : {}),
+            ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,
-            hashedLink: unlockedFieldProps.multiplePrivateLinks ? undefined : { deleteMany: {} },
+            hashedLink: "multiplePrivateLinks" in unlockedFieldProps ? undefined : { deleteMany: {} },
             allowReschedulingCancelledBookings:
               managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
             metadata: {
               ...(eventType.metadata as Prisma.JsonObject),
-              ...(metadata?.multipleDuration && unlockedFieldProps.length
+              ...(metadata?.multipleDuration && "length" in unlockedFieldProps
                 ? { multipleDuration: metadata.multipleDuration }
                 : {}),
-              ...(metadata?.apps && unlockedFieldProps.apps ? { apps: metadata.apps } : {}),
+              ...(metadata?.apps && "apps" in unlockedFieldProps ? { apps: metadata.apps } : {}),
             },
           },
         });
@@ -364,12 +366,12 @@ export default async function handleChildrenEventTypes({
     const { successes: oldEventTypes, failures: failedUpdates } = await executeBatch(oldUserIds);
 
     if (failedUpdates.length > 0) {
-      console.log(`Retrying ${failedUpdates.length} failed updates...`);
+      logger.info(`Retrying ${failedUpdates.length} failed updates...`);
       const retry = await executeBatch(failedUpdates.map((f) => f.userId));
       oldEventTypes.push(...retry.successes);
       // Any remaining failures in retry.failures are permanent
       if (retry.failures.length > 0) {
-        console.log("handleChildrenEventType - Could not update managed event-type", {
+        logger.error("handleChildrenEventType - Could not update managed event-type", {
           parentId,
           userIds: retry.failures.map((failure) => failure.userId),
         });
