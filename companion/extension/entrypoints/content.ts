@@ -1186,7 +1186,7 @@ export default defineContentScript({
 
                   editBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    const editUrl = `https://app.cal.com/event-types/${eventType.id}?standalone=true`;
+                    const editUrl = `https://app.cal.com/event-types/${eventType.id}`;
                     window.open(editUrl, "_blank");
                   });
                   editBtn.addEventListener("mouseenter", () => {
@@ -1931,7 +1931,7 @@ export default defineContentScript({
 
               editBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
-                const editUrl = `https://app.cal.com/event-types/${eventType.id}?standalone=true`;
+                const editUrl = `https://app.cal.com/event-types/${eventType.id}`;
                 window.open(editUrl, "_blank");
               });
               editBtn.addEventListener("mouseenter", () => {
@@ -3405,7 +3405,7 @@ export default defineContentScript({
               const username =
                 eventTypes.length > 0 ? eventTypes[0].users?.[0]?.username || "user" : "user";
 
-              const createUrl = `https://app.cal.com/event-types?dialog=new&eventPage=${username}&standalone=true`;
+              const createUrl = `https://app.cal.com/event-types?dialog=new&eventPage=${username}`;
               window.open(createUrl, "_blank");
               showGmailNotification(
                 `Opening Cal.com to create ${parsedData.detectedDuration}min event type`,
