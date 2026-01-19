@@ -11482,6 +11482,7 @@
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
         "summary": "Get all managed users",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11553,6 +11554,7 @@
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
         "summary": "Create a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11603,6 +11605,7 @@
       "get": {
         "operationId": "OAuthClientUsersController_getUserById",
         "summary": "Get a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11649,6 +11652,7 @@
       "patch": {
         "operationId": "OAuthClientUsersController_updateUser",
         "summary": "Update a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11705,6 +11709,7 @@
       "delete": {
         "operationId": "OAuthClientUsersController_deleteUser",
         "summary": "Delete a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11753,7 +11758,7 @@
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11802,7 +11807,7 @@
       "post": {
         "operationId": "OAuthFlowController_refreshTokens",
         "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
           {
             "name": "clientId",
@@ -11853,6 +11858,7 @@
       "post": {
         "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
         "summary": "Create a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11901,6 +11907,7 @@
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
         "summary": "Get all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -11964,6 +11971,7 @@
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
         "summary": "Delete all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12004,6 +12012,7 @@
       "patch": {
         "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
         "summary": "Update a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12052,6 +12061,7 @@
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
         "summary": "Get a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12082,6 +12092,7 @@
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
         "summary": "Delete a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -12114,6 +12125,7 @@
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
         "summary": "Create an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12154,6 +12166,7 @@
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
         "summary": "Get all OAuth clients",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12186,6 +12199,7 @@
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientById",
         "summary": "Get an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12224,6 +12238,7 @@
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
         "summary": "Update an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -12272,6 +12287,7 @@
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
         "summary": "Delete an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
           {
             "name": "Authorization",
@@ -15743,6 +15759,46 @@
         },
         "tags": [
           "Teams / Event Types / Webhooks"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/invite": {
+      "post": {
+        "operationId": "TeamsInviteController_createInvite",
+        "summary": "Create team invite link",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateInviteOutputDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Invite"
         ]
       }
     },
@@ -24734,7 +24790,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success"
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/InviteDataDto"
