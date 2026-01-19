@@ -4,6 +4,7 @@ import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -11,7 +12,7 @@ import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
@@ -185,15 +186,17 @@ export default async function handler(body: Record<string, string>) {
       }
     }
 
+    const userRepository = new UserRepository(prisma);
+
     try {
-      await prisma.user.create({
-        data: {
-          username: correctedUsername,
-          email: userEmail,
-          password: { create: { hash: hashedPassword } },
-          identityProvider: IdentityProvider.CAL,
-        },
-        select: { id: true },
+      await userRepository.create({
+        username: correctedUsername,
+        email: userEmail,
+        hashedPassword,
+        identityProvider: IdentityProvider.CAL,
+        organizationId: null,
+        creationSource: CreationSource.WEBAPP,
+        locked: false,
       });
     } catch (error) {
       // Fallback for race conditions where user was created between our check and create

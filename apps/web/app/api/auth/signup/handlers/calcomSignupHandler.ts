@@ -8,6 +8,7 @@ import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/cr
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -253,19 +254,20 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
+    const userRepository = new UserRepository(prisma);
+
     try {
-      await prisma.user.create({
-        data: {
-          username,
-          email,
-          locked: shouldLockByDefault,
-          password: { create: { hash: hashedPassword } },
-          metadata: {
-            stripeCustomerId: customer.stripeCustomerId,
-            checkoutSessionId,
-          },
-          creationSource: CreationSource.WEBAPP,
+      await userRepository.create({
+        username,
+        email,
+        locked: shouldLockByDefault,
+        hashedPassword,
+        metadata: {
+          stripeCustomerId: customer.stripeCustomerId,
+          checkoutSessionId,
         },
+        creationSource: CreationSource.WEBAPP,
+        organizationId: null,
       });
     } catch (error) {
       // Fallback for race conditions where user was created between our check and create
