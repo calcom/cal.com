@@ -6,7 +6,7 @@ import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 const metaPixelIdSchema = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => val === "" || /^[0-9]{1,20}$/.test(val), {
+  .refine((val) => val === "" || /^[0-9]{15,16}$/.test(val), {
     message: "Invalid Meta Pixel ID format. Expected a numeric ID (e.g., 1234567890123456)",
   })
   .optional();

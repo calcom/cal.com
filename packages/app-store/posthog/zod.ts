@@ -7,7 +7,7 @@ const posthogIdSchema = z
   .string()
   .transform((val) => val.trim())
   .refine((val) => !val || /^[A-Za-z0-9_]+$/.test(val), {
-    message: "Invalid PostHog Project API Key format. Expected alphanumeric characters",
+    message: "Invalid PostHog Project API Key format. Expected alphanumeric characters or underscores",
   })
   .optional();
 
