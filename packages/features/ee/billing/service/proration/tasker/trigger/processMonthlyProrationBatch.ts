@@ -14,9 +14,28 @@ export const processMonthlyProrationBatch = schemaTask({
 
     const prorationService = getMonthlyProrationService();
 
-    await prorationService.processMonthlyProrations({
+    const { results, errors } = await prorationService.processMonthlyProrations({
       monthKey: payload.monthKey,
       teamIds: payload.teamIds,
     });
+
+    // Re-queue failed teams individually for retry
+    if (errors.length > 0 && payload.teamIds.length > 1) {
+      // Only retry if this was a batch (not already a retry of single team)
+      await processMonthlyProrationBatch.batchTrigger(
+        errors.map(({ teamId }) => ({
+          payload: {
+            monthKey: payload.monthKey,
+            teamIds: [teamId],
+          },
+        }))
+      );
+    }
+
+    return {
+      processedCount: results.length,
+      failedCount: errors.length,
+      retriedTeams: payload.teamIds.length > 1 ? errors.map((e) => e.teamId) : [],
+    };
   },
 });
