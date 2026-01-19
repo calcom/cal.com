@@ -21,7 +21,7 @@ import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
-import WeightDescription from "./WeightDescription";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 
 interface IDialog {
   isOpenDialog: boolean;
