@@ -5,7 +5,7 @@ import {
   makeGuestActor,
   makeUserActor,
 } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
@@ -34,11 +34,6 @@ const log = logger.getSubLogger({ prefix: ["handleMarkNoShow"] });
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
 
-/**
- * Creates an actor for audit logging.
- * Prefers user actor when userUuid is available (authenticated action).
- * Falls back to guest actor for unauthenticated actions (e.g., public markHostAsNoShow).
- */
 function getAuditActor({
   userUuid,
   attendeeEmail,
@@ -52,7 +47,6 @@ function getAuditActor({
     return makeUserActor(userUuid);
   }
 
-  // Fallback to guest actor for unauthenticated actions (e.g., attendee marking host as no-show)
   let actorEmail: string;
   if (!attendeeEmail) {
     log.warn(
@@ -64,7 +58,6 @@ function getAuditActor({
       actorType: "guest",
     });
   } else {
-    // Use a unique identifier based on the attendee email to avoid PII in actor email
     actorEmail = buildActorEmail({
       identifier: getUniqueIdentifier({ prefix: "attendee" }),
       actorType: "guest",
@@ -151,19 +144,12 @@ const handleMarkNoShow = async ({
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
-  actionSource?: ActionSource;
+  actionSource: ValidActionSource;
   attendeeEmail?: string;
 }) => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
-  // Extract action source once for reuse
-  const source = actionSource ?? "UNKNOWN";
-  if (source === "UNKNOWN") {
-    log.warn("Mark no-show action with unknown actionSource", safeStringify({ bookingUid }));
-  }
-
-  // Get actor for audit logging
   const actor = getAuditActor({
     userUuid: userUuid ?? null,
     attendeeEmail: attendeeEmail ?? null,
@@ -395,16 +381,13 @@ const handleMarkNoShow = async ({
 
         const bookingEventHandlerService = getBookingEventHandlerService();
 
-        // Log audit for each attendee that was marked as no-show
         for (const attendee of payload.attendees) {
           await bookingEventHandlerService.onAttendeeNoShowUpdated({
             bookingUid,
             actor,
             organizationId: attendeeOrgId ?? null,
-            source,
+            source: actionSource,
             auditData: {
-              // We don't have the old value easily accessible here, so we use null
-              // The new value is what was set in the update
               noShowAttendee: { old: null, new: attendee.noShow },
             },
           });
@@ -413,7 +396,6 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
-      // Get booking info for audit logging (organization ID)
       const bookingForAudit = await prisma.booking.findUnique({
         where: { uid: bookingUid },
         select: {
@@ -435,20 +417,17 @@ const handleMarkNoShow = async ({
         },
       });
 
-      // Get organization ID for audit logging
       const orgId = await getOrgIdFromMemberOrTeamId({
         memberId: bookingForAudit?.eventType?.userId,
         teamId: bookingForAudit?.eventType?.teamId,
       });
 
-      // Log host no-show audit
-      // Note: old value is always null/false since hosts can only be marked as no-show, not unmarked
       const bookingEventHandlerService = getBookingEventHandlerService();
       await bookingEventHandlerService.onHostNoShowUpdated({
         bookingUid,
         actor,
         organizationId: orgId ?? null,
-        source,
+        source: actionSource,
         auditData: {
           noShowHost: { old: null, new: true },
         },
