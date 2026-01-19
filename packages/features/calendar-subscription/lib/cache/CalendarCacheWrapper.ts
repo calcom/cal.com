@@ -214,7 +214,7 @@ export class CalendarCacheWrapper implements Calendar {
     return this.deps.originalCalendar.listCalendars(event);
   }
 
-  testDelegationCredentialSetup?(): Promise<boolean> {
-    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
+  testDelegationCredentialSetup?(): Promise<void> {
+    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve();
   }
 }
