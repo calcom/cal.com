@@ -1,12 +1,11 @@
-import { isValidPhoneNumber } from "libphonenumber-js/max";
-import z from "zod";
-
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
+import z from "zod";
 
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
@@ -48,9 +47,158 @@ const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
 };
 export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
+  const preprocessedSchema = preprocess({ schema, bookingFields, isPartialSchema: true, view, translateFn });
 
-  return preprocess({ schema, bookingFields, isPartialSchema: true, view, translateFn });
+  // Wrap the schema to handle field-by-field parsing on failure
+  return z.custom<Record<string, unknown>>().transform(async (input, ctx) => {
+    const responses = z.record(z.any()).nullable().parse(input) || {};
+
+    // Try full schema parse first
+    const result = await preprocessedSchema.safeParseAsync(responses);
+    if (result.success) {
+      return result.data;
+    }
+
+    // If full parse fails, fall back to field-by-field parsing
+    if (!bookingFields) {
+      return responses;
+    }
+
+    return parseFieldByField(responses, bookingFields, view);
+  });
 };
+
+/**
+ * Validates a single field value for partial schema prefilling.
+ * Returns the preprocessed value if valid, or undefined if invalid.
+ */
+function validateSingleFieldForPrefill(
+  fieldName: string,
+  value: unknown,
+  bookingFields: NonNullable<BookingFields>,
+  currentView: View
+): { isValid: boolean; processedValue: unknown; error?: string } {
+  const log = logger.getSubLogger({ prefix: ["validateSingleFieldForPrefill"] });
+  const field = bookingFields.find((f) => f.name === fieldName);
+
+  if (!field) {
+    return { isValid: true, processedValue: value };
+  }
+
+  const views = field.views;
+  const isFieldApplicableToCurrentView =
+    currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
+
+  if (!isFieldApplicableToCurrentView) {
+    return { isValid: true, processedValue: value };
+  }
+
+  let processedValue: unknown = value;
+
+  const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
+  if (fieldTypeSchema) {
+    // fieldTypeSchema.preprocess expects a string response
+    if (typeof value !== "string" && typeof value !== "object") {
+      return {
+        isValid: false,
+        processedValue: undefined,
+        error: `Expected string or object for field type ${field.type}`,
+      };
+    }
+    processedValue = fieldTypeSchema.preprocess({
+      response: value as string,
+      isPartialSchema: true,
+      field,
+    });
+  } else if (field.type === "boolean") {
+    processedValue = value === "true" || value === true;
+  } else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
+    processedValue = value instanceof Array ? value : [value];
+  } else if (field.type === "radioInput" && typeof value === "string") {
+    let parsedValue = { optionValue: "", value: "" };
+    try {
+      parsedValue = JSON.parse(value);
+    } catch (e) {
+      log.debug(`Failed to parse JSON for field ${field.name}, skipping prefill`);
+      return { isValid: false, processedValue: undefined, error: `Invalid JSON for radioInput field` };
+    }
+    const optionsInputs = field.optionsInputs;
+    const optionInputField = optionsInputs?.[parsedValue.value];
+    if (optionInputField && optionInputField.type === "phone") {
+      parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+    }
+    processedValue = parsedValue;
+  } else if (field.type === "phone") {
+    processedValue = ensureValidPhoneNumber(value as string);
+  }
+
+  if (field.type === "email") {
+    const emailResult = z.string().safeParse(processedValue);
+    if (!emailResult.success) {
+      return { isValid: false, processedValue: undefined, error: `Invalid email format` };
+    }
+  } else if (field.type === "phone") {
+    const phoneResult = z.string().safeParse(processedValue);
+    if (!phoneResult.success) {
+      return { isValid: false, processedValue: undefined, error: `Invalid phone format` };
+    }
+  } else if (field.type === "boolean") {
+    const boolResult = z.boolean().safeParse(processedValue);
+    if (!boolResult.success) {
+      return { isValid: false, processedValue: undefined, error: `Invalid boolean value` };
+    }
+  } else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
+    const arrayResult = z.array(z.string()).safeParse(processedValue);
+    if (!arrayResult.success) {
+      return { isValid: false, processedValue: undefined, error: `Invalid array format` };
+    }
+  } else if (["address", "text", "select", "number", "radio", "textarea"].includes(field.type)) {
+    const stringResult = z.string().safeParse(processedValue);
+    if (!stringResult.success) {
+      return { isValid: false, processedValue: undefined, error: `Invalid string value` };
+    }
+  }
+
+  return { isValid: true, processedValue };
+}
+
+/**
+ * Parses responses field by field, collecting only valid fields.
+ * This is used as a fallback when full schema validation fails for partial prefill.
+ */
+function parseFieldByField(
+  responses: Record<string, unknown>,
+  bookingFields: NonNullable<BookingFields>,
+  currentView: View
+): Record<string, unknown> {
+  const log = logger.getSubLogger({ prefix: ["parseFieldByField"] });
+  const validResponses: Record<string, unknown> = {};
+  const skippedFields: Array<{ field: string; reason: string }> = [];
+
+  for (const [fieldName, value] of Object.entries(responses)) {
+    if (value === undefined) {
+      continue;
+    }
+
+    const result = validateSingleFieldForPrefill(fieldName, value, bookingFields, currentView);
+
+    if (result.isValid) {
+      validResponses[fieldName] = result.processedValue;
+    } else {
+      skippedFields.push({ field: fieldName, reason: result.error || "validation failed" });
+    }
+  }
+
+  if (skippedFields.length > 0) {
+    log.debug(
+      `Partial prefill: skipped ${skippedFields.length} invalid field(s): ${skippedFields
+        .map((f) => `${f.field} (${f.reason})`)
+        .join(", ")}`
+    );
+  }
+
+  return validResponses;
+}
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
@@ -230,7 +378,9 @@ function preprocess<T extends z.ZodType>({
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((excludedEntry) => doesEmailMatchEntry(bookerEmail, excludedEntry));
+            const match = excludedEmails.find((excludedEntry) =>
+              doesEmailMatchEntry(bookerEmail, excludedEntry)
+            );
             if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -384,7 +534,7 @@ function preprocess<T extends z.ZodType>({
   );
   if (isPartialSchema) {
     // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
-    return preprocessed.catch(function (res?: { error?: unknown[] }) {
+    return preprocessed.catch((res?: { error?: unknown[] }) => {
       console.error("Failed to preprocess query params, prefilling will be skipped", res?.error);
       return {};
     });
