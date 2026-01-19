@@ -26,5 +26,4 @@ jobs:
         run: npm install -g tsx
 
       - name: Validate format
-        working-directory: agents
-        run: npx tsx validate-format.ts
+        run: npx tsx scripts/validate-format.ts

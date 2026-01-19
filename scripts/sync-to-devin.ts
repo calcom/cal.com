@@ -145,7 +145,7 @@ async function main() {
   const args = process.argv.slice(2);
   const deleteRemoved = args.includes("--delete-removed");
 
-  const agentsDir = path.dirname(__filename);
+  const agentsDir = path.join(path.dirname(__filename), "..", "agents");
   const jsonPath = path.join(agentsDir, "devin-knowledge.json");
 
   if (!fs.existsSync(jsonPath)) {
