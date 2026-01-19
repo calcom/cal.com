@@ -31,4 +31,4 @@ jobs:
 
       - name: Type check
         working-directory: companion
-        run: bun run typecheck
+        run: bun run typecheck:all
