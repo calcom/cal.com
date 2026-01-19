@@ -11,4 +11,5 @@ export enum ExchangeVersion {
   Exchange2013_SP1 = 5,
   Exchange2015 = 6,
   Exchange2016 = 7,
+  Exchange2019 = 8,
 }

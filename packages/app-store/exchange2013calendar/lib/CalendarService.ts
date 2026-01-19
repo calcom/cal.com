@@ -34,12 +34,15 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { ExchangeAuthentication } from "../../exchangecalendar/enums";
+
 class ExchangeCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
   private readonly exchangeVersion: ExchangeVersion;
   private credentials: Record<string, string>;
+  private authenticationMethod: ExchangeAuthentication;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "exchange2013_calendar";
@@ -52,6 +55,8 @@ class ExchangeCalendarService implements Calendar {
     const username = decryptedCredential.username;
     const url = decryptedCredential.url;
     const password = decryptedCredential.password;
+    const authenticationMethod = decryptedCredential.authenticationMethod ?? ExchangeAuthentication.STANDARD;
+    const exchangeVersion = decryptedCredential.exchangeVersion ?? ExchangeVersion.Exchange2013;
 
     this.url = url;
 
@@ -59,12 +64,13 @@ class ExchangeCalendarService implements Calendar {
       username,
       password,
     };
-    this.exchangeVersion = ExchangeVersion.Exchange2013;
+    this.authenticationMethod = authenticationMethod;
+    this.exchangeVersion = exchangeVersion;
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      const appointment = new Appointment(this.getExchangeService()); // service instance of ExchangeService
+      const appointment = new Appointment(await this.getExchangeService()); // service instance of ExchangeService
       appointment.Subject = event.title;
       appointment.Start = DateTime.Parse(event.startTime); // moment string
       appointment.End = DateTime.Parse(event.endTime); // moment string
@@ -101,7 +107,7 @@ class ExchangeCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     try {
       const appointment = await Appointment.Bind(
-        this.getExchangeService(),
+        await this.getExchangeService(),
         new ItemId(uid),
         new PropertySet()
       );
@@ -131,7 +137,7 @@ class ExchangeCalendarService implements Calendar {
   async deleteEvent(uid: string) {
     try {
       const appointment = await Appointment.Bind(
-        this.getExchangeService(),
+        await this.getExchangeService(),
         new ItemId(uid),
         new PropertySet()
       );
@@ -192,7 +198,7 @@ class ExchangeCalendarService implements Calendar {
   async listCalendars() {
     try {
       const allFolders: IntegrationCalendar[] = [];
-      return this.getExchangeService()
+      return (await this.getExchangeService())
         .FindFolders(WellKnownFolderName.MsgFolderRoot, new FolderView(1000))
         .then(async (res) => {
           for (const k in res.Folders) {
@@ -229,10 +235,20 @@ class ExchangeCalendarService implements Calendar {
     }
   }
 
-  private getExchangeService(): ExchangeService {
+  private async getExchangeService(): Promise<ExchangeService> {
     const exch1 = new ExchangeService(this.exchangeVersion);
     exch1.Credentials = new WebCredentials(this.credentials.username, this.credentials.password);
     exch1.Url = new Uri(this.url);
+    
+    // Add NTLM authentication support for on-premise Exchange servers
+    if (this.authenticationMethod === ExchangeAuthentication.NTLM) {
+      const { XhrApi } = await import("@ewsjs/xhr");
+      const xhr = new XhrApi({
+        rejectUnauthorized: false,
+      }).useNtlmAuthentication(this.credentials.username, this.credentials.password);
+      exch1.XHRApi = xhr;
+    }
+    
     return exch1;
   }
 }

@@ -61,6 +61,7 @@ export default function ExchangeSetup() {
     { value: ExchangeVersion.Exchange2013_SP1, label: t("exchange_version_2013_SP1") },
     { value: ExchangeVersion.Exchange2015, label: t("exchange_version_2015") },
     { value: ExchangeVersion.Exchange2016, label: t("exchange_version_2016") },
+    { value: ExchangeVersion.Exchange2019, label: t("exchange_version_2019") },
   ];
 
   return (

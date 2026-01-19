@@ -8,6 +8,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { ExchangeAuthentication, ExchangeVersion } from "../../exchangecalendar/enums";
 import { BuildCalendarService } from "../lib";
 
 const bodySchema = z
@@ -15,6 +16,8 @@ const bodySchema = z
     username: z.string(),
     password: z.string(),
     url: z.string().url(),
+    authenticationMethod: z.number().default(ExchangeAuthentication.STANDARD),
+    exchangeVersion: z.number().default(ExchangeVersion.Exchange2013),
   })
   .strict();
 
