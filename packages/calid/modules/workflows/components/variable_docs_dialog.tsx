@@ -23,6 +23,10 @@ interface VariableDoc {
 
 const VARIABLE_DOCUMENTATION: VariableDoc[] = [
   {
+    variable: "{{event_type_name}}",
+    description: "The title or name of the event type",
+  },
+  {
     variable: "{{event_name}}",
     description: "The title or name of the scheduled event",
   },

@@ -58,6 +58,7 @@ const WHATSAPP_WORKFLOW_TEMPLATES = [
 ] as const;
 
 const DYNAMIC_TEXT_VARIABLES = [
+  "event_type_name",
   "event_name",
   "event_date",
   "event_time",
@@ -81,6 +82,7 @@ const DYNAMIC_TEXT_VARIABLES = [
 ];
 
 const META_DYNAMIC_TEXT_VARIABLES = {
+  event_type_name: "event_type_name",
   event_name: "event_name",
   event_date: "event_date",
   event_time: "event_time",
