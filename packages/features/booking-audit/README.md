@@ -51,6 +51,7 @@ The booking audit system uses two complementary fields:
 - **API_V1**: API v1 endpoint
 - **API_V2**: API v2 endpoint
 - **WEBHOOK**: External webhook (e.g., Stripe)
+- **SYSTEM**: Background job (e.g., Tasker's task, trigger.dev job for automatic no-show detection)
 - **UNKNOWN**: Source cannot be determined
 
 ### Actor: The Entity
@@ -204,7 +205,7 @@ The audit system works with third-party queue providers without exposing PII:
 - `operationId`: Required string for correlating related audit logs
 - `data`: Action-specific data
 - `timestamp`: Number (milliseconds since epoch)
-- `source`: Action source (API_V1, API_V2, WEBAPP, WEBHOOK, UNKNOWN)
+- `source`: Action source (API_V1, API_V2, WEBAPP, WEBHOOK, SYSTEM, UNKNOWN)
 
 **BookingAuditTaskConsumer** processes audit records:
 - Validates queue payload structure

@@ -1,8 +1,10 @@
+import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
+import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
 
 const markGuestAsNoshowInBooking = async ({
   bookingId,
@@ -38,6 +40,32 @@ const markGuestAsNoshowInBooking = async ({
   } catch (err) {
     log.error("Error marking guests as no show in booking", err);
     return null;
+  }
+};
+
+const logGuestNoShowAudit = async (booking: {
+  uid: string;
+  user?: { id: number } | null;
+  eventType?: { teamId?: number | null } | null;
+}) => {
+  try {
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.user?.id,
+      teamId: booking.eventType?.teamId,
+    });
+
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    await bookingEventHandlerService.onAttendeeNoShowUpdated({
+      bookingUid: booking.uid,
+      actor: makeSystemActor(),
+      organizationId: orgId ?? null,
+      source: "SYSTEM",
+      auditData: {
+        noShowAttendee: { old: null, new: true },
+      },
+    });
+  } catch (error) {
+    log.error("Error logging audit for automatic guest no-show", error);
   }
 };
 
@@ -81,6 +109,9 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         participants,
         originalRescheduledBooking
       );
+
+      // Log audit for automatic guest no-show detection
+      await logGuestNoShowAudit(booking);
     }
   } else {
     if (!didGuestJoinTheCall) {
@@ -100,6 +131,9 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         participants,
         originalRescheduledBooking
       );
+
+      // Log audit for automatic guest no-show detection
+      await logGuestNoShowAudit(booking);
     }
   }
 }

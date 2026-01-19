@@ -1,9 +1,11 @@
+import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import type { Booking } from "./common";
-import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
+import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
 
 const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTheCall: Host[]) => {
   try {
@@ -65,4 +67,27 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
   });
 
   await Promise.all(hostsNoShowPromises);
+
+  // Log audit for automatic host no-show detection
+  if (updatedData?.noShowHost) {
+    try {
+      const orgId = await getOrgIdFromMemberOrTeamId({
+        memberId: booking.user?.id,
+        teamId: booking.eventType?.teamId,
+      });
+
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      await bookingEventHandlerService.onHostNoShowUpdated({
+        bookingUid: booking.uid,
+        actor: makeSystemActor(),
+        organizationId: orgId ?? null,
+        source: "SYSTEM",
+        auditData: {
+          noShowHost: { old: null, new: true },
+        },
+      });
+    } catch (error) {
+      log.error("Error logging audit for automatic host no-show", error);
+    }
+  }
 }
