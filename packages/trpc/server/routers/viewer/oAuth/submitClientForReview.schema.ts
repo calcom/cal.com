@@ -4,14 +4,14 @@ export const ZSubmitClientInputSchema = z.object({
   name: z.string().min(1, "Client name is required"),
   purpose: z.string().min(1, "Purpose is required"),
   redirectUri: z.string().url("Must be a valid URL"),
-  logo: z.preprocess(
-    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-    z.string().optional()
-  ),
-  websiteUrl: z.preprocess(
-    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-    z.string().url("Must be a valid URL").optional()
-  ),
+  logo: z
+    .string()
+    .optional()
+    .transform((value) => (typeof value === "string" && value.trim() === "" ? undefined : value)),
+  websiteUrl: z
+    .union([z.literal(""), z.string().url("Must be a valid URL")])
+    .optional()
+    .transform((value) => (value === "" ? undefined : value)),
   enablePkce: z.boolean().optional().default(false),
 });
 
