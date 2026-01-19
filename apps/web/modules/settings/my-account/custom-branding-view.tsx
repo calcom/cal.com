@@ -619,7 +619,13 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                       <div className="flex flex-col">
                         <div className="flex flex-row items-baseline gap-2">
                           <Label>{t("brand_favicon")}</Label>
-                          <Badge variant="secondary">({t("image_limits_only_size")})</Badge>
+                          <Badge variant="secondary">
+                            (
+                            {t("image_limits_only_size", {
+                              size: 1,
+                            })}
+                            )
+                          </Badge>
                           {/* <span className="text-subtle mb-2 text-sm"> </span> */}
                         </div>
 
