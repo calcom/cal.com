@@ -88,4 +88,34 @@ export default class CrmManager {
       await crmService.handleAttendeeNoShow(bookingUid, attendees);
     }
   }
+
+  public async addContacts(uid: string, event: CalendarEvent) {
+    const crmService = await this.getCrmService(this.credential);
+    if (!crmService) return;
+
+    const crmWithAddContacts = crmService as CRM;
+    if (!crmWithAddContacts.addContacts) return;
+
+    const { skipContactCreation = false, ignoreGuests = false } = crmService.getAppOptions() || {};
+    const eventAttendees = ignoreGuests ? [event.attendees[0]] : event.attendees;
+
+    let contacts = (await this.getContacts({ emails: eventAttendees.map((a) => a.email) })) || [];
+
+    if (contacts.length === eventAttendees.length) {
+      return await crmWithAddContacts.addContacts(uid, contacts);
+    }
+
+    if (skipContactCreation) return;
+
+    const contactSet = new Set(contacts.map((c: { email: string }) => c.email));
+    const contactsToCreate = eventAttendees.filter((attendee) => !contactSet.has(attendee.email));
+    const createdContacts = await this.createContacts(
+      contactsToCreate,
+      event.organizer?.email,
+      event.responses
+    );
+    contacts = contacts.concat(createdContacts);
+
+    return await crmWithAddContacts.addContacts(uid, contacts);
+  }
 }

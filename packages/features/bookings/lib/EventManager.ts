@@ -851,6 +851,29 @@ export default class EventManager {
     await this.updateAllCalendarEvents(event, booking);
   }
 
+  public async updateCRMAttendees(event: CalendarEvent, booking: PartialBooking) {
+    if (booking.references.length === 0) {
+      console.error("Tried to update CRM references but there wasn't any.");
+      return;
+    }
+
+    for (const reference of booking.references) {
+      if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
+        const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
+        if (credential) {
+          const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+          const crm = new CrmManager(credential, currentAppOption);
+          await crm.addContacts(reference.uid, event).catch((error) => {
+            log.warn(
+              `Error adding contacts to CRM event for ${credential.type} for booking ${event?.uid}`,
+              error
+            );
+          });
+        }
+      }
+    }
+  }
+
   /**
    * Creates event entries for all calendar integrations given in the credentials.
    * When noMail is true, no mails will be sent. This is used when the event is
