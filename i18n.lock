@@ -1,11 +1,15 @@
 version: 1
 checksums:
   76a1ee1ae6f7c2f515beace0bc21adc7:
+    third_party_services: 0d7d998c4e6ff092c5c99c07cd0d57df
+    third_party_services_description: 1a8733e2145c36473ac7cf5c28dbee2f
     view_response: a34180c5473c6b9f6e191b79f595db45
     hide_response: 5df48fac71c9161246900d0f0e9f3a73
     hide_field_warning_title: bfe0defa48fdc9f02d4eeb7bddf85131
     hide_field_warning_description: 63fc35f209f1326b242cc74f1e77fad2
     hide_anyway: 6a45ddaf5a7fa72988bdbf0102220094
+    image_limits: 32e19c31c5de202934a1dd11cbfa8cb1
+    image_limits_only_size: b3fdcfb61657f73f9dafbcc9e49b72f8
     configure_your_webhook: 06d812c96c4044447ef7f5daccfaff0c
     select_whatsapp_template: fe2229611d56bcd4e4c368bc9a6a5ddd
     workflow_status: 9c9a2f8324d3f698ec2d788f43bd4849
@@ -2481,7 +2485,6 @@ checksums:
     insights_user_filter: 36bccd6efac875b31245326c012987c1
     insights_subtitle: 1a1793b2feef80520c591594cd9cb928
     location_options: 5b0a1f717ef185b10b44002569a1aba0
-    location_options_label: d3489248499344394c0e3afb73bf0668
     custom_plan: 4d406f4ff899f0da4e3711763599a9aa
     email_embed: 01145dc429b3f8050733f1d4b6d71d9d
     add_times_to_your_email: 572a04f56df1ec2623ea7ee8c9c9c5bb
