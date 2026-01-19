@@ -9,8 +9,10 @@ type RemoveMemberOptions = {
   ctx: {
     user: {
       id: number;
+      organizationId: number | null;
       organization?: {
         isOrgAdmin: boolean;
+        id: number | null;
       };
     };
   };
@@ -19,7 +21,7 @@ type RemoveMemberOptions = {
 
 export const removeMemberHandler = async ({
   ctx: {
-    user: { id: userId, organization },
+    user: { id: userId, organizationId, organization },
   },
   input,
 }: RemoveMemberOptions) => {
@@ -45,6 +47,7 @@ export const removeMemberHandler = async ({
   const { hasPermission } = await service.checkRemovePermissions({
     userId,
     isOrgAdmin,
+    organizationId: organizationId ?? undefined,
     memberIds,
     teamIds,
     isOrg,
@@ -58,6 +61,7 @@ export const removeMemberHandler = async ({
     {
       userId,
       isOrgAdmin,
+      organizationId: organizationId ?? undefined,
       memberIds,
       teamIds,
       isOrg,
