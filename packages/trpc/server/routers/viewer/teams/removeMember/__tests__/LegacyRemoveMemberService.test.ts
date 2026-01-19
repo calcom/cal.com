@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -12,9 +13,6 @@ vi.mock("@calcom/prisma", () => ({
     membership: {
       findMany: vi.fn(),
     },
-    team: {
-      findMany: vi.fn(),
-    },
   },
 }));
 
@@ -23,10 +21,14 @@ vi.mock("@calcom/features/ee/teams/lib/queries");
 
 describe("LegacyRemoveMemberService", () => {
   let service: LegacyRemoveMemberService;
+  let mockTeamRepository: { findByIdsAndOrgId: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new LegacyRemoveMemberService();
+    mockTeamRepository = {
+      findByIdsAndOrgId: vi.fn(),
+    };
+    service = new LegacyRemoveMemberService(mockTeamRepository as unknown as TeamRepository);
   });
 
   describe("checkRemovePermissions", () => {
@@ -38,10 +40,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [100, 200]; // Teams the org admin is not part of
         const memberIds = [2, 3];
 
-        // Mock teams belong to the organization
-        vi.mocked(prisma.team.findMany).mockResolvedValue(
-          teamIds.map((id) => ({ id })) as { id: number }[]
-        );
+        mockTeamRepository.findByIdsAndOrgId.mockResolvedValue(teamIds.map((id) => ({ id })));
 
         const result = await service.checkRemovePermissions({
           userId,
@@ -53,8 +52,7 @@ describe("LegacyRemoveMemberService", () => {
         });
 
         expect(result.hasPermission).toBe(true);
-        // Should query team.findMany for org validation, but not membership.findMany
-        expect(prisma.team.findMany).toHaveBeenCalled();
+        expect(mockTeamRepository.findByIdsAndOrgId).toHaveBeenCalledWith({ teamIds, orgId: organizationId });
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
       });
 
@@ -65,10 +63,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1, 2, 3];
         const memberIds = [4, 5, 6];
 
-        // Mock teams belong to the organization
-        vi.mocked(prisma.team.findMany).mockResolvedValue(
-          teamIds.map((id) => ({ id })) as { id: number }[]
-        );
+        mockTeamRepository.findByIdsAndOrgId.mockResolvedValue(teamIds.map((id) => ({ id })));
 
         const result = await service.checkRemovePermissions({
           userId,
@@ -98,10 +93,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1, 2, 3, 4, 5];
         const memberIds = [10, 20];
 
-        // Mock teams belong to the organization
-        vi.mocked(prisma.team.findMany).mockResolvedValue(
-          teamIds.map((id) => ({ id })) as { id: number }[]
-        );
+        mockTeamRepository.findByIdsAndOrgId.mockResolvedValue(teamIds.map((id) => ({ id })));
 
         const result = await service.checkRemovePermissions({
           userId,
@@ -123,10 +115,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1];
         const memberIds = [2];
 
-        // Mock teams belong to the organization
-        vi.mocked(prisma.team.findMany).mockResolvedValue(
-          teamIds.map((id) => ({ id })) as { id: number }[]
-        );
+        mockTeamRepository.findByIdsAndOrgId.mockResolvedValue(teamIds.map((id) => ({ id })));
 
         const result = await service.checkRemovePermissions({
           userId,
@@ -148,8 +137,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [100, 200]; // Teams from another organization
         const memberIds = [2, 3];
 
-        // Mock: no teams returned (none belong to the organization)
-        vi.mocked(prisma.team.findMany).mockResolvedValue([]);
+        mockTeamRepository.findByIdsAndOrgId.mockResolvedValue([]);
 
         const result = await service.checkRemovePermissions({
           userId,
@@ -180,8 +168,7 @@ describe("LegacyRemoveMemberService", () => {
         });
 
         expect(result.hasPermission).toBe(false);
-        // Should not query database when organizationId is null
-        expect(prisma.team.findMany).not.toHaveBeenCalled();
+        expect(mockTeamRepository.findByIdsAndOrgId).not.toHaveBeenCalled();
       });
     });
 

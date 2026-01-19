@@ -1,4 +1,5 @@
 import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -8,18 +9,15 @@ import { BaseRemoveMemberService } from "./BaseRemoveMemberService";
 import type { RemoveMemberContext, RemoveMemberPermissionResult } from "./IRemoveMemberService";
 
 export class LegacyRemoveMemberService extends BaseRemoveMemberService {
+  constructor(private teamRepository: TeamRepository) {
+    super();
+  }
+
   private async validateTeamsBelongToOrganization(
     teamIds: number[],
     organizationId: number
   ): Promise<boolean> {
-    const teams = await prisma.team.findMany({
-      where: {
-        id: { in: teamIds },
-        OR: [{ id: organizationId }, { parentId: organizationId }],
-      },
-      select: { id: true },
-    });
-
+    const teams = await this.teamRepository.findByIdsAndOrgId({ teamIds, orgId: organizationId });
     const validTeamIds = new Set(teams.map((t) => t.id));
     return teamIds.every((id) => validTeamIds.has(id));
   }
