@@ -9,12 +9,6 @@ import { defaultTemplateComponentsMap } from "../providers/meta_default_template
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
-import smsCancellationTemplate from "../templates/sms/cancellation";
-import smsReminderTemplate from "../templates/sms/reminder";
-import { whatsappEventCancelledTemplate } from "../templates/whatsapp/cancelled";
-import { whatsappEventCompletedTemplate } from "../templates/whatsapp/completed";
-import { whatsappReminderTemplate } from "../templates/whatsapp/reminder";
-import { whatsappEventRescheduledTemplate } from "../templates/whatsapp/rescheduled";
 import {
   ATTENDEE_WORKFLOW_TEMPLATES,
   BASIC_WORKFLOW_TEMPLATES,
@@ -25,6 +19,53 @@ import {
   WHATSAPP_WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
 } from "./constants";
+
+/**
+ * Mapping of workflow templates to their default SMS message templates
+ * Variables are replaced based on action type (attendee vs organizer/number)
+ */
+const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
+  [WorkflowTemplates.REMINDER]: `Hi {RECIPIENT_NAME} - Just a heads-up, your meeting "{EVENT_NAME}" is coming up on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+
+- Cal ID`,
+  [WorkflowTemplates.CANCELLED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" scheduled for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} has been cancelled.
+
+- Cal ID`,
+  [WorkflowTemplates.RESCHEDULED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" has a new time: {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+
+- Cal ID`,
+  [WorkflowTemplates.COMPLETED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} is all wrapped up. Thanks for joining!
+
+- Cal ID`,
+  [WorkflowTemplates.CONFIRMATION]: `Hi {RECIPIENT_NAME} - You are all set! Your meeting "{EVENT_NAME}" is confirmed for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+
+- Cal ID`,
+  // CUSTOM workflow uses user-provided messageTemplate, so no default needed
+  [WorkflowTemplates.CUSTOM]: "",
+  // RATING and THANKYOU currently have no default templates
+  [WorkflowTemplates.RATING]: "",
+  [WorkflowTemplates.THANKYOU]: "",
+};
+
+/**
+ * Get the default SMS template body for a given template and action type
+ * Replaces {RECIPIENT_NAME} with the appropriate recipient based on action type
+ * Converts \n to <br> for HTML display in the editor
+ */
+function getSMSDefaultTemplateBody(template: WorkflowTemplates, action: WorkflowActions): string {
+  const defaultTemplate = WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE[template];
+
+  if (!defaultTemplate) {
+    return "";
+  }
+
+  // Determine recipient name variable based on action type
+  const recipientNameVariable =
+    action === WorkflowActions.SMS_ATTENDEE ? "{ATTENDEE_NAME}" : "{ORGANIZER_NAME}";
+
+  // Replace {RECIPIENT_NAME} with the appropriate variable and convert \n to <br>
+  return defaultTemplate.replace(/{RECIPIENT_NAME}/g, recipientNameVariable).replace(/\n/g, "<br>");
+}
 
 function validateSenderIdFormat(str: string): boolean {
   return str.length <= 11 && /^[A-Za-z0-9\s]*$/.test(str);
@@ -87,15 +128,6 @@ function determineEmailTemplateHandler(template?: WorkflowTemplates) {
     default:
       return emailReminderTemplate;
   }
-}
-
-function determinSMSTemplateHandler(template?: WorkflowTemplates) {
-  const templateHandlerRegistry = {
-    CANCELLED: smsCancellationTemplate,
-    REMINDER: smsReminderTemplate,
-  };
-
-  return templateHandlerRegistry[template as keyof typeof templateHandlerRegistry] || smsReminderTemplate;
 }
 
 // seems like this method is not used anywhere
@@ -252,6 +284,7 @@ function getTimeUnitOptions(t: TFunction): Record<string, string> {
     return accumulator;
   }, {} as Record<string, string>);
 }
+
 function getTemplateBodyForAction({
   action,
   locale,
@@ -266,9 +299,7 @@ function getTemplateBodyForAction({
   timeFormat: TimeFormat;
 }): string | null {
   if (isSMSAction(action)) {
-    // return smsReminderTemplate();
-    const templateFunction = determinSMSTemplateHandler(template);
-    return templateFunction(true, locale, action, timeFormat);
+    return getSMSDefaultTemplateBody(template, action);
   }
 
   if (isWhatsappAction(action)) {
@@ -295,7 +326,10 @@ const compareReminderBodyToTemplate = ({
 
   return stripedReminderBody === stripedTemplate;
 };
+
 export {
+  WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE,
+  getSMSDefaultTemplateBody,
   determineEmailTemplateHandler,
   validateSenderIdFormat,
   isSMSAction,

@@ -217,6 +217,7 @@ export async function handleConfirmation(args: {
       eventType: {
         select: {
           slug: true,
+          title: true,
           bookingFields: true,
           schedulingType: true,
           owner: {
@@ -277,12 +278,14 @@ export async function handleConfirmation(args: {
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      const eventTypeTitle = updatedBookings[index].eventType?.title || "";
       const evtOfBooking = {
         ...evt,
         rescheduleReason: updatedBookings[index].cancellationReason || null,
         metadata: { videoCallUrl: meetingUrl },
         eventType: {
-          id: booking.eventTypeId,
+          id: booking.eventTypeId ?? undefined,
+          title: eventTypeTitle,
           slug: eventTypeSlug,
           schedulingType: updatedBookings[index].eventType?.schedulingType,
           hosts: updatedBookings[index].eventType?.hosts,

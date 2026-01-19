@@ -1,4 +1,4 @@
-import * as twilio from "@calid/features/modules/workflows/providers/twilio";
+import { smsProviderRegistry } from "@calid/features/modules/workflows/providers/messaging/config/providerRegistry";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -46,7 +46,11 @@ async function postHandler(req: NextRequest) {
       if (!log.smsSid) return;
 
       try {
-        const { price, numSegments } = await twilio.getMessageInfo(log.smsSid);
+        const provider = smsProviderRegistry.twilio;
+        if (!provider) {
+          throw new Error("Default SMS provider (Twilio) is not configured");
+        }
+        const { price, numSegments } = await provider.getMessageInfo(log.smsSid);
         const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
         if (!credits) return;
 

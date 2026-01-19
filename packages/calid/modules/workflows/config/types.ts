@@ -283,3 +283,20 @@ export interface CalIdActionModule {
   message: string;
   messageTemplate: string;
 }
+
+export class FunctionNotImplementedError extends Error {
+  public readonly providerName: string;
+  public readonly methodName: string;
+
+  constructor(providerName: string, methodName: string, message?: string) {
+    super(message || `Method '${methodName}' is not implemented by provider '${providerName}'`);
+    this.name = "FunctionNotImplementedError";
+    this.providerName = providerName;
+    this.methodName = methodName;
+
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, FunctionNotImplementedError);
+    }
+  }
+}

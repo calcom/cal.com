@@ -1,9 +1,9 @@
 import prisma from "@calcom/prisma";
 
-import * as twilio from "../providers/twilio";
+import * as smsService from "../providers/messaging/dispatcher";
 
 const initiatePhoneValidation = async (contactNumber: string): Promise<any> => {
-  return twilio.sendVerificationCode(contactNumber);
+  return smsService.sendVerificationCode(contactNumber);
 };
 
 const confirmNumberOwnership = async (
@@ -11,12 +11,20 @@ const confirmNumberOwnership = async (
   validationToken: string,
   userIdentifier?: number,
   organizationId?: number
-): Promise<boolean> => {
+): Promise<{
+  verifyStatus: boolean;
+  status?: string;
+  error?: string;
+}> => {
   const hasRequiredIdentifier = userIdentifier || organizationId;
-  if (!hasRequiredIdentifier) return true;
+  if (!hasRequiredIdentifier)
+    return {
+      verifyStatus: false,
+      error: "Internal Server Error",
+    };
 
-  const authenticationResult = await twilio.verifyNumber(contactNumber, validationToken);
-  const isValidationSuccessful = authenticationResult === "approved";
+  const authenticationResult = await smsService.verifyNumber(contactNumber, validationToken);
+  const isValidationSuccessful = authenticationResult.response.status === "approved";
 
   if (isValidationSuccessful) {
     await prisma.verifiedNumber.create({
@@ -26,10 +34,13 @@ const confirmNumberOwnership = async (
         phoneNumber: contactNumber,
       },
     });
-    return true;
+    return { verifyStatus: true, status: authenticationResult.response.status };
   }
 
-  return false;
+  return {
+    verifyStatus: false,
+    error: authenticationResult.response.error,
+  };
 };
 
 export const sendVerificationCode = initiatePhoneValidation;

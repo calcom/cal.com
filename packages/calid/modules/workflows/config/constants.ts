@@ -30,14 +30,17 @@ const WORKFLOW_TEMPLATES = [
   WorkflowTemplates.COMPLETED,
   WorkflowTemplates.RESCHEDULED,
   WorkflowTemplates.THANKYOU,
+  WorkflowTemplates.CONFIRMATION,
 ] as const;
 
 const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
 
 const SMS_WORKFLOW_TEMPLATES = [
-  WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED,
+  WorkflowTemplates.COMPLETED,
+  WorkflowTemplates.CONFIRMATION,
 ] as const;
 
 const ATTENDEE_WORKFLOW_TEMPLATES = [
@@ -55,6 +58,7 @@ const WHATSAPP_WORKFLOW_TEMPLATES = [
 ] as const;
 
 const DYNAMIC_TEXT_VARIABLES = [
+  "event_type_name",
   "event_name",
   "event_date",
   "event_time",
@@ -78,6 +82,7 @@ const DYNAMIC_TEXT_VARIABLES = [
 ];
 
 const META_DYNAMIC_TEXT_VARIABLES = {
+  event_type_name: "event_type_name",
   event_name: "event_name",
   event_date: "event_date",
   event_time: "event_time",
