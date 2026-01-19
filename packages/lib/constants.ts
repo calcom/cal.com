@@ -12,7 +12,7 @@ export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
 export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS || "";
 export const IS_DEV = CALCOM_ENV === "development";
 export const SINGLE_ORG_SLUG = process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG;
-/** https://app.cal.com */
+/** https://cal.id */
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
   VERCEL_URL ||
@@ -290,3 +290,5 @@ export const META_WHATSAPP_BUSINESS_APP_SECRET = process.env.META_WHATSAPP_BUSIN
 
 export const META_WHATSAPP_BUSINESS_CONFIG_ID =
   process.env.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID || "";
+
+export const ICSMOBILE_SENDERID = process.env.ICSMOBILE_SENDERID || "CALID";

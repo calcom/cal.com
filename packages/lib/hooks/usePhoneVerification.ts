@@ -62,8 +62,13 @@ export function usePhoneNumberVerification<T extends WithMetadata>({
   });
 
   const verifyPhoneNumberMutation = trpc.viewer.workflows.calid_verifyPhoneNumber.useMutation({
-    onSuccess: (isVerified: boolean) => {
-      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+    onSuccess: (data: boolean) => {
+      const { verifyStatus: isVerified, error } = data;
+
+      showToast(
+        isVerified ? t("verified_successfully") : error ? error : t("wrong_code"),
+        isVerified ? "success" : "error"
+      );
       setNumberVerified(isVerified);
     },
     onError: (err) => {

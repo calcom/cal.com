@@ -2,6 +2,7 @@
 
 import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
@@ -688,7 +689,17 @@ const ProfileForm = ({
     <div>
       <Form form={formMethods} onSubmit={handleFormSubmit}>
         <div className="border-default rounded-md border px-4 py-6 sm:px-6">
-          <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+          <div className="flex flex-row items-baseline gap-2">
+            <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+            <Badge variant="secondary">
+              (
+              {t("image_limits_only_size", {
+                size: 5,
+              })}
+              )
+            </Badge>
+            {/* <span className="text-subtle mb-2 text-sm"> </span> */}
+          </div>
           <div className="flex items-center">
             <FormField
               control={formMethods.control}

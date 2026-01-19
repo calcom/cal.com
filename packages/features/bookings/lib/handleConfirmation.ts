@@ -284,7 +284,7 @@ export async function handleConfirmation(args: {
         rescheduleReason: updatedBookings[index].cancellationReason || null,
         metadata: { videoCallUrl: meetingUrl },
         eventType: {
-          id: booking.eventTypeId,
+          id: booking.eventTypeId ?? undefined,
           title: eventTypeTitle,
           slug: eventTypeSlug,
           schedulingType: updatedBookings[index].eventType?.schedulingType,

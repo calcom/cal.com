@@ -14,10 +14,10 @@ import type { z } from "zod";
 import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
+import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
@@ -71,8 +71,6 @@ export function UserPage(props: PageProps) {
   const BIO_CHAR_LIMIT = 250;
   const bioPlainText = stripHtmlTags(props.safeBio || "");
   const isBioLong = bioPlainText.length > BIO_CHAR_LIMIT;
-
-  useTheme(profile?.theme, false, false);
 
   const headerUrl = (user?.metadata as z.infer<typeof userMetadataSchema> | null)?.headerUrl ?? undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,6 +137,12 @@ export function UserPage(props: PageProps) {
         <link rel="shortcut icon" type="image/png" href={faviconUrl} key="shortcut-icon" />
         <link rel="apple-touch-icon" type="image/png" href={faviconUrl} key="apple-touch-icon" />
         <link rel="manifest" href="data:application/manifest+json,{}" />
+        <style
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: generateBrandColorStyles(profile?.brandColor, profile?.darkBrandColor),
+        }}
+      />
       </Head>
       <div
         className={classNames(
@@ -293,9 +297,6 @@ export function UserPage(props: PageProps) {
                         <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                       </div>
                       <Button
-                        variant="button"
-                        brandColor={profile?.brandColor}
-                        darkBrandColor={profile?.darkBrandColor}
                         type="button"
                         size="base"
                         className="h-8 flex-shrink-0"
