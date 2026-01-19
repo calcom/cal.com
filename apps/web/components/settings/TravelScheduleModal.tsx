@@ -150,7 +150,8 @@ const TravelScheduleModal = ({
               id="timeZone"
               value={selectedTimeZone}
               onChange={({ value }) => setSelectedTimeZone(value)}
-              menuPosition="fixed"
+              menuPortalTarget={document.body}
+              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
               className="mb-11 mt-2 w-full rounded-md text-sm"
             />
           </div>
