@@ -26,7 +26,6 @@ export interface MonthlyChanges {
 }
 
 export class SeatChangeTrackingService {
-  private logger: Logger<unknown>;
   private repository: SeatChangeLogRepository;
 
   constructor(customLogger?: Logger<unknown>, repository?: SeatChangeLogRepository) {
