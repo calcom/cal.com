@@ -2477,7 +2477,6 @@
   "insights_user_filter": "İstifadəçi: {{userName}}",
   "insights_subtitle": "Planlaşdırma fəaliyyətləriniz üçün analitika və performans göstəriciləri",
   "location_options": "{{locationCount}} məkan seçimi",
-  "location_options_label": "Məkan seçimləri",
   "custom_plan": "Xüsusi Plan",
   "email_embed": "Email Əlavəsi",
   "add_times_to_your_email": "Mövcud vaxtları seçin və Email-ə əlavə edin",

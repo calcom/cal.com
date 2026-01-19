@@ -2477,7 +2477,6 @@
   "insights_user_filter": "Потребител: {{userName}}",
   "insights_subtitle": "Анализи и показатели за ефективност на вашите дейности по планиране",
   "location_options": "{{locationCount}} опции за локация",
-  "location_options_label": "Опции за местоположение",
   "custom_plan": "Персонализиран план",
   "email_embed": "Вграждане в имейл",
   "add_times_to_your_email": "Изберете няколко свободни часа и ги вградете във вашия имейл",
