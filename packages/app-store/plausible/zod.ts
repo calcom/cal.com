@@ -1,11 +1,9 @@
 import { z } from "zod";
 
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
-import { safeUrlSchema } from "../_lib/analytics-schemas";
+import { safeUrlSchema } from "@calcom/app-store/_lib/analytics-schemas";
 
 // Domain schema for Plausible tracking (e.g., example.com, sub.example.com)
-// Each label must start and end with alphanumeric, can contain hyphens in the middle
-// Labels are separated by single dots - no consecutive dots or hyphens at label boundaries
 const domainSchema = z
   .string()
   .transform((val) => val.trim().toLowerCase())

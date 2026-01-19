@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
-import { safeUrlSchema } from "../_lib/analytics-schemas";
+import { safeUrlSchema } from "@calcom/app-store/_lib/analytics-schemas";
 
 // Umami Website IDs: UUID in v2 (e.g., 4fb7fa4c-5b46-438d-94b3-3a8fb9bc2e8b) or numeric in v1
 const umamiSiteIdSchema = z

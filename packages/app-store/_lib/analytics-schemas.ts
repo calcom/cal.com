@@ -31,3 +31,32 @@ export const numericIdSchema = z
   .refine((val) => !val || /^[0-9]+$/.test(val), {
     message: "Invalid ID format. Expected a numeric ID",
   });
+
+// Factory for creating prefixed ID schemas (GTM, GA4, Fathom, etc.)
+export const createPrefixedIdSchema = (options: {
+  prefix?: string;
+  addPrefixIfMissing?: boolean;
+  allowEmpty?: boolean;
+}) => {
+  const { prefix = "", addPrefixIfMissing = false, allowEmpty = true } = options;
+
+  return z
+    .string()
+    .transform((val) => {
+      let result = val.trim().toUpperCase();
+      if (prefix && addPrefixIfMissing) {
+        const clean = result.replace(new RegExp(`^${prefix}`, "i"), "");
+        result = `${prefix}${clean}`;
+      }
+      return result;
+    })
+    .refine(
+      (val) => {
+        if (allowEmpty && val === "") return true;
+        if (allowEmpty && prefix && val === prefix) return true;
+        const pattern = prefix ? new RegExp(`^${prefix}[A-Z0-9]{1,20}$`) : /^[A-Z0-9]{1,20}$/;
+        return pattern.test(val);
+      },
+      { message: `Invalid ID format${prefix ? `. Expected: ${prefix}XXXXXX` : ""}` }
+    );
+};
