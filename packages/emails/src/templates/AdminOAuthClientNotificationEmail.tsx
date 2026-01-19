@@ -42,7 +42,7 @@ export const AdminOAuthClientNotificationEmail = ({
         <>{language("admin_oauth_notification_email_title", { clientName })}</>
       </p>
       <p style={{ fontWeight: 400 }}>
-        <>{language("hi_admin")}!</>
+        <>{language("hi_admin")}</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         {language("admin_oauth_notification_email_body", { submitterEmail })}
