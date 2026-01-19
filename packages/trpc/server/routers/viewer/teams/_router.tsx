@@ -38,6 +38,7 @@ import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 import { ZSkipTrialForTeamInputSchema } from "./skipTrialForTeam.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateBillingCurrencyInputSchema } from "./updateBillingCurrency.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
@@ -223,6 +224,10 @@ export const viewerTeamsRouter = router({
   }),
   getSubscriptionStatus: authedProcedure.input(ZGetSubscriptionStatusInputSchema).query(async (opts) => {
     const { default: handler } = await import("./getSubscriptionStatus.handler");
+    return handler(opts);
+  }),
+  updateBillingCurrency: authedProcedure.input(ZUpdateBillingCurrencyInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./updateBillingCurrency.handler");
     return handler(opts);
   }),
 });

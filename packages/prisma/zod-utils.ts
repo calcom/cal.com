@@ -480,6 +480,11 @@ export enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
+export enum BillingCurrency {
+  USD = "USD",
+  EUR = "EUR",
+}
+
 const baseTeamMetadataSchema = z.object({
   defaultConferencingApp: schemaDefaultConferencingApp.optional(),
   requestedSlug: z.string().or(z.null()),
@@ -497,6 +502,7 @@ const baseTeamMetadataSchema = z.object({
     })
     .optional(),
   billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+  billingCurrency: z.nativeEnum(BillingCurrency).optional(),
 });
 
 export const teamMetadataSchema = baseTeamMetadataSchema.partial().nullable();

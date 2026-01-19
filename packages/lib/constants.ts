@@ -143,6 +143,10 @@ export const ORGANIZATION_SELF_SERVE_PRICE = parseFloat(
   process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW || "37"
 );
 
+export const ORGANIZATION_SELF_SERVE_PRICE_EU = parseFloat(
+  process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_EU || "34"
+);
+
 // Needed for emails in E2E
 export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";
 export const CALCOM_VERSION = process.env.NEXT_PUBLIC_CALCOM_VERSION as string;

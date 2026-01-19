@@ -2,14 +2,16 @@
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BillingCurrency } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import BillingCredits from "~/settings/billing/components/BillingCredits";
 
@@ -43,6 +45,11 @@ export const CtaRow = ({ title, description, className, children }: CtaRowProps)
   );
 };
 
+type CurrencyOption = {
+  value: BillingCurrency;
+  label: string;
+};
+
 const BillingView = () => {
   const pathname = usePathname();
   const session = useSession();
@@ -71,11 +78,41 @@ const BillingView = () => {
   const teamId = getTeamIdFromContext();
   const teamIdNumber = teamId ? parseInt(teamId, 10) : null;
 
+  const { data: teamData } = trpc.viewer.teams.get.useQuery(
+    { teamId: teamIdNumber ?? 0 },
+    { enabled: !!teamIdNumber }
+  );
+
+  const currencyOptions: CurrencyOption[] = useMemo(
+    () => [
+      { value: BillingCurrency.USD, label: t("usd_currency") },
+      { value: BillingCurrency.EUR, label: t("eur_currency") },
+    ],
+    [t]
+  );
+
+  const currentCurrency = useMemo(() => {
+    const currency = teamData?.metadata?.billingCurrency || BillingCurrency.USD;
+    return currencyOptions.find((option) => option.value === currency) || currencyOptions[0];
+  }, [teamData?.metadata?.billingCurrency, currencyOptions]);
+
   const { data: subscriptionStatus, isLoading: isLoadingStatus } =
     trpc.viewer.teams.getSubscriptionStatus.useQuery(
       { teamId: teamIdNumber ?? 0 },
       { enabled: !!teamIdNumber }
     );
+
+  const updateBillingCurrencyMutation = trpc.viewer.teams.updateBillingCurrency.useMutation({
+    onSuccess: () => {
+      showToast(t("billing_currency_updated"), "success");
+      if (teamIdNumber) {
+        utils.viewer.teams.get.invalidate({ teamId: teamIdNumber });
+      }
+    },
+    onError: (error) => {
+      showToast(error.message || t("error_updating_billing_currency"), "error");
+    },
+  });
 
   const skipTrialMutation = trpc.viewer.teams.skipTrialForTeam.useMutation({
     onSuccess: () => {
@@ -90,6 +127,15 @@ const BillingView = () => {
       showToast(error.message || t("error_skipping_trial"), "error");
     },
   });
+
+  const handleCurrencyChange = (option: CurrencyOption | null) => {
+    if (option && teamIdNumber) {
+      updateBillingCurrencyMutation.mutate({
+        teamId: teamIdNumber,
+        billingCurrency: option.value,
+      });
+    }
+  };
 
   const billingHref = teamId
     ? `/api/integrations/stripepayment/portal?teamId=${teamId}&returnTo=${WEBAPP_URL}${returnTo}`
@@ -138,14 +184,37 @@ const BillingView = () => {
             </Button>
           </div>
         )}
-        <div className="flex items-center justify-between px-4 py-5">
-          <p className="text-subtle text-sm font-medium leading-tight">{t("need_help")}</p>
-          <Button color="secondary" size="sm" onClick={onContactSupportClick}>
-            {t("contact_support")}
-          </Button>
-        </div>
-      </div>
-      <BillingCredits />
+              <div className="flex items-center justify-between px-4 py-5">
+                <p className="text-subtle text-sm font-medium leading-tight">{t("need_help")}</p>
+                <Button color="secondary" size="sm" onClick={onContactSupportClick}>
+                  {t("contact_support")}
+                </Button>
+              </div>
+            </div>
+
+            {teamIdNumber && (
+              <div className="bg-cal-muted border-muted mt-5 rounded-xl border p-1">
+                <div className="bg-default border-muted flex rounded-[10px] border px-5 py-4">
+                  <div className="flex w-full flex-col gap-1">
+                    <h3 className="text-emphasis text-sm font-semibold leading-none">{t("billing_currency")}</h3>
+                    <p className="text-subtle text-sm font-medium leading-tight">
+                      {t("billing_currency_description")}
+                    </p>
+                  </div>
+                  <div className="w-32">
+                    <Select<CurrencyOption>
+                      options={currencyOptions}
+                      value={currentCurrency}
+                      onChange={handleCurrencyChange}
+                      isLoading={updateBillingCurrencyMutation.isPending}
+                      isDisabled={updateBillingCurrencyMutation.isPending}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <BillingCredits />
 
       <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
         <DialogContent>
