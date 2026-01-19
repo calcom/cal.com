@@ -6,6 +6,7 @@ import dotEnv from "dotenv";
 import path from "node:path"
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { shouldEnableApp } from "@calcom/app-store/_utils/validateAppKeys";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
@@ -48,8 +49,9 @@ async function createApp(
       },
     });
 
-    // We need to enable seeded apps as they are used in tests.
-    const data = { slug, dirName, categories, keys, enabled: true };
+    // Only enable apps if they have valid keys (or don't require keys)
+    const enabled = shouldEnableApp(dirName, keys as Prisma.JsonValue);
+    const data = { slug, dirName, categories, keys, enabled };
 
     if (!foundApp) {
       await prisma.app.create({
