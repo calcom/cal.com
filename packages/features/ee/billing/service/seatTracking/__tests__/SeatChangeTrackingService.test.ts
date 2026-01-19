@@ -28,6 +28,12 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+vi.mock("../../billingPeriod/BillingPeriodService", () => ({
+  BillingPeriodService: vi.fn().mockImplementation(() => ({
+    shouldApplyMonthlyProration: vi.fn().mockResolvedValue(true),
+  })),
+}));
+
 describe("SeatChangeTrackingService", () => {
   let service: SeatChangeTrackingService;
 
