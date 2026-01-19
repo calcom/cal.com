@@ -6,6 +6,7 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
 export type VariablesType = {
+  eventTypeName?: string;
   eventName?: string;
   organizerName?: string;
   attendeeName?: string;
@@ -88,6 +89,7 @@ const performBasicTokenSubstitution = (
   const reschedulingUrl = variables.rescheduleUrl ?? "";
 
   return textContent
+    .replaceAll("{EVENT_TYPE_NAME}", variables.eventTypeName || "")
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
     .replaceAll("{ORGANIZER}", variables.organizerName || "")
     .replaceAll("{ATTENDEE}", variables.attendeeName || "")

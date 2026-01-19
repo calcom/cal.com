@@ -1,22 +1,12 @@
-import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
-import { PasswordField } from "@calid/features/ui/components/input/input";
-import { TextField } from "@calid/features/ui/components/input/input";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
-import {
-  APP_NAME,
-  META_WHATSAPP_BUSINESS_CONFIG_ID,
-  META_WHATSAPP_BUSINESS_APP_ID,
-} from "@calcom/lib/constants";
+import { META_WHATSAPP_BUSINESS_CONFIG_ID, META_WHATSAPP_BUSINESS_APP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 
-import getInstalledAppPath from "../../../_utils/getInstalledAppPath";
 import { WhatsAppEmbeddedSignup } from "../../components/whatsapp_embedded_auth";
 import { WhatsappManualAuth } from "../../components/whatsapp_manual_auth";
 
