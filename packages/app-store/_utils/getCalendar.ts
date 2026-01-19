@@ -38,9 +38,9 @@ export const getCalendar = async (
 
   const calendarApp = await calendarAppImportFn;
 
-  const CalendarService = calendarApp.default;
+  const createCalendarService = calendarApp.default;
 
-  if (!CalendarService || typeof CalendarService !== "function") {
+  if (!createCalendarService || typeof createCalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
@@ -83,7 +83,8 @@ export const getCalendar = async (
 
   const isCacheSupported = CalendarCacheEventService.isCalendarTypeSupported(calendarType);
 
-  const originalCalendar = new CalendarService(credential as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const originalCalendar = createCalendarService(credential as any);
 
   // Determine if we should use cache
   const useCache = isCacheSupported && shouldServeCache;
@@ -92,7 +93,7 @@ export const getCalendar = async (
   let calendar: Calendar = originalCalendar;
 
   if (useCache) {
-    log.info(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
+    log.debug(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
     const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
     calendar = new CalendarCacheWrapper({
       originalCalendar: calendar,
@@ -103,7 +104,7 @@ export const getCalendar = async (
   // Wrap ALL calendars with telemetry when telemetry is enabled
   // This provides consistent metrics for all calendar types
   if (isTelemetryEnabled()) {
-    log.info(
+    log.debug(
       `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheSupported: ${isCacheSupported}, cacheEnabled: ${useCache})`
     );
     calendar = new CalendarTelemetryWrapper({

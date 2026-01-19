@@ -2605,7 +2605,7 @@ __metadata:
     "@tanstack/react-table": "npm:8.20.6"
     "@tanstack/react-virtual": "npm:3.10.9"
     "@testing-library/react-hooks": "npm:8.0.1"
-    "@trigger.dev/sdk": "npm:4.1.2"
+    "@trigger.dev/sdk": "npm:4.3.2"
     "@types/web-push": "npm:3.6.3"
     "@vercel/functions": "npm:1.4.0"
     city-timezones: "npm:1.2.1"
@@ -2619,7 +2619,7 @@ __metadata:
     recharts: "npm:3.0.2"
     stripe: "npm:9.16.0"
     stripe-event-types: "npm:3.1.0"
-    trigger.dev: "npm:4.3.1"
+    trigger.dev: "npm:4.3.2"
     web-push: "npm:3.6.7"
     zustand: "npm:4.5.2"
   peerDependencies:
@@ -15348,24 +15348,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trigger.dev/build@npm:4.3.1":
-  version: 4.3.1
-  resolution: "@trigger.dev/build@npm:4.3.1"
+"@trigger.dev/build@npm:4.3.2":
+  version: 4.3.2
+  resolution: "@trigger.dev/build@npm:4.3.2"
   dependencies:
     "@prisma/config": "npm:^6.10.0"
-    "@trigger.dev/core": "npm:4.3.1"
+    "@trigger.dev/core": "npm:4.3.2"
     mlly: "npm:^1.7.1"
     pkg-types: "npm:^1.1.3"
     resolve: "npm:^1.22.8"
     tinyglobby: "npm:^0.2.2"
     tsconfck: "npm:3.1.3"
-  checksum: 10/a323408346f303fd78f8e5dec21ec9dc30fc96889f11aa683e407e1b16967632c2fdd611f5ba765b7ed932f4f254ff2e3bfdb54ad850769a909b750010af0728
+  checksum: 10/ada053c56b71e90328e5e53b7a33e2766fc140ffa41e1330d1c216a16f3d8f381f643ec2384c0e143914cf95e7490dc341c01f1a269425b6224a3064ac9b3dea
   languageName: node
   linkType: hard
 
-"@trigger.dev/core@npm:4.1.2":
-  version: 4.1.2
-  resolution: "@trigger.dev/core@npm:4.1.2"
+"@trigger.dev/core@npm:4.3.2":
+  version: 4.3.2
+  resolution: "@trigger.dev/core@npm:4.3.2"
   dependencies:
     "@bugsnag/cuid": "npm:^3.1.1"
     "@electric-sql/client": "npm:1.0.14"
@@ -15400,57 +15400,16 @@ __metadata:
     zod: "npm:3.25.76"
     zod-error: "npm:1.5.0"
     zod-validation-error: "npm:^1.5.0"
-  checksum: 10/5960e2aaabcf37e05de9abf15cfb39c0ce049955f2b67270d827a90a31ec895a753f94c29e1022a59bf85eec9a5ee1346ed48108e7081c5eeb0f6d0ac1c9f6d7
+  checksum: 10/541c3076d37500a5c8c973a9751bf0b4e454ee105caadc6d53424fe97f7fb45ce0e3b6a51b847831b3428a824ad6b1e7517742ca17fbfa013ceb41ca71efe953
   languageName: node
   linkType: hard
 
-"@trigger.dev/core@npm:4.3.1":
-  version: 4.3.1
-  resolution: "@trigger.dev/core@npm:4.3.1"
-  dependencies:
-    "@bugsnag/cuid": "npm:^3.1.1"
-    "@electric-sql/client": "npm:1.0.14"
-    "@google-cloud/precise-date": "npm:^4.0.0"
-    "@jsonhero/path": "npm:^1.0.21"
-    "@opentelemetry/api": "npm:1.9.0"
-    "@opentelemetry/api-logs": "npm:0.203.0"
-    "@opentelemetry/core": "npm:2.0.1"
-    "@opentelemetry/exporter-logs-otlp-http": "npm:0.203.0"
-    "@opentelemetry/exporter-trace-otlp-http": "npm:0.203.0"
-    "@opentelemetry/instrumentation": "npm:0.203.0"
-    "@opentelemetry/resources": "npm:2.0.1"
-    "@opentelemetry/sdk-logs": "npm:0.203.0"
-    "@opentelemetry/sdk-trace-base": "npm:2.0.1"
-    "@opentelemetry/sdk-trace-node": "npm:2.0.1"
-    "@opentelemetry/semantic-conventions": "npm:1.36.0"
-    "@s2-dev/streamstore": "npm:0.17.3"
-    dequal: "npm:^2.0.3"
-    eventsource: "npm:^3.0.5"
-    eventsource-parser: "npm:^3.0.0"
-    execa: "npm:^8.0.1"
-    humanize-duration: "npm:^3.27.3"
-    jose: "npm:^5.4.0"
-    nanoid: "npm:3.3.8"
-    prom-client: "npm:^15.1.0"
-    socket.io: "npm:4.7.4"
-    socket.io-client: "npm:4.7.5"
-    std-env: "npm:^3.8.1"
-    superjson: "npm:^2.2.1"
-    tinyexec: "npm:^0.3.2"
-    uncrypto: "npm:^0.1.3"
-    zod: "npm:3.25.76"
-    zod-error: "npm:1.5.0"
-    zod-validation-error: "npm:^1.5.0"
-  checksum: 10/8b8299f617dae3809b737b98b8e37b3e44fdea8e24013a96badb5e3f564500850b8afaa16b48c95212bc30152f9d2dd022191793fe20de3ed3925decdef693f7
-  languageName: node
-  linkType: hard
-
-"@trigger.dev/schema-to-json@npm:4.3.1":
-  version: 4.3.1
-  resolution: "@trigger.dev/schema-to-json@npm:4.3.1"
+"@trigger.dev/schema-to-json@npm:4.3.2":
+  version: 4.3.2
+  resolution: "@trigger.dev/schema-to-json@npm:4.3.2"
   dependencies:
     "@sodaru/yup-to-json-schema": "npm:^2"
-    "@trigger.dev/core": "npm:4.3.1"
+    "@trigger.dev/core": "npm:4.3.2"
     effect: "npm:^3"
     zod: "npm:3.25.76"
     zod-to-json-schema: "npm:^3.24.0"
@@ -15471,17 +15430,17 @@ __metadata:
       optional: true
     valibot:
       optional: true
-  checksum: 10/e67605e8ac8d34ed77e98abe6b6eb21f16fa9f87c8c815d14c26d70b12e3fc3a4adbbae2d4d0efeffd2bcfd55776640367732f83e38d955c352aa8eea658cfb0
+  checksum: 10/672f80b04e7e4752cbbcf91e26f586ac8a4b8b8a98b464da656066c6d14a570a794e6661174a9a1c25b3fc0b81a62286a69b2840548bf062ea390e876aaf7d81
   languageName: node
   linkType: hard
 
-"@trigger.dev/sdk@npm:4.1.2":
-  version: 4.1.2
-  resolution: "@trigger.dev/sdk@npm:4.1.2"
+"@trigger.dev/sdk@npm:4.3.2":
+  version: 4.3.2
+  resolution: "@trigger.dev/sdk@npm:4.3.2"
   dependencies:
     "@opentelemetry/api": "npm:1.9.0"
     "@opentelemetry/semantic-conventions": "npm:1.36.0"
-    "@trigger.dev/core": "npm:4.1.2"
+    "@trigger.dev/core": "npm:4.3.2"
     chalk: "npm:^5.2.0"
     cronstrue: "npm:^2.21.0"
     debug: "npm:^4.3.4"
@@ -15497,7 +15456,7 @@ __metadata:
   peerDependenciesMeta:
     ai:
       optional: true
-  checksum: 10/24c6e31d1c07e7177758c32c7017a67d4aa2de4bebfb3b56641dfc498df4da098214d8d38c965d399959b1c79914c4d65ac0bc4ae765a8df41792168ed21de94
+  checksum: 10/e6645d5c09859ec97779892cb16ba2cf3b56b8906c3ad5688cb99096c7a94ef342f9a210dca413ede0846b30d4ac6e102158fa8f0a04ecaf88332130368b516d
   languageName: node
   linkType: hard
 
@@ -37487,9 +37446,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"trigger.dev@npm:4.3.1":
-  version: 4.3.1
-  resolution: "trigger.dev@npm:4.3.1"
+"trigger.dev@npm:4.3.2":
+  version: 4.3.2
+  resolution: "trigger.dev@npm:4.3.2"
   dependencies:
     "@clack/prompts": "npm:0.11.0"
     "@depot/cli": "npm:0.0.1-cli.2.80.0"
@@ -37503,9 +37462,9 @@ __metadata:
     "@opentelemetry/sdk-trace-node": "npm:2.0.1"
     "@opentelemetry/semantic-conventions": "npm:1.36.0"
     "@s2-dev/streamstore": "npm:^0.17.6"
-    "@trigger.dev/build": "npm:4.3.1"
-    "@trigger.dev/core": "npm:4.3.1"
-    "@trigger.dev/schema-to-json": "npm:4.3.1"
+    "@trigger.dev/build": "npm:4.3.2"
+    "@trigger.dev/core": "npm:4.3.2"
+    "@trigger.dev/schema-to-json": "npm:4.3.2"
     ansi-escapes: "npm:^7.0.0"
     braces: "npm:^3.0.3"
     c12: "npm:^1.11.1"
@@ -37558,7 +37517,7 @@ __metadata:
     zod-validation-error: "npm:^1.5.0"
   bin:
     trigger: dist/esm/index.js
-  checksum: 10/1507e1c277610911b8a6ff6063d6a806dd956c3d102a4049adea2103eae4b86dc2aa7dc4adf954604e7bffd450e14e4d332da5d5252e770c985756a2c91f9343
+  checksum: 10/09ed4922628b2ac38917e3aef2074c89174a849ec678bdacf0f23e804f7ce02f34549daf74983f6d0c248a649d9b168fb8b03d9d4743ae22ea81fd5c432426aa
   languageName: node
   linkType: hard
 

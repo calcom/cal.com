@@ -67,6 +67,7 @@ function SingleAppPage(props: AppDataProps) {
       body={
         <>
           { }
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
           <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(source.content) }} />
         </>
       }

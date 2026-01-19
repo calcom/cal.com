@@ -127,18 +127,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
-        className="text-default mt-2 grow text-sm"
-        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
-        style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}
-      />
+      <p className="text-default mt-2 text-sm line-clamp-3">
+        {markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
+      </p>
 
-      <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
+      <div className="mt-auto flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
           className="flex w-32 grow justify-center"

@@ -29,6 +29,25 @@ type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] 
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
+/**
+ * Extended interface for Google Calendar service that includes Google-specific methods.
+ * This interface is used by internal Google Calendar modules (callback, tests, etc.)
+ * that need access to Google-specific functionality beyond the generic Calendar interface.
+ */
+export interface GoogleCalendar extends Calendar {
+  getPrimaryCalendar(calendar?: unknown): Promise<{ id?: string | null; timeZone?: string | null } | null>;
+
+  upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+  ): Promise<unknown>;
+
+  createSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+  ): Promise<unknown>;
+
+  authedCalendar(): Promise<calendar_v3.Calendar>;
+}
+
 interface GoogleCalError extends Error {
   code?: number;
 }
@@ -36,7 +55,7 @@ interface GoogleCalError extends Error {
 const isGaxiosResponse= (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
-export default class GoogleCalendarService implements Calendar {
+class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: CalendarAuth;
   private log: typeof logger;
@@ -170,7 +189,12 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     if (calEvent.location) {
-      payload["location"] = getLocation(calEvent);
+      payload["location"] = getLocation({
+        videoCallData: calEvent.videoCallData,
+        additionalInformation: calEvent.additionalInformation,
+        location: calEvent.location,
+        uid: calEvent.uid,
+      });
     }
 
     if (calEvent.recurringEvent) {
@@ -227,7 +251,12 @@ export default class GoogleCalendarService implements Calendar {
             calendarId: selectedCalendar,
             eventId: event.id || "",
             requestBody: {
-              location: getLocation(calEvent),
+              location: getLocation({
+                videoCallData: calEvent.videoCallData,
+                additionalInformation: calEvent.additionalInformation,
+                location: calEvent.location,
+                uid: calEvent.uid,
+              }),
               description: calEvent.calendarDescription,
             },
           });
@@ -326,7 +355,12 @@ export default class GoogleCalendarService implements Calendar {
     };
 
     if (event.location) {
-      payload["location"] = getLocation(event);
+      payload["location"] = getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      });
     }
 
     if (event.conferenceData && event.location === MeetLocationType) {
@@ -805,4 +839,27 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like calendar_v3.Calendar)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all Google API SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCalendarService(
+  credential: CredentialForCalendarServiceWithEmail
+): Calendar {
+  return new GoogleCalendarService(credential);
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance with the extended GoogleCalendar type.
+ * This is used by internal Google Calendar modules (callback, tests, etc.) that need access to
+ * Google-specific methods beyond the generic Calendar interface.
+ */
+export function createGoogleCalendarServiceWithGoogleType(
+  credential: CredentialForCalendarServiceWithEmail
+): GoogleCalendar {
+  return new GoogleCalendarService(credential);
 }
