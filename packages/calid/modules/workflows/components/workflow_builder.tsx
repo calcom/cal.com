@@ -2015,20 +2015,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           })}>
                                           <Editor
                                             key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
-                                            getText={() =>
-                                              step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
-                                              step.action === WorkflowActions.WHATSAPP_NUMBER
-                                                ? Boolean(step.metaTemplatePhoneNumberId) ===
-                                                  Boolean(step.metaTemplateName)
-                                                  ? convertWhatsAppTemplateForDisplay(step.reminderBody)
-                                                  : "":step.reminderBody||"";
-                                              }
-                                              // SMS actions - show default template or custom content
-                                              if (isSMSAction(step.action)) {
-                                                return step.reminderBody || "";
-                                              }
-                                              // Email actions
-                                              return step.reminderBody || "";
+                                            getText={() => {
+                                              const body = step.reminderBody || "";
+
+                                              const isWhatsApp =
+                                                step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
+                                                step.action === WorkflowActions.WHATSAPP_NUMBER;
+
+                                              if (!isWhatsApp) return body;
+
+                                              const isTemplateMatched =
+                                                Boolean(step.metaTemplatePhoneNumberId) ===
+                                                Boolean(step.metaTemplateName);
+
+                                              return isTemplateMatched
+                                                ? convertWhatsAppTemplateForDisplay(body)
+                                                : body;
                                             }}
                                             setText={(text: string) => {
                                               const stepIndex = steps.findIndex((s) => s.id === step.id);
