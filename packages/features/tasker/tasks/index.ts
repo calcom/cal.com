@@ -33,6 +33,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   sendAwaitingPaymentEmail: () =>
     import("./sendAwaitingPaymentEmail").then((module) => module.sendAwaitingPaymentEmail),
   bookingAudit: () => import("./bookingAudit").then((module) => module.bookingAudit),
+  sendUserLockedEmail: () => import("./sendUserLockedEmail").then((module) => module.sendUserLockedEmail),
 };
 
 export const tasksConfig = {

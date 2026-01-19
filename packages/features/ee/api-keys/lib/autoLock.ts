@@ -1,9 +1,9 @@
-import type { RatelimitResponse } from "@unkey/ratelimit";
-
+import process from "node:process";
+import { getUserLockedEmailTasker } from "@calcom/features/ee/api-keys/di/tasker/UserLockedEmailTasker.container";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
+import type { RatelimitResponse } from "@unkey/ratelimit";
 import { hashAPIKey } from "./apiKeys";
 
 // This is the number of times a user can exceed the rate limit before being locked
@@ -104,6 +104,8 @@ export async function lockUser(identifierType: string, identifier: string, lockR
     id: number;
     email: string;
     username: string | null;
+    name: string | null;
+    locale: string | null;
   } | null;
 
   let user: UserType = null;
@@ -117,6 +119,8 @@ export async function lockUser(identifierType: string, identifier: string, lockR
           id: true,
           email: true,
           username: true,
+          name: true,
+          locale: true,
         },
       });
       break;
@@ -128,19 +132,23 @@ export async function lockUser(identifierType: string, identifier: string, lockR
           id: true,
           email: true,
           username: true,
+          name: true,
+          locale: true,
         },
       });
       break;
-    case "apiKey":
+    case "apiKey": {
       const hashedApiKey = hashAPIKey(identifier);
       const apiKey = await prisma.apiKey.findUnique({
         where: { hashedKey: hashedApiKey },
-        include: {
+        select: {
           user: {
             select: {
               id: true,
               email: true,
               username: true,
+              name: true,
+              locale: true,
             },
           },
         },
@@ -157,9 +165,12 @@ export async function lockUser(identifierType: string, identifier: string, lockR
           id: true,
           email: true,
           username: true,
+          name: true,
+          locale: true,
         },
       });
       break;
+    }
     // Leaving SMS here but it is handled differently via checkRateLimitForSMS that auto locks
     case "SMS":
       break;
@@ -167,11 +178,60 @@ export async function lockUser(identifierType: string, identifier: string, lockR
       throw new Error("Invalid identifier type for locking");
   }
 
-  if (user && process.env.NEXT_PUBLIC_SENTRY_DSN) {
-    log.warn(lockReason, {
+  if (user) {
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      log.warn(lockReason, {
+        userId: user.id,
+        email: user.email,
+        username: user.username,
+      });
+    }
+
+    await sendUserLockedEmailAsync({
       userId: user.id,
       email: user.email,
-      username: user.username,
+      name: user.name,
+      lockReason,
+      locale: user.locale ?? "en",
     });
   }
+}
+
+export interface SendUserLockedEmailParams {
+  userId: number;
+  email: string;
+  name: string | null;
+  lockReason: LockReason;
+  locale: string;
+}
+
+export async function sendUserLockedEmailAsync(params: SendUserLockedEmailParams): Promise<void> {
+  try {
+    const tasker = getUserLockedEmailTasker();
+    await tasker.sendEmail({
+      userId: params.userId,
+      email: params.email,
+      name: params.name,
+      lockReason: params.lockReason,
+      locale: params.locale,
+    });
+    log.info(`Scheduled user locked email for userId ${params.userId}`);
+  } catch (error) {
+    log.error(`Failed to schedule user locked email for userId ${params.userId}`, error);
+  }
+}
+
+export async function sendUserLockedEmailSync(params: SendUserLockedEmailParams): Promise<void> {
+  const { UserLockedEmailSyncTasker } = await import(
+    "@calcom/features/ee/api-keys/service/userLockedEmail/tasker/UserLockedEmailSyncTasker"
+  );
+  const { default: logger } = await import("@calcom/lib/logger");
+  const syncTasker = new UserLockedEmailSyncTasker(logger);
+  await syncTasker.sendEmail({
+    userId: params.userId,
+    email: params.email,
+    name: params.name,
+    lockReason: params.lockReason,
+    locale: params.locale,
+  });
 }

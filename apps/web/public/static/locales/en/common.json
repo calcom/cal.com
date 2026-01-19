@@ -4340,5 +4340,15 @@
   "pbac_resource_feature_opt_in": "Feature Opt-In",
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
   "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
+  "user_locked_email_subject": "Your {{appName}} account has been locked",
+  "user_locked_email_body": "Your account has been temporarily locked due to suspicious activity detected on your account.",
+  "user_locked_email_reason": "Reason",
+  "user_locked_email_false_alarm": "If you believe this is a mistake or a false alarm, please contact our support team immediately to restore access to your account.",
+  "user_locked_email_contact_support": "Contact support",
+  "user_locked_email_contact_support_button": "Contact Support",
+  "user_locked_email_regards": "Best regards",
+  "user_locked_reason_rate_limit": "Your account exceeded the rate limit threshold multiple times, which may indicate automated or abusive behavior.",
+  "user_locked_reason_spam_workflow": "Spam content was detected in your workflow configuration.",
+  "user_locked_reason_unknown": "Suspicious activity was detected on your account.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
