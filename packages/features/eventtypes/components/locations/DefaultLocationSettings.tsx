@@ -10,7 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { TextField } from "@calcom/ui/components/form";
 
 import LocationInput from "./LocationInput";
-import LocationOptionContainer from "./LocationSettingsContainer";
+import LocationOptionContainer from "@calcom/web/modules/event-types/components/locations/LocationSettingsContainer";
 
 const DefaultLocationSettings = ({
   field,

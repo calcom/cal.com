@@ -359,9 +359,11 @@
                           "!@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab",
                           "!@calcom/web/modules/calendar-view/components/LargeCalendar",
                           "!@calcom/web/modules/apps/components/AppList",
-                          "!@calcom/web/modules/bookings/components/Booker"
-                        ],
-                        "message": "atoms package should not import from @calcom/web. Move shared components to @calcom/features instead."
+                                                  "!@calcom/web/modules/bookings/components/Booker",
+                                                  "!@calcom/web/modules/event-types/components/HostEditDialogs",
+                                                  "!@calcom/web/modules/event-types/components/locations/LocationSettingsContainer"
+                                                ],
+                                                "message": "atoms package should not import from @calcom/web. Move shared components to @calcom/features instead."
                       }
                     ]
                   }
