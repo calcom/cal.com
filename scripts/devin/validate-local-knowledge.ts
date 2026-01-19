@@ -120,7 +120,7 @@ function validateKnowledgeBase(filePath: string): ValidationError[] {
 }
 
 function main() {
-  const agentsDir = path.join(path.dirname(__filename), "..", "agents");
+  const agentsDir = path.join(path.dirname(__filename), "..", "..", "agents");
   const rulesDir = path.join(agentsDir, "rules");
   const knowledgeBasePath = path.join(agentsDir, "knowledge-base.md");
 

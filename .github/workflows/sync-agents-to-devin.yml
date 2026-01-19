@@ -26,9 +26,9 @@ jobs:
         run: npm install -g tsx
 
       - name: Generate knowledge JSON
-        run: npx tsx scripts/devin-knowledge-parse.ts
+        run: npx tsx scripts/devin/parse-local-knowledge.ts
 
       - name: Sync to Devin
         env:
           DEVIN_API_TOKEN: ${{ secrets.DEVIN_API_TOKEN }}
-        run: npx tsx scripts/devin-knowledge-sync.ts
+        run: npx tsx scripts/devin/sync-knowledge-to-devin.ts

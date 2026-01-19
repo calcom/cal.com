@@ -156,7 +156,7 @@ function parseCodingStandardsFile(filePath: string): DevinKnowledgeEntry {
 }
 
 function main() {
-  const agentsDir = path.join(__dirname, "..", "agents");
+  const agentsDir = path.join(__dirname, "..", "..", "agents");
   const rulesDir = path.join(agentsDir, "rules");
 
   const output: DevinKnowledgeOutput = {
