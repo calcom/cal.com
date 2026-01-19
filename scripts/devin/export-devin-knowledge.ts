@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 
 /**
  * Export all Devin Knowledge to a backup JSON file
