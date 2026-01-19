@@ -1587,6 +1587,8 @@ checksums:
     new_seat_subject: 75ccfd925ad9f167664c402d30499b4d
     new_seat_title: 2bd30c0710403dc07f96b631d6629e23
     variable: c13db5775ba9791b1522cc55c9c7acce
+    event_type_name_variable: 5948d1cdb5957113770c4381913c12ee
+    event_type_name_info: 4bacfc35310c99afff4208f6440795b3
     event_name_variable: 428f887e21b9f88a71b9f88c646984be
     attendee_name_variable: a22f05db9dbc4d4ed81acc8582cee94e
     event_date_variable: 26d971c39b7c2249f57817c5e64bfefa
