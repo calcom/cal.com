@@ -313,6 +313,7 @@ export default function Success(props: PageProps) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
           user: props.profile.name,
+          interpolation: { escapeValue: false },
         });
       }
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);

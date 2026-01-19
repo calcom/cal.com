@@ -44,7 +44,10 @@ export class OAuthClientWebhooksController {
 
   @Post("/")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Create a webhook" })
+  @ApiOperation({
+    summary: "Create a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async createOAuthClientWebhook(
     @Body() body: CreateWebhookInputDto,
     @Param("clientId") oAuthClientId: string
@@ -64,7 +67,10 @@ export class OAuthClientWebhooksController {
 
   @Patch("/:webhookId")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Update a webhook" })
+  @ApiOperation({
+    summary: "Update a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @UseGuards(IsOAuthClientWebhookGuard)
   async updateOAuthClientWebhook(
     @Body() body: UpdateWebhookInputDto,
@@ -84,7 +90,10 @@ export class OAuthClientWebhooksController {
 
   @Get("/:webhookId")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @ApiOperation({ summary: "Get a webhook" })
+  @ApiOperation({
+    summary: "Get a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @UseGuards(IsOAuthClientWebhookGuard)
   async getOAuthClientWebhook(@GetWebhook() webhook: Webhook): Promise<OAuthClientWebhookOutputResponseDto> {
     return {
@@ -97,7 +106,10 @@ export class OAuthClientWebhooksController {
 
   @Get("/")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @ApiOperation({ summary: "Get all webhooks" })
+  @ApiOperation({
+    summary: "Get all webhooks",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async getOAuthClientWebhooks(
     @Param("clientId") oAuthClientId: string,
     @Query() pagination: SkipTakePagination
@@ -119,7 +131,10 @@ export class OAuthClientWebhooksController {
 
   @Delete("/:webhookId")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Delete a webhook" })
+  @ApiOperation({
+    summary: "Delete a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @UseGuards(IsOAuthClientWebhookGuard)
   async deleteOAuthClientWebhook(
     @GetWebhook() webhook: Webhook
@@ -135,7 +150,10 @@ export class OAuthClientWebhooksController {
 
   @Delete("/")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Delete all webhooks" })
+  @ApiOperation({
+    summary: "Delete all webhooks",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async deleteAllOAuthClientWebhooks(
     @Param("clientId") oAuthClientId: string
   ): Promise<DeleteManyWebhooksOutputResponseDto> {
