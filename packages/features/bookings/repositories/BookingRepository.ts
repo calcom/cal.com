@@ -1,21 +1,19 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type {
+  BookingUpdateData,
+  BookingWhereInput,
+  BookingWhereUniqueInput,
+  IBookingRepository,
+} from "@calcom/lib/server/repository/dto/IBookingRepository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
+import type { Booking, Prisma } from "@calcom/prisma/client";
+import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 import {
-  bookingMinimalSelect,
   bookingAuthorizationCheckSelect,
   bookingDetailsSelect,
+  bookingMinimalSelect,
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
-import type {
-  BookingWhereInput,
-  IBookingRepository,
-  BookingUpdateData,
-  BookingWhereUniqueInput,
-} from "@calcom/lib/server/repository/dto/IBookingRepository";
 
 const workflowReminderSelect = {
   id: true,
@@ -379,6 +377,22 @@ export class BookingRepository implements IBookingRepository {
         eventType: {
           select: {
             teamId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findByUidForOrgId({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        eventType: {
+          select: {
+            teamId: true,
+            userId: true,
           },
         },
       },
@@ -1499,7 +1513,7 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+  async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
     return await this.prismaClient.booking.updateMany({
       where: where,
       data,

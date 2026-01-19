@@ -396,17 +396,8 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
-      const bookingForAudit = await prisma.booking.findUnique({
-        where: { uid: bookingUid },
-        select: {
-          eventType: {
-            select: {
-              teamId: true,
-              userId: true,
-            },
-          },
-        },
-      });
+      const bookingRepo = new BookingRepository(prisma);
+      const bookingForAudit = await bookingRepo.findByUidForOrgId({ bookingUid });
 
       await prisma.booking.update({
         where: {
