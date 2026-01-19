@@ -481,7 +481,11 @@ async function handler(input: CancelBookingInput) {
       evt: {
         ...evt,
         metadata: bookingToDelete.metadata,
-        eventType: { slug: eventType?.slug, id: bookingToDelete.eventTypeId },
+        eventType: {
+          id: bookingToDelete.eventTypeId ?? undefined,
+          slug: eventType?.slug ?? "",
+          title: eventType?.title,
+        },
       },
       hideBranding: !!eventType?.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,

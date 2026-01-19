@@ -167,9 +167,11 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
             ...{
               metadata,
               eventType: {
+                id: eventType.id,
                 slug: eventType.slug,
                 schedulingType: eventType.schedulingType,
                 hosts: eventType.hosts,
+                title: eventType.title,
               },
             },
           },
@@ -227,7 +229,7 @@ async function handleSeatPayment({
   const { eventType, fullName, paymentAppData, bookerEmail, responses, bookerPhoneNumber, organizerUser } =
     rescheduleSeatedBookingObject;
 
-  let { evt } = rescheduleSeatedBookingObject;
+  const { evt } = rescheduleSeatedBookingObject;
 
   if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking) {
     const credentialPaymentAppCategories = await prisma.credential.findMany({
