@@ -546,6 +546,14 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsArray()
   @DocsProperty()
   users!: User_2024_06_14[];
+
+  @IsString()
+  @DocsProperty({
+    description: "Full URL to the booking page for this event type",
+    example: "https://cal.com/john-doe/30min",
+    format: "uri",
+  })
+  bookingUrl!: string;
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {

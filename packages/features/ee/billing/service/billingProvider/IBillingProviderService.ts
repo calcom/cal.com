@@ -65,4 +65,40 @@ export interface IBillingProviderService {
   getCustomer(customerId: string): Promise<Stripe.Customer | Stripe.DeletedCustomer | null>;
   getSubscriptions(customerId: string): Promise<Stripe.Subscription[] | null>;
   updateCustomer(args: { customerId: string; email: string; userId?: number }): Promise<void>;
+
+  // Invoice management
+  createInvoiceItem(args: {
+    customerId: string;
+    amount: number;
+    currency: string;
+    description: string;
+    metadata?: Record<string, string>;
+  }): Promise<{ invoiceItemId: string }>;
+
+  createInvoice(args: {
+    customerId: string;
+    autoAdvance: boolean;
+    metadata?: Record<string, string>;
+  }): Promise<{ invoiceId: string }>;
+
+  finalizeInvoice(invoiceId: string): Promise<void>;
+
+  // Subscription queries
+  getSubscription(subscriptionId: string): Promise<{
+    items: Array<{
+      id: string;
+      quantity: number;
+      price: {
+        unit_amount: number | null;
+        recurring: {
+          interval: string;
+        } | null;
+      };
+    }>;
+    customer: string;
+    status: string;
+    current_period_start: number;
+    current_period_end: number;
+    trial_end: number | null;
+  } | null>;
 }
