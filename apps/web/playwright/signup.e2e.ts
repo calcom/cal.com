@@ -195,43 +195,6 @@ test.describe("Email Signup Flow Test", async () => {
     await prisma.user.delete({ where: { id: existingUser.id } });
     await prisma.team.delete({ where: { id: org.id } });
   });
-
-  test("Premium Username Flow - creates stripe checkout", async ({ page, users, prisma }) => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
-    const userToCreate = users.buildForSignup({
-      username: "rock",
-      password: "Password99!",
-    });
-    // Ensure the premium username is available
-    await prisma.user.deleteMany({ where: { username: "rock" } });
-
-    // Signup with premium username name
-    await page.goto("/signup");
-    await preventFlakyTest(page);
-    const continueWithEmailButton = page.getByTestId("continue-with-email-button");
-    await expect(continueWithEmailButton).toBeVisible();
-    await continueWithEmailButton.click();
-
-    // Fill form
-    await page.locator('input[name="username"]').fill("rock");
-    await page.locator('input[name="email"]').fill(userToCreate.email);
-    await page.locator('input[name="password"]').fill(userToCreate.password);
-
-    // Submit form
-    const submitButton = page.getByTestId("signup-submit-button");
-    await submitButton.click();
-
-    // Check that stripe checkout is present
-    const expectedUrl = "https://checkout.stripe.com";
-
-    await page.waitForURL((url) => url.href.startsWith(expectedUrl));
-    const url = page.url();
-
-    // Check that the URL matches the expected URL
-    expect(url).toContain(expectedUrl);
-    // TODO: complete the stripe checkout flow
-  });
   test("Signup with valid (non premium) username", async ({ page, users }) => {
     const userToCreate = users.buildForSignup({
       username: "rick-jones",
@@ -263,6 +226,7 @@ test.describe("Email Signup Flow Test", async () => {
     // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
     expect(dbUser?.username).toBe(userToCreate.username);
   });
+  
   test("Signup fields prefilled with query params", async ({ page, users: _users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);

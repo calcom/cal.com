@@ -117,6 +117,7 @@ export class BookingWebhookService implements IBookingWebhookService {
       booking: params.booking,
       cancelledBy: params.cancelledBy,
       cancellationReason: params.cancellationReason,
+      requestReschedule: params.requestReschedule,
     };
 
     await this.webhookNotifier.emitWebhook(dto, params.isDryRun);

@@ -421,7 +421,16 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
               clonedResponse: responseToUseInCaseOfError,
             });
           }
-          myLog.debug(safeStringify({ responseBody }));
+          // Log error details from Zoom (excluding any sensitive token data)
+          myLog.error(
+            "Zoom token refresh failed",
+            safeStringify({
+              status: response.status,
+              error: responseBody.error,
+              errorDescription: responseBody.error_description,
+              reason: responseBody.reason,
+            })
+          );
 
           if (responseBody.error === "invalid_grant") {
             return { reason: responseBody.error };
