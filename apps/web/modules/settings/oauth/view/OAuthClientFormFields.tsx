@@ -114,7 +114,7 @@ export const OAuthClientFormFields = ({
         }
         type="url"
         id="websiteUrl"
-        placeholder={isFormDisabled ? undefined : "https://example.com"}
+        placeholder={isFormDisabled ? undefined : t("website_url_placeholder")}
         disabled={isFormDisabled}
       />
 

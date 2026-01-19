@@ -1076,6 +1076,7 @@
   "redirect_uri": "Redirect URI",
   "redirect_uri_placeholder": "https://example.com/callback",
   "website_url": "Website URL",
+  "website_url_placeholder": "https://example.com",
   "website_url_tooltip": "For development, you can use a localhost URL (e.g. http://localhost:3000).",
   "authentication_mode": "Authentication Mode",
   "use_pkce": "Use PKCE (recommended for mobile/SPA applications)",
