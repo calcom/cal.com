@@ -4,6 +4,8 @@ import type { UseFormReturn } from "react-hook-form";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+// biome-ignore lint/style/noRestrictedImports: RouterOutputs is needed for type inference, this is a pre-existing pattern in the features package
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { GetBookingType } from "../lib/get-booking";
 
@@ -64,7 +66,7 @@ export type UseBookingsReturnType = {
   instantConnectCooldownMs: number;
 };
 
-export type UseCalendarsReturnType<TConnectedCalendars = unknown> = {
+export type UseCalendarsReturnType = {
   overlayBusyDates:
     | {
         start: string | Date;
@@ -72,7 +74,7 @@ export type UseCalendarsReturnType<TConnectedCalendars = unknown> = {
       }[]
     | undefined;
   isOverlayCalendarEnabled: boolean;
-  connectedCalendars: TConnectedCalendars;
+  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
   loadingConnectedCalendar: boolean;
   onToggleCalendar: (
     data: Set<{
@@ -132,8 +134,8 @@ export interface IUseBookingErrors {
   dataErrors: unknown;
 }
 
-export type useScheduleForEventReturnType<TScheduleData = unknown> = {
-  data: TScheduleData | undefined;
+export type useScheduleForEventReturnType = {
+  data: RouterOutputs["viewer"]["slots"]["getSchedule"] | undefined;
   isPending: boolean;
   isError: boolean;
   isSuccess: boolean;
