@@ -7,7 +7,7 @@
  * - Updates existing entries (matched by name)
  * - Optionally deletes entries that no longer exist in the source
  *
- * Usage: DEVIN_API_KEY=your_token npx ts-node sync-to-devin.ts [--delete-removed]
+ * Usage: DEVIN_API_KEY=your_token npx tsx scripts/devin/sync-knowledge-to-devin.ts [--delete-removed]
  */
 
 import process from "node:process";
