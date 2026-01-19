@@ -72,33 +72,22 @@ export class MonthlyProrationService {
     const teamsToProcess = teamIdsList.map((id: number) => ({ id }));
 
     const results = [];
-    const errors = [];
     for (const team of teamsToProcess) {
-      try {
-        const result = await this.createProrationForTeam({
-          teamId: team.id,
-          monthKey,
-        });
-        if (result) results.push(result);
-      } catch (error) {
-        this.logger.error(`[${team.id}] failed to process monthly proration`, {
-          monthKey,
-          teamId: team.id,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        errors.push({ teamId: team.id, error });
-      }
+      const result = await this.createProrationForTeam({
+        teamId: team.id,
+        monthKey,
+      });
+      if (result) results.push(result);
     }
 
     this.logger.info("Monthly proration batch finished", {
       monthKey,
       teamCount: teamIdsList.length,
       processedCount: results.length,
-      skippedCount: teamIdsList.length - results.length - errors.length,
-      failedCount: errors.length,
+      skippedCount: teamIdsList.length - results.length,
     });
 
-    return { results, errors };
+    return results;
   }
 
   async createProrationForTeam(params: CreateProrationParams) {

@@ -17,7 +17,6 @@ export const scheduleMonthlyProration = schedules.task({
       "@calcom/features/ee/billing/repository/proration/MonthlyProrationTeamRepository"
     );
     const { getFeaturesRepository } = await import("@calcom/features/di/containers/FeaturesRepository");
-    const { MONTHLY_PRORATION_BATCH_SIZE } = await import("../constants");
     const { processMonthlyProrationBatch } = await import("./processMonthlyProrationBatch");
 
     const triggerDevLogger = new TriggerDevLogger();
@@ -45,33 +44,24 @@ export const scheduleMonthlyProration = schedules.task({
       log.info(`No teams with seat changes found for ${monthKey}`);
       return {
         monthKey,
-        scheduledTeams: 0,
-        scheduledBatches: 0,
-        batchSize: MONTHLY_PRORATION_BATCH_SIZE,
+        scheduledTasks: 0,
       };
     }
 
-    const batches: number[][] = [];
-    for (let index = 0; index < teamIdsList.length; index += MONTHLY_PRORATION_BATCH_SIZE) {
-      batches.push(teamIdsList.slice(index, index + MONTHLY_PRORATION_BATCH_SIZE));
-    }
-
-    log.info(`Scheduling ${teamIdsList.length} teams in ${batches.length} batches for ${monthKey}`);
+    log.info(`Scheduling ${teamIdsList.length} tasks for ${monthKey}`);
 
     await processMonthlyProrationBatch.batchTrigger(
-      batches.map((teamIds) => ({
+      teamIdsList.map((teamId) => ({
         payload: {
           monthKey,
-          teamIds,
+          teamIds: [teamId],
         },
       }))
     );
 
     return {
       monthKey,
-      scheduledTeams: teamIdsList.length,
-      scheduledBatches: batches.length,
-      batchSize: MONTHLY_PRORATION_BATCH_SIZE,
+      scheduledTasks: teamIdsList.length,
     };
   },
 });
