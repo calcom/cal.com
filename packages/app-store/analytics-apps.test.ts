@@ -116,6 +116,33 @@ describe("Analytics Apps - Input Validation", () => {
       expect(result.PLAUSIBLE_URL).toBe("https://plausible.io/js/script.js");
     });
 
+    it("accepts valid subdomains", () => {
+      expect(plausibleSchema.parse({ trackingId: "sub.example.com" }).trackingId).toBe("sub.example.com");
+      expect(plausibleSchema.parse({ trackingId: "deep.sub.example.com" }).trackingId).toBe(
+        "deep.sub.example.com"
+      );
+    });
+
+    it("accepts single-label domains", () => {
+      expect(plausibleSchema.parse({ trackingId: "localhost" }).trackingId).toBe("localhost");
+    });
+
+    it("accepts domains with hyphens in labels", () => {
+      expect(plausibleSchema.parse({ trackingId: "my-site.example.com" }).trackingId).toBe(
+        "my-site.example.com"
+      );
+    });
+
+    it("rejects consecutive dots", () => {
+      expect(() => plausibleSchema.parse({ trackingId: "example..com" })).toThrow();
+    });
+
+    it("rejects hyphens at label boundaries", () => {
+      expect(() => plausibleSchema.parse({ trackingId: "-example.com" })).toThrow();
+      expect(() => plausibleSchema.parse({ trackingId: "example-.com" })).toThrow();
+      expect(() => plausibleSchema.parse({ trackingId: "example.-com" })).toThrow();
+    });
+
     it("rejects XSS payloads", () => {
       for (const payload of xssPayloads) {
         expect(() => plausibleSchema.parse({ trackingId: payload })).toThrow();

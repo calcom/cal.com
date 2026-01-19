@@ -6,23 +6,32 @@ import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 const safeUrlSchema = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => {
-    if (!val) return true;
-    try {
-      const url = new URL(val);
-      return url.protocol === "http:" || url.protocol === "https:";
-    } catch {
-      return false;
-    }
-  }, { message: "Invalid URL format. Must be a valid http or https URL" });
+  .refine(
+    (val) => {
+      if (!val) return true;
+      try {
+        const url = new URL(val);
+        return url.protocol === "http:" || url.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Invalid URL format. Must be a valid http or https URL" }
+  );
 
 // Domain schema for Plausible tracking (e.g., example.com, sub.example.com)
+// Each label must start and end with alphanumeric, can contain hyphens in the middle
+// Labels are separated by single dots - no consecutive dots or hyphens at label boundaries
 const domainSchema = z
   .string()
   .transform((val) => val.trim().toLowerCase())
-  .refine((val) => val === "" || /^[a-z0-9][a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/.test(val), {
-    message: "Invalid domain format. Expected format: example.com",
-  })
+  .refine(
+    (val) =>
+      val === "" || /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(val),
+    {
+      message: "Invalid domain format. Expected format: example.com",
+    }
+  )
   .optional();
 
 export const appDataSchema = eventTypeAppCardZod.merge(
