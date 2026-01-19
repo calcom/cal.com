@@ -1,4 +1,5 @@
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -10,9 +11,11 @@ import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 
+import { HubspotRecordEnum } from "../lib/enums";
 import type { appDataSchema } from "../zod";
 import { WhenToWrite } from "../zod";
 
@@ -27,9 +30,19 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const createEventOn = getAppData("createEventOn") ?? HubspotRecordEnum.CONTACT;
   const skipContactCreation = getAppData("skipContactCreation") ?? false;
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
   const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
+
+  const recordOptions = [
+    { label: t("contact"), value: HubspotRecordEnum.CONTACT },
+    { label: t("company"), value: HubspotRecordEnum.COMPANY },
+  ];
+
+  const [createEventOnSelectedOption, setCreateEventOnSelectedOption] = useState(
+    recordOptions.find((option) => option.value === createEventOn) ?? recordOptions[0]
+  );
 
   return (
     <AppCard
@@ -45,9 +58,28 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       <Section.Content>
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="user-plus"
-            title={t("hubspot_ignore_guests")}
-            labelFor="ignore-guests">
+            icon="zap"
+            title={t("create_event_on")}
+            justify="start"
+            labelFor="create-event-on">
+            <Select
+              size="sm"
+              id="create-event-on"
+              className="w-[200px]"
+              options={recordOptions}
+              value={createEventOnSelectedOption}
+              onChange={(e) => {
+                if (e) {
+                  setCreateEventOnSelectedOption(e);
+                  setAppData("createEventOn", e.value);
+                }
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <Section.SubSectionHeader icon="user-plus" title={t("ignore_guests")} labelFor="ignore-guests">
             <Switch
               size="sm"
               labelOnLeading
@@ -58,21 +90,24 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             />
           </Section.SubSectionHeader>
         </Section.SubSection>
-        <Section.SubSection>
-          <Section.SubSectionHeader
-            icon="user-plus"
-            title={t("skip_contact_creation", { appName: "HubSpot" })}
-            labelFor="skip-contact-creation">
-            <Switch
-              size="sm"
-              labelOnLeading
-              checked={skipContactCreation}
-              onCheckedChange={(checked) => {
-                setAppData("skipContactCreation", checked);
-              }}
-            />
-          </Section.SubSectionHeader>
-        </Section.SubSection>
+
+        {createEventOnSelectedOption.value === HubspotRecordEnum.CONTACT ? (
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="user-plus"
+              title={t("skip_contact_creation", { appName: "HubSpot" })}
+              labelFor="skip-contact-creation">
+              <Switch
+                size="sm"
+                labelOnLeading
+                checked={skipContactCreation}
+                onCheckedChange={(checked) => {
+                  setAppData("skipContactCreation", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+          </Section.SubSection>
+        ) : null}
 
         <Section.SubSection>
           <WriteToObjectSettings
