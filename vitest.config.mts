@@ -1,6 +1,14 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
+import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
+
+const env = loadEnv("", process.cwd(), "");
+for (const [key, value] of Object.entries(env)) {
+  if (process.env[key] === undefined) {
+    process.env[key] = value;
+  }
+}
 
 const vitestMode = process.env.VITEST_MODE;
 // Support both new VITEST_MODE env var and legacy CLI flags for backwards compatibility
@@ -99,6 +107,7 @@ export default defineConfig({
     setupFiles: ["./packages/testing/src/setupVitest.ts"],
     include: getTestInclude(),
     exclude: getTestExclude(),
+    pool: "forks",
     server: {
       deps: {
         inline: [/@calcom\/.*/],

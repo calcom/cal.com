@@ -1536,6 +1536,126 @@ describe("excluded email/domain validation", () => {
       email: "blocked.com@allowed.com",
     });
   });
+
+  test("should block full email match when exact email is excluded", async () => {
+    const excludedEmails = "anik@cal.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // anik@cal.com should be blocked
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "anik@cal.com",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test("should block emails with domain when domain starts with @", async () => {
+    const excludedEmails = "@gmail.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // anik@gmail.com should be blocked when @gmail.com is excluded
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "anik@gmail.com",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test("should block emails with domain when excluded email is just the domain without @", async () => {
+    const excludedEmails = "gmail.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // test@gmail.com should be blocked when gmail.com is excluded
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "test@gmail.com",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
+      })
+    );
+  });
 });
 
 describe("require email/domain validation", () => {
