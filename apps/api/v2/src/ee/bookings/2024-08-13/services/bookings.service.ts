@@ -37,9 +37,6 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-<<<<<<< HEAD
-
-||||||| 0cf5de5ef8
 import {
   ConflictException,
   ForbiddenException,
@@ -54,22 +51,7 @@ import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-=======
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
-import { Request } from "express";
-import { DateTime } from "luxon";
-import { z } from "zod";
->>>>>>> origin/main
-export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
+export const BOOKING_REASSIGN_PERMISSION_ERROR= "You do not have permission to reassign this booking";
 
 import {
   confirmBookingHandler,
@@ -99,14 +81,8 @@ import {
   RescheduleBookingInput,
 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
-<<<<<<< HEAD
-import type { EventType, Team, User } from "@calcom/prisma/client";
-||||||| 0cf5de5ef8
-import type { EventType, User, Team } from "@calcom/prisma/client";
-=======
 import type { EventType, User, Team } from "@calcom/prisma/client";
 import { makeUserActor } from "@calcom/platform-libraries/bookings";
->>>>>>> origin/main
 
 type CreatedBooking = {
   hosts: { id: number }[];
