@@ -1,8 +1,7 @@
 import { TeamRepository } from "@calcom/ee/teams/repositories/TeamRepository";
-import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -86,8 +85,6 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
     return !usersInTeams.some((membership) => membership.userId === userId);
   });
 
-  // TODO: might need to come back to this is people are doing ALOT of invites with bulk actions.
-  // Loop over all users and add them to all teams in the array
   const membershipData = filteredUserIds.flatMap((userId) =>
     input.teamIds.map((teamId) => {
       const userMembership = usersInOrganization.find((membership) => membership.userId === userId);
@@ -98,17 +95,12 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
         teamId,
         role: MembershipRole.MEMBER,
         accepted: accepted || false,
-      } as Prisma.MembershipCreateManyInput;
+      };
     })
   );
 
-  await prisma.membership.createMany({
-    data: membershipData,
-  });
-
-  await Promise.all(
-    membershipData.map(({ userId, teamId }) => updateNewTeamMemberEventTypes(userId, teamId))
-  );
+  const teamService = new TeamService();
+  await teamService.addMembersToTeams({ membershipData });
 
   return {
     success: true,
