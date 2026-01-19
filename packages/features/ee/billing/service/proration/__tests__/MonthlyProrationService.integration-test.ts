@@ -1,13 +1,17 @@
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { createMemberships } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
 import { MonthlyProrationService } from "../MonthlyProrationService";
 
 const mockBillingService: IBillingProviderService = {
   createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
   finalizeInvoice: vi.fn().mockResolvedValue(undefined),
   getSubscription: vi.fn().mockResolvedValue({
@@ -38,11 +42,14 @@ const mockBillingService: IBillingProviderService = {
   getCustomer: vi.fn().mockResolvedValue(null),
   getSubscriptions: vi.fn().mockResolvedValue(null),
   updateCustomer: vi.fn().mockResolvedValue(undefined),
+  getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
+  hasDefaultPaymentMethod: vi.fn().mockResolvedValue(true),
 } as IBillingProviderService;
 
 describe("MonthlyProrationService Integration Tests", () => {
   let testUser: User;
   let testTeam: Team;
+  let billingCustomerId: string;
   const monthKey = "2026-01";
 
   beforeEach(async () => {
@@ -78,12 +85,14 @@ describe("MonthlyProrationService Integration Tests", () => {
     const subscriptionEnd = new Date("2026-06-01T00:00:00Z");
     const subscriptionTrialEnd = new Date("2025-06-08T00:00:00Z");
 
+    billingCustomerId = `cus_test_${timestamp}`;
+
     await prisma.teamBilling.create({
       data: {
         teamId: testTeam.id,
         subscriptionId: `sub_test_${timestamp}`,
         subscriptionItemId: `si_test_${timestamp}`,
-        customerId: `cus_test_${timestamp}`,
+        customerId: billingCustomerId,
         billingPeriod: "ANNUALLY",
         pricePerSeat: 12000,
         paidSeats: 0,
@@ -97,21 +106,50 @@ describe("MonthlyProrationService Integration Tests", () => {
   });
 
   it("should process end-to-end proration for annual team with seat additions", async () => {
-    const seatTracker = new SeatChangeTrackingService();
     const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(7);
 
-    await seatTracker.logSeatAddition({
+    vi.mocked(mockBillingService.createInvoice).mockClear();
+    vi.mocked(mockBillingService.createInvoiceItem).mockClear();
+
+    const newMembers = await Promise.all(
+      [0, 1, 2].map((index) =>
+        prisma.user.create({
+          data: {
+            email: `test-proration-member-${timestamp}-${randomSuffix}-${index}@example.com`,
+            username: `testprorationmember-${timestamp}-${randomSuffix}-${index}`,
+            name: `Test Proration Member ${index}`,
+          },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            identityProvider: true,
+            completedOnboarding: true,
+          },
+        })
+      )
+    );
+
+    await createMemberships({
       teamId: testTeam.id,
-      userId: testUser.id,
-      triggeredBy: testUser.id,
-      seatCount: 3,
+      language: "en",
+      invitees: newMembers.map((member) => ({
+        ...member,
+        profiles: [],
+        teams: [],
+        password: null,
+        newRole: MembershipRole.MEMBER,
+        needToCreateOrgMembership: false,
+      })),
+      parentId: null,
+      accepted: true,
     });
 
-    await seatTracker.logSeatRemoval({
+    await TeamService.leaveTeamMembership({
       teamId: testTeam.id,
-      userId: testUser.id,
-      triggeredBy: testUser.id,
-      seatCount: 1,
+      userId: newMembers[0].id,
     });
 
     const proration = await prorationService.createProrationForTeam({
@@ -125,6 +163,13 @@ describe("MonthlyProrationService Integration Tests", () => {
     expect(proration?.seatsRemoved).toBe(1);
     expect(proration?.status).toBe("INVOICE_CREATED");
     expect(proration?.invoiceItemId).toBe("ii_test_123");
+    expect(mockBillingService.createInvoice).toHaveBeenCalledWith({
+      customerId: billingCustomerId,
+      autoAdvance: true,
+      collectionMethod: "charge_automatically",
+      subscriptionId: proration!.subscriptionId,
+      metadata: buildMonthlyProrationMetadata({ prorationId: proration!.id }),
+    });
 
     const seatChanges = await prisma.seatChangeLog.findMany({
       where: { teamId: testTeam.id, monthKey },
@@ -321,6 +366,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       subscriptionId: proration!.subscriptionId,
       subscriptionItemId: proration!.subscriptionItemId,
       membershipCount: proration!.seatsAtEnd,
+      prorationBehavior: "none",
     });
   });
 

@@ -70,7 +70,9 @@ export class MonthlyProrationTeamRepository {
 
     if (!team) return null;
 
-    let billing: BillingInfo | null = team.isOrganization ? team.organizationBilling : team.teamBilling;
+    let billing: BillingInfo | null = team.isOrganization
+      ? team.organizationBilling
+      : team.teamBilling;
 
     if (!billing) {
       billing = this.extractBillingFromMetadata(team.metadata);
@@ -160,6 +162,19 @@ export class MonthlyProrationTeamRepository {
         data: { paidSeats },
       });
     }
+  }
+
+  async getTeamMemberCount(teamId: number): Promise<number | null> {
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        _count: {
+          select: { members: true },
+        },
+      },
+    });
+
+    return team?._count.members ?? null;
   }
 
   async createOrganizationBilling(data: {

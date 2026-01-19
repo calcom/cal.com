@@ -2,6 +2,9 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
+import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
+import { extractBillingDataFromStripeSubscription } from "../../lib/stripe-subscription-utils";
+import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
 import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
 import type { BillingInfo } from "../../repository/proration/MonthlyProrationTeamRepository";
 import { MonthlyProrationTeamRepository } from "../../repository/proration/MonthlyProrationTeamRepository";
@@ -56,6 +59,15 @@ export class MonthlyProrationService {
     const { monthKey, teamIds } = params;
 
     const teamIdsList = teamIds || (await this.teamRepository.getAnnualTeamsWithSeatChanges(monthKey));
+    const teamIdsPreview = teamIds && teamIds.length <= 25 ? teamIds : undefined;
+    const teamIdsTruncated = teamIds ? teamIds.length > 25 : false;
+
+    this.logger.info("Monthly proration batch started", {
+      monthKey,
+      teamCount: teamIdsList.length,
+      teamIds: teamIdsPreview,
+      teamIdsTruncated,
+    });
 
     const teamsToProcess = teamIdsList.map((id: number) => ({ id }));
 
@@ -68,18 +80,34 @@ export class MonthlyProrationService {
       if (result) results.push(result);
     }
 
+    this.logger.info("Monthly proration batch finished", {
+      monthKey,
+      teamCount: teamIdsList.length,
+      processedCount: results.length,
+      skippedCount: teamIdsList.length - results.length,
+    });
+
     return results;
   }
 
   async createProrationForTeam(params: CreateProrationParams) {
     const { teamId, monthKey } = params;
 
+    this.logger.info(`[${teamId}] starting monthly proration`, { monthKey });
+
     const seatTracker = new SeatChangeTrackingService();
 
     const changes = await seatTracker.getMonthlyChanges({ teamId, monthKey });
 
+    this.logger.info(`[${teamId}] seat changes`, {
+      additions: changes.additions,
+      removals: changes.removals,
+      netChange: changes.netChange,
+    });
+
     // If there are no changes at all (no additions or removals), skip processing
     if (changes.additions === 0 && changes.removals === 0) {
+      this.logger.info(`[${teamId}] no seat changes, skipping proration`);
       return null;
     }
 
@@ -110,6 +138,12 @@ export class MonthlyProrationService {
 
     const paidSeats = billing.paidSeats ?? (await this.getSubscriptionQuantity(billing.subscriptionId));
 
+    this.logger.info(`[${teamId}] billing summary`, {
+      billingPeriod: billing.billingPeriod,
+      pricePerSeat: billing.pricePerSeat,
+      paidSeats,
+    });
+
     const [year, month] = monthKey.split("-").map(Number);
     const periodEnd = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
@@ -119,6 +153,13 @@ export class MonthlyProrationService {
       subscriptionEnd: billing.subscriptionEnd,
       pricePerSeat: billing.pricePerSeat,
       monthEnd: periodEnd,
+    });
+
+    this.logger.info(`[${teamId}] proration calculation`, {
+      netSeatIncrease: changes.netChange,
+      pricePerSeat: billing.pricePerSeat,
+      remainingDays: calculation.remainingDays,
+      proratedAmount: calculation.proratedAmount,
     });
 
     const proration = await this.prorationRepository.createProration({
@@ -143,6 +184,14 @@ export class MonthlyProrationService {
       organizationBillingId: teamWithBilling.isOrganization ? billing.id : null,
     });
 
+    this.logger.info(`[${teamId}] proration record created`, {
+      prorationId: proration.id,
+      seatsAdded: proration.seatsAdded,
+      seatsRemoved: proration.seatsRemoved,
+      netSeatIncrease: proration.netSeatIncrease,
+      status: proration.status,
+    });
+
     await seatTracker.markAsProcessed({
       teamId,
       monthKey,
@@ -150,15 +199,32 @@ export class MonthlyProrationService {
     });
 
     if (calculation.proratedAmount > 0) {
+      this.logger.info(`[${teamId}] creating invoice item`, {
+        prorationId: proration.id,
+        proratedAmount: proration.proratedAmount,
+      });
       const updatedProration = await this.createStripeInvoiceItem(proration);
+      this.logger.info(`[${teamId}] invoice processed`, {
+        prorationId: updatedProration.id,
+        status: updatedProration.status,
+        invoiceId: updatedProration.invoiceId,
+      });
       return updatedProration;
     }
 
-    await this.updateSubscriptionQuantity(
-      proration.subscriptionId,
-      proration.subscriptionItemId,
-      proration.seatsAtEnd
-    );
+    this.logger.info(`[${teamId}] no charge required, updating subscription quantity`, {
+      prorationId: proration.id,
+      seatsAtEnd: proration.seatsAtEnd,
+    });
+
+    await updateSubscriptionQuantity({
+      billingService: this.billingService,
+      subscriptionId: proration.subscriptionId,
+      subscriptionItemId: proration.subscriptionItemId,
+      quantity: proration.seatsAtEnd,
+      prorationBehavior: "none",
+      logger: this.logger,
+    });
 
     await this.teamRepository.updatePaidSeats(
       teamId,
@@ -167,9 +233,17 @@ export class MonthlyProrationService {
       proration.seatsAtEnd
     );
 
-    return await this.prorationRepository.updateProrationStatus(proration.id, "CHARGED", {
+    const updatedProration = await this.prorationRepository.updateProrationStatus(proration.id, "CHARGED", {
       chargedAt: new Date(),
     });
+
+    this.logger.info(`[${teamId}] subscription updated without charge`, {
+      prorationId: updatedProration.id,
+      status: updatedProration.status,
+      seatsAtEnd: updatedProration.seatsAtEnd,
+    });
+
+    return updatedProration;
   }
 
   private calculateProration(params: {
@@ -207,8 +281,15 @@ export class MonthlyProrationService {
     netSeatIncrease: number;
     monthKey: string;
     teamId: number;
+    subscriptionId: string;
+    invoiceId?: string | null;
   }) {
     const amountInCents = Math.round(proration.proratedAmount);
+
+    const hasDefaultPaymentMethod = await this.billingService.hasDefaultPaymentMethod({
+      customerId: proration.customerId,
+      subscriptionId: proration.subscriptionId,
+    });
 
     const { invoiceItemId } = await this.billingService.createInvoiceItem({
       customerId: proration.customerId,
@@ -217,35 +298,92 @@ export class MonthlyProrationService {
       description: `Additional ${proration.netSeatIncrease} seat${
         proration.netSeatIncrease > 1 ? "s" : ""
       } for ${proration.monthKey}`,
-      metadata: {
-        type: "monthly_proration",
+      subscriptionId: proration.subscriptionId,
+      metadata: buildMonthlyProrationMetadata({
         prorationId: proration.id,
-        teamId: proration.teamId.toString(),
+        teamId: proration.teamId,
         monthKey: proration.monthKey,
-      },
+      }),
     });
 
-    const { invoiceId } = await this.billingService.createInvoice({
-      customerId: proration.customerId,
-      autoAdvance: true,
-      metadata: {
-        type: "monthly_proration",
+    let invoiceId: string | null = null;
+    let invoiceFinalized = false;
+
+    try {
+      const invoice = await this.billingService.createInvoice({
+        customerId: proration.customerId,
+        autoAdvance: true,
+        collectionMethod: hasDefaultPaymentMethod ? "charge_automatically" : "send_invoice",
+        subscriptionId: proration.subscriptionId,
+        metadata: buildMonthlyProrationMetadata({ prorationId: proration.id }),
+      });
+
+      invoiceId = invoice.invoiceId;
+
+      await this.billingService.finalizeInvoice(invoiceId);
+      invoiceFinalized = true;
+
+      return await this.prorationRepository.updateProrationStatus(
+        proration.id,
+        hasDefaultPaymentMethod ? "INVOICE_CREATED" : "PENDING",
+        {
+          invoiceItemId,
+          invoiceId,
+        }
+      );
+    } catch (error) {
+      await this.handleInvoiceCreationFailure({
+        error,
         prorationId: proration.id,
-      },
-    });
-
-    await this.billingService.finalizeInvoice(invoiceId);
-
-    const updatedProration = await this.prorationRepository.updateProrationStatus(
-      proration.id,
-      "INVOICE_CREATED",
-      {
-        invoiceItemId,
         invoiceId,
-      }
-    );
+        invoiceItemId,
+        invoiceFinalized,
+      });
+      throw error;
+    }
+  }
 
-    return updatedProration;
+  private async handleInvoiceCreationFailure(params: {
+    error: unknown;
+    prorationId: string;
+    invoiceId: string | null;
+    invoiceItemId: string;
+    invoiceFinalized: boolean;
+  }) {
+    const { error, prorationId, invoiceId, invoiceItemId, invoiceFinalized } = params;
+
+    if (invoiceFinalized) {
+      // Invoice is live and potentially being charged - don't clean up
+      // The webhook will handle payment success/failure
+      this.logger.error("Proration status update failed after invoice finalized - webhook will handle", {
+        prorationId,
+        invoiceId,
+        error,
+      });
+      return;
+    }
+
+    // Invoice not yet live - mark as FAILED to enable retry via retryFailedProration()
+    const failureReason = error instanceof Error ? error.message : "Invoice creation failed";
+    try {
+      await this.prorationRepository.updateProrationStatus(prorationId, "FAILED", {
+        failedAt: new Date(),
+        failureReason,
+      });
+    } catch (statusError) {
+      this.logger.error("Failed to update proration status to FAILED", { prorationId, error: statusError });
+    }
+
+    // Clean up Stripe artifacts
+    try {
+      if (invoiceId) {
+        await this.billingService.voidInvoice(invoiceId);
+      } else {
+        await this.billingService.deleteInvoiceItem(invoiceItemId);
+      }
+    } catch (cleanupError) {
+      this.logger.error("Failed to clean up Stripe artifacts", { prorationId, invoiceId, invoiceItemId, error: cleanupError });
+    }
   }
 
   async handleProrationPaymentSuccess(prorationId: string) {
@@ -258,38 +396,23 @@ export class MonthlyProrationService {
       chargedAt: new Date(),
     });
 
-    await this.updateSubscriptionQuantity(
-      proration.subscriptionId,
-      proration.subscriptionItemId,
-      proration.seatsAtEnd
-    );
+    // Use the seat count that was captured when the proration was created.
+    // Any member changes after proration creation will be captured in the next month's cycle.
+    const seatsToApply = proration.seatsAtEnd;
+
+    await updateSubscriptionQuantity({
+      billingService: this.billingService,
+      subscriptionId: proration.subscriptionId,
+      subscriptionItemId: proration.subscriptionItemId,
+      quantity: seatsToApply,
+      prorationBehavior: "none",
+      logger: this.logger,
+    });
 
     const billingId = proration.teamBillingId || proration.organizationBillingId;
     if (billingId) {
       const isOrganization = !!proration.organizationBillingId;
-      await this.teamRepository.updatePaidSeats(
-        proration.teamId,
-        isOrganization,
-        billingId,
-        proration.seatsAtEnd
-      );
-    }
-  }
-
-  private async updateSubscriptionQuantity(
-    subscriptionId: string,
-    subscriptionItemId: string,
-    quantity: number
-  ): Promise<void> {
-    try {
-      await this.billingService.handleSubscriptionUpdate({
-        subscriptionId,
-        subscriptionItemId,
-        membershipCount: quantity,
-      });
-    } catch (error) {
-      this.logger.error(`Failed to update subscription ${subscriptionId} quantity to ${quantity}:`, error);
-      throw error;
+      await this.teamRepository.updatePaidSeats(proration.teamId, isOrganization, billingId, seatsToApply);
     }
   }
 
@@ -311,6 +434,11 @@ export class MonthlyProrationService {
 
     if (!proration) throw new Error(`Proration ${prorationId} not found`);
     if (proration.status !== "FAILED") throw new Error(`Proration ${prorationId} is not in FAILED status`);
+
+    // Void the old invoice to prevent double charging
+    if (proration.invoiceId) {
+      await this.billingService.voidInvoice(proration.invoiceId);
+    }
 
     await this.createStripeInvoiceItem(proration);
   }
@@ -337,25 +465,21 @@ export class MonthlyProrationService {
         throw new Error(`Subscription ${billing.subscriptionId} not found`);
       }
 
-      const billingPeriod: "ANNUALLY" | "MONTHLY" =
-        subscription.items[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
+      const {
+        billingPeriod,
+        pricePerSeat: rawPricePerSeat,
+        paidSeats: rawPaidSeats,
+        subscriptionStart,
+        subscriptionEnd,
+        subscriptionTrialEnd,
+      } = extractBillingDataFromStripeSubscription(subscription);
 
-      const pricePerSeat = subscription.items[0]?.price.unit_amount ?? 0;
-
-      const subscriptionStart = subscription.current_period_start
-        ? new Date(subscription.current_period_start * 1000)
-        : null;
-
-      const subscriptionEnd = subscription.current_period_end
-        ? new Date(subscription.current_period_end * 1000)
-        : null;
-
+      const pricePerSeat = rawPricePerSeat ?? 0;
+      const paidSeats = rawPaidSeats ?? 0;
       const subscriptionItemId = subscription.items[0]?.id || billing.subscriptionItemId || "";
       const customerId = subscription.customer;
-      const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
       if (needsCreation) {
-        const paidSeats = subscription.items[0]?.quantity || 0;
         const billingData = {
           teamId,
           subscriptionId: billing.subscriptionId,
@@ -366,9 +490,9 @@ export class MonthlyProrationService {
           billingPeriod,
           pricePerSeat,
           paidSeats,
-          subscriptionStart,
-          subscriptionEnd,
-          subscriptionTrialEnd,
+          subscriptionStart: subscriptionStart ?? null,
+          subscriptionEnd: subscriptionEnd ?? null,
+          subscriptionTrialEnd: subscriptionTrialEnd ?? null,
         };
 
         const createdBilling = isOrganization
@@ -394,8 +518,8 @@ export class MonthlyProrationService {
 
       billing.billingPeriod = billingPeriod;
       billing.pricePerSeat = pricePerSeat;
-      billing.subscriptionStart = subscriptionStart;
-      billing.subscriptionEnd = subscriptionEnd;
+      billing.subscriptionStart = subscriptionStart ?? null;
+      billing.subscriptionEnd = subscriptionEnd ?? null;
       billing.subscriptionItemId = subscriptionItemId;
       if (needsCreation) {
         billing.customerId = customerId;
