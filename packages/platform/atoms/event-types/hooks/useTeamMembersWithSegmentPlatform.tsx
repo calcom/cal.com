@@ -36,17 +36,15 @@ export const useProcessTeamMembersData = ({
 }) => {
   const teamMembers = useMemo(() => {
     if (assignRRMembersUsingSegment && matchingTeamMembersWithResult?.result) {
-      return matchingTeamMembersWithResult.result
-        .filter((member) => value.some((host) => !host.isFixed && host.userId === member.id))
-        .map((member) => ({
-          value: member.id.toString(),
-          label: member.name || member.email,
-          email: member.email,
-          avatar: "",
-        }));
+      return matchingTeamMembersWithResult.result.map((member) => ({
+        value: member.id.toString(),
+        label: member.name || member.email,
+        email: member.email,
+        avatar: "",
+      }));
     }
     return initialTeamMembers;
-  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers, value]);
+  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
 
   const localWeightsInitialValues = useMemo(
     () =>
