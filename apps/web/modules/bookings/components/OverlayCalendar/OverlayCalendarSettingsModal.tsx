@@ -1,4 +1,5 @@
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import type { WrappedBookerPropsMain } from "@calcom/features/bookings/Booker/types";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -12,34 +13,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 
-interface IOverlayCalendarSettingsModalProps {
+type IOverlayCalendarSettingsModalProps = Pick<WrappedBookerPropsMain["calendars"], "connectedCalendars"> & {
   open?: boolean;
   onClose?: (state: boolean) => void;
   onClickNoCalendar?: () => void;
   isLoading: boolean;
-  connectedCalendars: {
-    credentialId: number;
-    calendars?: {
-      name: string;
-      integrationTitle: string;
-      externalId: string;
-    }[];
-    error?: {
-      message: string | null;
-    };
-    primary: {
-      email: string;
-    };
-    integration: {
-      slug: string;
-      name?: string;
-      title: string;
-      logo: string;
-    };
-  }[];
   onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
   checkIsCalendarToggled: (externalCalendarId: string, credentialId: number) => boolean;
-}
+};
 
 const SkeletonLoader = (): JSX.Element => {
   return (
