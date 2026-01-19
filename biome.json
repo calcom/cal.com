@@ -1,6 +1,14 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": true,
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    },
+    "enabled": true
+  },
   "css": {
     "parser": {
       "tailwindDirectives": true
@@ -103,7 +111,14 @@
             "useExplicitType": "info",
             "noReactForwardRef": "warn",
             "noTernary": "info",
-            "noUnresolvedImports": "warn"
+            "noUnresolvedImports": "warn",
+            "useSortedClasses": {
+              "level": "warn",
+              "options": {
+                "attributes": ["className", "classList"],
+                "functions": ["clsx", "cva", "cn", "tw"]
+              }
+            }
           },
           "correctness": {
             "useImportExtensions": "warn",
