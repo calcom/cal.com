@@ -2106,6 +2106,7 @@ __metadata:
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
     "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@1.0.4"
+    "@radix-ui/react-popover-atoms": "npm:@radix-ui/react-popover@1.0.6"
     "@radix-ui/react-slot": "npm:1.1.2"
     "@radix-ui/react-switch": "npm:1.1.0"
     "@radix-ui/react-toast": "npm:1.1.5"
@@ -2131,7 +2132,7 @@ __metadata:
     postcss-cli: "npm:11.0.1"
     postcss-import: "npm:16.1.0"
     postcss-prefixer: "npm:3.0.0"
-    postcss-prefixwrap: "npm:1.46.0"
+    postcss-prefixwrap: "npm:1.57.0"
     react-use: "npm:17.6.0"
     tailwind-merge: "npm:1.13.2"
     tailwindcss: "npm:4.1.17"
@@ -12014,7 +12015,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-popover@npm:1.0.6":
+"@radix-ui/react-popover-atoms@npm:@radix-ui/react-popover@1.0.6, @radix-ui/react-popover@npm:1.0.6":
   version: 1.0.6
   resolution: "@radix-ui/react-popover@npm:1.0.6"
   dependencies:
@@ -32606,12 +32607,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-prefixwrap@npm:1.46.0":
-  version: 1.46.0
-  resolution: "postcss-prefixwrap@npm:1.46.0"
+"postcss-prefixwrap@npm:1.57.0":
+  version: 1.57.0
+  resolution: "postcss-prefixwrap@npm:1.57.0"
   peerDependencies:
     postcss: "*"
-  checksum: 10/94f02abbd2ce4e2c685807316c53659bdfd653121408221a83e5321942fb8dd8d2af597643d32312cda215db87d1bb9b75ee382bec4a65146864f49874691478
+  checksum: 10/56f334040a22f5cea8324d1c0fa836b3c3c4bd6ab6dbd800da49f3bb75f48fef7565ac9b56474e365af47a9cebf63e795d4cd8c02d773de07dd064e8a946940c
   languageName: node
   linkType: hard
 
