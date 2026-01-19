@@ -1676,11 +1676,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             isDisabled={readOnly}
                                             className="mt-1"
                                           />
-                                          {isSMSAction(step.action) && (
-                                            <p className="mt-1 text-xs text-gray-500">
-                                              Select &ldquo;Custom&rdquo; to write your own message
-                                            </p>
-                                          )}
                                         </div>
                                       )}
 
