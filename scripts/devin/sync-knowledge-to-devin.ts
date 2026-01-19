@@ -1,11 +1,14 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env npx tsx
 
 /**
  * Syncs knowledge from the generated JSON file to Devin's Knowledge API.
- * - Creates folders if they don't exist
  * - Creates new knowledge entries
  * - Updates existing entries (matched by name)
  * - Optionally deletes entries that no longer exist in the source
+ *
+ * Note: The Devin API v1 does not support creating folders via API.
+ * Entries will be created without folder assignment. You can organize
+ * them into folders manually in the Devin UI if needed.
  *
  * Usage: DEVIN_API_KEY=your_token npx tsx scripts/devin/sync-knowledge-to-devin.ts [--delete-removed]
  */
@@ -18,24 +21,10 @@ interface DevinKnowledgeEntry {
   name: string;
   body: string;
   trigger_description: string;
-  folder?: string;
-}
-
-interface DevinKnowledgeFolder {
-  name: string;
-  description: string;
 }
 
 interface DevinKnowledgeOutput {
-  folders: DevinKnowledgeFolder[];
   knowledge: DevinKnowledgeEntry[];
-}
-
-interface ApiFolder {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
 }
 
 interface ApiKnowledgeEntry {
@@ -52,7 +41,7 @@ interface ApiKnowledgeEntry {
 }
 
 interface ApiListResponse {
-  folders: ApiFolder[];
+  folders: { id: string; name: string }[];
   knowledge: ApiKnowledgeEntry[];
 }
 
@@ -95,43 +84,29 @@ async function listKnowledge(): Promise<ApiListResponse> {
   return apiRequest<ApiListResponse>("GET", "/knowledge");
 }
 
-async function createFolder(name: string, description: string): Promise<ApiFolder> {
-  return apiRequest<ApiFolder>("POST", "/knowledge/folders", { name, description });
-}
-
 async function createKnowledge(
   name: string,
   body: string,
-  triggerDescription: string,
-  parentFolderId?: string
+  triggerDescription: string
 ): Promise<ApiKnowledgeEntry> {
-  const payload: Record<string, unknown> = {
+  return apiRequest<ApiKnowledgeEntry>("POST", "/knowledge", {
     name,
     body,
     trigger_description: triggerDescription,
-  };
-  if (parentFolderId) {
-    payload.parent_folder_id = parentFolderId;
-  }
-  return apiRequest<ApiKnowledgeEntry>("POST", "/knowledge", payload);
+  });
 }
 
 async function updateKnowledge(
   noteId: string,
   name: string,
   body: string,
-  triggerDescription: string,
-  parentFolderId?: string
+  triggerDescription: string
 ): Promise<ApiKnowledgeEntry> {
-  const payload: Record<string, unknown> = {
+  return apiRequest<ApiKnowledgeEntry>("PUT", `/knowledge/${noteId}`, {
     name,
     body,
     trigger_description: triggerDescription,
-  };
-  if (parentFolderId) {
-    payload.parent_folder_id = parentFolderId;
-  }
-  return apiRequest<ApiKnowledgeEntry>("PUT", `/knowledge/${noteId}`, payload);
+  });
 }
 
 async function deleteKnowledge(noteId: string): Promise<void> {
@@ -159,24 +134,6 @@ async function main() {
     `Found ${remoteData.folders.length} folders and ${remoteData.knowledge.length} entries in Devin\n`
   );
 
-  // Build folder name -> id map
-  const folderMap = new Map<string, string>();
-  for (const folder of remoteData.folders) {
-    folderMap.set(folder.name, folder.id);
-  }
-
-  // Create missing folders
-  console.log("Syncing folders...");
-  for (const folder of localData.folders) {
-    if (!folderMap.has(folder.name)) {
-      console.log(`  Creating folder: ${folder.name}`);
-      const created = await createFolder(folder.name, folder.description);
-      folderMap.set(folder.name, created.id);
-    } else {
-      console.log(`  Folder exists: ${folder.name}`);
-    }
-  }
-
   // Build knowledge name -> entry map for remote
   const remoteKnowledgeMap = new Map<string, ApiKnowledgeEntry>();
   for (const entry of remoteData.knowledge) {
@@ -193,26 +150,24 @@ async function main() {
   let unchanged = 0;
 
   for (const entry of localData.knowledge) {
-    const folderId = entry.folder ? folderMap.get(entry.folder) : undefined;
     const existing = remoteKnowledgeMap.get(entry.name);
 
     if (existing) {
       seenRemoteIds.add(existing.id);
 
-      // Check if content changed
       const bodyChanged = existing.body !== entry.body;
       const triggerChanged = existing.trigger_description !== entry.trigger_description;
 
       if (bodyChanged || triggerChanged) {
         console.log(`  Updating: ${entry.name}`);
-        await updateKnowledge(existing.id, entry.name, entry.body, entry.trigger_description, folderId);
+        await updateKnowledge(existing.id, entry.name, entry.body, entry.trigger_description);
         updated++;
       } else {
         unchanged++;
       }
     } else {
       console.log(`  Creating: ${entry.name}`);
-      await createKnowledge(entry.name, entry.body, entry.trigger_description, folderId);
+      await createKnowledge(entry.name, entry.body, entry.trigger_description);
       created++;
     }
   }
