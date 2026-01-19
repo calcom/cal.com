@@ -127,6 +127,7 @@ function MembersSegmentWithToggle({
   rrSegmentQueryValue,
   setRrSegmentQueryValue,
   className,
+  filterMemberIds,
 }: {
   teamId: number;
   assignRRMembersUsingSegment: boolean;
@@ -134,6 +135,7 @@ function MembersSegmentWithToggle({
   rrSegmentQueryValue: AttributesQueryValue | null;
   setRrSegmentQueryValue: (value: AttributesQueryValue) => void;
   className?: string;
+  filterMemberIds?: number[];
 }) {
   const { t } = useLocale();
   const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
@@ -159,6 +161,7 @@ function MembersSegmentWithToggle({
               queryValue={rrSegmentQueryValue}
               onQueryValueChange={onQueryValueChange}
               className={className}
+              filterMemberIds={filterMemberIds}
             />
           )}
         </SettingsToggle>
@@ -300,6 +303,7 @@ export function AddMembersWithSwitch({
                 setAssignRRMembersUsingSegment={setAssignRRMembersUsingSegment}
                 rrSegmentQueryValue={rrSegmentQueryValue}
                 setRrSegmentQueryValue={setRrSegmentQueryValue}
+                filterMemberIds={value.filter((host) => !host.isFixed).map((host) => host.userId)}
               />
             </div>
           )}

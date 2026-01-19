@@ -32,14 +32,14 @@ function SegmentWithAttributes({
   queryValue: initialQueryValue,
   onQueryValueChange,
   className,
-  hosts,
+  filterMemberIds,
 }: {
   attributes: Attributes;
   teamId: number;
   queryValue: AttributesQueryValue | null;
   onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
   className?: string;
-  hosts?: number[];
+  filterMemberIds?: number[];
 }) {
   const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
     attributes,
@@ -91,7 +91,7 @@ function SegmentWithAttributes({
         />
       </div>
       <div className="mt-4 text-sm">
-        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} hosts={hosts} />
+        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} filterMemberIds={filterMemberIds} />
       </div>
     </div>
   );
@@ -100,11 +100,11 @@ function SegmentWithAttributes({
 function MatchingTeamMembers({
   teamId,
   queryValue,
-  hosts,
+  filterMemberIds,
 }: {
   teamId: number;
   queryValue: AttributesQueryValue | null;
-  hosts?: number[];
+  filterMemberIds?: number[];
 }) {
   const { t } = useLocale();
 
@@ -162,9 +162,8 @@ function MatchingTeamMembers({
   if (!matchingTeamMembersWithResult) return <span>{t("something_went_wrong")}</span>;
   const { result: allMatchingTeamMembers } = matchingTeamMembersWithResult;
 
-  // Filter to only show members who are hosts of the event-type (if hosts array is provided)
-  const matchingTeamMembers = hosts
-    ? allMatchingTeamMembers?.filter((member) => hosts.includes(member.id))
+  const matchingTeamMembers = filterMemberIds
+    ? allMatchingTeamMembers?.filter((member) => filterMemberIds.includes(member.id))
     : allMatchingTeamMembers;
 
   return (
@@ -191,13 +190,13 @@ export function Segment({
   queryValue,
   onQueryValueChange,
   className,
-  hosts,
+  filterMemberIds,
 }: {
   teamId: number;
   queryValue: AttributesQueryValue | null;
   onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
   className?: string;
-  hosts?: number[];
+  filterMemberIds?: number[];
 }) {
   const { attributes, isPending } = useAttributes(teamId);
   const { t } = useLocale();
@@ -214,7 +213,7 @@ export function Segment({
       queryValue={queryValue}
       onQueryValueChange={onQueryValueChange}
       className={className}
-      hosts={hosts}
+      filterMemberIds={filterMemberIds}
     />
   );
 }
