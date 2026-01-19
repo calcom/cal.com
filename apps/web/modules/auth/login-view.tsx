@@ -247,6 +247,7 @@ export default function Login({
                   defaultValue={totpEmail || (searchParams?.get("email") as string)}
                   placeholder="john.doe@example.com"
                   required
+                  showAsteriskIndicator
                   autoComplete="email"
                   {...register("email")}
                 />
@@ -255,6 +256,7 @@ export default function Login({
                     id="password"
                     autoComplete="current-password"
                     required={!totpEmail}
+                    showAsteriskIndicator
                     className="mb-0"
                     {...register("password")}
                   />

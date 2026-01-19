@@ -163,7 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
           >
             {label}
             {showAsteriskIndicator && !readOnly && passThrough.required ? (
-              <span className="text-default ml-1 font-medium">*</span>
+              <span className="text-error ml-1 font-medium">*</span>
             ) : null}
             {LockedIcon}
           </Label>
