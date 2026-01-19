@@ -4,15 +4,26 @@ import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import logger from "@calcom/lib/logger";
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { EventType, User, WorkflowsOnEventTypes } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
+// Mock the logger module
+vi.mock("@calcom/lib/logger", () => ({
+  default: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // Helper to setup transaction mock that executes the callback with the prisma mock
 const setupTransactionMock = () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   prismaMock.$transaction.mockImplementation(async (callback) => {
     if (typeof callback === "function") {
       return await callback(prismaMock);
@@ -98,7 +109,7 @@ describe("handleChildrenEventTypes", () => {
 
     it("Returns message 'Missing event type'", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       prismaMock.eventType.findFirst.mockImplementation(() => {
         return new Promise((resolve) => {
           resolve(null);
@@ -125,7 +136,7 @@ describe("handleChildrenEventTypes", () => {
   describe("Happy paths", () => {
     it("Adds new users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -210,7 +221,7 @@ describe("handleChildrenEventTypes", () => {
 
     it("Updates old users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -235,6 +246,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Mock findMany for existing records lookup (new batch update optimization)
+      // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
 
       const result = await updateChildrenEventTypes({
@@ -307,6 +319,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Mock findMany for existing records lookup (new batch update optimization)
+      // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
 
       const result = await updateChildrenEventTypes({
@@ -333,7 +346,7 @@ describe("handleChildrenEventTypes", () => {
   describe("Slug conflicts", () => {
     it("Deletes existent event types for new users added", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -421,7 +434,7 @@ describe("handleChildrenEventTypes", () => {
     });
     it("Deletes existent event types for old users updated", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const {
         schedulingType,
         id,
@@ -447,6 +460,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Mock findMany for existing records lookup (new batch update optimization)
+      // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
 
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
@@ -692,6 +706,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Mock findMany for existing records lookup
+      // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue(
         oldUserIds.map((userId) => ({ userId, metadata: {} }))
       );
@@ -741,7 +756,9 @@ describe("handleChildrenEventTypes", () => {
     });
 
     it("retries failed updates once", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      // Reset logger mocks before test
+      vi.mocked(logger.info).mockClear();
+      vi.mocked(logger.error).mockClear();
 
       mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -749,6 +766,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Mock findMany for existing records lookup
+      // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([
         { userId: 1, metadata: {} },
         { userId: 2, metadata: {} },
@@ -809,13 +827,13 @@ describe("handleChildrenEventTypes", () => {
       // User 2 should have been called twice (initial + retry)
       expect(callCountByUser[2]).toBe(2);
       // Verify retry log was called
-      expect(consoleSpy).toHaveBeenCalledWith("Retrying 1 failed updates...");
-
-      consoleSpy.mockRestore();
+      expect(logger.info).toHaveBeenCalledWith("Retrying 1 failed updates...");
     });
 
     it("continues processing when some updates fail permanently", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      // Reset logger mocks before test
+      vi.mocked(logger.info).mockClear();
+      vi.mocked(logger.error).mockClear();
 
       mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -823,6 +841,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Mock findMany for existing records lookup
+      // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([
         { userId: 1, metadata: {} },
         { userId: 2, metadata: {} },
@@ -877,12 +896,10 @@ describe("handleChildrenEventTypes", () => {
       // oldUserIds should still contain all 3 (the function returns the input, not successful ones)
       expect(result.oldUserIds).toEqual([1, 2, 3]);
       // Verify permanent failure was logged
-      expect(consoleSpy).toHaveBeenCalledWith("handleChildrenEventType - Could not update managed event-type", {
+      expect(logger.error).toHaveBeenCalledWith("handleChildrenEventType - Could not update managed event-type", {
         parentId: 1,
         userIds: [2],
       });
-
-      consoleSpy.mockRestore();
     });
 
     it("handles large scale scenarios with 100+ users efficiently", async () => {
@@ -899,6 +916,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Mock findMany for existing records lookup - should be called ONCE (bulk optimization)
+      // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue(
         oldUserIds.map((userId) => ({ userId, metadata: {} }))
       );
