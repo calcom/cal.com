@@ -5,7 +5,7 @@ import { useReducer, useState } from "react";
 
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
 import { AppList } from "@calcom/web/modules/apps/components/AppList";
-import DisconnectIntegrationModal from "@calcom/web/modules/apps/components/DisconnectIntegrationModal";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
