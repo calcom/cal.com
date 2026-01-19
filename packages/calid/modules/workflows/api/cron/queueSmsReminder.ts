@@ -135,7 +135,6 @@ const processNotificationQueue = async (): Promise<number> => {
       }
 
       if (messageText?.length && messageText?.length > 0 && recipientNumber) {
-        // const dispatchedSMS = await twilio.scheduleSMS(
         const dispatchedSMS = await smsService.scheduleSMS(
           recipientNumber,
           messageText,
@@ -243,7 +242,6 @@ const executeCancellationProcess = async (): Promise<void> => {
   const cancellationTasks: Promise<any>[] = [];
   for (const messageToCancel of messagesToCancel) {
     if (messageToCancel.referenceId) {
-      // const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
       const smsProviderRequest = smsService.cancelSMS(messageToCancel.referenceId);
 
       const dbTransaction = prisma
