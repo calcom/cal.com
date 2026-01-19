@@ -327,8 +327,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   });
 
   const verifyPhoneNumberMutation = trpc.viewer.workflows.calid_verifyPhoneNumber.useMutation({
-    onSuccess: async (isVerified, variables) => {
-      triggerToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+    onSuccess: async (data, variables) => {
+      const { verifyStatus: isVerified, error } = data;
+      triggerToast(
+        isVerified ? t("verified_successfully") : error ? error : t("wrong_code"),
+        isVerified ? "success" : "error"
+      );
 
       if (isVerified && variables?.phoneNumber) {
         setNumberVerificationStatus((prev) => {
@@ -401,7 +405,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
   const verifyEmailCodeMutation = trpc.viewer.workflows.calid_verifyEmailCode.useMutation({
     onSuccess: (isVerified, variables) => {
-      triggerToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+      triggerToast(
+        isVerified ? t("verified_successfully") : t("wrong_code"),
+        isVerified ? "success" : "error"
+      );
 
       if (isVerified && variables?.email) {
         setEmailVerificationStatus((prev) => {
