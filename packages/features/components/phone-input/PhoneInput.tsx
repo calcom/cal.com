@@ -13,20 +13,6 @@ const CUSTOM_PHONE_MASKS = {
   at: "... ..........",
 };
 
-export type PhoneInputProps = {
-  value?: string;
-  id?: string;
-  placeholder?: string;
-  required?: boolean;
-  className?: string;
-  name?: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-  defaultCountry?: string;
-  inputStyle?: CSSProperties;
-  flagButtonStyle?: CSSProperties;
-};
-
 function BasePhoneInput({
   name,
   className = "",
@@ -36,7 +22,7 @@ function BasePhoneInput({
   flagButtonStyle,
   defaultCountry = "us",
   ...rest
-}: PhoneInputProps) {
+}: PhoneInputProps): JSX.Element {
   // This is to trigger validation on prefill value changes
   useEffect(() => {
     if (!value) return;
@@ -68,7 +54,7 @@ function BasePhoneInput({
         placeholder: rest.placeholder,
         autoComplete: "tel",
       }}
-      onChange={(val: string) => {
+      onChange={(val: string): void => {
         onChange(val.startsWith("+") ? val : `+${val}`);
       }}
       containerClass={classNames(
@@ -95,5 +81,19 @@ function BasePhoneInput({
     />
   );
 }
+
+export type PhoneInputProps = {
+  value?: string;
+  id?: string;
+  placeholder?: string;
+  required?: boolean;
+  className?: string;
+  name?: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+  defaultCountry?: string;
+  inputStyle?: CSSProperties;
+  flagButtonStyle?: CSSProperties;
+};
 
 export default BasePhoneInput;
