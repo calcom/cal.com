@@ -43,7 +43,7 @@ async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | n
   return { orgId, teamIds };
 }
 
-export const featureOptInRouter: ReturnType<typeof router> = router({
+export const featureOptInRouter = router({
   /**
    * Get all opt-in features with states for current user.
    * This considers all teams/orgs the user belongs to.

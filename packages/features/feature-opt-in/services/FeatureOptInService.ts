@@ -19,8 +19,10 @@ import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 import type { OptInFeaturePolicy, OptInFeatureScope } from "../types";
 import type {
   EffectiveStateReason,
+  FeatureOptInEligibilityResult,
   IFeatureOptInService,
   ResolvedFeatureState,
+  UserRoleContext,
 } from "./IFeatureOptInService";
 
 type ListFeaturesForUserResult = {
@@ -43,51 +45,12 @@ type ListFeaturesForTeamResult = {
   orgState: FeatureState;
 };
 
-type UserRoleContext = {
-  isOrgAdmin: boolean;
-  orgId: number | null;
-  adminTeamIds: number[];
-  adminTeamNames: { id: number; name: string }[];
-};
-
 type FeatureOptInEligibilityStatus =
   | "invalid_feature"
   | "feature_disabled"
   | "already_enabled"
   | "blocked"
   | "can_opt_in";
-
-type FeatureOptInEligibilityResult =
-  | {
-      status: "invalid_feature";
-      canOptIn: false;
-      userRoleContext: null;
-      blockingReason: null;
-    }
-  | {
-      status: "feature_disabled";
-      canOptIn: false;
-      userRoleContext: null;
-      blockingReason: string;
-    }
-  | {
-      status: "already_enabled";
-      canOptIn: false;
-      userRoleContext: null;
-      blockingReason: null;
-    }
-  | {
-      status: "blocked";
-      canOptIn: false;
-      userRoleContext: UserRoleContext;
-      blockingReason: string;
-    }
-  | {
-      status: "can_opt_in";
-      canOptIn: true;
-      userRoleContext: UserRoleContext;
-      blockingReason: null;
-    };
 
 function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
   if (orgId !== null) {
@@ -534,4 +497,5 @@ export class FeatureOptInService implements IFeatureOptInService {
   }
 }
 
-export type { UserRoleContext, FeatureOptInEligibilityStatus, FeatureOptInEligibilityResult };
+export type { FeatureOptInEligibilityStatus };
+export type { UserRoleContext, FeatureOptInEligibilityResult } from "./IFeatureOptInService";
