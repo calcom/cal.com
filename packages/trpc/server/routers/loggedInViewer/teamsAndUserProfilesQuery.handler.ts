@@ -113,6 +113,13 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     teamsData = teamsData.filter((_, index) => permissionChecks[index]);
   }
 
+  // Sort teams so organizations come first, followed by other teams
+  teamsData.sort((a, b) => {
+    if (a.team.isOrganization && !b.team.isOrganization) return -1;
+    if (!a.team.isOrganization && b.team.isOrganization) return 1;
+    return 0;
+  });
+
   const rolesWithWriteAccess = [MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[];
 
   return [

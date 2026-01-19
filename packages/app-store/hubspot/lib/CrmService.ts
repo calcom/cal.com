@@ -55,7 +55,12 @@ class HubspotCalendarService implements CRM {
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
     const userFields = getLabelValueMapFromResponses(event);
     const plainText = event?.description?.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
-    const location = getLocation(event);
+    const location = getLocation({
+      videoCallData: event.videoCallData,
+      additionalInformation: event.additionalInformation,
+      location: event.location,
+      uid: event.uid,
+    });
     const userFieldsHtml = Object.entries(userFields)
       .map(([key, value]) => {
         const formattedValue = typeof value === "boolean" ? (value ? "Yes" : "No") : value || "-";
@@ -283,7 +288,12 @@ class HubspotCalendarService implements CRM {
       hs_timestamp: Date.now().toString(),
       hs_meeting_title: event.title,
       hs_meeting_body: this.getHubspotMeetingBody(event),
-      hs_meeting_location: getLocation(event),
+      hs_meeting_location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       hs_meeting_start_time: new Date(event.startTime).toISOString(),
       hs_meeting_end_time: new Date(event.endTime).toISOString(),
       hs_meeting_outcome: "SCHEDULED",
@@ -323,7 +333,12 @@ class HubspotCalendarService implements CRM {
         hs_timestamp: Date.now().toString(),
         hs_meeting_title: event.title,
         hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation(event),
+        hs_meeting_location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "RESCHEDULED",
