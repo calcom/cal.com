@@ -5,6 +5,7 @@ import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getCalIdServerSideProps } from "@lib/team/[slug]/getCalIdServerSideProps";
@@ -24,6 +25,9 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
       image: getDefaultAvatar(team.logoUrl, team.name),
     },
   };
+  const faviconUrl = team.faviconUrl
+    ? `${getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true)}?v=${Date.now()}`
+    : "/calid_favicon.svg";
   const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(
     meeting,
@@ -35,6 +39,11 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   );
   return {
     ...metadata,
+    icons: {
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
+    },
     robots: {
       follow: isSEOIndexable,
       index: isSEOIndexable,
