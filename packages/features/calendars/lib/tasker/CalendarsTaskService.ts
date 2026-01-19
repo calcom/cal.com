@@ -1,6 +1,7 @@
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import type { PrismaClient } from "@calcom/prisma";
 
+import { UserRepository } from "../../../users/repositories/UserRepository";
 import type { CalendarsTasks } from "./types";
 
 export interface ICalendarsTaskServiceDependencies {
@@ -21,33 +22,8 @@ export class CalendarsTaskService implements CalendarsTasks {
     const { prisma, logger } = this.dependencies;
 
     try {
-      const userWithCalendars = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          timeZone: true,
-          selectedCalendars: true,
-          destinationCalendar: true,
-          credentials: {
-            select: {
-              id: true,
-              type: true,
-              key: true,
-              userId: true,
-              teamId: true,
-              appId: true,
-              invalid: true,
-              user: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const userRepository = new UserRepository(prisma);
+      const userWithCalendars = await userRepository.findByIdWithCredentialsAndSelectedCalendars({ userId });
 
       if (!userWithCalendars) {
         logger.error(`User not found for ensureDefaultCalendars`, { userId });
@@ -66,7 +42,7 @@ export class CalendarsTaskService implements CalendarsTasks {
             (calendar) => !calendar.eventTypeId
           ),
         },
-        onboarding: false,
+        onboarding: true,
         eventTypeId: null,
         prisma,
       });
