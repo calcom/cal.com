@@ -1,7 +1,7 @@
+import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
+import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
@@ -60,7 +60,9 @@ export class OrganizationWatchlistOperationsService extends WatchlistOperationsS
     });
 
     if (!hasPermission) {
-      throw WatchlistErrors.permissionDenied(`You are not authorized to ${permission.split(".")[1]} watchlist entries`);
+      throw WatchlistErrors.permissionDenied(
+        `You are not authorized to ${permission.split(".")[1]} watchlist entries`
+      );
     }
   }
 

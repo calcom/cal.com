@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -72,6 +73,11 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleContinue = () => {
+    posthog.capture("onboarding_organization_brand_continue_clicked", {
+      has_logo: !!logoPreview,
+      has_banner: !!bannerPreview,
+      has_custom_color: brandColor !== "#000000",
+    });
     // Save to store (already saved on change, but ensure it's persisted)
     setOrganizationBrand({
       logo: logoPreview,
@@ -82,6 +88,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleSkip = () => {
+    posthog.capture("onboarding_organization_brand_skip_clicked");
     // Skip brand customization and go to teams
     router.push("/onboarding/organization/teams");
   };
@@ -97,7 +104,10 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
             <Button
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/organization/details")}>
+              onClick={() => {
+                posthog.capture("onboarding_organization_brand_back_clicked");
+                router.push("/onboarding/organization/details");
+              }}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">

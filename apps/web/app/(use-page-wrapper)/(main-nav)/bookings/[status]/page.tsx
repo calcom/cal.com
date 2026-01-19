@@ -1,6 +1,6 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -34,6 +34,7 @@ const Page = async ({ params }: PageProps) => {
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }
+  const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   let canReadOthersBookings = false;
@@ -54,17 +55,24 @@ const Page = async ({ params }: PageProps) => {
   }
 
   const featuresRepository = new FeaturesRepository(prisma);
-  const bookingsV3Enabled = session?.user?.id
-    ? await featuresRepository.checkIfUserHasFeature(session.user.id, "bookings-v3")
-    : false;
+  const featureFlags = session?.user?.id
+    ? await featuresRepository.getUserFeaturesStatus(session.user.id, ["bookings-v3", "booking-audit"])
+    : { "bookings-v3": false, "booking-audit": false };
+
+  const bookingsV3Enabled = featureFlags["bookings-v3"] ?? false;
+  const bookingAuditEnabled = featureFlags["booking-audit"] ?? false;
 
   return (
-    <ShellMainAppDir>
+    <ShellMainAppDir
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      headerClassName="bookings-shell-heading">
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
         permissions={{ canReadOthersBookings }}
         bookingsV3Enabled={bookingsV3Enabled}
+        bookingAuditEnabled={bookingAuditEnabled}
       />
     </ShellMainAppDir>
   );

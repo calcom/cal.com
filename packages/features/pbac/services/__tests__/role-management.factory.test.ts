@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -24,7 +24,7 @@ vi.mock("@calcom/prisma", () => ({
     },
   },
 }));
-vi.mock("@calcom/lib/server/queries/organisations", () => ({
+vi.mock("@calcom/features/pbac/utils/isOrganisationAdmin", () => ({
   isOrganisationAdmin: vi.fn(),
   isOrganisationOwner: vi.fn(),
 }));

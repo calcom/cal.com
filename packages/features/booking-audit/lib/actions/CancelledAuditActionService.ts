@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { StringChangeSchema } from "../common/changeSchemas";
+import { StringChangeSchema, BookingStatusChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Cancelled Audit Action Service
@@ -11,13 +11,12 @@ import type { IAuditActionService, TranslationWithParams } from "./IAuditActionS
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-    cancellationReason: StringChangeSchema,
-    cancelledBy: StringChangeSchema,
-    status: StringChangeSchema,
+    cancellationReason: z.string().nullable(),
+    cancelledBy: z.string().nullable(),
+    status: BookingStatusChangeSchema,
 });
 
-export class CancelledAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class CancelledAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "CANCELLED" as const;
     private static dataSchemaV1 = z.object({
@@ -61,22 +60,17 @@ export class CancelledAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.cancelled" };
     }
 
     getDisplayJson({
         storedData,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): CancelledAuditDisplayData {
-        const { fields } = storedData;
+    }: GetDisplayJsonParams): CancelledAuditDisplayData {
+        const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
-            cancellationReason: fields.cancellationReason.new ?? null,
-            previousReason: fields.cancellationReason.old ?? null,
-            cancelledBy: fields.cancelledBy.new ?? null,
-            previousCancelledBy: fields.cancelledBy.old ?? null,
+            cancellationReason: fields.cancellationReason ?? null,
+            cancelledBy: fields.cancelledBy ?? null,
             previousStatus: fields.status.old ?? null,
             newStatus: fields.status.new ?? null,
         };
@@ -87,9 +81,7 @@ export type CancelledAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type CancelledAuditDisplayData = {
     cancellationReason: string | null;
-    previousReason: string | null;
     cancelledBy: string | null;
-    previousCancelledBy: string | null;
     previousStatus: string | null;
     newStatus: string | null;
 };
