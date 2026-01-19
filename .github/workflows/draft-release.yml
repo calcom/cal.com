@@ -55,19 +55,50 @@ jobs:
 
       - uses: ./.github/actions/yarn-install
 
+      # 1. Generate Prisma Client
+      # This is required so Trigger.dev can find the database types during bundling
+      - name: Generate Prisma Client
+        run: yarn prisma generate
+
+      # 2. Deploy Trigger.dev tasks
+      # We use --skip-promotion to get a version without making it live yet
+      - name: Deploy Trigger.dev
+        id: deploy-trigger
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          TRIGGER_DEV_PROJECT_REF: ${{ secrets.TRIGGER_DEV_PROJECT_REF }}
+        run: |
+          # The CLI outputs the version; id allows us to access outputs.deploymentVersion
+          cd packages/features
+          yarn deploy:trigger:ci
+
       - name: Bump version
+        env:
+          VERSION: ${{ inputs.next_version }}
         run: |
           cd apps/web
-          yarn version ${{ inputs.next_version }}
+          yarn version "$VERSION"
 
+      # 3. Update .env.production files
+      # We inject the Trigger version into the apps so they stay in sync
+      - name: Update Env Files
+        run: |
+          VERSION="${{ steps.deploy-trigger.outputs.deploymentVersion }}"
+          echo "TRIGGER_VERSION=$VERSION" > apps/web/.env.production
+          echo "TRIGGER_VERSION=$VERSION" > apps/api/v2/.env.production
+          git add -f apps/web/.env.production apps/api/v2/.env.production
+
+      # 4. Commit everything together
       - name: Commit changes
+        env:
+          VERSION: ${{ inputs.next_version }}
         run: |
           git add .
-          git commit -m "chore: release v${{ inputs.next_version }}"
+          git commit -m "chore: release v$VERSION"
           git push
 
       - name: Draft release
         run: gh release create v$VERSION --generate-notes --draft
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           VERSION: ${{ inputs.next_version }}

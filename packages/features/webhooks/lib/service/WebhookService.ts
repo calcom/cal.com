@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 

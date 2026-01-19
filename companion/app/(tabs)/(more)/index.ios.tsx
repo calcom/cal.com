@@ -1,12 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { getAvatarUrl } from "@/utils/getAvatarUrl";
 
 interface MoreMenuItem {
   name: string;
@@ -20,6 +23,7 @@ export default function More() {
   const router = useRouter();
   const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { data: userProfile } = useUserProfile();
 
   const performLogout = async () => {
     try {
@@ -88,10 +92,20 @@ export default function More() {
       >
         <Stack.Header.Title large>More</Stack.Header.Title>
         <Stack.Header.Right>
-          {/* Profile Button */}
-          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
-            <Stack.Header.Icon sf="person.circle.fill" />
-          </Stack.Header.Button>
+          {userProfile?.avatarUrl ? (
+            <Stack.Header.View>
+              <Pressable onPress={() => router.push("/profile-sheet")}>
+                <Image
+                  source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
+                  style={{ width: 32, height: 32, borderRadius: 16 }}
+                />
+              </Pressable>
+            </Stack.Header.View>
+          ) : (
+            <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+              <Stack.Header.Icon sf="person.circle.fill" />
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
       </Stack.Header>
 
@@ -124,8 +138,24 @@ export default function More() {
           ))}
         </View>
 
-        {/* Sign Out Button */}
+        {/* Delete Account Link */}
         <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <TouchableOpacity
+            onPress={() =>
+              openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
+            }
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50"
+          >
+            <View className="flex-1 flex-row items-center">
+              <Ionicons name="trash-outline" size={20} color="#991B1B" />
+              <Text className="ml-3 text-base font-medium text-[#991B1B]">Delete Account</Text>
+            </View>
+            <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Sign Out Button */}
+        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           <TouchableOpacity
             onPress={handleSignOut}
             className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"

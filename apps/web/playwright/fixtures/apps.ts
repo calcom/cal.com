@@ -117,7 +117,7 @@ export function createAppsFixture(page: Page) {
     },
     goToAppsTab: async () => {
       await page.getByTestId("vertical-tab-apps").click();
-      await expect(page.getByTestId("vertical-tab-apps")).toHaveAttribute("aria-current", "page");
+      await expect(page.getByTestId("vertical-tab-apps").first()).toHaveAttribute("aria-current", "page");
     },
     activeApp: async (app: string) => {
       await page.locator(`[data-testid='${app}-app-switch']`).click();
@@ -127,7 +127,7 @@ export function createAppsFixture(page: Page) {
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-      await expect(page.getByTestId("vertical-tab-apps")).toHaveAttribute("aria-current", "page"); // fix the race condition
+      await expect(page.getByTestId("vertical-tab-apps").first()).toHaveAttribute("aria-current", "page"); // fix the race condition
       await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },
   };

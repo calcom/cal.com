@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
-import { type Booking, CalComAPIService } from "@/services/calcom";
+import { useCancelBooking } from "@/hooks/useBookings";
+import type { Booking } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Format date for iOS Calendar style: "Thursday, 25 Dec 2025"
@@ -64,7 +65,30 @@ const calculateDuration = (startDateString: string, endDateString: string): numb
 };
 
 export interface BookingDetailScreenProps {
-  uid: string;
+  /**
+   * The booking data to display. When null/undefined, shows loading or error state.
+   */
+  booking: Booking | null | undefined;
+  /**
+   * Whether the booking data is currently being fetched.
+   */
+  isLoading: boolean;
+  /**
+   * Error that occurred while fetching the booking, if any.
+   */
+  error: Error | null;
+  /**
+   * Function to refetch the booking data. Used for pull-to-refresh.
+   */
+  refetch: () => void;
+  /**
+   * Whether a refetch is currently in progress. Used for RefreshControl.
+   */
+  isRefetching?: boolean;
+  /**
+   * Callback to expose internal action handlers to parent component.
+   * Used by iOS header menu to trigger actions like reschedule.
+   */
   onActionsReady?: (handlers: {
     openRescheduleModal: () => void;
     openEditLocationModal: () => void;
@@ -77,44 +101,51 @@ export interface BookingDetailScreenProps {
 }
 
 export function BookingDetailScreen({
-  uid,
+  booking,
+  isLoading,
+  error,
+  refetch,
+  isRefetching = false,
   onActionsReady,
 }: BookingDetailScreenProps): React.JSX.Element {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isCancelling, setIsCancelling] = useState(false);
   const [participantsExpanded, setParticipantsExpanded] = useState(true);
 
+  // Cancel booking mutation
+  const cancelBookingMutation = useCancelBooking();
+  const isCancelling = cancelBookingMutation.isPending;
+
   const performCancelBooking = useCallback(
-    async (reason: string) => {
+    (reason: string) => {
       if (!booking) return;
 
-      setIsCancelling(true);
-
-      try {
-        await CalComAPIService.cancelBooking(booking.uid, reason);
-        Alert.alert("Success", "Booking cancelled successfully", [
-          {
-            text: "OK",
-            onPress: () => router.back(),
+      cancelBookingMutation.mutate(
+        { uid: booking.uid, reason },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Booking cancelled successfully", [
+              {
+                text: "OK",
+                onPress: () => router.back(),
+              },
+            ]);
           },
-        ]);
-        setIsCancelling(false);
-      } catch (err) {
-        console.error("Failed to cancel booking");
-        if (__DEV__) {
-          const message = err instanceof Error ? err.message : String(err);
-          console.debug("[BookingDetailScreen.ios] cancelBooking failed", { message });
+          onError: (err) => {
+            console.error("Failed to cancel booking");
+            if (__DEV__) {
+              const message = err instanceof Error ? err.message : String(err);
+              console.debug("[BookingDetailScreen.ios] cancelBooking failed", {
+                message,
+              });
+            }
+            showErrorAlert("Error", "Failed to cancel booking. Please try again.");
+          },
         }
-        showErrorAlert("Error", "Failed to cancel booking. Please try again.");
-        setIsCancelling(false);
-      }
+      );
     },
-    [booking, router]
+    [booking, router, cancelBookingMutation]
   );
 
   const handleCancelBooking = useCallback(() => {
@@ -151,7 +182,7 @@ export function BookingDetailScreen({
   const openRescheduleModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/reschedule",
+      pathname: "/reschedule",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -159,7 +190,7 @@ export function BookingDetailScreen({
   const openEditLocationModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/edit-location",
+      pathname: "/edit-location",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -167,7 +198,7 @@ export function BookingDetailScreen({
   const openAddGuestsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/add-guests",
+      pathname: "/add-guests",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -175,7 +206,7 @@ export function BookingDetailScreen({
   const openMarkNoShowModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/mark-no-show",
+      pathname: "/mark-no-show",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -183,7 +214,7 @@ export function BookingDetailScreen({
   const openViewRecordingsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/view-recordings",
+      pathname: "/view-recordings",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -191,65 +222,10 @@ export function BookingDetailScreen({
   const openMeetingSessionDetailsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/meeting-session-details",
+      pathname: "/meeting-session-details",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
-
-  const fetchBooking = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    let bookingData: Booking | null = null;
-    let fetchError: Error | null = null;
-
-    try {
-      bookingData = await CalComAPIService.getBookingByUid(uid);
-    } catch (err) {
-      fetchError = err instanceof Error ? err : new Error(String(err));
-    }
-
-    if (bookingData) {
-      if (__DEV__) {
-        const hostCount = bookingData.hosts?.length ?? (bookingData.user ? 1 : 0);
-        const attendeeCount = bookingData.attendees?.length ?? 0;
-        console.debug("[BookingDetailScreen.ios] booking fetched", {
-          uid: bookingData.uid,
-          status: bookingData.status,
-          hostCount,
-          attendeeCount,
-          hasRecurringEventId: Boolean(bookingData.recurringEventId),
-        });
-      }
-      setBooking(bookingData);
-      setLoading(false);
-    } else {
-      console.error("Error fetching booking");
-      if (__DEV__ && fetchError) {
-        console.debug("[BookingDetailScreen.ios] fetchBooking failed", {
-          message: fetchError.message,
-          stack: fetchError.stack,
-        });
-      }
-      setError("Failed to load booking. Please try again.");
-      if (__DEV__) {
-        Alert.alert("Error", "Failed to load booking. Please try again.", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else {
-        router.back();
-      }
-      setLoading(false);
-    }
-  }, [uid, router]);
-
-  useEffect(() => {
-    if (uid) {
-      fetchBooking();
-    } else {
-      setLoading(false);
-      setError("Invalid booking ID");
-    }
-  }, [uid, fetchBooking]);
 
   useEffect(() => {
     if (booking && onActionsReady) {
@@ -275,7 +251,7 @@ export function BookingDetailScreen({
     openMarkNoShowModal,
   ]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f2f2f7]">
         <ActivityIndicator size="large" color="#000000" />
@@ -285,11 +261,12 @@ export function BookingDetailScreen({
   }
 
   if (error || !booking) {
+    const errorMessage = error?.message || "Booking not found";
     return (
       <View className="flex-1 items-center justify-center bg-[#f2f2f7] p-5">
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
-          {error || "Booking not found"}
+          {errorMessage}
         </Text>
         <AppPressable className="mt-6 rounded-lg bg-black px-6 py-3" onPress={() => router.back()}>
           <Text className="text-base font-semibold text-white">Go Back</Text>
@@ -323,30 +300,42 @@ export function BookingDetailScreen({
     const isNoShow = attendee.noShow || attendee.absent;
 
     if (isPastBooking && isNoShow) {
-      return { name: "close-circle" as const, color: "#FF3B30", label: "No-show" };
+      return {
+        name: "close-circle" as const,
+        color: "#FF3B30",
+        label: "No-show",
+      };
     }
 
     if (normalizedStatus === "pending") {
-      return { name: "help-circle" as const, color: "#8E8E93", label: "Pending" };
+      return {
+        name: "help-circle" as const,
+        color: "#8E8E93",
+        label: "Pending",
+      };
     }
 
     if (normalizedStatus === "cancelled" || normalizedStatus === "rejected") {
-      return { name: "close-circle-outline" as const, color: "#8E8E93", label: null };
+      return {
+        name: "close-circle-outline" as const,
+        color: "#8E8E93",
+        label: null,
+      };
     }
 
     return { name: "checkmark-circle" as const, color: "#34C759", label: null };
   };
 
   return (
-    <View className="flex-1 bg-[#f2f2f7]">
+    <>
       <ScrollView
-        className="flex-1"
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: 16,
           paddingBottom: insets.bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
         {/* Title Section - iOS Calendar Style */}
         <View className="mb-8">
@@ -410,7 +399,9 @@ export function BookingDetailScreen({
                 ? booking.hosts.map((host, index) => (
                     <View
                       key={host.email || `host-${index}`}
-                      className={`flex-row items-center py-2 ${index > 0 ? "border-t border-[#E5E5EA]" : ""}`}
+                      className={`flex-row items-center py-2 ${
+                        index > 0 ? "border-t border-[#E5E5EA]" : ""
+                      }`}
                     >
                       <Ionicons name="star" size={18} color="#FFD60A" />
                       <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
@@ -599,10 +590,13 @@ export function BookingDetailScreen({
                 <AppPressable
                   className="flex-row items-center justify-between border-t border-[#E5E5EA] py-2"
                   onPress={() => {
-                    router.push({
-                      pathname: "/(tabs)/(bookings)/booking-detail",
-                      params: { uid: booking.rescheduledToUid },
-                    });
+                    const uid = booking.rescheduledToUid;
+                    if (uid) {
+                      router.push({
+                        pathname: "/(tabs)/(bookings)/booking-detail",
+                        params: { uid },
+                      });
+                    }
                   }}
                 >
                   <Text className="text-[17px] text-black">Rescheduled to</Text>
@@ -615,7 +609,11 @@ export function BookingDetailScreen({
 
               {booking.reschedulingReason && (
                 <View
-                  className={`py-2 ${booking.rescheduledFromUid || booking.rescheduledToUid || booking.fromReschedule ? "border-t border-[#E5E5EA]" : ""}`}
+                  className={`py-2 ${
+                    booking.rescheduledFromUid || booking.rescheduledToUid || booking.fromReschedule
+                      ? "border-t border-[#E5E5EA]"
+                      : ""
+                  }`}
                 >
                   <Text className="mb-0.5 text-[13px] text-[#8E8E93]">Reason</Text>
                   <Text className="text-[17px] text-black">{booking.reschedulingReason}</Text>
@@ -643,7 +641,9 @@ export function BookingDetailScreen({
 
                 {booking.cancelledByEmail && (
                   <View
-                    className={`py-2 ${booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""}`}
+                    className={`py-2 ${
+                      booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""
+                    }`}
                   >
                     <Text className="mb-0.5 text-[13px] text-[#8E8E93]">Cancelled by</Text>
                     <Text className="text-[17px] text-black">{booking.cancelledByEmail}</Text>
@@ -652,7 +652,11 @@ export function BookingDetailScreen({
 
                 {booking.absentHost && (
                   <View
-                    className={`flex-row items-center py-2 ${booking.cancellationReason || booking.cancelledByEmail ? "border-t border-[#E5E5EA]" : ""}`}
+                    className={`flex-row items-center py-2 ${
+                      booking.cancellationReason || booking.cancelledByEmail
+                        ? "border-t border-[#E5E5EA]"
+                        : ""
+                    }`}
                   >
                     <Ionicons name="warning" size={18} color="#FF9500" />
                     <Text className="ml-2 text-[17px] text-black">Host was absent</Text>
@@ -672,6 +676,6 @@ export function BookingDetailScreen({
           </View>
         </View>
       )}
-    </View>
+    </>
   );
 }

@@ -129,27 +129,41 @@ export class WorkflowsInputService {
     teamId: number,
     workflowIdToUse: number
   ) {
-    const mappedSteps = updateDto?.steps
-      ? await Promise.all(
-          updateDto.steps.map(async (stepDto: UpdateWorkflowStepDto, index: number) =>
-            this.mapUpdateWorkflowStepToZodUpdateSchema(stepDto, index, teamId, workflowIdToUse)
-          )
+    // 1. Map Steps
+    let mappedSteps;
+    if (updateDto?.steps) {
+      mappedSteps = await Promise.all(
+        updateDto.steps.map(async (stepDto: UpdateWorkflowStepDto, index: number) =>
+          this.mapUpdateWorkflowStepToZodUpdateSchema(stepDto, index, teamId, workflowIdToUse)
         )
-      : currentData.steps.map((step) => ({ ...step, senderName: step.sender }));
+      );
+    } else {
+      mappedSteps = currentData.steps.map((step) => ({
+        ...step,
+        senderName: step.sender,
+      }));
+    }
 
-    const triggerForZod = updateDto?.trigger?.type
-      ? WORKFLOW_TRIGGER_TO_ENUM[updateDto?.trigger?.type]
-      : currentData.trigger;
+    // 2. Map Trigger
+    let triggerForZod = currentData.trigger;
+    if (updateDto?.trigger?.type) {
+      triggerForZod = WORKFLOW_TRIGGER_TO_ENUM[updateDto.trigger.type];
+    }
 
-    const timeUnitForZod = this._isOffsetTrigger(updateDto.trigger)
-      ? updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null
-      : undefined;
+    // 3. Map Time and TimeUnit (Keeping currentData if trigger is missing or not an offset)
+    let timeUnitForZod = (currentData.timeUnit?.toLowerCase() ?? null) as "hour" | "minute" | "day" | null;
+    let time = currentData.time ?? null;
 
-    const time = this._isOffsetTrigger(updateDto.trigger)
-      ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
-      : null;
+    if (updateDto.trigger && this._isOffsetTrigger(updateDto.trigger)) {
+      timeUnitForZod = updateDto.trigger.offset?.unit ?? timeUnitForZod ?? null;
+      time = updateDto.trigger.offset?.value ?? currentData.time ?? null;
+    }
 
-    const timeUnit = timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null;
+    // 4. Final Enum Conversion
+    let timeUnit = null;
+    if (timeUnitForZod) {
+      timeUnit = TIME_UNIT_TO_ENUM[timeUnitForZod];
+    }
 
     return { mappedSteps, triggerForZod, time, timeUnit };
   }

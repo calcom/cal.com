@@ -15,17 +15,17 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
   const session = useSession();
   const features = [
     {
-      icon: <Icon name="users" className="h-5 w-5" />,
+      icon: <Icon name="users" className="h-5 w-5 text-red-500" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <Icon name="refresh-ccw" className="h-5 w-5" />,
+      icon: <Icon name="refresh-ccw" className="h-5 w-5 text-blue-500" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <Icon name="user-plus" className="h-5 w-5" />,
+      icon: <Icon name="user-plus" className="h-5 w-5 text-green-500" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },

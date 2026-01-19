@@ -32,35 +32,6 @@ const emailRegexSchema = z
   .max(MAX_EMAIL_LENGTH, { message: "Email address is too long" })
   .regex(emailRegex);
 
-const slugify = (str: string, forDisplayingInput?: boolean) => {
-  if (!str) {
-    return "";
-  }
-
-  const s = str
-    .toLowerCase() // Convert to lowercase
-    .trim() // Remove whitespace from both sides
-    .normalize("NFD") // Normalize to decomposed form for handling accents
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    .replace(/\p{Diacritic}/gu, "") // Remove any diacritics (accents) from characters
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    .replace(/[^.\p{L}\p{N}\p{Zs}\p{Emoji}]+/gu, "-") // Replace any non-alphanumeric characters (including Unicode and except "." period) with a dash
-    .replace(/[\s_#]+/g, "-") // Replace whitespace, # and underscores with a single dash
-    .replace(/^-+/, "") // Remove dashes from start
-    .replace(/\.{2,}/g, ".") // Replace consecutive periods with a single period
-    .replace(/^\.+/, "") // Remove periods from the start
-    .replace(
-      /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
-      ""
-    ) // Removes emojis
-    .replace(/\s+/g, " ")
-    .replace(/-+/g, "-"); // Replace consecutive dashes with a single dash
-
-  return forDisplayingInput ? s : s.replace(/-+$/, "").replace(/\.*$/, ""); // Remove dashes and period from end
-};
-
 const getValidRhfFieldName = (fieldName: string) => {
   // Remember that any transformation that you do here would run on System Field names as well. So, be careful and avoiding doing anything here that would modify the SystemField names.
   // e.g. SystemField name currently have uppercases in them. So, no need to lowercase unless absolutely needed.
@@ -326,31 +297,8 @@ export const bookingResponses = z
 
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
-export type EventTypeLocation = {
-  type: string;
-  address?: string;
-  link?: string;
-  displayLocationPublicly?: boolean;
-  hostPhoneNumber?: string;
-  credentialId?: number;
-  teamName?: string;
-  customLabel?: string;
-};
-
-export const eventTypeLocations: z.ZodType<EventTypeLocation[]> = z.array(
-  z.object({
-    // TODO: Couldn't find a way to make it a union of types from App Store locations
-    // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
-    type: z.string(),
-    address: z.string().optional(),
-    link: z.string().url().optional(),
-    displayLocationPublicly: z.boolean().optional(),
-    hostPhoneNumber: z.string().optional(),
-    credentialId: z.number().optional(),
-    teamName: z.string().optional(),
-    customLabel: z.string().optional(),
-  })
-);
+// Re-exported from @calcom/lib/zod/eventType for backwards compatibility
+export { eventTypeLocations, type EventTypeLocation } from "@calcom/lib/zod/eventType";
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z
@@ -387,13 +335,8 @@ export const eventTypeColor = z
 
 export type IntervalLimitsType = IntervalLimit | null;
 
-export const eventTypeSlug = z
-  .string()
-  .trim()
-  .transform((val) => slugify(val))
-  .refine((val) => val.length >= 1, {
-    message: "Please enter at least one character",
-  });
+// Re-exported from @calcom/lib/zod/eventType for backwards compatibility
+export { eventTypeSlug } from "@calcom/lib/zod/eventType";
 
 export const stringToDate = z.string().transform((a) => new Date(a));
 
