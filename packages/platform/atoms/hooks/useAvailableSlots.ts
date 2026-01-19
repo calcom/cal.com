@@ -12,10 +12,15 @@ import http from "../lib/http";
 
 export const QUERY_KEY = "get-available-slots";
 
+type GetAvailableSlotsInputWithChunks = GetAvailableSlotsInput_2024_04_15 & {
+  roundRobinManualChunking?: boolean;
+  roundRobinChunkOffset?: number;
+};
+
 export const useAvailableSlots = ({
   enabled,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
+}: GetAvailableSlotsInputWithChunks & { enabled: boolean }) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
@@ -30,6 +35,8 @@ export const useAvailableSlots = ({
       rest.skipContactOwner,
       rest.teamMemberEmail,
       rest.rrHostSubsetIds,
+      rest.roundRobinManualChunking ?? false,
+      rest.roundRobinChunkOffset ?? 0,
     ],
     queryFn: () => {
       return http

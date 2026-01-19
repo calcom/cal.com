@@ -226,6 +226,24 @@ export class GetAvailableSlotsInput_2024_04_15 {
   }) */
   @ApiHideProperty()
   rrHostSubsetIds?: number[];
+
+  @Transform(({ value }) => (value ? value.toLowerCase() === "true" : false))
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  roundRobinManualChunking?: boolean;
+
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === "") {
+      return undefined;
+    }
+    const parsedValue = typeof value === "string" ? parseInt(value, 10) : value;
+    return Number.isNaN(parsedValue) ? undefined : parsedValue;
+  })
+  @IsNumber()
+  @IsOptional()
+  @ApiHideProperty()
+  roundRobinChunkOffset?: number;
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {

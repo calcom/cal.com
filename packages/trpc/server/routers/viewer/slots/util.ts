@@ -41,6 +41,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
+import type { RoundRobinChunkInfo } from "@calcom/lib/types/roundRobinChunkInfo";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   BookingDateInPastError,
@@ -95,6 +96,7 @@ export interface IGetAvailableSlots {
   >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   troubleshooter?: any;
+  roundRobinChunkInfo?: RoundRobinChunkInfo;
 }
 
 type AvailableSlotsServiceInstance = InstanceType<typeof AvailableSlotsService>;
@@ -112,6 +114,14 @@ type HostsAvailabilityResult = {
   allUsersAvailability: AggregatedAvailabilityEntry[];
   usersWithCredentials: GetAvailabilityUserWithDelegationCredentials[];
   currentSeats: CurrentSeats | undefined;
+};
+
+type AggregatedHostsAvailability = HostsAvailabilityResult & {
+  aggregatedAvailability: ReturnType<typeof getAggregatedAvailability>;
+};
+
+type ChunkedAvailabilityResult = AggregatedHostsAvailability & {
+  roundRobinChunkInfo?: RoundRobinChunkInfo;
 };
 
 export interface IAvailableSlotsService {
@@ -1020,11 +1030,7 @@ export class AvailableSlotsService {
     bypassBusyCalendarTimes: boolean;
     silentCalendarFailures: boolean;
     mode?: CalendarFetchMode;
-  }): Promise<
-    HostsAvailabilityResult & {
-      aggregatedAvailability: ReturnType<typeof getAggregatedAvailability>;
-    }
-  > {
+  }): Promise<ChunkedAvailabilityResult> {
     const rrLog = rest.loggerWithEventDetails ?? log;
 
     const calculateForHosts = async (currentHosts: typeof hosts) => {
@@ -1041,6 +1047,7 @@ export class AvailableSlotsService {
     };
 
     const nonFixedHosts = hosts.filter((host) => host.isFixed !== true);
+    const { roundRobinManualChunking = false, roundRobinChunkOffset = 0 } = rest.input;
     rrLog.info(
       `RR chunking check for eventType=${eventType.id}: totalHosts=${hosts.length}, nonFixedHosts=${nonFixedHosts.length}, weightsEnabled=${eventType.isRRWeightsEnabled}`
     );
@@ -1054,31 +1061,91 @@ export class AvailableSlotsService {
       return await calculateForHosts(hosts);
     }
 
+    const fixedHosts = hosts.filter((host) => host.isFixed);
+    const manualChunkingEnabled = roundRobinManualChunking === true;
+    const manualChunkOffset = Math.max(0, roundRobinChunkOffset);
+    const hostChunks = chunkArray(nonFixedHosts, chunkSize);
+
+    const buildChunkInfo = ({
+      chunkOffset,
+      loadedNonFixedHosts,
+      hasMoreNonFixedHosts,
+      manualChunking,
+    }: Omit<RoundRobinChunkInfo, "totalHosts" | "totalNonFixedHosts" | "chunkSize"> & {
+      manualChunking: boolean;
+    }): RoundRobinChunkInfo => ({
+      totalHosts: hosts.length,
+      totalNonFixedHosts: nonFixedHosts.length,
+      chunkSize,
+      chunkOffset,
+      loadedNonFixedHosts,
+      hasMoreNonFixedHosts,
+      manualChunking,
+    });
+
+    if (manualChunkingEnabled) {
+      const chunkCount = hostChunks.length || 1;
+      const safeChunkOffset = chunkCount > 0 ? Math.min(manualChunkOffset, chunkCount - 1) : 0;
+      const hostChunk = hostChunks[safeChunkOffset] ?? [];
+      const hostsForChunk = [...hostChunk, ...fixedHosts];
+      const chunkResult = await calculateForHosts(hostsForChunk);
+      const chunkInfo = buildChunkInfo({
+        chunkOffset: safeChunkOffset,
+        loadedNonFixedHosts: hostChunk.length,
+        hasMoreNonFixedHosts: chunkCount > 0 ? safeChunkOffset < chunkCount - 1 : false,
+        manualChunking: true,
+      });
+      rrLog.info(
+        `RR manual chunk ${safeChunkOffset + 1} checked: hosts=${hostChunk.length}, slotsFound=${chunkResult.aggregatedAvailability.length}`
+      );
+      return {
+        ...chunkResult,
+        roundRobinChunkInfo: chunkInfo,
+      };
+    }
+
     rrLog.info(
       `RR chunking enabled for eventType=${eventType.id} (team=${eventType.team?.id ?? "N/A"}): processing ${nonFixedHosts.length} hosts in batches of ${chunkSize}`
     );
 
-    const fixedHosts = hosts.filter((host) => host.isFixed);
-    let lastResult: Awaited<ReturnType<typeof calculateForHosts>> | null = null;
-    let chunkIndex = 0;
-
-    for (const hostChunk of chunkArray(nonFixedHosts, chunkSize)) {
-      chunkIndex += 1;
+    let lastResult: ChunkedAvailabilityResult | null = null;
+    for (let index = 0; index < hostChunks.length; index += 1) {
+      const hostChunk = hostChunks[index];
       const hostsForChunk = [...hostChunk, ...fixedHosts];
-      lastResult = await calculateForHosts(hostsForChunk);
+      const chunkResult = await calculateForHosts(hostsForChunk);
+      const chunkInfo = buildChunkInfo({
+        chunkOffset: index,
+        loadedNonFixedHosts: hostChunk.length,
+        hasMoreNonFixedHosts: index < hostChunks.length - 1,
+        manualChunking: false,
+      });
+      const chunkResultWithInfo: ChunkedAvailabilityResult = {
+        ...chunkResult,
+        roundRobinChunkInfo: chunkInfo,
+      };
       rrLog.info(
-        `RR chunk ${chunkIndex} checked: hosts=${hostChunk.length}, slotsFound=${lastResult.aggregatedAvailability.length}`
+        `RR chunk ${index + 1} checked: hosts=${hostChunk.length}, slotsFound=${chunkResult.aggregatedAvailability.length}`
       );
-      if (lastResult.aggregatedAvailability.length > 0) {
-        return lastResult;
+      if (chunkResult.aggregatedAvailability.length > 0) {
+        return chunkResultWithInfo;
       }
+      lastResult = chunkResultWithInfo;
     }
 
     if (lastResult) {
       return lastResult;
     }
 
-    return await calculateForHosts(fixedHosts);
+    const fallbackResult = await calculateForHosts(fixedHosts);
+    return {
+      ...fallbackResult,
+      roundRobinChunkInfo: buildChunkInfo({
+        chunkOffset: 0,
+        loadedNonFixedHosts: 0,
+        hasMoreNonFixedHosts: false,
+        manualChunking: false,
+      }),
+    };
   }
 
   private async checkRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
@@ -1231,6 +1298,7 @@ export class AvailableSlotsService {
       usersWithCredentials,
       currentSeats,
       aggregatedAvailability,
+      roundRobinChunkInfo,
     } = await this.calculateAvailabilityWithRoundRobinChunks({
         input,
         eventType,
@@ -1299,6 +1367,7 @@ export class AvailableSlotsService {
           usersWithCredentials,
           currentSeats,
           aggregatedAvailability,
+          roundRobinChunkInfo,
         } = await this.calculateAvailabilityWithRoundRobinChunks({
             input,
             eventType,
@@ -1659,6 +1728,7 @@ export class AvailableSlotsService {
 
     return {
       slots: filteredSlotsMappedToDate,
+      roundRobinChunkInfo,
       ...troubleshooterData,
     };
   }

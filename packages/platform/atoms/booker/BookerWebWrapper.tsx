@@ -92,6 +92,11 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
 
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
+  const [roundRobinChunkSettings, setRoundRobinChunkSettings] = useBookerStoreContext(
+    (state) => [state.roundRobinChunkSettings, state.setRoundRobinChunkSettings],
+    shallow
+  );
+  const setRoundRobinChunkInfo = useBookerStoreContext((state) => state.setRoundRobinChunkInfo);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -154,7 +159,40 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     useApiV2: props.useApiV2,
     bookerLayout,
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
+    roundRobinChunkSettings: roundRobinChunkSettings ?? undefined,
   });
+  const roundRobinChunkInfo = schedule.data?.roundRobinChunkInfo;
+  useEffect(() => {
+    setRoundRobinChunkInfo(roundRobinChunkInfo ?? null);
+  }, [roundRobinChunkInfo, setRoundRobinChunkInfo]);
+  const isManualRoundRobinChunking = roundRobinChunkSettings?.manual ?? false;
+
+  useEffect(() => {
+    setRoundRobinChunkSettings(null);
+    setRoundRobinChunkInfo(null);
+  }, [
+    props.username,
+    props.eventSlug,
+    props.entity.orgSlug,
+    props.entity.eventTypeId,
+    event.data?.id,
+    setRoundRobinChunkSettings,
+    setRoundRobinChunkInfo,
+  ]);
+
+  const handleLoadNextRoundRobinChunk = useCallback(() => {
+    if (!roundRobinChunkInfo?.hasMoreNonFixedHosts || schedule.isFetching) return;
+    const currentOffset =
+      roundRobinChunkSettings?.chunkOffset ?? roundRobinChunkInfo.chunkOffset ?? 0;
+    setRoundRobinChunkSettings({
+      manual: true,
+      chunkOffset: currentOffset + 1,
+    });
+  }, [roundRobinChunkInfo, roundRobinChunkSettings, schedule.isFetching]);
+
+  const handleResetRoundRobinChunkSelection = useCallback(() => {
+    setRoundRobinChunkSettings(null);
+  }, []);
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,
@@ -255,6 +293,12 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
       event={event}
       bookerLayout={bookerLayout}
       schedule={schedule}
+      onLoadNextRoundRobinChunk={
+        roundRobinChunkInfo?.hasMoreNonFixedHosts ? handleLoadNextRoundRobinChunk : undefined
+      }
+      onResetRoundRobinChunkSelection={
+        isManualRoundRobinChunking ? handleResetRoundRobinChunkSelection : undefined
+      }
       verifyCode={verifyCode}
       isPlatform={false}
       areInstantMeetingParametersSet={areInstantMeetingParametersSet}

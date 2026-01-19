@@ -91,9 +91,13 @@ describe("round robin chunking", () => {
   const invokeChunking = async ({
     hosts,
     isRRWeightsEnabled,
+    manualChunking = false,
+    chunkOffset,
   }: {
     hosts: ReturnType<typeof createHosts>;
     isRRWeightsEnabled: boolean;
+    manualChunking?: boolean;
+    chunkOffset?: number;
   }) => {
     const service = new AvailableSlotsService(dependencyStub);
     const calculateSpy = vi
@@ -120,7 +124,11 @@ describe("round robin chunking", () => {
         team: null,
       },
       chunkSize: 20,
-      input: baseInput,
+      input: {
+        ...baseInput,
+        ...(manualChunking ? { roundRobinManualChunking: true } : {}),
+        ...(chunkOffset !== undefined ? { roundRobinChunkOffset: chunkOffset } : {}),
+      },
       loggerWithEventDetails: loggerStub,
       startTime,
       endTime,
@@ -151,6 +159,40 @@ describe("round robin chunking", () => {
     expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(20);
     expect(calculateSpy.mock.calls[1][0].hosts).toHaveLength(20);
     expect(result.aggregatedAvailability).toEqual(secondChunkAvailability);
+    expect(result.roundRobinChunkInfo).toEqual({
+      totalHosts: hosts.length,
+      totalNonFixedHosts: hosts.length,
+      chunkSize: 20,
+      chunkOffset: 1,
+      loadedNonFixedHosts: 20,
+      hasMoreNonFixedHosts: true,
+      manualChunking: false,
+    });
+  });
+
+  it("allows fetching a specific chunk when manual chunking is enabled", async () => {
+    const hosts = createHosts(105);
+    const manualChunkOffset = 3;
+    getAggregatedAvailabilityMock.mockReturnValue([]);
+
+    const { result, calculateSpy } = await invokeChunking({
+      hosts,
+      isRRWeightsEnabled: true,
+      manualChunking: true,
+      chunkOffset: manualChunkOffset,
+    });
+
+    expect(calculateSpy).toHaveBeenCalledTimes(1);
+    expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(20);
+    expect(result.roundRobinChunkInfo).toEqual({
+      totalHosts: hosts.length,
+      totalNonFixedHosts: hosts.length,
+      chunkSize: 20,
+      chunkOffset: manualChunkOffset,
+      loadedNonFixedHosts: 20,
+      hasMoreNonFixedHosts: true,
+      manualChunking: true,
+    });
   });
 
   it("skips chunking when weights are disabled", async () => {
@@ -219,5 +261,14 @@ describe("round robin chunking", () => {
 
     expect(calculateSpy).toHaveBeenCalledTimes(6); // 120 hosts / 20 per chunk
     expect(result.aggregatedAvailability).toEqual([]);
+    expect(result.roundRobinChunkInfo).toEqual({
+      totalHosts: hosts.length,
+      totalNonFixedHosts: hosts.length,
+      chunkSize: 20,
+      chunkOffset: 5,
+      loadedNonFixedHosts: 20,
+      hasMoreNonFixedHosts: false,
+      manualChunking: false,
+    });
   });
 });

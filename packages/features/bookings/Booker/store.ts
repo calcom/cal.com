@@ -3,13 +3,10 @@
 import { useEffect } from "react";
 import { createWithEqualityFn } from "zustand/traditional";
 
-
-
 import dayjs from "@calcom/dayjs";
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
+import type { RoundRobinChunkInfo } from "@calcom/lib/types/roundRobinChunkInfo";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
-
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
@@ -82,6 +79,11 @@ type SeatedEventData = {
   attendees?: number;
   bookingUid?: string;
   showAvailableSeatsCount?: boolean | null;
+};
+
+export type RoundRobinChunkSettings = {
+  manual: boolean;
+  chunkOffset: number;
 };
 
 export type BookerStore = {
@@ -215,6 +217,10 @@ export type BookerStore = {
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
   defaultPhoneCountry?: CountryCode | null;
+  roundRobinChunkSettings: RoundRobinChunkSettings | null;
+  setRoundRobinChunkSettings: (settings: RoundRobinChunkSettings | null) => void;
+  roundRobinChunkInfo: RoundRobinChunkInfo | null;
+  setRoundRobinChunkInfo: (info: RoundRobinChunkInfo | null) => void;
 };
 
 /**
@@ -495,6 +501,11 @@ export const createBookerStore = () =>
     },
     isPlatform: false,
     allowUpdatingUrlParams: true,
+    roundRobinChunkSettings: null,
+    setRoundRobinChunkSettings: (settings: RoundRobinChunkSettings | null) =>
+      set({ roundRobinChunkSettings: settings }),
+    roundRobinChunkInfo: null,
+    setRoundRobinChunkInfo: (info: RoundRobinChunkInfo | null) => set({ roundRobinChunkInfo: info }),
     defaultPhoneCountry: null,
   }));
 

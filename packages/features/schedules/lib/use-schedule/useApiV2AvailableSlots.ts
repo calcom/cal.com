@@ -10,10 +10,15 @@ import type { GetAvailableSlotsResponse } from "@calcom/trpc/server/routers/view
 
 export const QUERY_KEY = "get-available-slots";
 
+type GetAvailableSlotsInputWithChunks = GetAvailableSlotsInput_2024_04_15 & {
+  roundRobinManualChunking?: boolean;
+  roundRobinChunkOffset?: number;
+};
+
 export const useApiV2AvailableSlots = ({
   enabled,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
+}: GetAvailableSlotsInputWithChunks & { enabled: boolean }) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
@@ -28,6 +33,8 @@ export const useApiV2AvailableSlots = ({
       rest.skipContactOwner,
       rest.teamMemberEmail,
       rest.embedConnectVersion ?? false,
+      rest.roundRobinManualChunking ?? false,
+      rest.roundRobinChunkOffset ?? 0,
     ],
     queryFn: () => {
       return axios

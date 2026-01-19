@@ -10,8 +10,10 @@ import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-sche
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
@@ -50,6 +52,8 @@ type AvailableTimeSlotsProps = {
   unavailableTimeSlots: string[];
   confirmButtonDisabled?: boolean;
   onAvailableTimeSlotSelect: (time: string) => void;
+  onLoadNextRoundRobinChunk?: () => void;
+  onResetRoundRobinChunkSelection?: () => void;
 };
 
 /**
@@ -74,8 +78,11 @@ export const AvailableTimeSlots = ({
   confirmButtonDisabled,
   confirmStepClassNames,
   onAvailableTimeSlotSelect,
+  onLoadNextRoundRobinChunk,
+  onResetRoundRobinChunkSelection,
   ...props
 }: AvailableTimeSlotsProps) => {
+  const { t } = useLocale();
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
   const setSeatedEventData = useBookerStoreContext((state) => state.setSeatedEventData);
@@ -108,6 +115,7 @@ export const AvailableTimeSlots = ({
   };
 
   const scheduleData = schedule?.data;
+  const roundRobinChunkInfo = scheduleData?.roundRobinChunkInfo;
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(scheduleData?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
@@ -186,6 +194,64 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
+      {roundRobinChunkInfo && roundRobinChunkInfo.hasMoreNonFixedHosts && onLoadNextRoundRobinChunk && (
+        <div className="mb-4 w-full">
+          {(() => {
+            const totalLoadedHosts =
+              roundRobinChunkInfo.chunkOffset * roundRobinChunkInfo.chunkSize +
+              roundRobinChunkInfo.loadedNonFixedHosts;
+            const totalHosts =
+              roundRobinChunkInfo.totalNonFixedHosts || roundRobinChunkInfo.totalHosts || 0;
+            const progressPercentage =
+              totalHosts > 0 ? Math.min(100, Math.round((totalLoadedHosts / totalHosts) * 100)) : 0;
+            const circumference = 2 * Math.PI * 8;
+            const dashArray = (progressPercentage / 100) * circumference;
+
+            const ProgressIcon = (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                className="text-emphasis"
+                aria-hidden>
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="8"
+                  stroke="rgba(255,255,255,0.35)"
+                  strokeWidth="2"
+                  fill="none"
+                />
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="8"
+                  stroke="#FFFFFF"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeDasharray={`${dashArray} ${circumference}`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 10 10)"
+                />
+              </svg>
+            );
+
+            return (
+              <Button
+                type="button"
+                size="base"
+                color="primary"
+                className="w-full justify-center gap-3 py-3 text-sm font-semibold"
+                onClick={onLoadNextRoundRobinChunk}
+                disabled={isLoading || schedule?.isFetching}
+                CustomStartIcon={ProgressIcon}
+                aria-label={t("round_robin_load_next_hosts")}>
+                {t("round_robin_load_next_hosts")}
+              </Button>
+            );
+          })()}
+        </div>
+      )}
       <div className={classNames(`flex`, `${customClassNames?.availableTimeSlotsContainer}`)}>
         {isLoading ? (
           <div className="mb-3 h-8" />

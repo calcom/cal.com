@@ -92,6 +92,11 @@ const BookerPlatformWrapperComponent = (
   const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(
     Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
   );
+  const [roundRobinChunkSettings, setRoundRobinChunkSettings] = useBookerStoreContext(
+    (state) => [state.roundRobinChunkSettings, state.setRoundRobinChunkSettings],
+    shallow
+  );
+  const setRoundRobinChunkInfo = useBookerStoreContext((state) => state.setRoundRobinChunkInfo);
   const prevStateRef = useRef<BookerStoreValues | null>(null);
   const bookerStoreContext = useContext(BookerStoreContext);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,6 +174,18 @@ const BookerPlatformWrapperComponent = (
     teamId,
     selectedDuration,
   });
+
+  useEffect(() => {
+    setRoundRobinChunkSettings(null);
+    setRoundRobinChunkInfo(null);
+  }, [
+    props.entity?.orgSlug,
+    props.username,
+    props.isTeamEvent ? props.teamId : null,
+    event?.data?.id,
+    setRoundRobinChunkSettings,
+    setRoundRobinChunkInfo,
+  ]);
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   useInitializeBookerStore({
@@ -291,6 +308,12 @@ const BookerPlatformWrapperComponent = (
           rrHostSubsetIds: rrHostSubsetIds,
         }
       : {}),
+    ...(roundRobinChunkSettings?.manual
+      ? {
+          roundRobinManualChunking: true,
+          roundRobinChunkOffset: roundRobinChunkSettings.chunkOffset,
+        }
+      : {}),
     enabled:
       Boolean(teamId || username) &&
       Boolean(month) &&
@@ -302,12 +325,30 @@ const BookerPlatformWrapperComponent = (
     _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
   });
+  const roundRobinChunkInfo = schedule.data?.roundRobinChunkInfo;
+  useEffect(() => {
+    setRoundRobinChunkInfo(roundRobinChunkInfo ?? null);
+  }, [roundRobinChunkInfo, setRoundRobinChunkInfo]);
+  const isManualRoundRobinChunking = roundRobinChunkSettings?.manual ?? false;
 
   useEffect(() => {
     if (schedule.data && !schedule.isPending && !schedule.error && onTimeslotsLoaded) {
       onTimeslotsLoaded(schedule.data.slots);
     }
   }, [schedule.data, schedule.isPending, schedule.error, onTimeslotsLoaded]);
+
+  const handleLoadNextRoundRobinChunk = useCallback(() => {
+    if (!roundRobinChunkInfo?.hasMoreNonFixedHosts || schedule.isFetching) return;
+    const currentOffset = roundRobinChunkSettings?.chunkOffset ?? roundRobinChunkInfo.chunkOffset ?? 0;
+    setRoundRobinChunkSettings({
+      manual: true,
+      chunkOffset: currentOffset + 1,
+    });
+  }, [roundRobinChunkInfo, roundRobinChunkSettings, schedule.isFetching]);
+
+  const handleResetRoundRobinChunkSelection = useCallback(() => {
+    setRoundRobinChunkSettings(null);
+  }, []);
 
   const bookerForm = useBookingForm({
     event: event?.data,
@@ -576,6 +617,12 @@ const BookerPlatformWrapperComponent = (
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
         eventMetaChildren={props.eventMetaChildren}
         roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
+        onLoadNextRoundRobinChunk={
+          roundRobinChunkInfo?.hasMoreNonFixedHosts ? handleLoadNextRoundRobinChunk : undefined
+        }
+        onResetRoundRobinChunkSelection={
+          isManualRoundRobinChunking ? handleResetRoundRobinChunkSelection : undefined
+        }
       />
     </AtomsWrapper>
   );
