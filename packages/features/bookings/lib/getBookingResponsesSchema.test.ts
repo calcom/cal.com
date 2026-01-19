@@ -206,6 +206,41 @@ describe("getBookingResponsesSchema", () => {
         expect(parsedResponses.success).toBe(true);
       });
 
+      test(`hidden email field should preserve explicitly provided email from API`, async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+              hidden: true,
+            },
+            {
+              name: "attendeePhoneNumber",
+              type: "phone",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          attendeePhoneNumber: "+919999999999",
+        });
+        expect(parsedResponses.success).toBe(true);
+        if (!parsedResponses.success) {
+          throw new Error("Should not reach here");
+        }
+        // When email is explicitly provided via API, it should be preserved even if the field is hidden
+        expect(parsedResponses.data.email).toBe("john@example.com");
+      });
+
       test(`hidden required phone field should not be validated`, async () => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
