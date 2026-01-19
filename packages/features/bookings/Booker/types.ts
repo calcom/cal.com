@@ -105,10 +105,10 @@ export interface BookerProps {
   useApiV2?: boolean;
 }
 
-export type ToggledConnectedCalendars = Set<{
+export type ToggledConnectedCalendars = {
   credentialId: number;
   externalId: string;
-}>;
+};
 
 export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
@@ -153,7 +153,7 @@ export type WrappedBookerPropsMain = {
       };
     }[];
     loadingConnectedCalendar: boolean;
-    onToggleCalendar: (calendarsToLoad?: ToggledConnectedCalendars) => void;
+    onToggleCalendar: (calendarsToLoad?: Set<ToggledConnectedCalendars>) => void;
   };
   bookerForm: UseBookingFormReturnType;
   event: BookerEventQuery;

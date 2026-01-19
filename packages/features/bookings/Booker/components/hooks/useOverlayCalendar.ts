@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
-import type { WrappedBookerPropsMain } from "../../types";
+import type { ToggledConnectedCalendars, WrappedBookerPropsMain } from "../../types";
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import { useLocalSet } from "./useLocalSet";
 
@@ -16,10 +16,10 @@ export const useOverlayCalendar = ({
   WrappedBookerPropsMain["calendars"],
   "overlayBusyDates" | "onToggleCalendar" | "connectedCalendars"
 >) => {
-  const { set, toggleValue, hasItem } = useLocalSet<{
-    credentialId: number;
-    externalId: string;
-  }>("toggledConnectedCalendars", []);
+  const { set, toggleValue, hasItem } = useLocalSet<ToggledConnectedCalendars>(
+    "toggledConnectedCalendars",
+    []
+  );
   const [initalised, setInitalised] = useState(false);
   const [continueWithProvider, setContinueWithProvider] = useOverlayCalendarStore(
     (state) => [state.continueWithProviderModal, state.setContinueWithProviderModal],

@@ -66,7 +66,7 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
     isOverlayCalendarEnabled: switchEnabled,
     connectedCalendars: data?.connectedCalendars || [],
     loadingConnectedCalendar: isPending,
-    onToggleCalendar: (data?: ToggledConnectedCalendars): void => {
+    onToggleCalendar: (data?: Set<ToggledConnectedCalendars>): void => {
       utils.viewer.availability.calendarOverlay.reset();
     },
   };
