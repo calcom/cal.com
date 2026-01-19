@@ -159,15 +159,114 @@ const handleMarkNoShow = async ({
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
 
+    const booking = await prisma.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        metadata: true,
+        uid: true,
+        location: true,
+        destinationCalendar: true,
+        smsReminderNumber: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            id: true,
+            hideOrganizerEmail: true,
+            customReplyToEmail: true,
+            schedulingType: true,
+            slug: true,
+            title: true,
+            metadata: true,
+            parentId: true,
+            teamId: true,
+            userId: true,
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                    destinationCalendar: {
+                      select: {
+                        primaryEmail: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+            workflows: {
+              select: {
+                workflow: {
+                  select: workflowSelect,
+                },
+              },
+            },
+            owner: {
+              select: {
+                hideBranding: true,
+                email: true,
+                name: true,
+                timeZone: true,
+                locale: true,
+              },
+            },
+            team: {
+              select: {
+                parentId: true,
+                name: true,
+                id: true,
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            destinationCalendar: true,
+            timeZone: true,
+            locale: true,
+            username: true,
+            timeFormat: true,
+          },
+        },
+      },
+    });
+
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking?.eventType?.userId,
+      teamId: booking?.eventType?.teamId,
+    });
+
     if (attendees && attendeeEmails.length > 0) {
       await assertCanAccessBooking(bookingUid, userId);
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
-      const { webhooks, bookingId } = await getWebhooksService(
-        bookingUid,
-        platformClientParams?.platformClientId
-      );
+      const { webhooks, bookingId } = await getWebhooksService({
+        platformClientId: platformClientParams?.platformClientId,
+        orgId,
+        booking,
+      });
 
       await webhooks.sendPayload({
         ...payload,
@@ -175,97 +274,6 @@ const handleMarkNoShow = async ({
         bookingUid,
         bookingId,
         ...(platformClientParams ? platformClientParams : {}),
-      });
-
-      const booking = await prisma.booking.findUnique({
-        where: { uid: bookingUid },
-        select: {
-          startTime: true,
-          endTime: true,
-          title: true,
-          metadata: true,
-          uid: true,
-          location: true,
-          destinationCalendar: true,
-          smsReminderNumber: true,
-          userPrimaryEmail: true,
-          eventType: {
-            select: {
-              id: true,
-              hideOrganizerEmail: true,
-              customReplyToEmail: true,
-              schedulingType: true,
-              slug: true,
-              title: true,
-              metadata: true,
-              parentId: true,
-              teamId: true,
-              hosts: {
-                select: {
-                  user: {
-                    select: {
-                      email: true,
-                      destinationCalendar: {
-                        select: {
-                          primaryEmail: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              parent: {
-                select: {
-                  teamId: true,
-                },
-              },
-              workflows: {
-                select: {
-                  workflow: {
-                    select: workflowSelect,
-                  },
-                },
-              },
-              owner: {
-                select: {
-                  hideBranding: true,
-                  email: true,
-                  name: true,
-                  timeZone: true,
-                  locale: true,
-                },
-              },
-              team: {
-                select: {
-                  parentId: true,
-                  name: true,
-                  id: true,
-                },
-              },
-            },
-          },
-          attendees: {
-            select: {
-              email: true,
-              name: true,
-              timeZone: true,
-              locale: true,
-              phoneNumber: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              destinationCalendar: true,
-              timeZone: true,
-              locale: true,
-              username: true,
-              timeFormat: true,
-            },
-          },
-        },
       });
 
       if (booking?.eventType) {
@@ -374,18 +382,13 @@ const handleMarkNoShow = async ({
 
       // Log attendee no-show audit for each attendee that was updated
       if (booking?.eventType) {
-        const attendeeOrgId = await getOrgIdFromMemberOrTeamId({
-          memberId: booking.eventType.owner?.email ? undefined : booking.user?.id,
-          teamId: booking.eventType.teamId,
-        });
-
         const bookingEventHandlerService = getBookingEventHandlerService();
 
         for (const attendee of payload.attendees) {
           await bookingEventHandlerService.onAttendeeNoShowUpdated({
             bookingUid,
             actor,
-            organizationId: attendeeOrgId ?? null,
+            organizationId: orgId ?? null,
             source: actionSource,
             auditData: {
               noShowAttendee: { old: null, new: attendee.noShow },
@@ -397,21 +400,6 @@ const handleMarkNoShow = async ({
 
     if (noShowHost) {
       const bookingRepo = new BookingRepository(prisma);
-      const bookingForAudit = await bookingRepo.findByUidForOrgId({ bookingUid });
-
-      await prisma.booking.update({
-        where: {
-          uid: bookingUid,
-        },
-        data: {
-          noShowHost: true,
-        },
-      });
-
-      const orgId = await getOrgIdFromMemberOrTeamId({
-        memberId: bookingForAudit?.eventType?.userId,
-        teamId: bookingForAudit?.eventType?.teamId,
-      });
 
       const bookingEventHandlerService = getBookingEventHandlerService();
       await bookingEventHandlerService.onHostNoShowUpdated({
@@ -487,25 +475,22 @@ const updateAttendees = async (
     .map((x) => ({ email: x.email, noShow: x.noShow }));
 };
 
-const getWebhooksService = async (bookingUid: string, platformClientId?: string) => {
-  const booking = await prisma.booking.findUnique({
-    where: { uid: bookingUid },
-    select: {
-      id: true,
-      eventType: {
-        select: {
-          id: true,
-          teamId: true,
-          userId: true,
-        },
-      },
-    },
-  });
-
-  const orgId = await getOrgIdFromMemberOrTeamId({
-    memberId: booking?.eventType?.userId,
-    teamId: booking?.eventType?.teamId,
-  });
+const getWebhooksService = async ({
+  platformClientId,
+  orgId,
+  booking,
+}: {
+  platformClientId?: string;
+  orgId: number | undefined;
+  booking: {
+    id: number;
+    eventType: {
+      id: number;
+      teamId: number | null;
+      userId: number | null;
+    } | null;
+  } | null;
+}) => {
   const webhooks = await WebhookService.init({
     teamId: booking?.eventType?.teamId,
     userId: booking?.eventType?.userId,
