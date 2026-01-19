@@ -58,13 +58,13 @@ export const scheduleMonthlyProration = schedules.task({
 
     log.info(`Scheduling ${teamIdsList.length} teams in ${batches.length} batches for ${monthKey}`);
 
-    await Promise.all(
-      batches.map((teamIds) =>
-        processMonthlyProrationBatch.trigger({
+    await processMonthlyProrationBatch.batchTrigger(
+      batches.map((teamIds) => ({
+        payload: {
           monthKey,
           teamIds,
-        })
-      )
+        },
+      }))
     );
 
     return {
