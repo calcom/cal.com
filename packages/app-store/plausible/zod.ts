@@ -1,23 +1,7 @@
 import { z } from "zod";
 
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
-
-// Safe URL schema that only allows http/https protocols
-const safeUrlSchema = z
-  .string()
-  .transform((val) => val.trim())
-  .refine(
-    (val) => {
-      if (!val) return true;
-      try {
-        const url = new URL(val);
-        return url.protocol === "http:" || url.protocol === "https:";
-      } catch {
-        return false;
-      }
-    },
-    { message: "Invalid URL format. Must be a valid http or https URL" }
-  );
+import { safeUrlSchema } from "../_lib/analytics-schemas";
 
 // Domain schema for Plausible tracking (e.g., example.com, sub.example.com)
 // Each label must start and end with alphanumeric, can contain hyphens in the middle

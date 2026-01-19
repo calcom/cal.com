@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
+import { safeUrlSchema } from "../_lib/analytics-schemas";
+
 // PostHog Project API Keys (typically start with phc_) - allow alphanumeric to not break legacy data
 const posthogIdSchema = z
   .string()
@@ -11,25 +13,10 @@ const posthogIdSchema = z
   })
   .optional();
 
-// Safe URL schema that only allows http/https protocols
-const safeUrlSchema = z
-  .string()
-  .transform((val) => val.trim())
-  .refine((val) => {
-    if (!val) return true;
-    try {
-      const url = new URL(val);
-      return url.protocol === "http:" || url.protocol === "https:";
-    } catch {
-      return false;
-    }
-  }, { message: "Invalid URL format. Must be a valid http or https URL" })
-  .optional();
-
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     TRACKING_ID: posthogIdSchema,
-    API_HOST: safeUrlSchema,
+    API_HOST: safeUrlSchema.optional(),
   })
 );
 

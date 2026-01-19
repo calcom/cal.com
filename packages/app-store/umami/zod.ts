@@ -2,20 +2,7 @@ import { z } from "zod";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
-// Safe URL schema that only allows http/https protocols
-const safeUrlSchema = z
-  .string()
-  .transform((val) => val.trim())
-  .refine((val) => {
-    if (!val) return true;
-    try {
-      const url = new URL(val);
-      return url.protocol === "http:" || url.protocol === "https:";
-    } catch {
-      return false;
-    }
-  }, { message: "Invalid URL format. Must be a valid http or https URL" })
-  .optional();
+import { safeUrlSchema } from "../_lib/analytics-schemas";
 
 // Umami Website IDs: UUID in v2 (e.g., 4fb7fa4c-5b46-438d-94b3-3a8fb9bc2e8b) or numeric in v1
 const umamiSiteIdSchema = z
@@ -35,7 +22,7 @@ const umamiSiteIdSchema = z
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     SITE_ID: umamiSiteIdSchema,
-    SCRIPT_URL: safeUrlSchema,
+    SCRIPT_URL: safeUrlSchema.optional(),
   })
 );
 
