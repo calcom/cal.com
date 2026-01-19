@@ -1,0 +1,30 @@
+name: Validate Agents Format
+
+on:
+  pull_request:
+    paths:
+      - "agents/**"
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate agents/ format
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install ts-node
+        run: npm install -g ts-node typescript @types/node
+
+      - name: Validate format
+        working-directory: agents
+        run: npx ts-node validate-format.ts
