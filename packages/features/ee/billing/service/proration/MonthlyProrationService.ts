@@ -1,4 +1,5 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
 import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
@@ -25,14 +26,27 @@ interface ProcessMonthlyProrationsParams {
   teamIds?: number[];
 }
 
+export interface MonthlyProrationServiceDeps {
+  logger: ISimpleLogger;
+}
+
 export class MonthlyProrationService {
-  private logger: Logger<unknown>;
+  private logger: ISimpleLogger;
   private teamRepository: MonthlyProrationTeamRepository;
   private prorationRepository: MonthlyProrationRepository;
   private billingService: IBillingProviderService;
 
-  constructor(customLogger?: Logger<unknown>, billingService?: IBillingProviderService) {
-    this.logger = customLogger || log;
+  constructor(deps: MonthlyProrationServiceDeps);
+  constructor(customLogger?: Logger<unknown>, billingService?: IBillingProviderService);
+  constructor(
+    depsOrLogger?: MonthlyProrationServiceDeps | Logger<unknown>,
+    billingService?: IBillingProviderService
+  ) {
+    if (depsOrLogger && typeof depsOrLogger === "object" && "logger" in depsOrLogger) {
+      this.logger = depsOrLogger.logger;
+    } else {
+      this.logger = (depsOrLogger as Logger<unknown>) || log;
+    }
     this.teamRepository = new MonthlyProrationTeamRepository();
     this.prorationRepository = new MonthlyProrationRepository();
     this.billingService = billingService || new StripeBillingService(stripe);
