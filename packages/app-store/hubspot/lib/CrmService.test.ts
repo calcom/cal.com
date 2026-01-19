@@ -719,6 +719,97 @@ describe("HubspotCalendarService", () => {
       const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
       expect(createCall.properties.hubspot_owner_id).toBe("owner-123");
     });
+
+    it("should overwrite existing contact owner when overwriteContactOwner is true", async () => {
+      mockAppOptions({ setOrganizerAsOwner: true, overwriteContactOwner: true });
+
+      mockHubspotClient.crm.owners.ownersApi.getPage.mockResolvedValue({
+        results: [{ id: "owner-123", email: "organizer@example.com" }],
+      });
+
+      mockHubspotClient.crm.contacts.basicApi.update.mockResolvedValue({
+        id: "contact-1",
+        properties: { hubspot_owner_id: "owner-123" },
+      });
+
+      mockHubspotClient.crm.objects.meetings.basicApi.create.mockResolvedValue({
+        id: "meeting-123",
+        properties: {},
+      });
+
+      mockHubspotClient.crm.associations.batchApi.create.mockResolvedValue({
+        results: [],
+      });
+
+      const event = createMockEvent();
+      const contacts = [{ id: "contact-1", email: "attendee@example.com" }];
+
+      await service.createEvent(event, contacts);
+
+      expect(mockHubspotClient.crm.contacts.basicApi.update).toHaveBeenCalledWith("contact-1", {
+        properties: { hubspot_owner_id: "owner-123" },
+      });
+      expect(mockHubspotClient.crm.contacts.basicApi.getById).not.toHaveBeenCalled();
+    });
+
+    it("should not overwrite existing contact owner when overwriteContactOwner is false", async () => {
+      mockAppOptions({ setOrganizerAsOwner: true, overwriteContactOwner: false });
+
+      mockHubspotClient.crm.owners.ownersApi.getPage.mockResolvedValue({
+        results: [{ id: "owner-123", email: "organizer@example.com" }],
+      });
+
+      mockHubspotClient.crm.contacts.basicApi.getById.mockResolvedValue({
+        id: "contact-1",
+        properties: { hubspot_owner_id: "existing-owner-456" },
+      });
+
+      mockHubspotClient.crm.objects.meetings.basicApi.create.mockResolvedValue({
+        id: "meeting-123",
+        properties: {},
+      });
+
+      mockHubspotClient.crm.associations.batchApi.create.mockResolvedValue({
+        results: [],
+      });
+
+      const event = createMockEvent();
+      const contacts = [{ id: "contact-1", email: "attendee@example.com" }];
+
+      await service.createEvent(event, contacts);
+
+      expect(mockHubspotClient.crm.contacts.basicApi.getById).toHaveBeenCalledWith("contact-1", [
+        "hubspot_owner_id",
+      ]);
+      expect(mockHubspotClient.crm.contacts.basicApi.update).not.toHaveBeenCalled();
+    });
+
+    it("should not set contact owner when organizer has no matching HubSpot owner", async () => {
+      mockAppOptions({ setOrganizerAsOwner: true });
+
+      mockHubspotClient.crm.owners.ownersApi.getPage.mockResolvedValue({ results: [] });
+
+      mockHubspotClient.crm.objects.meetings.basicApi.create.mockResolvedValue({
+        id: "meeting-123",
+        properties: {},
+      });
+
+      mockHubspotClient.crm.associations.batchApi.create.mockResolvedValue({
+        results: [],
+      });
+
+      const event = createMockEvent();
+      const contacts = [{ id: "contact-1", email: "attendee@example.com" }];
+
+      await service.createEvent(event, contacts);
+
+      expect(mockHubspotClient.crm.contacts.basicApi.getById).not.toHaveBeenCalled();
+      expect(mockHubspotClient.crm.contacts.basicApi.update).not.toHaveBeenCalled();
+
+      const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
+      expect(createCall.properties.hubspot_owner_id).toBeUndefined();
+    });
+
     it("should create meeting successfully when owner lookup fails due to missing scope", async () => {
       mockAppOptions({});
 
