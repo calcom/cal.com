@@ -143,6 +143,10 @@ Here is what you need to be able to run Cal.com.
    ```sh
    yarn
    ```
+ > ℹ️ Note for first-time contributors*
+ Make sure you are using the Node.js version specified by the project (via `nvm use`)
+ before running `yarn`. Using a different Node version may cause installation issues.
+
 
 4. Set up your `.env` file
 
