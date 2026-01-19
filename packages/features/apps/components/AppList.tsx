@@ -236,7 +236,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
         className="text-destructive hover:border-semantic-error hover:bg-error"
         onClick={() => handleDisconnect(credentialId, app, teamId)}
         disabled={isGlobal || isDelegationCredential({ credentialId })}>
-        <Icon name="trash-2" className="mr-2 h-4 w-4" />
+        <Icon name="trash" className="mr-2 h-4 w-4" />
         {t("remove_app")}
       </DropdownMenuItem>
     );

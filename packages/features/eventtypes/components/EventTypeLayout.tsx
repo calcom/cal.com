@@ -1,13 +1,10 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useMemo, useState, Suspense } from "react";
-import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
+import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import WebShell from "@calcom/features/shell/Shell";
@@ -272,7 +269,24 @@ function EventTypeSingleLayout({
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
-            disabled={!formMethods.formState.isDirty}
+            disabled={(() => {
+              if (!formMethods.formState.isDirty) return true;
+              const dirtyFields = formMethods.formState.dirtyFields;
+              const hasRealChanges = Object.keys(dirtyFields).some((key) => {
+                const value = dirtyFields[key as keyof typeof dirtyFields];
+                if (typeof value === "boolean") return value;
+                if (typeof value === "object" && value !== null) {
+                  return (
+                    JSON.stringify(value) !== "{}" &&
+                    Object.values(value).some(
+                      (v) => v === true || (typeof v === "object" && v !== null && Object.keys(v).length > 0)
+                    )
+                  );
+                }
+                return false;
+              });
+              return !hasRealChanges;
+            })()}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}

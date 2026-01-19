@@ -69,7 +69,7 @@
   );
   --cal-bg-active: hsla(207, 100%, 44.9%, 1); /* active tabs */
   --cal-bg-active-dim: hsla(207, 100%, 45%, 0.2); /* active tabs */
-  --cal-bg-destructive: hsla(4, 61%, 49%, 1); /* destructive elements */
+  --cal-bg-destructive: hsla(4, 93%, 59%, 1); /* destructive elements */
   --cal-bg-destructive-dim: hsla(4, 61%, 49%, 0.1); /* destructive elements */
 
   /* Background Primary */

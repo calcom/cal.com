@@ -200,7 +200,7 @@ export const ChildrenEventTypeSelect = ({
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }
-                        StartIcon="trash-2"
+                        StartIcon="trash"
                       />
                     </Tooltip>
                   </ButtonGroup>

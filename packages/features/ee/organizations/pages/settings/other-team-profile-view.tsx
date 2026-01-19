@@ -318,7 +318,7 @@ const OtherTeamProfileView = () => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon="trash-2">
+              <Button color="destructive" className="border" StartIcon="trash">
                 {t("disband_team")}
               </Button>
             </DialogTrigger>
