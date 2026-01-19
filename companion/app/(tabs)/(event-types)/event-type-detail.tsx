@@ -2252,7 +2252,7 @@ export default function EventTypeDetail() {
                           );
                         } else {
                           openInAppBrowser(
-                            `https://app.cal.com/event-types/${id}?tabName=apps`,
+                            `https://app.cal.com/event-types/${id}?tabName=apps&standalone=true`,
                             "Apps settings"
                           );
                         }
@@ -2285,7 +2285,7 @@ export default function EventTypeDetail() {
                           );
                         } else {
                           openInAppBrowser(
-                            `https://app.cal.com/event-types/${id}?tabName=workflows`,
+                            `https://app.cal.com/event-types/${id}?tabName=workflows&standalone=true`,
                             "Workflows settings"
                           );
                         }
@@ -2318,7 +2318,7 @@ export default function EventTypeDetail() {
                           );
                         } else {
                           openInAppBrowser(
-                            `https://app.cal.com/event-types/${id}?tabName=webhooks`,
+                            `https://app.cal.com/event-types/${id}?tabName=webhooks&standalone=true`,
                             "Webhooks settings"
                           );
                         }

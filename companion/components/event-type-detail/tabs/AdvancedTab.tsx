@@ -421,7 +421,9 @@ export function AdvancedTab(props: AdvancedTabProps) {
             isLast
             title="Locked Timezone"
             value={props.lockedTimezone || "Europe/London"}
-            onPress={() => openInAppBrowser("https://app.cal.com/event-types", "Select Timezone")}
+            onPress={() =>
+              openInAppBrowser("https://app.cal.com/event-types?standalone=true", "Select Timezone")
+            }
           />
         </SettingsGroup>
       ) : null}
@@ -604,7 +606,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           onPress={() => {
             if (props.eventTypeId && props.eventTypeId !== "new") {
               openInAppBrowser(
-                `https://app.cal.com/event-types/${props.eventTypeId}?tabName=advanced`,
+                `https://app.cal.com/event-types/${props.eventTypeId}?tabName=advanced&standalone=true`,
                 "Private Links"
               );
             } else {
@@ -617,7 +619,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           onPress={() => {
             if (props.eventTypeId && props.eventTypeId !== "new") {
               openInAppBrowser(
-                `https://app.cal.com/event-types/${props.eventTypeId}?tabName=advanced`,
+                `https://app.cal.com/event-types/${props.eventTypeId}?tabName=advanced&standalone=true`,
                 "Custom Reply-To"
               );
             } else {

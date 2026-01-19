@@ -59,25 +59,28 @@ export default function More() {
       name: "Apps",
       icon: "grid-outline",
       isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/apps", "Apps page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/apps?standalone=true", "Apps page"),
     },
     {
       name: "Routing",
       icon: "git-branch-outline",
       isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/routing", "Routing page"),
+      onPress: () =>
+        openInAppBrowser("https://app.cal.com/routing?standalone=true", "Routing page"),
     },
     {
       name: "Workflows",
       icon: "flash-outline",
       isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/workflows", "Workflows page"),
+      onPress: () =>
+        openInAppBrowser("https://app.cal.com/workflows?standalone=true", "Workflows page"),
     },
     {
       name: "Insights",
       icon: "bar-chart-outline",
       isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/insights", "Insights page"),
+      onPress: () =>
+        openInAppBrowser("https://app.cal.com/insights?standalone=true", "Insights page"),
     },
     {
       name: "Support",
@@ -146,7 +149,10 @@ export default function More() {
         <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           <TouchableOpacity
             onPress={() =>
-              openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
+              openInAppBrowser(
+                "https://app.cal.com/settings/my-account/profile?standalone=true",
+                "Delete Account"
+              )
             }
             className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50"
           >
@@ -175,7 +181,7 @@ export default function More() {
           For advanced features, visit{" "}
           <Text
             className="text-gray-800"
-            onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
+            onPress={() => openInAppBrowser("https://app.cal.com?standalone=true", "Cal.com")}
           >
             app.cal.com
           </Text>

@@ -616,7 +616,7 @@ export function initLinkedInIntegration() {
     const editBtn = createActionButton(SVG_ICONS.EDIT, "Edit", "0 6px 6px 0", tooltipsToCleanup);
     editBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const editUrl = `https://app.cal.com/event-types/${eventType.id}`;
+      const editUrl = `https://app.cal.com/event-types/${eventType.id}?standalone=true`;
       window.open(editUrl, "_blank");
     });
 

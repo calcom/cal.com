@@ -280,7 +280,7 @@ export function useBookingActionModals(): UseBookingActionModalsReturn {
   const handleRequestReschedule = useCallback((booking: Booking) => {
     // Request reschedule is a server-driven operation that requires the web app
     // We deep link to the booking detail page where the user can trigger it
-    const webUrl = `https://app.cal.com/booking/${booking.uid}`;
+    const webUrl = `https://app.cal.com/booking/${booking.uid}?standalone=true`;
 
     Alert.alert(
       "Request Reschedule",

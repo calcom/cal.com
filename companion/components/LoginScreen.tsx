@@ -24,7 +24,7 @@ export function LoginScreen() {
   };
 
   const handleSignUp = async () => {
-    await openInAppBrowser("https://app.cal.com/signup", "Sign up page");
+    await openInAppBrowser("https://app.cal.com/signup?standalone=true", "Sign up page");
   };
 
   return (

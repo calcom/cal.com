@@ -31,7 +31,10 @@ export default function ProfileSheet() {
       label: "My Profile",
       icon: "person-outline",
       onPress: () =>
-        openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Profile page"),
+        openInAppBrowser(
+          "https://app.cal.com/settings/my-account/profile?standalone=true",
+          "Profile page"
+        ),
       external: true,
     },
     {
@@ -39,7 +42,10 @@ export default function ProfileSheet() {
       label: "My Settings",
       icon: "settings-outline",
       onPress: () =>
-        openInAppBrowser("https://app.cal.com/settings/my-account/general", "Settings page"),
+        openInAppBrowser(
+          "https://app.cal.com/settings/my-account/general?standalone=true",
+          "Settings page"
+        ),
       external: true,
     },
     {
@@ -48,7 +54,7 @@ export default function ProfileSheet() {
       icon: "moon-outline",
       onPress: () =>
         openInAppBrowser(
-          "https://app.cal.com/settings/my-account/out-of-office",
+          "https://app.cal.com/settings/my-account/out-of-office?standalone=true",
           "Out of Office page"
         ),
       external: true,
