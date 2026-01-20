@@ -11,11 +11,21 @@ import {
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import type {
+  BookingBasicDto,
+  BookingInstantLocationDto,
+  BookingExistsDto,
+  BookingFullContextDto,
+  BookingForConfirmationDto,
+  BookingUpdateResultDto,
+  BookingBatchUpdateResultDto,
+} from "@calcom/lib/dto/BookingDto";
+import type {
   BookingWhereInput,
-  IBookingRepository,
   BookingUpdateData,
   BookingWhereUniqueInput,
 } from "@calcom/lib/server/repository/dto/IBookingRepository";
+
+import type { IBookingRepository } from "./IBookingRepository";
 
 const workflowReminderSelect = {
   id: true,
@@ -29,7 +39,6 @@ const referenceSelect = {
   externalCalendarId: true,
   credentialId: true,
 };
-
 type ManagedEventReassignmentCreateParams = {
   uid: string;
   userId: number;
@@ -2000,6 +2009,910 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
         endTime: true,
       },
     });
+  }
+
+  async findByUidBasic({ bookingUid }: { bookingUid: string }): Promise<BookingBasicDto | null> {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        endTime: true,
+        description: true,
+        status: true,
+        paid: true,
+        eventTypeId: true,
+      },
+    });
+
+    if (!booking) return null;
+
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      description: booking.description,
+      status: booking.status,
+      paid: booking.paid,
+      eventTypeId: booking.eventTypeId,
+    };
+  }
+
+  async findAcceptedByIdForInstantBooking({
+    bookingId,
+  }: {
+    bookingId: number;
+  }): Promise<BookingInstantLocationDto | null> {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        id: true,
+        uid: true,
+        location: true,
+        metadata: true,
+        startTime: true,
+        status: true,
+        endTime: true,
+        description: true,
+        eventTypeId: true,
+      },
+    });
+
+    if (!booking) return null;
+
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      location: booking.location,
+      metadata: booking.metadata as Record<string, unknown> | null,
+      startTime: booking.startTime,
+      status: booking.status,
+      endTime: booking.endTime,
+      description: booking.description,
+      eventTypeId: booking.eventTypeId,
+    };
+  }
+
+  async countSeatReferencesByReferenceUid({ referenceUid }: { referenceUid: string }) {
+    const bookingSeat = await this.prismaClient.bookingSeat.findUnique({
+      where: {
+        referenceUid,
+      },
+      select: {
+        booking: {
+          select: {
+            _count: {
+              select: {
+                seatsReferences: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!bookingSeat) {
+      return null;
+    }
+
+    return bookingSeat.booking._count.seatsReferences;
+  }
+
+  private bookingWithFullContextInclude = {
+    attendees: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        bookingId: true,
+        phoneNumber: true,
+        noShow: true,
+      },
+    },
+    eventType: {
+      select: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            parentId: true,
+          },
+        },
+        metadata: true,
+        title: true,
+        recurringEvent: true,
+        seatsPerTimeSlot: true,
+        seatsShowAttendees: true,
+        hideOrganizerEmail: true,
+        customReplyToEmail: true,
+      },
+    },
+    destinationCalendar: {
+      select: {
+        id: true,
+        integration: true,
+        externalId: true,
+        primaryEmail: true,
+        userId: true,
+        eventTypeId: true,
+        credentialId: true,
+        createdAt: true,
+        updatedAt: true,
+        delegationCredentialId: true,
+        domainWideDelegationCredentialId: true,
+        customCalendarReminder: true,
+      },
+    },
+    references: {
+      select: {
+        id: true,
+        type: true,
+        uid: true,
+        meetingId: true,
+        meetingPassword: true,
+        meetingUrl: true,
+        bookingId: true,
+        externalCalendarId: true,
+        deleted: true,
+        credentialId: true,
+        thirdPartyRecurringEventId: true,
+        delegationCredentialId: true,
+        domainWideDelegationCredentialId: true,
+      },
+    },
+    user: {
+      select: {
+        id: true,
+        destinationCalendar: {
+          select: {
+            id: true,
+            integration: true,
+            externalId: true,
+            primaryEmail: true,
+            userId: true,
+            eventTypeId: true,
+            credentialId: true,
+            createdAt: true,
+            updatedAt: true,
+            delegationCredentialId: true,
+            domainWideDelegationCredentialId: true,
+            customCalendarReminder: true,
+          },
+        },
+        credentials: {
+          select: {
+            id: true,
+            type: true,
+            // Note: key is intentionally NOT selected to avoid leaking sensitive data
+            userId: true,
+            teamId: true,
+            appId: true,
+            subscriptionId: true,
+            paymentStatus: true,
+            billingCycleStart: true,
+            invalid: true,
+          },
+        },
+        profiles: {
+          select: {
+            organizationId: true,
+          },
+        },
+      },
+    },
+  } as const;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapToBookingFullContextDto(booking: any): BookingFullContextDto {
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      userId: booking.userId,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      title: booking.title,
+      description: booking.description,
+      status: booking.status,
+      attendees: booking.attendees.map((attendee: {
+        id: number;
+        email: string;
+        name: string;
+        timeZone: string;
+        locale: string | null;
+        bookingId: number | null;
+        phoneNumber: string | null;
+        noShow: boolean | null;
+      }) => ({
+        id: attendee.id,
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        locale: attendee.locale,
+        bookingId: attendee.bookingId,
+        phoneNumber: attendee.phoneNumber,
+        noShow: attendee.noShow,
+      })),
+      eventType: booking.eventType
+        ? {
+            team: booking.eventType.team
+              ? {
+                  id: booking.eventType.team.id,
+                  name: booking.eventType.team.name,
+                  parentId: booking.eventType.team.parentId,
+                }
+              : null,
+            metadata: booking.eventType.metadata,
+            title: booking.eventType.title,
+            recurringEvent: booking.eventType.recurringEvent,
+            seatsPerTimeSlot: booking.eventType.seatsPerTimeSlot,
+            seatsShowAttendees: booking.eventType.seatsShowAttendees,
+            hideOrganizerEmail: booking.eventType.hideOrganizerEmail,
+            customReplyToEmail: booking.eventType.customReplyToEmail,
+          }
+        : null,
+      destinationCalendar: booking.destinationCalendar
+        ? {
+            id: booking.destinationCalendar.id,
+            integration: booking.destinationCalendar.integration,
+            externalId: booking.destinationCalendar.externalId,
+            primaryEmail: booking.destinationCalendar.primaryEmail,
+            userId: booking.destinationCalendar.userId,
+            eventTypeId: booking.destinationCalendar.eventTypeId,
+            credentialId: booking.destinationCalendar.credentialId,
+            createdAt: booking.destinationCalendar.createdAt,
+            updatedAt: booking.destinationCalendar.updatedAt,
+            delegationCredentialId: booking.destinationCalendar.delegationCredentialId,
+            domainWideDelegationCredentialId: booking.destinationCalendar.domainWideDelegationCredentialId,
+            customCalendarReminder: booking.destinationCalendar.customCalendarReminder,
+          }
+        : null,
+      references: booking.references.map((ref: {
+        id: number;
+        type: string;
+        uid: string;
+        meetingId: string | null;
+        meetingPassword: string | null;
+        meetingUrl: string | null;
+        bookingId: number | null;
+        externalCalendarId: string | null;
+        deleted: boolean | null;
+        credentialId: number | null;
+        thirdPartyRecurringEventId: string | null;
+        delegationCredentialId: string | null;
+        domainWideDelegationCredentialId: string | null;
+      }) => ({
+        id: ref.id,
+        type: ref.type,
+        uid: ref.uid,
+        meetingId: ref.meetingId,
+        meetingPassword: ref.meetingPassword,
+        meetingUrl: ref.meetingUrl,
+        bookingId: ref.bookingId,
+        externalCalendarId: ref.externalCalendarId,
+        deleted: ref.deleted,
+        credentialId: ref.credentialId,
+        thirdPartyRecurringEventId: ref.thirdPartyRecurringEventId,
+        delegationCredentialId: ref.delegationCredentialId,
+        domainWideDelegationCredentialId: ref.domainWideDelegationCredentialId,
+      })),
+      user: booking.user
+        ? {
+            id: booking.user.id,
+            destinationCalendar: booking.user.destinationCalendar
+              ? {
+                  id: booking.user.destinationCalendar.id,
+                  integration: booking.user.destinationCalendar.integration,
+                  externalId: booking.user.destinationCalendar.externalId,
+                  primaryEmail: booking.user.destinationCalendar.primaryEmail,
+                  userId: booking.user.destinationCalendar.userId,
+                  eventTypeId: booking.user.destinationCalendar.eventTypeId,
+                  credentialId: booking.user.destinationCalendar.credentialId,
+                  createdAt: booking.user.destinationCalendar.createdAt,
+                  updatedAt: booking.user.destinationCalendar.updatedAt,
+                  delegationCredentialId: booking.user.destinationCalendar.delegationCredentialId,
+                  domainWideDelegationCredentialId: booking.user.destinationCalendar.domainWideDelegationCredentialId,
+                  customCalendarReminder: booking.user.destinationCalendar.customCalendarReminder,
+                }
+              : null,
+            credentials: booking.user.credentials.map((cred: {
+              id: number;
+              type: string;
+              userId: number | null;
+              teamId: number | null;
+              appId: string | null;
+              subscriptionId: string | null;
+              paymentStatus: string | null;
+              billingCycleStart: number | null;
+              invalid: boolean | null;
+            }) => ({
+              id: cred.id,
+              type: cred.type,
+              userId: cred.userId,
+              teamId: cred.teamId,
+              appId: cred.appId,
+              subscriptionId: cred.subscriptionId,
+              paymentStatus: cred.paymentStatus,
+              billingCycleStart: cred.billingCycleStart,
+              invalid: cred.invalid,
+            })),
+            profiles: booking.user.profiles.map((profile: { organizationId: number | null }) => ({
+              organizationId: profile.organizationId,
+            })),
+          }
+        : null,
+      userPrimaryEmail: booking.userPrimaryEmail,
+      iCalUID: booking.iCalUID,
+      iCalSequence: booking.iCalSequence,
+      metadata: booking.metadata,
+      responses: booking.responses,
+    };
+  }
+
+  async findByIdForAdminIncludeFullContext({
+    bookingId,
+    adminUserId,
+  }: {
+    bookingId: number;
+    adminUserId: number;
+  }): Promise<BookingFullContextDto | null> {
+    const booking = await this.prismaClient.booking.findFirst({
+      where: {
+        id: bookingId,
+        eventType: {
+          team: {
+            members: {
+              some: {
+                userId: adminUserId,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
+            },
+          },
+        },
+      },
+      include: this.bookingWithFullContextInclude,
+    });
+
+    if (!booking) return null;
+
+    return this.mapToBookingFullContextDto(booking);
+  }
+
+  async findByIdForOrganizerOrCollectiveMemberIncludeFullContext({
+    bookingId,
+    userId,
+  }: {
+    bookingId: number;
+    userId: number;
+  }): Promise<BookingFullContextDto | null> {
+    const booking = await this.prismaClient.booking.findFirst({
+      where: {
+        id: bookingId,
+        AND: [
+          {
+            OR: [
+              { userId },
+              {
+                eventType: {
+                  schedulingType: "COLLECTIVE",
+                  users: {
+                    some: {
+                      id: userId,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      include: this.bookingWithFullContextInclude,
+    });
+
+    if (!booking) return null;
+
+    return this.mapToBookingFullContextDto(booking);
+  }
+
+  async findByIdForConfirmation({ bookingId }: { bookingId: number }): Promise<BookingForConfirmationDto> {
+    const booking = await this.prismaClient.booking.findUniqueOrThrow({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        title: true,
+        description: true,
+        customInputs: true,
+        startTime: true,
+        endTime: true,
+        attendees: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            bookingId: true,
+            phoneNumber: true,
+            noShow: true,
+          },
+        },
+        eventTypeId: true,
+        responses: true,
+        metadata: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            id: true,
+            owner: {
+              select: {
+                id: true,
+                hideBranding: true,
+              },
+            },
+            teamId: true,
+            recurringEvent: true,
+            title: true,
+            slug: true,
+            requiresConfirmation: true,
+            currency: true,
+            length: true,
+            description: true,
+            price: true,
+            bookingFields: true,
+            hideOrganizerEmail: true,
+            hideCalendarNotes: true,
+            hideCalendarEventDetails: true,
+            disableGuests: true,
+            customReplyToEmail: true,
+            metadata: true,
+            locations: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+            workflows: {
+              select: {
+                workflow: {
+                  select: {
+                    id: true,
+                    userId: true,
+                    teamId: true,
+                    name: true,
+                    trigger: true,
+                    time: true,
+                    timeUnit: true,
+                    activeOn: true,
+                    steps: {
+                      select: {
+                        id: true,
+                        stepNumber: true,
+                        action: true,
+                        workflowId: true,
+                        sendTo: true,
+                        reminderBody: true,
+                        emailSubject: true,
+                        template: true,
+                        numberRequired: true,
+                        sender: true,
+                        numberVerificationPending: true,
+                        includeCalendarEvent: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            customInputs: true,
+            parentId: true,
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+          },
+        },
+        location: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            timeZone: true,
+            timeFormat: true,
+            name: true,
+            destinationCalendar: true,
+            locale: true,
+          },
+        },
+        id: true,
+        uid: true,
+        payment: {
+          select: {
+            id: true,
+            uid: true,
+            appId: true,
+            bookingId: true,
+            amount: true,
+            fee: true,
+            currency: true,
+            success: true,
+            refunded: true,
+            data: true,
+            externalId: true,
+            paymentOption: true,
+          },
+        },
+        destinationCalendar: true,
+        paid: true,
+        recurringEventId: true,
+        status: true,
+        smsReminderNumber: true,
+      },
+    });
+
+    return this.mapToBookingForConfirmationDto(booking);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapToBookingForConfirmationDto(booking: any): BookingForConfirmationDto {
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      title: booking.title,
+      description: booking.description,
+      customInputs: booking.customInputs,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      attendees: booking.attendees.map((attendee: {
+        id: number;
+        email: string;
+        name: string;
+        timeZone: string;
+        locale: string | null;
+        bookingId: number | null;
+        phoneNumber: string | null;
+        noShow: boolean | null;
+      }) => ({
+        id: attendee.id,
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        locale: attendee.locale,
+        bookingId: attendee.bookingId,
+        phoneNumber: attendee.phoneNumber,
+        noShow: attendee.noShow,
+      })),
+      eventTypeId: booking.eventTypeId,
+      responses: booking.responses,
+      metadata: booking.metadata,
+      userPrimaryEmail: booking.userPrimaryEmail,
+      eventType: booking.eventType
+        ? {
+            id: booking.eventType.id,
+            owner: booking.eventType.owner
+              ? { id: booking.eventType.owner.id, hideBranding: booking.eventType.owner.hideBranding }
+              : null,
+            teamId: booking.eventType.teamId,
+            recurringEvent: booking.eventType.recurringEvent,
+            title: booking.eventType.title,
+            slug: booking.eventType.slug,
+            requiresConfirmation: booking.eventType.requiresConfirmation,
+            currency: booking.eventType.currency,
+            length: booking.eventType.length,
+            description: booking.eventType.description,
+            price: booking.eventType.price,
+            bookingFields: booking.eventType.bookingFields,
+            hideOrganizerEmail: booking.eventType.hideOrganizerEmail,
+            hideCalendarNotes: booking.eventType.hideCalendarNotes,
+            hideCalendarEventDetails: booking.eventType.hideCalendarEventDetails,
+            disableGuests: booking.eventType.disableGuests,
+            customReplyToEmail: booking.eventType.customReplyToEmail,
+            metadata: booking.eventType.metadata,
+            locations: booking.eventType.locations,
+            team: booking.eventType.team
+              ? {
+                  id: booking.eventType.team.id,
+                  name: booking.eventType.team.name,
+                  parentId: booking.eventType.team.parentId,
+                }
+              : null,
+            workflows: booking.eventType.workflows.map((wf: { workflow: {
+              id: number;
+              userId: number | null;
+              teamId: number | null;
+              name: string;
+              trigger: string;
+              time: number | null;
+              timeUnit: string | null;
+              activeOn: unknown[];
+              steps: {
+                id: number;
+                stepNumber: number;
+                action: string;
+                workflowId: number;
+                sendTo: string | null;
+                reminderBody: string | null;
+                emailSubject: string | null;
+                template: string;
+                numberRequired: boolean | null;
+                sender: string | null;
+                numberVerificationPending: boolean;
+                includeCalendarEvent: boolean;
+              }[];
+            }}) => ({
+              workflow: {
+                id: wf.workflow.id,
+                name: wf.workflow.name,
+                trigger: wf.workflow.trigger,
+                time: wf.workflow.time,
+                timeUnit: wf.workflow.timeUnit,
+                userId: wf.workflow.userId,
+                teamId: wf.workflow.teamId,
+                steps: wf.workflow.steps.map((step) => ({
+                  id: step.id,
+                  stepNumber: step.stepNumber,
+                  action: step.action,
+                  workflowId: step.workflowId,
+                  sendTo: step.sendTo,
+                  reminderBody: step.reminderBody,
+                  emailSubject: step.emailSubject,
+                  template: step.template,
+                  numberRequired: step.numberRequired,
+                  sender: step.sender,
+                  numberVerificationPending: step.numberVerificationPending,
+                  includeCalendarEvent: step.includeCalendarEvent,
+                })),
+              },
+            })),
+            customInputs: booking.eventType.customInputs,
+            parentId: booking.eventType.parentId,
+            parent: booking.eventType.parent
+              ? { teamId: booking.eventType.parent.teamId }
+              : null,
+          }
+        : null,
+      location: booking.location,
+      userId: booking.userId,
+      user: booking.user
+        ? {
+            id: booking.user.id,
+            username: booking.user.username,
+            email: booking.user.email,
+            timeZone: booking.user.timeZone,
+            timeFormat: booking.user.timeFormat,
+            name: booking.user.name,
+            destinationCalendar: booking.user.destinationCalendar
+              ? {
+                  id: booking.user.destinationCalendar.id,
+                  integration: booking.user.destinationCalendar.integration,
+                  externalId: booking.user.destinationCalendar.externalId,
+                  primaryEmail: booking.user.destinationCalendar.primaryEmail,
+                  userId: booking.user.destinationCalendar.userId,
+                  eventTypeId: booking.user.destinationCalendar.eventTypeId,
+                  credentialId: booking.user.destinationCalendar.credentialId,
+                  createdAt: booking.user.destinationCalendar.createdAt,
+                  updatedAt: booking.user.destinationCalendar.updatedAt,
+                  delegationCredentialId: booking.user.destinationCalendar.delegationCredentialId,
+                  domainWideDelegationCredentialId: booking.user.destinationCalendar.domainWideDelegationCredentialId,
+                  customCalendarReminder: booking.user.destinationCalendar.customCalendarReminder,
+                }
+              : null,
+            locale: booking.user.locale,
+          }
+        : null,
+      payment: booking.payment.map((p: {
+        id: number;
+        uid: string;
+        appId: string | null;
+        bookingId: number;
+        amount: number;
+        fee: number;
+        currency: string;
+        success: boolean;
+        refunded: boolean;
+        data: unknown;
+        externalId: string;
+        paymentOption: string | null;
+      }) => ({
+        id: p.id,
+        uid: p.uid,
+        appId: p.appId,
+        bookingId: p.bookingId,
+        amount: p.amount,
+        fee: p.fee,
+        currency: p.currency,
+        success: p.success,
+        refunded: p.refunded,
+        data: p.data,
+        externalId: p.externalId,
+        paymentOption: p.paymentOption,
+      })),
+      destinationCalendar: booking.destinationCalendar
+        ? {
+            id: booking.destinationCalendar.id,
+            integration: booking.destinationCalendar.integration,
+            externalId: booking.destinationCalendar.externalId,
+            primaryEmail: booking.destinationCalendar.primaryEmail,
+            userId: booking.destinationCalendar.userId,
+            eventTypeId: booking.destinationCalendar.eventTypeId,
+            credentialId: booking.destinationCalendar.credentialId,
+            createdAt: booking.destinationCalendar.createdAt,
+            updatedAt: booking.destinationCalendar.updatedAt,
+            delegationCredentialId: booking.destinationCalendar.delegationCredentialId,
+            domainWideDelegationCredentialId: booking.destinationCalendar.domainWideDelegationCredentialId,
+            customCalendarReminder: booking.destinationCalendar.customCalendarReminder,
+          }
+        : null,
+      paid: booking.paid,
+      recurringEventId: booking.recurringEventId,
+      status: booking.status,
+      smsReminderNumber: booking.smsReminderNumber,
+    };
+  }
+
+  async updateStatusToAccepted({ bookingId }: { bookingId: number }): Promise<BookingUpdateResultDto> {
+    const result = await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        id: true,
+        uid: true,
+        status: true,
+      },
+    });
+
+    return {
+      id: result.id,
+      uid: result.uid,
+      status: result.status,
+    };
+  }
+
+  async findRecurringEventBookingExists({
+    recurringEventId,
+    bookingId,
+  }: {
+    recurringEventId: string;
+    bookingId: number;
+  }): Promise<BookingExistsDto | null> {
+    const booking = await this.prismaClient.booking.findFirst({
+      where: {
+        recurringEventId,
+        id: bookingId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!booking) return null;
+
+    return {
+      id: booking.id,
+    };
+  }
+
+  async countByRecurringEventId({ recurringEventId }: { recurringEventId: string }) {
+    const result = await this.prismaClient.booking.groupBy({
+      where: {
+        recurringEventId,
+      },
+      by: ["recurringEventId"],
+      _count: true,
+    });
+    return result[0]?._count ?? 0;
+  }
+
+  async findPendingByRecurringEventId({
+    recurringEventId,
+  }: {
+    recurringEventId: string;
+  }): Promise<{ uid: string; status: string }[]> {
+    return this.prismaClient.booking.findMany({
+      where: {
+        recurringEventId,
+        status: BookingStatus.PENDING,
+      },
+      select: {
+        uid: true,
+        status: true,
+      },
+    });
+  }
+
+  async rejectByUids({
+    uids,
+    rejectionReason,
+  }: {
+    uids: string[];
+    rejectionReason?: string;
+  }): Promise<BookingBatchUpdateResultDto> {
+    const result = await this.prismaClient.booking.updateMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      data: {
+        status: BookingStatus.REJECTED,
+        rejectionReason,
+      },
+    });
+
+    return {
+      count: result.count,
+    };
+  }
+
+  async rejectAllPendingByRecurringEventId({
+    recurringEventId,
+    rejectionReason,
+  }: {
+    recurringEventId: string;
+    rejectionReason?: string;
+  }): Promise<BookingBatchUpdateResultDto> {
+    const result = await this.prismaClient.booking.updateMany({
+      where: {
+        recurringEventId,
+        status: BookingStatus.PENDING,
+      },
+      data: {
+        status: BookingStatus.REJECTED,
+        rejectionReason,
+      },
+    });
+
+    return {
+      count: result.count,
+    };
+  }
+
+  async rejectById({
+    bookingId,
+    rejectionReason,
+  }: {
+    bookingId: number;
+    rejectionReason?: string;
+  }): Promise<BookingUpdateResultDto> {
+    const result = await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        status: BookingStatus.REJECTED,
+        rejectionReason,
+      },
+      select: {
+        id: true,
+        uid: true,
+        status: true,
+      },
+    });
+
+    return {
+      id: result.id,
+      uid: result.uid,
+      status: result.status,
+    };
   }
 
   async updateRecordedStatus({
