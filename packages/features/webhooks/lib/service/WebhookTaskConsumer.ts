@@ -1,20 +1,20 @@
-import type { IWebhookRepository } from "../interface/repository";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { WebhookTaskPayload } from "../types/webhookTask";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 /**
  * Heavy Consumer Service for processing webhook delivery tasks.
- * 
+ *
  * DEPENDENCIES: All heavy deps (Prisma via repositories, payload builders, etc.)
- * 
+ *
  * This service:
  * 1. Receives minimal task payload from queue
  * 2. Fetches webhook subscribers from repository
  * 3. Fetches event-specific data from database (booking, form, etc.)
  * 4. Builds versioned webhook payloads
  * 5. Sends HTTP requests to subscriber URLs
- * 
+ *
  * Can be deployed to trigger.dev for scalability.
  */
 export class WebhookTaskConsumer {
@@ -29,7 +29,7 @@ export class WebhookTaskConsumer {
 
   /**
    * Process a webhook delivery task from the queue.
-   * 
+   *
    * @param payload - The minimal task payload (IDs only)
    * @param taskId - The task ID from Tasker
    */
@@ -98,7 +98,7 @@ export class WebhookTaskConsumer {
 
   /**
    * Fetch event-specific data from database based on trigger type.
-   * 
+   *
    * TODO: Implement full data fetching logic for each event type.
    * For Phase 0, this is a scaffold showing the pattern.
    */
@@ -131,7 +131,7 @@ export class WebhookTaskConsumer {
 
   /**
    * Fetch booking data from database.
-   * 
+   *
    * TODO: Implement using BookingRepository (to be injected).
    * For Phase 0, this is a placeholder.
    */
@@ -152,7 +152,7 @@ export class WebhookTaskConsumer {
 
   /**
    * Fetch form data from database.
-   * 
+   *
    * TODO: Implement using FormRepository.
    */
   private async fetchFormData(formId?: string): Promise<Record<string, unknown> | null> {
@@ -168,11 +168,11 @@ export class WebhookTaskConsumer {
 
   /**
    * Fetch recording metadata and associated booking data.
-   * 
+   *
    * Note: Recording files are stored by video providers. We receive recording_id from their webhook
    * and generate our own proxy download link (using generateVideoToken + our API endpoint).
    * This method fetches booking/event data from DB needed to build the webhook payload.
-   * 
+   *
    * TODO [When RecordingWebhookService uses Producer/Consumer]:
    * Implement to fetch booking + meeting data for recording webhooks.
    * Pattern: recordingId → booking → eventType → user → attendees
@@ -189,11 +189,11 @@ export class WebhookTaskConsumer {
     // const eventType = await this.eventTypeRepository.findById(booking.eventTypeId);
     // const user = await this.userRepository.findById(booking.userId);
     // const attendees = booking.attendees;
-    // 
+    //
     // // Generate proxy download link (like getProxyDownloadLinkOfCalVideo)
     // const token = generateVideoToken(recordingId);
     // const downloadLink = `${WEBAPP_URL}/api/video/recording?token=${token}`;
-    // 
+    //
     // return {
     //   booking,
     //   eventType,
@@ -201,14 +201,14 @@ export class WebhookTaskConsumer {
     //   attendees,
     //   downloadLink,
     // };
-    
+
     this.log.debug("Recording data fetch not implemented yet (Phase 0 scaffold)", { recordingId });
     return { recordingId, _scaffold: true };
   }
 
   /**
    * Fetch OOO data from database.
-   * 
+   *
    * TODO: Implement using OOORepository.
    */
   private async fetchOOOData(oooEntryId?: number): Promise<Record<string, unknown> | null> {
@@ -224,7 +224,7 @@ export class WebhookTaskConsumer {
 
   /**
    * Build webhook payloads and send to each subscriber.
-   * 
+   *
    * TODO: Implement payload building using PayloadBuilders and HTTP sending.
    * For Phase 0, this is a scaffold showing the pattern.
    */

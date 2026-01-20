@@ -1,26 +1,24 @@
-import { createContainer } from "@evyweb/ioctopus";
-
+import type { WebhookFeature } from "@calcom/features/webhooks/lib/facade/WebhookFeature";
+import type { IWebhookRepository } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import type {
   IBookingWebhookService,
   IFormWebhookService,
   IRecordingWebhookService,
   IWebhookService,
 } from "@calcom/features/webhooks/lib/interface/services";
-import type { IWebhookRepository } from "@calcom/features/webhooks/lib/interface/repository";
+import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import type { IWebhookNotifier } from "@calcom/features/webhooks/lib/interface/webhook";
-import type { WebhookFeature } from "@calcom/features/webhooks/lib/facade/WebhookFeature";
 import type { OOOWebhookService } from "@calcom/features/webhooks/lib/service/OOOWebhookService";
-
-import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
+import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
+import { createContainer } from "@evyweb/ioctopus";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
+import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
-import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 import { webhookModule } from "../modules/Webhook.module";
 import { webhookProducerServiceModule } from "../modules/WebhookProducerService.module";
 import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
-import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
-import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
+import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 export const webhookContainer = createContainer();
 
@@ -64,7 +62,7 @@ export function getWebhookNotifier(): IWebhookNotifier {
 
 /**
  * Get the Webhook Producer Service.
- * 
+ *
  * This is the lightweight service for queueing webhook delivery tasks.
  * It has NO heavy dependencies (no Prisma, no repositories).
  */
@@ -74,7 +72,7 @@ export function getWebhookProducerService(): IWebhookProducerService {
 
 /**
  * Get the Webhook Task Consumer.
- * 
+ *
  * This is the heavy service for processing webhook delivery tasks.
  * It fetches data from database, builds payloads, and sends HTTP requests.
  */
@@ -84,19 +82,19 @@ export function getWebhookTaskConsumer(): WebhookTaskConsumer {
 
 /**
  * Get the complete Webhook Feature facade (RECOMMENDED).
- * 
+ *
  * This is the primary interface for webhook functionality.
  * It provides access to all webhook services through a unified, type-safe API.
- * 
+ *
  * Usage:
  * ```typescript
  * import { getWebhookFeature } from "@calcom/features/webhooks/di";
- * 
+ *
  * const webhooks = getWebhookFeature();
- * 
+ *
  * // Queue a webhook (lightweight)
  * await webhooks.producer.queueBookingCreatedWebhook({ ... });
- * 
+ *
  * // Or use event-specific services
  * await webhooks.booking.emitBookingCreated({ ... });
  * ```
