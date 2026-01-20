@@ -27,30 +27,53 @@ export const processMonthlyProrationBatch = schemaTask({
       teamIds: payload.teamIds,
     });
 
-    for (const proration of results) {
-      if (proration && proration.proratedAmount > 0) {
-        const team = await prisma.team.findUnique({
-          where: { id: proration.teamId },
-          select: { name: true },
-        });
+    const emailPayloads: {
+      payload: {
+        prorationId: string;
+        teamId: number;
+        teamName: string;
+        monthKey: string;
+        seatsAdded: number;
+        remainingDays: number;
+        proratedAmount: number;
+      };
+    }[] = [];
 
-        if (team) {
-          log.info(`Triggering invoice email for team ${proration.teamId}`, {
-            prorationId: proration.id,
-            proratedAmount: proration.proratedAmount,
-          });
+    const teamIds = results
+      .filter((proration) => proration && proration.proratedAmount > 0)
+      .map((proration) => proration.teamId);
 
-          await sendProrationInvoiceEmail.trigger({
-            prorationId: proration.id,
-            teamId: proration.teamId,
-            teamName: team.name || `Team ${proration.teamId}`,
-            monthKey: proration.monthKey,
-            seatsAdded: proration.seatsAdded,
-            remainingDays: proration.remainingDays,
-            proratedAmount: proration.proratedAmount,
-          });
+    if (teamIds.length > 0) {
+      const teams = await prisma.team.findMany({
+        where: { id: { in: teamIds } },
+        select: { id: true, name: true },
+      });
+
+      const teamMap = new Map(teams.map((team) => [team.id, team.name]));
+
+      for (const proration of results) {
+        if (proration && proration.proratedAmount > 0) {
+          const teamName = teamMap.get(proration.teamId);
+          if (teamName !== undefined) {
+            emailPayloads.push({
+              payload: {
+                prorationId: proration.id,
+                teamId: proration.teamId,
+                teamName: teamName || `Team ${proration.teamId}`,
+                monthKey: proration.monthKey,
+                seatsAdded: proration.seatsAdded,
+                remainingDays: proration.remainingDays,
+                proratedAmount: proration.proratedAmount,
+              },
+            });
+          }
         }
       }
+    }
+
+    if (emailPayloads.length > 0) {
+      log.info(`Triggering ${emailPayloads.length} invoice emails via batchTrigger`);
+      await sendProrationInvoiceEmail.batchTrigger(emailPayloads);
     }
 
     return results;

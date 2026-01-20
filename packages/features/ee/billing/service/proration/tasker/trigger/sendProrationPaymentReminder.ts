@@ -17,13 +17,15 @@ export const sendProrationPaymentReminder = schemaTask({
   ...monthlyProrationTaskConfig,
   schema: prorationPaymentReminderSchema,
   run: async (payload) => {
-    const { getTranslation } = await import("@calcom/lib/server/i18n");
     const { TriggerDevLogger } = await import("@calcom/lib/triggerDevLogger");
     const { sendProrationPaymentReminderEmails } = await import("@calcom/emails/billing-email-service");
     const { MonthlyProrationRepository } = await import(
       "@calcom/features/ee/billing/repository/proration/MonthlyProrationRepository"
     );
     const { prisma } = await import("@calcom/prisma");
+    const { getUserAndTeamWithBillingPermission } = await import(
+      "@calcom/features/ee/billing/helpers/getUserAndTeamWithBillingPermission"
+    );
 
     const triggerDevLogger = new TriggerDevLogger();
     const log = triggerDevLogger.getSubLogger({
@@ -58,43 +60,22 @@ export const sendProrationPaymentReminder = schemaTask({
       status: proration.status,
     });
 
-    const teamAdmins = await prisma.membership.findMany({
-      where: {
-        teamId: payload.teamId,
-        role: { in: ["ADMIN", "OWNER"] },
-        accepted: true,
-      },
-      select: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            locale: true,
-          },
-        },
-      },
+    const { team } = await getUserAndTeamWithBillingPermission({
+      teamId: payload.teamId,
+      prismaClient: prisma,
     });
 
-    if (teamAdmins.length === 0) {
-      log.warn(`No admins found for team ${payload.teamId}, skipping reminder`);
-      return { status: "skipped", reason: "no_admins" };
+    if (!team || team.adminAndOwners.length === 0) {
+      log.warn(`No users with billing permission found for team ${payload.teamId}, skipping reminder`);
+      return { status: "skipped", reason: "no_billing_users" };
     }
-
-    const adminAndOwners = await Promise.all(
-      teamAdmins.map(async (membership) => ({
-        name: membership.user.name,
-        email: membership.user.email,
-        t: await getTranslation(membership.user.locale ?? "en", "common"),
-      }))
-    );
 
     await sendProrationPaymentReminderEmails({
       team: {
         id: payload.teamId,
         name: payload.teamName,
       },
-      adminAndOwners,
+      adminAndOwners: team.adminAndOwners,
       proration: {
         seatsAdded: payload.seatsAdded,
         monthKey: payload.monthKey,
@@ -102,11 +83,11 @@ export const sendProrationPaymentReminder = schemaTask({
       },
     });
 
-    log.info(`Payment reminder sent to ${adminAndOwners.length} admins for team ${payload.teamId}`);
+    log.info(`Payment reminder sent to ${team.adminAndOwners.length} users for team ${payload.teamId}`);
 
     return {
       status: "sent",
-      emailsSent: adminAndOwners.length,
+      emailsSent: team.adminAndOwners.length,
     };
   },
 });
