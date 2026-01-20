@@ -1,0 +1,33 @@
+import type { WithRedis } from "./types";
+
+interface UnmemoizeOptions {
+  // biome-ignore lint/complexity/noBannedTypes: Decorator keys function needs to accept any argument types
+  keys: Function;
+}
+
+export function Unmemoize(config: UnmemoizeOptions) {
+  return <T>(
+    _target: object,
+    _propertyKey: string | symbol,
+    descriptor: TypedPropertyDescriptor<T>
+  ): TypedPropertyDescriptor<T> => {
+    const originalMethod = descriptor.value as ((...args: unknown[]) => Promise<unknown>) | undefined;
+
+    if (!originalMethod || typeof originalMethod !== "function") {
+      throw new Error(`@Unmemoize can only be applied to methods`);
+    }
+
+    const wrappedMethod = async function (this: WithRedis, ...args: unknown[]): Promise<unknown> {
+      const result = await originalMethod.apply(this, args);
+
+      const keysToInvalidate = config.keys(...args) as string[];
+      await Promise.all(keysToInvalidate.map((key) => this.redis.del(key)));
+
+      return result;
+    };
+
+    descriptor.value = wrappedMethod as T;
+
+    return descriptor;
+  };
+}
