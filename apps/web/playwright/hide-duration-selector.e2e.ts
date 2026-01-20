@@ -19,7 +19,7 @@ test.describe("Hide duration selector in booking page", () => {
     await test.step("enable hide duration selector setting", async () => {
       await page.goto("/event-types");
       await page.waitForSelector('[data-testid="event-types"]');
-      await page.click(`text=Multiple duration`);
+      await page.getByTestId("event-types").locator('a[title="Multiple duration"]').click();
       await page.waitForSelector('[data-testid="event-title"]');
 
       // Find and check the hide duration selector checkbox
@@ -94,7 +94,7 @@ test.describe("Hide duration selector in booking page", () => {
     await test.step("enable hide duration selector setting", async () => {
       await page.goto("/event-types");
       await page.waitForSelector('[data-testid="event-types"]');
-      await page.click(`text=Multiple duration`);
+      await page.getByTestId("event-types").locator('a[title="Multiple duration"]').click();
       await page.waitForSelector('[data-testid="event-title"]');
 
       // Find and check the hide duration selector checkbox
