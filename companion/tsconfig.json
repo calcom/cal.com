@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["nativewind/types"],
+    "types": ["nativewind/types", "bun-types"],
     "strict": true,
     "baseUrl": ".",
     "paths": {
