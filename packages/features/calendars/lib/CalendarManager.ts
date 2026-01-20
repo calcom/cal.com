@@ -100,6 +100,7 @@ export const getCalendarCredentialsWithoutDelegation = (credentials: CredentialP
 type ConnectedCalendar = Omit<IntegrationCalendar, "primary"> & {
   primary: true | null;
   isSelected: boolean;
+  readOnly: boolean;
   credentialId: number;
   delegationCredentialId: string | null;
 };

@@ -383,28 +383,13 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     loggedInUser: { email: user.email },
   });
 
-  if (!destinationCalendar && user.destinationCalendar) {
-    // fallback to using user.destinationCalendar as IntegrationCalendar
-    destinationCalendar = {
-      primary: true,
-      integration: user.destinationCalendar.integration,
-      name: user.destinationCalendar.primaryEmail || undefined,
-      readOnly: false,
-      externalId: user.destinationCalendar.externalId,
-      email: user.destinationCalendar.primaryEmail || undefined,
-      primaryEmail: user.destinationCalendar.primaryEmail,
-      credentialId: user.destinationCalendar.credentialId,
-      integrationTitle: user.destinationCalendar.integration,
-    };
-  }
-
-  if (destinationCalendar) {
-    destinationCalendar.customCalendarReminder = user.destinationCalendar?.customCalendarReminder;
-  }
-
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
-    destinationCalendar,
+    destinationCalendar: {
+      // biome-ignore lint/style/noNonNullAssertion: ensure TS knows fields are not all optional
+      ...user.destinationCalendar!,
+      ...destinationCalendar,
+    },
   };
 }
 
