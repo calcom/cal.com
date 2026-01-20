@@ -138,7 +138,7 @@ export type useScheduleForEventReturnType<TScheduleData = unknown> = {
   isError: boolean;
   isSuccess: boolean;
   isLoading: boolean;
-  invalidate: () => Promise<void>;
+  invalidate: () => Promise<unknown>;
   dataUpdatedAt: number;
 };
 
