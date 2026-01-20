@@ -79,7 +79,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const teamId = props.teamId;
   const { data: teamBillingInfo } = trpc.viewer.teams.getTeamBillingInfo.useQuery(
     { teamId: teamId ?? 0 },
-    { enabled: IS_TEAM_BILLING_ENABLED_CLIENT && !!teamId }
+    { enabled: !!IS_TEAM_BILLING_ENABLED_CLIENT && !!teamId }
   );
 
   const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
