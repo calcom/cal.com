@@ -225,7 +225,15 @@ const BookerComponent = ({
     if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
       return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
+  }, [
+    event.isPending,
+    selectedDate,
+    selectedTimeslot,
+    setBookerState,
+    skipConfirmStep,
+    layout,
+    isInstantMeeting,
+  ]);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {

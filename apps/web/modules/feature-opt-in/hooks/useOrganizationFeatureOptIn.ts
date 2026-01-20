@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-
 import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import { useCallback, useMemo } from "react";
 
 function useMutationCallbacks(onSuccessCallback: () => void): { onSuccess: () => void; onError: () => void } {
   const { t } = useLocale();
@@ -56,7 +55,10 @@ export function useOrganizationFeatureOptIn(): UseFeatureOptInResult {
     refetchOnWindowFocus: false,
   });
 
-  const invalidateFeatures = useCallback(() => utils.viewer.featureOptIn.listForOrganization.invalidate(), [utils]);
+  const invalidateFeatures = useCallback(
+    () => utils.viewer.featureOptIn.listForOrganization.invalidate(),
+    [utils]
+  );
   const invalidateFeaturesAndAutoOptIn = useCallback(() => {
     utils.viewer.featureOptIn.getOrganizationAutoOptIn.invalidate();
     utils.viewer.featureOptIn.listForOrganization.invalidate();
@@ -65,13 +67,15 @@ export function useOrganizationFeatureOptIn(): UseFeatureOptInResult {
   const setStateMutationCallbacks = useMutationCallbacks(invalidateFeatures);
   const setAutoOptInMutationCallbacks = useMutationCallbacks(invalidateFeaturesAndAutoOptIn);
 
-  const setStateMutation = trpc.viewer.featureOptIn.setOrganizationState.useMutation(setStateMutationCallbacks);
+  const setStateMutation =
+    trpc.viewer.featureOptIn.setOrganizationState.useMutation(setStateMutationCallbacks);
   const setAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation(
     setAutoOptInMutationCallbacks
   );
 
   const features = normalizeFeatures(featuresQuery.data);
-  const setFeatureState = (slug: string, state: FeatureState): void => setStateMutation.mutate({ slug, state });
+  const setFeatureState = (slug: string, state: FeatureState): void =>
+    setStateMutation.mutate({ slug, state });
   const setAutoOptIn = (checked: boolean): void => setAutoOptInMutation.mutate({ autoOptIn: checked });
 
   return {
