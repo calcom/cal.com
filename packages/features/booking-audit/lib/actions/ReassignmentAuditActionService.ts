@@ -95,7 +95,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
   }
 
   private async getPreviousAndNewAssigneeUser(fields: ReassignmentAuditData) {
-    const hasAttendeeUpdated = fields.hostAttendeeUpdated?.id != null;
+    const hasAttendeeUpdated = !!fields.hostAttendeeUpdated?.id;
     const newHostUuid = hasAttendeeUpdated
       ? fields.hostAttendeeUpdated?.withUserUuid?.new
       : fields.organizerUuid.new;
