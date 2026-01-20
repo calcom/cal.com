@@ -7,13 +7,12 @@ import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import classNames from "classnames";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
-import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
@@ -219,141 +218,136 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
             {teamName}
           </h1>
           {!isBioEmpty && (
-  <>
-    <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
-      {isBioLong && !isBioExpanded ? (
-        <div className="relative inline-block w-full">
-          <div
-            className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: team.safeBio }}
-          />
-
-          <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
-            <button
-              onClick={() => setIsBioExpanded(!isBioExpanded)}
-              className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
-              type="button"
-            >
-              Read more
-            </button>
-          </div>
-
-          <div className="mt-2 flex w-full justify-center md:hidden">
-            <button
-              onClick={() => setIsBioExpanded(!isBioExpanded)}
-              className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
-              type="button"
-            >
-              Read more
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <div
-            className="overflow-visible"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: team.safeBio }}
-          />
-
-          {isBioLong && (
-            <div className="mt-2">
-              <button
-                onClick={() => setIsBioExpanded(!isBioExpanded)}
-                className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
-                type="button"
-              >
-                Read less
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  </>
-)}
-
-          </div>
-
-          {team.isOrganization ? (
-            !teamOrOrgIsPrivate ? (
-              <SubTeams />
-            ) : (
-              <div className="w-full text-center">
-                <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
-              </div>
-            )
-          ) : (
             <>
-              {(showMembers.isOn || !team.eventTypes?.length) &&
-                (teamOrOrgIsPrivate ? (
-                  <div className="w-full text-center">
-                    <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
-                      {t("you_cannot_see_team_members")}
-                    </h2>
+              <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
+                {isBioLong && !isBioExpanded ? (
+                  <div className="relative inline-block w-full">
+                    <div
+                      className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
+                    />
+
+                    <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
+                      <button
+                        onClick={() => setIsBioExpanded(!isBioExpanded)}
+                        className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
+                        type="button">
+                        Read more
+                      </button>
+                    </div>
+
+                    <div className="mt-2 flex w-full justify-center md:hidden">
+                      <button
+                        onClick={() => setIsBioExpanded(!isBioExpanded)}
+                        className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+                        type="button">
+                        Read more
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <Team
-                    members={team.members}
-                    teamName={team.name}
-                    brandColor={team.brandColor}
-                    darkBrandColor={team.darkBrandColor}
-                  />
-                ))}
-              {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
-                <div
-                  className="bg-primary mx-auto flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl"
-                  data-testid="event-types">
-                  <EventTypes eventTypes={team.eventTypes} />
+                  <div>
+                    <div
+                      className="overflow-visible"
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
+                    />
 
-                  {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                  {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
-                    <div>
-                      <div className="mt-2 flex items-center justify-center">
-                        <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
-                        <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
-                          {t("or")}
-                        </span>
-                        <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
+                    {isBioLong && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setIsBioExpanded(!isBioExpanded)}
+                          className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+                          type="button">
+                          Read less
+                        </button>
                       </div>
-
-                      <aside className="dark:text-inverted mt-8 flex justify-center text-center">
-                        <Button
-                          color="minimal"
-                          EndIcon="arrow-right"
-                          data-testid="book-a-team-member-btn"
-                          className="dark:hover:bg-darkgray-200"
-                          href={{
-                            pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
-                            query: {
-                              ...queryParamsToForward,
-                              members: "1",
-                            },
-                          }}
-                          shallow={true}>
-                          {t("book_a_team_member")}
-                        </Button>
-                      </aside>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           )}
+        </div>
 
-          {team.bannerUrl ? (
-            <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
-              <Branding size="xs" bannerUrl={getBrandLogoUrl({ bannerUrl: team.bannerUrl })} />
-            </div>
+        {team.isOrganization ? (
+          !teamOrOrgIsPrivate ? (
+            <SubTeams />
           ) : (
-            <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
-              <Branding size="xs" />
+            <div className="w-full text-center">
+              <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
             </div>
-          )}
-        </main>
-      </div>
-    </>
+          )
+        ) : (
+          <>
+            {(showMembers.isOn || !team.eventTypes?.length) &&
+              (teamOrOrgIsPrivate ? (
+                <div className="w-full text-center">
+                  <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
+                    {t("you_cannot_see_team_members")}
+                  </h2>
+                </div>
+              ) : (
+                <Team
+                  members={team.members}
+                  teamName={team.name}
+                  brandColor={team.brandColor}
+                  darkBrandColor={team.darkBrandColor}
+                />
+              ))}
+            {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
+              <div
+                className="bg-primary mx-auto flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl"
+                data-testid="event-types">
+                <EventTypes eventTypes={team.eventTypes} />
+
+                {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
+                {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
+                  <div>
+                    <div className="mt-2 flex items-center justify-center">
+                      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
+                      <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
+                        {t("or")}
+                      </span>
+                      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
+                    </div>
+
+                    <aside className="dark:text-inverted mt-8 flex justify-center text-center">
+                      <Button
+                        color="minimal"
+                        EndIcon="arrow-right"
+                        data-testid="book-a-team-member-btn"
+                        className="dark:hover:bg-darkgray-200"
+                        href={{
+                          pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
+                          query: {
+                            ...queryParamsToForward,
+                            members: "1",
+                          },
+                        }}
+                        shallow={true}>
+                        {t("book_a_team_member")}
+                      </Button>
+                    </aside>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {team.bannerUrl ? (
+          <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
+            <Branding size="xs" bannerUrl={getBrandLogoUrl({ bannerUrl: team.bannerUrl })} />
+          </div>
+        ) : (
+          <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
+            <Branding size="xs" />
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
 
