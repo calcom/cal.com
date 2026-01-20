@@ -1,6 +1,26 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": true,
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              ["**/__mocks__/**", "**/bookingScenario*"],
+              [":PACKAGE_WITH_PROTOCOL:", ":PACKAGE:"],
+              ["@calcom/**", "@ee/**"],
+              ["@lib/**", "@components/**", "@server/**", "@trpc/**"],
+              "~/**",
+              ":PATH:"
+            ]
+          }
+        }
+      }
+    },
+    "enabled": true
+  },
   "css": {
     "parser": {
       "tailwindDirectives": true
@@ -103,7 +123,14 @@
             "useExplicitType": "info",
             "noReactForwardRef": "warn",
             "noTernary": "info",
-            "noUnresolvedImports": "warn"
+            "noUnresolvedImports": "warn",
+            "useSortedClasses": {
+              "level": "warn",
+              "options": {
+                "attributes": ["className", "classList"],
+                "functions": ["clsx", "cva", "cn", "tw"]
+              }
+            }
           },
           "correctness": {
             "useImportExtensions": "warn",

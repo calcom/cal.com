@@ -9,7 +9,12 @@ import { trpc } from "@calcom/trpc/react";
 import type { OnboardingState } from "../store/onboarding-store";
 import { useOnboardingStore } from "../store/onboarding-store";
 
-export function useCreateTeam() {
+type UseCreateTeamOptions = {
+  redirectBasePath?: string;
+};
+
+export function useCreateTeam(options: UseCreateTeamOptions = {}) {
+  const { redirectBasePath = "/onboarding/teams" } = options;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const flags = useFlagMap();
@@ -28,7 +33,7 @@ export function useCreateTeam() {
 
       // Validate team details - if empty, redirect back to team details step
       if (!teamDetails.name || !teamDetails.name.trim() || !teamDetails.slug || !teamDetails.slug.trim()) {
-        router.push("/onboarding/teams/details");
+        router.push(`${redirectBasePath}/details`);
         setIsSubmitting(false);
         return;
       }
@@ -51,7 +56,7 @@ export function useCreateTeam() {
       if (result.team) {
         // Store the teamId and redirect to invite flow after team creation
         setTeamId(result.team.id);
-        router.push(`/onboarding/teams/invite?teamId=${result.team.id}`);
+        router.push(`${redirectBasePath}/invite/email?teamId=${result.team.id}`);
       }
     } catch (error) {
       console.error("Failed to create team:", error);

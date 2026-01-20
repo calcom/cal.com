@@ -47,6 +47,8 @@ const loadConfig = (): AppConfig => {
     e2e: getEnv("IS_E2E", "false") === "true",
     enableSlotsWorkers: getEnv("ENABLE_SLOTS_WORKERS", "true") === "true",
     slotsWorkerPoolSize: Number(getEnv("SLOTS_WORKER_POOL_SIZE", "4")),
+    vercel: getEnv("VERCEL", "false") === "true",
+    enableAsyncTasker: getEnv("ENABLE_ASYNC_TASKER", "false") === "true",
   };
 };
 
