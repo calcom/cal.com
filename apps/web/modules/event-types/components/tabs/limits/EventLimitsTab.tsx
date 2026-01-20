@@ -36,7 +36,6 @@ import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
-
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
 const PREDEFINED_SLOT_INTERVAL_MINUTES = [5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120] as const;
@@ -81,7 +80,9 @@ export type EventLimitsTabProps = Pick<EventTypeSetupProps, "eventType"> & {
  * We can't set `periodType=ROLLING_WINDOW` directly because it is not a valid Radio Option in UI
  * So, here we can convert from periodType to uiValue any time.
  */
-const getUiValueFromPeriodType = (periodType: PeriodType) => {
+const getUiValueFromPeriodType = (
+  periodType: PeriodType
+): { value: IPeriodType; rollingExcludeUnavailableDays: boolean | null } => {
   if (periodType === PeriodType.ROLLING_WINDOW) {
     return {
       value: PeriodType.ROLLING,
@@ -105,7 +106,10 @@ const getUiValueFromPeriodType = (periodType: PeriodType) => {
 /**
  * It compliments `getUiValueFromPeriodType`
  */
-const getPeriodTypeFromUiValue = (uiValue: { value: PeriodType; rollingExcludeUnavailableDays: boolean }) => {
+const getPeriodTypeFromUiValue = (uiValue: {
+  value: PeriodType;
+  rollingExcludeUnavailableDays: boolean;
+}): PeriodType => {
   if (uiValue.value === PeriodType.ROLLING && uiValue.rollingExcludeUnavailableDays === true) {
     return PeriodType.ROLLING_WINDOW;
   }
@@ -432,7 +436,13 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   useEffect(() => {
     const predefinedValues = [-1, ...PREDEFINED_SLOT_INTERVAL_MINUTES];
     const isCustom = watchSlotInterval !== null && !predefinedValues.includes(watchSlotInterval);
-    setSlotIntervalCustomMode(isCustom);
+    // Only auto-enable custom mode for non-predefined values, or auto-disable when a predefined value is selected
+    // Don't auto-disable when value is null (user may be entering custom mode)
+    if (isCustom) {
+      setSlotIntervalCustomMode(true);
+    } else if (watchSlotInterval !== null) {
+      setSlotIntervalCustomMode(false);
+    }
   }, [watchSlotInterval]);
 
   // Preview how the offset will affect start times
@@ -591,13 +601,14 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
 
                 if (slotIntervalCustomMode) {
                   return (
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full items-center gap-2 overflow-visible">
                       <TextField
                         type="number"
                         noLabel
-                        containerClassName="[&>div]:h-9 [&>div]:min-h-[36px] [&>div]:mb-0"
+                        autoFocus
+                        containerClassName="flex-1 overflow-visible [&>div]:h-9 [&>div]:min-h-[36px] [&>div]:mb-0"
                         className={classNames(
-                          "flex-1",
+                          "pl-1",
                           customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select
                         )}
                         disabled={shouldLockDisableProps("slotInterval").disabled}
