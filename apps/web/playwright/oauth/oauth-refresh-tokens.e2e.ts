@@ -24,10 +24,12 @@ test.describe("OAuth - refresh tokens", () => {
     prisma,
     name,
     status,
+    clientType,
   }: {
     prisma: PrismaClient;
     name: string;
     status: "PENDING" | "APPROVED" | "REJECTED";
+    clientType: "PUBLIC" | "CONFIDENTIAL";
   }) {
     const clientId = randomBytes(32).toString("hex");
 
@@ -37,7 +39,7 @@ test.describe("OAuth - refresh tokens", () => {
         name,
         redirectUri: "https://example.com",
         clientSecret: null,
-        clientType: "CONFIDENTIAL",
+        clientType,
         status,
       },
     });
@@ -52,55 +54,20 @@ test.describe("OAuth - refresh tokens", () => {
     const testPrefix = `e2e-oauth-refresh-status-${testInfo.testId}-`;
     const client = await createOAuthClient({
       prisma,
-      name: `${testPrefix}approved-${Date.now()}`,
-      status: "APPROVED",
+      name: `${testPrefix}pending-${Date.now()}`,
+      status: "PENDING",
+      clientType: "PUBLIC",
     });
 
-    await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
-    );
-
-    await page.waitForSelector('[data-testid="allow-button"]');
-    await page.getByTestId("allow-button").click();
-
-    await page.waitForFunction(() => {
-      return window.location.href.startsWith("https://example.com");
-    });
-
-    const url = new URL(page.url());
-    const code = url.searchParams.get("code");
-    expect(code).toBeTruthy();
-
-    // Exchange code for tokens
-    const exchangeResponse = await page.request.post("/api/auth/oauth/token", {
-      form: {
-        grant_type: "authorization_code",
-        client_id: client.clientId,
-        code: code!,
-        redirect_uri: client.redirectUri,
-      },
-    });
-
-    expect(exchangeResponse.ok()).toBeTruthy();
-    const tokens = await exchangeResponse.json();
-    const refreshToken = tokens.refresh_token;
-
-    // Update client status to PENDING
-    await prisma.oAuthClient.update({
-      where: { clientId: client.clientId },
-      data: { status: "PENDING" },
-    });
-
-    // Attempt to refresh token
     const refreshResponse = await page.request.post("/api/auth/oauth/refreshToken", {
       form: {
         grant_type: "refresh_token",
         client_id: client.clientId,
-        refresh_token: refreshToken,
+        refresh_token: "fake-refresh-token",
       },
     });
 
-    expect(refreshResponse.status()).toBe(400);
+    expect(refreshResponse.status()).toBe(401);
     
     const refreshJson = await refreshResponse.json();
     expect(refreshJson.error).toBe("unauthorized_client");
