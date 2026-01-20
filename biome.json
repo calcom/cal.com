@@ -291,14 +291,10 @@
                     "group": ["../trpc/**"],
                     "message": "features package should not import from trpc to avoid circular dependencies."
                   },
-                                    {
-                                      "group": [
-                                        "@calcom/web",
-                                        "@calcom/web/**",
-                                        "!@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment"
-                                      ],
-                                      "message": "features package should not import from @calcom/web to avoid circular dependencies."
-                                    },
+                  {
+                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "message": "features package should not import from @calcom/web to avoid circular dependencies."
+                  },
                   {
                     "group": ["../../apps/web/**"],
                     "message": "features package should not import from apps/web to avoid circular dependencies."
@@ -375,36 +371,19 @@
                     "group": ["@calcom/trpc", "@calcom/trpc/**"],
                     "message": "atoms package should not import from @calcom/trpc."
                   },
-                      {
-                        "group": ["../../trpc", "../../trpc/**"],
-                        "message": "atoms package should not import from trpc."
-                      },
-                      {
-                        "group": [
-                          "@calcom/web",
-                          "@calcom/web/**",
-                          "!@calcom/web/public/static/locales/**",
-                          "!@calcom/web/modules/shell/Shell",
-                          "!@calcom/web/modules/event-types/components/EventType",
-                          "!@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab",
-                          "!@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab",
-                          "!@calcom/web/modules/calendar-view/components/LargeCalendar",
-                          "!@calcom/web/modules/apps/components/AppList",
-                                                  "!@calcom/web/modules/bookings/components/Booker",
-                                                  "!@calcom/web/modules/event-types/components/HostEditDialogs",
-                                                  "!@calcom/web/modules/event-types/components/locations/LocationSettingsContainer"
-                                                ],
-                                                "message": "atoms package should not import from @calcom/web. Move shared components to @calcom/features instead."
-                      }
-                    ]
+                  {
+                    "group": ["../../trpc", "../../trpc/**"],
+                    "message": "atoms package should not import from trpc."
                   }
-                }
+                ]
               }
             }
           }
-        },
-        {
-          "includes": ["apps/api/v2/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
           "style": {
