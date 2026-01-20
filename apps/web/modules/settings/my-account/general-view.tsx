@@ -204,7 +204,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   <Label className="text-emphasis mt-6">
                     <>{t("timezone")}</>
                   </Label>
-                  <div className="flex items-end gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                     <div className="flex-1">
                       <TimezoneSelect
                         id="timezone"
