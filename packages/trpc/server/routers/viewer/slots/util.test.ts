@@ -59,7 +59,12 @@ describe("BookingDateInPastError handling", () => {
 });
 
 describe("round robin chunking", () => {
-  const dependencyStub = {} as unknown as IAvailableSlotsService;
+  const mockFeaturesRepo = {
+    checkIfTeamHasFeatureNonHierarchical: vi.fn().mockResolvedValue(true),
+  };
+  const dependencyStub = {
+    featuresRepo: mockFeaturesRepo,
+  } as unknown as IAvailableSlotsService;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   const baseInput = {} as TGetScheduleInputSchema;
@@ -126,7 +131,7 @@ describe("round robin chunking", () => {
         id: 123,
         schedulingType: SchedulingType.ROUND_ROBIN,
         isRRWeightsEnabled,
-        team: null,
+        team: { id: 1 },
       },
       input: {
         ...baseInput,
@@ -276,7 +281,7 @@ describe("round robin chunking", () => {
         id: 456,
         schedulingType: SchedulingType.ROUND_ROBIN,
         isRRWeightsEnabled: false,
-        team: null,
+        team: { id: 1 },
       },
       input: baseInput,
       loggerWithEventDetails: loggerStub,

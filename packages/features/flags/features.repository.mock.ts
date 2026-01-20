@@ -6,13 +6,8 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return slug === "mock-feature";
   }
 
-  async getUserFeaturesStatus(
-    _userId: number,
-    slugs: string[]
-  ): Promise<Record<string, boolean>> {
-    return Object.fromEntries(
-      slugs.map((slug) => [slug, slug === "mock-feature"])
-    );
+  async getUserFeaturesStatus(_userId: number, slugs: string[]): Promise<Record<string, boolean>> {
+    return Object.fromEntries(slugs.map((slug) => [slug, slug === "mock-feature"]));
   }
 
   async checkIfUserHasFeatureNonHierarchical(_userId: number, slug: string) {
@@ -20,6 +15,10 @@ export class MockFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfTeamHasFeature(_teamId: number, slug: FeatureId) {
+    return slug === "mock-feature";
+  }
+
+  async checkIfTeamHasFeatureNonHierarchical(_teamId: number, slug: FeatureId): Promise<boolean> {
     return slug === "mock-feature";
   }
 
@@ -82,9 +81,7 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return false;
   }
 
-  async getTeamsAutoOptIn(
-    _teamIds: number[]
-  ): Promise<Record<number, boolean>> {
+  async getTeamsAutoOptIn(_teamIds: number[]): Promise<Record<number, boolean>> {
     // Mock implementation - return empty (all teams default to false)
     return {};
   }

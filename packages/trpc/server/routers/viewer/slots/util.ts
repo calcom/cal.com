@@ -1059,11 +1059,18 @@ export class AvailableSlotsService {
 
     const nonFixedHosts = hosts.filter((host) => host.isFixed !== true);
     const { roundRobinManualChunking = false, roundRobinChunkOffset = 0 } = rest.input;
+
+    const teamId = eventType.team?.id;
+    const isChunkingFeatureEnabled = teamId
+      ? await this.dependencies.featuresRepo.checkIfTeamHasFeatureNonHierarchical(teamId, "calendar-chunking")
+      : false;
+
     rrLog.info(
-      `RR chunking check for eventType=${eventType.id}: totalHosts=${hosts.length}, nonFixedHosts=${nonFixedHosts.length}, weightsEnabled=${eventType.isRRWeightsEnabled}`
+      `RR chunking check for eventType=${eventType.id}: totalHosts=${hosts.length}, nonFixedHosts=${nonFixedHosts.length}, weightsEnabled=${eventType.isRRWeightsEnabled}, chunkingFeatureEnabled=${isChunkingFeatureEnabled}`
     );
 
     const shouldChunk =
+      isChunkingFeatureEnabled &&
       eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
       !eventType.isRRWeightsEnabled &&
       nonFixedHosts.length > ROUND_ROBIN_CHUNK_THRESHOLD;

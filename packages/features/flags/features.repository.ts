@@ -504,6 +504,34 @@ export class FeaturesRepository implements IFeaturesRepository {
     }
   }
 
+  /**
+   * Checks if a team has access to a specific feature without traversing parent teams.
+   * This is a non-hierarchical check that only looks at the team's direct feature assignment.
+   * Uses tri-state semantics: only treats as enabled if TeamFeatures row exists AND enabled=true.
+   *
+   * @param teamId - The ID of the team to check
+   * @param featureId - The feature identifier to check
+   * @returns Promise<boolean> - True if the team has the feature directly enabled, false otherwise
+   * @throws Error if the database query fails
+   */
+  async checkIfTeamHasFeatureNonHierarchical(teamId: number, featureId: FeatureId): Promise<boolean> {
+    try {
+      const teamFeature = await this.prismaClient.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        select: { enabled: true },
+      });
+      return teamFeature?.enabled ?? false;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
   async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
     try {
       // If globally disabled, treat as effectively disabled everywhere
