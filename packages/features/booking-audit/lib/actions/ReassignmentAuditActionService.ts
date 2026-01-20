@@ -91,9 +91,14 @@ export class ReassignmentAuditActionService implements IAuditActionService {
             newOrganizerUuid: fields.organizerUuid.new,
           }
         : {}),
-      hostAttendeeIdUpdated: fields.hostAttendeeUpdated?.id ?? null,
-      hostAttendeeUserUuidNew: fields.hostAttendeeUpdated?.withUserUuid?.new ?? null,
-      hostAttendeeUserUuidOld: fields.hostAttendeeUpdated?.withUserUuid?.old ?? null,
+
+      ...(fields.hostAttendeeUpdated
+        ? {
+            hostAttendeeIdUpdated: fields.hostAttendeeUpdated.id,
+            hostAttendeeUserUuidNew: fields.hostAttendeeUpdated.withUserUuid?.new,
+            hostAttendeeUserUuidOld: fields.hostAttendeeUpdated.withUserUuid?.old,
+          }
+        : {}),
       reassignmentReason: fields.reassignmentReason ?? null,
     };
   }
@@ -149,8 +154,8 @@ export type ReassignmentAuditData = z.infer<typeof fieldsSchemaV1>;
 export type ReassignmentAuditDisplayData = {
   previousOrganizerUuid?: string | null;
   newOrganizerUuid?: string | null;
-  hostAttendeeIdUpdated: number | null;
-  hostAttendeeUserUuidNew: string | null;
-  hostAttendeeUserUuidOld: string | null;
+  hostAttendeeIdUpdated?: number | null;
+  hostAttendeeUserUuidNew?: string | null;
+  hostAttendeeUserUuidOld?: string | null;
   reassignmentReason: string | null;
 };
