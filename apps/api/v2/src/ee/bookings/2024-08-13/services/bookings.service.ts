@@ -37,19 +37,6 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
-import { Request } from "express";
-import { DateTime } from "luxon";
-import { z } from "zod";
 
 export const BOOKING_REASSIGN_PERMISSION_ERROR= "You do not have permission to reassign this booking";
 
@@ -964,9 +951,9 @@ export class BookingsService_2024_08_13 {
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
-      userUuid,
       platformClientParams,
       actionSource: "API_V2",
+      actor: userUuid ? makeUserActor(userUuid) : makeUserActor("unknown"),
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
