@@ -1,5 +1,3 @@
-import { cloneDeep } from "lodash";
-
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
@@ -8,6 +6,9 @@ import {
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -20,8 +21,8 @@ import AssignmentReasonRecorder, {
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import {
-  scheduleEmailReminder,
   deleteScheduledEmailReminder,
+  scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -36,6 +37,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { cloneDeep } from "lodash";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
@@ -56,6 +58,8 @@ export const roundRobinManualReassignment = async ({
   reassignedById,
   emailsEnabled = true,
   platformClientParams,
+  actionSource,
+  reassignedByUuid,
 }: {
   bookingId: number;
   newUserId: number;
@@ -64,6 +68,8 @@ export const roundRobinManualReassignment = async ({
   reassignedById: number;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  actionSource: ValidActionSource;
+  reassignedByUuid: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -152,7 +158,7 @@ export const roundRobinManualReassignment = async ({
   let bookingLocation = booking.location;
   let conferenceCredentialId: number | null = null;
 
-  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
+  const organizer = hasOrganizerChanged ? newUser : (booking.user ?? newUser);
 
   const teamMembers = await getTeamMembers({
     eventTypeHosts,
@@ -237,6 +243,19 @@ export const roundRobinManualReassignment = async ({
     });
   }
 
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onReassignment({
+    bookingUid: booking.uid,
+    actor: makeUserActor(reassignedByUuid),
+    organizationId: orgId,
+    source: actionSource,
+    auditData: {
+      assignedToUuid: { old: originalOrganizer.uuid, new: newUser.uuid },
+      reassignmentReason: reassignReason ?? null,
+      reassignmentType: "manual",
+    },
+  });
+
   // When organizer hasn't changed, still extract conferenceCredentialId from event type locations
   if (!hasOrganizerChanged && bookingLocation) {
     const { conferenceCredentialId: extractedCredentialId } =
@@ -257,7 +276,6 @@ export const roundRobinManualReassignment = async ({
   });
 
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
-
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
     if (

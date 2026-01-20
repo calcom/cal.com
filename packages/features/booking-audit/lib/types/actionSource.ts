@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 // This is the schema for DB value, here we use UNKNOWN in case client didn't pass an explicit action source.
+// Must match the BookingAuditSource enum in Prisma schema.
 export const ActionSourceSchema = z.enum(["API_V1", "API_V2", "WEBAPP", "WEBHOOK", "MAGIC_LINK", "UNKNOWN"]);
 export type ActionSource = z.infer<typeof ActionSourceSchema>;
 
