@@ -181,7 +181,7 @@ export default function Signup({
   token,
   orgSlug,
   isGoogleLoginEnabled,
-  isMicrosoftLoginEnabled,
+  isOutlookLoginEnabled,
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
@@ -670,7 +670,7 @@ export default function Signup({
                                     {t("continue_with_google")}
                                   </Button>
                                 ) : null}
-                                {isMicrosoftLoginEnabled ? (
+                                {isOutlookLoginEnabled ? (
                                   <Button
                                     color="primary"
                                     loading={isMicrosoftLoading}
@@ -691,7 +691,7 @@ export default function Signup({
                               </>
                             </div>
 
-                            {(isGoogleLoginEnabled || isMicrosoftLoginEnabled) && (
+                            {(isGoogleLoginEnabled || isOutlookLoginEnabled) && (
                               <div className="mt-6">
                                 <div className="relative flex items-center">
                                   <div className="border-subtle grow border-t" />

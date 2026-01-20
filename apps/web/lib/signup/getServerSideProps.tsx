@@ -61,7 +61,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const props = {
     redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-    isMicrosoftLoginEnabled: IS_OUTLOOK_LOGIN_ENABLED,
+    isOutlookLoginEnabled: IS_OUTLOOK_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
