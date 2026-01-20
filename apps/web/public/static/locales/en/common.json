@@ -4339,6 +4339,20 @@
   "unverified_email_oauth_error": "Please verify your email address before signing in with Google or SAML. Sign in with your password to resend the verification email.",
   "pbac_resource_feature_opt_in": "Feature Opt-In",
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
-  "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+    "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
+    "proration_invoice_subject": "Invoice for {{teamName}} - Additional Seats",
+    "proration_invoice_intro": "An invoice has been created for additional seats added to {{teamName}}.",
+    "proration_invoice_details": "Invoice Details",
+    "proration_seats_added": "Additional {{count}} seat(s) for {{monthKey}}",
+    "proration_remaining_days": "{{count}} days remaining in billing period",
+    "proration_total_amount": "Total: ${{amount}}",
+    "proration_invoice_payment_info": "This invoice will be charged to your default payment method. If you need to update your payment details, please visit your billing settings.",
+    "view_billing": "View Billing",
+    "proration_payment_reminder_subject": "Payment Reminder for {{teamName}}",
+    "proration_payment_reminder_intro": "This is a reminder that you have an unpaid invoice for {{teamName}}.",
+    "proration_payment_overdue": "Payment Overdue",
+    "proration_amount_due": "Amount Due: ${{amount}}",
+    "proration_payment_reminder_action": "Please complete your payment to avoid any service interruptions.",
+    "pay_now": "Pay Now",
+    "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

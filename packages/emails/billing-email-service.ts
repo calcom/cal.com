@@ -9,6 +9,8 @@ import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-ref
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
 import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
+import ProrationInvoiceEmail from "./templates/proration-invoice-email";
+import ProrationPaymentReminderEmail from "./templates/proration-payment-reminder-email";
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -126,4 +128,79 @@ export const sendCreditBalanceLimitReachedEmails = async ({
   if (user) {
     await sendEmail(() => new CreditBalanceLimitReachedEmail({ user, creditFor }));
   }
+};
+
+export const sendProrationInvoiceEmails = async (input: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  adminAndOwners: {
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+  proration: {
+    seatsAdded: number;
+    monthKey: string;
+    remainingDays: number;
+    proratedAmount: number;
+  };
+}) => {
+  const { team, adminAndOwners, proration } = input;
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new ProrationInvoiceEmail({
+            team,
+            user: admin,
+            proration,
+          })
+      )
+    );
+  }
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendProrationPaymentReminderEmails = async (input: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  adminAndOwners: {
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+  proration: {
+    seatsAdded: number;
+    monthKey: string;
+    proratedAmount: number;
+  };
+}) => {
+  const { team, adminAndOwners, proration } = input;
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new ProrationPaymentReminderEmail({
+            team,
+            user: admin,
+            proration,
+          })
+      )
+    );
+  }
+
+  await Promise.all(emailsToSend);
 };
