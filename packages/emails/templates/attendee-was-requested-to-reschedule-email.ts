@@ -1,3 +1,5 @@
+import { default as cloneDeep } from "lodash/cloneDeep";
+
 import { getManageLink } from "@calcom/lib/CalEventParser";
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -9,7 +11,16 @@ import OrganizerScheduledEmail from "./organizer-scheduled-email";
 export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerScheduledEmail {
   private metadata: { rescheduleLink: string };
   constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
-    super({ calEvent });
+    // Filter attendees for seated events when seatsShowAttendees is false
+    // to protect attendee privacy in reschedule request emails
+    const shouldShowAttendees = calEvent.seatsShowAttendees ?? true;
+    if (!shouldShowAttendees && calEvent.seatsPerTimeSlot) {
+      const filteredCalEvent = cloneDeep(calEvent);
+      filteredCalEvent.attendees = [calEvent.attendees[0]];
+      super({ calEvent: filteredCalEvent });
+    } else {
+      super({ calEvent });
+    }
     this.metadata = metadata;
     this.t = this.calEvent.attendees[0].language.translate;
   }
