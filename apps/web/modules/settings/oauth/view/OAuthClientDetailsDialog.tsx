@@ -222,6 +222,10 @@ const OAuthClientDetailsDialog = ({
               <Alert severity="warning" title={t("oauth_client_pending_info_description")} />
             ) : null}
 
+            {status === "APPROVED" ? (
+              <Alert severity="info" title={t("oauth_client_approved_reapproval_info")} />
+            ) : null}
+
             {status === "REJECTED" && client.rejectionReason ? (
               <div className="text-subtle text-sm" data-testid="oauth-client-details-rejection-reason-display">
                 <span className="font-medium">{t("oauth_client_rejection_reason")}:</span> {client.rejectionReason}
