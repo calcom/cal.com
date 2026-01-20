@@ -1099,7 +1099,7 @@ async function handler(
               qualifiedRRUsers: qualifiedRRUsers.map((user) => user.id),
             })
           );
-          throw new Error(ErrorCode.NoAvailableUsersFound);
+          throw new ErrorWithCode(ErrorCode.NoAvailableUsersFound, ErrorCode.NoAvailableUsersFound);
         }
       }
 

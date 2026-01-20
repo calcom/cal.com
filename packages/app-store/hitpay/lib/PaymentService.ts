@@ -5,6 +5,7 @@ import type z from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -89,7 +90,7 @@ class HitPayPaymentService implements IAbstractPaymentService {
         }
       } else {
         if (bookingsWithSameTimeSlot.length > 1) {
-          throw new Error(ErrorCode.NoAvailableUsersFound);
+          throw new ErrorWithCode(ErrorCode.NoAvailableUsersFound, ErrorCode.NoAvailableUsersFound);
         }
       }
 

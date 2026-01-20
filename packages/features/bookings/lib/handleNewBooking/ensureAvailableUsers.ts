@@ -7,6 +7,7 @@ import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
@@ -255,7 +256,7 @@ const _ensureAvailableUsers = async (
 
   if (availableUsers.length === 0) {
     loggerWithEventDetails.error(`No available users found.`, piiFreeInputDataForLogging);
-    throw new Error(ErrorCode.NoAvailableUsersFound);
+    throw new ErrorWithCode(ErrorCode.NoAvailableUsersFound, ErrorCode.NoAvailableUsersFound);
   }
 
   // make sure TypeScript understands availableUsers is at least one.
