@@ -19,6 +19,7 @@ import "@calcom/web/modules/auth/components/Turnstile";
 import { Booker } from "./Booker";
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
+import type { ConnectedCalendarsType, ScheduleDataType } from "@calcom/web/modules/bookings/types";
 
 vi.mock("framer-motion", async (importOriginal) => {
   const actual = (await importOriginal()) as any;
@@ -175,7 +176,12 @@ describe("Booker", () => {
   });
 
   it("should render null when in loading state", () => {
-    const { container } = render(<Booker {...defaultProps as unknown as BookerProps & WrappedBookerProps} />, {
+    const { container } = render(
+      <Booker
+        {...(defaultProps as unknown as BookerProps &
+          WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>)}
+      />,
+      {
       mockStore: { state: "loading" },
     });
     expect(container).toBeEmptyDOMElement();
@@ -194,7 +200,12 @@ describe("Booker", () => {
       },
     };
 
-    render(<Booker {...propsWithDryRun as unknown as BookerProps & WrappedBookerProps} />, {
+    render(
+      <Booker
+        {...(propsWithDryRun as unknown as BookerProps &
+          WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>)}
+      />,
+      {
       mockStore: {
         state: "selecting_time",
         selectedDate: "2024-01-01",
@@ -218,7 +229,12 @@ describe("Booker", () => {
       },
     };
 
-    render(<Booker {...propsWithInvalidate as unknown as BookerProps & WrappedBookerProps} />, {
+    render(
+      <Booker
+        {...(propsWithInvalidate as unknown as BookerProps &
+          WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>)}
+      />,
+      {
       mockStore: { state: "booking" },
     });
     screen.logTestingPlaygroundURL();
@@ -240,7 +256,12 @@ describe("Booker", () => {
         },
       };
 
-      render(<Booker {...propsWithQuickChecks as unknown as BookerProps & WrappedBookerProps} />, {
+      render(
+        <Booker
+          {...(propsWithQuickChecks as unknown as BookerProps &
+            WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>)}
+        />,
+        {
         mockStore: { state: "booking" },
       });
       const bookEventForm = screen.getByTestId("book-event-form");

@@ -31,6 +31,7 @@ import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEv
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
+import type { WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
 import type { ConnectedCalendarsType, ScheduleDataType } from "@calcom/web/modules/bookings/types";
 
 import { Booker as BookerComponent } from "./Booker";
@@ -206,7 +207,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
     searchParams &&
-    event.data.instantMeetingParameters?.every?.((param) =>
+    event.data.instantMeetingParameters?.every?.((param: string) =>
       Array.from(searchParams.values()).includes(param)
     )
   );
