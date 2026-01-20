@@ -149,9 +149,13 @@ async function fireNoShowUpdated({
   }
 
   if (attendees) {
-    auditData.attendeesNoShow = attendees.map((attendee) => {
-      return { old: dbEmailToAttendee[attendee.email]?.noShow ?? null, new: attendee.noShow };
-    });
+    auditData.attendeesNoShow = {};
+    for (const attendee of attendees) {
+      const dbAttendee = dbEmailToAttendee[attendee.email];
+      if (dbAttendee) {
+        auditData.attendeesNoShow[dbAttendee.id] = { old: dbAttendee.noShow ?? null, new: attendee.noShow };
+      }
+    }
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
