@@ -69,6 +69,9 @@ export default defineContentScript({
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
     iframe.src = COMPANION_URL;
+    // Enable clipboard access for the cross-origin iframe
+    // This allows the companion app to use navigator.clipboard.writeText()
+    iframe.allow = "clipboard-write; clipboard-read";
     // Use explicit dimensions - Brave has issues with percentage-based sizing
     iframe.style.cssText = `
       position: absolute !important;
