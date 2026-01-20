@@ -17,6 +17,7 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Ensure } from "./utils";
 
 export type { VideoCallData } from "./VideoApiAdapter";
@@ -283,6 +284,8 @@ export interface CalendarEvent {
   // deleteType?: "instance" | "series" | null; //for deleting new recurring booking
   cancelledDates?: string[] | null; //for deleting new recurring booking
   rescheduleInstance?: RescheduleInstance;
+
+  bookingFields?: BookerEvent["bookingFields"];
 }
 
 export interface EntryPoint {

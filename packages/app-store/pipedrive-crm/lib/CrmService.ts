@@ -103,8 +103,6 @@ export default class PipedriveCrmService implements CRM {
     return {
       getToken: () => {
         const tokenValid = !isTokenValid(credentialKey);
-        console.log("Cred key", credentialKey);
-        console.log("Token valid:", !tokenValid);
 
         return tokenValid ? refreshAccessToken(credentialKey.refresh_token) : Promise.resolve([]);
       },
@@ -204,8 +202,6 @@ export default class PipedriveCrmService implements CRM {
       type: "meeting",
       busy: true,
     };
-
-    console.log("Activity payload:", activityPayload);
 
     try {
       const result = await client.createActivity(activityPayload);

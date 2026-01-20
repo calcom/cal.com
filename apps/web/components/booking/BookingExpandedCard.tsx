@@ -30,32 +30,34 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const [showRTE, setShowRTE] = useState(false);
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
 
-  const defaultFields = [
-    "name",
-    "email",
-    // "attendeePhoneNumber",
-    "location",
-    "title",
-    "notes",
-    "guests",
-    "rescheduleReason",
-  ];
+  const defaultFields = ["name", "email", "location", "title"];
 
   const bookingFields = props.eventType.bookingFields;
+
+  const defaultLabels = {
+    attendeePhoneNumber: t("phone_number"),
+    rescheduleReason: t("reschedule_reason_label"),
+    notes: t("additional_notes"),
+    guests: t("guests"),
+  };
 
   const customFields = {};
 
   if (responses) {
-    if (responses["attendeePhoneNumber"] !== undefined) {
-      customFields["Phone Number"] = responses["attendeePhoneNumber"];
-    }
-
     for (const key in bookingFields) {
-      if (bookingFields[key]?.label && !defaultFields.includes(key)) {
+      if (!defaultFields.includes(key)) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (responses[bookingFields[key].name] !== undefined) {
-          customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+          let label = null;
+          if (bookingFields[key]?.label) {
+            label = bookingFields[key].label;
+          } else if (defaultLabels[bookingFields[key].name]) {
+            label = defaultLabels[bookingFields[key].name];
+          }
+          if (label) {
+            customFields[label] = responses[bookingFields[key].name];
+          }
         }
       }
     }
@@ -270,13 +272,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
                     );
                   })}
                 </div>
-              </div>
-            )}
-
-            {additionalNotes && (
-              <div>
-                <h3 className="text-default text-sm font-medium">{t("additional_notes")}</h3>
-                <div className="text-default text-sm">{additionalNotes}</div>
               </div>
             )}
 

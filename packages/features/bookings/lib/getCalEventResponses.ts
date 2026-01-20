@@ -61,7 +61,7 @@ export const getCalEventResponses = ({
   if (parsedBookingFields) {
     for (const field of parsedBookingFields) {
       const dynamicLabel = field.defaultLabel ? PHONE_FIELD_LABELS[field.defaultLabel] : undefined;
-      const label = dynamicLabel || field.label || field.defaultLabel;
+      const label = field.label || dynamicLabel || field.defaultLabel;
       if (!label) throw new Error(`Missing label for booking field "${field.name}"`);
 
       if (field.name === "guests" && field.hidden) {
