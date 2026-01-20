@@ -960,4 +960,98 @@ describe("handleChildrenEventTypes", () => {
       });
     });
   });
+
+  describe("CalVideoSettings propagation", () => {
+    it("Creates CalVideoSettings for new children when parent has settings", async () => {
+      const { schedulingType, teamId, timeZone, ...evType } = mockFindFirstEventType({
+        id: 123,
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
+
+      setupTransactionMock();
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([
+        { ...evType, id: 456, userId: 4, schedulingType, teamId, timeZone } as unknown as EventType,
+      ]);
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+        calVideoSettings: {
+          enableAutomaticRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+        },
+      });
+
+      expect(prismaMock.calVideoSettings.createMany).toHaveBeenCalledWith({
+        data: [
+          expect.objectContaining({
+            eventTypeId: 456,
+            enableAutomaticRecordingForOrganizer: true,
+            enableAutomaticTranscription: true,
+          }),
+        ],
+        skipDuplicates: true,
+      });
+    });
+
+    it("Syncs/deletes CalVideoSettings for existing children based on parent settings", async () => {
+      const mockExistingChildUpdate = () => {
+        mockFindFirstEventType({ metadata: { managedEventConfig: {} }, locations: [] });
+        // @ts-expect-error - partial mock
+        prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
+        prismaMock.eventType.update.mockResolvedValue({
+          id: 789,
+          userId: 4,
+          schedulingType: SchedulingType.MANAGED,
+        } as unknown as EventType);
+      };
+
+      const baseParams = {
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
+        updatedEventType: { schedulingType: "MANAGED" as const, slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      };
+
+      // Test upsert when calVideoSettings provided
+      mockExistingChildUpdate();
+      await updateChildrenEventTypes({
+        ...baseParams,
+        calVideoSettings: { enableAutomaticRecordingForOrganizer: true },
+      });
+      expect(prismaMock.calVideoSettings.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { eventTypeId: 789 },
+          update: expect.objectContaining({ enableAutomaticRecordingForOrganizer: true }),
+          create: expect.objectContaining({ eventTypeId: 789, enableAutomaticRecordingForOrganizer: true }),
+        })
+      );
+
+      // Test deleteMany when calVideoSettings is null
+      vi.clearAllMocks();
+      mockExistingChildUpdate();
+      await updateChildrenEventTypes({ ...baseParams, calVideoSettings: null });
+      expect(prismaMock.calVideoSettings.deleteMany).toHaveBeenCalledWith({
+        where: { eventTypeId: { in: [789] } },
+      });
+
+      // Test no-op when calVideoSettings is undefined
+      vi.clearAllMocks();
+      mockExistingChildUpdate();
+      await updateChildrenEventTypes({ ...baseParams, calVideoSettings: undefined });
+      expect(prismaMock.calVideoSettings.upsert).not.toHaveBeenCalled();
+      expect(prismaMock.calVideoSettings.deleteMany).not.toHaveBeenCalled();
+    });
+  });
 });
