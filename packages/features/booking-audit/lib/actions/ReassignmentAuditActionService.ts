@@ -84,10 +84,10 @@ export class ReassignmentAuditActionService implements IAuditActionService {
         };
     }
 
-    getDisplayFields(storedData: BaseStoredAuditData): Array<{
+    async getDisplayFields(storedData: BaseStoredAuditData): Promise<Array<{
         labelKey: string;
         valueKey: string;
-    }> {
+    }>> {
         const { fields } = this.parseStored(storedData);
         const map = {
             manual: "manual",
