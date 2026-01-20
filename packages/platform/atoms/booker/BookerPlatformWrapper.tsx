@@ -21,6 +21,7 @@ import {
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import { useRoundRobinChunking } from "@calcom/features/bookings/Booker/components/hooks/useRoundRobinChunking";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -115,10 +116,9 @@ const BookerPlatformWrapperComponent = (
     (state) => [state.roundRobinChunkSettings, state.setRoundRobinChunkSettings],
     shallow
   );
-  const setRoundRobinChunkInfo = useBookerStoreContext((state) => state.setRoundRobinChunkInfo);
   const prevStateRef = useRef<BookerStoreValues | null>(null);
   const bookerStoreContext = useContext(BookerStoreContext);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const getStateValues = useCallback((state: any): BookerStoreValues => {
     return Object.fromEntries(
       Object.entries(state).filter(([_, value]) => typeof value !== "function")
@@ -209,18 +209,6 @@ const BookerPlatformWrapperComponent = (
     teamId,
     selectedDuration,
   });
-
-  useEffect(() => {
-    setRoundRobinChunkSettings(null);
-    setRoundRobinChunkInfo(null);
-  }, [
-    props.entity?.orgSlug,
-    props.username,
-    props.isTeamEvent ? props.teamId : null,
-    event?.data?.id,
-    setRoundRobinChunkSettings,
-    setRoundRobinChunkInfo,
-  ]);
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   useInitializeBookerStore({
@@ -370,11 +358,23 @@ const BookerPlatformWrapperComponent = (
     _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
   });
-  const roundRobinChunkInfo = schedule.data?.roundRobinChunkInfo;
-  useEffect(() => {
-    setRoundRobinChunkInfo(roundRobinChunkInfo ?? null);
-  }, [roundRobinChunkInfo, setRoundRobinChunkInfo]);
-  const isManualRoundRobinChunking = roundRobinChunkSettings?.manual ?? false;
+  const {
+    roundRobinChunkInfo,
+    isManualRoundRobinChunking,
+    handleLoadNextRoundRobinChunk,
+    handleResetRoundRobinChunkSelection,
+  } = useRoundRobinChunking({
+    roundRobinChunkInfo: schedule.data?.roundRobinChunkInfo,
+    isFetching: schedule.isFetching,
+    roundRobinChunkSettings,
+    setRoundRobinChunkSettings,
+    resetDeps: [
+      props.entity?.orgSlug,
+      props.username,
+      props.isTeamEvent ? props.teamId : null,
+      event?.data?.id,
+    ],
+  });
 
   useEffect(() => {
     if (
@@ -386,19 +386,6 @@ const BookerPlatformWrapperComponent = (
       onTimeslotsLoaded(schedule.data.slots);
     }
   }, [schedule.data, schedule.isPending, schedule.error, onTimeslotsLoaded]);
-
-  const handleLoadNextRoundRobinChunk = useCallback(() => {
-    if (!roundRobinChunkInfo?.hasMoreNonFixedHosts || schedule.isFetching) return;
-    const currentOffset = roundRobinChunkSettings?.chunkOffset ?? roundRobinChunkInfo.chunkOffset ?? 0;
-    setRoundRobinChunkSettings({
-      manual: true,
-      chunkOffset: currentOffset + 1,
-    });
-  }, [roundRobinChunkInfo, roundRobinChunkSettings, schedule.isFetching]);
-
-  const handleResetRoundRobinChunkSelection = useCallback(() => {
-    setRoundRobinChunkSettings(null);
-  }, []);
 
   const bookerForm = useBookingForm({
     event: event?.data,

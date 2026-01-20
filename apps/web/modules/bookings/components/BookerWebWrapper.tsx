@@ -21,6 +21,7 @@ import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hoo
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
+import { useRoundRobinChunking } from "@calcom/features/bookings/Booker/components/hooks/useRoundRobinChunking";
 import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
@@ -97,8 +98,6 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     (state) => [state.roundRobinChunkSettings, state.setRoundRobinChunkSettings],
     shallow
   );
-  const setRoundRobinChunkInfo = useBookerStoreContext((state) => state.setRoundRobinChunkInfo);
-
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
@@ -162,38 +161,24 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
     roundRobinChunkSettings: roundRobinChunkSettings ?? undefined,
   });
-  const roundRobinChunkInfo = schedule.data?.roundRobinChunkInfo;
-  useEffect(() => {
-    setRoundRobinChunkInfo(roundRobinChunkInfo ?? null);
-  }, [roundRobinChunkInfo, setRoundRobinChunkInfo]);
-  const isManualRoundRobinChunking = roundRobinChunkSettings?.manual ?? false;
-
-  useEffect(() => {
-    setRoundRobinChunkSettings(null);
-    setRoundRobinChunkInfo(null);
-  }, [
-    props.username,
-    props.eventSlug,
-    props.entity.orgSlug,
-    props.entity.eventTypeId,
-    event.data?.id,
+  const {
+    roundRobinChunkInfo,
+    isManualRoundRobinChunking,
+    handleLoadNextRoundRobinChunk,
+    handleResetRoundRobinChunkSelection,
+  } = useRoundRobinChunking({
+    roundRobinChunkInfo: schedule.data?.roundRobinChunkInfo,
+    isFetching: schedule.isFetching,
+    roundRobinChunkSettings,
     setRoundRobinChunkSettings,
-    setRoundRobinChunkInfo,
-  ]);
-
-  const handleLoadNextRoundRobinChunk = useCallback(() => {
-    if (!roundRobinChunkInfo?.hasMoreNonFixedHosts || schedule.isFetching) return;
-    const currentOffset =
-      roundRobinChunkSettings?.chunkOffset ?? roundRobinChunkInfo.chunkOffset ?? 0;
-    setRoundRobinChunkSettings({
-      manual: true,
-      chunkOffset: currentOffset + 1,
-    });
-  }, [roundRobinChunkInfo, roundRobinChunkSettings, schedule.isFetching]);
-
-  const handleResetRoundRobinChunkSelection = useCallback(() => {
-    setRoundRobinChunkSettings(null);
-  }, []);
+    resetDeps: [
+      props.username,
+      props.eventSlug,
+      props.entity.orgSlug,
+      props.entity.eventTypeId,
+      event.data?.id,
+    ],
+  });
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,
