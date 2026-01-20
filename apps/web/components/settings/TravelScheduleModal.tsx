@@ -9,6 +9,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@coss/ui/components/dialog";
+import { useIsMobile } from "@coss/ui/hooks/use-mobile";
 import { Label } from "@coss/ui/components/label";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
@@ -37,6 +38,7 @@ const TravelScheduleModal = ({
 }: TravelScheduleModalProps) => {
   const { t } = useLocale();
   const { timezone: preferredTimezone } = useTimePreferences();
+  const isMobile = useIsMobile();
 
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
@@ -152,7 +154,7 @@ const TravelScheduleModal = ({
               value={selectedTimeZone}
               onChange={({ value }) => setSelectedTimeZone(value)}
               menuPortalTarget={typeof document === "undefined" ? undefined : document.body}
-              menuPlacement="auto"
+              menuPlacement={isMobile ? "top" : "auto"}
               styles={{ menuPortal: (base) => Object.assign({}, base, { zIndex: 9999 }) }}
               className="mb-11 mt-2 w-full rounded-md text-sm"
             />
