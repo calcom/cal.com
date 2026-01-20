@@ -110,6 +110,7 @@ const TravelScheduleModal = ({
                     endDate,
                   }}
                   onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
+                    // If newStartDate does become undefined - we resort back to to-todays date
                     setStartDate(newStartDate ?? new Date());
                     setEndDate(newEndDate);
                     setErrorMessage("");
@@ -150,7 +151,7 @@ const TravelScheduleModal = ({
               id="timeZone"
               value={selectedTimeZone}
               onChange={({ value }) => setSelectedTimeZone(value)}
-              menuPortalTarget={document.body}
+              menuPortalTarget={typeof document === "undefined" ? undefined : document.body}
               menuPlacement="auto"
               styles={{ menuPortal: (base) => Object.assign({}, base, { zIndex: 9999 }) }}
               className="mb-11 mt-2 w-full rounded-md text-sm"
