@@ -14,7 +14,7 @@ export const WEBHOOK_TOKENS = {
   // Repositories
   WEBHOOK_REPOSITORY: Symbol("IWebhookRepository"),
 
-  // Producer/Consumer (Phase 0)
+  // Producer/Consumer
   WEBHOOK_PRODUCER_SERVICE: Symbol("IWebhookProducerService"),
   WEBHOOK_PRODUCER_SERVICE_MODULE: Symbol("WebhookProducerService.module"),
   WEBHOOK_TASK_CONSUMER: Symbol("WebhookTaskConsumer"),

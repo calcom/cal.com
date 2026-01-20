@@ -10,7 +10,7 @@ import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/inte
 import type { IWebhookNotifier } from "@calcom/features/webhooks/lib/interface/webhook";
 import type { OOOWebhookService } from "@calcom/features/webhooks/lib/service/OOOWebhookService";
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
-import { createContainer } from "@evyweb/ioctopus";
+import { type Container, createContainer } from "@evyweb/ioctopus";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
 import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
@@ -20,7 +20,7 @@ import { webhookProducerServiceModule } from "../modules/WebhookProducerService.
 import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
-export const webhookContainer = createContainer();
+const webhookContainer: Container = createContainer();
 
 // Load shared infrastructure
 loggerModuleLoader.loadModule(webhookContainer);
@@ -42,39 +42,13 @@ webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE, webhookProducerServiceModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER, webhookTaskConsumerModule);
 
-// Service getters (DEPRECATED: Use getWebhookFeature() facade instead)
-// These will be kept for backward compatibility during migration
-export function getBookingWebhookService(): IBookingWebhookService {
-  return webhookContainer.get<IBookingWebhookService>(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE);
-}
-
-export function getFormWebhookService(): IFormWebhookService {
-  return webhookContainer.get<IFormWebhookService>(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE);
-}
-
-export function getRecordingWebhookService(): IRecordingWebhookService {
-  return webhookContainer.get<IRecordingWebhookService>(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE);
-}
-
-export function getWebhookNotifier(): IWebhookNotifier {
-  return webhookContainer.get<IWebhookNotifier>(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER);
-}
-
-/**
- * Get the Webhook Producer Service.
- *
- * This is the lightweight service for queueing webhook delivery tasks.
- * It has NO heavy dependencies (no Prisma, no repositories).
- */
-export function getWebhookProducerService(): IWebhookProducerService {
-  return webhookContainer.get<IWebhookProducerService>(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE);
-}
+export { webhookContainer };
 
 /**
  * Get the Webhook Task Consumer.
  *
- * This is the heavy service for processing webhook delivery tasks.
- * It fetches data from database, builds payloads, and sends HTTP requests.
+ * This is used internally by the tasker handler (`webhookDelivery.ts`).
+ * For application code, use `getWebhookFeature().consumer` instead.
  */
 export function getWebhookTaskConsumer(): WebhookTaskConsumer {
   return webhookContainer.get<WebhookTaskConsumer>(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER);
@@ -88,21 +62,21 @@ export function getWebhookTaskConsumer(): WebhookTaskConsumer {
  *
  * Usage:
  * ```typescript
- * import { getWebhookFeature } from "@calcom/features/webhooks/di";
+ * import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
  *
  * const webhooks = getWebhookFeature();
  *
- * // Queue a webhook (lightweight)
+ * // Queue a webhook (lightweight - Producer pattern)
  * await webhooks.producer.queueBookingCreatedWebhook({ ... });
  *
- * // Or use event-specific services
+ * // Or use event-specific services (legacy - will be deprecated in Phase 6)
  * await webhooks.booking.emitBookingCreated({ ... });
  * ```
  */
 export function getWebhookFeature(): WebhookFeature {
   return {
-    producer: getWebhookProducerService(),
-    consumer: getWebhookTaskConsumer(),
+    producer: webhookContainer.get<IWebhookProducerService>(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE),
+    consumer: webhookContainer.get<WebhookTaskConsumer>(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER),
     core: webhookContainer.get<IWebhookService>(WEBHOOK_TOKENS.WEBHOOK_SERVICE),
     booking: webhookContainer.get<IBookingWebhookService>(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE),
     form: webhookContainer.get<IFormWebhookService>(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE),

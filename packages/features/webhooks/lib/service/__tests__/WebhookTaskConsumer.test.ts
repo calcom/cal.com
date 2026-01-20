@@ -1,17 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { IWebhookRepository } from "../../interface/repository";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { IWebhookRepository } from "../../interface/IWebhookRepository";
+import { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
-import { WebhookTaskConsumer } from "../WebhookTaskConsumer";
 import type { WebhookTaskPayload } from "../../types/webhookTask";
+import { WebhookTaskConsumer } from "../WebhookTaskConsumer";
 
 /**
  * Unit Tests for WebhookTaskConsumer
- * 
+ *
  * Tests the heavy Consumer service for processing webhook delivery tasks.
- * 
+ *
  */
 describe("WebhookTaskConsumer", () => {
   let consumer: WebhookTaskConsumer;
@@ -113,6 +112,7 @@ describe("WebhookTaskConsumer", () => {
           time: null,
           timeUnit: null,
           eventTriggers: [WebhookTriggerEvents.BOOKING_CANCELLED],
+          version: WebhookVersion.V_2021_10_20,
         },
       ]);
 
@@ -176,6 +176,7 @@ describe("WebhookTaskConsumer", () => {
             time: null,
             timeUnit: null,
             eventTriggers: [trigger],
+            version: WebhookVersion.V_2021_10_20,
           },
         ]);
 
@@ -200,9 +201,7 @@ describe("WebhookTaskConsumer", () => {
         timestamp: new Date().toISOString(),
       };
 
-      await expect(consumer.processWebhookTask(payload, "task-error")).rejects.toThrow(
-        "Repository error"
-      );
+      await expect(consumer.processWebhookTask(payload, "task-error")).rejects.toThrow("Repository error");
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         "Failed to process webhook delivery task",
@@ -232,6 +231,7 @@ describe("WebhookTaskConsumer", () => {
           time: null,
           timeUnit: null,
           eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+          version: WebhookVersion.V_2021_10_20,
         },
       ]);
 
