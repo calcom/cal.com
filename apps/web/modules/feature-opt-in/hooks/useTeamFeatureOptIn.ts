@@ -1,16 +1,20 @@
 "use client";
 
-import type { TFunction } from "i18next";
-import { useCallback, useMemo } from "react";
-
 import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import type { TFunction } from "i18next";
+import { useCallback, useMemo } from "react";
 
 type FeatureBlockingState = { orgState?: FeatureState };
-type TeamFeatureData = { featureId: string; globalEnabled: boolean; teamState: FeatureState; orgState: FeatureState };
+type TeamFeatureData = {
+  featureId: string;
+  globalEnabled: boolean;
+  teamState: FeatureState;
+  orgState: FeatureState;
+};
 
 function useMutationCallbacks(onSuccessCallback: () => void): { onSuccess: () => void; onError: () => void } {
   const { t } = useLocale();
@@ -73,8 +77,14 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const featuresQuery = trpc.viewer.featureOptIn.listForTeam.useQuery({ teamId }, { refetchOnWindowFocus: false });
-  const autoOptInQuery = trpc.viewer.featureOptIn.getTeamAutoOptIn.useQuery({ teamId }, { refetchOnWindowFocus: false });
+  const featuresQuery = trpc.viewer.featureOptIn.listForTeam.useQuery(
+    { teamId },
+    { refetchOnWindowFocus: false }
+  );
+  const autoOptInQuery = trpc.viewer.featureOptIn.getTeamAutoOptIn.useQuery(
+    { teamId },
+    { refetchOnWindowFocus: false }
+  );
 
   const invalidateFeatures = useCallback(
     () => utils.viewer.featureOptIn.listForTeam.invalidate({ teamId }),
@@ -89,12 +99,16 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
   const setAutoOptInMutationCallbacks = useMutationCallbacks(invalidateFeaturesAndAutoOptIn);
 
   const setStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation(setStateMutationCallbacks);
-  const setAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation(setAutoOptInMutationCallbacks);
+  const setAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation(
+    setAutoOptInMutationCallbacks
+  );
 
   const featureBlockingState = useMemo(() => buildBlockingStateMap(featuresQuery.data), [featuresQuery.data]);
   const features = normalizeTeamFeatures(featuresQuery.data);
-  const setFeatureState = (slug: string, state: FeatureState): void => setStateMutation.mutate({ teamId, slug, state });
-  const setAutoOptIn = (checked: boolean): void => setAutoOptInMutation.mutate({ teamId, autoOptIn: checked });
+  const setFeatureState = (slug: string, state: FeatureState): void =>
+    setStateMutation.mutate({ teamId, slug, state });
+  const setAutoOptIn = (checked: boolean): void =>
+    setAutoOptInMutation.mutate({ teamId, autoOptIn: checked });
   const getBlockedWarning = createTeamBlockedWarningFn(featureBlockingState, t);
   const isBlockedByHigherLevel = createTeamIsBlockedByHigherLevelFn(featureBlockingState);
 
