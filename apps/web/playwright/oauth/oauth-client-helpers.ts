@@ -14,11 +14,13 @@ export async function loginAsSeededAdmin(page: Page) {
 export async function goToDeveloperOAuthSettings(page: Page): Promise<void> {
   if (page.url().includes("/settings/developer/oauth")) return;
   await page.goto("/settings/developer/oauth");
+  await page.waitForLoadState();
 }
 
 export async function goToAdminOAuthSettings(page: Page): Promise<void> {
   if (page.url().includes("/settings/admin/oauth")) return;
   await page.goto("/settings/admin/oauth");
+  await page.waitForLoadState();
 }
 
 type CreateOAuthClientInput = {
