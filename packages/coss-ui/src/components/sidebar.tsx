@@ -10,6 +10,7 @@ import { useIsMobile } from "@coss/ui/hooks/use-mobile";
 import { cn } from "@coss/ui/lib/utils";
 import { Button } from "@coss/ui/components/button";
 import { Input } from "@coss/ui/components/input";
+import { ScrollArea } from "@coss/ui/components/scroll-area";
 import { Separator } from "@coss/ui/components/separator";
 import {
   Sheet,
@@ -245,7 +246,7 @@ function Sidebar({
         {...props}
       >
         <div
-          className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow-sm"
+          className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow-sm/5"
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
         >
@@ -313,7 +314,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
     <main
       className={cn(
         "relative flex w-full flex-1 flex-col bg-background",
-        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ms-2 md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ms-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm",
+        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ms-2 md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ms-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm/5",
         className,
       )}
       data-slot="sidebar-inset"
@@ -374,15 +375,20 @@ function SidebarSeparator({
 
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
-        className,
-      )}
-      data-sidebar="content"
-      data-slot="sidebar-content"
-      {...props}
-    />
+    <ScrollArea
+      className="**:data-[slot=scroll-area-scrollbar]:hidden"
+      scrollFade
+    >
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col gap-2 group-data-[collapsible=icon]:overflow-hidden",
+          className,
+        )}
+        data-sidebar="content"
+        data-slot="sidebar-content"
+        {...props}
+      />
+    </ScrollArea>
   );
 }
 

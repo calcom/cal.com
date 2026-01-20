@@ -1,11 +1,29 @@
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-import type { OptInFeaturePolicy } from "../types";
-import { getOptInFeatureConfig, OPT_IN_FEATURES } from "../config";
+import {
+  getOptInFeatureConfig,
+  getOptInFeaturesForScope,
+  isFeatureAllowedForScope,
+  isOptInFeature,
+} from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
-import type { EffectiveStateReason, IFeatureOptInService, ResolvedFeatureState } from "./IFeatureOptInService";
+import type { OptInFeaturePolicy, OptInFeatureScope } from "../types";
+import type {
+  EffectiveStateReason,
+  FeatureOptInEligibilityResult,
+  IFeatureOptInService,
+  ResolvedFeatureState,
+  UserRoleContext,
+} from "./IFeatureOptInService";
 
 type ListFeaturesForUserResult = {
   featureId: FeatureId;
@@ -26,6 +44,13 @@ type ListFeaturesForTeamResult = {
   teamState: FeatureState;
   orgState: FeatureState;
 };
+
+type FeatureOptInEligibilityStatus =
+  | "invalid_feature"
+  | "feature_disabled"
+  | "already_enabled"
+  | "blocked"
+  | "can_opt_in";
 
 function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
   if (orgId !== null) {
@@ -94,7 +119,10 @@ export class FeatureOptInService implements IFeatureOptInService {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, ResolvedFeatureState>> {
-    const allTeamIds = orgId !== null ? [orgId, ...teamIds] : teamIds;
+    let allTeamIds = teamIds;
+    if (orgId !== null) {
+      allTeamIds = [orgId, ...teamIds];
+    }
 
     const [allFeatures, allTeamStates, userStates, userAutoOptIn, teamsAutoOptIn] = await Promise.all([
       this.featuresRepository.getAllFeatures(),
@@ -180,7 +208,7 @@ export class FeatureOptInService implements IFeatureOptInService {
 
   /**
    * List all opt-in features with their states for a user across teams.
-   * Only returns features that are in the allowlist and globally enabled.
+   * Only returns features that are in the allowlist, globally enabled, and scoped to "user".
    */
   async listFeaturesForUser(input: {
     userId: number;
@@ -188,7 +216,8 @@ export class FeatureOptInService implements IFeatureOptInService {
     teamIds: number[];
   }): Promise<ListFeaturesForUserResult[]> {
     const { userId, orgId, teamIds } = input;
-    const featureIds = OPT_IN_FEATURES.map((config) => config.slug);
+    const userScopedFeatures = getOptInFeaturesForScope("user");
+    const featureIds = userScopedFeatures.map((config) => config.slug);
 
     const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
       userId,
@@ -201,27 +230,29 @@ export class FeatureOptInService implements IFeatureOptInService {
   }
 
   /**
-   * List all opt-in features with their raw states for a team.
-   * Used for team admin settings page to configure feature opt-in.
-   * Only returns features that are in the allowlist and globally enabled.
+   * List all opt-in features with their raw states for a team or organization.
+   * Used for team/org admin settings page to configure feature opt-in.
+   * Only returns features that are in the allowlist, globally enabled, and scoped to the specified scope.
    * If parentOrgId is provided, also returns the organization state for each feature.
    */
   async listFeaturesForTeam(input: {
     teamId: number;
     parentOrgId?: number | null;
+    scope?: OptInFeatureScope;
   }): Promise<ListFeaturesForTeamResult[]> {
-    const { teamId, parentOrgId } = input;
+    const { teamId, parentOrgId, scope = "team" } = input;
     const teamIdsToQuery = getTeamIdsToQuery(teamId, parentOrgId);
+    const scopedFeatures = getOptInFeaturesForScope(scope);
 
     const [allFeatures, teamStates] = await Promise.all([
       this.featuresRepository.getAllFeatures(),
       this.featuresRepository.getTeamsFeatureStates({
         teamIds: teamIdsToQuery,
-        featureIds: OPT_IN_FEATURES.map((config) => config.slug),
+        featureIds: scopedFeatures.map((config) => config.slug),
       }),
     ]);
 
-    const results = OPT_IN_FEATURES.map((config) => {
+    const results = scopedFeatures.map((config) => {
       const globalFeature = allFeatures.find((f) => f.slug === config.slug);
       const globalEnabled = globalFeature?.enabled ?? false;
       const teamState = teamStates[config.slug]?.[teamId] ?? "inherit";
@@ -234,8 +265,170 @@ export class FeatureOptInService implements IFeatureOptInService {
   }
 
   /**
+   * Check if user is eligible to see the feature opt-in banner.
+   * Uses PBAC to determine user's role context (org admin, team admin permissions).
+   */
+  async checkFeatureOptInEligibility(input: {
+    userId: number;
+    featureId: string;
+  }): Promise<FeatureOptInEligibilityResult> {
+    const { userId, featureId } = input;
+
+    if (!isOptInFeature(featureId)) {
+      return {
+        status: "invalid_feature",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: null,
+      };
+    }
+
+    const { orgId, teamIds } = await this.getUserOrgAndTeamIds(userId);
+    const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
+      userId,
+      orgId,
+      teamIds,
+      featureIds: [featureId],
+    });
+
+    const featureState = resolvedStates[featureId];
+    if (!featureState) {
+      return {
+        status: "invalid_feature",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: null,
+      };
+    }
+
+    if (!featureState.globalEnabled) {
+      return {
+        status: "feature_disabled",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: "feature_global_disabled",
+      };
+    }
+
+    if (featureState.effectiveEnabled) {
+      return {
+        status: "already_enabled",
+        canOptIn: false,
+        userRoleContext: null,
+        blockingReason: null,
+      };
+    }
+
+    const userRoleContext = await this.getUserRoleContext(userId, orgId, teamIds);
+
+    const blockingReasons = [
+      "feature_org_disabled",
+      "feature_all_teams_disabled",
+      "feature_any_team_disabled",
+      "feature_user_only_not_allowed",
+    ];
+
+    if (blockingReasons.includes(featureState.effectiveReason)) {
+      return {
+        status: "blocked",
+        canOptIn: false,
+        userRoleContext,
+        blockingReason: featureState.effectiveReason,
+      };
+    }
+
+    // Simulate what would happen if user opts in
+    const featureConfig = getOptInFeatureConfig(featureId);
+    if (!featureConfig) {
+      return {
+        status: "blocked",
+        canOptIn: false,
+        userRoleContext,
+        blockingReason: "feature_config_not_found",
+      };
+    }
+    const policy: OptInFeaturePolicy = featureConfig.policy ?? "permissive";
+
+    const simulatedResult = computeEffectiveStateAcrossTeams({
+      globalEnabled: featureState.globalEnabled,
+      orgState: featureState.orgState,
+      teamStates: featureState.teamStates,
+      userState: "enabled",
+      policy,
+    });
+
+    // For strict policy features, user opt-in alone won't enable the feature if org/team hasn't explicitly enabled it.
+    // E.g., strict policy + org "inherit" + team "inherit" + user "enabled" → feature still not enabled.
+    if (!simulatedResult.enabled) {
+      return {
+        status: "blocked",
+        canOptIn: false,
+        userRoleContext,
+        blockingReason: simulatedResult.reason,
+      };
+    }
+
+    return {
+      status: "can_opt_in",
+      canOptIn: true,
+      userRoleContext,
+      blockingReason: null,
+    };
+  }
+
+  private async getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
+    const membershipRepository = new MembershipRepository(prisma);
+    const memberships = await membershipRepository.findAllByUserId({
+      userId,
+      filters: { accepted: true },
+    });
+
+    let orgId: number | null = null;
+    const teamIds: number[] = [];
+
+    for (const membership of memberships) {
+      if (membership.team.isOrganization) {
+        orgId = membership.teamId;
+      } else {
+        teamIds.push(membership.teamId);
+      }
+    }
+
+    return { orgId, teamIds };
+  }
+
+  private async getUserRoleContext(
+    userId: number,
+    orgId: number | null,
+    _teamIds: number[]
+  ): Promise<UserRoleContext> {
+    const permissionService = new PermissionCheckService();
+    const fallbackRoles = [MembershipRole.OWNER, MembershipRole.ADMIN];
+
+    let isOrgAdmin = false;
+    if (orgId !== null) {
+      isOrgAdmin = await permissionService.checkPermission({
+        userId,
+        teamId: orgId,
+        permission: "organization.update",
+        fallbackRoles,
+      });
+    }
+
+    const teamRepository = new TeamRepository(prisma);
+    const adminTeams = await teamRepository.findOwnedTeamsByUserId({ userId });
+
+    const nonOrgAdminTeams = adminTeams.filter((team) => !team.isOrganization);
+    const adminTeamIds = nonOrgAdminTeams.map((team) => team.id);
+    const adminTeamNames = nonOrgAdminTeams.map((team) => ({ id: team.id, name: team.name }));
+
+    return { isOrgAdmin, orgId, adminTeamIds, adminTeamNames };
+  }
+
+  /**
    * Set user's feature state.
    * Delegates to FeaturesRepository.setUserFeatureState.
+   * Throws an error if the feature is not scoped to "user".
    */
   async setUserFeatureState(
     input:
@@ -243,6 +436,14 @@ export class FeatureOptInService implements IFeatureOptInService {
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     const { userId, featureId, state } = input;
+
+    if (!isFeatureAllowedForScope(featureId, "user")) {
+      throw new ErrorWithCode(
+        ErrorCode.BadRequest,
+        `Feature "${featureId}" is not available at the user scope`
+      );
+    }
+
     if (state === "inherit") {
       await this.featuresRepository.setUserFeatureState({ userId, featureId, state });
     } else {
@@ -259,13 +460,29 @@ export class FeatureOptInService implements IFeatureOptInService {
   /**
    * Set team's feature state.
    * Delegates to FeaturesRepository.setTeamFeatureState.
+   * Throws an error if the feature is not scoped to the specified scope.
    */
   async setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
-      | { teamId: number; featureId: FeatureId; state: "inherit" }
+      | {
+          teamId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: number;
+          scope?: OptInFeatureScope;
+        }
+      | { teamId: number; featureId: FeatureId; state: "inherit"; scope?: OptInFeatureScope }
   ): Promise<void> {
     const { teamId, featureId, state } = input;
+    const scope = input.scope ?? "team";
+
+    if (!isFeatureAllowedForScope(featureId, scope)) {
+      throw new ErrorWithCode(
+        ErrorCode.BadRequest,
+        `Feature "${featureId}" is not available at the ${scope} scope`
+      );
+    }
+
     if (state === "inherit") {
       await this.featuresRepository.setTeamFeatureState({ teamId, featureId, state });
     } else {
@@ -279,3 +496,6 @@ export class FeatureOptInService implements IFeatureOptInService {
     }
   }
 }
+
+export type { FeatureOptInEligibilityStatus };
+export type { UserRoleContext, FeatureOptInEligibilityResult } from "./IFeatureOptInService";

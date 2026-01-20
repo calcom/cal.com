@@ -28,7 +28,7 @@ export class Md5PiiHasher implements PiiHasher {
   }
 }
 
-export const piiHasher: PiiHasher = new Md5PiiHasher(process.env.CALENDSO_ENCRYPTION_KEY!);
+export const piiHasher: PiiHasher = new Md5PiiHasher(process.env.CALENDSO_ENCRYPTION_KEY ?? "");
 
 export const hashEmail = (email: string, hasher: PiiHasher = piiHasher): string => {
   const [localPart, domain] = email.split("@");

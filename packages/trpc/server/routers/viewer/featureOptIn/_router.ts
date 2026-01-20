@@ -1,31 +1,30 @@
-import type { ZodEnum } from "zod";
-import { z } from "zod";
-
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
+import type { ZodEnum } from "zod";
+import { z } from "zod";
 
 import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
 import { createOrgPbacProcedure, createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
+import { router } from "../../../trpc";
 
-const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum(["enabled", "disabled", "inherit"]);
+const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum([
+  "enabled",
+  "disabled",
+  "inherit",
+]);
 
-const featureOptInService = getFeatureOptInService();
-const featuresRepository = new FeaturesRepository(prisma);
-const teamRepository = new TeamRepository(prisma);
+const featureOptInService: ReturnType<typeof getFeatureOptInService> = getFeatureOptInService();
+const featuresRepository: FeaturesRepository = new FeaturesRepository(prisma);
+const teamRepository: TeamRepository = new TeamRepository(prisma);
+const membershipRepository: MembershipRepository = new MembershipRepository(prisma);
 
-/**
- * Helper to get user's org and team IDs from their memberships.
- * Returns orgId (if user belongs to an org) and teamIds (non-org teams).
- */
 async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-  const memberships = await MembershipRepository.findAllByUserId({
+  const memberships = await membershipRepository.findAllByUserId({
     userId,
     filters: { accepted: true },
   });
@@ -69,7 +68,7 @@ export const featureOptInRouter = router({
     const parentOrg = await teamRepository.findParentOrganizationByTeamId(input.teamId);
     const parentOrgId = parentOrg?.id ?? null;
 
-    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId });
+    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId, scope: "team" });
   }),
 
   /**
@@ -78,8 +77,22 @@ export const featureOptInRouter = router({
    */
   listForOrganization: createOrgPbacProcedure("featureOptIn.read").query(async ({ ctx }) => {
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
-    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId });
+    // Pass scope: "org" to filter features that are scoped to organizations
+    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId, scope: "org" });
   }),
+
+  checkFeatureOptInEligibility: authedProcedure
+    .input(
+      z.object({
+        featureId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return featureOptInService.checkFeatureOptInEligibility({
+        userId: ctx.user.id,
+        featureId: input.featureId,
+      });
+    }),
 
   /**
    * Set user's feature state.
@@ -132,6 +145,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "team",
       });
 
       return { success: true };
@@ -161,6 +175,7 @@ export const featureOptInRouter = router({
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
+        scope: "org",
       });
 
       return { success: true };
