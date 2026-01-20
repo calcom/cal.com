@@ -7,15 +7,17 @@ import { Icon, SocialIcon, type IconName, type SocialIconName } from "@calid/fea
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { z } from "zod";
 
 import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
+import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
+import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
@@ -70,8 +72,6 @@ export function UserPage(props: PageProps) {
   const bioPlainText = stripHtmlTags(props.safeBio || "");
   const isBioLong = bioPlainText.length > BIO_CHAR_LIMIT;
 
-  useTheme(profile?.theme, false, false);
-
   const headerUrl = (user?.metadata as z.infer<typeof userMetadataSchema> | null)?.headerUrl ?? undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const socialProfiles = (user as any)?.socialProfiles as
@@ -87,22 +87,6 @@ export function UserPage(props: PageProps) {
       return { key, url: url.trim() };
     })
     .filter(Boolean) as Array<{ key: SocialIconName; url: string }>;
-
-  useEffect(() => {
-    const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
-    defaultFavicons.forEach((link) => {
-      link.rel = "icon";
-      link.href = user?.faviconUrl || "";
-      link.type = "image/png";
-    });
-    if (defaultFavicons.length === 0) {
-      const link: HTMLLinkElement = document.createElement("link");
-      link.rel = "icon";
-      link.href = user?.faviconUrl ?? "/favicon.ico";
-      link.type = "image/png";
-      document.head.appendChild(link);
-    }
-  }, [user?.faviconUrl]);
 
   if (entity?.considerUnpublished) {
     return (
@@ -282,9 +266,6 @@ export function UserPage(props: PageProps) {
                         <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                       </div>
                       <Button
-                        variant="button"
-                        brandColor={profile?.brandColor}
-                        darkBrandColor={profile?.darkBrandColor}
                         type="button"
                         size="base"
                         className="h-8 flex-shrink-0"

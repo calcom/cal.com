@@ -4,8 +4,7 @@ import { NextResponse } from "next/server";
 import prisma from "@calcom/prisma";
 import { WorkflowContactType, WorkflowMethods, WorkflowActions } from "@calcom/prisma/enums";
 
-import { deleteMultipleScheduledSMS } from "../../providers/twilio";
-import { determineOptOutType } from "../../providers/twilio";
+import { smsProviderRegistry } from "../../providers/messaging/config/providerRegistry";
 
 async function optOutPhoneNumber(phoneNumber: string) {
   await prisma.workflowOptOutContact.upsert({
@@ -39,8 +38,13 @@ async function optOutPhoneNumber(phoneNumber: string) {
     },
   });
 
-  // Get twilio scheduled workflows reminders
-  await deleteMultipleScheduledSMS(
+  const provider = smsProviderRegistry.twilio;
+  if (!provider) {
+    throw new Error("Default SMS provider (Twilio) is not configured");
+  }
+
+  //  scheduled workflows reminders
+  await provider.cancelMultipleSms(
     scheduledReminders
       .filter((reminder) => !!reminder.referenceId)
       .map((reminder) => reminder.referenceId as string)
@@ -70,7 +74,11 @@ async function optOutPhoneNumber(phoneNumber: string) {
 
 const SMSWebhookHandler = async (incomingRequest: NextRequest) => {
   try {
-    const exclusionAnalysisResult = await determineOptOutType(incomingRequest);
+    const provider = smsProviderRegistry.twilio;
+    if (!provider) {
+      throw new Error("Default SMS provider (Twilio) is not configured");
+    }
+    const exclusionAnalysisResult = await provider.determineOptOutType(incomingRequest);
     if ("error" in exclusionAnalysisResult) {
       return NextResponse.json({ message: exclusionAnalysisResult.error }, { status: 400 });
     }

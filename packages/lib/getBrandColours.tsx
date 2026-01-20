@@ -207,4 +207,46 @@ const useGetBrandingColours = ({
   return theme;
 };
 
+/**
+ * Generates inline CSS styles for brand colors to prevent FOUC (flash of unstyled content)
+ * Use this in a <style> tag during initial render for immediate color application
+ */
+export function generateBrandColorStyles(brandColor?: string, darkBrandColor?: string): string {
+  if (!brandColor && !darkBrandColor) return "";
+
+  const lightHex = normalizeHexCode(brandColor || null, false);
+  const darkHex = normalizeHexCode(darkBrandColor || null, true);
+
+  const lightColorMap =
+    lightHex && lightHex !== BRAND_COLOR ? createColorMap(getValidHEX(lightHex, BRAND_COLOR)) : null;
+  const darkColorMap =
+    darkHex && darkHex !== DARK_BRAND_COLOR ? createColorMap(getValidHEX(darkHex, DARK_BRAND_COLOR)) : null;
+
+  let styles = "";
+
+  if (lightColorMap) {
+    styles += `:root {
+      --cal-brand: ${lightColorMap["500"]};
+      --cal-brand-emphasis: ${lightColorMap["400"]};
+      --cal-brand-subtle: ${lightColorMap["200"]};
+      --cal-brand-text: ${getWCAGContrastColor(lightColorMap["500"])};
+      --cal-brand-accent: ${getWCAGContrastColor(lightColorMap["500"])};
+    }`;
+  }
+
+  if (darkColorMap) {
+    styles += `
+      .dark {
+        --cal-brand: ${darkColorMap["500"]};
+        --cal-brand-emphasis: ${darkColorMap["600"]};
+        --cal-brand-subtle: ${darkColorMap["800"]};
+        --cal-brand-text: ${getWCAGContrastColor(darkColorMap["500"])};
+        --cal-brand-accent: ${getWCAGContrastColor(darkColorMap["500"])};
+      }
+    `;
+  }
+
+  return styles;
+}
+
 export default useGetBrandingColours;

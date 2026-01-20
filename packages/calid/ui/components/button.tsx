@@ -226,8 +226,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     CustomStartIcon,
     EndIcon,
     shallow,
-    brandColor,
-    darkBrandColor,
     iconColor,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
@@ -237,12 +235,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = "button";
-
-  // Detect if dark mode is active
-  const isDarkMode = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
-
-  // Determine which brand color to use based on theme
-  const effectiveBrandColor = isDarkMode && darkBrandColor ? darkBrandColor : brandColor;
   const element = React.createElement(
     elementType,
     {
@@ -250,15 +242,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       disabled,
       type: !isLink ? type : undefined,
       ref: forwardedRef,
-      // className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-      className: (() => {
-        const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
-        return classes;
-      })(),
-      style: {
-        backgroundColor: effectiveBrandColor,
-        border: effectiveBrandColor ? "none" : undefined,
-      },
+      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -274,7 +258,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               <>
                 <Icon
                   name={StartIcon}
-                  className="hidden h-4 w-4 stroke-[1.5px] md:inline-flex"
+                  className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex"
                   style={{ color: iconColor }}
                 />
                 <Icon
@@ -292,14 +276,13 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                   loading ? "invisible" : "visible",
                   "button-icon group-active:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
-                  variant === "button" && "h-4 w-4 stroke-[1.5px]"
+                  variant === "button" && "h-4 w-4 stroke-[1.5px] "
                 )}
                 style={{ color: iconColor }}
               />
             )}
           </>
         ))}
-
       <div
         className={classNames(
           "contents", // This makes the div behave like it doesn't exist in the layout
@@ -352,12 +335,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link
-      data-testid="link-component"
-      href={props.href}
-      shallow={shallow && shallow}
-      target={props.target}
-      rel={props.rel}>
+    <Link data-testid="link-component" href={props.href} shallow={shallow && shallow}>
       {element}
     </Link>
   ) : (

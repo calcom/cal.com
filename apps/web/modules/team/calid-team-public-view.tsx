@@ -4,29 +4,20 @@ import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Branding } from "@calid/features/ui/Branding";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
-// This route is reachable by
-// 1. /team/[slug]
-// 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)
-// Also the getServerSideProps and default export are reused by
-// 1. org/[orgSlug]/team/[slug]
-// 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -62,32 +53,6 @@ function stripHtmlTags(html: string): string {
 
 export type PageProps = inferSSRProps<typeof getCalIdServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: PageProps) {
-  useBrandColors({
-    brandColor: team.brandColor,
-    darkBrandColor: team.darkBrandColor,
-    theme: team.theme,
-  });
-
-  const { resolvedTheme } = useGetTheme();
-  const [isThemeReady, setIsThemeReady] = useState(false);
-
-  // Wait for theme to be resolved before showing buttons to prevent color flash
-  useEffect(() => {
-    if (
-      resolvedTheme ||
-      (typeof window !== "undefined" && document.documentElement.classList.contains("dark"))
-    ) {
-      setIsThemeReady(true);
-    } else if (typeof window !== "undefined") {
-      // If no resolvedTheme yet, check if it's light mode (default)
-      // In light mode, we can show immediately since there's no flash
-      const isDarkMode = document.documentElement.classList.contains("dark");
-      if (!isDarkMode) {
-        setIsThemeReady(true);
-      }
-    }
-  }, [resolvedTheme]);
-
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const showMembers = useToggleQuery("members");
@@ -104,31 +69,12 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
 
   const teamOrOrgIsPrivate = team.isPrivate;
 
-  useEffect(() => {
-    telemetry.event(
-      telemetryEventTypes.pageView,
-      collectPageParameters("/team/[slug]", { isTeamBooking: true })
-    );
-  }, [telemetry, pathname]);
-
-  useEffect(() => {
-    if (team.faviconUrl) {
-      const faviconUrl = getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true);
-      const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
-      defaultFavicons.forEach((link) => {
-        link.rel = "icon";
-        link.href = faviconUrl;
-        link.type = "image/png";
-      });
-      if (defaultFavicons.length === 0) {
-        const link: HTMLLinkElement = document.createElement("link");
-        link.rel = "icon";
-        link.href = faviconUrl;
-        link.type = "image/png";
-        document.head.appendChild(link);
-      }
-    }
-  }, [team.faviconUrl]);
+  // useEffect(() => {
+  //   telemetry.event(
+  //     telemetryEventTypes.pageView,
+  //     collectPageParameters("/team/[slug]", { isTeamBooking: true })
+  //   );
+  // }, [telemetry, pathname]);
 
   if (considerUnpublished) {
     const teamSlug = team.slug || metadata?.requestedSlug;
@@ -182,33 +128,23 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
                 <div className="pl-12">
                   <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                 </div>
-                {isThemeReady ? (
-                  <Link
-                    key={type.id}
-                    prefetch={false}
-                    href={{
-                      pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                      query: queryParamsToForward,
-                    }}
-                    passHref
-                    onClick={async () => {
-                      sdkActionManager?.fire("eventTypeSelected", {
-                        eventType: type,
-                      });
-                    }}>
-                    <Button
-                      variant="button"
-                      brandColor={team.brandColor}
-                      darkBrandColor={team.darkBrandColor}
-                      type="button"
-                      size="base"
-                      className="h-8 flex-shrink-0">
-                      {t("schedule")}
-                    </Button>
-                  </Link>
-                ) : (
-                  <div className="h-8 w-20 flex-shrink-0" /> // Placeholder to prevent layout shift
-                )}
+                <Link
+                  key={type.id}
+                  prefetch={false}
+                  href={{
+                    pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+                    query: queryParamsToForward,
+                  }}
+                  passHref
+                  onClick={async () => {
+                    sdkActionManager?.fire("eventTypeSelected", {
+                      eventType: type,
+                    });
+                  }}>
+                  <Button type="button" size="base" className="h-8 flex-shrink-0">
+                    {t("schedule")}
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -291,6 +227,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
                       // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{ __html: team.safeBio }}
                     />
+
                     <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
                       <button
                         onClick={() => setIsBioExpanded(!isBioExpanded)}
@@ -299,6 +236,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
                         Read more
                       </button>
                     </div>
+
                     <div className="mt-2 flex w-full justify-center md:hidden">
                       <button
                         onClick={() => setIsBioExpanded(!isBioExpanded)}
@@ -315,6 +253,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
                       // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{ __html: team.safeBio }}
                     />
+
                     {isBioLong && (
                       <div className="mt-2">
                         <button
