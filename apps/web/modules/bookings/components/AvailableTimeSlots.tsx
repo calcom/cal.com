@@ -190,73 +190,60 @@ export const AvailableTimeSlots = ({
     [overlayCalendarToggled, onTimeSelect, seatsPerTimeSlot, skipConfirmStep, toggleConfirmButton]
   );
 
+  const showLoadMoreButton =
+    roundRobinChunkInfo?.hasMoreNonFixedHosts && onLoadNextRoundRobinChunk;
+
+  const renderLoadMoreButton = () => {
+    if (!showLoadMoreButton) return null;
+
+    const totalLoadedHosts =
+      roundRobinChunkInfo.chunkOffset * roundRobinChunkInfo.chunkSize +
+      roundRobinChunkInfo.loadedNonFixedHosts;
+    const totalHosts = roundRobinChunkInfo.totalNonFixedHosts || roundRobinChunkInfo.totalHosts || 0;
+    const progressPercentage =
+      totalHosts > 0 ? Math.min(100, Math.round((totalLoadedHosts / totalHosts) * 100)) : 0;
+    const circumference = 2 * Math.PI * 8;
+    const dashArray = (progressPercentage / 100) * circumference;
+
+    const ProgressIcon = (
+      <svg width="20" height="20" viewBox="0 0 20 20" className="text-emphasis" aria-hidden>
+        <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,0.35)" strokeWidth="2" fill="none" />
+        <circle
+          cx="10"
+          cy="10"
+          r="8"
+          stroke="#FFFFFF"
+          strokeWidth="2"
+          fill="none"
+          strokeDasharray={`${dashArray} ${circumference}`}
+          strokeLinecap="round"
+          transform="rotate(-90 10 10)"
+        />
+      </svg>
+    );
+
+    return (
+      <Button
+        type="button"
+        color="primary"
+        className="w-full justify-center gap-2"
+        onClick={onLoadNextRoundRobinChunk}
+        disabled={isLoading || schedule?.isFetching}
+        CustomStartIcon={ProgressIcon}
+        aria-label={t("round_robin_load_next_hosts")}>
+        {t("round_robin_load_next_hosts")}
+      </Button>
+    );
+  };
+
   return (
-    <>
-      {roundRobinChunkInfo && roundRobinChunkInfo.hasMoreNonFixedHosts && onLoadNextRoundRobinChunk && (
-        <div className="mb-4 w-full">
-          {(() => {
-            const totalLoadedHosts =
-              roundRobinChunkInfo.chunkOffset * roundRobinChunkInfo.chunkSize +
-              roundRobinChunkInfo.loadedNonFixedHosts;
-            const totalHosts =
-              roundRobinChunkInfo.totalNonFixedHosts || roundRobinChunkInfo.totalHosts || 0;
-            const progressPercentage =
-              totalHosts > 0 ? Math.min(100, Math.round((totalLoadedHosts / totalHosts) * 100)) : 0;
-            const circumference = 2 * Math.PI * 8;
-            const dashArray = (progressPercentage / 100) * circumference;
-
-            const ProgressIcon = (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                className="text-emphasis"
-                aria-hidden>
-                <circle
-                  cx="10"
-                  cy="10"
-                  r="8"
-                  stroke="rgba(255,255,255,0.35)"
-                  strokeWidth="2"
-                  fill="none"
-                />
-                <circle
-                  cx="10"
-                  cy="10"
-                  r="8"
-                  stroke="#FFFFFF"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeDasharray={`${dashArray} ${circumference}`}
-                  strokeLinecap="round"
-                  transform="rotate(-90 10 10)"
-                />
-              </svg>
-            );
-
-            return (
-              <Button
-                type="button"
-                size="base"
-                color="primary"
-                className="w-full justify-center gap-3 py-3 text-sm font-semibold"
-                onClick={onLoadNextRoundRobinChunk}
-                disabled={isLoading || schedule?.isFetching}
-                CustomStartIcon={ProgressIcon}
-                aria-label={t("round_robin_load_next_hosts")}>
-                {t("round_robin_load_next_hosts")}
-              </Button>
-            );
-          })()}
-        </div>
-      )}
+    <div className="relative flex h-full flex-col">
       <div className={classNames(`flex`, `${customClassNames?.availableTimeSlotsContainer}`)}>
         {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => {
-            // Check if this day is OOO - since OOO is date-level, just check the first slot
             const isOOODay = slots.slots.length > 0 && slots.slots[0]?.away;
             return (
               <AvailableTimesHeader
@@ -284,9 +271,10 @@ export const AvailableTimeSlots = ({
         className={classNames(
           limitHeight && "no-scrollbar grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4",
+          showLoadMoreButton && "pb-14",
           `${customClassNames?.availableTimeSlotsContainer}`
         )}>
-        {isLoading && // Shows exact amount of days as skeleton.
+        {isLoading &&
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
         {!isLoading &&
           slotsPerDay.length > 0 &&
@@ -311,6 +299,12 @@ export const AvailableTimeSlots = ({
             </div>
           ))}
       </div>
-    </>
+
+      {showLoadMoreButton && (
+        <div className="sticky right-0 bottom-0 left-0 border-subtle border-t bg-default px-4 py-3">
+          {renderLoadMoreButton()}
+        </div>
+      )}
+    </div>
   );
 };
