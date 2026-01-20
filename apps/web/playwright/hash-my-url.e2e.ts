@@ -42,11 +42,14 @@ test.describe("private links creation and usage", () => {
     const $url = await page.locator('[data-testid="private-link-url"]').inputValue();
 
     // click update
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     // book using generated url hash
     await page.goto($url);
+    await page.waitForURL((url) => {
+      return url.searchParams.get("overlayCalendar") === "true";
+    });
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page
@@ -69,12 +72,12 @@ test.describe("private links creation and usage", () => {
 
     // Ensure that private URL is enabled after modifying the event type.
     // Additionally, if the slug is changed, ensure that the private URL is updated accordingly.
-    await page.getByTestId("vertical-tab-event_setup_tab_title").click();
+    await page.getByTestId("vertical-tab-basics").click();
     await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
     await expect(page.locator('[data-testid="event-slug"]').first()).toHaveValue("somethingrandom");
 
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
@@ -113,7 +116,7 @@ test.describe("private links creation and usage", () => {
     await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
     await page.waitForLoadState("networkidle");
     // click update
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     // book using generated url hash
@@ -164,7 +167,7 @@ test.describe("private links creation and usage", () => {
     await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
     await page.waitForLoadState("networkidle");
     // click update
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     // book using generated url hash
@@ -176,6 +179,10 @@ test.describe("private links creation and usage", () => {
 
     // book again using generated url hash
     await page.goto($url);
+    await page.waitForURL((url) => {
+      return url.searchParams.get("overlayCalendar") === "true";
+    });
+  
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page

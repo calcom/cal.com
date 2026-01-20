@@ -10,7 +10,6 @@ import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/
 import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 
@@ -151,9 +150,10 @@ export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
+export type VIEW_TYPE = "MONTH_VIEW" | "WEEK_VIEW" | "COLUMN_VIEW";
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
-export type BookerLayout = BookerLayouts | "mobile";
+export type BookerLayout = "month_view" | "week_view" | "column_view" | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {

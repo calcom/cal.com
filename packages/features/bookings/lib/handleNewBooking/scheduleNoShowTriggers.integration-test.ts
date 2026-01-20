@@ -1,11 +1,11 @@
-import type { Booking, User, Webhook } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { getMeetingSessionsFromRoomName } from "@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName";
 import { triggerHostNoShow } from "@calcom/features/tasker/tasks/triggerNoShow/triggerHostNoShow";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { prisma } from "@calcom/prisma";
+import type { Booking, User, Webhook } from "@calcom/prisma/client";
 import { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { scheduleNoShowTriggers } from "./scheduleNoShowTriggers";
@@ -265,6 +265,7 @@ describe("scheduleNoShowTriggers Integration", () => {
         payloadTemplate: null,
         secret: null,
         appId: null,
+        version: "2021-10-20",
       },
     });
 
@@ -273,8 +274,8 @@ describe("scheduleNoShowTriggers Integration", () => {
     expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
       expect.objectContaining({
         webhook: expect.objectContaining({
-          id: hostWebhook.id,
           subscriberUrl: "https://example.com/host-webhook",
+          version: "2021-10-20",
         }),
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         data: expect.objectContaining({
@@ -287,6 +288,11 @@ describe("scheduleNoShowTriggers Integration", () => {
               user_name: "Guest User",
             }),
           ]),
+          webhook: expect.objectContaining({
+            id: hostWebhook.id,
+            subscriberUrl: "https://example.com/host-webhook",
+            version: "2021-10-20",
+          }),
         }),
       })
     );

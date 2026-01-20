@@ -7,6 +7,7 @@ import { registerDecorator, validate, ValidatorConstraint } from "class-validato
 
 const inputBookingFieldTypes = [
   "name",
+  "splitName",
   "email",
   "phone",
   "address",

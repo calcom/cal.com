@@ -1,5 +1,4 @@
 import { LightningAddress } from "@getalby/lightning-tools";
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import type z from "zod";
 
@@ -7,6 +6,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -14,7 +14,7 @@ import { albyCredentialKeysSchema } from "./albyCredentialKeysSchema";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:alby"] });
 
-export class PaymentService implements IAbstractPaymentService {
+class AlbyPaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof albyCredentialKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
@@ -55,7 +55,6 @@ export class PaymentService implements IAbstractPaymentService {
           referenceId: uid,
         },
       });
-      console.log("Created invoice", invoice, uid);
 
       const paymentData = await prisma.payment.create({
         data: {
@@ -138,4 +137,13 @@ export class PaymentService implements IAbstractPaymentService {
   isSetupAlready(): boolean {
     return !!this.credentials;
   }
+}
+
+/**
+ * Factory function that creates an Alby Payment service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export function BuildPaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+  return new AlbyPaymentService(credentials);
 }

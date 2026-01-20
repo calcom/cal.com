@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ConnectedApps } from "@calcom/platform-libraries/app-store";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import { useAtomsContext } from "../../../hooks/useAtomsContext";

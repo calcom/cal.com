@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_OUTLOOK_LOGIN_ENABLED } from "@calcom/features/auth/lib/outlook";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
@@ -30,6 +31,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     "email-verification"
   );
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
+  const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
@@ -43,6 +45,19 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const redirectUrl = redirectUrlData.success && redirectUrlData.data ? redirectUrlData.data : null;
 
+  const session = await getServerSession({
+    req: ctx.req,
+  });
+
+  if (session?.user?.id) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: redirectUrl || "/",
+      },
+    } as const;
+  }
+
   const props = {
     redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
@@ -50,6 +65,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
+    onboardingV3Enabled,
   };
 
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {

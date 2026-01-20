@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { _TeamModel as Team } from "@calcom/prisma/zod";
+import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
 
-export const schemaTeamBaseBodyParams = Team.omit({ id: true, createdAt: true }).partial({
+export const schemaTeamBaseBodyParams = TeamSchema.omit({ id: true, createdAt: true }).partial({
   hideBranding: true,
   metadata: true,
   pendingPayment: true,
@@ -28,6 +28,6 @@ const schemaOwnerId = z.object({
 
 export const schemaTeamCreateBodyParams = schemaTeamBodyParams.merge(schemaOwnerId).strict();
 
-export const schemaTeamReadPublic = Team.omit({});
+export const schemaTeamReadPublic = TeamSchema.omit({});
 
 export const schemaTeamsReadPublic = z.array(schemaTeamReadPublic);

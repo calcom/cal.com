@@ -16,7 +16,7 @@ function useIsAppEnabled(app: EventTypeAppCardApp) {
     const credentialId = getAppData("credentialId");
     const isAppEnabledForCredential =
       isAppEnabled &&
-      (app.userCredentialIds.some((id) => id === credentialId) ||
+      (app.userCredentialIds.some((id: number) => id === credentialId) ||
         app.credentialOwner.credentialId === credentialId);
     return isAppEnabledForCredential ?? false; // Default to false if undefined
   });

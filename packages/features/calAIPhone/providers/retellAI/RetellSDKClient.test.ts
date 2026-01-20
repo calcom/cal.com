@@ -16,30 +16,32 @@ import type {
 let RetellSDKClient: typeof import("./RetellSDKClient").RetellSDKClient;
 
 vi.mock("retell-sdk", () => ({
-  Retell: vi.fn().mockImplementation(() => ({
-    llm: {
-      create: vi.fn(),
-      retrieve: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    agent: {
-      create: vi.fn(),
-      retrieve: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    phoneNumber: {
-      create: vi.fn(),
-      import: vi.fn(),
-      delete: vi.fn(),
-      retrieve: vi.fn(),
-      update: vi.fn(),
-    },
-    call: {
-      createPhoneCall: vi.fn(),
-    },
-  })),
+  Retell: vi.fn().mockImplementation(function() {
+    return {
+      llm: {
+        create: vi.fn(),
+        retrieve: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      },
+      agent: {
+        create: vi.fn(),
+        retrieve: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      },
+      phoneNumber: {
+        create: vi.fn(),
+        import: vi.fn(),
+        delete: vi.fn(),
+        retrieve: vi.fn(),
+        update: vi.fn(),
+      },
+      call: {
+        createPhoneCall: vi.fn(),
+      },
+    };
+  }),
 }));
 
 vi.mock("@calcom/lib/logger", () => ({
@@ -107,15 +109,15 @@ describe("RetellSDKClient", () => {
       },
     };
 
-    (Retell as any).mockImplementation(() => mockRetellInstance);
+    (Retell as any).mockImplementation(function() { return mockRetellInstance; });
   });
 
   describe("constructor", () => {
     beforeAll(async () => {
       // Reset modules and reimport with mocked env var
       vi.resetModules();
-      const module = await import("./RetellSDKClient");
-      RetellSDKClient = module.RetellSDKClient;
+      const moduleImport = await import("./RetellSDKClient");
+      RetellSDKClient = moduleImport.RetellSDKClient;
     });
 
     it("should create client with default logger when no custom logger provided", () => {
@@ -218,7 +220,7 @@ describe("RetellSDKClient", () => {
       client = new RetellSDKClient(mockLogger);
     });
 
-    describe("createAgent", () => {
+    describe("createOutboundAgent", () => {
       it("should create agent", async () => {
         const mockRequest: CreateAgentRequest = {
           agent_name: "Test Agent",
@@ -229,7 +231,7 @@ describe("RetellSDKClient", () => {
 
         mockRetellInstance.agent.create.mockResolvedValue(mockResponse);
 
-        const result = await client.createAgent(mockRequest);
+        const result = await client.createOutboundAgent(mockRequest);
 
         expect(mockRetellInstance.agent.create).toHaveBeenCalledWith(mockRequest);
         expect(result).toEqual(mockResponse);
@@ -373,9 +375,9 @@ describe("RetellSDKClient", () => {
     describe("createPhoneCall", () => {
       it("should create phone call", async () => {
         const callData = {
-          from_number: "+14155551234",
-          to_number: "+14155555678",
-          retell_llm_dynamic_variables: {
+          fromNumber: "+14155551234",
+          toNumber: "+14155555678",
+          dynamicVariables: {
             name: "John Doe",
             email: "john@example.com",
           } as RetellDynamicVariables,
@@ -386,15 +388,22 @@ describe("RetellSDKClient", () => {
 
         const result = await client.createPhoneCall(callData);
 
-        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith(callData);
+        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith({
+          from_number: "+14155551234",
+          to_number: "+14155555678",
+          retell_llm_dynamic_variables: {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+        });
         expect(result).toEqual(mockResponse);
       });
 
       it("should handle undefined dynamic variables", async () => {
         const callData = {
-          from_number: "+14155551234",
-          to_number: "+14155555678",
-          retell_llm_dynamic_variables: undefined,
+          fromNumber: "+14155551234",
+          toNumber: "+14155555678",
+          dynamicVariables: undefined,
         };
         const mockResponse = { call_id: "test-call-id" };
 
@@ -402,7 +411,11 @@ describe("RetellSDKClient", () => {
 
         const result = await client.createPhoneCall(callData);
 
-        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith(callData);
+        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith({
+          from_number: "+14155551234",
+          to_number: "+14155555678",
+          retell_llm_dynamic_variables: undefined,
+        });
         expect(result).toEqual(mockResponse);
       });
     });

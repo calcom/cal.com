@@ -18,7 +18,7 @@ export class PlatformBillingRepositoryFixture {
         id: orgId,
         customerId: `cus_123_${randomString}`,
         subscriptionId: `sub_123_${randomString}`,
-        plan: plan || "STARTER",
+        plan: plan || "FREE",
       },
     });
   }

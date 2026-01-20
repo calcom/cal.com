@@ -1,17 +1,37 @@
 # https://playwright.dev/docs/test-sharding#merging-reports-from-multiple-shards
 on:
   workflow_call:
+    inputs:
+      source_run_id:
+        description: 'The run ID to download artifacts from (for workflow_run triggered calls)'
+        required: true
+        type: string
+      source_run_number:
+        description: 'The run number for artifact naming'
+        required: true
+        type: string
+      source_run_attempt:
+        description: 'The run attempt for artifact naming'
+        required: true
+        type: string
+      source_head_sha:
+        description: 'The head SHA to checkout for Playwright version consistency'
+        required: true
+        type: string
 jobs:
   merge-reports:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          ref: ${{ inputs.source_head_sha }}
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - name: Download blob reports from GitHub Actions Artifacts
         uses: actions/download-artifact@v4
         with:
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
           path: all-blob-reports
           pattern: blob-report-*
           merge-multiple: true
@@ -20,6 +40,6 @@ jobs:
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
         with:
-          name: html-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
+          name: html-report--attempt-${{ inputs.source_run_number }}-${{ inputs.source_run_attempt }}
           path: playwright-report
           retention-days: 14

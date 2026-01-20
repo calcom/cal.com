@@ -257,8 +257,8 @@ export default class CloseCom {
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: this.refresh_token,
-          client_id: process.env.CLOSECOM_CLIENT_ID!,
-          client_secret: process.env.CLOSECOM_CLIENT_SECRET!,
+          client_id: process.env.CLOSECOM_CLIENT_ID ?? "",
+          client_secret: process.env.CLOSECOM_CLIENT_SECRET ?? "",
         }),
       });
 

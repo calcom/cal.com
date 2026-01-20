@@ -10,6 +10,14 @@ vi.mock("@calcom/lib/constants", async () => {
   return await vi.importActual("@calcom/lib/constants");
 });
 
+vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
+  getOrgFullOrigin: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/hooks/useRouterQuery", () => ({
+  useRouterQuery: vi.fn(),
+}));
+
 function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof UserPage>>) {
   return {
     themeBasis: "dark",
@@ -20,7 +28,14 @@ function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof
       theme: "dark",
       brandColor: "red",
       darkBrandColor: "black",
-      organization: { requestedSlug: "slug", slug: "slug", id: 1 },
+      organization: {
+        requestedSlug: "slug",
+        slug: "slug",
+        id: 1,
+        brandColor: null,
+        darkBrandColor: null,
+        theme: null,
+      },
       allowSEOIndexing: true,
       username: "john",
     },

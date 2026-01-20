@@ -11,14 +11,12 @@ import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { LastUsed, useLastUsed } from "@calcom/features/auth/lib/hooks/useLastUsed";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -68,7 +66,7 @@ export default function Login({
         .string()
         .min(1, `${t("error_required_field")}`)
         .regex(emailRegex, `${t("enter_valid_email")}`),
-      ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
+      ...(totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
     .passthrough();
@@ -87,8 +85,6 @@ export default function Login({
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
-
-  const telemetry = useTelemetry();
 
   let callbackUrl = searchParams?.get("callbackUrl") || "";
 
@@ -179,7 +175,7 @@ export default function Login({
 
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
-    telemetry.event(telemetryEventTypes.login, collectPageParameters());
+    // telemetry.event(telemetryEventTypes.login, collectPageParameters());
     const res = await signIn<"credentials">("credentials", {
       ...values,
       callbackUrl,
@@ -198,7 +194,7 @@ export default function Login({
   };
 
   return (
-    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
+    <div className="text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
@@ -207,14 +203,14 @@ export default function Login({
             ? !totpEmail
               ? TwoFactorFooter
               : ExternalTotpFooter
-            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
+            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false"
             ? LoginFooter
             : null
         }>
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
-              <div className="space-y-3">
+              <div className="stack-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
                     color="primary"
@@ -254,11 +250,11 @@ export default function Login({
               {(isGoogleLoginEnabled || isOutlookLoginEnabled) && (
                 <div className="my-8">
                   <div className="relative flex items-center">
-                    <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                    <div className="border-subtle grow border-t" />
+                    <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
                       {t("or").toLocaleLowerCase()}
                     </span>
-                    <div className="border-subtle flex-grow border-t" />
+                    <div className="border-subtle grow border-t" />
                   </div>
                 </div>
               )}
@@ -269,8 +265,8 @@ export default function Login({
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
-            <div className="space-y-6">
-              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
+            <div className="stack-y-6">
+              <div className={classNames("stack-y-6", { hidden: twoFactorRequired })}>
                 <EmailField
                   id="email"
                   label={t("email_address")}

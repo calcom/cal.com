@@ -24,8 +24,8 @@ import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/vari
 const renderLabel = (field: Partial<RhfFormField>) => {
   if (field.labelAsSafeHtml) {
     return (
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
       <span
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(field.labelAsSafeHtml) }}
       />
     );
@@ -66,10 +66,12 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  onValueChange,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  onValueChange?: (args: { name: string; value: unknown; prevValue: unknown }) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -87,15 +89,18 @@ export const FormBuilderField = ({
         // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
+          const setAndNotify = (val: unknown) => {
+            onChange(val);
+            onValueChange?.({ name: field.name, value: val, prevValue: value });
+          };
+
           return (
             <div>
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
                 readOnly={readOnly || shouldBeDisabled}
-                setValue={(val: unknown) => {
-                  onChange(val);
-                }}
+                setValue={setAndNotify}
                 noLabel={noLabel}
                 translatedDefaultLabel={translatedDefaultLabel}
               />
@@ -168,7 +173,7 @@ const WithLabel = ({
           field.type !== "multiemail" &&
           field.label && (
             <div className="mb-2 flex items-center">
-              <Label className="!mb-0 flex items-center" htmlFor={htmlFor}>
+              <Label className="mb-0! flex items-center" htmlFor={htmlFor}>
                 {renderLabel(field)}
                 <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
                   {!readOnly && field.required ? "*" : ""}

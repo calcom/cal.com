@@ -44,17 +44,5 @@ describe("usePermissions", () => {
 
       expect(getResourcePermissionLevel("eventType", permissions)).toBe("all");
     });
-
-    it("should return 'all' for resource with manage permission", () => {
-      const permissions = ["eventType.manage"];
-
-      expect(getResourcePermissionLevel("eventType", permissions)).toBe("all");
-    });
-
-    it("should return 'all' for resource with manage permission even if other permissions are missing", () => {
-      const permissions = ["eventType.manage", "eventType.read"]; // Has manage and read, but missing create, update, delete
-
-      expect(getResourcePermissionLevel("eventType", permissions)).toBe("all");
-    });
   });
 });

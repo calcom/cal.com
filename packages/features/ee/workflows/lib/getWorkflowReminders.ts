@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { EventType, User, WorkflowReminder, WorkflowStep, Prisma } from "@calcom/prisma/client";
+import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
@@ -8,6 +8,9 @@ type PartialWorkflowStep =
       workflow: {
         userId?: number;
         teamId?: number;
+        team?: {
+          isOrganization: boolean;
+        } | null;
       };
     })
   | null;
@@ -48,7 +51,7 @@ type PartialBooking =
 
 export type PartialWorkflowReminder = Pick<
   WorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid" | "seatReferenceId"
 > & {
   booking: PartialBooking | null;
 } & { workflowStep: PartialWorkflowStep };
@@ -74,7 +77,8 @@ async function getWorkflowReminders<T extends Prisma.WorkflowReminderSelect>(
     }
 
     filteredWorkflowReminders.push(
-      ...(newFilteredWorkflowReminders as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
+      // FIXME: This is a workaround to avoid type errors
+      ...(newFilteredWorkflowReminders as unknown as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
     );
     pageNumber++;
   }
@@ -132,6 +136,7 @@ export const select = {
   scheduledDate: true,
   isMandatoryReminder: true,
   uuid: true,
+  seatReferenceId: true,
   workflowStep: {
     select: {
       action: true,
@@ -145,6 +150,11 @@ export const select = {
         select: {
           userId: true,
           teamId: true,
+          team: {
+            select: {
+              isOrganization: true,
+            },
+          },
         },
       },
     },

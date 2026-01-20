@@ -33,8 +33,7 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
   }
 
   // Consider setting atleast ES2015 as target
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-ignore TS2802: IterableIterator iteration requires downlevelIteration
   for (const [key, value] of entries) {
     if (result.hasOwnProperty(key)) {
       let currentValue = result[key];
@@ -79,6 +78,7 @@ function listKnownConfigProps() {
     "ui.color-scheme",
     "theme",
     "cal.embed.pageType",
+    "ui.autoscroll",
   ];
   return knownConfigProps;
 }

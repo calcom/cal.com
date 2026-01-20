@@ -14,7 +14,6 @@ const ScrollableArea = ({ children, className }: PropsWithChildren<{ className?:
 
     if (scrollableElement) {
       const isElementOverflowing = scrollableElement.scrollHeight > scrollableElement.clientHeight;
-      console.log({ isElementOverflowing });
       setIsOverflowingY(isElementOverflowing);
     }
   }, []);

@@ -4,9 +4,9 @@ import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { TokensService } from "@/modules/tokens/tokens.service";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -29,8 +29,11 @@ export type ApiAuthGuardRequest = Request & {
   user: ApiAuthGuardUser;
   allowedAuthMethods?: AllowedAuthMethod[];
 };
-export const NO_AUTH_PROVIDED_MESSAGE =
-  "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
+export const NO_AUTH_PROVIDED_MESSAGE = `No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as '${X_CAL_SECRET_KEY}' and '${X_CAL_CLIENT_ID}' headers`;
+
+export const ONLY_CLIENT_ID_PROVIDED_MESSAGE = `Only '${X_CAL_CLIENT_ID}' header provided. Please also provide '${X_CAL_SECRET_KEY}' header or Auth bearer token as 'Authentication' header`;
+
+export const ONLY_CLIENT_SECRET_PROVIDED_MESSAGE = `Only '${X_CAL_SECRET_KEY}' header provided. Please also provide '${X_CAL_CLIENT_ID}' header or Auth bearer token as 'Authentication' header`;
 
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
@@ -45,8 +48,8 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly userRepository: UsersRepository,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly oauthRepository: OAuthClientRepository,
-    private readonly profilesRepository: ProfilesRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly membershipsRepository: MembershipsRepository
   ) {
     super();
   }
@@ -117,8 +120,20 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       }
 
       const noAuthProvided = !oAuthClientId && !oAuthClientSecret && !bearerToken && !nextAuthToken;
+      const onlyClientIdProvided = !!oAuthClientId && !oAuthClientSecret && !bearerToken && !nextAuthToken;
+      const onlyClientSecretProvided =
+        !oAuthClientId && !!oAuthClientSecret && !bearerToken && !nextAuthToken;
+
       if (noAuthProvided) {
         throw new UnauthorizedException(`ApiAuthStrategy - ${NO_AUTH_PROVIDED_MESSAGE}`);
+      }
+
+      if (onlyClientIdProvided) {
+        throw new UnauthorizedException(`ApiAuthStrategy - ${ONLY_CLIENT_ID_PROVIDED_MESSAGE}`);
+      }
+
+      if (onlyClientSecretProvided) {
+        throw new UnauthorizedException(`ApiAuthStrategy - ${ONLY_CLIENT_SECRET_PROVIDED_MESSAGE}`);
       }
 
       throw new UnauthorizedException(
@@ -172,7 +187,9 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("ApiAuthStrategy - oAuth client - Invalid client secret");
     }
 
-    const platformCreatorId = await this.profilesRepository.getPlatformOwnerUserId(client.organizationId);
+    const platformCreatorId =
+      (await this.membershipsRepository.findPlatformOwnerUserId(client.organizationId)) ||
+      (await this.membershipsRepository.findPlatformAdminUserId(client.organizationId));
 
     if (!platformCreatorId) {
       throw new UnauthorizedException(

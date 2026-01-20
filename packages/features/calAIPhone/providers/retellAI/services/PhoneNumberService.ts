@@ -2,10 +2,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
+import { AIPhoneServiceProviderType } from "../../../interfaces/AIPhoneService.interface";
 import type {
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParamsExtended,
-  AIPhoneServiceProviderType,
   AIPhoneServicePhoneNumber,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
@@ -14,15 +14,16 @@ import type { TransactionInterface } from "../../interfaces/TransactionInterface
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository } from "../types";
 
+type Dependencies = {
+  retellRepository: RetellAIRepository;
+  agentRepository: AgentRepositoryInterface;
+  phoneNumberRepository: PhoneNumberRepositoryInterface;
+  transactionManager: TransactionInterface;
+};
+
 export class PhoneNumberService {
   private logger = logger.getSubLogger({ prefix: ["PhoneNumberService"] });
-
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface,
-    private phoneNumberRepository: PhoneNumberRepositoryInterface,
-    private transactionManager: TransactionInterface
-  ) {}
+  constructor(private deps: Dependencies) {}
 
   async importPhoneNumber(
     data: AIPhoneServiceImportPhoneNumberParamsExtended
@@ -39,15 +40,15 @@ export class PhoneNumberService {
     await this.validateTeamPermissions(userId, teamId);
     const agent = await this.validateAgentPermissions(userId, agentId);
 
-    let transactionState = {
+    const transactionState = {
       retellPhoneNumber: null as AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> | null,
       databaseRecordCreated: false,
       agentAssigned: false,
     };
 
     try {
-      return await this.transactionManager.executeInTransaction(async (txContext) => {
-        transactionState.retellPhoneNumber = await this.retellRepository.importPhoneNumber({
+      return await this.deps.transactionManager.executeInTransaction(async (txContext) => {
+        transactionState.retellPhoneNumber = await this.deps.retellRepository.importPhoneNumber({
           phone_number: rest.phone_number,
           termination_uri: rest.termination_uri,
           sip_trunk_auth_username: rest.sip_trunk_auth_username,
@@ -65,9 +66,12 @@ export class PhoneNumberService {
         transactionState.databaseRecordCreated = true;
 
         if (agent) {
-          await this.retellRepository.updatePhoneNumber(transactionState.retellPhoneNumber.phone_number, {
-            outbound_agent_id: agent.providerAgentId,
-          });
+          await this.deps.retellRepository.updatePhoneNumber(
+            transactionState.retellPhoneNumber.phone_number,
+            {
+              outbound_agent_id: agent.providerAgentId,
+            }
+          );
           transactionState.agentAssigned = true;
         }
 
@@ -81,9 +85,13 @@ export class PhoneNumberService {
 
   async createPhoneNumber(
     data: AIPhoneServiceCreatePhoneNumberParams
-  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> & { provider: string }> {
     try {
-      return await this.retellRepository.createPhoneNumber(data);
+      const phoneNumber = await this.deps.retellRepository.createPhoneNumber(data);
+      return {
+        ...phoneNumber,
+        provider: AIPhoneServiceProviderType.RETELL_AI,
+      };
     } catch (error) {
       this.logger.error("Failed to create phone number in external AI service", {
         data,
@@ -115,12 +123,12 @@ export class PhoneNumberService {
     }
 
     const phoneNumberToDelete = teamId
-      ? await this.phoneNumberRepository.findByPhoneNumberAndTeamId({
+      ? await this.deps.phoneNumberRepository.findByPhoneNumberAndTeamId({
           phoneNumber,
           teamId,
           userId,
         })
-      : await this.phoneNumberRepository.findByPhoneNumberAndUserId({
+      : await this.deps.phoneNumberRepository.findByPhoneNumberAndUserId({
           phoneNumber,
           userId,
         });
@@ -146,7 +154,7 @@ export class PhoneNumberService {
     }
 
     try {
-      await this.retellRepository.updatePhoneNumber(phoneNumber, {
+      await this.deps.retellRepository.updatePhoneNumber(phoneNumber, {
         inbound_agent_id: null,
         outbound_agent_id: null,
       });
@@ -157,10 +165,10 @@ export class PhoneNumberService {
       });
     }
 
-    await this.retellRepository.deletePhoneNumber(phoneNumber);
+    await this.deps.retellRepository.deletePhoneNumber(phoneNumber);
 
     if (deleteFromDB) {
-      await this.phoneNumberRepository.deletePhoneNumber({ phoneNumber });
+      await this.deps.phoneNumberRepository.deletePhoneNumber({ phoneNumber });
     }
   }
 
@@ -175,7 +183,7 @@ export class PhoneNumberService {
     }
 
     try {
-      return await this.retellRepository.getPhoneNumber(phoneNumber);
+      return await this.deps.retellRepository.getPhoneNumber(phoneNumber);
     } catch (error) {
       this.logger.error("Failed to get phone number from external AI service", {
         phoneNumber,
@@ -207,7 +215,7 @@ export class PhoneNumberService {
     }
 
     try {
-      return await this.retellRepository.updatePhoneNumber(phoneNumber, data);
+      return await this.deps.retellRepository.updatePhoneNumber(phoneNumber, data);
     } catch (error) {
       this.logger.error("Failed to update phone number in external AI service", {
         phoneNumber,
@@ -242,12 +250,12 @@ export class PhoneNumberService {
     }
 
     const phoneNumberRecord = teamId
-      ? await this.phoneNumberRepository.findByPhoneNumberAndTeamId({
+      ? await this.deps.phoneNumberRepository.findByPhoneNumberAndTeamId({
           phoneNumber,
           teamId,
           userId,
         })
-      : await this.phoneNumberRepository.findByPhoneNumberAndUserId({
+      : await this.deps.phoneNumberRepository.findByPhoneNumberAndUserId({
           phoneNumber,
           userId,
         });
@@ -281,7 +289,7 @@ export class PhoneNumberService {
       });
     }
 
-    await this.phoneNumberRepository.updateAgents({
+    await this.deps.phoneNumberRepository.updateAgents({
       id: phoneNumberRecord.id,
       inboundProviderAgentId: inboundAgentId,
       outboundProviderAgentId: outboundAgentId,
@@ -292,7 +300,7 @@ export class PhoneNumberService {
 
   private async validateTeamPermissions(userId: number, teamId?: number) {
     if (teamId) {
-      const canManage = await this.agentRepository.canManageTeamResources({
+      const canManage = await this.deps.agentRepository.canManageTeamResources({
         userId,
         teamId,
       });
@@ -305,10 +313,17 @@ export class PhoneNumberService {
     }
   }
 
-  private async validateAgentPermissions(userId: number, agentId?: string) {
+  private async validateAgentPermissions(userId: number, agentId?: string | null) {
+    if (!agentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
+    }
+
     let agent = null;
     if (agentId) {
-      agent = await this.agentRepository.findByIdWithUserAccess({
+      agent = await this.deps.agentRepository.findByIdWithUserAccess({
         agentId,
         userId,
       });
@@ -330,7 +345,7 @@ export class PhoneNumberService {
     type: "inbound" | "outbound"
   ) {
     if (agentId) {
-      const agent = await this.agentRepository.findByProviderAgentIdWithUserAccess({
+      const agent = await this.deps.agentRepository.findByProviderAgentIdWithUserAccess({
         providerAgentId: agentId,
         userId,
       });
@@ -358,14 +373,14 @@ export class PhoneNumberService {
       agentAssigned: boolean;
     },
     error: unknown,
-    context: { userId: number; teamId?: number; agentId?: string }
+    context: { userId: number; teamId?: number; agentId?: string | null | undefined }
   ) {
     if (transactionState.retellPhoneNumber?.phone_number) {
       try {
         this.logger.warn("Attempting cleanup of Retell phone number due to transaction failure", {
           phoneNumber: transactionState.retellPhoneNumber.phone_number,
         });
-        await this.retellRepository.deletePhoneNumber(transactionState.retellPhoneNumber.phone_number);
+        await this.deps.retellRepository.deletePhoneNumber(transactionState.retellPhoneNumber.phone_number);
         this.logger.info("Successfully cleaned up Retell phone number", {
           phoneNumber: transactionState.retellPhoneNumber.phone_number,
         });

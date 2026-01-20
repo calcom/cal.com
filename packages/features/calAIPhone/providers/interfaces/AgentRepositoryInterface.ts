@@ -68,7 +68,17 @@ export interface AgentRepositoryInterface {
   /**
    * Link agent to workflow step
    */
-  linkToWorkflowStep(params: { workflowStepId: number; agentId: string }): Promise<void>;
+  linkOutboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void>;
+
+  /**
+   * Link inbound agent to workflow
+   */
+  linkInboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void>;
+
+  /**
+   * Update outbound event type ID for an agent
+   */
+  updateOutboundEventTypeId(params: { agentId: string; eventTypeId: number }): Promise<void>;
 }
 
 /**
@@ -79,8 +89,10 @@ export interface AgentData {
   name: string;
   providerAgentId: string;
   enabled: boolean;
-  userId: number;
+  userId: number | null;
   teamId: number | null;
+  inboundEventTypeId?: number | null;
+  outboundEventTypeId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

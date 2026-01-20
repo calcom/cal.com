@@ -1,10 +1,15 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
-import { isAuthorized } from "./util";
-
 vi.mock("@calcom/features/pbac/services/permission-check.service");
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 describe("isAuthorized", () => {
   const mockPermissionCheckService = vi.mocked(PermissionCheckService);
@@ -13,12 +18,12 @@ describe("isAuthorized", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckPermission = vi.fn();
-    mockPermissionCheckService.mockImplementation(
-      () =>
-        ({
-          checkPermission: mockCheckPermission,
-        } as any)
-    );
+    mockPermissionCheckService.mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+    });
   });
 
   describe("null workflow", () => {
@@ -351,6 +356,7 @@ describe("isAuthorized", () => {
     it("should handle workflow with undefined teamId as personal workflow", async () => {
       const workflow = {
         id: 1,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         teamId: undefined as any,
         userId: 123,
       };

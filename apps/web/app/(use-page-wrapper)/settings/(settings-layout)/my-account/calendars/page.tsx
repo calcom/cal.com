@@ -21,11 +21,13 @@ const Page = async () => {
     createRouterCaller(appsRouter),
   ]);
 
-  const connectedCalendars = await calendarsCaller.connectedCalendars();
-  const installedCalendars = await appsCaller.integrations({
-    variant: "calendar",
-    onlyInstalled: true,
-  });
+  const [connectedCalendars, installedCalendars] = await Promise.all([
+    calendarsCaller.connectedCalendars(),
+    appsCaller.integrations({
+      variant: "calendar",
+      onlyInstalled: true,
+    }),
+  ]);
   return (
     <CalendarListContainer connectedCalendars={connectedCalendars} installedCalendars={installedCalendars} />
   );

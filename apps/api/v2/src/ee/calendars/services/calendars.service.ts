@@ -1,4 +1,22 @@
+import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
+import {
+  type EventBusyDate,
+  getBusyCalendarTimes,
+  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
+} from "@calcom/platform-libraries";
+import type { Calendar } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, User } from "@calcom/prisma/client";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
@@ -7,25 +25,6 @@ import {
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-  NotFoundException,
-} from "@nestjs/common";
-import { User } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-import { DateTime } from "luxon";
-import { z } from "zod";
-
-import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import {
-  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
-  getBusyCalendarTimes,
-  type EventBusyDate,
-} from "@calcom/platform-libraries";
-import { Calendar } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class CalendarsService {
@@ -37,7 +36,8 @@ export class CalendarsService {
     private readonly appsRepository: AppsRepository,
     private readonly calendarsRepository: CalendarsRepository,
     private readonly dbWrite: PrismaWriteService,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
+    private readonly calendarsCacheService: CalendarsCacheService
   ) {}
 
   private buildNonDelegationCredentials<TCredential>(credentials: TCredential[]) {
@@ -51,12 +51,18 @@ export class CalendarsService {
       .filter((credential) => !!credential);
   }
 
-  async getCalendars(userId: number) {
+  async getCalendars(userId: number, ensureDefaultSelectedCalendars = false) {
+    const cachedResult = await this.calendarsCacheService.getConnectedAndDestinationCalendarsCache(userId);
+
+    if (cachedResult && !ensureDefaultSelectedCalendars) {
+      return cachedResult;
+    }
+
     const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
     if (!userWithCalendars) {
       throw new NotFoundException("User not found");
     }
-    return getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+    const result = await getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
       user: {
         ...userWithCalendars,
         allSelectedCalendars: userWithCalendars.selectedCalendars,
@@ -64,10 +70,13 @@ export class CalendarsService {
           (calendar) => !calendar.eventTypeId
         ),
       },
-      onboarding: false,
+      onboarding: ensureDefaultSelectedCalendars,
       eventTypeId: null,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
+    await this.calendarsCacheService.setConnectedAndDestinationCalendarsCache(userId, result);
+
+    return result;
   }
 
   async getBusyTimes(
@@ -187,6 +196,8 @@ export class CalendarsService {
       userId,
       calendarType
     );
+
+    await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
   }
 
   async checkCalendarCredentialValidity(userId: number, credentialId: number, type: string) {

@@ -32,6 +32,7 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
   Person,
@@ -40,7 +41,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { ExchangeAuthentication } from "../enums";
 
-export default class ExchangeCalendarService implements Calendar {
+class ExchangeCalendarService implements Calendar {
   private integrationName = "";
   private log: typeof logger;
   private payload;
@@ -133,11 +134,8 @@ export default class ExchangeCalendarService implements Calendar {
     });
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const calendars: IntegrationCalendar[] = await this.listCalendars();
     const promises: Promise<EventBusyDate[]>[] = calendars
       .filter((lcal) => selectedCalendars.some((rcal) => lcal.externalId == rcal.externalId))
@@ -209,4 +207,16 @@ export default class ExchangeCalendarService implements Calendar {
     }
     return service;
   }
+}
+
+/**
+ * Factory function that creates an Exchange Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like ews-javascript-api types)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all EWS SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCalendarService(
+  credential: CredentialPayload
+): Calendar {
+  return new ExchangeCalendarService(credential);
 }

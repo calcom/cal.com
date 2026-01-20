@@ -1,8 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/cron/calendar-cache-cleanup",
-      "schedule": "0 5 * * *"
+      "path": "/api/cron/calendar-subscriptions",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/calendar-subscriptions-cleanup",
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/cron/queuedFormResponseCleanup",
@@ -10,10 +14,6 @@
     },
     {
       "path": "/api/tasks/cron",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/calendar-cache/cron",
       "schedule": "* * * * *"
     },
     {
@@ -41,18 +41,6 @@
     },
     "pages/api/trpc/workflows/[trpc].ts": {
       "maxDuration": 800
-    },
-    "pages/api/trpc/highPerf/[trpc].ts": {
-      "memory": 3008
-    },
-    "pages/api/trpc/appRoutingForms/[trpc].ts": {
-      "memory": 2048
-    },
-    "pages/router/embed.tsx": {
-      "memory": 2048
-    },
-    "pages/api/book/event.ts": {
-      "memory": 2048
     }
   }
 }

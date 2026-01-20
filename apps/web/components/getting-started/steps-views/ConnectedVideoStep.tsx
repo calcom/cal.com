@@ -1,4 +1,3 @@
-import { type TFunction } from "i18next";
 import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -20,11 +19,9 @@ interface ConnectedAppStepProps {
 }
 
 const ConnectedVideoStepInner = ({
-  t,
   setAnyInstalledVideoApps,
   user,
 }: {
-  t: TFunction;
   setAnyInstalledVideoApps: Dispatch<SetStateAction<boolean>>;
   user: RouterOutputs["viewer"]["me"]["get"];
 }) => {
@@ -62,7 +59,7 @@ const ConnectedVideoStepInner = ({
   const { data: metadata } = result;
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
   return (
-    <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
+    <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y overflow-y-scroll! rounded-md border p-0 sm:mx-0">
       {queryConnectedVideoApps?.items &&
         queryConnectedVideoApps?.items.map((item) => {
           if (item.slug === "daily-video") return null; // we dont want to show daily here as it is installed by default
@@ -94,7 +91,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const [hasAnyInstalledVideoApps, setAnyInstalledVideoApps] = useState(false);
   return (
     <>
-      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} t={t} user={user} />
+      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} user={user} />
       <Button
         EndIcon="arrow-right"
         data-testid="save-video-button"
@@ -105,7 +102,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         disabled={!hasAnyInstalledVideoApps}
         loading={isPageLoading}
         onClick={() => nextStep()}>
-        {t("next_step_text")}
+        {t("set_availability")}
       </Button>
     </>
   );
