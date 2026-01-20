@@ -1,3 +1,4 @@
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
@@ -27,8 +28,13 @@ export async function joinAnyChildTeamOnOrgInvite({
     user.username ||
     getOrgUsernameFromEmail(user.email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
 
+  const organizationRepository = new OrganizationRepository({ prismaClient: prisma });
+  const pendingChildTeamMemberships = await organizationRepository.findPendingChildTeamMemberships({
+    orgId: org.id,
+    userId,
+  });
+
   await prisma.$transaction([
-    // Simply remove this update when we remove the `organizationId` field from the user table
     prisma.user.update({
       where: {
         id: userId,
@@ -81,4 +87,8 @@ export async function joinAnyChildTeamOnOrgInvite({
   ]);
 
   await updateNewTeamMemberEventTypes(userId, org.id);
+
+  await Promise.all(
+    pendingChildTeamMemberships.map((membership) => updateNewTeamMemberEventTypes(userId, membership.teamId))
+  );
 }
