@@ -198,17 +198,14 @@ function findMatchingCalendar({
 }: {
   connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
   calendar: DestinationCalendar;
-}): (DestinationCalendar & { isSelected: boolean }) | undefined {
+}): Required<ConnectedCalendarsFromGetConnectedCalendars[number]>["calendars"][number] | undefined {
   // Check if destinationCalendar exists in connectedCalendars
   const allCals = connectedCalendars.flatMap((cal) => cal.calendars ?? []);
   const matchingCalendar = allCals.find(
     (cal) => cal.externalId === calendar.externalId && cal.integration === calendar.integration
   );
   if (!matchingCalendar) return;
-  return {
-    ...matchingCalendar,
-    ...calendar,
-  };
+  return matchingCalendar;
 }
 
 async function ensureSelectedCalendarIsInDb({
@@ -282,7 +279,10 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   eventTypeId?: number | null;
   prisma: PrismaClient;
   skipSync?: boolean;
-}) {
+}): Promise<{
+  destinationCalendar: IntegrationCalendar | null;
+  connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"];
+}> {
   const userCredentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
@@ -296,7 +296,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
   let connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"] = [];
-  let destinationCalendar: DestinationCalendar | null = user.destinationCalendar ?? null;
+  let destinationCalendar: IntegrationCalendar | null = null;
 
   if (!skipSync) {
     const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey(
@@ -315,6 +315,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     );
 
     connectedCalendars = getConnectedCalendarsResult.connectedCalendars;
+    destinationCalendar = getConnectedCalendarsResult.destinationCalendar;
 
     let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
 
@@ -365,9 +366,6 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
           return true;
         });
       }
-      if (destinationCal) {
-        destinationCalendar = destinationCal;
-      }
     }
 
     // Insert the newly toggled record to the DB
@@ -385,12 +383,28 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     loggedInUser: { email: user.email },
   });
 
+  if (!destinationCalendar && user.destinationCalendar) {
+    // fallback to using user.destinationCalendar as IntegrationCalendar
+    destinationCalendar = {
+      primary: true,
+      integration: user.destinationCalendar.integration,
+      name: user.destinationCalendar.primaryEmail || undefined,
+      readOnly: false,
+      externalId: user.destinationCalendar.externalId,
+      email: user.destinationCalendar.primaryEmail || undefined,
+      primaryEmail: user.destinationCalendar.primaryEmail,
+      credentialId: user.destinationCalendar.credentialId,
+      integrationTitle: user.destinationCalendar.integration,
+    };
+  }
+
+  if (destinationCalendar) {
+    destinationCalendar.customCalendarReminder = user.destinationCalendar?.customCalendarReminder;
+  }
+
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
-    destinationCalendar: {
-      ...user.destinationCalendar,
-      ...destinationCalendar,
-    },
+    destinationCalendar,
   };
 }
 
