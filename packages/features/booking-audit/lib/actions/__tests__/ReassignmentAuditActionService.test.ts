@@ -233,11 +233,11 @@ describe("ReassignmentAuditActionService", () => {
       const result = service.getDisplayJson({ storedData, userTimeZone: "UTC" });
 
       expect(result).toEqual({
-        newAssignedRRHostUuid: "organizer-new",
-        previousAssignedRRHostUuid: "organizer-old",
         newOrganizerUuid: "organizer-new",
         previousOrganizerUuid: "organizer-old",
         hostAttendeeIdUpdated: null,
+        hostAttendeeUserUuidNew: null,
+        hostAttendeeUserUuidOld: null,
         reassignmentReason: "Host unavailable",
       });
     });
@@ -259,18 +259,18 @@ describe("ReassignmentAuditActionService", () => {
       const result = service.getDisplayJson({ storedData, userTimeZone: "UTC" });
 
       expect(result).toEqual({
-        newAssignedRRHostUuid: "new-rr-host-uuid",
-        previousAssignedRRHostUuid: "old-rr-host-uuid",
         newOrganizerUuid: "fixed-host-uuid",
         previousOrganizerUuid: "fixed-host-uuid",
         hostAttendeeIdUpdated: 123,
+        hostAttendeeUserUuidNew: "new-rr-host-uuid",
+        hostAttendeeUserUuidOld: "old-rr-host-uuid",
         reassignmentReason: null,
       });
     });
   });
 
   describe("getDisplayFields", () => {
-    it("should return assignment type field for manual reassignment", () => {
+    it("should return assignment type field for manual reassignment", async () => {
       const storedData = {
         version: 1,
         fields: {
@@ -280,17 +280,23 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const result = service.getDisplayFields(storedData);
+      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-old", name: "Previous Host" });
+
+      const result = await service.getDisplayFields(storedData);
 
       expect(result).toEqual([
         {
           labelKey: "booking_audit_action.assignment_type",
           valueKey: "booking_audit_action.assignment_type_manual",
         },
+        {
+          labelKey: "booking_audit_action.previous_assignee",
+          valueKey: "Previous Host",
+        },
       ]);
     });
 
-    it("should return assignment type field for round robin reassignment", () => {
+    it("should return assignment type field for round robin reassignment", async () => {
       const storedData = {
         version: 1,
         fields: {
@@ -300,12 +306,18 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const result = service.getDisplayFields(storedData);
+      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-old", name: "Previous Host" });
+
+      const result = await service.getDisplayFields(storedData);
 
       expect(result).toEqual([
         {
           labelKey: "booking_audit_action.assignment_type",
           valueKey: "booking_audit_action.assignment_type_round_robin",
+        },
+        {
+          labelKey: "booking_audit_action.previous_assignee",
+          valueKey: "Previous Host",
         },
       ]);
     });
