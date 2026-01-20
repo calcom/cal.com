@@ -19,22 +19,6 @@ const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndE
 type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCalendars>>;
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
-export type UserWithCalendars = Pick<User, "id" | "email"> & {
-  allSelectedCalendars: Pick<
-    SelectedCalendar,
-    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
-  >[];
-  userLevelSelectedCalendars: Pick<
-    SelectedCalendar,
-    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
-  >[];
-  destinationCalendar: DestinationCalendar | null;
-};
-
-export type ConnectedDestinationCalendars = Awaited<
-  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
->;
-
 /**
  * Ensures that when DelegationCredential is enabled and there is already a calendar connected for the corresponding domain, we only allow the DelegationCredential calendar to be returned
  * This is to ensure that duplicate calendar connections aren't shown in UI(apps/installed/calendars). We choose DelegationCredential connection to be shown because we don't want users to be able to work with individual calendars
@@ -214,13 +198,17 @@ function findMatchingCalendar({
 }: {
   connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
   calendar: DestinationCalendar;
-}) {
+}): (DestinationCalendar & { isSelected: boolean }) | undefined {
   // Check if destinationCalendar exists in connectedCalendars
   const allCals = connectedCalendars.flatMap((cal) => cal.calendars ?? []);
   const matchingCalendar = allCals.find(
     (cal) => cal.externalId === calendar.externalId && cal.integration === calendar.integration
   );
-  return matchingCalendar;
+  if (!matchingCalendar) return;
+  return {
+    ...matchingCalendar,
+    ...calendar,
+  };
 }
 
 async function ensureSelectedCalendarIsInDb({
@@ -262,6 +250,22 @@ function getSelectedCalendars({
   return user.userLevelSelectedCalendars;
 }
 
+export type UserWithCalendars = Pick<User, "id" | "email"> & {
+  allSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
+  userLevelSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
+  destinationCalendar: DestinationCalendar | null;
+};
+
+export type ConnectedDestinationCalendars = Awaited<
+  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
+>;
+
 /**
  * Fetches the calendars for the authenticated user or the event-type if provided
  * It also takes care of updating the destination calendar in some edge cases
@@ -292,8 +296,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
   let connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"] = [];
-  let destinationCalendar: DestinationCalendar | IntegrationCalendar | null | undefined =
-    user.destinationCalendar ?? null;
+  let destinationCalendar: DestinationCalendar | null = user.destinationCalendar ?? null;
 
   if (!skipSync) {
     const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey(
@@ -312,7 +315,6 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     );
 
     connectedCalendars = getConnectedCalendarsResult.connectedCalendars;
-    destinationCalendar = getConnectedCalendarsResult.destinationCalendar;
 
     let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
 
@@ -362,6 +364,9 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
           return true;
         });
+      }
+      if (destinationCal) {
+        destinationCalendar = destinationCal;
       }
     }
 
