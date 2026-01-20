@@ -219,71 +219,61 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
             {teamName}
           </h1>
           {!isBioEmpty && (
-            <>
-              <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
-                {isBioLong && !isBioExpanded ? (
-                  <div className="relative inline-block w-full">
-                    <div
-                      className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
-                      // eslint-disable-next-line react/no-danger
-                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
-                    />
-                    <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
-                      <button
-                        onClick={() => setIsBioExpanded(!isBioExpanded)}
-                        className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
-                        type="button">
-                        Read more
-                      </button>
-                    </div>
-                    <div className="mt-2 flex w-full justify-center md:hidden">
-                      <button
-                        onClick={() => setIsBioExpanded(!isBioExpanded)}
-                        className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
-                        type="button">
-                        Read more
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div
-                      className="overflow-visible"
-                      // eslint-disable-next-line react/no-danger
-                      dangerouslySetInnerHTML={{ __html: team.safeBio }}
-                    />
-                    {isBioLong && (
-                      <div className="mt-2">
-                        <button
-                          onClick={() => setIsBioExpanded(!isBioExpanded)}
-                          className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
-                          type="button">
-                          Read more
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div
-                        className="overflow-visible"
-                        // eslint-disable-next-line react/no-danger
-                        dangerouslySetInnerHTML={{ __html: team.safeBio }}
-                      />
-                      {isBioLong && (
-                        <div className="mt-2">
-                          <button
-                            onClick={() => setIsBioExpanded(!isBioExpanded)}
-                            className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
-                            type="button">
-                            Read less
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+  <>
+    <div className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]">
+      {isBioLong && !isBioExpanded ? (
+        <div className="relative inline-block w-full">
+          <div
+            className="line-clamp-2 overflow-hidden pr-0 md:pr-24"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: team.safeBio }}
+          />
+
+          <div className="from-default via-default absolute bottom-0 right-0 hidden items-baseline md:inline-flex">
+            <button
+              onClick={() => setIsBioExpanded(!isBioExpanded)}
+              className="text-subtle hover:text-default whitespace-nowrap text-sm font-medium underline transition-colors"
+              type="button"
+            >
+              Read more
+            </button>
+          </div>
+
+          <div className="mt-2 flex w-full justify-center md:hidden">
+            <button
+              onClick={() => setIsBioExpanded(!isBioExpanded)}
+              className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+              type="button"
+            >
+              Read more
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div
+            className="overflow-visible"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: team.safeBio }}
+          />
+
+          {isBioLong && (
+            <div className="mt-2">
+              <button
+                onClick={() => setIsBioExpanded(!isBioExpanded)}
+                className="text-subtle hover:text-default text-sm font-medium underline transition-colors"
+                type="button"
+              >
+                Read less
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </>
+)}
+
           </div>
 
           {team.isOrganization ? (
