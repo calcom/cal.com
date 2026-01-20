@@ -282,6 +282,7 @@ export class MonthlyProrationService {
     monthKey: string;
     teamId: number;
     subscriptionId: string;
+    remainingDays: number;
     invoiceId?: string | null;
   }) {
     const amountInCents = Math.round(proration.proratedAmount);
@@ -297,7 +298,7 @@ export class MonthlyProrationService {
       currency: "usd",
       description: `Additional ${proration.netSeatIncrease} seat${
         proration.netSeatIncrease > 1 ? "s" : ""
-      } for ${proration.monthKey}`,
+      } for ${proration.monthKey} (${proration.remainingDays} days remaining)`,
       subscriptionId: proration.subscriptionId,
       metadata: buildMonthlyProrationMetadata({
         prorationId: proration.id,
