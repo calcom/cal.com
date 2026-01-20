@@ -21,8 +21,6 @@ export async function goToAdminOAuthSettings(page: Page): Promise<void> {
   if (page.url().includes("/settings/admin/oauth")) return;
   await page.goto("/settings/admin/oauth");
   await page.waitForLoadState();
-  // Wait for at least one admin section to appear (ensures data has loaded)
-  await page.waitForSelector('[data-testid*="oauth-client-admin"]', { timeout: 30000 });
 }
 
 type CreateOAuthClientInput = {
