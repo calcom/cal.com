@@ -36,7 +36,6 @@ import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { cloneDeep } from "lodash";
-
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import { handleWorkflowsUpdate } from "./roundRobinManualReassignment";
 import { bookingSelect } from "./utils/bookingSelect";
@@ -209,6 +208,8 @@ export const roundRobinReassignment = async ({
 
   const attendeeList = await Promise.all(attendeePromises);
   let bookingLocation = booking.location;
+  let attendeeUpdatedId = null;
+  let previousRRHostAttendeeUuid = null;
 
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
@@ -274,27 +275,41 @@ export const roundRobinReassignment = async ({
     const previousRRHostAttendee = booking.attendees.find(
       (attendee) => attendee.email === previousRRHost.email
     );
-    await prisma.attendee.update({
-      where: {
-        id: previousRRHostAttendee!.id,
-      },
-      data: {
-        name: reassignedRRHost.name || "",
-        email: reassignedRRHost.email,
-        timeZone: reassignedRRHost.timeZone,
-        locale: reassignedRRHost.locale,
-      },
-    });
+    if (previousRRHostAttendee) {
+      previousRRHostAttendeeUuid = previousRRHost?.uuid ?? null;
+      attendeeUpdatedId = previousRRHostAttendee.id;
+      await prisma.attendee.update({
+        where: {
+          id: previousRRHostAttendee.id,
+        },
+        data: {
+          name: reassignedRRHost.name || "",
+          email: reassignedRRHost.email,
+          timeZone: reassignedRRHost.timeZone,
+          locale: reassignedRRHost.locale,
+        },
+      });
+    }
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const newOrganizerUuid = hasOrganizerChanged ? reassignedRRHost.uuid : originalOrganizer.uuid;
   await bookingEventHandlerService.onReassignment({
     bookingUid: booking.uid,
     actor: makeUserActor(reassignedByUuid),
     organizationId: orgId,
     source: actionSource,
     auditData: {
-      assignedToUuid: { old: originalOrganizer.uuid ?? null, new: reassignedRRHost.uuid ?? null },
+      organizerUuid: { old: originalOrganizer.uuid ?? null, new: newOrganizerUuid ?? null },
+      hostAttendeeUpdated: attendeeUpdatedId
+        ? {
+            id: attendeeUpdatedId,
+            withUserUuid: {
+              old: previousRRHostAttendeeUuid,
+              new: reassignedRRHost.uuid ?? null,
+            },
+          }
+        : undefined,
       reassignmentReason: null,
       reassignmentType: "roundRobin",
     },

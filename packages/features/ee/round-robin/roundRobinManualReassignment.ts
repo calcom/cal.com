@@ -38,7 +38,6 @@ import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { cloneDeep } from "lodash";
-
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
@@ -119,9 +118,17 @@ export const roundRobinManualReassignment = async ({
       }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
-  const currentRRHost = booking.attendees.find((attendee) =>
-    eventTypeHosts.some((host) => !host.isFixed && host.user.email === attendee.email)
-  );
+  let currentRRHostUserUuid = null;
+  const currentRRHost = booking.attendees.find((attendee) => {
+    const matchingEventTypeHost = eventTypeHosts.find(
+      (host) => !host.isFixed && host.user.email === attendee.email
+    );
+    if (matchingEventTypeHost) {
+      currentRRHostUserUuid = matchingEventTypeHost.user.uuid;
+      return true;
+    }
+    return false;
+  });
   const newUserHost = eventTypeHosts.find((host) => host.user.id === newUserId);
 
   if (!newUserHost) {
@@ -167,6 +174,8 @@ export const roundRobinManualReassignment = async ({
     previousHost: previousRRHost || null,
     reassignedHost: newUser,
   });
+
+  let attendeeUpdatedId = null;
 
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
@@ -241,16 +250,35 @@ export const roundRobinManualReassignment = async ({
         locale: newUser.locale,
       },
     });
+    attendeeUpdatedId = currentRRHost.id;
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  // Track both organizer and RR host changes for complete audit trail:
+  // - organizerUuid: The booking owner (booking.userId) - may or may not change
+  // - assignedRRHostUuid: The round-robin team member assigned - always changes
+  //
+  // previousRRHost may be nullish if: (1) all hosts are fixed, (2) previous RR host was
+  // removed from event type, or (3) data inconsistency. In fixed-host scenarios with removed
+  // RR host, we cannot reliably determine their UUID from attendees alone.
+  const newOrganizerUuid = hasOrganizerChanged ? newUser.uuid : originalOrganizer.uuid;
+
   await bookingEventHandlerService.onReassignment({
     bookingUid: booking.uid,
     actor: makeUserActor(reassignedByUuid),
     organizationId: orgId,
     source: actionSource,
     auditData: {
-      assignedToUuid: { old: originalOrganizer.uuid, new: newUser.uuid },
+      organizerUuid: { old: originalOrganizer.uuid, new: newOrganizerUuid },
+      hostAttendeeUpdated: attendeeUpdatedId
+        ? {
+            id: attendeeUpdatedId,
+            withUserUuid: {
+              old: currentRRHostUserUuid,
+              new: newUser.uuid,
+            },
+          }
+        : undefined,
       reassignmentReason: reassignReason ?? null,
       reassignmentType: "manual",
     },
