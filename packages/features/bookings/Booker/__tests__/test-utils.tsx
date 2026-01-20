@@ -72,6 +72,10 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
     allowUpdatingUrlParams: true,
     verificationCode: null,
     setVerificationCode: vi.fn(),
+    roundRobinChunkSettings: null,
+    setRoundRobinChunkSettings: vi.fn(),
+    roundRobinChunkInfo: null,
+    setRoundRobinChunkInfo: vi.fn(),
     ...initialState,
   };
 
