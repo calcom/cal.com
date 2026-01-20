@@ -31,12 +31,14 @@ import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEv
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
+import type { ConnectedCalendarsType, ScheduleDataType } from "@calcom/web/modules/bookings/types";
 
 import { Booker as BookerComponent } from "./Booker";
 
-export type BookerWebWrapperAtomProps = BookerProps & {
-  eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
-};
+export type BookerWebWrapperAtomProps = BookerProps &
+  WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType> & {
+    eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+  };
 
 const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();

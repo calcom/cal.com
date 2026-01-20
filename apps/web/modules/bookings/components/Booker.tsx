@@ -44,6 +44,7 @@ import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
+import type { ConnectedCalendarsType, ScheduleDataType } from "@calcom/web/modules/bookings/types";
 
 const BookerComponent = ({
   username,
@@ -83,7 +84,7 @@ const BookerComponent = ({
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
   showNoAvailabilityDialog,
-}: BookerProps & WrappedBookerProps) => {
+}: BookerProps & WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStoreContext(
@@ -609,7 +610,9 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (props: BookerProps & WrappedBookerProps) => {
+export const Booker = (
+  props: BookerProps & WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>
+) => {
   return (
     <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />
