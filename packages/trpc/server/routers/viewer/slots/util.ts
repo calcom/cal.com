@@ -417,8 +417,8 @@ export class AvailableSlotsService {
   }) {
     if (!eventTypeSlug || !slug) return null;
 
-    let teamId;
-    let userId;
+    let teamId: number | undefined;
+    let userId: number | undefined;
     if (isTeamEvent) {
       teamId = await this.getTeamIdFromSlug(
         slug,
@@ -1487,7 +1487,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone!;
+          : restrictionSchedule.timeZone ?? "UTC";
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
