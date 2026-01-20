@@ -12,13 +12,11 @@ import { Select } from "@calcom/ui/components/form";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 
-// Allow connectedCalendars to have additional properties (like cacheUpdatedAt from tRPC handler)
-type ConnectedCalendarItem = ConnectedDestinationCalendars["connectedCalendars"][number] & {
-  cacheUpdatedAt?: null;
-};
+// Base type for connected calendar items - allows additional properties from tRPC handler enrichment
+export type BaseConnectedCalendar = ConnectedDestinationCalendars["connectedCalendars"][number];
 
-export type DestinationCalendarProps = {
-  connectedCalendars: ConnectedCalendarItem[];
+export type DestinationCalendarProps<T extends BaseConnectedCalendar = BaseConnectedCalendar> = {
+  connectedCalendars: T[];
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
   onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
@@ -28,7 +26,7 @@ export type DestinationCalendarProps = {
   hideAdvancedText?: boolean;
 };
 
-export const DestinationCalendarSelector = ({
+export const DestinationCalendarSelector = <T extends BaseConnectedCalendar = BaseConnectedCalendar>({
   connectedCalendars,
   destinationCalendar,
   onChange,
@@ -37,7 +35,7 @@ export const DestinationCalendarSelector = ({
   hidePlaceholder,
   hideAdvancedText,
   maxWidth,
-}: DestinationCalendarProps): JSX.Element | null => {
+}: DestinationCalendarProps<T>): JSX.Element | null => {
   const { t } = useLocale();
   const [selectedOption, setSelectedOption] = useState<{
     value: string;
