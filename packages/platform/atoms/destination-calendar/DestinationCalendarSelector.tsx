@@ -12,8 +12,13 @@ import { Select } from "@calcom/ui/components/form";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 
+// Allow connectedCalendars to have additional properties (like cacheUpdatedAt from tRPC handler)
+type ConnectedCalendarItem = ConnectedDestinationCalendars["connectedCalendars"][number] & {
+  cacheUpdatedAt?: null;
+};
+
 export type DestinationCalendarProps = {
-  connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
+  connectedCalendars: ConnectedCalendarItem[];
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
   onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
@@ -43,8 +48,7 @@ export const DestinationCalendarSelector = ({
 
   useEffect(() => {
     const selected = connectedCalendars
-      .map((connected) => connected.calendars ?? [])
-      .flat()
+      .flatMap((connected) => connected.calendars ?? [])
       .find((cal) => cal.externalId === value);
 
     if (selected) {
@@ -52,15 +56,16 @@ export const DestinationCalendarSelector = ({
         integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
       );
 
+      const label = selected.name ? `${selected.name} ` : "";
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: selected.name ? `${selected.name} ` : "",
+        label,
         subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
           selectedIntegration?.primary?.name
         })`,
       });
     }
-  }, [connectedCalendars]);
+  }, [connectedCalendars, value]);
 
   const options = useMemo(() => {
     return (
@@ -95,7 +100,7 @@ export const DestinationCalendarSelector = ({
           !hidePlaceholder ? (
             `${t("create_events_on")}`
           ) : (
-            <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
+            <span className="min-w-0 overflow-hidden truncate whitespace-nowrap text-default">
               <Badge variant="blue">Default</Badge>{" "}
               {destinationCalendar?.primaryEmail &&
                 `${destinationCalendar.name} (${destinationCalendar?.integrationTitle} - ${destinationCalendar.primaryEmail})`}
@@ -119,7 +124,7 @@ export const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
+          "my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-default text-sm"
         )}
         onChange={(newValue) => {
           setSelectedOption(newValue);
