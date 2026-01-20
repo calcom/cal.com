@@ -4,6 +4,7 @@ import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react
 import { Header } from "@/components/Header";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryContext } from "@/contexts/QueryContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -17,10 +18,13 @@ interface MoreMenuItem {
 
 export default function More() {
   const { logout } = useAuth();
+  const { clearCache } = useQueryContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const performLogout = async () => {
     try {
+      // Clear in-memory cache before logout
+      await clearCache();
       await logout();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -84,7 +88,7 @@ export default function More() {
   ];
 
   return (
-    <View className="flex-1 bg-[#f8f9fa]">
+    <View className="flex-1 bg-white">
       <Header />
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
