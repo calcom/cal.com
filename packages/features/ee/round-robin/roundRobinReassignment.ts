@@ -293,14 +293,15 @@ export const roundRobinReassignment = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const newOrganizerUuid = hasOrganizerChanged ? reassignedRRHost.uuid : originalOrganizer.uuid;
   await bookingEventHandlerService.onReassignment({
     bookingUid: booking.uid,
     actor: makeUserActor(reassignedByUuid),
     organizationId: orgId,
     source: actionSource,
     auditData: {
-      organizerUuid: { old: originalOrganizer.uuid ?? null, new: newOrganizerUuid ?? null },
+      ...(hasOrganizerChanged
+        ? { organizerUuid: { old: originalOrganizer.uuid ?? null, new: reassignedRRHost.uuid ?? null } }
+        : null),
       ...(attendeeUpdatedId
         ? {
             hostAttendeeUpdated: {
