@@ -235,9 +235,6 @@ describe("ReassignmentAuditActionService", () => {
       expect(result).toEqual({
         newOrganizerUuid: "organizer-new",
         previousOrganizerUuid: "organizer-old",
-        hostAttendeeIdUpdated: null,
-        hostAttendeeUserUuidNew: null,
-        hostAttendeeUserUuidOld: null,
         reassignmentReason: "Host unavailable",
       });
     });
