@@ -11,7 +11,6 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -119,98 +118,9 @@ const handleMarkNoShowInternal = async ({
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
 
-    const booking = await prisma.booking.findUnique({
-      where: { uid: bookingUid },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        title: true,
-        metadata: true,
-        uid: true,
-        location: true,
-        destinationCalendar: true,
-        smsReminderNumber: true,
-        userPrimaryEmail: true,
-        eventType: {
-          select: {
-            id: true,
-            hideOrganizerEmail: true,
-            customReplyToEmail: true,
-            schedulingType: true,
-            slug: true,
-            title: true,
-            metadata: true,
-            parentId: true,
-            teamId: true,
-            userId: true,
-            hosts: {
-              select: {
-                user: {
-                  select: {
-                    email: true,
-                    destinationCalendar: {
-                      select: {
-                        primaryEmail: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            parent: {
-              select: {
-                teamId: true,
-              },
-            },
-            workflows: {
-              select: {
-                workflow: {
-                  select: workflowSelect,
-                },
-              },
-            },
-            owner: {
-              select: {
-                hideBranding: true,
-                email: true,
-                name: true,
-                timeZone: true,
-                locale: true,
-              },
-            },
-            team: {
-              select: {
-                parentId: true,
-                name: true,
-                id: true,
-              },
-            },
-          },
-        },
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-            timeZone: true,
-            locale: true,
-            phoneNumber: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            destinationCalendar: true,
-            timeZone: true,
-            locale: true,
-            username: true,
-            timeFormat: true,
-          },
-        },
-        noShowHost: true,
-      },
+    const bookingRepository = new BookingRepository(prisma);
+    const booking = await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid,
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({
