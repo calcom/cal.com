@@ -154,4 +154,21 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page).toHaveURL(/\/auth\/oauth2\/authorize/);
     await expect(page.getByText(OAUTH_ERROR_REASONS["redirect_uri_mismatch"])).toBeVisible();
   });
+
+  test("invalid client_id renders error on authorize page (no redirect)", async ({ page, users }) => {
+    const user = await users.create({ username: "oauth-authorize-invalid-client" });
+    await user.apiLogin();
+
+    const invalidClientId = "invalid-client-id-" + Date.now();
+    const redirectUri = "https://example.com";
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${invalidClientId}&redirect_uri=${encodeURIComponent(
+        redirectUri
+      )}&state=1234`
+    );
+
+    await expect(page).toHaveURL(/\/auth\/oauth2\/authorize/);
+    await expect(page.getByText(OAUTH_ERROR_REASONS["client_not_found"])).toBeVisible();
+  });
 });
