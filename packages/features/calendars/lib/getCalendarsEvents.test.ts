@@ -99,6 +99,18 @@ function buildSelectedCalendar(credential: {
     watchAttempts: 0,
     unwatchAttempts: 0,
     maxAttempts: 3,
+    channelId: null,
+    channelKind: null,
+    channelResourceId: null,
+    channelResourceUri: null,
+    channelExpiration: null,
+    syncSubscribedAt: null,
+    syncSubscribedErrorAt: null,
+    syncSubscribedErrorCount: 0,
+    syncToken: null,
+    syncedAt: null,
+    syncErrorAt: null,
+    syncErrorCount: 0,
     ...credential,
   };
 }
