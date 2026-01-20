@@ -76,8 +76,7 @@ The system tracks various booking actions including:
 - **ATTENDEE_REMOVED**: Attendee removed
 - **REASSIGNMENT**: Booking reassigned to different host
 - **LOCATION_CHANGED**: Meeting location updated
-- **HOST_NO_SHOW_UPDATED**: Host no-show status changed
-- **ATTENDEE_NO_SHOW_UPDATED**: Attendee no-show status changed
+- **NO_SHOW_UPDATED**: Host or attendee no-show status changed
 - **SEAT_BOOKED**: Seat reserved in group booking
 - **SEAT_RESCHEDULED**: Seat rescheduled in group booking
 

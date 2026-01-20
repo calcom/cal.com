@@ -209,6 +209,7 @@ const handleMarkNoShowInternal = async ({
             timeFormat: true,
           },
         },
+        noShowHost: true,
       },
     });
 
@@ -349,17 +350,42 @@ const handleMarkNoShowInternal = async ({
     // Log combined no-show audit for the action (single audit entry for all changes)
     if (booking?.eventType) {
       const bookingEventHandlerService = getBookingEventHandlerService();
-      const auditData: { host?: { old: null; new: boolean }; attendees?: { email: string; noShow: boolean }[] } = {};
+      const auditData: {
+        hostNoShow?: { old: boolean | null; new: boolean };
+        attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
+      } = {};
 
       if (noShowHost) {
-        auditData.host = { old: null, new: true };
+        auditData.hostNoShow = { old: booking.noShowHost, new: true };
       }
 
       if (attendees && attendees.length > 0) {
-        auditData.attendees = attendees.map((a) => ({ email: a.email, noShow: a.noShow }));
+        // Build attendeesNoShow record with attendee IDs as keys
+        const attendeeEmails = attendees.map((a) => a.email);
+        const attendeesWithIds = await prisma.attendee.findMany({
+          where: {
+            booking: { uid: bookingUid },
+            email: { in: attendeeEmails },
+          },
+          select: { id: true, email: true, noShow: true },
+        });
+        const emailToAttendee = attendeesWithIds.reduce(
+          (acc, a) => {
+            acc[a.email] = a;
+            return acc;
+          },
+          {} as Record<string, { id: number; email: string; noShow: boolean | null }>
+        );
+        auditData.attendeesNoShow = {};
+        for (const attendee of attendees) {
+          const dbAttendee = emailToAttendee[attendee.email];
+          if (dbAttendee) {
+            auditData.attendeesNoShow[dbAttendee.id] = { old: dbAttendee.noShow, new: attendee.noShow };
+          }
+        }
       }
 
-      if (auditData.host || auditData.attendees) {
+      if (auditData.hostNoShow || (auditData.attendeesNoShow && Object.keys(auditData.attendeesNoShow).length > 0)) {
         await bookingEventHandlerService.onNoShowUpdated({
           bookingUid,
           actor,

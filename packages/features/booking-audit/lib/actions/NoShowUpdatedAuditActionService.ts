@@ -72,19 +72,17 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
   getDisplayJson({ storedData }: GetDisplayJsonParams): NoShowUpdatedAuditDisplayData {
     const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
     return {
-      host: fields.host?.new ?? null,
-      previousHost: fields.host?.old ?? null,
-      attendees: fields.attendees ?? null,
+      hostNoShow: fields.hostNoShow?.new ?? null,
+      previousHostNoShow: fields.hostNoShow?.old ?? null,
+      attendeesNoShow: fields.attendeesNoShow ?? null,
     };
   }
 }
 
 export type NoShowUpdatedAuditData = z.infer<typeof fieldsSchemaV1>;
 
-export type AttendeeNoShow = z.infer<typeof AttendeeNoShowSchema>;
-
 export type NoShowUpdatedAuditDisplayData = {
-  host: boolean | null;
-  previousHost: boolean | null;
-  attendees: AttendeeNoShow[] | null;
+  hostNoShow: boolean | null;
+  previousHostNoShow: boolean | null;
+  attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> | null;
 };

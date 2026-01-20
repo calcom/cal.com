@@ -14,19 +14,31 @@ const markGuestAsNoshowInBooking = async ({
   bookingId: number;
   hostsThatJoinedTheCall: Host[];
   guestsThatDidntJoinTheCall?: { email: string; name: string }[];
-}) => {
+}): Promise<{
+  updatedAttendees: { id: number; email: string; noShow: boolean | null }[] | null;
+  attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[];
+}> => {
   try {
+    // Get attendees before update to capture previous noShow values
+    const attendeesBefore = await prisma.attendee.findMany({
+      where: { bookingId },
+      select: { id: true, email: true, noShow: true },
+    });
+    const attendeesBeforeMap = new Map(attendeesBefore.map((a) => [a.email, a]));
+
+    let emailsToUpdate: string[];
     if (guestsThatDidntJoinTheCall && guestsThatDidntJoinTheCall.length > 0) {
-      const guestEmailsThatDidntJoin = guestsThatDidntJoinTheCall.map((g) => g.email);
+      emailsToUpdate = guestsThatDidntJoinTheCall.map((g) => g.email);
       await prisma.attendee.updateMany({
         where: {
           bookingId,
-          email: { in: guestEmailsThatDidntJoin },
+          email: { in: emailsToUpdate },
         },
         data: { noShow: true },
       });
     } else {
       const hostsThatJoinedTheCallEmails = hostsThatJoinedTheCall.map((h) => h.email);
+      emailsToUpdate = attendeesBefore.filter((a) => !hostsThatJoinedTheCallEmails.includes(a.email)).map((a) => a.email);
       await prisma.attendee.updateMany({
         where: {
           bookingId,
@@ -36,26 +48,44 @@ const markGuestAsNoshowInBooking = async ({
       });
     }
 
-    return await prisma.attendee.findMany({ where: { bookingId } });
+    const updatedAttendees = await prisma.attendee.findMany({ where: { bookingId } });
+
+    // Build attendeesMarkedNoShow with previous values
+    const attendeesMarkedNoShow = emailsToUpdate
+      .map((email) => {
+        const before = attendeesBeforeMap.get(email);
+        if (!before) return null;
+        return { id: before.id, noShow: true, previousNoShow: before.noShow };
+      })
+      .filter((a): a is { id: number; noShow: boolean; previousNoShow: boolean | null } => a !== null);
+
+    return { updatedAttendees, attendeesMarkedNoShow };
   } catch (err) {
     log.error("Error marking guests as no show in booking", err);
-    return null;
+    return { updatedAttendees: null, attendeesMarkedNoShow: [] };
   }
 };
 
 const logGuestNoShowAudit = async (
   booking: {
+    id: number;
     uid: string;
     user?: { id: number } | null;
     eventType?: { teamId?: number | null } | null;
   },
-  attendeesMarkedNoShow: { email: string; noShow: boolean }[]
+  attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[]
 ) => {
   try {
     const orgId = await getOrgIdFromMemberOrTeamId({
       memberId: booking.user?.id,
       teamId: booking.eventType?.teamId,
     });
+
+    // Build attendeesNoShow record with attendee IDs as keys
+    const attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> = {};
+    for (const attendee of attendeesMarkedNoShow) {
+      attendeesNoShow[attendee.id] = { old: attendee.previousNoShow, new: attendee.noShow };
+    }
 
     const bookingEventHandlerService = getBookingEventHandlerService();
     await bookingEventHandlerService.onNoShowUpdated({
@@ -64,7 +94,7 @@ const logGuestNoShowAudit = async (
       organizationId: orgId ?? null,
       source: "SYSTEM",
       auditData: {
-        attendees: attendeesMarkedNoShow,
+        attendeesNoShow,
       },
     });
   } catch (error) {
@@ -79,7 +109,6 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
   const {
     webhook,
     booking,
-    hosts,
     hostsThatJoinedTheCall,
     didGuestJoinTheCall,
     guestsThatDidntJoinTheCall,
@@ -87,58 +116,48 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     participants,
   } = result;
 
-  const hostEmails = new Set(hosts.map((h) => h.email));
-
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
   const requireEmailForGuests = booking.eventType?.calVideoSettings?.requireEmailForGuests ?? false;
 
   if (requireEmailForGuests) {
     if (guestsThatDidntJoinTheCall.length > 0) {
-      const updatedAttendees = await markGuestAsNoshowInBooking({
+      const { attendeesMarkedNoShow } = await markGuestAsNoshowInBooking({
         bookingId: booking.id,
         hostsThatJoinedTheCall,
         guestsThatDidntJoinTheCall,
       });
-      const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
-      const bookingWithUpdatedData = updatedAttendees
-        ? { ...booking, attendees: updatedAttendees, guests }
-        : booking;
       await sendWebhookPayload(
         webhook,
         WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        bookingWithUpdatedData,
+        booking,
         maxStartTime,
         participants,
         originalRescheduledBooking
       );
 
-      // Log audit for automatic guest no-show detection
-      const attendeesMarkedNoShow = guestsThatDidntJoinTheCall.map((g) => ({ email: g.email, noShow: true }));
-      await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
+      if (attendeesMarkedNoShow.length > 0) {
+        await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
+      }
     }
   } else {
     if (!didGuestJoinTheCall) {
-      const updatedAttendees = await markGuestAsNoshowInBooking({
+      const { attendeesMarkedNoShow } = await markGuestAsNoshowInBooking({
         bookingId: booking.id,
         hostsThatJoinedTheCall,
       });
-      const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
-      const bookingWithUpdatedData = updatedAttendees
-        ? { ...booking, attendees: updatedAttendees, guests }
-        : booking;
       await sendWebhookPayload(
         webhook,
         WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        bookingWithUpdatedData,
+        booking,
         maxStartTime,
         participants,
         originalRescheduledBooking
       );
 
-      // Log audit for automatic guest no-show detection - all non-host attendees marked as no-show
-      const attendeesMarkedNoShow = guests.map((g) => ({ email: g.email, noShow: true }));
-      await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
+      if (attendeesMarkedNoShow.length > 0) {
+        await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
+      }
     }
   }
 }

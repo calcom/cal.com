@@ -73,8 +73,7 @@ const ACTION_ICON_MAP: Record<string, IconName> = {
     ATTENDEE_ADDED: "user-check",
     ATTENDEE_REMOVED: "user-check",
     LOCATION_CHANGED: "map-pin",
-    HOST_NO_SHOW_UPDATED: "ban",
-    ATTENDEE_NO_SHOW_UPDATED: "ban",
+    NO_SHOW_UPDATED: "ban",
 } as const;
 
 const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {

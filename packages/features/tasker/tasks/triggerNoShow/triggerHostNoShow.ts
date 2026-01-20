@@ -44,7 +44,7 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
             },
           });
           if (!attendee) {
-            log.error("Attendee not found for host", safeStringify(host);
+            log.error("Attendee not found for host", safeStringify(host));
             throw new Error("Attendee not found for host");
           }
           const currentAttendeeNoShow = attendee?.noShow;
