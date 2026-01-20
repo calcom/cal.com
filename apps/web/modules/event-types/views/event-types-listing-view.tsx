@@ -186,11 +186,10 @@ const Item = ({
   const eventTypeColor =
     parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
-  const isTeamEvent = !!type.teamId;
   const isRoundRobinOrCollective =
     type.schedulingType === SchedulingType.ROUND_ROBIN || type.schedulingType === SchedulingType.COLLECTIVE;
   const isCurrentUserHost = "isCurrentUserHost" in type && type.isCurrentUserHost;
-  const showAssignedBadge = isTeamEvent && isRoundRobinOrCollective && isCurrentUserHost;
+  const showAssignedBadge = isRoundRobinOrCollective && isCurrentUserHost;
 
   const content = (): JSX.Element => (
     <div>
