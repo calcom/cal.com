@@ -146,12 +146,12 @@ export const handleNoShowFee = async ({
     throw new Error("Payment app not implemented");
   }
   const paymentApp = await paymentAppImportFn;
-  if (!paymentApp?.PaymentService) {
+  if (!paymentApp?.BuildPaymentService) {
     log.error(`Payment service not found for app ${key}`);
     throw new Error("Payment service not found");
   }
-  const PaymentService = paymentApp.PaymentService;
-  const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
+  const createPaymentService = paymentApp.BuildPaymentService;
+  const paymentInstance = createPaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
     const paymentData = await paymentInstance.chargeCard(payment, booking.id);
@@ -165,11 +165,12 @@ export const handleNoShowFee = async ({
 
     return paymentData;
   } catch (err) {
-    let errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     if (err instanceof ErrorWithCode && err.code === ErrorCode.ChargeCardFailure) {
-      errorMessage = err.message;
+      log.error(err.message);
+      throw err;
     }
 
+    const errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     log.error(errorMessage);
     throw new Error(tOrganizer(errorMessage));
   }
