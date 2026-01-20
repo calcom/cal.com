@@ -288,6 +288,7 @@ export const EventSetupTab = (
                   control={formMethods.control}
                   render={({ field: { value, onChange } }) => (
                     <CheckboxField
+                      data-testid="hide-duration-selector-checkbox"
                       checked={value ?? false}
                       onChange={(e) => onChange(e.target.checked)}
                       description={t("hide_duration_selector_in_booking_page")}
