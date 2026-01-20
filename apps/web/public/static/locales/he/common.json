@@ -778,7 +778,7 @@
   "add_team_members_description": "להזמין עוד אנשים להצטרף לצוות",
   "add_team_member": "הוספת חבר צוות",
   "invite_new_member": "להזמין חבר/ת צוות חדש/ה",
-  "invite_new_member_description": "שים לב: פעולה זו תעלה מקום נוסף במנוי שלך.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "להזמין מישהו לצוות שלך.",
   "upload_csv_file": "העלאת קובץ ‎.csv",
   "invite_via_email": "הזמנה בדוא\"ל",

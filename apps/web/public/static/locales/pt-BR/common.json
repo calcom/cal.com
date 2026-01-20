@@ -778,7 +778,7 @@
   "add_team_members_description": "Convidar outros para se juntar à sua equipe",
   "add_team_member": "Adicionar membro da equipe",
   "invite_new_member": "Convidar um novo membro",
-  "invite_new_member_description": "Nota: Isso custará um assento adicional em sua assinatura.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "Convidar alguém para seu time.",
   "upload_csv_file": "Carregar arquivo .csv",
   "invite_via_email": "Convidar via e-mail",

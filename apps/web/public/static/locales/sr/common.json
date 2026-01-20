@@ -778,7 +778,7 @@
   "add_team_members_description": "Pozovite druge da se pridruže vašem timu",
   "add_team_member": "Dodaj člana tima",
   "invite_new_member": "Pozovite novog člana",
-  "invite_new_member_description": "Napomena: Ovo će koštati dodatno mesto na vašoj pretplati.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "Pozovite nekog u vaš tim.",
   "upload_csv_file": "Otpremite .csv datoteku",
   "invite_via_email": "Pozovite putem imejla",

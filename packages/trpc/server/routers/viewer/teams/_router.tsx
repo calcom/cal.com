@@ -15,6 +15,7 @@ import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.s
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
+import { ZGetTeamBillingInfoInputSchema } from "./getTeamBillingInfo.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasActiveTeamPlanInputSchema } from "./hasActiveTeamPlan.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
@@ -223,6 +224,10 @@ export const viewerTeamsRouter = router({
   }),
   getSubscriptionStatus: authedProcedure.input(ZGetSubscriptionStatusInputSchema).query(async (opts) => {
     const { default: handler } = await import("./getSubscriptionStatus.handler");
+    return handler(opts);
+  }),
+  getTeamBillingInfo: authedProcedure.input(ZGetTeamBillingInfoInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./getTeamBillingInfo.handler");
     return handler(opts);
   }),
 });

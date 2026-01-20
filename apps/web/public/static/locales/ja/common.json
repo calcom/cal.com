@@ -778,7 +778,7 @@
   "add_team_members_description": "他のユーザーをチームに招待する",
   "add_team_member": "チームメンバーを追加",
   "invite_new_member": "新しいチームメンバーを招待",
-  "invite_new_member_description": "注意：これにより、サブスクリプションに追加のシートがかかります。",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "チームに誰かを招待する。",
   "upload_csv_file": ".csv ファイルをアップロード",
   "invite_via_email": "メールで招待",

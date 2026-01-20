@@ -778,7 +778,7 @@
   "add_team_members_description": "Pozvite ostatných, aby sa pripojili k vášmu tímu",
   "add_team_member": "Pridať člena tímu",
   "invite_new_member": "Pozvať nového člena tímu",
-  "invite_new_member_description": "Poznámka: Toto bude stáť ďalšie miesto vo vašom predplatnom.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "Pozvite niekoho do svojho tímu.",
   "upload_csv_file": "Nahrať .csv súbor",
   "invite_via_email": "Pozvať e-mailom",

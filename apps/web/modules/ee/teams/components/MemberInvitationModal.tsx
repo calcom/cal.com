@@ -76,6 +76,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
 
+  const { data: teamBillingInfo } = trpc.viewer.teams.getTeamBillingInfo.useQuery(
+    { teamId: props.teamId },
+    { enabled: IS_TEAM_BILLING_ENABLED_CLIENT && !!props.teamId }
+  );
+
   const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
 
   // Check current org role and not team role
@@ -204,11 +209,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         enableOverflow
         type="creation"
         title={t("invite_team_member")}
-        description={
-          IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
-            <span className="text-subtle text-sm leading-tight">{t("invite_new_member_description")}</span>
-          ) : null
-        }>
+                description={
+                  IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
+                    <span className="text-subtle text-sm leading-tight">
+                      {t("invite_new_member_description", { price: teamBillingInfo?.pricePerSeat ?? 15 })}
+                    </span>
+                  ) : null
+                }>
         <div className="sm:max-h-9">
           <Label className="sr-only" htmlFor="role">
             {t("import_mode")}

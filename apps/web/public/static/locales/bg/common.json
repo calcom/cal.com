@@ -778,7 +778,7 @@
   "add_team_members_description": "Поканете други да се присъединят към вашия екип",
   "add_team_member": "Добави член на екипа",
   "invite_new_member": "Покани нов член на екипа",
-  "invite_new_member_description": "Забележка: Това ще струва допълнително място във вашия абонамент.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "Поканете някого във вашия екип.",
   "upload_csv_file": "Качете .csv файл",
   "invite_via_email": "Покани чрез имейл",

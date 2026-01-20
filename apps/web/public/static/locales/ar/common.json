@@ -778,7 +778,7 @@
   "add_team_members_description": "دعوة الآخرين للانضمام إلى فريقك",
   "add_team_member": "إضافة عضو فريق",
   "invite_new_member": "دعوة عضو جديد في الفريق",
-  "invite_new_member_description": "ملاحظة: سيؤدي هذا إلى تكلفة مقعد إضافي على اشتراكك.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "دعوة شخص ما إلى فريقك.",
   "upload_csv_file": "تحميل ملف بصيغة .csv",
   "invite_via_email": "الدعوة عبر البريد الإلكتروني",

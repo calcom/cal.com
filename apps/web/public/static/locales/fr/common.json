@@ -779,7 +779,7 @@
   "add_team_members_description": "Invitez d'autres personnes à rejoindre votre équipe.",
   "add_team_member": "Ajouter un membre d'équipe",
   "invite_new_member": "Inviter un nouveau membre d'équipe",
-  "invite_new_member_description": "Remarque : Cela coûtera une place supplémentaire sur votre abonnement.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "Invitez quelqu'un à rejoindre votre équipe.",
   "upload_csv_file": "Télécharger un fichier .csv",
   "invite_via_email": "Inviter par e-mail",

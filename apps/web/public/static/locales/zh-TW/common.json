@@ -796,7 +796,7 @@
   "add_team_members_description": "邀請其他人加入您的團隊",
   "add_team_member": "新增團隊成員",
   "invite_new_member": "邀請新成員",
-  "invite_new_member_description": "注意：這將在您的訂閱中額外佔用一個席位。",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "邀至團隊裡。",
   "upload_csv_file": "上傳 .csv 檔案",
   "invite_via_email": "透過電子郵件邀請",

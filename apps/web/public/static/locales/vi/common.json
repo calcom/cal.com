@@ -796,7 +796,7 @@
   "add_team_members_description": "Mời người khác tham gia nhóm của bạn",
   "add_team_member": "Thêm thành viên nhóm",
   "invite_new_member": "Mời một thành viên mới",
-  "invite_new_member_description": "Lưu ý: Điều này sẽ tốn thêm một chỗ ngồi trong gói đăng ký của bạn.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "Mời ai đó vào nhóm của bạn.",
   "upload_csv_file": "Tải lên một file .csv",
   "invite_via_email": "Mời qua email",

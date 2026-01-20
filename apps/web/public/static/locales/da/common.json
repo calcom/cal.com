@@ -778,7 +778,7 @@
   "add_team_members_description": "Invitér andre til at deltage i dit team",
   "add_team_member": "Tilføj teammedlem",
   "invite_new_member": "Invitér et nyt teammedlem",
-  "invite_new_member_description": "Bemærk: Dette vil koste et ekstra sæde på dit abonnement.",
+  "invite_new_member_description": "Note: This will cost an extra seat (${{price}}/m) on your subscription.",
   "invite_new_team_member": "Invitér nogen til dit team.",
   "upload_csv_file": "Upload en .csv-fil",
   "invite_via_email": "Inviter via email",
