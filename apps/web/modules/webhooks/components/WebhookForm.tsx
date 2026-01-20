@@ -602,7 +602,7 @@ const WebhookForm = (props: {
           )}
         />
       </div>
-      <SectionBottomActions align="end">
+      <SectionBottomActions align="end" className="gap-2">
         <Button
           type="button"
           color="minimal"

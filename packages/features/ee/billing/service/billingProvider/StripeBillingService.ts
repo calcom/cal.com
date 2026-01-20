@@ -243,4 +243,87 @@ export class StripeBillingService implements IBillingProviderService {
 
     return status || SubscriptionStatus.ACTIVE;
   }
+
+  async createInvoiceItem(args: Parameters<IBillingProviderService["createInvoiceItem"]>[0]) {
+    const { customerId, amount, currency, description, metadata } = args;
+    const invoiceItem = await this.stripe.invoiceItems.create({
+      customer: customerId,
+      amount,
+      currency,
+      description,
+      metadata,
+    });
+
+    return { invoiceItemId: invoiceItem.id };
+  }
+
+  async createInvoice(args: Parameters<IBillingProviderService["createInvoice"]>[0]) {
+    const { customerId, autoAdvance, metadata } = args;
+    const invoice = await this.stripe.invoices.create({
+      customer: customerId,
+      auto_advance: autoAdvance,
+      metadata,
+    });
+
+    return { invoiceId: invoice.id };
+  }
+
+  async finalizeInvoice(invoiceId: string) {
+    await this.stripe.invoices.finalizeInvoice(invoiceId);
+  }
+
+  async createSubscriptionUsageRecord(
+    args: Parameters<IBillingProviderService["createSubscriptionUsageRecord"]>[0]
+  ) {
+    const { subscriptionId, action, quantity } = args;
+    const log = logger.getSubLogger({ prefix: ["createSubscriptionUsageRecord"] });
+
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    if (!subscription?.id) {
+      log.error(`Failed to retrieve stripe subscription (${subscriptionId})`);
+      throw new Error(`Failed to retrieve stripe subscription (${subscriptionId})`);
+    }
+
+    const meteredItem = subscription.items.data.find(
+      (item) => item.price?.recurring?.usage_type === "metered"
+    );
+    if (!meteredItem) {
+      log.error(`Stripe subscription (${subscriptionId}) is not usage based`);
+      throw new Error(`Stripe subscription (${subscriptionId}) is not usage based`);
+    }
+
+    await this.stripe.subscriptionItems.createUsageRecord(meteredItem.id, {
+      action,
+      quantity,
+      timestamp: "now",
+    });
+
+    log.info(`Created usage record for subscription ${subscriptionId}`, {
+      subscriptionId,
+      itemId: meteredItem.id,
+      action,
+      quantity,
+    });
+  }
+
+  async getSubscription(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    if (!subscription) return null;
+
+    return {
+      items: subscription.items.data.map((item) => ({
+        id: item.id,
+        quantity: item.quantity || 0,
+        price: {
+          unit_amount: item.price.unit_amount,
+          recurring: item.price.recurring,
+        },
+      })),
+      customer: subscription.customer as string,
+      status: subscription.status,
+      current_period_start: subscription.current_period_start,
+      current_period_end: subscription.current_period_end,
+      trial_end: subscription.trial_end,
+    };
+  }
 }

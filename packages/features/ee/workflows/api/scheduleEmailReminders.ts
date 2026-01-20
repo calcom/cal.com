@@ -1,10 +1,8 @@
 /**
  * @deprecated use smtp with tasker instead
  */
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -17,7 +15,9 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 import {
   getAllRemindersToCancel,
   getAllRemindersToDelete,
@@ -35,6 +35,7 @@ import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
+import { replaceCloakedLinksInHtml } from "../lib/reminders/utils";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -125,7 +126,7 @@ export async function handler(req: NextRequest) {
     // For seated events, get the correct attendee based on seatReferenceId
     let targetAttendee = reminder.booking?.attendees[0];
     if (reminder.seatReferenceId) {
-          const bookingSeatRepository = new BookingSeatRepository(prisma);
+      const bookingSeatRepository = new BookingSeatRepository(prisma);
       const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
         reminder.seatReferenceId
       );
@@ -139,7 +140,7 @@ export async function handler(req: NextRequest) {
         let sendTo;
 
         switch (reminder.workflowStep.action) {
-          case WorkflowActions.EMAIL_HOST:
+          case WorkflowActions.EMAIL_HOST: {
             sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
             const hosts = reminder?.booking?.eventType?.hosts
               ?.filter((host) =>
@@ -155,6 +156,7 @@ export async function handler(req: NextRequest) {
               sendTo = sendTo ? [sendTo, ...hosts] : hosts;
             }
             break;
+          }
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = targetAttendee?.email;
             break;
@@ -312,8 +314,8 @@ export async function handler(req: NextRequest) {
             timeZone: timeZone || "",
             organizer: reminder.booking.user?.name || "",
             name: name || "",
-            ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating` || "",
-            noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true` || "",
+            ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
+            noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,
           });
         }
 
@@ -353,10 +355,17 @@ export async function handler(req: NextRequest) {
             title: booking.title || booking.eventType?.title || "",
           };
 
+          // Organization accounts are allowed to use cloaked links (URL behind text)
+          // since they are paid accounts with lower spam/scam risk
+          const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
+          const processedEmailBody = isOrganization
+            ? emailContent.emailBody
+            : replaceCloakedLinksInHtml(emailContent.emailBody);
+
           const mailData = {
             subject: emailContent.emailSubject,
             to: Array.isArray(sendTo) ? sendTo : [sendTo],
-            html: emailContent.emailBody,
+            html: processedEmailBody,
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
@@ -452,10 +461,17 @@ export async function handler(req: NextRequest) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = isSendgridEnabled ? await getBatchId() : undefined;
 
+          // Organization accounts are allowed to use cloaked links (URL behind text)
+          // since they are paid accounts with lower spam/scam risk
+          const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
+          const processedEmailBody = isOrganization
+            ? emailContent.emailBody
+            : replaceCloakedLinksInHtml(emailContent.emailBody);
+
           const mailData = {
             subject: emailContent.emailSubject,
             to: [sendTo],
-            html: emailContent.emailBody,
+            html: processedEmailBody,
             sender: reminder.workflowStep?.sender,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
               replyTo:

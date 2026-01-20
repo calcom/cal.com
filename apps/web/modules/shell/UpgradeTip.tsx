@@ -45,18 +45,18 @@ export function UpgradeTip({
   return (
     <>
       <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
-        <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
-          <source srcSet={imageSrc} media="(prefers-color-scheme: dark)" />
+         <picture className="absolute min-h-full w-full rounded-lg object-cover">
+          {" "}
+                    <source srcSet={imageSrc} media="(prefers-color-scheme: dark)" />
           <img
-            className="absolute min-h-[295px] w-full select-none rounded-lg object-cover object-left md:object-center"
-            src={imageSrc}
+ className="absolute min-h-full w-full select-none rounded-lg object-cover object-left md:object-center"            src={imageSrc}
             loading="lazy"
             alt={title}
           />
         </picture>
-        <div className="relative my-4 px-8 pb-4 sm:px-14">
-          <h1 className={classNames("font-cal mt-4 text-3xl")}>{title}</h1>
-          <p className={classNames("mb-8 mt-4 max-w-sm")}>{description}</p>
+         <div className="relative my-4 w-full px-4 pb-4 sm:px-8 md:px-14">
+          <h1 className={classNames("font-cal mt-4 text-2xl sm:text-3xl")}>{title}</h1>
+          <p className={classNames("mb-8 mt-4 max-w-sm text-sm sm:text-base")}>{description}</p>
           {buttons}
         </div>
       </div>

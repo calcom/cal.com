@@ -2,8 +2,8 @@ import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import { NextResponse, type NextRequest } from "next/server";
 
-import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
-import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
+import calcomSignupHandler from "./handlers/calcomSignupHandler";
+import selfHostedSignupHandler from "./handlers/selfHostedHandler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
