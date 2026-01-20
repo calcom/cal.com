@@ -329,7 +329,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           emailFrom: user.email,
           // We know email has been changed here so we can use input
 
-          emailTo: input.email!,
+          emailTo: input.email ?? "",
         },
       });
     }
