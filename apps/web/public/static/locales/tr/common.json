@@ -796,7 +796,7 @@
   "add_team_members_description": "Ekibinize diğer kişileri davet edin",
   "add_team_member": "Ekip üyesi ekle",
   "invite_new_member": "Yeni bir ekip üyesi davet et",
-  "invite_new_member_description": "Not: Bu, aboneliğinizde <0>ekstra bir koltuk (15$/ay)</0> maliyeti oluşturacaktır.",
+  "invite_new_member_description": "Not: Bu, aboneliğinizde ekstra bir koltuk maliyeti oluşturacaktır.",
   "invite_new_team_member": "Ekibinize birini davet edin.",
   "upload_csv_file": "Bir .csv dosyası yükleyin",
   "invite_via_email": "E-postayla davet et",

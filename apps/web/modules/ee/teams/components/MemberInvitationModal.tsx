@@ -8,7 +8,6 @@ import TeamInviteFromOrg from "~/ee/organizations/components/TeamInviteFromOrg";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { PendingMember } from "@calcom/features/ee/teams/lib/types";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -207,17 +206,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         title={t("invite_team_member")}
         description={
           IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
-            <span className="text-subtle text-sm leading-tight">
-              <ServerTrans
-                t={t}
-                i18nKey="invite_new_member_description"
-                components={[
-                  <span key="invite_new_member_description" className="text-emphasis font-medium">
-                    cost an extra seat ($15/m)
-                  </span>,
-                ]}
-              />
-            </span>
+            <span className="text-subtle text-sm leading-tight">{t("invite_new_member_description")}</span>
           ) : null
         }>
         <div className="sm:max-h-9">

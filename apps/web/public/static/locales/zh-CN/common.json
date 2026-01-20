@@ -796,7 +796,7 @@
   "add_team_members_description": "邀请其他人加入您的团队",
   "add_team_member": "添加团队成员",
   "invite_new_member": "邀请新的团队成员",
-  "invite_new_member_description": "注意：这将在您的订阅中<0>额外增加一个席位（$15/月）</0>。",
+  "invite_new_member_description": "注意：这将在您的订阅中额外增加一个席位。",
   "invite_new_team_member": "邀请某人加入您的团队。",
   "upload_csv_file": "上传 .csv 文件",
   "invite_via_email": "通过电子邮件邀请",

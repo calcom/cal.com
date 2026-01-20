@@ -778,7 +778,7 @@
   "add_team_members_description": "Lade andere ein, deinem Team beizutreten",
   "add_team_member": "Teammitglied hinzufügen",
   "invite_new_member": "Ein neues Mitglied einladen",
-  "invite_new_member_description": "Hinweis: Dies wird <0>einen zusätzlichen Platz (15$/Monat)</0> in deinem Abonnement kosten.",
+  "invite_new_member_description": "Hinweis: Dies wird einen zusätzlichen Platz in deinem Abonnement kosten.",
   "invite_new_team_member": "Laden Sie jemanden in Ihr Team ein.",
   "upload_csv_file": "Eine .csv-Datei hochladen",
   "invite_via_email": "Per E-Mail einladen",

@@ -778,7 +778,7 @@
   "add_team_members_description": "Gonbidatu besteak zure taldera batzeko",
   "add_team_member": "Gehitu taldekidea",
   "invite_new_member": "Gonbidatu taldekide berria",
-  "invite_new_member_description": "Oharra: Honek <0>eserleku gehigarri bat kostatuko du ($15/h)</0> zure harpidetzan.",
+  "invite_new_member_description": "Oharra: Honek eserleku gehigarri bat kostatuko du zure harpidetzan.",
   "invite_new_team_member": "Gonbidatu norbait zure taldera.",
   "upload_csv_file": "Igo .csv fitxategia",
   "invite_via_email": "Gonbidatu posta elektroniko bidez",

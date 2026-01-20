@@ -796,7 +796,7 @@
   "add_team_members_description": "Запросіть когось у свою команду",
   "add_team_member": "Додати учасника команди",
   "invite_new_member": "Запросити нового учасника команди",
-  "invite_new_member_description": "Примітка: Це <0>коштуватиме додаткове місце ($15/м)</0> у вашій підписці.",
+  "invite_new_member_description": "Примітка: Це коштуватиме додаткове місце у вашій підписці.",
   "invite_new_team_member": "Запросіть когось у свою команду.",
   "upload_csv_file": "Передати CSV-файл",
   "invite_via_email": "Запросити електронною поштою",

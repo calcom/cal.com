@@ -796,7 +796,7 @@
   "add_team_members_description": "Bjud in andra att gå med i ditt team",
   "add_team_member": "Lägg till teammedlem",
   "invite_new_member": "Bjud in en ny teammedlem",
-  "invite_new_member_description": "Obs: Detta kommer att <0>kosta en extra plats (15 $/mån)</0> på din prenumeration.",
+  "invite_new_member_description": "Obs: Detta kommer att kosta en extra plats på din prenumeration.",
   "invite_new_team_member": "Bjud in någon till ditt team.",
   "upload_csv_file": "Ladda upp en .csv-fil",
   "invite_via_email": "Bjud in via e-post",

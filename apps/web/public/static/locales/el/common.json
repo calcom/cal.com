@@ -778,7 +778,7 @@
   "add_team_members_description": "Προσκαλέστε άλλους να συμμετάσχουν στην ομάδα σας",
   "add_team_member": "Προσθήκη μέλους ομάδας",
   "invite_new_member": "Πρόσκληση νέου μέλους ομάδας",
-  "invite_new_member_description": "Σημείωση: Αυτό θα <0>κοστίσει μια επιπλέον θέση ($15/μήνα)</0> στη συνδρομή σας.",
+  "invite_new_member_description": "Σημείωση: Αυτό θα κοστίσει μια επιπλέον θέση στη συνδρομή σας.",
   "invite_new_team_member": "Προσκαλέστε κάποιον στην ομάδα σας.",
   "upload_csv_file": "Μεταφόρτωση αρχείου .csv",
   "invite_via_email": "Πρόσκληση μέσω email",

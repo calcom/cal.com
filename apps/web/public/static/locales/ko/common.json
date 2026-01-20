@@ -778,7 +778,7 @@
   "add_team_members_description": "다른 사람을 팀에 초대",
   "add_team_member": "팀원 추가",
   "invite_new_member": "새 팀원 초대",
-  "invite_new_member_description": "참고: 이것은 구독에 <0>추가 좌석($15/월)이 발생합니다</0>.",
+  "invite_new_member_description": "참고: 이것은 구독에 추가 좌석이 발생합니다.",
   "invite_new_team_member": "누군가를 팀에 초대하기",
   "upload_csv_file": ".csv 파일 업로드",
   "invite_via_email": "이메일을 통한 초대",

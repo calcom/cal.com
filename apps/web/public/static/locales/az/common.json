@@ -778,7 +778,7 @@
   "add_team_members_description": "Başqalarını komandanıza qoşulmağa dəvət edin",
   "add_team_member": "Komanda üzvü əlavə et",
   "invite_new_member": "Yeni komanda üzvü dəvət et",
-  "invite_new_member_description": "Qeyd: Bu, abunəliyinizə <0>əlavə yer (15$/ay)</0> başa gələcək.",
+  "invite_new_member_description": "Qeyd: Bu, abunəliyinizə əlavə yer başa gələcək.",
   "invite_new_team_member": "Komandanıza birini dəvət edin.",
   "upload_csv_file": ".csv faylı yüklə",
   "invite_via_email": "Email vasitəsilə dəvət et",

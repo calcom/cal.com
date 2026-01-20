@@ -778,7 +778,7 @@
   "add_team_members_description": "Kutsu teisi oma meeskonnaga liituma",
   "add_team_member": "Lisa meeskonnaliige",
   "invite_new_member": "Kutsu uus meeskonnaliige",
-  "invite_new_member_description": "Märkus: See <0>maksab lisaistme ($15/kuu)</0> sinu tellimusele.",
+  "invite_new_member_description": "Märkus: See maksab lisaistme sinu tellimusele.",
   "invite_new_team_member": "Kutsuge keegi oma meeskonda.",
   "upload_csv_file": "Laadi üles .csv-fail",
   "invite_via_email": "Kutsu meili teel",

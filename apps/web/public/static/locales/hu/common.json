@@ -778,7 +778,7 @@
   "add_team_members_description": "Hívj meg másokat is a csapatodba",
   "add_team_member": "Csapattag hozzáadása",
   "invite_new_member": "Hívj meg egy új csapattagot",
-  "invite_new_member_description": "Megjegyzés: Ez <0>extra helyet fog igénybe venni (15$/hó)</0> az előfizetéseden.",
+  "invite_new_member_description": "Megjegyzés: Ez extra helyet fog igénybe venni az előfizetéseden.",
   "invite_new_team_member": "Hívj meg valakit a csapatodba.",
   "upload_csv_file": "Töltsön fel egy .csv fájlt",
   "invite_via_email": "Meghívás e-mailben",
