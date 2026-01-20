@@ -349,6 +349,40 @@ export class StripeBillingService implements IBillingProviderService {
     return Boolean(customerDefault);
   }
 
+  async createSubscriptionUsageRecord(
+    args: Parameters<IBillingProviderService["createSubscriptionUsageRecord"]>[0]
+  ) {
+    const { subscriptionId, action, quantity } = args;
+    const usageLog = logger.getSubLogger({ prefix: ["createSubscriptionUsageRecord"] });
+
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    if (!subscription?.id) {
+      usageLog.error(`Failed to retrieve stripe subscription (${subscriptionId})`);
+      throw new Error(`Failed to retrieve stripe subscription (${subscriptionId})`);
+    }
+
+    const meteredItem = subscription.items.data.find(
+      (item) => item.price?.recurring?.usage_type === "metered"
+    );
+    if (!meteredItem) {
+      usageLog.error(`Stripe subscription (${subscriptionId}) is not usage based`);
+      throw new Error(`Stripe subscription (${subscriptionId}) is not usage based`);
+    }
+
+    await this.stripe.subscriptionItems.createUsageRecord(meteredItem.id, {
+      action,
+      quantity,
+      timestamp: "now",
+    });
+
+    usageLog.info(`Created usage record for subscription ${subscriptionId}`, {
+      subscriptionId,
+      itemId: meteredItem.id,
+      action,
+      quantity,
+    });
+  }
+
   async getSubscription(subscriptionId: string) {
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     if (!subscription) return null;

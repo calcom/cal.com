@@ -98,6 +98,13 @@ export interface IBillingProviderService {
 
   hasDefaultPaymentMethod(args: { customerId: string; subscriptionId?: string }): Promise<boolean>;
 
+  // Usage-based billing
+  createSubscriptionUsageRecord(args: {
+    subscriptionId: string;
+    action: "increment" | "set";
+    quantity: number;
+  }): Promise<void>;
+
   // Subscription queries
   getSubscription(subscriptionId: string): Promise<{
     items: Array<{

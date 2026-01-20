@@ -183,7 +183,7 @@ export function getRollingWindowEndDate({
   const log = logger.getSubLogger({ prefix: ["getRollingWindowEndDate"] });
   log.debug("called:", safeStringify({ startDay: startDateInBookerTz.format(), daysNeeded }));
   let counter = 1;
-  let rollingEndDay;
+  let rollingEndDay: ReturnType<typeof startDateInBookerTz.startOf> | undefined;
   const startOfStartDayInEventTz = startDateInBookerTz.startOf("day");
   // It helps to break out of the loop if we don't find enough bookable days.
   const maxDaysToCheck = ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK;
