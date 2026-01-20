@@ -10,7 +10,6 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { StripeService } from "@/modules/stripe/stripe.service";
-import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { TeamsSchedulesController } from "@/modules/teams/schedules/controllers/teams-schedules.controller";
 import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
@@ -26,7 +25,6 @@ import { Module } from "@nestjs/common";
     TeamsRepository,
     TeamsService,
     TeamsMembershipsRepository,
-    TeamsMembershipsService,
     OutputSchedulesService_2024_06_11,
     OrganizationSchedulesRepository,
     StripeService,
