@@ -36,7 +36,7 @@ const _ensureNoConflictingNonDelegatedConnectedCalendar = <
   connectedCalendars: T[];
   loggedInUser: { email: string };
 }) => {
-  return connectedCalendars.filter((connectedCalendar, index, array) => {
+  return connectedCalendars.filter((connectedCalendar, _index, array) => {
     const allCalendarsWithSameAppSlug = array.filter(
       (cal) => cal.integration.slug === connectedCalendar.integration.slug
     );
@@ -383,12 +383,25 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     loggedInUser: { email: user.email },
   });
 
+  // Exclude incompatible fields from DestinationCalendar when building IntegrationCalendar:
+  // - id: number in DestinationCalendar vs string in IntegrationCalendar
+  // - userId: number | null in DestinationCalendar vs number | undefined in IntegrationCalendar
+  const userDestCal = user.destinationCalendar;
+  const {
+    id: _id,
+    userId: _userId,
+    ...destinationCalendarRest
+  } = userDestCal ?? {
+    integration: "",
+    externalId: "",
+  };
+
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
     destinationCalendar: {
-      // biome-ignore lint/style/noNonNullAssertion: ensure TS knows fields are not all optional
-      ...user.destinationCalendar!,
+      ...destinationCalendarRest,
       ...destinationCalendar,
+      userId: userDestCal?.userId ?? undefined,
     },
   };
 }
