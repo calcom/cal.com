@@ -12,11 +12,11 @@ import { Select } from "@calcom/ui/components/form";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 
-// Base type for connected calendar items - allows additional properties from tRPC handler enrichment
-export type BaseConnectedCalendar = ConnectedDestinationCalendars["connectedCalendars"][number];
-
-export type DestinationCalendarProps<T extends BaseConnectedCalendar = BaseConnectedCalendar> = {
-  connectedCalendars: T[];
+// Use the exact type from getConnectedDestinationCalendars for type compatibility
+// This ensures the component accepts the return type from both the direct function call
+// and the tRPC handler which may enrich the type with additional properties
+export type DestinationCalendarProps = {
+  connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
   onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
@@ -26,7 +26,7 @@ export type DestinationCalendarProps<T extends BaseConnectedCalendar = BaseConne
   hideAdvancedText?: boolean;
 };
 
-export const DestinationCalendarSelector = <T extends BaseConnectedCalendar = BaseConnectedCalendar>({
+export const DestinationCalendarSelector = ({
   connectedCalendars,
   destinationCalendar,
   onChange,
@@ -35,7 +35,7 @@ export const DestinationCalendarSelector = <T extends BaseConnectedCalendar = Ba
   hidePlaceholder,
   hideAdvancedText,
   maxWidth,
-}: DestinationCalendarProps<T>): JSX.Element | null => {
+}: DestinationCalendarProps): JSX.Element | null => {
   const { t } = useLocale();
   const [selectedOption, setSelectedOption] = useState<{
     value: string;
