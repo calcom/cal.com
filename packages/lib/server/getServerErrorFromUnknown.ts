@@ -73,6 +73,16 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       data: traceId ? { ...tracedData, traceId } : undefined,
     });
   }
+  // Handle invalid timezone errors (e.g., "GMT-05:00" instead of IANA format like "America/New_York")
+  // These can occur when calendar data contains non-standard timezone formats
+  if (cause instanceof RangeError && cause.message.includes("Invalid time zone")) {
+    return new HttpError({
+      statusCode: 400,
+      message: "Invalid timezone format in calendar data. Please ensure all calendars use valid IANA timezone identifiers.",
+      cause,
+      data: traceId ? { ...tracedData, traceId } : undefined,
+    });
+  }
   if (isPrismaError(cause)) {
     return getServerErrorFromPrismaError(cause, traceId, tracedData);
   }
