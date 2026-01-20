@@ -93,6 +93,9 @@ test.describe("OAuth clients admin", () => {
       logoFileName: "cal.png",
     });
 
+    await page.goto("/settings/admin");
+    await page.waitForLoadState();
+
     const pending1Name = `${testPrefix}pending-1-${Date.now()}`;
     const pending2Name = `${testPrefix}pending-2-${Date.now()}`;
     const pending3Name = `${testPrefix}pending-3-${Date.now()}`;
