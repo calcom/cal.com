@@ -85,8 +85,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
   getDisplayJson({ storedData }: GetDisplayJsonParams): ReassignmentAuditDisplayData {
     const { fields } = this.parseStored(storedData);
     return {
-      previousOrganizerUuid: fields.organizerUuid.old ?? "",
-      newOrganizerUuid: fields.organizerUuid.new ?? "",
+      previousOrganizerUuid: fields.organizerUuid.old ?? null,
+      newOrganizerUuid: fields.organizerUuid.new ?? null,
       hostAttendeeIdUpdated: fields.hostAttendeeUpdated?.id ?? null,
       hostAttendeeUserUuidNew: fields.hostAttendeeUpdated?.withUserUuid?.new ?? null,
       hostAttendeeUserUuidOld: fields.hostAttendeeUpdated?.withUserUuid?.old ?? null,
@@ -95,7 +95,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
   }
 
   private async getPreviousAndNewAssigneeUser(fields: ReassignmentAuditData) {
-    const hasAttendeeUpdated = !!fields.hostAttendeeUpdated?.id;
+    const hasAttendeeUpdated = fields.hostAttendeeUpdated != null;
     const newHostUuid = hasAttendeeUpdated
       ? fields.hostAttendeeUpdated?.withUserUuid?.new
       : fields.organizerUuid.new;
@@ -143,8 +143,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 export type ReassignmentAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type ReassignmentAuditDisplayData = {
-  previousOrganizerUuid: string;
-  newOrganizerUuid: string;
+  previousOrganizerUuid: string | null;
+  newOrganizerUuid: string | null;
   hostAttendeeIdUpdated: number | null;
   hostAttendeeUserUuidNew: string | null;
   hostAttendeeUserUuidOld: string | null;

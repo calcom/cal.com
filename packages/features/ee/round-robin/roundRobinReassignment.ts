@@ -209,7 +209,7 @@ export const roundRobinReassignment = async ({
   const attendeeList = await Promise.all(attendeePromises);
   let bookingLocation = booking.location;
   let attendeeUpdatedId = null;
-  let previousRRHostAttendeeUuid = null;
+  let previousRRHostUserUuid = null;
 
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
@@ -276,7 +276,7 @@ export const roundRobinReassignment = async ({
       (attendee) => attendee.email === previousRRHost.email
     );
     if (previousRRHostAttendee) {
-      previousRRHostAttendeeUuid = previousRRHost?.uuid ?? null;
+      previousRRHostUserUuid = previousRRHost?.uuid ?? null;
       attendeeUpdatedId = previousRRHostAttendee.id;
       await prisma.attendee.update({
         where: {
@@ -301,15 +301,17 @@ export const roundRobinReassignment = async ({
     source: actionSource,
     auditData: {
       organizerUuid: { old: originalOrganizer.uuid ?? null, new: newOrganizerUuid ?? null },
-      hostAttendeeUpdated: attendeeUpdatedId
+      ...(attendeeUpdatedId
         ? {
-            id: attendeeUpdatedId,
-            withUserUuid: {
-              old: previousRRHostAttendeeUuid,
-              new: reassignedRRHost.uuid ?? null,
+            hostAttendeeUpdated: {
+              id: attendeeUpdatedId,
+              withUserUuid: {
+                old: previousRRHostUserUuid,
+                new: reassignedRRHost.uuid ?? null,
+              },
             },
           }
-        : undefined,
+        : null),
       reassignmentReason: null,
       reassignmentType: "roundRobin",
     },

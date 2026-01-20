@@ -118,8 +118,11 @@ export const roundRobinManualReassignment = async ({
       }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
+
   let currentRRHostUserUuid = null;
-  const currentRRHost = booking.attendees.find((attendee) => {
+  let attendeeUpdatedId = null;
+
+  const currentRRHostAttendee = booking.attendees.find((attendee) => {
     const matchingEventTypeHost = eventTypeHosts.find(
       (host) => !host.isFixed && host.user.email === attendee.email
     );
@@ -174,8 +177,6 @@ export const roundRobinManualReassignment = async ({
     previousHost: previousRRHost || null,
     reassignedHost: newUser,
   });
-
-  let attendeeUpdatedId = null;
 
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
@@ -239,10 +240,10 @@ export const roundRobinManualReassignment = async ({
       reassignById: reassignedById,
       reassignmentType: RRReassignmentType.MANUAL,
     });
-  } else if (currentRRHost) {
+  } else if (currentRRHostAttendee) {
     // Update the round-robin host attendee
     await prisma.attendee.update({
-      where: { id: currentRRHost.id },
+      where: { id: currentRRHostAttendee.id },
       data: {
         name: newUser.name || "",
         email: newUser.email,
@@ -250,17 +251,10 @@ export const roundRobinManualReassignment = async ({
         locale: newUser.locale,
       },
     });
-    attendeeUpdatedId = currentRRHost.id;
+    attendeeUpdatedId = currentRRHostAttendee.id;
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  // Track both organizer and RR host changes for complete audit trail:
-  // - organizerUuid: The booking owner (booking.userId) - may or may not change
-  // - assignedRRHostUuid: The round-robin team member assigned - always changes
-  //
-  // previousRRHost may be nullish if: (1) all hosts are fixed, (2) previous RR host was
-  // removed from event type, or (3) data inconsistency. In fixed-host scenarios with removed
-  // RR host, we cannot reliably determine their UUID from attendees alone.
   const newOrganizerUuid = hasOrganizerChanged ? newUser.uuid : originalOrganizer.uuid;
 
   await bookingEventHandlerService.onReassignment({
@@ -269,16 +263,18 @@ export const roundRobinManualReassignment = async ({
     organizationId: orgId,
     source: actionSource,
     auditData: {
-      organizerUuid: { old: originalOrganizer.uuid, new: newOrganizerUuid },
-      hostAttendeeUpdated: attendeeUpdatedId
+      organizerUuid: { old: originalOrganizer.uuid ?? null, new: newOrganizerUuid ?? null },
+      ...(attendeeUpdatedId
         ? {
-            id: attendeeUpdatedId,
-            withUserUuid: {
-              old: currentRRHostUserUuid,
-              new: newUser.uuid,
+            hostAttendeeUpdated: {
+              id: attendeeUpdatedId,
+              withUserUuid: {
+                old: currentRRHostUserUuid,
+                new: newUser.uuid,
+              },
             },
           }
-        : undefined,
+        : null),
       reassignmentReason: reassignReason ?? null,
       reassignmentType: "manual",
     },
