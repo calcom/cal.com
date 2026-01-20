@@ -1,12 +1,6 @@
-import type { User as UserAuth } from "next-auth";
-import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
+import { ENABLE_PROFILE_SWITCHER, IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,7 +13,11 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { User as UserAuth } from "next-auth";
+import { useSession } from "next-auth/react";
 import { KBarTrigger } from "./Kbar";
 import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
@@ -80,112 +78,120 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
       <aside
         style={!isPlatformPages ? sidebarStylingAttributes : {}}
         className={classNames(
-          "bg-cal-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
+          "fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-muted border-r bg-cal-muted md:sticky md:flex lg:w-56 lg:px-3",
           !isPlatformPages && "max-h-screen"
         )}>
-        <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
-          <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
-            {user?.org ? (
-              !ENABLE_PROFILE_SWITCHER ? (
-                <Link href="/settings/organizations/profile" className="w-full px-1.5">
-                  <div className="flex items-center gap-2 font-medium">
-                    <Avatar
-                      alt={`${user.org.name} logo`}
-                      imageSrc={getPlaceholderAvatar(user.org.logoUrl, user.org.name)}
-                      size="xsm"
-                    />
-                    <p className="text line-clamp-1 text-sm">
-                      <span>{user.org.name}</span>
-                    </p>
-                  </div>
-                </Link>
+        <div className="flex h-full min-h-0 flex-col justify-between py-3 lg:pt-4">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <header className="todesktop:-mt-3 todesktop:flex-col-reverse items-center justify-between todesktop:[-webkit-app-region:drag] md:hidden lg:flex">
+              {user?.org ? (
+                !ENABLE_PROFILE_SWITCHER ? (
+                  <Link href="/settings/organizations/profile" className="w-full px-1.5">
+                    <div className="flex items-center gap-2 font-medium">
+                      <Avatar
+                        alt={`${user.org.name} logo`}
+                        imageSrc={getPlaceholderAvatar(user.org.logoUrl, user.org.name)}
+                        size="xsm"
+                      />
+                      <p className="text line-clamp-1 text-sm">
+                        <span>{user.org.name}</span>
+                      </p>
+                    </div>
+                  </Link>
+                ) : (
+                  <ProfileDropdown />
+                )
               ) : (
-                <ProfileDropdown />
-              )
-            ) : (
-              <div data-testid="user-dropdown-trigger" className="todesktop:mt-4 w-full">
-                <span className="hidden lg:inline">
-                  <UserDropdown />
-                </span>
-                <span className="hidden md:inline lg:hidden">
-                  <UserDropdown small />
-                </span>
-              </div>
-            )}
-            <div className="flex w-full justify-end rtl:space-x-reverse">
-              <button
-                color="minimal"
-                onClick={() => window.history.back()}
-                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon name="arrow-left" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
-              </button>
-              <button
-                color="minimal"
-                onClick={() => window.history.forward()}
-                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon name="arrow-right" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
-              </button>
-              {!!user?.org && (
-                <div data-testid="user-dropdown-trigger" className="flex items-center">
-                  <UserDropdown small />
+                <div data-testid="user-dropdown-trigger" className="todesktop:mt-4 w-full">
+                  <span className="hidden lg:inline">
+                    <UserDropdown />
+                  </span>
+                  <span className="hidden md:inline lg:hidden">
+                    <UserDropdown small />
+                  </span>
                 </div>
               )}
-              <KBarTrigger />
-            </div>
-          </header>
-          {/* logo icon for tablet */}
-          <Link href="/event-types" className="text-center md:inline lg:hidden">
-            <Logo small icon />
-          </Link>
-          <Navigation isPlatformNavigation={isPlatformPages} />
-        </div>
-
-        {!isPlatformPages && (
-          <div className="md:px-2 md:pb-4 lg:p-0">
-            {flags["sidebar-tips"] && (
-              <div className="overflow-hidden">
+              <div className="flex w-full justify-end rtl:space-x-reverse">
+                <button
+                  color="minimal"
+                  onClick={() => window.history.back()}
+                  className="group todesktop:block hidden font-medium text-sm text-subtle hover:text-emphasis">
+                  <Icon
+                    name="arrow-left"
+                    className="h-4 w-4 shrink-0 text-subtle group-hover:text-emphasis"
+                  />
+                </button>
+                <button
+                  color="minimal"
+                  onClick={() => window.history.forward()}
+                  className="group todesktop:block hidden font-medium text-sm text-subtle hover:text-emphasis">
+                  <Icon
+                    name="arrow-right"
+                    className="h-4 w-4 shrink-0 text-subtle group-hover:text-emphasis"
+                  />
+                </button>
+                {!!user?.org && (
+                  <div data-testid="user-dropdown-trigger" className="flex items-center">
+                    <UserDropdown small />
+                  </div>
+                )}
+                <KBarTrigger />
+              </div>
+            </header>
+            {/* logo icon for tablet */}
+            <Link href="/event-types" className="text-center md:inline lg:hidden">
+              <Logo small icon />
+            </Link>
+            <Navigation isPlatformNavigation={isPlatformPages} />
+            {!isPlatformPages && flags["sidebar-tips"] && (
+              <div className="overflow-hidden md:px-2 lg:px-0">
                 <Tips />
               </div>
             )}
-            {bottomNavItems.map((item, index) => (
-              <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
-                <ButtonOrLink
-                  id={item.name}
-                  href={item.href || undefined}
-                  aria-label={t(item.name)}
-                  target={item.target}
-                  className={classNames(
-                    "text-left",
-                    "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-                    "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
-                    isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : "",
-                    index === 0 && "mt-3"
-                  )}
-                  onClick={item.onClick}>
-                  {!!item.icon && (
-                    <Icon
-                      name={item.isLoading ? "rotate-cw" : item.icon}
-                      className={classNames(
-                        "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
-                        "ml-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
-                        item.isLoading && "animate-spin"
-                      )}
-                      aria-hidden="true"
-                    />
-                  )}
-                  {isLocaleReady ? (
-                    <span className="hidden w-full justify-between lg:flex">
-                      <div className="flex">{t(item.name)}</div>
-                    </span>
-                  ) : (
-                    <SkeletonText className="h-[20px] w-full" />
-                  )}
-                </ButtonOrLink>
-              </Tooltip>
-            ))}
-            {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
           </div>
-        )}
+
+          {!isPlatformPages && (
+            <div className="md:px-2 md:pb-4 lg:p-0">
+              {bottomNavItems.map((item, index) => (
+                <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
+                  <ButtonOrLink
+                    id={item.name}
+                    href={item.href || undefined}
+                    aria-label={t(item.name)}
+                    target={item.target}
+                    className={classNames(
+                      "text-left",
+                      "justify-right group flex items-center rounded-md px-2 py-1.5 font-medium text-default text-sm transition [&[aria-current='page']]:bg-emphasis",
+                      "mt-0.5 w-full text-sm [&[aria-current='page']]:text-emphasis",
+                      isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : "",
+                      index === 0 && "mt-3"
+                    )}
+                    onClick={item.onClick}>
+                    {!!item.icon && (
+                      <Icon
+                        name={item.isLoading ? "rotate-cw" : item.icon}
+                        className={classNames(
+                          "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
+                          "ml-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                          item.isLoading && "animate-spin"
+                        )}
+                        aria-hidden="true"
+                      />
+                    )}
+                    {isLocaleReady ? (
+                      <span className="hidden w-full justify-between lg:flex">
+                        <div className="flex">{t(item.name)}</div>
+                      </span>
+                    ) : (
+                      <SkeletonText className="h-[20px] w-full" />
+                    )}
+                  </ButtonOrLink>
+                </Tooltip>
+              ))}
+              {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
+            </div>
+          )}
+        </div>
       </aside>
     </div>
   );
