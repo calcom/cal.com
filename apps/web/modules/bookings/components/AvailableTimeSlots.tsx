@@ -301,7 +301,7 @@ export const AvailableTimeSlots = ({
       </div>
 
       {showLoadMoreButton && (
-        <div className="sticky right-0 bottom-0 left-0 border-subtle border-t bg-default px-4 py-3">
+        <div className="sticky right-0 bottom-0 left-0 border-subtle border-t bg-default py-3">
           {renderLoadMoreButton()}
         </div>
       )}
