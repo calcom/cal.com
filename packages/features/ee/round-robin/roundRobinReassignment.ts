@@ -300,7 +300,7 @@ export const roundRobinReassignment = async ({
     source: actionSource,
     auditData: {
       ...(hasOrganizerChanged
-        ? { organizerUuid: { old: originalOrganizer.uuid ?? null, new: reassignedRRHost.uuid ?? null } }
+        ? { organizerUuid: { old: originalOrganizer.uuid, new: reassignedRRHost.uuid } }
         : null),
       ...(attendeeUpdatedId
         ? {

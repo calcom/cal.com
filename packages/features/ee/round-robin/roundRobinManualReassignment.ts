@@ -263,7 +263,7 @@ export const roundRobinManualReassignment = async ({
     source: actionSource,
     auditData: {
       ...(hasOrganizerChanged
-        ? { organizerUuid: { old: originalOrganizer.uuid ?? null, new: newUser.uuid ?? null } }
+        ? { organizerUuid: { old: originalOrganizer.uuid, new: newUser.uuid } }
         : null),
       ...(attendeeUpdatedId
         ? {
