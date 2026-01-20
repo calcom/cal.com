@@ -79,9 +79,9 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // Step 7: Verify the calendar links contain the EVENT TYPE DESCRIPTION
-    // Check Google Calendar link
+    // Check Google Calendar link - URL uses %20 encoding for spaces
     const googleCalLink = await page.locator('a[href*="calendar.google.com"]').getAttribute("href");
-    expect(googleCalLink).toContain(encodeURIComponent(EVENT_TYPE_DESCRIPTION).replace(/%20/g, "+").substring(0, 50));
+    expect(googleCalLink).toContain(encodeURIComponent(EVENT_TYPE_DESCRIPTION).substring(0, 50));
 
     // Step 8: Get the booking UID for rescheduling
     const pageUrl = new URL(page.url());
@@ -105,7 +105,7 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     // Step 14: Verify the calendar links STILL contain the EVENT TYPE DESCRIPTION after reschedule
     const googleCalLinkAfterReschedule = await page.locator('a[href*="calendar.google.com"]').getAttribute("href");
     expect(googleCalLinkAfterReschedule).toContain(
-      encodeURIComponent(EVENT_TYPE_DESCRIPTION).replace(/%20/g, "+").substring(0, 50)
+      encodeURIComponent(EVENT_TYPE_DESCRIPTION).substring(0, 50)
     );
 
     // Step 15: Verify the new booking in database has correct structure
@@ -166,7 +166,7 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     // The calendar link should contain the event type description, not the additional notes
     const googleCalLink = await page.locator('a[href*="calendar.google.com"]').getAttribute("href");
 
-    // Event type description should be in the calendar link
-    expect(googleCalLink).toContain(encodeURIComponent(EVENT_TYPE_DESCRIPTION).replace(/%20/g, "+").substring(0, 50));
+    // Event type description should be in the calendar link (URL uses %20 encoding for spaces)
+    expect(googleCalLink).toContain(encodeURIComponent(EVENT_TYPE_DESCRIPTION).substring(0, 50));
   });
 });
