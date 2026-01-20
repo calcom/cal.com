@@ -1,10 +1,11 @@
-import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import { metrics } from "@sentry/nextjs";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
 
@@ -34,10 +35,23 @@ export class CalendarSyncService {
       countEvents: calendarSubscriptionEvents.length,
     });
 
+    metrics.count("calendar.sync.handleEvents.calls", 1, {
+      attributes: {
+        integration: selectedCalendar.integration,
+      },
+    });
+
     // only process cal.com calendar events
     const calEvents = calendarSubscriptionEvents.filter((e) =>
       e.iCalUID?.toLowerCase()?.endsWith("@cal.com")
     );
+
+    metrics.distribution("calendar.sync.handleEvents.events_count", calEvents.length, {
+      attributes: {
+        integration: selectedCalendar.integration,
+      },
+    });
+
     if (calEvents.length === 0) {
       log.debug("handleEvents: no calendar events to process");
       return;
@@ -62,6 +76,7 @@ export class CalendarSyncService {
    * @returns
    */
   async cancelBooking(event: CalendarSubscriptionEventItem) {
+    const startTime = performance.now();
     log.debug("cancelBooking", { event });
     const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
     if (!bookingUid) {
@@ -75,22 +90,48 @@ export class CalendarSyncService {
       return;
     }
 
+    if (!booking.userId || !booking.userPrimaryEmail) {
+      log.warn("Unable to sync cancellation, booking missing required user data", {
+        bookingUid,
+        hasUserId: !!booking.userId,
+        hasUserPrimaryEmail: !!booking.userPrimaryEmail,
+      });
+      metrics.count("calendar.sync.cancelBooking.calls", 1, {
+        attributes: { status: "skipped", reason: "missing_user_data" },
+      });
+      return;
+    }
+
     try {
       await handleCancelBooking({
-        userId: booking.userId!,
+        userId: booking.userId,
         bookingData: {
           uid: booking.uid,
           cancellationReason: "Cancelled on user's calendar",
-          cancelledBy: booking.userPrimaryEmail!,
+          cancelledBy: booking.userPrimaryEmail,
           // Skip calendar event deletion to avoid infinite loops
           // (Google/Office365 → Cal.com → Google/Office365 → ...)
           skipCalendarSyncTaskCancellation: true,
         },
       });
       log.info("Successfully cancelled booking from calendar sync", { bookingUid });
+
+      metrics.count("calendar.sync.cancelBooking.calls", 1, {
+        attributes: { status: "success" },
+      });
+      metrics.distribution("calendar.sync.cancelBooking.duration_ms", performance.now() - startTime, {
+        attributes: { status: "success" },
+      });
     } catch (error) {
       // Log error but don't block - calendar change should still be reflected
       log.error("Failed to cancel booking from calendar sync", { bookingUid, error: safeStringify(error) });
+
+      metrics.count("calendar.sync.cancelBooking.calls", 1, {
+        attributes: { status: "error" },
+      });
+      metrics.distribution("calendar.sync.cancelBooking.duration_ms", performance.now() - startTime, {
+        attributes: { status: "error" },
+      });
     }
   }
 
@@ -99,6 +140,7 @@ export class CalendarSyncService {
    * @param event
    */
   async rescheduleBooking(event: CalendarSubscriptionEventItem) {
+    const startTime = performance.now();
     log.debug("rescheduleBooking", { event });
     const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
     if (!bookingUid) {
@@ -112,11 +154,19 @@ export class CalendarSyncService {
       return;
     }
 
+    if (!booking.eventTypeId) {
+      log.warn("Unable to sync reschedule, booking missing eventTypeId", { bookingUid });
+      metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
+        attributes: { status: "skipped", reason: "missing_event_type_id" },
+      });
+      return;
+    }
+
     try {
       const regularBookingService = getRegularBookingService();
       await regularBookingService.createBooking({
         bookingData: {
-          eventTypeId: booking.eventTypeId!,
+          eventTypeId: booking.eventTypeId,
           start: event.start?.toISOString() ?? booking.startTime.toISOString(),
           end: event.end?.toISOString() ?? booking.endTime.toISOString(),
           timeZone: event.timeZone ?? "UTC",
@@ -131,9 +181,26 @@ export class CalendarSyncService {
         },
       });
       log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
+
+      metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
+        attributes: { status: "success" },
+      });
+      metrics.distribution("calendar.sync.rescheduleBooking.duration_ms", performance.now() - startTime, {
+        attributes: { status: "success" },
+      });
     } catch (error) {
       // Log error but don't block - calendar change should still be reflected
-      log.error("Failed to reschedule booking from calendar sync", { bookingUid, error: safeStringify(error) });
+      log.error("Failed to reschedule booking from calendar sync", {
+        bookingUid,
+        error: safeStringify(error),
+      });
+
+      metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
+        attributes: { status: "error" },
+      });
+      metrics.distribution("calendar.sync.rescheduleBooking.duration_ms", performance.now() - startTime, {
+        attributes: { status: "error" },
+      });
     }
   }
 }
