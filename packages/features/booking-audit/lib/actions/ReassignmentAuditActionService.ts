@@ -17,7 +17,7 @@ import type {
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-  organizerUuid: StringChangeSchema,
+  organizerUuid: StringChangeSchema.optional(),
   hostAttendeeUpdated: z
     .object({
       id: z.number().optional(),
@@ -85,8 +85,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
   getDisplayJson({ storedData }: GetDisplayJsonParams): ReassignmentAuditDisplayData {
     const { fields } = this.parseStored(storedData);
     return {
-      previousOrganizerUuid: fields.organizerUuid.old ?? null,
-      newOrganizerUuid: fields.organizerUuid.new ?? null,
+      previousOrganizerUuid: fields.organizerUuid?.old ?? null,
+      newOrganizerUuid: fields.organizerUuid?.new ?? null,
       hostAttendeeIdUpdated: fields.hostAttendeeUpdated?.id ?? null,
       hostAttendeeUserUuidNew: fields.hostAttendeeUpdated?.withUserUuid?.new ?? null,
       hostAttendeeUserUuidOld: fields.hostAttendeeUpdated?.withUserUuid?.old ?? null,
@@ -98,10 +98,10 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     const hasAttendeeUpdated = fields.hostAttendeeUpdated != null;
     const newHostUuid = hasAttendeeUpdated
       ? fields.hostAttendeeUpdated?.withUserUuid?.new
-      : fields.organizerUuid.new;
+      : fields.organizerUuid?.new;
     const previousHostUuid = hasAttendeeUpdated
       ? fields.hostAttendeeUpdated?.withUserUuid?.old
-      : fields.organizerUuid.old;
+      : fields.organizerUuid?.old;
 
     const newUser = newHostUuid ? await this.userRepository.findByUuid({ uuid: newHostUuid }) : null;
     const previousUser = previousHostUuid

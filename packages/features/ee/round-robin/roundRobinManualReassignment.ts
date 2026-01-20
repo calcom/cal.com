@@ -255,7 +255,6 @@ export const roundRobinManualReassignment = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const newOrganizerUuid = hasOrganizerChanged ? newUser.uuid : originalOrganizer.uuid;
 
   await bookingEventHandlerService.onReassignment({
     bookingUid: booking.uid,
@@ -263,7 +262,9 @@ export const roundRobinManualReassignment = async ({
     organizationId: orgId,
     source: actionSource,
     auditData: {
-      organizerUuid: { old: originalOrganizer.uuid ?? null, new: newOrganizerUuid ?? null },
+      ...(hasOrganizerChanged
+        ? { organizerUuid: { old: originalOrganizer.uuid, new: newUser.uuid } }
+        : null),
       ...(attendeeUpdatedId
         ? {
             hostAttendeeUpdated: {
