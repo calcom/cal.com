@@ -145,8 +145,14 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullOrigin(slug: string | null, options: { protocol: boolean } = { protocol: true }) {
-  if (!slug)
-    return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
+  if (!slug) {
+    // Use WEBAPP_URL if domains differ (e.g., EU: app.cal.eu vs cal.com)
+    const getBaseDomain = (hostname: string) => hostname.split(".").slice(-2).join(".");
+    const useWebappUrl =
+      getBaseDomain(new URL(WEBSITE_URL).hostname) !== getBaseDomain(new URL(WEBAPP_URL).hostname);
+    const baseUrl = useWebappUrl ? WEBAPP_URL : WEBSITE_URL;
+    return options.protocol ? baseUrl : baseUrl.replace("https://", "").replace("http://", "");
+  }
 
   const orgFullOrigin = `${
     options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""
