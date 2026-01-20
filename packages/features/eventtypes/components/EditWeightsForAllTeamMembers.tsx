@@ -21,7 +21,7 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import { useTeamMembersWithSegment } from "@calcom/features/eventtypes/hooks/useTeamMembersWithSegment";
+import { useTeamMembersWithSegment } from "@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
