@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { AVATAR_FALLBACK, LOGO, MSTILE_ICON, CAL_URL } from "@calcom/lib/constants";
-import type { User } from "@calcom/prisma/client";
+import type { User, CalIdTeam } from "@calcom/prisma/client";
 
 /**
  * Gives an organization aware avatar url for a user
@@ -21,7 +21,7 @@ export const getUserAvatarUrl = (user: Pick<User, "avatarUrl"> | undefined) => {
 };
 
 export const getBrandLogoUrl = (
-  entity: Partial<Pick<User | Team, "bannerUrl" | "faviconUrl">>,
+  entity: Partial<Pick<User | CalIdTeam, "bannerUrl" | "faviconUrl">>,
   isFavicon?: boolean
 ) => {
   const url = isFavicon ? entity?.faviconUrl : entity?.bannerUrl || entity?.faviconUrl;
