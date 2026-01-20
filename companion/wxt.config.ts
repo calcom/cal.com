@@ -72,6 +72,8 @@ export default defineConfig({
       "https://companion.cal.com/*",
       "https://api.cal.com/*",
       "https://app.cal.com/*",
+      "https://api.cal.eu/*",
+      "https://app.cal.eu/*",
       "https://mail.google.com/*",
       "https://calendar.google.com/*",
       // Include localhost permission for dev builds (needed for iframe to load)

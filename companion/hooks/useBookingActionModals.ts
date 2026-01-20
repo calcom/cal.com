@@ -8,7 +8,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { Alert, Linking } from "react-native";
+
 import { queryKeys } from "@/config/cache.config";
+import { getBookingUrl } from "@/config/region";
 import { type Booking, CalComAPIService } from "@/services/calcom";
 import type {
   AddGuestInput,
@@ -16,6 +18,7 @@ import type {
   ConferencingSession,
 } from "@/services/types/bookings.types";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
+import { getStoredRegion } from "@/utils/storage";
 
 interface UseBookingActionModalsReturn {
   // Selected booking for actions
@@ -277,10 +280,9 @@ export function useBookingActionModals(): UseBookingActionModalsReturn {
   // Request Reschedule (deep link to web)
   // ============================================================================
 
-  const handleRequestReschedule = useCallback((booking: Booking) => {
-    // Request reschedule is a server-driven operation that requires the web app
-    // We deep link to the booking detail page where the user can trigger it
-    const webUrl = `https://app.cal.com/booking/${booking.uid}`;
+  const handleRequestReschedule = useCallback(async (booking: Booking) => {
+    const region = await getStoredRegion();
+    const webUrl = getBookingUrl(region, booking.uid);
 
     Alert.alert(
       "Request Reschedule",
