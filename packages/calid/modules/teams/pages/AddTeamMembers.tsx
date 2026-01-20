@@ -136,7 +136,7 @@ const AddTeamMembers = () => {
                   color="destructive"
                   variant="icon"
                   size="sm"
-                  StartIcon="trash-2"
+                  StartIcon="trash"
                   onClick={() => removeMutation.mutate({ teamIds: [teamId], memberIds: [member.user.id] })}
                   disabled={removeMutation.isPending || member.role === "OWNER"}
                   data-testid="remove-member-button"

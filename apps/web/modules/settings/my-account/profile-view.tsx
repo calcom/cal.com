@@ -7,6 +7,9 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
   DialogClose,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
@@ -337,17 +340,19 @@ const ProfileView = ({ user }: Props) => {
               variant="button"
               color="destructive"
               className="bg-default text-destructive"
-              StartIcon="trash-2">
+              StartIcon="trash">
               {t("delete_account")}
             </Button>
           </DialogTrigger>
-          <DialogContent
-            title={t("delete_account_modal_title")}
-            description={t("confirm_delete_account_modal", { appName: APP_NAME })}
-            type="creation"
-            Icon="triangle-alert">
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("delete_account_modal_title")}</DialogTitle>
+              <DialogDescription>
+                {t("confirm_delete_account_modal", { appName: APP_NAME })}
+              </DialogDescription>
+            </DialogHeader>
             <>
-              <div className="mb-10">
+              <div>
                 <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
                 {isCALIdentityProvider && (
                   <PasswordField
@@ -370,14 +375,15 @@ const ProfileView = ({ user }: Props) => {
                 {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
               </div>
               <DialogFooter>
-                <DialogClose />
                 <Button
-                  color="primary"
+                  color="destructive"
+                  StartIcon="trash"
                   data-testid="delete-account-confirm"
                   onClick={(e) => onConfirmButton(e)}
                   loading={deleteMeMutation.isPending}>
                   {t("delete_my_account")}
                 </Button>
+                <DialogClose />
               </DialogFooter>
             </>
           </DialogContent>
@@ -433,11 +439,11 @@ const ProfileView = ({ user }: Props) => {
       </Dialog>
 
       <Dialog open={showCreateAccountPasswordDialog} onOpenChange={setShowCreateAccountPasswordDialog}>
-        <DialogContent
-          title={t("create_account_password")}
-          description={t("create_account_password_hint")}
-          type="creation"
-          Icon="triangle-alert">
+        <DialogContent>
+          <DialogHeader showIcon variant="success">
+            <DialogTitle>{t("create_account_password")}</DialogTitle>
+            <DialogDescription>{t("create_account_password_hint")}</DialogDescription>
+          </DialogHeader>
           <DialogFooter>
             <DialogClose />
           </DialogFooter>
@@ -445,11 +451,11 @@ const ProfileView = ({ user }: Props) => {
       </Dialog>
 
       <Dialog open={showAccountDisconnectWarning} onOpenChange={setShowAccountDisconnectWarning}>
-        <DialogContent
-          title={t("disconnect_account")}
-          description={t("disconnect_account_hint")}
-          type="creation"
-          Icon="triangle-alert">
+        <DialogContent>
+          <DialogHeader showIcon variant="warning">
+            <DialogTitle>{t("disconnect_account")}</DialogTitle>
+            <DialogDescription>{t("disconnect_account_hint")}</DialogDescription>
+          </DialogHeader>
           <DialogFooter>
             <Button
               color="primary"
@@ -701,12 +707,12 @@ const ProfileForm = ({
                       <div className="flex gap-2">
                         <ImageUploader
                           target="avatar"
+                          startIcon="upload"
                           id="avatar-upload"
                           buttonMsg={t("upload_avatar")}
                           handleAvatarChange={(newAvatar) => {
                             onChange(newAvatar);
                           }}
-                          buttonSize="lg"
                           imageSrc={getUserAvatarUrl({ avatarUrl: value })}
                           triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
                         />
@@ -714,6 +720,7 @@ const ProfileForm = ({
                         {showRemoveAvatarButton && (
                           <Button
                             color="destructive"
+                            StartIcon="trash"
                             onClick={() => {
                               onChange(null);
                             }}>

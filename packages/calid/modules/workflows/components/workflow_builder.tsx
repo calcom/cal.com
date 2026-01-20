@@ -166,10 +166,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
         if (step.metaTemplateName) {
           if (
+            !isPendingFetchingPhone &&
             whatsAppTemplatesForPhone &&
             !whatsAppTemplatesForPhone.some((e) => e.name === step.metaTemplateName)
           ) {
-            console.log("Setting template name as null: ", step.metaTemplateName);
             updateAction(step.id, "metaTemplateName", null);
           }
         }
@@ -202,10 +202,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   );
 
   // Add tRPC hooks for WhatsApp
-  const { data: whatsAppPhones } = trpc.viewer.workflows.getWhatsAppPhoneNumbers.useQuery(
-    workflowData?.calIdTeamId ? { calIdTeamId: workflowData.calIdTeamId } : {},
-    { enabled: !!isAllDataLoaded }
-  );
+  const { data: whatsAppPhones, isPending: isPendingFetchingPhone } =
+    trpc.viewer.workflows.getWhatsAppPhoneNumbers.useQuery(
+      workflowData?.calIdTeamId ? { calIdTeamId: workflowData.calIdTeamId } : {},
+      { enabled: !!isAllDataLoaded }
+    );
 
   const [invalidVariables, setInvalidVariables] = useState<{ [stepId: string]: string | null }>({});
 
@@ -1202,7 +1203,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                   data-testid="delete-workflow"
                   color="destructive"
                   variant="icon"
-                  StartIcon="trash-2"
+                  StartIcon="trash"
                   onClick={() => setIsDeleteDialogOpen(true)}
                 />
               )}
@@ -1470,7 +1471,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           size="sm"
                                           onClick={() => removeAction(step.id)}
                                           className="p-2">
-                                          <Icon name="trash-2" className="h-4 w-4" />
+                                          <Icon name="trash" className="h-4 w-4" />
                                         </Button>
                                       )}
                                     </div>
@@ -2000,7 +2001,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             getText={() =>
                                               step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
                                               step.action === WorkflowActions.WHATSAPP_NUMBER
-                                                ? !!step.metaTemplatePhoneNumberId === !!step.metaTemplateName
+                                                ? Boolean(step.metaTemplatePhoneNumberId) ===
+                                                  Boolean(step.metaTemplateName)
                                                   ? convertWhatsAppTemplateForDisplay(step.reminderBody)
                                                   : ""
                                                 : step.reminderBody || ""

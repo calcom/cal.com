@@ -34,6 +34,7 @@ type ImageUploaderProps = {
   uploadInstruction?: string;
   disabled?: boolean;
   testId?: string;
+  startIcon?: ButtonProps["StartIcon"];
 };
 
 // This is separate to prevent loading the component until file upload
@@ -89,6 +90,7 @@ export default function ImageUploader({
   disabled = false,
   testId,
   buttonSize,
+  startIcon,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -139,6 +141,7 @@ export default function ImageUploader({
       <DialogTrigger asChild>
         <Button
           color={triggerButtonColor ?? "secondary"}
+          StartIcon={startIcon}
           type="button"
           disabled={disabled}
           size={buttonSize}

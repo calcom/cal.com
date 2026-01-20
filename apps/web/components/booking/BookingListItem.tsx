@@ -559,6 +559,7 @@ export default function BookingListItem(booking: BookingItemProps) {
           isOpenDialog={isBookingSeatsDialogOpen}
           setIsOpenDialog={setIsBookingSeatsDialogOpen}
           bookingUid={booking.uid}
+          eventFields={booking.eventType.bookingFields}
           bookingSeats={booking.seatsReferences}
           userTimeFormat={userTimeFormat ?? 24}
         />
@@ -639,7 +640,9 @@ export default function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="bg-default border-default my-1.5 flex w-full flex-col items-start justify-between rounded-md border shadow-sm hover:shadow-md">
+      <div
+        data-testid={`booking-uid-${booking.uid}`}
+        className="bg-default border-default my-1.5 flex w-full flex-col items-start justify-between rounded-md border shadow-sm hover:shadow-md">
         <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
           <div className="cursor-pointer">
             <div className="flex flex-col pb-4">

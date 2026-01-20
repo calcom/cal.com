@@ -100,7 +100,12 @@ const useUrlManagement = (
 
   const handlePreviewUrl = useCallback(() => {
     const permalink = generatePermalink();
-    window.open(permalink, "_blank");
+    const protocol = WEBSITE_URL?.startsWith("https://") ? "https://" : "http://";
+    const fullUrl =
+      permalink.startsWith("http://") || permalink.startsWith("https://")
+        ? permalink
+        : `${protocol}${permalink}`;
+    window.open(fullUrl, "_blank");
   }, [generatePermalink]);
 
   return {

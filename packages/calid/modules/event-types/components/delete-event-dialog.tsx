@@ -36,7 +36,7 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader showIcon variant="warning">
           <DialogTitle>
             {schedulingType === SchedulingType.MANAGED
               ? t("delete_managed_event_type")
@@ -45,8 +45,8 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
           <DialogDescription>
             {schedulingType === SchedulingType.MANAGED ? (
               <ul className="ml-4 mt-2 list-disc">
-                <li>This will delete the managed event type and all its instances</li>
-                <li>All associated bookings will be cancelled</li>
+                <li>{t("delete_managed_event_type_description_1")}</li>
+                <li>{t("delete_managed_event_type_description_2")}</li>
               </ul>
             ) : (
               t("are_you_sure_you_want_to_delete_this_event_type")
@@ -54,7 +54,7 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button color="destructive" onClick={onConfirm} loading={isDeleting}>
+          <Button StartIcon="trash" color="destructive" onClick={onConfirm} loading={isDeleting}>
             {t("delete")}
           </Button>
           <DialogClose />

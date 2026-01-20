@@ -7,12 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
-import { Input, InputField, TextField } from "@calid/features/ui/components/input/input";
+import { TextField } from "@calid/features/ui/components/input/input";
 import React, { useState, useMemo, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ColorPicker } from "@calcom/ui/components/form";
 
 import type { IconParams } from "./event-type-card-icon";
 
@@ -391,28 +393,15 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
               <div className="space-y-3">
                 <h4 className="text-sm font-medium">{t("icon_color")}</h4>
                 <div className="flex items-center space-x-2">
-                  <Input
-                    type="color"
-                    className="h-8 w-8 p-0"
-                    value={selectedColor}
-                    onChange={(e) => handleColorChange(e.target.value)}
-                  />
-                  <InputField
-                    type="text"
-                    value={selectedColor}
-                    onChange={(e) => handleColorChange(e.target.value)}
-                    placeholder="#6366f1"
-                  />
+                  <ColorPicker defaultValue={selectedColor} onChange={(color) => handleColorChange(color)} />
                 </div>
               </div>
             </div>
           </div>
 
           <DialogFooter>
-            <Button color="secondary" onClick={handleClose}>
-              {t("cancel")}
-            </Button>
-            <Button onClick={handleApply} disabled={!selectedIcon || !hasChanges}>
+            <DialogClose />
+            <Button StartIcon="check" onClick={handleApply} disabled={!selectedIcon || !hasChanges}>
               {t("apply")}
             </Button>
           </DialogFooter>

@@ -1,5 +1,6 @@
 import { cn } from "@calid/features/lib/cn";
 import { Icon, type IconName } from "@calid/features/ui/components/icon/Icon";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -19,6 +20,7 @@ const badgeVariants = cva(
         destructive: "border bg-destructive text-destructive-foreground",
         outline: "text-default text-sm",
         success: "border bg-primary border-green-600 text-green-600",
+        green: "bg-green-50 text-green-800",
         attention: "bg-yellow-50 text-yellow-600",
       },
       size: {
@@ -90,6 +92,7 @@ export const Badge = function Badge(props: BadgeProps) {
       setTimeout(() => setIsCopied(false), 1500);
     });
   };
+
   const handleRedirectUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -116,17 +119,28 @@ export const Badge = function Badge(props: BadgeProps) {
       {children}
       {publicUrl && (
         <div className="ml-1 flex items-center">
-          <Tooltip content={isCopied ? t("copied") : t("copy")}>
-            <Button
-              variant="icon"
-              StartIcon="copy"
-              color="minimal"
-              className="border-none"
-              size="xs"
-              onClick={handleCopyUrl}
-              data-testid="copy-url-button"
-            />
-          </Tooltip>
+          <TooltipPrimitive.Provider delayDuration={300}>
+            <TooltipPrimitive.Root open={isCopied ? true : undefined}>
+              <TooltipPrimitive.Trigger asChild>
+                <Button
+                  variant="icon"
+                  StartIcon="copy"
+                  color="minimal"
+                  className="border-none"
+                  size="xs"
+                  onClick={handleCopyUrl}
+                  data-testid="copy-url-button"
+                />
+              </TooltipPrimitive.Trigger>
+              <TooltipPrimitive.Content
+                sideOffset={4}
+                side="top"
+                className="z-50 overflow-hidden rounded-md bg-black px-2 py-1 text-xs font-medium text-white shadow-[0_20px_25px_-5px_rgb(0_0_0_/_0.1),_0_10px_10px_-5px_rgb(0_0_0_/_0.04)]">
+                {isCopied ? t("copied") : t("copy")}
+              </TooltipPrimitive.Content>
+            </TooltipPrimitive.Root>
+          </TooltipPrimitive.Provider>
+
           <Tooltip content={t("preview")}>
             <Button
               variant="icon"
