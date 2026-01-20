@@ -6,6 +6,17 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
 
+type UpdatedAttendee = {
+  id: number;
+  email: string;
+  name: string;
+  locale: string | null;
+  timeZone: string;
+  phoneNumber: string | null;
+  bookingId: number | null;
+  noShow: boolean | null;
+};
+
 const markGuestAsNoshowInBooking = async ({
   bookingId,
   hostsThatJoinedTheCall,
@@ -15,7 +26,7 @@ const markGuestAsNoshowInBooking = async ({
   hostsThatJoinedTheCall: Host[];
   guestsThatDidntJoinTheCall?: { email: string; name: string }[];
 }): Promise<{
-  updatedAttendees: { id: number; email: string; noShow: boolean | null }[] | null;
+  updatedAttendees: UpdatedAttendee[] | null;
   attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[];
 }> => {
   try {
@@ -48,7 +59,20 @@ const markGuestAsNoshowInBooking = async ({
       });
     }
 
-    const updatedAttendees = await prisma.attendee.findMany({ where: { bookingId } });
+    // Fetch full attendee data after update for webhook payload
+    const updatedAttendees = await prisma.attendee.findMany({
+      where: { bookingId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        locale: true,
+        timeZone: true,
+        phoneNumber: true,
+        bookingId: true,
+        noShow: true,
+      },
+    });
 
     // Build attendeesMarkedNoShow with previous values
     const attendeesMarkedNoShow = emailsToUpdate
@@ -122,15 +146,21 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
 
   if (requireEmailForGuests) {
     if (guestsThatDidntJoinTheCall.length > 0) {
-      const { attendeesMarkedNoShow } = await markGuestAsNoshowInBooking({
+      const { updatedAttendees, attendeesMarkedNoShow } = await markGuestAsNoshowInBooking({
         bookingId: booking.id,
         hostsThatJoinedTheCall,
         guestsThatDidntJoinTheCall,
       });
+
+      // Use updated attendees for webhook payload (with noShow: true)
+      const bookingWithUpdatedData = updatedAttendees
+        ? { ...booking, attendees: updatedAttendees, guests: updatedAttendees }
+        : booking;
+
       await sendWebhookPayload(
         webhook,
         WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        booking,
+        bookingWithUpdatedData,
         maxStartTime,
         participants,
         originalRescheduledBooking
@@ -142,14 +172,20 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     }
   } else {
     if (!didGuestJoinTheCall) {
-      const { attendeesMarkedNoShow } = await markGuestAsNoshowInBooking({
+      const { updatedAttendees, attendeesMarkedNoShow } = await markGuestAsNoshowInBooking({
         bookingId: booking.id,
         hostsThatJoinedTheCall,
       });
+
+      // Use updated attendees for webhook payload (with noShow: true)
+      const bookingWithUpdatedData = updatedAttendees
+        ? { ...booking, attendees: updatedAttendees, guests: updatedAttendees }
+        : booking;
+
       await sendWebhookPayload(
         webhook,
         WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        booking,
+        bookingWithUpdatedData,
         maxStartTime,
         participants,
         originalRescheduledBooking
