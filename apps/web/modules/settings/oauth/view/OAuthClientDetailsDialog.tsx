@@ -7,6 +7,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
@@ -217,6 +218,10 @@ const OAuthClientDetailsDialog = ({
                   {t(getStatusBadgeVariant(status).labelKey)}
                 </Badge>
               </div>
+            ) : null}
+
+            {status === "PENDING" ? (
+              <Alert severity="warning" title={t("oauth_client_pending_info_description")} />
             ) : null}
 
             {status === "REJECTED" && client.rejectionReason ? (
