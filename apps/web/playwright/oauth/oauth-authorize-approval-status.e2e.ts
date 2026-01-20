@@ -46,7 +46,7 @@ test.describe("OAuth authorize - client approval status", () => {
     return client;
   }
 
-  test("PENDING client redirects to redirectUri with unauthorized_client error", async ({ page, users, prisma }, testInfo) => {
+  test("PENDING client renders error on authorize page (no redirect)", async ({ page, users, prisma }, testInfo) => {
     const user = await users.create({ username: "oauth-authorize-pending" });
     await user.apiLogin();
 
@@ -61,20 +61,14 @@ test.describe("OAuth authorize - client approval status", () => {
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
     );
 
-    await page.waitForFunction(() => {
-      return window.location.href.startsWith("https://example.com");
-    });
+    // Should NOT redirect, should show error on page
+    await expect(page).not.toHaveURL(/^https:\/\/example\.com/);
 
-    await expect(page).toHaveURL(/^https:\/\/example\.com/);
-
-    const url = new URL(page.url());
-    expect(url.searchParams.get("error")).toBe("unauthorized_client");
-    expect(url.searchParams.get("error_description")).toBe(OAUTH_ERROR_REASONS["client_not_approved"]);
-    expect(url.searchParams.get("state")).toBe("1234");
-    expect(url.searchParams.get("code")).toBeNull();
+    // Check error message is displayed
+    await expect(page.getByText(OAUTH_ERROR_REASONS["client_not_approved"])).toBeVisible();
   });
 
-  test("REJECTED client redirects to redirectUri with unauthorized_client error", async ({ page, users, prisma }, testInfo) => {
+  test("REJECTED client renders error on authorize page (no redirect)", async ({ page, users, prisma }, testInfo) => {
     const user = await users.create({ username: "oauth-authorize-rejected" });
     await user.apiLogin();
 
@@ -89,17 +83,11 @@ test.describe("OAuth authorize - client approval status", () => {
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
     );
 
-    await page.waitForFunction(() => {
-      return window.location.href.startsWith("https://example.com");
-    });
+    // Should NOT redirect, should show error on page
+    await expect(page).not.toHaveURL(/^https:\/\/example\.com/);
 
-    await expect(page).toHaveURL(/^https:\/\/example\.com/);
-
-    const url = new URL(page.url());
-    expect(url.searchParams.get("error")).toBe("unauthorized_client");
-    expect(url.searchParams.get("error_description")).toBe(OAUTH_ERROR_REASONS["client_not_approved"]);
-    expect(url.searchParams.get("state")).toBe("1234");
-    expect(url.searchParams.get("code")).toBeNull();
+    // Check error message is displayed
+    await expect(page.getByText(OAUTH_ERROR_REASONS["client_not_approved"])).toBeVisible();
   });
 
   test("APPROVED client redirects to redirectUri with code", async ({ page, users, prisma }, testInfo) => {

@@ -47,24 +47,6 @@ export function Authorize() {
     }
   );
 
-  // note(Lauris): we can only redirect if the client exists and the redirect URI in query param matches the client's redirect URI.
-  // The OAuthService.getClientForAuthorization throws UNAUTHORIZED if the client is not approved, which runs only if
-  // client is found and redirect URI is valid.
-  const canRedirectToOAuthError = getClientError?.data?.code === "UNAUTHORIZED";
-
-  useEffect(() => {
-    if (!getClientError) return;
-    if (!redirect_uri) return;
-
-    if (!canRedirectToOAuthError) return;
-
-    redirectToOAuthError({
-      redirectUri: redirect_uri,
-      trpcError: getClientError,
-      state,
-    });
-  }, [getClientError, redirect_uri, state, canRedirectToOAuthError]);
-
   const { data, isPending: isPendingProfiles } =
     trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery();
 
@@ -127,7 +109,7 @@ export function Authorize() {
     }
   }, [status]);
 
-  if (getClientError && !canRedirectToOAuthError) {
+  if (getClientError) {
     return <div>{getClientError.message}</div>;
   }
 
