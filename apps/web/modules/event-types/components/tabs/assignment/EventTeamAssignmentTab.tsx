@@ -86,12 +86,14 @@ const ChildrenEventTypesList = ({
   value,
   onChange,
   customClassNames,
+  teamId,
   ...rest
 }: {
   value: ReturnType<typeof mapMemberToChildrenOption>[];
   onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
   options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  teamId?: number;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
@@ -113,6 +115,7 @@ const ChildrenEventTypesList = ({
           options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
           controlShouldRenderValue={false}
           customClassNames={customClassNames}
+          teamId={teamId}
           {...rest}
         />
       </div>
@@ -567,11 +570,13 @@ const ChildrenEventTypes = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
+  teamId,
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: ChildrenEventTypesCustomClassNames;
+  teamId?: number;
 }) => {
   const { setValue } = useFormContext<FormValues>();
   return (
@@ -596,6 +601,7 @@ const ChildrenEventTypes = ({
                 options={childrenEventTypeOptions}
                 onChange={onChange}
                 customClassNames={customClassNames?.childrenEventTypesList}
+                teamId={teamId}
               />
             )}
           />
@@ -957,6 +963,7 @@ export const EventTeamAssignmentTab = ({
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           childrenEventTypeOptions={childrenEventTypeOptions}
           customClassNames={customClassNames?.childrenEventTypes}
+          teamId={team.id}
         />
       )}
     </div>
