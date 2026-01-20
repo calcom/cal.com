@@ -1091,6 +1091,12 @@ export const baseFieldSchema = z.object({
    */
   maxLength: z.number().optional(),
 
+  /**
+   * It is the maximum number of entries that can be provided for list fields.
+   * It is used for types like `multiemail`.
+   */
+  maxEntries: z.number().int().min(1).optional(),
+
   // Emails that needs to be excluded
   excludeEmails: excludeOrRequireEmailSchema.optional(),
   // Emails that need to be required

@@ -70,6 +70,7 @@ export type SelectLikeComponentPropsRAQB<TVal extends string | string[] = string
 
 export type TextLikeComponentProps<TVal extends string | string[] | boolean = string> = CommonProps<TVal> & {
   name?: string;
+  maxEntries?: number;
 };
 
 export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =

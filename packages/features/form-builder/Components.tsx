@@ -247,7 +247,11 @@ export const Components: Record<FieldType, Component> = {
     factory: function MultiEmail({ value, readOnly, label, setValue, ...props }) {
       const placeholder = props.placeholder;
       const { t } = useLocale();
-      value = value || [];
+      const maxEntries = props.maxEntries;
+      const listValue = value || [];
+      const hasReachedLimit =
+        typeof maxEntries === "number" && maxEntries > 0 && listValue.length >= maxEntries;
+      value = listValue;
       return (
         <>
           {value.length ? (
@@ -293,12 +297,19 @@ export const Components: Record<FieldType, Component> = {
                   color="minimal"
                   StartIcon="user-plus"
                   className="my-2.5"
+                  disabled={hasReachedLimit}
                   onClick={() => {
+                    if (hasReachedLimit) {
+                      return;
+                    }
                     value.push("");
                     setValue(value);
                   }}>
                   {t("add_another")}
                 </Button>
+              )}
+              {!readOnly && typeof maxEntries === "number" && maxEntries > 0 && (
+                <p className="text-subtle text-xs">{t("max_attendees_allowed", { count: maxEntries })}</p>
               )}
             </div>
           ) : (
@@ -311,7 +322,11 @@ export const Components: Record<FieldType, Component> = {
               color="minimal"
               variant="button"
               StartIcon="user-plus"
+              disabled={hasReachedLimit}
               onClick={() => {
+                if (hasReachedLimit) {
+                  return;
+                }
                 value.push("");
                 setValue(value);
               }}

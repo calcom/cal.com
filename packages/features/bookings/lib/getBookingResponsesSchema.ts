@@ -268,6 +268,13 @@ function preprocess<T extends z.ZodType>({
           }
 
           const emails = emailsParsed.data;
+          if (typeof bookingField.maxEntries === "number" && emails.length > bookingField.maxEntries) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("max_attendees_allowed", { count: bookingField.maxEntries }),
+            });
+            continue;
+          }
           emails.sort().some((item, i) => {
             if (item === emails[i + 1]) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("duplicate_email") });

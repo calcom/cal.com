@@ -312,6 +312,7 @@ export const ComponentForField = ({
           placeholder={field.placeholder}
           name={field.name}
           label={field.label}
+          maxEntries={field.maxEntries}
           readOnly={readOnly}
           value={value as string[]}
           setValue={setValue as (arg: typeof value) => void}

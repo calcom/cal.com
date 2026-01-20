@@ -588,6 +588,7 @@ function FieldEditDialog({
     //resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");
+  const fieldName = fieldForm.watch("name");
 
   useEffect(() => {
     if (!formFieldType) {
@@ -712,6 +713,24 @@ function FieldEditDialog({
                     {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
+
+                    {formFieldType === "multiemail" && fieldName === "guests" && (
+                      <InputField
+                        {...fieldForm.register("maxEntries", {
+                          setValueAs: (value) => {
+                            if (value === "") {
+                              return undefined;
+                            }
+                            const parsed = Number(value);
+                            return Number.isNaN(parsed) ? undefined : parsed;
+                          },
+                        })}
+                        containerClassName="mt-6"
+                        label={t("max_attendees")}
+                        type="number"
+                        min={1}
+                      />
+                    )}
 
                     {formFieldType === "email" && (
                       <InputField
