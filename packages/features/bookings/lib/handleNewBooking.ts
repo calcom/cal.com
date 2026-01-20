@@ -2392,6 +2392,7 @@ async function handler(
     eventType: {
       id: eventType.id,
       slug: eventType.slug,
+      title: eventType.title,
       schedulingType: eventType.schedulingType,
       hosts: eventType.hosts,
     },

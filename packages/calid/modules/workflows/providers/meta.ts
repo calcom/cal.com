@@ -486,8 +486,11 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
     const credentials = config.metaPhoneNumberId
       ? await prisma.credential.findFirst({
           where: {
-            userId: config.accountId,
-            appId: "whatsapp-business",
+            whatsappBusinessPhone: {
+              some: {
+                phoneNumberId: config.metaPhoneNumberId,
+              },
+            },
           },
         })
       : null;

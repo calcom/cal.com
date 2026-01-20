@@ -429,6 +429,45 @@ export async function handleBookingExportEvent({
       }
     );
 
+    const allBookingsWithSeats = await step.run(
+      `Associating booking seats with bookings for user with ID ${user.id}`,
+      () => {
+        return Promise.all(
+          allBookingsWithType.map(async (booking) => {
+            const seatReferences = await prisma.bookingSeat.findMany({
+              where: {
+                bookingId: booking.id,
+              },
+              select: {
+                referenceUid: true,
+                data: true,
+                metadata: true,
+                createdAt: true,
+                payment: {
+                  select: {
+                    amount: true,
+                    fee: true,
+                    currency: true,
+                    success: true,
+                    refunded: true,
+                  },
+                },
+              },
+            });
+
+            if (seatReferences.length === 0) {
+              return booking;
+            }
+
+            return {
+              ...booking,
+              bookingSeats: [...seatReferences],
+            };
+          })
+        );
+      }
+    );
+
     const header = [
       "ID",
       "Title",
@@ -463,7 +502,7 @@ export async function handleBookingExportEvent({
       return stringVal;
     }
 
-    const csvData = allBookingsWithType.map((booking) => [
+    const csvData = allBookingsWithSeats.map((booking) => [
       booking.id,
       booking.title,
       booking.description,
@@ -480,7 +519,9 @@ export async function handleBookingExportEvent({
       booking.rescheduled?.toString() ?? "",
       booking.recurringEventId ?? "",
       booking.isRecorded?.toString(),
-      csvSafe(JSON.stringify({ data: booking.responses })),
+      booking.responses
+        ? csvSafe(JSON.stringify({ data: booking.responses }))
+        : csvSafe(JSON.stringify({ data: booking.bookingSeats ?? [] })),
     ]);
 
     const csvContent = [header.join(","), ...csvData.map((row) => row.join(","))].join("\n");

@@ -100,44 +100,25 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
 
   return filteredLocations.length > 1 ? (
     <div className="flex flex-col">
-      <div className="flex flex-row items-center text-sm font-medium">
-        {isPlatform ? (
-          <Icon name="map-pin" className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")} />
-        ) : (
-          <img
-            src="/map-pin-dark.svg"
-            className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")}
-            alt="map-pin"
-          />
-        )}
+      <Tooltip content={<RenderLocationTooltip locations={locations} />}>
+        <div className="flex flex-row items-center text-sm font-medium">
+          {isPlatform ? (
+            <Icon name="map-pin" className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")} />
+          ) : (
+            <img
+              src="/map-pin-dark.svg"
+              className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")}
+              alt="map-pin"
+            />
+          )}
 
-        <p className="line-clamp-1">
-          {/* {t("location_options", {
+          <p className="text-default line-clamp-1">
+            {t("location_options", {
               locationCount: filteredLocations.length,
-            })} */}
-          {t("location_options_label")}
-        </p>
-      </div>
-      <div className="mt-2 flex flex-row items-center">
-        {locations
-          .map((loc) => getEventLocationType(loc.type))
-          .map((eventLocationType) => (
-            <div className="border-subtle me-2 flex flex-row justify-center rounded-2xl border py-1 pl-2">
-              {eventLocationType.iconUrl === "/link.svg" ? (
-                <Icon name="link" className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-              ) : (
-                <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
-              )}
-            </div>
-          ))}
-        <div className="flex-1" />
-
-        <Tooltip content={<RenderLocationTooltip locations={locations} />}>
-          <p className="line-clamp-1">
-            <Icon name="info" className="h-4 w-4" />
+            })}
           </p>
-        </Tooltip>
-      </div>
+        </div>
+      </Tooltip>
     </div>
   ) : filteredLocations.length === 1 ? (
     <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm rtl:mr-2">

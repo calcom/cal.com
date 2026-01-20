@@ -166,11 +166,11 @@ export const EventTypeActions = ({
           <Switch
             id="hiddenSwitch"
             disabled={eventTypesLockedByOrg}
-            tooltip={form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+            tooltip={form.getValues("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
             tooltipSide="bottom"
             checked={(() => {
               try {
-                const hidden = form?.watch("hidden");
+                const hidden = form?.getValues("hidden");
                 return !hidden;
               } catch (error) {
                 return true;
@@ -230,14 +230,7 @@ export const EventTypeActions = ({
         type="button"
         loading={isUpdatePending}
         onClick={() => handleSubmit(form.getValues())}
-        disabled={(() => {
-          try {
-            const isDirty = form?.formState?.isDirty;
-            return !isDirty || isUpdatePending;
-          } catch (error) {
-            return true;
-          }
-        })()}
+        disabled={!form?.formState?.isDirty || isUpdatePending}
         form="event-type-form">
         {t("save")}
       </Button>

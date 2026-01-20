@@ -1567,6 +1567,7 @@ enum WorkflowTemplates {
   COMPLETED
   RATING
   THANKYOU
+  CONFIRMATION
 }
 
 enum WorkflowMethods {
@@ -2779,6 +2780,28 @@ model CalIdWorkflowInsights {
   workflowStep            CalIdWorkflowStep? @relation(fields: [workflowStepId], references: [id])
 }
 
+enum ServiceName {
+  MESSAGING
+  EMAIL
+  PAYMENTS
+}
+
+enum ServiceProvider {
+  TWILIO
+  ICSMOBILE
+}
+
+model ThirdPartyService {
+  id              Int             @id @default(autoincrement())
+  name            ServiceName     @unique // e.g. "messaging", "payments", "email"
+  defaultProvider ServiceProvider
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  description     String? // optional: to describe what this feature does
+
+  @@unique([name, defaultProvider])
+}
+
 enum RoundRobinResetInterval {
   MONTH
   DAY
@@ -2852,4 +2875,19 @@ model CalIdRateLimit {
   calIdApiKey CalIdApiKey @relation(fields: [calIdApiKeyId], references: [id], onDelete: Cascade)
 
   @@index([calIdApiKeyId])
+}
+
+model OtpVerification {
+  id            String   @id @default(cuid())
+  phoneNumber   String
+  hashedOtp     String
+  expiresAt     DateTime
+  attemptCount  Int      @default(0)
+  isVerified    Boolean  @default(false)
+  isInvalidated Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([phoneNumber, isVerified, isInvalidated, expiresAt])
+  @@map("otp_verification")
 }

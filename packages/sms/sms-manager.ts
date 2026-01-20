@@ -1,4 +1,4 @@
-import * as twilio from "@calid/features/modules/workflows/providers/twilio";
+import * as smsService from "@calid/features/modules/workflows/providers/messaging/dispatcher";
 import { getSenderId } from "@calid/features/modules/workflows/utils/getSenderId";
 
 import dayjs from "@calcom/dayjs";
@@ -37,10 +37,10 @@ const handleSendingSMS = ({
       if (!team?.parent?.isOrganization) return resolve(undefined);
 
       await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
-      const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
+      const sms = smsService.sendSMS(reminderPhone, smsMessage, senderID, teamId);
       resolve(sms);
     } catch (e) {
-      reject(console.error(`twilio.sendSMS failed`, e));
+      reject(console.error(`smsService.sendSMS failed`, e));
     }
   });
 };
