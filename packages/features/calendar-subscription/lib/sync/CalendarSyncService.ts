@@ -1,4 +1,3 @@
-import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
@@ -163,6 +162,11 @@ export class CalendarSyncService {
     }
 
     try {
+      // Dynamic import to avoid loading the entire booking service chain at module evaluation time
+      // This prevents react-awesome-query-builder from being loaded in server-side contexts
+      const { getRegularBookingService } = await import(
+        "@calcom/features/bookings/di/RegularBookingService.container"
+      );
       const regularBookingService = getRegularBookingService();
       await regularBookingService.createBooking({
         bookingData: {
