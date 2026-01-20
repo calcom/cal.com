@@ -64,8 +64,6 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
   }
 
   async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
-    // Display title based on which fields are present could be determined at display time
-    // For now, use a generic title
     return { key: "booking_audit_action.no_show_updated" };
   }
 

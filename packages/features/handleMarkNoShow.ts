@@ -26,7 +26,6 @@ import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enum
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 import type { TFunction } from "i18next";
-
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
@@ -90,6 +89,85 @@ class ResponsePayload {
       noShowHost: this.noShowHost,
       message: this.message,
     };
+  }
+}
+
+/**
+ * Fetches attendees from the database by their emails for a given booking.
+ * Returns a map of email to attendee data for efficient lookup.
+ */
+const getBookingAttendeesFromEmails = async (
+  bookingUid: string,
+  emails: string[]
+): Promise<{
+  attendees: { id: number; email: string; noShow: boolean | null }[];
+  emailToAttendee: Record<string, { id: number; email: string; noShow: boolean | null }>;
+}> => {
+  const attendees = await prisma.attendee.findMany({
+    where: {
+      booking: { uid: bookingUid },
+      email: { in: emails },
+    },
+    select: { id: true, email: true, noShow: true },
+  });
+  const emailToAttendee = attendees.reduce(
+    (acc, a) => {
+      acc[a.email] = a;
+      return acc;
+    },
+    {} as Record<string, { id: number; email: string; noShow: boolean | null }>
+  );
+  return { attendees, emailToAttendee };
+};
+
+async function fireNoShowUpdated({
+  noShowHost,
+  booking,
+  attendees,
+  dbEmailToAttendee,
+  actor,
+  orgId,
+  actionSource,
+}: {
+  noShowHost?: boolean;
+  booking: {
+    uid: string;
+    noShowHost: boolean | null;
+  };
+  attendees?: NoShowAttendees;
+  dbEmailToAttendee: Record<string, { id: number; email: string; noShow: boolean | null }>;
+  actor: Actor;
+  orgId: number | null;
+  actionSource: ValidActionSource;
+}) {
+  const auditData: {
+    hostNoShow?: { old: boolean | null; new: boolean };
+    attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
+  } = {};
+
+  if (noShowHost !== undefined) {
+    auditData.hostNoShow = { old: booking.noShowHost, new: noShowHost };
+  }
+
+  if (attendees) {
+    auditData.attendeesNoShow = attendees.map((attendee) => {
+      return { old: dbEmailToAttendee[attendee.email]?.noShow ?? null, new: attendee.noShow };
+    });
+  }
+
+  const bookingEventHandlerService = getBookingEventHandlerService();
+
+  if (
+    auditData.hostNoShow ||
+    (auditData.attendeesNoShow && Object.keys(auditData.attendeesNoShow).length > 0)
+  ) {
+    await bookingEventHandlerService.onNoShowUpdated({
+      bookingUid: booking.uid,
+      actor,
+      organizationId: orgId ?? null,
+      source: actionSource,
+      auditData,
+    });
   }
 }
 
@@ -213,10 +291,17 @@ const handleMarkNoShowInternal = async ({
       },
     });
 
-    const orgId = await getOrgIdFromMemberOrTeamId({
-      memberId: booking?.eventType?.userId,
-      teamId: booking?.eventType?.teamId,
-    });
+    if (!booking) {
+      throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    }
+
+    const [orgId, { emailToAttendee: dbEmailToAttendee }] = await Promise.all([
+      getOrgIdFromMemberOrTeamId({
+        memberId: booking.eventType?.userId,
+        teamId: booking.eventType?.teamId,
+      }),
+      getBookingAttendeesFromEmails(bookingUid, attendeeEmails),
+    ]);
 
     if (attendees && attendeeEmails.length > 0) {
       await assertCanAccessBooking(bookingUid, userId);
@@ -237,7 +322,7 @@ const handleMarkNoShowInternal = async ({
         ...(platformClientParams ? platformClientParams : {}),
       });
 
-      if (booking?.eventType) {
+      if (booking.eventType) {
         const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
 
         if (workflows.length > 0) {
@@ -291,7 +376,7 @@ const handleMarkNoShowInternal = async ({
               endTime: booking.endTime.toISOString(),
               organizer: {
                 id: booking.user?.id,
-                email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+                email: booking.userPrimaryEmail || booking.user?.email || "Email-less",
                 name: booking.user?.name || "Nameless",
                 username: booking.user?.username || undefined,
                 timeZone: organizer?.timeZone || "UTC",
@@ -343,58 +428,27 @@ const handleMarkNoShowInternal = async ({
     }
 
     if (noShowHost) {
+      await prisma.booking.update({
+        where: {
+          uid: bookingUid,
+        },
+        data: {
+          noShowHost: true,
+        },
+      });
       responsePayload.setNoShowHost(true);
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
-    // Log combined no-show audit for the action (single audit entry for all changes)
-    if (booking?.eventType) {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      const auditData: {
-        hostNoShow?: { old: boolean | null; new: boolean };
-        attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
-      } = {};
-
-      if (noShowHost) {
-        auditData.hostNoShow = { old: booking.noShowHost, new: true };
-      }
-
-      if (attendees && attendees.length > 0) {
-        // Build attendeesNoShow record with attendee IDs as keys
-        const attendeeEmails = attendees.map((a) => a.email);
-        const attendeesWithIds = await prisma.attendee.findMany({
-          where: {
-            booking: { uid: bookingUid },
-            email: { in: attendeeEmails },
-          },
-          select: { id: true, email: true, noShow: true },
-        });
-        const emailToAttendee = attendeesWithIds.reduce(
-          (acc, a) => {
-            acc[a.email] = a;
-            return acc;
-          },
-          {} as Record<string, { id: number; email: string; noShow: boolean | null }>
-        );
-        auditData.attendeesNoShow = {};
-        for (const attendee of attendees) {
-          const dbAttendee = emailToAttendee[attendee.email];
-          if (dbAttendee) {
-            auditData.attendeesNoShow[dbAttendee.id] = { old: dbAttendee.noShow, new: attendee.noShow };
-          }
-        }
-      }
-
-      if (auditData.hostNoShow || (auditData.attendeesNoShow && Object.keys(auditData.attendeesNoShow).length > 0)) {
-        await bookingEventHandlerService.onNoShowUpdated({
-          bookingUid,
-          actor,
-          organizationId: orgId ?? null,
-          source: actionSource,
-          auditData,
-        });
-      }
-    }
+    await fireNoShowUpdated({
+      noShowHost,
+      booking,
+      attendees,
+      dbEmailToAttendee,
+      actor,
+      orgId: orgId ?? null,
+      actionSource,
+    });
 
     return responsePayload.getPayload();
   } catch (error) {
@@ -508,17 +562,6 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   }
 };
 
-// ============================================================================
-// Wrapper Functions for Different Authentication Contexts
-// ============================================================================
-
-/**
- * Handle marking host as no-show.
- * This is called from public/unauthenticated endpoints where an attendee marks the host as absent.
- *
- * TODO: Track which attendee actually called the endpoint that caused the action.
- * Currently this endpoint is completely anonymous and public.
- */
 export const handleMarkHostNoShow = async ({
   bookingUid,
   noShowHost,
