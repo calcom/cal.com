@@ -89,10 +89,8 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
 
     if (foundToken?.teamId) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-        select: { invitedTo: true },
-      });
+      const userRepository = new UserRepository(prisma);
+      const existingUser = await userRepository.findByEmailWithInvitedTo({ email });
       if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
@@ -183,13 +181,11 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
       if (username) {
-        const existingUserByUsername = await prisma.user.findFirst({
-          where: {
-            username,
-            organizationId,
-            NOT: { email },
-          },
-          select: { id: true },
+        const userRepository = new UserRepository(prisma);
+        const existingUserByUsername = await userRepository.findByUsernameAndOrganizationId({
+          username,
+          organizationId,
+          excludeEmail: email,
         });
         if (existingUserByUsername) {
           return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
@@ -198,29 +194,12 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
       let user: { id: number };
       try {
-        user = await prisma.user.upsert({
-          where: { email },
-          update: {
-            username,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: {
-              upsert: {
-                create: { hash: hashedPassword },
-                update: { hash: hashedPassword },
-              },
-            },
-            organizationId,
-          },
-          create: {
-            username,
-            email,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: { create: { hash: hashedPassword } },
-            organizationId,
-          },
-          select: { id: true },
+        const userRepository = new UserRepository(prisma);
+        user = await userRepository.upsertForSignup({
+          email,
+          username: username!,
+          hashedPassword,
+          organizationId,
         });
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {

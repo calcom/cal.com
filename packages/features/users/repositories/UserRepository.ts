@@ -1487,4 +1487,67 @@ export class UserRepository {
       select: userSelect,
     });
   }
+
+  async findByEmailWithInvitedTo({ email }: { email: string }) {
+    return this.prismaClient.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { invitedTo: true },
+    });
+  }
+
+  async findByUsernameAndOrganizationId({
+    username,
+    organizationId,
+    excludeEmail,
+  }: {
+    username: string;
+    organizationId: number | null;
+    excludeEmail: string;
+  }) {
+    return this.prismaClient.user.findFirst({
+      where: {
+        username,
+        organizationId,
+        NOT: { email: excludeEmail.toLowerCase() },
+      },
+      select: { id: true },
+    });
+  }
+
+  async upsertForSignup({
+    email,
+    username,
+    hashedPassword,
+    organizationId,
+  }: {
+    email: string;
+    username: string;
+    hashedPassword: string;
+    organizationId: number | null;
+  }) {
+    return this.prismaClient.user.upsert({
+      where: { email: email.toLowerCase() },
+      update: {
+        username,
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
+          },
+        },
+        organizationId,
+      },
+      create: {
+        username,
+        email: email.toLowerCase(),
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+        password: { create: { hash: hashedPassword } },
+        organizationId,
+      },
+      select: { id: true },
+    });
+  }
 }

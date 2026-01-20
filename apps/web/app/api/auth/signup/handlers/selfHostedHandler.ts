@@ -47,10 +47,8 @@ export default async function handler(body: Record<string, string>) {
     });
 
     if (foundToken?.teamId) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email: userEmail },
-        select: { invitedTo: true },
-      });
+      const userRepository = new UserRepository(prisma);
+      const existingUser = await userRepository.findByEmailWithInvitedTo({ email: userEmail });
       if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
@@ -103,13 +101,11 @@ export default async function handler(body: Record<string, string>) {
 
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
-      const existingUserByUsername = await prisma.user.findFirst({
-        where: {
-          username: correctedUsername,
-          organizationId,
-          NOT: { email: userEmail },
-        },
-        select: { id: true },
+      const userRepository = new UserRepository(prisma);
+      const existingUserByUsername = await userRepository.findByUsernameAndOrganizationId({
+        username: correctedUsername,
+        organizationId,
+        excludeEmail: userEmail,
       });
       if (existingUserByUsername) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
@@ -117,29 +113,12 @@ export default async function handler(body: Record<string, string>) {
 
       let user: { id: number };
       try {
-        user = await prisma.user.upsert({
-          where: { email: userEmail },
-          update: {
-            username: correctedUsername,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: {
-              upsert: {
-                create: { hash: hashedPassword },
-                update: { hash: hashedPassword },
-              },
-            },
-            organizationId,
-          },
-          create: {
-            username: correctedUsername,
-            email: userEmail,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: { create: { hash: hashedPassword } },
-            organizationId,
-          },
-          select: { id: true },
+        const userRepository = new UserRepository(prisma);
+        user = await userRepository.upsertForSignup({
+          email: userEmail,
+          username: correctedUsername,
+          hashedPassword,
+          organizationId,
         });
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {
