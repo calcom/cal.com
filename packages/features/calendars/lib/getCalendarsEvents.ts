@@ -8,70 +8,11 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarFetchMode, EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import { normalizeTimezone } from "./timezone-conversion";
+
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
-
-/**
- * Converts offset-based timezone formats (e.g., "GMT-05:00", "UTC+08:00") to valid IANA Etc/GMT timezones.
- * Note: Etc/GMT uses inverted signs (Etc/GMT+5 = UTC-5, Etc/GMT-8 = UTC+8).
- * Returns null if the format doesn't match or conversion fails.
- */
-function convertOffsetToEtcGmt(timeZone: string): string | null {
-  const offsetMatch = timeZone.match(/^(?:GMT|UTC)([+-])(\d{1,2})(?::(\d{2}))?$/i);
-  if (!offsetMatch) return null;
-
-  const sign = offsetMatch[1];
-  const hours = parseInt(offsetMatch[2], 10);
-  const minutes = offsetMatch[3] ? parseInt(offsetMatch[3], 10) : 0;
-
-  if (hours > 14 || minutes > 59 || (hours === 14 && minutes > 0)) return null;
-  if (minutes !== 0) {
-    log.warn(`Cannot convert timezone with non-zero minutes to Etc/GMT, falling back to UTC`, {
-      originalTimezone: timeZone,
-    });
-    return "UTC";
-  }
-
-  const etcSign = sign === "+" ? "-" : "+";
-  const etcTimezone = hours === 0 ? "Etc/GMT" : `Etc/GMT${etcSign}${hours}`;
-
-  try {
-    Intl.DateTimeFormat(undefined, { timeZone: etcTimezone });
-    return etcTimezone;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Validates and normalizes a timezone string to a valid IANA timezone.
- * 1. Returns the timezone as-is if it's already valid
- * 2. Converts offset formats (GMT±HH:MM, UTC±HH:MM) to Etc/GMT timezones
- * 3. Falls back to UTC if conversion fails
- */
-function getValidTimezoneOrFallback(timeZone: string | undefined): string {
-  if (!timeZone) return "UTC";
-
-  try {
-    Intl.DateTimeFormat(undefined, { timeZone });
-    return timeZone;
-  } catch {
-    const converted = convertOffsetToEtcGmt(timeZone);
-    if (converted) {
-      log.info(`Converted offset timezone to IANA format`, {
-        original: timeZone,
-        converted,
-      });
-      return converted;
-    }
-
-    log.warn(`Invalid timezone format, falling back to UTC`, {
-      invalidTimezone: timeZone,
-    });
-    return "UTC";
-  }
-}
 
 // only for Google Calendar for now
 export const getCalendarsEventsWithTimezones = async (
@@ -139,7 +80,7 @@ export const getCalendarsEventsWithTimezones = async (
 
     return eventBusyDates.map((event) => ({
       ...event,
-      timeZone: getValidTimezoneOrFallback(event.timeZone),
+      timeZone: normalizeTimezone(event.timeZone),
     }));
   });
   const awaitedResults = await Promise.all(results);
