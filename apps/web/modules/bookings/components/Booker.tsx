@@ -1,29 +1,40 @@
+import process from "node:process";
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
+import dayjs from "@calcom/dayjs";
+import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
+import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
+import {
+  fadeInLeft,
+  getBookerSizeClassNames,
+  useBookerResizeAnimation,
+} from "@calcom/features/bookings/Booker/config";
+import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
+import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
+import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
+import {
+  CLOUDFLARE_SITE_ID,
+  CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
+  PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM,
+} from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import classNames from "@calcom/ui/classNames";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
+import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
-
-import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
-import dayjs from "@calcom/dayjs";
-import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
-import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
-import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
-import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
-import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import classNames from "@calcom/ui/classNames";
-import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-
-import { VerifyCodeDialog } from "./VerifyCodeDialog";
 import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
 import { BookFormAsModal } from "./BookEventForm/BookFormAsModal";
@@ -38,12 +49,7 @@ import { OverlayCalendar } from "./OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { BookerSection } from "./Section";
 import { NotFound } from "./Unavailable";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "@calcom/features/bookings/Booker/config";
-import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
-import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
-import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
-import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
+import { VerifyCodeDialog } from "./VerifyCodeDialog";
 
 const BookerComponent = ({
   username,
@@ -219,16 +225,24 @@ const BookerComponent = ({
     if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
       return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
+  }, [
+    event.isPending,
+    selectedDate,
+    selectedTimeslot,
+    setBookerState,
+    skipConfirmStep,
+    layout,
+    isInstantMeeting,
+  ]);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
-      return !isTimeSlotAvailable({
-        scheduleData: schedule?.data ?? null,
-        slotToCheckInIso: slot,
-        quickAvailabilityChecks: slots.quickAvailabilityChecks,
-      });
-    })
+        return !isTimeSlotAvailable({
+          scheduleData: schedule?.data ?? null,
+          slotToCheckInIso: slot,
+          quickAvailabilityChecks: slots.quickAvailabilityChecks,
+        });
+      })
     : [];
 
   const slot = getQueryParam("slot");
