@@ -134,7 +134,6 @@ export type WrappedBookerPropsMain = {
   renderCaptcha?: boolean;
   confirmButtonDisabled?: boolean;
   onLoadNextRoundRobinChunk?: () => void;
-  onResetRoundRobinChunkSelection?: () => void;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

@@ -90,7 +90,6 @@ const BookerComponent = ({
   roundRobinHideOrgAndTeam,
   showNoAvailabilityDialog,
   onLoadNextRoundRobinChunk,
-  onResetRoundRobinChunkSelection,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -543,7 +542,6 @@ const BookerComponent = ({
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={customClassNames?.confirmStep}
                 onLoadNextRoundRobinChunk={onLoadNextRoundRobinChunk}
-                onResetRoundRobinChunkSelection={onResetRoundRobinChunkSelection}
               />
             </BookerSection>
           </AnimatePresence>

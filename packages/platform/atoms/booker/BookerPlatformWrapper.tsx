@@ -358,12 +358,7 @@ const BookerPlatformWrapperComponent = (
     _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
   });
-  const {
-    roundRobinChunkInfo,
-    isManualRoundRobinChunking,
-    handleLoadNextRoundRobinChunk,
-    handleResetRoundRobinChunkSelection,
-  } = useRoundRobinChunking({
+  const { roundRobinChunkInfo, handleLoadNextRoundRobinChunk } = useRoundRobinChunking({
     roundRobinChunkInfo: schedule.data?.roundRobinChunkInfo,
     isFetching: schedule.isFetching,
     roundRobinChunkSettings,
@@ -675,9 +670,6 @@ const BookerPlatformWrapperComponent = (
         roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
         onLoadNextRoundRobinChunk={
           roundRobinChunkInfo?.hasMoreNonFixedHosts ? handleLoadNextRoundRobinChunk : undefined
-        }
-        onResetRoundRobinChunkSelection={
-          isManualRoundRobinChunking ? handleResetRoundRobinChunkSelection : undefined
         }
       />
     </AtomsWrapper>

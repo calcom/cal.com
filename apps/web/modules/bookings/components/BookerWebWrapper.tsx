@@ -161,17 +161,13 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
     roundRobinChunkSettings: roundRobinChunkSettings ?? undefined,
   });
-  const {
-    roundRobinChunkInfo,
-    isManualRoundRobinChunking,
-    handleLoadNextRoundRobinChunk,
-    handleResetRoundRobinChunkSelection,
-  } = useRoundRobinChunking({
-    roundRobinChunkInfo: schedule.data?.roundRobinChunkInfo,
-    isFetching: schedule.isFetching,
-    roundRobinChunkSettings,
-    setRoundRobinChunkSettings,
-    resetDeps: [
+  const { roundRobinChunkInfo, handleLoadNextRoundRobinChunk } =
+    useRoundRobinChunking({
+      roundRobinChunkInfo: schedule.data?.roundRobinChunkInfo,
+      isFetching: schedule.isFetching,
+      roundRobinChunkSettings,
+      setRoundRobinChunkSettings,
+      resetDeps: [
       props.username,
       props.eventSlug,
       props.entity.orgSlug,
@@ -281,9 +277,6 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
       schedule={schedule}
       onLoadNextRoundRobinChunk={
         roundRobinChunkInfo?.hasMoreNonFixedHosts ? handleLoadNextRoundRobinChunk : undefined
-      }
-      onResetRoundRobinChunkSelection={
-        isManualRoundRobinChunking ? handleResetRoundRobinChunkSelection : undefined
       }
       verifyCode={verifyCode}
       isPlatform={false}

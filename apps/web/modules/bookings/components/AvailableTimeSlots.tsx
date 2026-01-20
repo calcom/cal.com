@@ -53,7 +53,6 @@ type AvailableTimeSlotsProps = {
   confirmButtonDisabled?: boolean;
   onAvailableTimeSlotSelect: (time: string) => void;
   onLoadNextRoundRobinChunk?: () => void;
-  onResetRoundRobinChunkSelection?: () => void;
 };
 
 /**
@@ -79,7 +78,6 @@ export const AvailableTimeSlots = ({
   confirmStepClassNames,
   onAvailableTimeSlotSelect,
   onLoadNextRoundRobinChunk,
-  onResetRoundRobinChunkSelection,
   ...props
 }: AvailableTimeSlotsProps) => {
   const { t } = useLocale();

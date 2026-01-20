@@ -40,15 +40,10 @@ export const useRoundRobinChunking = ({
     });
   }, [roundRobinChunkInfo, roundRobinChunkSettings, isFetching, setRoundRobinChunkSettings]);
 
-  const handleResetRoundRobinChunkSelection = useCallback(() => {
-    setRoundRobinChunkSettings(null);
-  }, [setRoundRobinChunkSettings]);
-
   return {
     roundRobinChunkSettings,
     roundRobinChunkInfo: roundRobinChunkInfo ?? null,
     isManualRoundRobinChunking: roundRobinChunkSettings?.manual ?? false,
     handleLoadNextRoundRobinChunk,
-    handleResetRoundRobinChunkSelection,
   };
 };
