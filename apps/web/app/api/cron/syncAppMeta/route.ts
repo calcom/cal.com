@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import { shouldEnableApp } from "@calcom/app-store/_utils/validateAppKeys";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories, Prisma } from "@calcom/prisma/client";
@@ -46,6 +47,17 @@ async function postHandler(request: NextRequest) {
 
     if (dbApp.dirName !== (app.dirName ?? app.slug)) {
       updates["dirName"] = app.dirName ?? app.slug;
+    }
+
+    // Ensure app is only enabled if it has valid keys (or doesn't require keys)
+    const shouldBeEnabled = shouldEnableApp(dbApp.dirName, dbApp.keys);
+    if (dbApp.enabled !== shouldBeEnabled) {
+      updates["enabled"] = shouldBeEnabled;
+      if (!shouldBeEnabled && dbApp.enabled) {
+        log.warn(
+          `⚠️ Disabling app ${dbApp.slug} - required keys are missing or invalid. Please configure keys in admin settings.`
+        );
+      }
     }
 
     if (Object.keys(updates).length > 0) {
