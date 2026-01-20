@@ -53,7 +53,6 @@ export const createPrefixedIdSchema = (options: {
     .refine(
       (val) => {
         if (allowEmpty && val === "") return true;
-        if (allowEmpty && prefix && val === prefix) return true;
         const pattern = prefix ? new RegExp(`^${prefix}[A-Z0-9]{1,20}$`) : /^[A-Z0-9]{1,20}$/;
         return pattern.test(val);
       },
