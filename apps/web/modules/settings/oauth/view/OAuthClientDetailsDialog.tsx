@@ -152,7 +152,6 @@ const OAuthClientDetailsDialog = ({
               StartIcon="x"
               data-testid="oauth-client-details-reject-trigger"
               loading={isStatusChangePending}
-              className="not-disabled:hover:!bg-error not-disabled:hover:!text-white not-disabled:hover:!border-semantic-error"
               onClick={() => {
                 setIsRejectConfirmOpen(true);
                 setRejectionReason("");
@@ -168,7 +167,6 @@ const OAuthClientDetailsDialog = ({
               StartIcon="check"
               data-testid="oauth-client-details-approve-trigger"
               loading={isStatusChangePending}
-              className="not-disabled:hover:!bg-cal-success not-disabled:hover:!text-white not-disabled:hover:!border-cal-success"
               onClick={() => {
                 if (!clientId) return;
                 onApprove?.(clientId);
