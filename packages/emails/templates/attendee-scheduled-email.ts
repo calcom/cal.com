@@ -18,7 +18,11 @@ export default class AttendeeScheduledEmail extends BaseEmail {
 
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
-    if (!showAttendees && calEvent.seatsPerTimeSlot) {
+    // Use calEvent.seatsShowAttendees as default when showAttendees is not explicitly provided
+    // This ensures attendee privacy is respected in all email types (reschedule, cancel, etc.)
+    // that extend this base class, even if they don't explicitly pass showAttendees
+    const shouldShowAttendees = showAttendees ?? calEvent.seatsShowAttendees ?? true;
+    if (!shouldShowAttendees && calEvent.seatsPerTimeSlot) {
       this.calEvent = cloneDeep(calEvent);
       this.calEvent.attendees = [attendee];
     } else {
