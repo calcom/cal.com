@@ -355,9 +355,8 @@ describe("handleNoShowFee", () => {
     });
 
     it("should handle ChargeCardFailure error with proper message", async () => {
-      mockPaymentService.chargeCard.mockRejectedValue(
-        new ErrorWithCode(ErrorCode.ChargeCardFailure, "Card declined")
-      );
+      const chargeCardError = new ErrorWithCode(ErrorCode.ChargeCardFailure, "Card declined");
+      mockPaymentService.chargeCard.mockRejectedValue(chargeCardError);
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
         mockCredential
@@ -369,7 +368,7 @@ describe("handleNoShowFee", () => {
           booking: mockBooking,
           payment: mockPayment,
         })
-      ).rejects.toThrow("Translated: Card declined");
+      ).rejects.toThrow(chargeCardError);
     });
 
     it("should handle generic payment errors", async () => {
