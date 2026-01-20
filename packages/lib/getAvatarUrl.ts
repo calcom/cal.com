@@ -24,7 +24,7 @@ export const getBrandLogoUrl = (
   entity: Partial<Pick<User | Team, "bannerUrl" | "faviconUrl">>,
   isFavicon?: boolean
 ) => {
-  const url = entity?.bannerUrl || entity?.faviconUrl;
+  const url = isFavicon ? entity?.faviconUrl : entity?.bannerUrl || entity?.faviconUrl;
   if (url) {
     const isAbsoluteUrl = z.string().url().safeParse(url).success;
     if (isAbsoluteUrl) {
