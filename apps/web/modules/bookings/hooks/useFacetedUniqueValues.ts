@@ -10,14 +10,19 @@ interface UseFacetedUniqueValuesOptions {
   canReadOthersBookings: boolean;
 }
 
-export function useFacetedUniqueValues({ canReadOthersBookings }: UseFacetedUniqueValuesOptions) {
+export function useFacetedUniqueValues({
+  canReadOthersBookings,
+}: UseFacetedUniqueValuesOptions): (
+  table: Table<unknown>,
+  columnId: string
+) => () => Map<FacetedValue, number> {
   const eventTypes = useEventTypes();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery();
   const { data: currentUser } = useMeQuery();
 
   return useCallback(
-    (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
+    (_: Table<unknown>, columnId: string) => (): Map<FacetedValue, number> => {
       if (columnId === "eventTypeId") {
         return convertFacetedValuesToMap(eventTypes || []);
       } else if (columnId === "teamId") {
@@ -28,8 +33,10 @@ export function useFacetedUniqueValues({ canReadOthersBookings }: UseFacetedUniq
           }))
         );
       } else if (columnId === "userId") {
-        // For users without permission to read others' bookings, only show themselves
-        if (!canReadOthersBookings && currentUser) {
+        if (!canReadOthersBookings) {
+          if (!currentUser) {
+            return new Map<FacetedValue, number>();
+          }
           return convertFacetedValuesToMap([
             {
               label: currentUser.name || currentUser.email,
@@ -37,7 +44,6 @@ export function useFacetedUniqueValues({ canReadOthersBookings }: UseFacetedUniq
             },
           ]);
         }
-        // For users with permission, show all team members
         return convertFacetedValuesToMap(
           (members || [])
             .map((member) => ({
