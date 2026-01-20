@@ -65,7 +65,7 @@ import type { GetScheduleOptions } from "./types";
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 const ROUND_ROBIN_USER_BATCH_SIZE = 20;
-const ROUND_ROBIN_DYNAMIC_CHUNK_PERCENT = 0.1;
+const ROUND_ROBIN_DYNAMIC_CHUNK_PERCENT = 0.2;
 const ROUND_ROBIN_MAX_CHUNK_SIZE = 50;
 const ROUND_ROBIN_CHUNK_THRESHOLD = 100;
 
