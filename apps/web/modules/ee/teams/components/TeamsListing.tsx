@@ -1,8 +1,5 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
-
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -12,10 +9,10 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
 import { UpgradeTip } from "~/shell/UpgradeTip";
-
 import TeamList from "./TeamList";
 
 type TeamsListingProps = {
@@ -110,20 +107,20 @@ export function TeamsListing({
       showToast(t("team_invite_received", { teamName: teamNameFromInvite }), "success");
       return;
     }
-  }, []);
+  }, [errorMsgFromInvite, invitationAccepted, t, teamNameFromInvite, token]);
 
   return (
     <>
       {organizationInvites.length > 0 && (
-        <div className="bg-subtle mb-6 rounded-md p-5">
-          <Label className="text-emphasis pb-2  font-semibold">{t("pending_organization_invites")}</Label>
+        <div className="mb-6 rounded-md bg-subtle p-5">
+          <Label className="pb-2 font-semibold text-emphasis">{t("pending_organization_invites")}</Label>
           <TeamList orgId={orgId} teams={organizationInvites} pending />
         </div>
       )}
 
       {teamInvites.length > 0 && (
-        <div className="bg-subtle mb-6 rounded-md p-5">
-          <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
+        <div className="mb-6 rounded-md bg-subtle p-5">
+          <Label className="pb-2 font-semibold text-emphasis">{t("pending_invites")}</Label>
           <TeamList orgId={orgId} teams={teamInvites} pending />
         </div>
       )}
@@ -139,12 +136,12 @@ export function TeamsListing({
           background="/tips/teams"
           buttons={
             !orgId || permissions.canCreateTeam ? (
-              <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
+              <div className="stack-y-2 sm:space-x-2 rtl:space-x-reverse">
                 <ButtonGroup>
                   <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                     {t("create_team")}
                   </Button>
-                  <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                  <Button color="minimal" href="https://cal.com/teams" target="_blank">
                     {t("learn_more")}
                   </Button>
                 </ButtonGroup>
@@ -174,7 +171,7 @@ export function TeamsListing({
         </UpgradeTip>
       )}
 
-      <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
+      <p className="mt-4 mb-8 flex w-full items-center gap-1 text-sm text-subtle md:justify-center md:text-center">
         <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
       </p>
     </>
