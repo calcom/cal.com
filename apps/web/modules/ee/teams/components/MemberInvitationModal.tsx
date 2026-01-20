@@ -76,9 +76,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
 
+  const teamId = props.teamId;
   const { data: teamBillingInfo } = trpc.viewer.teams.getTeamBillingInfo.useQuery(
-    { teamId: props.teamId },
-    { enabled: IS_TEAM_BILLING_ENABLED_CLIENT && !!props.teamId }
+    { teamId: teamId ?? 0 },
+    { enabled: IS_TEAM_BILLING_ENABLED_CLIENT && !!teamId }
   );
 
   const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
