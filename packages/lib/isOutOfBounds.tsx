@@ -112,8 +112,43 @@ export function calculatePeriodLimits({
       // We take the start of the day for the start of the range and endOf the day for end of range, so that entire days are covered
       // We use organizer's timezone here(in contrast with ROLLING/ROLLING_WINDOW where number of days is available and not the specific date objects).
       // This is because in case of range the start and end date objects are determined by the organizer, so we should consider the range in organizer/event's timezone.
-      const startOfRangeStartDayInEventTz = dayjs(periodStartDate).utcOffset(eventUtcOffset).startOf("day");
-      const endOfRangeEndDayInEventTz = dayjs(periodEndDate).utcOffset(eventUtcOffset).endOf("day");
+      const startUtc = dayjs.utc(periodStartDate);
+      const endUtc = dayjs.utc(periodEndDate);
+
+      // Detect if dates are in new format (UTC midnight) or old format (browser timezone midnight converted to UTC)
+      // New format: 2024-01-20T00:00:00.000Z (time is exactly midnight UTC)
+      // Old format: 2024-01-19T20:00:00.000Z (time is not midnight UTC - it's midnight in some browser timezone)
+      const isNewFormat = (date: dayjs.Dayjs) =>
+        date.hour() === 0 && date.minute() === 0 && date.second() === 0 && date.millisecond() === 0;
+
+      let startOfRangeStartDayInEventTz: dayjs.Dayjs;
+      let endOfRangeEndDayInEventTz: dayjs.Dayjs;
+
+      if (isNewFormat(startUtc) && isNewFormat(endUtc)) {
+        // New format: dates are stored as UTC midnight (e.g., 2024-01-20T00:00:00Z for Jan 20)
+        // Extract the date and create midnight in the event timezone
+        // Formula: midnight in event timezone = midnight UTC - offset
+        // E.g., for UTC+2: midnight = 22:00 UTC (2 hours earlier)
+        // E.g., for UTC-3: midnight = 03:00 UTC (3 hours later)
+        const startDateStr = startUtc.format("YYYY-MM-DD");
+        const endDateStr = endUtc.format("YYYY-MM-DD");
+
+        startOfRangeStartDayInEventTz = dayjs
+          .utc(`${startDateStr}T00:00:00Z`)
+          .subtract(eventUtcOffset, "minute")
+          .utcOffset(eventUtcOffset);
+
+        endOfRangeEndDayInEventTz = dayjs
+          .utc(`${endDateStr}T00:00:00Z`)
+          .subtract(eventUtcOffset, "minute")
+          .utcOffset(eventUtcOffset)
+          .endOf("day");
+      } else {
+        // Old format: dates were stored as browser timezone midnight converted to UTC
+        // Convert to event timezone and take start/end of day (legacy behavior)
+        startOfRangeStartDayInEventTz = dayjs(periodStartDate).utcOffset(eventUtcOffset).startOf("day");
+        endOfRangeEndDayInEventTz = dayjs(periodEndDate).utcOffset(eventUtcOffset).endOf("day");
+      }
 
       return {
         endOfRollingPeriodEndDayInBookerTz: null,
@@ -148,7 +183,7 @@ export function getRollingWindowEndDate({
   const log = logger.getSubLogger({ prefix: ["getRollingWindowEndDate"] });
   log.debug("called:", safeStringify({ startDay: startDateInBookerTz.format(), daysNeeded }));
   let counter = 1;
-  let rollingEndDay;
+  let rollingEndDay: ReturnType<typeof startDateInBookerTz.startOf> | undefined;
   const startOfStartDayInEventTz = startDateInBookerTz.startOf("day");
   // It helps to break out of the loop if we don't find enough bookable days.
   const maxDaysToCheck = ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK;
