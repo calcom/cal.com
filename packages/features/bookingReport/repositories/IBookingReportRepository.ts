@@ -120,12 +120,6 @@ export interface IBookingReportRepository {
     organizationId?: number;
   }): Promise<void>;
 
-  bulkUpdateReportStatus(params: {
-    reportIds: string[];
-    status: BookingReportStatus;
-    organizationId?: number;
-  }): Promise<{ updated: number }>;
-
   bulkLinkWatchlistWithStatus(params: {
     links: Array<{ reportId: string; watchlistId: string }>;
     status: BookingReportStatus;
@@ -151,4 +145,33 @@ export interface IBookingReportRepository {
   }): Promise<{ updated: number }>;
 
   countSystemPendingReports(): Promise<number>;
+
+  dismissReportsByEmail(params: {
+    email: string;
+    status: BookingReportStatus;
+    organizationId: number;
+  }): Promise<{ count: number }>;
+
+  dismissSystemReportsByEmail(params: {
+    email: string;
+    systemStatus: SystemReportStatus;
+  }): Promise<{ count: number }>;
+
+  findPendingReportsByEmail(params: {
+    email: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>>;
+
+  findPendingReportsByDomain(params: {
+    domain: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>>;
+
+  findPendingSystemReportsByEmail(params: {
+    email: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>>;
+
+  findPendingSystemReportsByDomain(params: {
+    domain: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>>;
 }

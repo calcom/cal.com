@@ -1,7 +1,4 @@
-import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,50 +23,10 @@ export const dismissBookingReportHandler = async ({ ctx, input }: DismissBooking
     });
   }
 
-  const permissionCheckService = new PermissionCheckService();
-  const hasPermission = await permissionCheckService.checkPermission({
-    userId: user.id,
-    teamId: organizationId,
-    permission: "watchlist.update",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
+  const service = getOrganizationWatchlistOperationsService(organizationId);
+  const result = await service.dismissReportByEmail({ email: input.email, userId: user.id });
 
-  if (!hasPermission) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not authorized to dismiss booking reports",
-    });
-  }
-
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
-
-  const reports = await bookingReportRepo.findReportsByIds({
-    reportIds: input.reportIds,
-    organizationId,
-  });
-
-  if (reports.length === 0) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Booking report(s) not found",
-    });
-  }
-
-  const alreadyBlocked = reports.filter((r) => r.watchlistId);
-  if (alreadyBlocked.length > 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Cannot dismiss reports that have already been added to the blocklist",
-    });
-  }
-
-  await bookingReportRepo.bulkUpdateReportStatus({
-    reportIds: input.reportIds,
-    status: "DISMISSED",
-    organizationId,
-  });
-
-  return { success: true };
+  return { success: true, dismissed: result.count };
 };
 
 export default dismissBookingReportHandler;

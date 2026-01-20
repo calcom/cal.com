@@ -228,27 +228,6 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     });
   }
 
-  async bulkUpdateReportStatus(params: {
-    reportIds: string[];
-    status: BookingReportStatus;
-    organizationId?: number;
-  }): Promise<{ updated: number }> {
-    const where: Prisma.BookingReportWhereInput = {
-      id: { in: params.reportIds },
-    };
-
-    if (params.organizationId !== undefined) {
-      where.organizationId = params.organizationId;
-    }
-
-    const result = await this.prismaClient.bookingReport.updateMany({
-      where,
-      data: { status: params.status },
-    });
-
-    return { updated: result.count };
-  }
-
   async bulkLinkWatchlistWithStatus(params: {
     links: Array<{ reportId: string; watchlistId: string }>;
     status: BookingReportStatus;
@@ -339,6 +318,94 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       where: {
         systemStatus: "PENDING",
       },
+    });
+  }
+
+  async dismissReportsByEmail(params: {
+    email: string;
+    status: BookingReportStatus;
+    organizationId: number;
+  }): Promise<{ count: number }> {
+    const result = await this.prismaClient.bookingReport.updateMany({
+      where: {
+        bookerEmail: { equals: params.email, mode: "insensitive" },
+        watchlistId: null,
+        status: "PENDING",
+        organizationId: params.organizationId,
+      },
+      data: { status: params.status },
+    });
+    return { count: result.count };
+  }
+
+  async dismissSystemReportsByEmail(params: {
+    email: string;
+    systemStatus: SystemReportStatus;
+  }): Promise<{ count: number }> {
+    const result = await this.prismaClient.bookingReport.updateMany({
+      where: {
+        bookerEmail: { equals: params.email, mode: "insensitive" },
+        globalWatchlistId: null,
+        systemStatus: "PENDING",
+      },
+      data: { systemStatus: params.systemStatus },
+    });
+    return { count: result.count };
+  }
+
+  async findPendingReportsByEmail(params: {
+    email: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>> {
+    return this.prismaClient.bookingReport.findMany({
+      where: {
+        bookerEmail: { equals: params.email, mode: "insensitive" },
+        status: "PENDING",
+        watchlistId: null,
+        organizationId: params.organizationId,
+      },
+      select: { id: true, bookerEmail: true, watchlistId: true },
+    });
+  }
+
+  async findPendingReportsByDomain(params: {
+    domain: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>> {
+    return this.prismaClient.bookingReport.findMany({
+      where: {
+        bookerEmail: { endsWith: `@${params.domain}`, mode: "insensitive" },
+        status: "PENDING",
+        watchlistId: null,
+        organizationId: params.organizationId,
+      },
+      select: { id: true, bookerEmail: true, watchlistId: true },
+    });
+  }
+
+  async findPendingSystemReportsByEmail(params: {
+    email: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>> {
+    return this.prismaClient.bookingReport.findMany({
+      where: {
+        bookerEmail: { equals: params.email, mode: "insensitive" },
+        systemStatus: "PENDING",
+        globalWatchlistId: null,
+      },
+      select: { id: true, bookerEmail: true, globalWatchlistId: true },
+    });
+  }
+
+  async findPendingSystemReportsByDomain(params: {
+    domain: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>> {
+    return this.prismaClient.bookingReport.findMany({
+      where: {
+        bookerEmail: { endsWith: `@${params.domain}`, mode: "insensitive" },
+        systemStatus: "PENDING",
+        globalWatchlistId: null,
+      },
+      select: { id: true, bookerEmail: true, globalWatchlistId: true },
     });
   }
 }

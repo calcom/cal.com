@@ -21,8 +21,8 @@ export interface BookingReportDetailsModalProps<T extends GroupedBookingReport> 
   entry: T | null;
   isOpen: boolean;
   onClose: () => void;
-  onAddToBlocklist: (reportIds: string[], type: WatchlistType) => void;
-  onDismiss: (reportIds: string[]) => void;
+  onAddToBlocklist: (email: string, type: WatchlistType) => void;
+  onDismiss: (email: string) => void;
   isAddingToBlocklist?: boolean;
   isDismissing?: boolean;
 }
@@ -53,14 +53,12 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
 
   const onSubmit = (data: FormData) => {
     if (!entry) return;
-    const allReportIds = entry.reports.map((r) => r.id);
-    onAddToBlocklist(allReportIds, data.blockType);
+    onAddToBlocklist(entry.bookerEmail, data.blockType);
   };
 
   const handleDismiss = () => {
     if (!entry) return;
-    const allReportIds = entry.reports.map((r) => r.id);
-    onDismiss(allReportIds);
+    onDismiss(entry.bookerEmail);
   };
 
   const handleGoBack = () => {

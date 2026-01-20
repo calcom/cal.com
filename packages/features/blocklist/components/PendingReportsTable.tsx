@@ -22,8 +22,8 @@ export interface PendingReportsTableProps<T extends GroupedBookingReport> {
   totalRowCount: number;
   isPending: boolean;
   limit: number;
-  onAddToBlocklist: (reportIds: string[], type: WatchlistType, onSuccess: () => void) => void;
-  onDismiss: (reportIds: string[], onSuccess: () => void) => void;
+  onAddToBlocklist: (email: string, type: WatchlistType, onSuccess: () => void) => void;
+  onDismiss: (email: string, onSuccess: () => void) => void;
   isAddingToBlocklist?: boolean;
   isDismissing?: boolean;
   enableRowSelection?: boolean;
@@ -119,8 +119,8 @@ export function PendingReportsTable<T extends GroupedBookingReport>({
         entry={selectedReport}
         isOpen={showReviewDialog}
         onClose={handleCloseModal}
-        onAddToBlocklist={(reportIds, type) => onAddToBlocklist(reportIds, type, handleCloseModal)}
-        onDismiss={(reportIds) => onDismiss(reportIds, handleCloseModal)}
+        onAddToBlocklist={(email, type) => onAddToBlocklist(email, type, handleCloseModal)}
+        onDismiss={(email) => onDismiss(email, handleCloseModal)}
         isAddingToBlocklist={isAddingToBlocklist}
         isDismissing={isDismissing}
       />

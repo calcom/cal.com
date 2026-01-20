@@ -207,11 +207,11 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
           totalRowCount={reportsData?.meta?.totalRowCount ?? 0}
           isPending={isReportsPending}
           limit={limit}
-          onAddToBlocklist={(reportIds, type, onSuccess) =>
-            addToWatchlist.mutate({ reportIds, type }, { onSuccess })
+          onAddToBlocklist={(email, type, onSuccess) =>
+            addToWatchlist.mutate({ email, type }, { onSuccess })
           }
-          onDismiss={(reportIds, onSuccess) =>
-            dismissReport.mutate({ reportIds }, { onSuccess })
+          onDismiss={(email, onSuccess) =>
+            dismissReport.mutate({ email }, { onSuccess })
           }
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
