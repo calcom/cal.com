@@ -101,7 +101,7 @@ function FeatureItem({
               "text-emphasis flex items-center text-sm font-medium",
               blockedWarning && "text-subtle line-through"
             )}>
-            {t(config.titleI18nKey)}
+            {t(config.i18n.name)}
             {blockedWarning && (
               <Tooltip side="top" content={blockedWarning}>
                 <span>
@@ -117,7 +117,7 @@ function FeatureItem({
               </Tooltip>
             )}
           </h3>
-          <p className="text-subtle text-sm">{t(config.descriptionI18nKey)}</p>
+          <p className="text-subtle text-sm">{t(config.i18n.description)}</p>
         </div>
         <ToggleGroup
           value={feature.currentState}
