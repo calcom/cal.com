@@ -57,7 +57,8 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     await page.goto(`/${user.username}/meeting-with-description`);
 
     // Step 3: Verify the event type description is displayed on the booking page
-    await expect(page.locator(`text=${EVENT_TYPE_DESCRIPTION}`)).toBeVisible();
+    // Using getByTestId for the event meta description container
+    await expect(page.getByTestId("event-meta-description")).toContainText(EVENT_TYPE_DESCRIPTION);
 
     // Step 4: Select a time slot
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -73,10 +74,10 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     }
 
     // Step 6: Confirm the booking
-    await page.locator('[data-testid="confirm-book-button"]').click();
+    await page.getByTestId("confirm-book-button").click();
 
     // Wait for success page
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await expect(page.getByTestId("success-page")).toBeVisible();
 
     // Step 7: Verify the calendar links contain the EVENT TYPE DESCRIPTION
     // Check Google Calendar link - URL uses %20 encoding for spaces
@@ -91,7 +92,7 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     await page.goto(`/reschedule/${bookingUID}`);
 
     // Step 10: Verify the event type description is still shown on reschedule page
-    await expect(page.locator(`text=${EVENT_TYPE_DESCRIPTION}`)).toBeVisible();
+    await expect(page.getByTestId("event-meta-description")).toContainText(EVENT_TYPE_DESCRIPTION);
 
     // Step 11: Select a different time slot for rescheduling
     await selectSecondAvailableTimeSlotNextMonth(page);
@@ -100,7 +101,7 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     await confirmReschedule(page);
 
     // Step 13: Verify success page after reschedule
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await expect(page.getByTestId("success-page")).toBeVisible();
 
     // Step 14: Verify the calendar links STILL contain the EVENT TYPE DESCRIPTION after reschedule
     const googleCalLinkAfterReschedule = await page.locator('a[href*="calendar.google.com"]').getAttribute("href");
@@ -151,16 +152,18 @@ test.describe("Issue #26695: Event Description Preserved After Reschedule", () =
     }
 
     // Confirm the booking
-    await page.locator('[data-testid="confirm-book-button"]').click();
+    await page.getByTestId("confirm-book-button").click();
 
     // Wait for success page
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await expect(page.getByTestId("success-page")).toBeVisible();
 
     // If additional notes field was filled, verify they appear on confirmation
-    const additionalNotesSection = page.locator('text="Additional notes"');
-    if (await additionalNotesSection.isVisible()) {
-      // Additional notes should be displayed in its own section
-      await expect(page.locator(`text=${ADDITIONAL_NOTES}`)).toBeVisible();
+    // Using getByTestId for field-response which displays booking form responses
+    const fieldResponses = page.getByTestId("field-response");
+    const fieldResponseCount = await fieldResponses.count();
+    if (fieldResponseCount > 0) {
+      // Additional notes should be displayed in the field responses section
+      await expect(fieldResponses.filter({ hasText: ADDITIONAL_NOTES })).toBeVisible();
     }
 
     // The calendar link should contain the event type description, not the additional notes
