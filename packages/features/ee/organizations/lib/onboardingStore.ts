@@ -2,16 +2,12 @@ import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, StorageValue } from "zustand/middleware";
 
-import { WEBAPP_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
+import { localStorage } from "@calcom/lib/webstorage";
+import { BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-
-enum BillingPeriod {
-  MONTHLY = "MONTHLY",
-  ANNUALLY = "ANNUALLY",
-}
 
 interface OnboardingAdminStoreState {
   billingPeriod?: BillingPeriod;
@@ -25,6 +21,8 @@ interface OnboardingUserStoreState {
   slug: string;
   logo?: string | null;
   bio?: string | null;
+  brandColor?: string | null;
+  bannerUrl?: string | null;
   onboardingId: string | null;
   invitedMembers: { email: string; name?: string }[];
   teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[];
@@ -42,6 +40,8 @@ interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUser
   setSlug: (slug: string) => void;
   setLogo: (logo: string) => void;
   setBio: (bio: string) => void;
+  setBrandColor: (brandColor: string) => void;
+  setBannerUrl: (bannerUrl: string) => void;
   addInvitedMember: (member: { email: string; name?: string }) => void;
   removeInvitedMember: (email: string) => void;
 
@@ -59,6 +59,8 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
   slug: "",
   logo: "",
   bio: "",
+  brandColor: "",
+  bannerUrl: "",
   orgOwnerEmail: "",
   seats: null,
   pricePerSeat: null,
@@ -70,7 +72,7 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
 
 export const useOnboardingStore = create<OnboardingStoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
 
       // Admin actions
@@ -84,6 +86,8 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       setSlug: (slug) => set({ slug }),
       setLogo: (logo) => set({ logo }),
       setBio: (bio) => set({ bio }),
+      setBrandColor: (brandColor) => set({ brandColor }),
+      setBannerUrl: (bannerUrl) => set({ bannerUrl }),
       setOnboardingId: (onboardingId) => set({ onboardingId }),
       addInvitedMember: (member) =>
         set((state) => ({
@@ -97,7 +101,6 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       // Team actions
       setTeams: (teams) => set({ teams }),
 
-      // Reset action
       reset: (state) => {
         if (state) {
           set(state);
@@ -116,19 +119,26 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
   )
 );
 
-export const useOnboarding = (params?: { step?: "start" | "status" | null }) => {
+export const useOnboarding = () => {
   const session = useSession();
   const router = useRouter();
   const path = usePathname();
   const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
-  const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin) || process.env.NEXT_PUBLIC_IS_E2E;
+
+  const isBillingEnabled = process.env.NEXT_PUBLIC_IS_E2E ? false : IS_TEAM_BILLING_ENABLED_CLIENT;
+
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
     trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
-  const { reset, onboardingId } = useOnboardingStore();
-  const step = params?.step ?? null;
+  const { reset } = useOnboardingStore();
   useEffect(() => {
     if (isLoadingOrgOnboarding) {
+      return;
+    }
+
+    // Admin on handover page should never touch the store
+    // The DB query returns admin's own onboarding, not the one being handed over
+    if (isAdmin && path?.includes("/handover")) {
       return;
     }
 
@@ -137,36 +147,31 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
 
     if (organizationOnboarding) {
-      // Must not keep resetting state on each step change as every step doesn't save at the moment and this would reset user's changes
-      if (!window.isOrgOnboardingSynced) {
-        window.isOrgOnboardingSynced = true;
-        // Must reset with current state of onboarding in DB for the user
-        reset({
-          onboardingId: organizationOnboarding.id,
-          billingPeriod: organizationOnboarding.billingPeriod as BillingPeriod,
-          pricePerSeat: organizationOnboarding.pricePerSeat,
-          seats: organizationOnboarding.seats,
-          orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
-          name: organizationOnboarding.name,
-          slug: organizationOnboarding.slug,
-          bio: organizationOnboarding.bio,
-          logo: organizationOnboarding.logo,
-        });
-        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
-          reset();
-        }
+      // Admin creating for someone else - don't sync from DB, let them proceed to handover
+      if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
+        return;
       }
-    } else {
-      // First step doesn't require onboardingId
-      const requireOnboardingId = step !== "start";
 
-      // Reset to first step if onboardingId isn't available
-      if (!onboardingId && requireOnboardingId) {
-        console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
-        router.push("/settings/organizations/new");
-      }
+      // Always sync from DB to ensure UI reflects latest changes
+      reset({
+        onboardingId: organizationOnboarding.id,
+        billingPeriod: organizationOnboarding.billingPeriod as BillingPeriod,
+        pricePerSeat: organizationOnboarding.pricePerSeat,
+        seats: organizationOnboarding.seats,
+        orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+        name: organizationOnboarding.name,
+        slug: organizationOnboarding.slug,
+        bio: organizationOnboarding.bio,
+        logo: organizationOnboarding.logo,
+        brandColor: organizationOnboarding.brandColor,
+        bannerUrl: organizationOnboarding.bannerUrl,
+        invitedMembers: [],
+        teams: [],
+      });
     }
-  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
+    // Note: We no longer redirect if onboardingId is missing, as regular users
+    // don't create the onboarding record until the final step
+  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, path]);
 
   useEffect(() => {
     if (session.status === "loading") {

@@ -42,7 +42,7 @@ function createMockRetellAIService(overrides: Partial<RetellAIService> = {}): Re
     updatePhoneNumberWithAgents: vi.fn(),
     listAgents: vi.fn(),
     getAgentWithDetails: vi.fn(),
-    createAgent: vi.fn(),
+    createOutboundAgent: vi.fn(),
     updateAgentConfiguration: vi.fn(),
     deleteAgent: vi.fn(),
     createTestCall: vi.fn(),
@@ -67,7 +67,7 @@ describe("RetellAIPhoneServiceProvider", () => {
       deleteLLM: vi.fn().mockResolvedValue(undefined),
 
       // Agent operations
-      createAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent-id" }),
+      createOutboundAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent-id" }),
       getAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent-id", agent_name: "Test Agent" }),
       updateAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent-id" }),
       deleteAgent: vi.fn().mockResolvedValue(undefined),
@@ -94,7 +94,7 @@ describe("RetellAIPhoneServiceProvider", () => {
       findByIdWithAdminAccess: vi.fn(),
       findByIdWithCallAccess: vi.fn(),
       delete: vi.fn(),
-      linkToWorkflowStep: vi.fn(),
+      linkOutboundAgentToWorkflow: vi.fn(),
     } as unknown as AgentRepositoryInterface;
 
     // Mock phone number repository

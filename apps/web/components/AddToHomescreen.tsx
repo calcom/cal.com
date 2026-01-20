@@ -18,7 +18,7 @@ export default function AddToHomescreen() {
         <div className="rounded-lg p-2 shadow-lg sm:p-3" style={{ background: "#2F333D" }}>
           <div className="flex flex-wrap items-center justify-between">
             <div className="flex w-0 flex-1 items-center">
-              <span className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast flex rounded-lg bg-opacity-30 p-2">
+              <span className="text-brandcontrast dark:bg-darkmodebrand/30 dark:text-darkmodebrandcontrast flex rounded-lg p-2">
                 <svg
                   className="h-7 w-7 fill-current text-[#5B93F9]"
                   xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +34,7 @@ export default function AddToHomescreen() {
               </p>
             </div>
 
-            <div className="order-2 flex-shrink-0 sm:order-3">
+            <div className="order-2 shrink-0 sm:order-3">
               <button
                 onClick={() => setCloseBanner(true)}
                 type="button"

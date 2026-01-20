@@ -1,8 +1,6 @@
 import { headers } from "next/headers";
 import Script from "next/script";
 
-import { NavigationPermissionsProvider } from "@calcom/features/shell/permissions/NavigationPermissionsProvider";
-
 import PageWrapper from "@components/PageWrapperAppDir";
 
 export default async function PageWrapperLayout({ children }: { children: React.ReactNode }) {
@@ -23,21 +21,21 @@ export default async function PageWrapperLayout({ children }: { children: React.
   ].filter((script): script is { id: string; script: string } => !!script.script);
 
   return (
-    <NavigationPermissionsProvider>
+    <>
       <PageWrapper requiresLicense={false} nonce={nonce}>
         {children}
         {scripts.map((script) => (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Injected scripts from env vars
           <Script
             key={script.id}
             nonce={nonce}
             id={script.id}
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: script.script,
             }}
           />
         ))}
       </PageWrapper>
-    </NavigationPermissionsProvider>
+    </>
   );
 }

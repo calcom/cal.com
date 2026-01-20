@@ -1,10 +1,9 @@
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils.server";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -68,7 +67,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  let teamsData;
+  let teamsData: typeof user.teams extends (infer T)[] ? (T & { team: T extends { team: infer U } ? U & { metadata: ReturnType<typeof teamMetadataSchema.parse> } : never })[] : never;
 
   if (input?.includeOrg) {
     teamsData = user.teams
@@ -112,8 +111,16 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     // Store permission results for teams that passed the filter
     hasPermissionForFiltered = permissionChecks.filter((hasPermission) => hasPermission);
     teamsData = teamsData.filter((_, index) => permissionChecks[index]);
-
   }
+
+  // Sort teams so organizations come first, followed by other teams
+  teamsData.sort((a, b) => {
+    if (a.team.isOrganization && !b.team.isOrganization) return -1;
+    if (!a.team.isOrganization && b.team.isOrganization) return 1;
+    return 0;
+  });
+
+  const rolesWithWriteAccess = [MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[];
 
   return [
     {
@@ -135,7 +142,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       role: membership.role,
       readOnly: input?.withPermission
         ? !hasPermissionForFiltered[index]
-        : !withRoleCanCreateEntity(membership.role),
+        : !rolesWithWriteAccess.includes(membership.role),
     })),
   ];
 };

@@ -1,5 +1,7 @@
 import type { Logger } from "tslog";
 
+import type { TrackingData } from "@calcom/lib/tracking";
+
 import type { RetellAIPhoneServiceProviderTypeMap } from "../providers/retellAI";
 
 /**
@@ -95,6 +97,9 @@ export type AIPhoneServiceListCallsParams<T extends AIPhoneServiceProviderType =
 export type AIPhoneServiceListCallsResponse<
   T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
 > = AIPhoneServiceProviderTypeMap[T]["ListCallsResponse"];
+
+export type AIPhoneServiceVoice<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["Voice"];
 
 export interface AIPhoneServiceDeletion {
   modelId?: string;
@@ -240,6 +245,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    tracking?: TrackingData;
   }): Promise<{ url: string; message: string }>;
 
   /**
@@ -282,7 +288,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   /**
    * Create a new agent
    */
-  createAgent(params: {
+  createOutboundAgent(params: {
     name?: string;
     userId: number;
     teamId?: number;
@@ -291,6 +297,22 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     beginMessage?: string;
     generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    providerAgentId: string;
+    message: string;
+  }>;
+
+  /**
+   * Create a new inbound agent
+   */
+  createInboundAgent(params: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
     userTimeZone: string;
   }): Promise<{
     id: string;
@@ -311,6 +333,9 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     beginMessage?: string | null;
     generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
+    language?: string;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }>;
 
   /**
@@ -374,6 +399,11 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
       startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
     };
   }): Promise<AIPhoneServiceListCallsResponse<T>>;
+
+  /**
+   * List available voices
+   */
+  listVoices(): Promise<AIPhoneServiceVoice<T>[]>;
 }
 
 /**

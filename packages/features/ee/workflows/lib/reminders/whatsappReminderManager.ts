@@ -15,6 +15,7 @@ import {
   getContentSidForTemplate,
   getContentVariablesForTemplate,
 } from "../reminders/templates/whatsapp/ContentSidMapping";
+import type { BookingInfo } from "../types";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import {
@@ -26,7 +27,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
-export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
@@ -41,6 +42,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     isVerificationPending = false,
     seatReferenceUid,
     verifiedAt,
+    creditCheckFn,
   } = args;
 
   if (!verifiedAt) {
@@ -64,7 +66,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         phoneNumber: reminderPhone || "",
       },
     });
-    if (!!verifiedNumber) return true;
+    if (verifiedNumber) return true;
     return isVerificationPending;
   }
   const isNumberVerified = await getIsNumberVerified();
@@ -73,6 +75,17 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
+  }
+
+  if (
+    scheduledDate &&
+    triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT &&
+    dayjs(scheduledDate).isBefore(currentDate)
+  ) {
+    log.debug(
+      `Skipping reminder for workflow step ${workflowStepId} - scheduled date ${scheduledDate} is in the past`
+    );
+    return;
   }
 
   const name = action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].name : evt.organizer.name;
@@ -194,6 +207,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                 replyTo: evt.organizer.email,
               }
             : undefined,
+          creditCheckFn,
         });
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
@@ -230,6 +244,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                   workflowStepId,
                 }
               : undefined,
+            creditCheckFn,
           });
 
           if (scheduledNotification?.sid) {

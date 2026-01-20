@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { TeamBilling } from "@calcom/ee/billing/teams";
+import { getTeamBillingServiceFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
@@ -17,7 +17,6 @@ async function postHandler(request: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const pageSize = 90; // Adjust this value based on the total number of teams and the available processing time
 
   let { page: pageNumber } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
@@ -43,7 +42,8 @@ async function postHandler(request: NextRequest) {
       break;
     }
 
-    const teamsBilling = TeamBilling.initMany(teams);
+    const teamBillingFactory = getTeamBillingServiceFactory();
+    const teamsBilling = teamBillingFactory.initMany(teams);
     const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
     await Promise.allSettled(teamBillingPromises);
 

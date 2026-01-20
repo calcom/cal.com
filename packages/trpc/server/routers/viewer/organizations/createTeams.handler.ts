@@ -1,8 +1,10 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -41,24 +43,20 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NotAuthorizedError();
   }
 
-  // Validate user membership role
-  const userMembershipRole = await prisma.membership.findFirst({
-    where: {
-      userId: organizationOwner.id,
-      teamId: orgId,
-      role: {
-        in: ["OWNER", "ADMIN"],
-      },
-      // @TODO: not sure if this already setup earlier
-      // accepted: true,
-    },
-    select: {
-      role: true,
-    },
+  // Validate user has permission to create teams in the organization
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: organizationOwner.id,
+    teamId: orgId,
+    permission: "team.create",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
   });
 
-  if (!userMembershipRole) {
-    log.error("User is not a member of the organization", safeStringify({ orgId, organizationOwner }));
+  if (!hasPermission) {
+    log.error(
+      "User is not authorized to create teams in the organization",
+      safeStringify({ orgId, organizationOwner })
+    );
     throw new NotAuthorizedError();
   }
 
@@ -233,6 +231,9 @@ async function moveTeam({
         parentId: org.id,
       },
     });
+
+    const creditService = new CreditService();
+    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
   } catch (error) {
     log.error(
       "Error while moving team to organization",

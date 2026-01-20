@@ -14,6 +14,7 @@ export const useCheckTeamBilling = (teamId?: number | null, isPlatformTeam?: boo
       return data.data;
     },
     enabled: !!teamId && !!isPlatformTeam,
+    staleTime: 5000,
   });
 
   return isTeamBilledAlready;

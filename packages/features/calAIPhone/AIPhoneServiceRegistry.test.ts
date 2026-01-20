@@ -16,13 +16,15 @@ import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interfac
 vi.stubEnv("RETELL_AI_KEY", "test-api-key");
 
 vi.mock("./providers/retellAI", () => ({
-  RetellAIPhoneServiceProviderFactory: vi.fn().mockImplementation(() => ({
-    create: vi.fn().mockReturnValue({
-      setupConfiguration: vi.fn(),
-      createPhoneCall: vi.fn(),
-      createPhoneNumber: vi.fn(),
-    }),
-  })),
+  RetellAIPhoneServiceProviderFactory: vi.fn().mockImplementation(function() {
+    return {
+      create: vi.fn().mockReturnValue({
+        setupConfiguration: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+      }),
+    };
+  }),
 }));
 
 describe("AIPhoneServiceRegistry", () => {
@@ -56,7 +58,7 @@ describe("AIPhoneServiceRegistry", () => {
       updatePhoneNumberWithAgents: vi.fn().mockResolvedValue({ message: "test-message" }),
       listAgents: vi.fn().mockResolvedValue({ totalCount: 1, filtered: [] }),
       getAgentWithDetails: vi.fn().mockResolvedValue({ agent_id: "test-agent" }),
-      createAgent: vi
+      createOutboundAgent: vi
         .fn()
         .mockResolvedValue({ id: "test-id", providerAgentId: "test-provider-id", message: "test-message" }),
       updateAgentConfiguration: vi.fn().mockResolvedValue({ message: "test-message" }),
@@ -285,7 +287,7 @@ describe("createAIPhoneServiceProvider", () => {
       updatePhoneNumberWithAgents: vi.fn(),
       listAgents: vi.fn(),
       getAgentWithDetails: vi.fn(),
-      createAgent: vi.fn(),
+      createOutboundAgent: vi.fn(),
       updateAgentConfiguration: vi.fn(),
       deleteAgent: vi.fn(),
       createTestCall: vi.fn(),
@@ -410,7 +412,7 @@ describe("createDefaultAIPhoneServiceProvider", () => {
       updatePhoneNumberWithAgents: vi.fn(),
       listAgents: vi.fn(),
       getAgentWithDetails: vi.fn(),
-      createAgent: vi.fn(),
+      createOutboundAgent: vi.fn(),
       updateAgentConfiguration: vi.fn(),
       deleteAgent: vi.fn(),
       createTestCall: vi.fn(),

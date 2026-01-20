@@ -22,12 +22,20 @@ jobs:
       # Contains all reports for deleted branch
       BRANCH_REPORTS_DIR: reports/${{ github.event.ref }}
     steps:
-      - name: Checkout GitHub Pages Branch
-        uses: actions/checkout@v2
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
         with:
-          repository: calcom/test-results
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          repositories: 'test-results-2'
+
+      - name: Checkout GitHub Pages Branch
+        uses: actions/checkout@v4
+        with:
+          repository: calcom/test-results-2
           ref: gh-pages
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
       - name: Set Git User
         # see: https://github.com/actions/checkout/issues/13#issuecomment-724415212
         run: |

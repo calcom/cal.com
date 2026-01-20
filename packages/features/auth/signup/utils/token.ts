@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
+import { validateAndGetCorrectedUsernameInTeam } from "@calcom/features/auth/signup/utils/validateUsername";
 import { HttpError } from "@calcom/lib/http-error";
-import { validateAndGetCorrectedUsernameInTeam } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 
 export async function findTokenByToken({ token }: { token: string }) {

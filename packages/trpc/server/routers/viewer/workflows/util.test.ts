@@ -2,9 +2,8 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-
-import { isAuthorized } from "./util";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 
@@ -19,13 +18,12 @@ describe("isAuthorized", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckPermission = vi.fn();
-    mockPermissionCheckService.mockImplementation(
-      () =>
-        ({
-          checkPermission: mockCheckPermission,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any)
-    );
+    mockPermissionCheckService.mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+    });
   });
 
   describe("null workflow", () => {

@@ -3,77 +3,76 @@ import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/comp
 export function BillingCreditsSkeleton() {
   return (
     <SkeletonContainer>
-      <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 text-sm sm:space-y-8">
-        {/* Title and Description */}
-        <div>
-          <div>
-            <SkeletonText className="mb-2 h-4 w-20" /> {/* Credits title */}
-          </div>
-          <div>
-            <SkeletonText className="h-4 w-72" /> {/* Description */}
-          </div>
-
-          <div className="-mx-6 mt-6">
-            <hr className="border-subtle" />
-          </div>
-          {/* Monthly credits */}
-          <div className="mt-[20px]">
-            <SkeletonText className="mb-4 h-4 w-32" /> {/* Monthly credits label */}
-            <div className="h-2 w-full rounded-md bg-gray-200" /> {/* Progress bar */}
-            <div className="text-subtle mt-2">
-              <div>
-                <SkeletonText className="h-4 w-40" /> {/* Total credits */}
+      <div className="bg-cal-muted border-muted mt-5 rounded-xl p-1">
+        <div className="flex flex-col gap-1 px-4 py-5">
+          <SkeletonText className="h-4 w-20" /> {/* Credits title */}
+          <SkeletonText className="h-4 w-48" /> {/* View and manage credits description */}
+        </div>
+        <div className="bg-default border-muted flex w-full rounded-[10px] px-5 py-4">
+          <div className="w-full">
+            {/* Credits section */}
+            <div className="mb-4">
+              {/* Monthly credits row */}
+              <div className="mt-1 flex justify-between">
+                <SkeletonText className="h-4 w-32" />
+                <SkeletonText className="h-4 w-20" />
               </div>
-              <div>
-                <SkeletonText className="h-4 w-40" /> {/* Remaining credits */}
+              {/* Additional credits row */}
+              <div className="mt-1 flex justify-between">
+                <SkeletonText className="h-4 w-36" />
+                <SkeletonText className="h-4 w-20" />
               </div>
-            </div>
-          </div>
-          {/* Additional credits */}
-          <div className="mt-4">
-            <div>
-              <SkeletonText className="mb-2 h-4 w-40" /> {/* Additional credits label */}
-            </div>
-            <div>
-              <SkeletonText className="h-4 w-24" /> {/* Additional credits value */}
-            </div>
-          </div>
-          <div className="-mx-6 mb-6 mt-4">
-            <hr className="border-subtle mb-3 mt-3" />
-          </div>
-          {/* Buy credits form */}
-          <div className="flex">
-            <div className="mr-auto">
-              <div>
-                <SkeletonText className="mb-2 h-4 w-[268px]" /> {/* Buy credits label */}
+              {/* Remaining row */}
+              <div className="mt-1 flex justify-between">
+                <SkeletonText className="h-4 w-24" />
+                <SkeletonText className="h-4 w-20" />
               </div>
-              <div>
-                <SkeletonText className="mt-2 h-8 w-[240px] rounded-md" /> {/* Input field */}
+              {/* Progress bar */}
+              <div className="mt-4">
+                <div className="h-2 w-full rounded-md bg-gray-200" />
+              </div>
+              {/* Credits per tip */}
+              <div className="mt-4 flex flex-1 justify-between">
+                <SkeletonText className="h-4 w-32" />
+                <SkeletonButton className="h-8 w-24 rounded-md" />
               </div>
             </div>
-
-            <div className="mt-auto ">
-              <SkeletonButton className="h-9 w-[120px] rounded-md" /> {/* Buy button */}
+            <div className="-mx-5 mt-5">
+              <hr className="border-subtle" />
             </div>
-          </div>
-          <div className="-mx-6 mb-6 mt-6">
-            <hr className="border-subtle mb-3 mt-3" />
-          </div>
-          {/* Download expense log */}
-          <div className="flex">
-            <div className="mr-auto mt-1">
-              <div>
-                <SkeletonText className="mb-2 h-4 w-[156px]" /> {/* Label */}
+            {/* Additional Credits form */}
+            <div className="mt-4 flex">
+              <div className="-mb-1 mr-auto w-full">
+                <SkeletonText className="mb-2 h-4 w-32" /> {/* Additional credits label */}
+                <div className="flex w-full">
+                  <SkeletonText className="h-9 w-full rounded-md" /> {/* Input field */}
+                </div>
               </div>
-              <div>
-                <SkeletonText className="mt-2 h-8 w-[156px] rounded-md" /> {/* Select */}
+              <div className="ml-2 mt-auto">
+                <SkeletonButton className="h-9 w-12 rounded-md" /> {/* Buy button */}
               </div>
             </div>
-
-            <div className="mt-auto ">
-              <SkeletonButton className="h-9 w-[109px] rounded-md" /> {/* Download button */}
+            <div className="-mx-5 mt-5">
+              <hr className="border-subtle" />
+            </div>
+            {/* Download Expense Log */}
+            <div className="mt-4 flex">
+              <div className="mr-auto w-full">
+                <SkeletonText className="mb-4 h-4 w-40" /> {/* Download expense log label */}
+                <div className="mr-2 mt-1">
+                  <SkeletonText className="h-9 w-full rounded-md" /> {/* Select dropdown */}
+                </div>
+              </div>
+              <div className="mt-auto">
+                <SkeletonButton className="h-9 w-20 rounded-md" /> {/* Download button */}
+              </div>
             </div>
           </div>
+        </div>
+        {/* Credit Worth Section */}
+        <div className="text-subtle px-5 py-4">
+          <SkeletonText className="h-4 w-full" />
+          <SkeletonText className="mt-1 h-4 w-3/4" />
         </div>
       </div>
     </SkeletonContainer>

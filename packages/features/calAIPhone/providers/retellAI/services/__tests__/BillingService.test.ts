@@ -48,7 +48,10 @@ describe("BillingService", () => {
     });
     stripe.subscriptions.cancel.mockResolvedValue({});
 
-    service = new BillingService(mocks.mockPhoneNumberRepository, mocks.mockRetellRepository);
+    service = new BillingService({
+      phoneNumberRepository: mocks.mockPhoneNumberRepository,
+      retellRepository: mocks.mockRetellRepository,
+    });
   });
 
   afterEach(() => {
@@ -162,10 +165,16 @@ describe("BillingService", () => {
 
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       expect(stripe.subscriptions.cancel).toHaveBeenCalledWith("sub_123");
-      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledTimes(2);
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: false,
+      });
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: true,
       });
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
@@ -268,11 +277,15 @@ describe("BillingService", () => {
 
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       stripe.subscriptions.cancel.mockRejectedValue({
-        type: "invalid_request_error",
+        type: "StripeInvalidRequestError",
+        raw: {
+          code: "resource_missing",
+          doc_url: "https://stripe.com/docs/error-codes/resource-missing",
+          message: "No such subscription: 'sub_123'",
+          param: "id",
+          type: "invalid_request_error",
+        },
         code: "resource_missing",
-        message: "No such subscription: 'sub_123'",
-        param: "id",
-        doc_url: "https://stripe.com/docs/error-codes/resource-missing",
       });
 
       const result = await service.cancelPhoneNumberSubscription(validCancelData);
@@ -284,11 +297,17 @@ describe("BillingService", () => {
 
       // Should attempt to cancel
       expect(stripe.subscriptions.cancel).toHaveBeenCalledWith("sub_123");
-      // Should still update database even after 404
-      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
+      // Should update database twice: first CANCELLED (disconnectAgents: false), then final CANCELLED (disconnectAgents: true)
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledTimes(2);
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: false,
+      });
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: true,
       });
     });
 
@@ -310,8 +329,16 @@ describe("BillingService", () => {
 
       // Should attempt to cancel
       expect(stripe.subscriptions.cancel).toHaveBeenCalledWith("sub_123");
-      // Should NOT update database due to error
-      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).not.toHaveBeenCalled();
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledTimes(2);
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: false,
+      });
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+      });
     });
   });
 });

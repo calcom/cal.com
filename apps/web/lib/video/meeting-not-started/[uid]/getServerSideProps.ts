@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { prisma } from "@calcom/prisma";
 
 // change the type

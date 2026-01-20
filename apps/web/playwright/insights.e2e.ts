@@ -1,10 +1,13 @@
 import { expect } from "@playwright/test";
 
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { randomString } from "@calcom/lib/random";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { clearFilters, applySelectFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
+import { createAllPermissionsArray, enablePBACForTeam } from "./lib/test-helpers/pbac";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -251,25 +254,99 @@ test.describe("Insights", async () => {
     const expectedChartTitles = [
       "Events",
       "Performance",
-      "Event Trends",
-      "Bookings by Hour",
-      "Average Event Duration",
-      "Most Bookings Scheduled",
-      "Least Bookings Scheduled",
-      "Most Bookings Completed",
-      "Least Bookings Completed",
-      "Most Cancelled",
-      "Most No-Show",
-      "Recent No-Show Guests",
-      "Highest Rated",
-      "Lowest Rated",
-      "Recent Ratings",
-      "Popular Events",
+      "Event trends",
+      "Bookings by hour",
+      "Average event duration",
+      "Most bookings scheduled",
+      "Least bookings scheduled",
+      "Most bookings completed",
+      "Least bookings completed",
+      "Most cancelled",
+      "Most no-show",
+      "Recent no-show guests",
+      "Highest rated",
+      "Lowest rated",
+      "Recent ratings",
+      "Popular events",
     ];
 
     for (const title of expectedChartTitles) {
-      const chartCard = page.locator("[data-testid='panel-card'] h2").filter({ hasText: title });
+      const chartCard = page
+        .locator("[data-testid='chart-card'] h2")
+        .filter({ hasText: new RegExp(`^${title}$`) });
       await expect(chartCard).toBeVisible();
     }
+  });
+
+  test("should be able to access insights page with custom role lacking insights.read permission", async ({
+    page,
+    users,
+  }) => {
+    const owner = await users.create(undefined, {
+      hasTeam: true,
+      isUnpublished: true,
+      isOrg: true,
+    });
+
+    const userOne = await users.create();
+    const userTwo = await users.create();
+
+    const { teamOne } = await createTeamsAndMembership(userOne.id, userTwo.id);
+
+    const orgMembership = await owner.getOrgMembership();
+    const orgId = orgMembership.team.id;
+
+    await enablePBACForTeam(orgId);
+    await enablePBACForTeam(teamOne.id);
+
+    const permissions = createAllPermissionsArray().filter(
+      ({ resource, action }) => !(resource === "insights" && action === "read")
+    );
+
+    const customRole = await prisma.role.create({
+      data: {
+        id: `e2e_no_insights_${orgId}_${Date.now()}`,
+        name: "E2E Role Without Insights",
+        description: "E2E role for testing - has all permissions except insights.read",
+        color: "#dc2626",
+        teamId: orgId,
+        type: "CUSTOM",
+        permissions: {
+          create: permissions,
+        },
+      },
+    });
+
+    await prisma.membership.update({
+      where: {
+        userId_teamId: {
+          userId: userOne.id,
+          teamId: teamOne.id,
+        },
+      },
+      data: {
+        customRoleId: customRole.id,
+      },
+    });
+
+    const featuresRepository = new FeaturesRepository(prisma);
+    const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(orgId, "pbac");
+    expect(isPBACEnabled).toBe(true);
+
+    const permissionService = new PermissionCheckService();
+    const hasPermission = await permissionService.checkPermission({
+      userId: userOne.id,
+      teamId: teamOne.id,
+      permission: "insights.read",
+      fallbackRoles: [],
+    });
+    expect(hasPermission).toBe(false);
+
+    await userOne.apiLogin();
+    await page.goto("/insights");
+
+    // Verify the user can access the insights page
+    await page.locator('[data-testid^="insights-filters-"]').waitFor();
+    expect(page.url()).toContain("/insights");
   });
 });

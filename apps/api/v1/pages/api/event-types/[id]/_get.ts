@@ -1,11 +1,10 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { eventTypeSelect } from "~/lib/selects/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 import { checkPermissions as canAccessTeamEventOrThrow } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
@@ -49,15 +48,13 @@ export async function getHandler(req: NextApiRequest) {
 
   const eventType = await prisma.eventType.findUnique({
     where: { id },
-    include: {
-      customInputs: true,
-      hashedLink: { select: { link: true } },
-      team: { select: { slug: true } },
-      hosts: { select: { userId: true, isFixed: true } },
-      owner: { select: { username: true, id: true } },
-      children: { select: { id: true, userId: true } },
-    },
+    select: eventTypeSelect,
   });
+
+  if (!eventType) {
+    throw new HttpError({ statusCode: 404, message: "Event type not found" });
+  }
+
   await checkPermissions(req, eventType);
 
   const link = eventType ? getCalLink(eventType) : null;
@@ -74,9 +71,12 @@ export async function getHandler(req: NextApiRequest) {
     eventType.scheduleId = user.defaultScheduleId;
   }
 
-  // TODO: eventType when not found should be a 404
-  //       but API consumers may depend on the {} behaviour.
-  return { event_type: schemaEventTypeReadPublic.parse({ ...eventType, link }) };
+  return {
+    event_type: {
+      ...eventType,
+      link,
+    },
+  };
 }
 
 type BaseEventTypeCheckPermissions = {
@@ -100,4 +100,4 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
-export default defaultResponder(getHandler);
+export default getHandler;

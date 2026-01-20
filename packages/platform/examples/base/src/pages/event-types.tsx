@@ -122,7 +122,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
           <div data-testid="event-type-settings-atom">
             <EventTypeSettings
               customClassNames={{
-                atomsWrapper: "!w-[50vw] !m-auto",
+                atomsWrapper: "w-[50vw]! m-auto!",
 
                 eventAdvancedTab: {
                   destinationCalendar: {
@@ -578,8 +578,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
-                    intervalLimitContainer: "space-y-2",
+                    children: "stack-y-4",
+                    intervalLimitContainer: "stack-y-2",
                     intervalLimitItem: {
                       addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
                       limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
@@ -600,13 +600,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                   },
                   totalDurationLimit: {
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                     intervalLimitItem: {
                       addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
                       limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
@@ -627,7 +627,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                     rollingLimit: {
                       container: "flex items-center space-x-2",
                       textField: "border border-purple-300 rounded-md text-purple-900 bg-white",
@@ -652,7 +652,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                     offsetInput: {
                       container: "flex items-center space-x-2",
                       label: "text-purple-700",
@@ -691,7 +691,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       addOn: "text-purple-500",
                     },
                     multipleDuration: {
-                      container: "space-y-2",
+                      container: "stack-y-2",
                       availableDurationsSelect: {
                         container: "mb-4",
                         label: "text-purple-700",

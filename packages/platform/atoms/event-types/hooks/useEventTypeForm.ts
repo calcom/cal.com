@@ -4,17 +4,17 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
+import { locationsResolver } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
-import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import type {
   FormValues,
   EventTypeSetupProps,
   EventTypeUpdateInput,
 } from "@calcom/features/eventtypes/lib/types";
-import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -101,6 +101,9 @@ export const useEventTypeForm = ({
       requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+      disabledCancelling: eventType.disableCancelling ?? false,
+      disabledRescheduling: eventType.disableRescheduling ?? false,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
@@ -125,6 +128,7 @@ export const useEventTypeForm = ({
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
+      autoTranslateInstantMeetingTitleEnabled: eventType.autoTranslateInstantMeetingTitleEnabled ?? true,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
@@ -191,6 +195,7 @@ export const useEventTypeForm = ({
               enableAutomaticRecordingForOrganizer: z.boolean().nullable(),
               disableTranscriptionForGuests: z.boolean().nullable(),
               disableTranscriptionForOrganizer: z.boolean().nullable(),
+              requireEmailForGuests: z.boolean().nullable(),
             })
             .optional()
             .nullable(),
@@ -380,7 +385,7 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, ...rest } = input;
+    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, ...rest } = input;
     const payload = {
       ...rest,
       length,
@@ -405,6 +410,8 @@ export const useEventTypeForm = ({
       children,
       assignAllTeamMembers,
       multiplePrivateLinks: values.multiplePrivateLinks,
+      disableCancelling: disabledCancelling,
+      disableRescheduling: disabledRescheduling,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
