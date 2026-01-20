@@ -565,8 +565,7 @@ export default function Signup({
                         {t("continue_with_google")}
                       </Button>
                     ) : null}
-                    {/* TODO replace true with isMicrosoftLoginEnabled */}
-                    {true ? (
+                    {isMicrosoftLoginEnabled ? (
                       <Button
                         color="primary"
                         loading={isMicrosoftLoading}
