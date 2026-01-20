@@ -8,10 +8,24 @@
           "level": "on",
           "options": {
             "groups": [
-              ["**/__mocks__/**", "**/bookingScenario*"],
-              [":PACKAGE_WITH_PROTOCOL:", ":PACKAGE:"],
-              ["@calcom/**", "@ee/**"],
-              ["@lib/**", "@components/**", "@server/**", "@trpc/**"],
+              [
+                "**/__mocks__/**",
+                "**/bookingScenario*"
+              ],
+              [
+                ":PACKAGE_WITH_PROTOCOL:",
+                ":PACKAGE:"
+              ],
+              [
+                "@calcom/**",
+                "@ee/**"
+              ],
+              [
+                "@lib/**",
+                "@components/**",
+                "@server/**",
+                "@trpc/**"
+              ],
               "~/**",
               ":PATH:"
             ]
@@ -94,18 +108,30 @@
   },
   "overrides": [
     {
-      "includes": ["docs/api-reference/v2/openapi.json"],
-      "linter": { "enabled": false },
-      "formatter": { "enabled": false }
+      "includes": [
+        "docs/api-reference/v2/openapi.json"
+      ],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      }
     },
     {
-      "includes": ["**/*.tsx"],
+      "includes": [
+        "**/*.tsx"
+      ],
       "javascript": {
         "jsxRuntime": "transparent"
       }
     },
     {
-      "includes": ["apps/web/app/**/page.tsx", "apps/web/app/**/layout.tsx", "apps/web/app/pages/**/*.tsx"],
+      "includes": [
+        "apps/web/app/**/page.tsx",
+        "apps/web/app/**/layout.tsx",
+        "apps/web/app/pages/**/*.tsx"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -115,7 +141,9 @@
       }
     },
     {
-      "includes": ["**/*"],
+      "includes": [
+        "**/*"
+      ],
       "linter": {
         "rules": {
           "nursery": {
@@ -127,8 +155,16 @@
             "useSortedClasses": {
               "level": "warn",
               "options": {
-                "attributes": ["className", "classList"],
-                "functions": ["clsx", "cva", "cn", "tw"]
+                "attributes": [
+                  "className",
+                  "classList"
+                ],
+                "functions": [
+                  "clsx",
+                  "cva",
+                  "cn",
+                  "tw"
+                ]
               }
             }
           },
@@ -182,7 +218,10 @@
       }
     },
     {
-      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
+      "includes": [
+        "apps/api/v2/**/*.ts",
+        "apps/api/v2/**/*.controller.ts"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -212,7 +251,12 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts", "**/*.integration-test.ts"],
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.e2e-spec.ts",
+        "**/*.integration-test.ts"
+      ],
       "linter": {
         "rules": {
           "complexity": {
@@ -223,7 +267,9 @@
       }
     },
     {
-      "includes": ["packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "includes": [
+        "packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -232,19 +278,27 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["../app-store/**"],
+                    "group": [
+                      "../app-store/**"
+                    ],
                     "message": "lib package should not import from app-store to avoid circular dependencies."
                   },
                   {
-                    "group": ["../features/**"],
+                    "group": [
+                      "../features/**"
+                    ],
                     "message": "lib package should not import from features to avoid circular dependencies."
                   },
                   {
-                    "group": ["../trpc/**"],
+                    "group": [
+                      "../trpc/**"
+                    ],
                     "message": "lib package should not import from trpc to avoid circular dependencies."
                   },
                   {
-                    "group": ["@trpc/server"],
+                    "group": [
+                      "@trpc/server"
+                    ],
                     "message": "lib package should not import from @trpc/server to avoid circular dependencies."
                   }
                 ]
@@ -255,7 +309,9 @@
       }
     },
     {
-      "includes": ["packages/app-store/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "includes": [
+        "packages/app-store/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -264,11 +320,15 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["../features/**"],
+                    "group": [
+                      "../features/**"
+                    ],
                     "message": "app-store package should not import from features to avoid circular dependencies."
                   },
                   {
-                    "group": ["../trpc/**"],
+                    "group": [
+                      "../trpc/**"
+                    ],
                     "message": "app-store package should not import from trpc to avoid circular dependencies."
                   }
                 ]
@@ -279,7 +339,9 @@
       }
     },
     {
-      "includes": ["packages/features/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "includes": [
+        "packages/features/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -288,15 +350,22 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["../trpc/**"],
+                    "group": [
+                      "../trpc/**"
+                    ],
                     "message": "features package should not import from trpc to avoid circular dependencies."
                   },
                   {
-                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "group": [
+                      "@calcom/web",
+                      "@calcom/web/**"
+                    ],
                     "message": "features package should not import from @calcom/web to avoid circular dependencies."
                   },
                   {
-                    "group": ["../../apps/web/**"],
+                    "group": [
+                      "../../apps/web/**"
+                    ],
                     "message": "features package should not import from apps/web to avoid circular dependencies."
                   }
                 ]
@@ -307,7 +376,9 @@
       }
     },
     {
-      "includes": ["packages/trpc/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "includes": [
+        "packages/trpc/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -316,7 +387,9 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["../apps/web/**"],
+                    "group": [
+                      "../apps/web/**"
+                    ],
                     "message": "trpc package should not import from apps/web to avoid circular dependencies."
                   }
                 ]
@@ -327,7 +400,9 @@
       }
     },
     {
-      "includes": ["packages/testing/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "includes": [
+        "packages/testing/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -336,19 +411,29 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "group": [
+                      "@calcom/web",
+                      "@calcom/web/**"
+                    ],
                     "message": "testing package should not import from @calcom/web to avoid circular dependencies."
                   },
                   {
-                    "group": ["@calcom/features", "@calcom/features/**"],
+                    "group": [
+                      "@calcom/features",
+                      "@calcom/features/**"
+                    ],
                     "message": "testing package should not import from @calcom/features to avoid circular dependencies."
                   },
                   {
-                    "group": ["../../apps/web/**"],
+                    "group": [
+                      "../../apps/web/**"
+                    ],
                     "message": "testing package should not import from apps/web to avoid circular dependencies."
                   },
                   {
-                    "group": ["../features/**"],
+                    "group": [
+                      "../features/**"
+                    ],
                     "message": "testing package should not import from features to avoid circular dependencies."
                   }
                 ]
@@ -359,7 +444,9 @@
       }
     },
     {
-      "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "includes": [
+        "packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -368,11 +455,17 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@calcom/trpc", "@calcom/trpc/**"],
+                    "group": [
+                      "@calcom/trpc",
+                      "@calcom/trpc/**"
+                    ],
                     "message": "atoms package should not import from @calcom/trpc."
                   },
                   {
-                    "group": ["../../trpc", "../../trpc/**"],
+                    "group": [
+                      "../../trpc",
+                      "../../trpc/**"
+                    ],
                     "message": "atoms package should not import from trpc."
                   }
                 ]
@@ -383,7 +476,9 @@
       }
     },
     {
-      "includes": ["apps/api/v2/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "includes": [
+        "apps/api/v2/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
       "linter": {
         "rules": {
           "style": {
