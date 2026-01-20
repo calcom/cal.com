@@ -174,7 +174,7 @@ function JsonViewer({ data }: JsonViewerProps) {
                         style={{ minWidth: `${lineNumberWidth}ch` }}>
                         {idx + 1}
                     </span>
-                    <span className="text-default whitespace-pre">{line || " "}</span>
+                    <span className="text-default whitespace-pre-wrap break-all">{line || " "}</span>
                 </div>
             ))}
         </div>
