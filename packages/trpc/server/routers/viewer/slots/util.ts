@@ -1065,7 +1065,7 @@ export class AvailableSlotsService {
 
     const shouldChunk =
       eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-      eventType.isRRWeightsEnabled &&
+      !eventType.isRRWeightsEnabled &&
       nonFixedHosts.length > ROUND_ROBIN_CHUNK_THRESHOLD;
 
     if (!shouldChunk) {
