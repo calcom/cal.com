@@ -74,10 +74,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
   async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
     const { fields } = this.parseStored(storedData);
-    const { hostAttendeeUpdated, organizerUuid } = fields;
-    const newHostUuid = hostAttendeeUpdated?.withUserUuid?.new || organizerUuid.new || "";
-    const user = await this.userRepository.findByUuid({ uuid: newHostUuid });
-    const reassignedToName = user?.name || "Unknown";
+    const { newUser } = await this.getPreviousAndNewAssigneeUser(fields);
+    const reassignedToName = newUser?.name || "Unknown";
     return {
       key: "booking_audit_action.booking_reassigned_to_host",
       params: { host: reassignedToName },
@@ -96,21 +94,47 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     };
   }
 
-  async getDisplayFields(storedData: BaseStoredAuditData): Promise<Array<{
-    labelKey: string;
-    valueKey: string;
-  }>> {
+  private async getPreviousAndNewAssigneeUser(fields: ReassignmentAuditData) {
+    const hasAttendeeUpdated = fields.hostAttendeeUpdated?.id !== null;
+    const newHostUuid = hasAttendeeUpdated
+      ? fields.hostAttendeeUpdated?.withUserUuid?.new
+      : fields.organizerUuid.new;
+    const previousHostUuid = hasAttendeeUpdated
+      ? fields.hostAttendeeUpdated?.withUserUuid?.old
+      : fields.organizerUuid.old;
+
+    const newUser = newHostUuid ? await this.userRepository.findByUuid({ uuid: newHostUuid }) : null;
+    const previousUser = previousHostUuid
+      ? await this.userRepository.findByUuid({ uuid: previousHostUuid })
+      : null;
+
+    return {
+      previousUser: previousUser,
+      newUser: newUser,
+    };
+  }
+
+  async getDisplayFields(storedData: BaseStoredAuditData): Promise<
+    Array<{
+      labelKey: string;
+      valueKey: string;
+    }>
+  > {
     const { fields } = this.parseStored(storedData);
     const map = {
       manual: "manual",
       roundRobin: "round_robin",
     };
     const typeTranslationKey = `booking_audit_action.assignment_type_${map[fields.reassignmentType]}`;
-
+    const { previousUser } = await this.getPreviousAndNewAssigneeUser(fields);
     return [
       {
         labelKey: "booking_audit_action.assignment_type",
         valueKey: typeTranslationKey,
+      },
+      {
+        labelKey: "booking_audit_action.previous_assignee",
+        valueKey: previousUser?.name ?? "Unknown",
       },
     ];
   }
