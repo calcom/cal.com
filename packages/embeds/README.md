@@ -120,7 +120,7 @@ Cal.modal({
   calLink: "organization/event-type",
   config: {
     // Optional configuration
-    enableTwoStepSlotSelection: "true"
+    useSlotsViewOnSmallScreen: "true"
   }
 });
 ```
@@ -146,7 +146,7 @@ Cal.inline({
     name: "John Doe",
     email: "john@example.com",
     notes: "Initial discussion",
-    enableTwoStepSlotSelection: "true"
+    useSlotsViewOnSmallScreen: "true"
   }
 });
 ```

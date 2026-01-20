@@ -126,7 +126,7 @@ const BookerComponent = ({
     hideEventTypeDetails,
     isEmbed,
     bookerLayouts,
-    enableTwoStepSlotSelection,
+    slotsViewOnSmallScreen,
   } = bookerLayout;
 
   const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
@@ -211,8 +211,8 @@ const BookerComponent = ({
   const scrolledToTimeslotsOnce = useRef(false);
   const embedUiConfig = useEmbedUiConfig();
   const scrollToTimeSlots = () => {
-    // Don't scroll if two step slot selection is enabled
-    if (enableTwoStepSlotSelection) {
+    // Don't scroll if slots view on small screen is enabled
+    if (slotsViewOnSmallScreen) {
       return;
     }
 
@@ -553,7 +553,7 @@ const BookerComponent = ({
                         scrollToTimeSlots={scrollToTimeSlots}
                         showNoAvailabilityDialog={showNoAvailabilityDialog}
                         onDateChange={() => {
-                          if (enableTwoStepSlotSelection) {
+                          if (slotsViewOnSmallScreen) {
                             setIsSlotSelectionModalVisible(true);
                           }
                         }}
@@ -612,7 +612,7 @@ const BookerComponent = ({
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}
               visible={
-                !(enableTwoStepSlotSelection && isMobile) &&
+                !(slotsViewOnSmallScreen && isMobile) &&
                 ((layout !== BookerLayouts.WEEK_VIEW &&
                   bookerState === "selecting_time") ||
                   layout === BookerLayouts.COLUMN_VIEW)

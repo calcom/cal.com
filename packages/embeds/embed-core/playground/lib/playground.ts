@@ -620,7 +620,7 @@ if (only === "all" || only == "ns:twoStepSlotSelection") {
           id: "cal-booking-place-twoStepSlotSelection-iframe",
         },
         "flag.coep": "true",
-        enableTwoStepSlotSelection: "true",
+        useSlotsViewOnSmallScreen: "true",
       },
     }
   );

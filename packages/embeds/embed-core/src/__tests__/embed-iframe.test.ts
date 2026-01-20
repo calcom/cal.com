@@ -357,7 +357,7 @@ describe("embed-iframe", async () => {
     });
   });
 
-  describe("enableTwoStepSlotSelection parameter parsing", () => {
+  describe("useSlotsViewOnSmallScreen parameter parsing", () => {
     let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
 
     beforeEach(async () => {
@@ -388,31 +388,31 @@ describe("embed-iframe", async () => {
     });
 
     it("should default to false when parameter is not present", async () => {
-      fakeCurrentDocumentUrl(); // No enableTwoStepSlotSelection param
+      fakeCurrentDocumentUrl(); // No useSlotsViewOnSmallScreen param
       await import("../embed-iframe"); // This triggers main()
 
-      expect(embedStore.uiConfig?.enableTwoStepSlotSelection).toBe(false);
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(false);
     });
 
     it("should be true when parameter is 'true'", async () => {
-      fakeCurrentDocumentUrl({ params: { enableTwoStepSlotSelection: "true" } });
+      fakeCurrentDocumentUrl({ params: { useSlotsViewOnSmallScreen: "true" } });
       await import("../embed-iframe"); // This triggers main()
 
-      expect(embedStore.uiConfig?.enableTwoStepSlotSelection).toBe(true);
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(true);
     });
 
     it("should be false when parameter is 'false'", async () => {
-      fakeCurrentDocumentUrl({ params: { enableTwoStepSlotSelection: "false" } });
+      fakeCurrentDocumentUrl({ params: { useSlotsViewOnSmallScreen: "false" } });
       await import("../embed-iframe"); // This triggers main()
 
-      expect(embedStore.uiConfig?.enableTwoStepSlotSelection).toBe(false);
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(false);
     });
 
     it("should be false when parameter has any other value", async () => {
-      fakeCurrentDocumentUrl({ params: { enableTwoStepSlotSelection: "invalid" } });
+      fakeCurrentDocumentUrl({ params: { useSlotsViewOnSmallScreen: "invalid" } });
       await import("../embed-iframe"); // This triggers main()
 
-      expect(embedStore.uiConfig?.enableTwoStepSlotSelection).toBe(false);
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(false);
     });
   });
 });

@@ -128,20 +128,20 @@ test.describe("Embed Pages", () => {
     });
   });
 
-  test.describe("enableTwoStepSlotSelection", () => {
-    test("should enable two-step slot selection when parameter is 'true'", async ({
+  test.describe("useSlotsViewOnSmallScreen", () => {
+    test("should enable slots view on small screen when parameter is 'true'", async ({
       page,
     }) => {
       await page.evaluate(() => {
         window.name = "cal-embed=";
       });
-      await page.goto("http://localhost:3000/free/30min/embed?enableTwoStepSlotSelection=true");
+      await page.goto("http://localhost:3000/free/30min/embed?useSlotsViewOnSmallScreen=true");
 
-      const enableTwoStepSlotSelection = await page.evaluate(() => {
-        return window.CalEmbed?.embedStore?.uiConfig?.enableTwoStepSlotSelection;
+      const useSlotsViewOnSmallScreen = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.useSlotsViewOnSmallScreen;
       });
 
-      expect(enableTwoStepSlotSelection).toBe(true);
+      expect(useSlotsViewOnSmallScreen).toBe(true);
     });
 
     test("should default to false when parameter is not present", async ({
@@ -152,24 +152,24 @@ test.describe("Embed Pages", () => {
       });
       await page.goto("http://localhost:3000/free/30min/embed");
 
-      const enableTwoStepSlotSelection = await page.evaluate(() => {
-        return window.CalEmbed?.embedStore?.uiConfig?.enableTwoStepSlotSelection;
+      const useSlotsViewOnSmallScreen = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.useSlotsViewOnSmallScreen;
       });
 
-      expect(enableTwoStepSlotSelection).toBe(false);
+      expect(useSlotsViewOnSmallScreen).toBe(false);
     });
 
     test("should be false when parameter is 'false'", async ({ page }) => {
       await page.evaluate(() => {
         window.name = "cal-embed=";
       });
-      await page.goto("http://localhost:3000/free/30min/embed?enableTwoStepSlotSelection=false");
+      await page.goto("http://localhost:3000/free/30min/embed?useSlotsViewOnSmallScreen=false");
 
-      const enableTwoStepSlotSelection = await page.evaluate(() => {
-        return window.CalEmbed?.embedStore?.uiConfig?.enableTwoStepSlotSelection;
+      const useSlotsViewOnSmallScreen = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.useSlotsViewOnSmallScreen;
       });
 
-      expect(enableTwoStepSlotSelection).toBe(false);
+      expect(useSlotsViewOnSmallScreen).toBe(false);
     });
   });
 });

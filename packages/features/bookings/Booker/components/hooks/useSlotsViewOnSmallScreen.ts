@@ -9,5 +9,5 @@ export const useSlotsViewOnSmallScreen = () => {
 
   if (!isEmbed || !isMobile) return false;
 
-  return embedUiConfig.enableTwoStepSlotSelection ?? false;
+  return embedUiConfig.useSlotsViewOnSmallScreen ?? false;
 };

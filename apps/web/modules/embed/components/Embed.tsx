@@ -866,7 +866,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     useState(true);
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
-    enableTwoStepSlotSelection: "true" as const,
+    useSlotsViewOnSmallScreen: "true" as const,
   };
 
   const paletteDefaultValue = (paletteName: string) => {

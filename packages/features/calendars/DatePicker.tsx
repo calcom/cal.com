@@ -180,7 +180,7 @@ const Days = ({
   periodData: PeriodData;
   isCompact?: boolean;
 }) => {
-  const enableTwoStepSlotSelection = useSlotsViewOnSmallScreen();
+  const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
   const layout = useBookerStoreContext((state) => state.layout);
   const isMobile = layout === "mobile";
 
@@ -305,8 +305,8 @@ const Days = ({
    */
 
   const useHandleInitialDateSelection = () => {
-    // Don't auto-select date when two step slot selection is enabled on mobile
-    if (enableTwoStepSlotSelection) {
+    // Don't auto-select date when slots view on small screen is enabled on mobile
+    if (slotsViewOnSmallScreen) {
       return;
     }
 

@@ -567,8 +567,8 @@ function main() {
 
   const autoScrollFromParam = url.searchParams.get("ui.autoscroll");
   const shouldDisableAutoScroll = autoScrollFromParam === "false";
-  const enableTwoStepSlotSelectionParam = url.searchParams.get(
-    "enableTwoStepSlotSelection"
+  const useSlotsViewOnSmallScreenParam = url.searchParams.get(
+    "useSlotsViewOnSmallScreen"
   );
 
   embedStore.uiConfig = {
@@ -576,9 +576,9 @@ function main() {
     colorScheme: url.searchParams.get("ui.color-scheme"),
     layout: url.searchParams.get("layout") as BookerLayouts,
     disableAutoScroll: shouldDisableAutoScroll,
-    // by default enableTwoStepSlotSelection should be false
-    enableTwoStepSlotSelection:
-      (enableTwoStepSlotSelectionParam ?? "false") === "true",
+    // by default useSlotsViewOnSmallScreen should be false
+    useSlotsViewOnSmallScreen:
+      (useSlotsViewOnSmallScreenParam ?? "false") === "true",
   };
 
   actOnColorScheme(embedStore.uiConfig.colorScheme);

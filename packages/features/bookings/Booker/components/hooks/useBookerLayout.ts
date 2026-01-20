@@ -102,7 +102,7 @@ export const useBookerLayout = (
     ? hideEventTypeDetailsParam === "true"
     : false;
 
-  const enableTwoStepSlotSelection = useSlotsViewOnSmallScreen();
+  const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
 
   return {
     shouldShowFormInDialog,
@@ -115,7 +115,7 @@ export const useBookerLayout = (
     layout,
     defaultLayout,
     hideEventTypeDetails,
-    enableTwoStepSlotSelection,
+    slotsViewOnSmallScreen,
     bookerLayouts,
   };
 };

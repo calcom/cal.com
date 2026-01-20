@@ -111,7 +111,7 @@ function App() {
           guests: ["janedoe@gmail.com"],
           theme: "dark",
           "cal.embed.pageType": "user.event.booking.slots",
-          enableTwoStepSlotSelection: "true",
+          useSlotsViewOnSmallScreen: "true",
         }}
       />
     </>
