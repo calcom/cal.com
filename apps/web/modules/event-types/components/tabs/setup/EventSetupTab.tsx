@@ -21,6 +21,7 @@ import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { TextAreaField } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -279,6 +280,20 @@ export const EventSetupTab = (
                     );
                     if (option) formMethods.setValue("length", option.value, { shouldDirty: true });
                   }}
+                />
+              </div>
+              <div className="mt-4">
+                <Controller
+                  name="metadata.hideDurationSelectorInBookingPage"
+                  control={formMethods.control}
+                  render={({ field: { value, onChange } }) => (
+                    <CheckboxField
+                      checked={value ?? false}
+                      onChange={(e) => onChange(e.target.checked)}
+                      description={t("hide_duration_selector_in_booking_page")}
+                      disabled={lengthLockedProps.disabled}
+                    />
+                  )}
                 />
               </div>
             </div>
