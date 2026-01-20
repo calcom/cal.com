@@ -49,16 +49,16 @@
     // Put the snippet in a function so that it can be re-executed for scenario testing
     // TODO: How to reuse embed-snippet export here?
     function embedSnippet() {
-      (function (C, A, L) {
-        let p = function (a, ar) {
+      ((C, A, L) => {
+        const p = (a, ar) => {
           a.q.push(ar);
         };
-        let d = C.document;
+        const d = C.document;
         C.Cal =
           C.Cal ||
           function () {
-            let cal = C.Cal;
-            let ar = arguments;
+            const cal = C.Cal;
+            const ar = arguments;
             if (!cal.loaded) {
               cal.ns = {};
               cal.q = cal.q || [];
@@ -474,7 +474,7 @@
       <h3><a href="?only=ns:columnViewHideEventTypeDetails">Test Column View Hide Event Type Details</a></h3>
       <div class="place" style="width: 100%"></div>
     </div>
-    <div class="inline-embed-container" id="cal-booking-place-twoStepSlotSelection">
+    <div class="inline-embed-container" id="cal-booking-place-twoStepSlotSelection" style="width: 30%;">
       <h3><a href="?only=ns:twoStepSlotSelection">Test Two Step Slot Selection</a></h3>
       <i>Note: Two step slot selection only applies to mobile view. If you're testing this on a big screen, you need to make the screen mobile width.</i>
       <div class="place" style="width: 100%"></div>
