@@ -240,6 +240,9 @@ describe("handleChildrenEventTypes", () => {
       // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
 
+      // @ts-expect-error - partial mock for test purposes
+      prismaMock.eventType.update.mockResolvedValue({ id: 100 });
+
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -312,6 +315,9 @@ describe("handleChildrenEventTypes", () => {
       // Mock findMany for existing records lookup (new batch update optimization)
       // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
+
+      // @ts-expect-error - partial mock for test purposes
+      prismaMock.eventType.update.mockResolvedValue({ id: 101 });
 
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -449,6 +455,9 @@ describe("handleChildrenEventTypes", () => {
       // Mock findMany for existing records lookup (new batch update optimization)
       // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
+
+      // @ts-expect-error - partial mock for test purposes
+      prismaMock.eventType.update.mockResolvedValue({ id: 102 });
 
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
