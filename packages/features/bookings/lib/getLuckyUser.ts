@@ -842,14 +842,25 @@ export class LuckyUserService implements ILuckyUserService {
       const fullDayBusyTimes = userBusyTime.busyTimes
         .filter((busyTime) => {
           if (!busyTime.timeZone) return false;
-          const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
-          let start = new Date(new Date(busyTime.start).getTime() + timezoneOffset);
-          const end = new Date(new Date(busyTime.end).getTime() + timezoneOffset);
+          try {
+            const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
+            let start = new Date(new Date(busyTime.start).getTime() + timezoneOffset);
+            const end = new Date(new Date(busyTime.end).getTime() + timezoneOffset);
 
-          const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
-          if (start < earliestStartTime) start = earliestStartTime;
+            const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
+            if (start < earliestStartTime) start = earliestStartTime;
 
-          return end.getTime() < new Date().getTime() && isFullDayEvent(start, end);
+            return end.getTime() < new Date().getTime() && isFullDayEvent(start, end);
+          } catch (error) {
+            // Skip busy times with invalid timezones (e.g., "GMT-05:00" instead of IANA format like "America/New_York")
+            // This can happen when calendar data comes from external sources with non-standard timezone formats
+            log.warn(`Skipping busy time with invalid timezone: ${busyTime.timeZone}`, {
+              userId: userBusyTime.userId,
+              busyTimeStart: busyTime.start,
+              busyTimeEnd: busyTime.end,
+            });
+            return false;
+          }
         })
         .map((busyTime) => ({ start: new Date(busyTime.start), end: new Date(busyTime.end) }));
 
