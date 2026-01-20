@@ -2991,6 +2991,9 @@ model SeatChangeLog {
   changeDate DateTime @default(now())
   monthKey   String
 
+  // Idempotency key to prevent duplicate seat change logs from race conditions
+  operationId String?
+
   processedInProrationId String?
   proration              MonthlyProration? @relation(fields: [processedInProrationId], references: [id])
 
@@ -3002,6 +3005,7 @@ model SeatChangeLog {
   organizationBillingId String?
   organizationBilling   OrganizationBilling? @relation(fields: [organizationBillingId], references: [id])
 
+  @@unique([teamId, operationId])
   @@index([teamId, monthKey])
   @@index([teamId, processedInProrationId])
   @@index([monthKey])
