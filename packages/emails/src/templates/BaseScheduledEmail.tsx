@@ -135,7 +135,9 @@ export const BaseScheduledEmail = (
         <Info
           label={t(
             props.calEvent.cancellationReason.startsWith("$RCH$")
-              ? "reason_for_reschedule"
+              ? props.calEvent.bookingFields?.find((e) => e.name === "rescheduleReason")?.label
+                ? props.calEvent.bookingFields?.find((e) => e.name === "rescheduleReason")?.label
+                : "reason_for_reschedule"
               : "cancellation_reason"
           )}
           description={
@@ -172,7 +174,16 @@ export const BaseScheduledEmail = (
       <WhoInfo calEvent={props.calEvent} t={t} attendee={props.attendee} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
+      <Info
+        label={
+          props.calEvent.bookingFields?.find((e) => e.name === "notes")?.label
+            ? props.calEvent.bookingFields?.find((e) => e.name === "notes")?.label
+            : t("additional_notes")
+        }
+        description={props.calEvent.additionalNotes}
+        withSpacer
+      />
+
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (

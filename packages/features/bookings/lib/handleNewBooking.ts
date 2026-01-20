@@ -1286,6 +1286,7 @@ async function handler(
       customReplyToEmail: eventType.customReplyToEmail,
       disableRescheduling: eventType.disableRescheduling ?? false,
       disableCancelling: eventType.disableCancelling ?? false,
+      bookingFields: eventType.bookingFields,
     })
     .withOrganizer({
       id: organizerUser.id,

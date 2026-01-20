@@ -12,6 +12,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import type { BookerEvent } from "./bookings/types";
+
 export class CalendarEventBuilder {
   private event: Partial<CalendarEvent>;
 
@@ -61,9 +63,11 @@ export class CalendarEventBuilder {
     customReplyToEmail?: string | null;
     disableRescheduling?: boolean;
     disableCancelling?: boolean;
+    bookingFields?: BookerEvent["bookingFields"];
   }) {
     this.event = {
       ...this.event,
+      bookingFields: eventType.bookingFields,
       type: eventType.slug,
       description: eventType.description,
       eventTypeId: eventType.id,
