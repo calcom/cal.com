@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -7,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowMethods, type WorkflowTemplates, type WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowMethods, WorkflowTriggerEvents, type WorkflowTemplates } from "@calcom/prisma/enums";
 
 import type { BookingInfo, FormSubmissionData, ScheduleEmailReminderAction } from "../types";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
@@ -127,6 +128,18 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     timeUnit: timeSpan.timeUnit,
     evt,
   });
+
+  if (
+    scheduledDate &&
+    triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT &&
+    dayjs(scheduledDate).isBefore(dayjs())
+  ) {
+    log.debug(
+      `Skipping reminder for workflow step ${workflowStepId} - scheduled date ${scheduledDate} is in the past`
+    );
+    return;
+  }
+
   const workflowReminderRepository = new WorkflowReminderRepository(prisma);
   const bookingSeatRepository = new BookingSeatRepository(prisma);
   const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
