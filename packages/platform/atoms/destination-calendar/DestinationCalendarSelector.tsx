@@ -12,11 +12,33 @@ import { Select } from "@calcom/ui/components/form";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 
-// Use the exact type from getConnectedDestinationCalendars for type compatibility
-// This ensures the component accepts the return type from both the direct function call
-// and the tRPC handler which may enrich the type with additional properties
+// Define a permissive calendar type that accepts both the direct function return type
+// and the tRPC handler return type (which may have readOnly as boolean | undefined)
+type PermissiveCalendar = {
+  externalId: string;
+  integration: string;
+  name?: string | null;
+  readOnly?: boolean;
+  delegationCredentialId?: string | null;
+  [key: string]: unknown;
+};
+
+type PermissiveConnectedCalendar = {
+  integration: { title?: string | null; [key: string]: unknown };
+  calendars?: PermissiveCalendar[];
+  credentialId: number;
+  delegationCredentialId?: string | null;
+  primary?: {
+    integration?: string;
+    email?: string | null;
+    name?: string | null;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+};
+
 export type DestinationCalendarProps = {
-  connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
+  connectedCalendars: PermissiveConnectedCalendar[];
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
   onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
