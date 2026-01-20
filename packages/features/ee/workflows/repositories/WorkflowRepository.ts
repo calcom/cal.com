@@ -7,6 +7,7 @@ import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/s
 import type { WorkflowListType as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -242,6 +243,15 @@ export class WorkflowRepository {
 
     const filtered = filters && hasFilter(filters);
 
+    const permissionCheckService = new PermissionCheckService();
+    const teamIdsWithWorkflowUpdatePermission = userId
+      ? await permissionCheckService.getTeamIdsWithPermission({
+          userId,
+          permission: "workflow.update",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        })
+      : [];
+
     const allWorkflows = await prisma.workflow.findMany({
       where: {
         OR: [
@@ -273,9 +283,9 @@ export class WorkflowRepository {
 
     if (!filtered) {
       const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
-        const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
-        );
+        const readOnly = workflow.teamId
+          ? !teamIdsWithWorkflowUpdatePermission.includes(workflow.teamId)
+          : false;
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
       });
@@ -325,9 +335,9 @@ export class WorkflowRepository {
       });
 
       const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
-        const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
-        );
+        const readOnly = workflow.teamId
+          ? !teamIdsWithWorkflowUpdatePermission.includes(workflow.teamId)
+          : false;
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
       });

@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { configure } from "@trigger.dev/sdk";
 
+import process from "node:process";
+import { configure } from "@trigger.dev/sdk";
 import { ENABLE_ASYNC_TASKER } from "../constants";
+import { redactError } from "../redactError";
 import type { ILogger } from "./types";
 
 const isAsyncTaskerEnabled =
@@ -53,9 +55,13 @@ export abstract class Tasker<T> {
       const method = this.asyncTasker[taskName] as (...args: any[]) => any;
       return await method.apply(this.asyncTasker, args);
     } catch (err) {
+      const taskerLabel = isAsyncTaskerEnabled ? "AsyncTasker" : "SyncTasker";
+      const baseUrlInfo = isAsyncTaskerEnabled
+        ? ` (baseURL: ${process.env.TRIGGER_API_URL ?? "unknown"})`
+        : "";
       this.logger.error(
-        `${isAsyncTaskerEnabled ? "AsyncTasker" : "SyncTasker"} failed for '${String(taskName)}'.`,
-        (err as Error)?.message ?? "ERROR MESSAGE UNAVAILABLE"
+        `${taskerLabel} failed for '${String(taskName)}'.${baseUrlInfo}`,
+        this.getErrorDetails(err)
       );
 
       if (this.asyncTasker === this.syncTasker) {
@@ -68,12 +74,22 @@ export abstract class Tasker<T> {
         const fallbackMethod = this.syncTasker[taskName] as (...args: any[]) => any;
         return await fallbackMethod.apply(this.syncTasker, args);
       } catch (err) {
-        this.logger.error(
-          `SyncTasker failed for '${String(taskName)}'.`,
-          (err as Error)?.message ?? "ERROR MESSAGE UNAVAILABLE"
-        );
+        this.logger.error(`SyncTasker failed for '${String(taskName)}'.`, this.getErrorDetails(err));
         throw err;
       }
     }
+  }
+
+  private getErrorDetails(err: unknown) {
+    const redactedError = redactError(err);
+    if (redactedError instanceof Error) {
+      return {
+        name: redactedError.name,
+        message: redactedError.message,
+        stack: redactedError.stack,
+      };
+    }
+
+    return { message: String(redactedError) };
   }
 }
