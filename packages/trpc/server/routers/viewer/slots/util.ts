@@ -65,6 +65,8 @@ import type { GetScheduleOptions } from "./types";
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 const ROUND_ROBIN_USER_BATCH_SIZE = 20;
+const ROUND_ROBIN_DYNAMIC_CHUNK_PERCENT = 0.1;
+const ROUND_ROBIN_MAX_CHUNK_SIZE = 50;
 const ROUND_ROBIN_CHUNK_THRESHOLD = 100;
 
 const chunkArray = <T>(items: T[], size: number) => {
@@ -1022,7 +1024,7 @@ export class AvailableSlotsService {
   private async calculateAvailabilityWithRoundRobinChunks({
     hosts,
     eventType,
-    chunkSize = ROUND_ROBIN_USER_BATCH_SIZE,
+    chunkSize,
     ...rest
   }: {
     hosts: {
@@ -1073,7 +1075,14 @@ export class AvailableSlotsService {
     const fixedHosts = hosts.filter((host) => host.isFixed);
     const manualChunkingEnabled = roundRobinManualChunking === true;
     const manualChunkOffset = Math.max(0, roundRobinChunkOffset);
-    const hostChunks = chunkArray(nonFixedHosts, chunkSize);
+    const resolvedChunkSize =
+      chunkSize ??
+      Math.min(
+        ROUND_ROBIN_MAX_CHUNK_SIZE,
+        Math.max(ROUND_ROBIN_USER_BATCH_SIZE, Math.ceil(nonFixedHosts.length * ROUND_ROBIN_DYNAMIC_CHUNK_PERCENT))
+      );
+    const effectiveChunkSize = Math.max(1, resolvedChunkSize);
+    const hostChunks = chunkArray(nonFixedHosts, effectiveChunkSize);
 
     const buildChunkInfo = ({
       chunkOffset,
@@ -1085,7 +1094,7 @@ export class AvailableSlotsService {
     }): RoundRobinChunkInfo => ({
       totalHosts: hosts.length,
       totalNonFixedHosts: nonFixedHosts.length,
-      chunkSize,
+      chunkSize: effectiveChunkSize,
       chunkOffset,
       loadedNonFixedHosts,
       hasMoreNonFixedHosts,
@@ -1114,7 +1123,7 @@ export class AvailableSlotsService {
     }
 
     rrLog.info(
-      `RR chunking enabled for eventType=${eventType.id} (team=${eventType.team?.id ?? "N/A"}): processing ${nonFixedHosts.length} hosts in batches of ${chunkSize}`
+      `RR chunking enabled for eventType=${eventType.id} (team=${eventType.team?.id ?? "N/A"}): processing ${nonFixedHosts.length} hosts in batches of ${effectiveChunkSize}`
     );
 
     let lastResult: ChunkedAvailabilityResult | null = null;

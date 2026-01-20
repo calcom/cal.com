@@ -68,6 +68,11 @@ describe("round robin chunking", () => {
     debug: vi.fn(),
   };
 
+  const computeExpectedChunkSize = (count: number) => {
+    const dynamic = Math.ceil(count * 0.1);
+    return Math.min(50, Math.max(20, dynamic));
+  };
+
   const createHosts = (count: number, weights?: number[]) =>
     Array.from({ length: count }).map((_, index) => ({
       isFixed: false,
@@ -123,7 +128,6 @@ describe("round robin chunking", () => {
         isRRWeightsEnabled,
         team: null,
       },
-      chunkSize: 20,
       input: {
         ...baseInput,
         ...(manualChunking ? { roundRobinManualChunking: true } : {}),
@@ -156,15 +160,16 @@ describe("round robin chunking", () => {
 
     expect(calculateSpy).toHaveBeenCalledTimes(2);
     expect(getAggregatedAvailabilityMock).toHaveBeenCalledTimes(2);
-    expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(20);
-    expect(calculateSpy.mock.calls[1][0].hosts).toHaveLength(20);
+    const expectedChunkSize = computeExpectedChunkSize(hosts.length);
+    expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(expectedChunkSize);
+    expect(calculateSpy.mock.calls[1][0].hosts).toHaveLength(expectedChunkSize);
     expect(result.aggregatedAvailability).toEqual(secondChunkAvailability);
     expect(result.roundRobinChunkInfo).toEqual({
       totalHosts: hosts.length,
       totalNonFixedHosts: hosts.length,
-      chunkSize: 20,
+      chunkSize: expectedChunkSize,
       chunkOffset: 1,
-      loadedNonFixedHosts: 20,
+      loadedNonFixedHosts: expectedChunkSize,
       hasMoreNonFixedHosts: true,
       manualChunking: false,
     });
@@ -183,16 +188,50 @@ describe("round robin chunking", () => {
     });
 
     expect(calculateSpy).toHaveBeenCalledTimes(1);
-    expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(20);
+    const expectedChunkSize = computeExpectedChunkSize(hosts.length);
+    expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(expectedChunkSize);
     expect(result.roundRobinChunkInfo).toEqual({
       totalHosts: hosts.length,
       totalNonFixedHosts: hosts.length,
-      chunkSize: 20,
+      chunkSize: expectedChunkSize,
       chunkOffset: manualChunkOffset,
-      loadedNonFixedHosts: 20,
+      loadedNonFixedHosts: expectedChunkSize,
       hasMoreNonFixedHosts: true,
       manualChunking: true,
     });
+  });
+
+  it("increases chunk size proportionally for very large teams", async () => {
+    const hosts = createHosts(250);
+    getAggregatedAvailabilityMock.mockReturnValue([]);
+
+    const { result, calculateSpy } = await invokeChunking({ hosts, isRRWeightsEnabled: true });
+
+    const expectedChunkSize = computeExpectedChunkSize(hosts.length);
+    expect(expectedChunkSize).toBeGreaterThan(20);
+    expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(expectedChunkSize);
+    const chunkCount = Math.ceil(hosts.length / expectedChunkSize);
+    const lastChunkSize = hosts.length - expectedChunkSize * (chunkCount - 1);
+    expect(result.roundRobinChunkInfo).toEqual({
+      totalHosts: hosts.length,
+      totalNonFixedHosts: hosts.length,
+      chunkSize: expectedChunkSize,
+      chunkOffset: chunkCount - 1,
+      loadedNonFixedHosts: lastChunkSize,
+      hasMoreNonFixedHosts: false,
+      manualChunking: false,
+    });
+  });
+
+  it("caps chunk size at the defined maximum", async () => {
+    const hosts = createHosts(1000);
+    getAggregatedAvailabilityMock.mockReturnValue([]);
+
+    const { calculateSpy } = await invokeChunking({ hosts, isRRWeightsEnabled: true });
+
+    const expectedChunkSize = computeExpectedChunkSize(hosts.length);
+    expect(expectedChunkSize).toBe(50);
+    expect(calculateSpy.mock.calls[0][0].hosts).toHaveLength(expectedChunkSize);
   });
 
   it("skips chunking when weights are disabled", async () => {
@@ -239,7 +278,6 @@ describe("round robin chunking", () => {
         isRRWeightsEnabled: true,
         team: null,
       },
-      chunkSize: 20,
       input: baseInput,
       loggerWithEventDetails: loggerStub,
       startTime: dayjs(),
@@ -249,8 +287,9 @@ describe("round robin chunking", () => {
       mode: "slots",
     });
 
+    const expectedChunkSize = computeExpectedChunkSize(weights.length);
     const firstChunkWeights = calculateSpy.mock.calls[0][0].hosts.map((host: { weight?: number | null }) => host.weight);
-    expect(firstChunkWeights).toEqual(weights.slice(0, 20));
+    expect(firstChunkWeights).toEqual(weights.slice(0, expectedChunkSize));
   });
 
   it("returns empty availability when all chunks have no slots", async () => {
@@ -259,14 +298,15 @@ describe("round robin chunking", () => {
 
     const { result, calculateSpy } = await invokeChunking({ hosts, isRRWeightsEnabled: true });
 
-    expect(calculateSpy).toHaveBeenCalledTimes(6); // 120 hosts / 20 per chunk
+    expect(calculateSpy).toHaveBeenCalledTimes(6); // 120 hosts / 20 per chunk (min size)
     expect(result.aggregatedAvailability).toEqual([]);
+    const expectedChunkSize = computeExpectedChunkSize(hosts.length);
     expect(result.roundRobinChunkInfo).toEqual({
       totalHosts: hosts.length,
       totalNonFixedHosts: hosts.length,
-      chunkSize: 20,
+      chunkSize: expectedChunkSize,
       chunkOffset: 5,
-      loadedNonFixedHosts: 20,
+      loadedNonFixedHosts: expectedChunkSize,
       hasMoreNonFixedHosts: false,
       manualChunking: false,
     });
