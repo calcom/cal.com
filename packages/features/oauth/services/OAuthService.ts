@@ -316,6 +316,8 @@ export class OAuthService {
       });
     }
 
+    this.ensureClientIsApproved(client);
+
     const decodedToken = this.verifyRefreshToken(refreshToken);
 
     if (!decodedToken || decodedToken.token_type !== "Refresh Token") {
