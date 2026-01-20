@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { Memoize } from "../Memoize";
 import type { IRedisService } from "../types";
-import { DEFAULT_TTL_MS } from "../types";
+import { DEFAULT_TTL_MS, setRedisService } from "../types";
 
 const createMockRedis = (): IRedisService => ({
   get: vi.fn(),
@@ -16,6 +16,7 @@ describe("Memoize decorator", () => {
 
   beforeEach(() => {
     mockRedis = createMockRedis();
+    setRedisService(mockRedis);
     vi.clearAllMocks();
   });
 
@@ -24,8 +25,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.get).mockResolvedValue(cachedValue);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (id: number) => `test:${id}` })
       async findById(id: number): Promise<{ id: number; name: string } | null> {
         return { id, name: "from-db" };
@@ -45,8 +44,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.set).mockResolvedValue("OK");
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (id: number) => `test:${id}` })
       async findById(id: number): Promise<{ id: number; name: string } | null> {
         return { id, name: "from-db" };
@@ -68,8 +65,6 @@ describe("Memoize decorator", () => {
     const customTtl = 10000;
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (id: number) => `test:${id}`, ttl: customTtl })
       async findById(id: number): Promise<{ id: number; name: string } | null> {
         return { id, name: "from-db" };
@@ -86,8 +81,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.get).mockResolvedValue(null);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (id: number) => `test:${id}` })
       async findById(_id: number): Promise<{ id: number; name: string } | null> {
         return null;
@@ -111,8 +104,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.get).mockResolvedValue(validCachedValue);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (id: number) => `test:${id}`, schema })
       async findById(id: number): Promise<{ id: number; name: string } | null> {
         return { id, name: "from-db" };
@@ -136,8 +127,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.set).mockResolvedValue("OK");
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (id: number) => `test:${id}`, schema })
       async findById(id: number): Promise<{ id: number; name: string } | null> {
         return { id, name: "from-db" };
@@ -156,8 +145,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.set).mockResolvedValue("OK");
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (userId: number, featureId: string) => `features:user:${userId}:${featureId}` })
       async findByUserIdAndFeatureId(
         userId: number,
@@ -178,7 +165,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.set).mockResolvedValue("OK");
 
     class TestRepository {
-      redis = mockRedis;
       prefix = "custom";
 
       @Memoize({ key: (id: number) => `test:${id}` })
@@ -197,8 +183,6 @@ describe("Memoize decorator", () => {
     vi.mocked(mockRedis.get).mockResolvedValue(null);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Memoize({ key: (id: number) => `test:${id}` })
       async findById(_id: number): Promise<{ id: number } | undefined> {
         return undefined;

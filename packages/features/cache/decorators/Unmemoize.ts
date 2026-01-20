@@ -1,4 +1,4 @@
-import type { WithRedis } from "./types";
+import { getRedisService } from "./types";
 
 interface UnmemoizeOptions {
   // biome-ignore lint/complexity/noBannedTypes: Decorator keys function needs to accept any argument types
@@ -17,11 +17,12 @@ export function Unmemoize(config: UnmemoizeOptions) {
       throw new Error(`@Unmemoize can only be applied to methods`);
     }
 
-    const wrappedMethod = async function (this: WithRedis, ...args: unknown[]): Promise<unknown> {
+    const wrappedMethod = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
       const result = await originalMethod.apply(this, args);
 
+      const redis = getRedisService();
       const keysToInvalidate = config.keys(...args) as string[];
-      await Promise.all(keysToInvalidate.map((key) => this.redis.del(key)));
+      await Promise.all(keysToInvalidate.map((key) => redis.del(key)));
 
       return result;
     };

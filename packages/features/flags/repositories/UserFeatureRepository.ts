@@ -2,7 +2,6 @@ import type { PrismaClient, UserFeatures } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 
 import { Memoize, Unmemoize } from "../../cache/decorators";
-import type { IRedisService } from "../../redis/IRedisService.d";
 import type { FeatureId } from "../config";
 import { booleanSchema, userFeaturesSchema } from "./schemas";
 
@@ -11,11 +10,6 @@ const KEY = {
   byUserIdAndFeatureId: (userId: number, featureId: string): string => `${CACHE_PREFIX}:${userId}:${featureId}`,
   autoOptInByUserId: (userId: number): string => `${CACHE_PREFIX}:autoOptIn:${userId}`,
 };
-
-export interface IUserFeatureRepositoryDeps {
-  prisma: PrismaClient;
-  redis: IRedisService;
-}
 
 export interface IUserFeatureRepository {
   findByUserId(userId: number): Promise<UserFeatures[]>;
@@ -31,11 +25,9 @@ export interface IUserFeatureRepository {
 
 export class UserFeatureRepository implements IUserFeatureRepository {
   private prisma: PrismaClient;
-  redis: IRedisService;
 
-  constructor(deps: IUserFeatureRepositoryDeps) {
-    this.prisma = deps.prisma;
-    this.redis = deps.redis;
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
   }
 
   async findByUserId(userId: number): Promise<UserFeatures[]> {
@@ -63,52 +55,18 @@ export class UserFeatureRepository implements IUserFeatureRepository {
     userId: number,
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, UserFeatures>>> {
-    const result: Partial<Record<FeatureId, UserFeatures>> = {};
-    const cacheMisses: FeatureId[] = [];
-
-    const cachedResults = await Promise.all(
+    const results = await Promise.all(
       featureIds.map(async (featureId) => {
-        const cacheKey = KEY.byUserIdAndFeatureId(userId, featureId);
-        const cached = await this.redis.get<unknown>(cacheKey);
-
-        if (cached !== null) {
-          const parsed = userFeaturesSchema.safeParse(cached);
-          if (parsed.success) {
-            return { featureId, cached: parsed.data };
-          }
-        }
-        return { featureId, cached: null };
+        const userFeature = await this.findByUserIdAndFeatureId(userId, featureId);
+        return { featureId, userFeature };
       })
     );
 
-    for (const { featureId, cached } of cachedResults) {
-      if (cached !== null) {
-        result[featureId] = cached;
-      } else {
-        cacheMisses.push(featureId);
+    const result: Partial<Record<FeatureId, UserFeatures>> = {};
+    for (const { featureId, userFeature } of results) {
+      if (userFeature !== null) {
+        result[featureId] = userFeature;
       }
-    }
-
-    if (cacheMisses.length > 0) {
-      const dbResults = await this.prisma.userFeatures.findMany({
-        where: {
-          userId,
-          featureId: { in: cacheMisses },
-        },
-      });
-
-      const dbResultsMap = new Map(dbResults.map((uf) => [uf.featureId as FeatureId, uf]));
-
-      await Promise.all(
-        cacheMisses.map(async (featureId) => {
-          const userFeature = dbResultsMap.get(featureId);
-          if (userFeature) {
-            result[featureId] = userFeature;
-            const cacheKey = KEY.byUserIdAndFeatureId(userId, featureId);
-            await this.redis.set(cacheKey, userFeature, { ttl: 5 * 60 * 1000 });
-          }
-        })
-      );
     }
 
     return result;

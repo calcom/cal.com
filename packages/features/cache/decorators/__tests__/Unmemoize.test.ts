@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { Unmemoize } from "../Unmemoize";
 import type { IRedisService } from "../types";
+import { setRedisService } from "../types";
 
 const createMockRedis = (): IRedisService => ({
   get: vi.fn(),
@@ -14,6 +15,7 @@ describe("Unmemoize decorator", () => {
 
   beforeEach(() => {
     mockRedis = createMockRedis();
+    setRedisService(mockRedis);
     vi.clearAllMocks();
   });
 
@@ -21,8 +23,6 @@ describe("Unmemoize decorator", () => {
     vi.mocked(mockRedis.del).mockResolvedValue(1);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: (id: number) => [`test:${id}`] })
       async delete(_id: number): Promise<void> {
         return;
@@ -39,8 +39,6 @@ describe("Unmemoize decorator", () => {
     vi.mocked(mockRedis.del).mockResolvedValue(1);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: (id: number) => [`test:${id}`, `test:all`, `test:list:${id}`] })
       async delete(_id: number): Promise<void> {
         return;
@@ -60,8 +58,6 @@ describe("Unmemoize decorator", () => {
     vi.mocked(mockRedis.del).mockResolvedValue(1);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: (id: number) => [`test:${id}`] })
       async update(id: number): Promise<{ id: number; updated: boolean }> {
         return { id, updated: true };
@@ -78,8 +74,6 @@ describe("Unmemoize decorator", () => {
     vi.mocked(mockRedis.del).mockResolvedValue(1);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({
         keys: (userId: number, featureId: string) => [`features:user:${userId}:${featureId}`],
       })
@@ -98,7 +92,6 @@ describe("Unmemoize decorator", () => {
     vi.mocked(mockRedis.del).mockResolvedValue(1);
 
     class TestRepository {
-      redis = mockRedis;
       prefix = "custom";
 
       @Unmemoize({ keys: (id: number) => [`test:${id}`] })
@@ -117,8 +110,6 @@ describe("Unmemoize decorator", () => {
     vi.mocked(mockRedis.del).mockResolvedValue(1);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: (id: number) => [`test:${id}`] })
       async delete(_id: number): Promise<null> {
         return null;
@@ -136,8 +127,6 @@ describe("Unmemoize decorator", () => {
     vi.mocked(mockRedis.del).mockResolvedValue(1);
 
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: (id: number) => [`test:${id}`] })
       async delete(_id: number): Promise<void> {
         return undefined;
@@ -159,8 +148,6 @@ describe("Unmemoize decorator", () => {
     });
 
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: (id: number) => [`test:${id}`] })
       async update(id: number): Promise<{ id: number }> {
         executionOrder.push("method-executed");
@@ -176,8 +163,6 @@ describe("Unmemoize decorator", () => {
 
   it("should handle empty keys array", async () => {
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: () => [] })
       async update(id: number): Promise<{ id: number }> {
         return { id };
@@ -193,8 +178,6 @@ describe("Unmemoize decorator", () => {
 
   it("should propagate errors from the original method", async () => {
     class TestRepository {
-      redis = mockRedis;
-
       @Unmemoize({ keys: (id: number) => [`test:${id}`] })
       async update(_id: number): Promise<{ id: number }> {
         throw new Error("Database error");
