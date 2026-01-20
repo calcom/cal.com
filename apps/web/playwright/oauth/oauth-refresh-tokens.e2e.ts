@@ -45,7 +45,7 @@ test.describe("OAuth - refresh tokens", () => {
     return client;
   }
 
-  test("token refresh fails if client is not approved", async ({ page, users, prisma, request }, testInfo) => {
+  test("token refresh fails if client is not approved", async ({ page, users, prisma }, testInfo) => {
     const user = await users.create({ username: "oauth-refresh-status-check" });
     await user.apiLogin();
 
@@ -72,7 +72,7 @@ test.describe("OAuth - refresh tokens", () => {
     expect(code).toBeTruthy();
 
     // Exchange code for tokens
-    const exchangeResponse = await request.post("/api/auth/oauth/token", {
+    const exchangeResponse = await page.request.post("/api/auth/oauth/token", {
       form: {
         grant_type: "authorization_code",
         client_id: client.clientId,
@@ -92,7 +92,7 @@ test.describe("OAuth - refresh tokens", () => {
     });
 
     // Attempt to refresh token
-    const refreshResponse = await request.post("/api/auth/oauth/refreshToken", {
+    const refreshResponse = await page.request.post("/api/auth/oauth/refreshToken", {
       form: {
         grant_type: "refresh_token",
         client_id: client.clientId,
