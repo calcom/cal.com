@@ -619,6 +619,7 @@ if (only === "all" || only == "ns:twoStepSlotSelection") {
         name: "John",
         email: "john@booker.com",
         notes: ["test"],
+        guests: ["guest@example.com"],
         useSlotsViewOnSmallScreen: "true",
       },
     }

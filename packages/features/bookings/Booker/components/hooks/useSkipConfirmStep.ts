@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
-
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getBookingResponsesSchemaWithOptionalChecks } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-
+import { useEffect, useState } from "react";
 import type { BookerEvent } from "../../../types";
 import type { BookerState } from "../../types";
 
@@ -15,10 +13,7 @@ const useSkipConfirmStep = (
   bookingFields?: BookerEvent["bookingFields"],
   locations?: BookerEvent["locations"]
 ) => {
-  // Use watch() instead of getValues() to ensure re-renders when form values change
-  // getValues() doesn't trigger re-renders, so the effect wouldn't re-run when
-  // prefilled values are loaded asynchronously
-  const bookingFormValues = bookingForm.watch();
+  const bookingFormValues = bookingForm.getValues();
 
   const [canSkip, setCanSkip] = useState(false);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
