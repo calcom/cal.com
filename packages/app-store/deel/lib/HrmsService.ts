@@ -1,5 +1,5 @@
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { HrmsService } from "@calcom/types/HrmsService";

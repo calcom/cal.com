@@ -7,9 +7,9 @@ import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebh
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { AppCategories, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -207,7 +207,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     updatedAt: Date;
     notes: string | null;
     showNotePublicly: boolean;
-    reason: { reason: string; emoji: string } | null;
+    reason: { reason: string; emoji: string | null } | null;
     reasonId: number | null;
     user: { id: number; name: string | null; email: string; timeZone: string };
     toUser: { id: number; name: string | null; email: string; timeZone: string } | null;

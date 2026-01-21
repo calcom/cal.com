@@ -1,6 +1,6 @@
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
