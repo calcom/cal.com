@@ -32,25 +32,36 @@ async function waitForAdminSection(page: Page, sectionTestId: string) {
 }
 
 async function navigateToAdminOAuthPage(page: Page): Promise<void> {
-  const listClientsPromise = page.waitForResponse(
-    (res) => res.url().includes("/api/trpc") && res.url().includes("listClients"),
-    { timeout: 30_000 }
-  );
+  const maxAttempts = 3;
 
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    await page.goto("/settings/admin/oauth");
+    await page.waitForLoadState("networkidle");
+
+    // Check if the admin page loaded correctly by looking at the URL
+    // If the session doesn't have ADMIN role, we'll be redirected away
+    const currentUrl = page.url();
+    if (currentUrl.includes("/settings/admin/oauth")) {
+      // Also wait for the page content to be ready
+      // The admin view makes listClients API calls when it loads
+      try {
+        await page.waitForSelector('[data-testid="open-admin-oauth-client-create-dialog"]', { timeout: 10_000 });
+        return;
+      } catch {
+        // Button not found, page might still be loading or redirected
+      }
+    }
+
+    // If not on admin page, wait a bit and try again
+    // This handles session propagation timing issues in CI
+    if (attempt < maxAttempts) {
+      await page.waitForTimeout(2000);
+    }
+  }
+
+  // Final attempt - just navigate and let the test assertions handle any failure
   await page.goto("/settings/admin/oauth");
   await page.waitForLoadState("networkidle");
-
-  try {
-    await listClientsPromise;
-  } catch {
-    const reloadListClientsPromise = page.waitForResponse(
-      (res) => res.url().includes("/api/trpc") && res.url().includes("listClients"),
-      { timeout: 30_000 }
-    );
-    await page.reload();
-    await page.waitForLoadState("networkidle");
-    await reloadListClientsPromise;
-  }
 }
 
 async function expectClientInAdminSection(
