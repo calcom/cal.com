@@ -280,7 +280,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   prisma: PrismaClient;
   skipSync?: boolean;
 }): Promise<{
-  destinationCalendar: IntegrationCalendar | null;
+  destinationCalendar: DestinationCalendar & Omit<IntegrationCalendar, "id" | "userId">;
   connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"];
 }> {
   const userCredentials = await prisma.credential.findMany({
@@ -382,26 +382,18 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     connectedCalendars,
     loggedInUser: { email: user.email },
   });
-
-  // Exclude incompatible fields from DestinationCalendar when building IntegrationCalendar:
-  // - id: number in DestinationCalendar vs string in IntegrationCalendar
-  // - userId: number | null in DestinationCalendar vs number | undefined in IntegrationCalendar
-  const userDestCal = user.destinationCalendar;
-  const {
-    id: _id,
-    userId: _userId,
-    ...destinationCalendarRest
-  } = userDestCal ?? {
-    integration: "",
-    externalId: "",
-  };
-
+  let destinationCalendarWithoutIdAndUserId: Omit<IntegrationCalendar, "id" | "userId"> | null = null;
+  if (destinationCalendar) {
+    // ID and userID will be provided by user.destinationCalendar
+    const { id: _id, userId: _userId, ...partialDestCal } = destinationCalendar;
+    destinationCalendarWithoutIdAndUserId = partialDestCal;
+  }
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
     destinationCalendar: {
-      ...destinationCalendarRest,
-      ...destinationCalendar,
-      userId: userDestCal?.userId ?? undefined,
+      // biome-ignore lint/style/noNonNullAssertion: destinationCalendar is guaranteed to be non null here
+      ...user.destinationCalendar!,
+      ...destinationCalendarWithoutIdAndUserId,
     },
   };
 }
