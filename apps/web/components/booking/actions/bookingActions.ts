@@ -24,6 +24,7 @@ export interface BookingActionContext {
   showPendingPayment: boolean;
   isAttendee: boolean;
   cardCharged: boolean;
+  isHost?: boolean;
   attendeeList: Array<{
     name: string;
     email: string;
@@ -237,7 +238,8 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee } = context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee, isHost } =
+    context;
 
   switch (actionId) {
     case "reschedule":
@@ -261,6 +263,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
         isWithinMinimumNotice
       );
     case "cancel":
+      if (isHost && !isBookingInPast) return false;
       return isDisabledCancelling || isBookingInPast;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
