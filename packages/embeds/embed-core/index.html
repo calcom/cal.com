@@ -516,8 +516,10 @@
     if (initialNamespace.startsWith("skeletonDemo") || initialNamespace === "twoStepSlotSelection") {
       document.getElementById("misc-embeds").style.display = "none";
     }
-    // For twoStepSlotSelection, explicitly disable pointer events on all elements except the .place div
+    // For twoStepSlotSelection, explicitly disable pointer events on html, body, and container elements
+    // Only the .place div (containing the iframe) should receive pointer events
     if (initialNamespace === "twoStepSlotSelection") {
+      document.documentElement.style.pointerEvents = "none";
       document.body.style.pointerEvents = "none";
       const container = document.getElementById("cal-booking-place-twoStepSlotSelection");
       if (container) {
