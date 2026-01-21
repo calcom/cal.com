@@ -20,9 +20,19 @@ export function Unmemoize(config: UnmemoizeOptions) {
     const wrappedMethod = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
       const result = await originalMethod.apply(this, args);
 
-      const redis = getRedisService();
-      const keysToInvalidate = config.keys(...args) as string[];
-      await Promise.all(keysToInvalidate.map((key) => redis.del(key)));
+      try {
+        const redis = getRedisService();
+        const keysToInvalidate = config.keys(...args) as string[];
+        await Promise.all(
+          keysToInvalidate.map((key) =>
+            redis.del(key).catch(() => {
+              // Silently ignore cache invalidation errors
+            })
+          )
+        );
+      } catch {
+        // Silently ignore cache invalidation errors
+      }
 
       return result;
     };

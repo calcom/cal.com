@@ -5,17 +5,13 @@ import { TeamFeatureRepository } from "../TeamFeatureRepository";
 
 interface MockPrisma {
   teamFeatures: {
-    findMany: ReturnType<typeof vi.fn>;
     findUnique: ReturnType<typeof vi.fn>;
     upsert: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
   team: {
     findUnique: ReturnType<typeof vi.fn>;
-    findMany: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
   };
-  $queryRaw: ReturnType<typeof vi.fn>;
 }
 
 function createMockRedis(): IRedisService {
@@ -32,17 +28,13 @@ function createMockRedis(): IRedisService {
 function createMockPrisma(): MockPrisma {
   return {
     teamFeatures: {
-      findMany: vi.fn(),
       findUnique: vi.fn(),
       upsert: vi.fn(),
       delete: vi.fn(),
     },
     team: {
       findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
     },
-    $queryRaw: vi.fn(),
   };
 }
 
@@ -61,29 +53,6 @@ describe("TeamFeatureRepository", () => {
     mockPrisma = createMockPrisma();
     repository = new TeamFeatureRepository(mockPrisma as unknown as PrismaClient);
     vi.clearAllMocks();
-  });
-
-  describe("findByTeamId", () => {
-    it("should return team features from database", async () => {
-      const dbFeatures = [
-        {
-          teamId: 1,
-          featureId: "feature-1",
-          enabled: true,
-          assignedBy: "admin",
-          assignedAt: new Date("2024-01-01"),
-          updatedAt: new Date("2024-01-01"),
-        },
-      ];
-      vi.mocked(mockPrisma.teamFeatures.findMany).mockResolvedValue(dbFeatures);
-
-      const result = await repository.findByTeamId(1);
-
-      expect(result).toEqual(dbFeatures);
-      expect(mockPrisma.teamFeatures.findMany).toHaveBeenCalledWith({
-        where: { teamId: 1 },
-      });
-    });
   });
 
   describe("findByTeamIdAndFeatureId", () => {
@@ -143,79 +112,6 @@ describe("TeamFeatureRepository", () => {
     });
   });
 
-  describe("findEnabledByTeamId", () => {
-    it("should return cached enabled features on cache hit", async () => {
-      const cachedFeatures = {
-        "feature-1": true,
-        "feature-2": true,
-      };
-      vi.mocked(mockRedis.get).mockResolvedValue(cachedFeatures);
-
-      const result = await repository.findEnabledByTeamId(1);
-
-      expect(result).toEqual(cachedFeatures);
-      expect(mockRedis.get).toHaveBeenCalledWith("features:team:enabled:1");
-      expect(mockPrisma.teamFeatures.findMany).not.toHaveBeenCalled();
-    });
-
-    it("should fetch from database and cache on cache miss", async () => {
-      const dbFeatures = [{ feature: { slug: "feature-1" } }, { feature: { slug: "feature-2" } }];
-      vi.mocked(mockRedis.get).mockResolvedValue(null);
-      vi.mocked(mockPrisma.teamFeatures.findMany).mockResolvedValue(dbFeatures);
-      vi.mocked(mockRedis.set).mockResolvedValue("OK");
-
-      const result = await repository.findEnabledByTeamId(1);
-
-      expect(result).toEqual({
-        "feature-1": true,
-        "feature-2": true,
-      });
-      expect(mockPrisma.teamFeatures.findMany).toHaveBeenCalledWith({
-        where: {
-          teamId: 1,
-          enabled: true,
-        },
-        select: {
-          feature: {
-            select: {
-              slug: true,
-            },
-          },
-        },
-      });
-      expect(mockRedis.set).toHaveBeenCalled();
-    });
-
-    it("should return null when no enabled features found", async () => {
-      vi.mocked(mockRedis.get).mockResolvedValue(null);
-      vi.mocked(mockPrisma.teamFeatures.findMany).mockResolvedValue([]);
-
-      const result = await repository.findEnabledByTeamId(1);
-
-      expect(result).toBeNull();
-      expect(mockRedis.set).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("findByFeatureIdWhereEnabled", () => {
-    it("should return team IDs with enabled feature", async () => {
-      const dbRows = [{ teamId: 1 }, { teamId: 2 }, { teamId: 3 }];
-      vi.mocked(mockPrisma.teamFeatures.findMany).mockResolvedValue(dbRows);
-
-      const result = await repository.findByFeatureIdWhereEnabled("feature-1");
-
-      expect(result).toEqual([1, 2, 3]);
-      expect(mockPrisma.teamFeatures.findMany).toHaveBeenCalledWith({
-        where: {
-          featureId: "feature-1",
-          enabled: true,
-        },
-        select: { teamId: true },
-        orderBy: { teamId: "asc" },
-      });
-    });
-  });
-
   describe("findByTeamIdsAndFeatureIds", () => {
     it("should return empty object when teamIds is empty", async () => {
       const result = await repository.findByTeamIdsAndFeatureIds([], ["feature-1"]);
@@ -260,61 +156,6 @@ describe("TeamFeatureRepository", () => {
     });
   });
 
-  describe("checkIfTeamHasFeature", () => {
-    it("should return true when team has feature directly", async () => {
-      const cachedFeature = {
-        teamId: 1,
-        featureId: "feature-1",
-        enabled: true,
-        assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
-        updatedAt: new Date("2024-01-01"),
-      };
-      vi.mocked(mockRedis.get).mockResolvedValue(cachedFeature);
-
-      const result = await repository.checkIfTeamHasFeature(1, "feature-1");
-
-      expect(result).toBe(true);
-    });
-
-    it("should return false when team has feature disabled", async () => {
-      const cachedFeature = {
-        teamId: 1,
-        featureId: "feature-1",
-        enabled: false,
-        assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
-        updatedAt: new Date("2024-01-01"),
-      };
-      vi.mocked(mockRedis.get).mockResolvedValue(cachedFeature);
-
-      const result = await repository.checkIfTeamHasFeature(1, "feature-1");
-
-      expect(result).toBe(false);
-    });
-
-    it("should check hierarchy when team does not have feature directly", async () => {
-      vi.mocked(mockRedis.get).mockResolvedValue(null);
-      vi.mocked(mockPrisma.teamFeatures.findUnique).mockResolvedValue(null);
-      vi.mocked(mockPrisma.$queryRaw).mockResolvedValue([{ "?column?": 1 }]);
-
-      const result = await repository.checkIfTeamHasFeature(1, "feature-1");
-
-      expect(result).toBe(true);
-      expect(mockPrisma.$queryRaw).toHaveBeenCalled();
-    });
-
-    it("should return false when feature not found in hierarchy", async () => {
-      vi.mocked(mockRedis.get).mockResolvedValue(null);
-      vi.mocked(mockPrisma.teamFeatures.findUnique).mockResolvedValue(null);
-      vi.mocked(mockPrisma.$queryRaw).mockResolvedValue([]);
-
-      const result = await repository.checkIfTeamHasFeature(1, "feature-1");
-
-      expect(result).toBe(false);
-    });
-  });
-
   describe("upsert", () => {
     it("should upsert team feature and invalidate cache", async () => {
       const upsertedFeature = {
@@ -350,7 +191,6 @@ describe("TeamFeatureRepository", () => {
         },
       });
       expect(mockRedis.del).toHaveBeenCalledWith("features:team:1:feature-1");
-      expect(mockRedis.del).toHaveBeenCalledWith("features:team:enabled:1");
     });
   });
 
@@ -377,7 +217,6 @@ describe("TeamFeatureRepository", () => {
         },
       });
       expect(mockRedis.del).toHaveBeenCalledWith("features:team:1:feature-1");
-      expect(mockRedis.del).toHaveBeenCalledWith("features:team:enabled:1");
     });
   });
 
@@ -433,21 +272,6 @@ describe("TeamFeatureRepository", () => {
         1: true,
         2: false,
       });
-    });
-  });
-
-  describe("updateAutoOptIn", () => {
-    it("should update auto opt-in and invalidate cache", async () => {
-      vi.mocked(mockPrisma.team.update).mockResolvedValue({ id: 1, autoOptInFeatures: true });
-      vi.mocked(mockRedis.del).mockResolvedValue(1);
-
-      await repository.updateAutoOptIn(1, true);
-
-      expect(mockPrisma.team.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: { autoOptInFeatures: true },
-      });
-      expect(mockRedis.del).toHaveBeenCalledWith("features:team:autoOptIn:1");
     });
   });
 });

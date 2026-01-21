@@ -1,7 +1,5 @@
+import { Memoize, Unmemoize } from "@calcom/features/cache";
 import type { PrismaClient, UserFeatures } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
-import { Memoize } from "../../cache/decorators/Memoize";
-import { Unmemoize } from "../../cache/decorators/Unmemoize";
 import type { FeatureId } from "../config";
 import { booleanSchema, userFeaturesSchema } from "./schemas";
 
@@ -13,18 +11,14 @@ const KEY = {
 };
 
 export interface IUserFeatureRepository {
-  findByUserId(userId: number): Promise<UserFeatures[]>;
   findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null>;
   findByUserIdAndFeatureIds(
     userId: number,
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, UserFeatures>>>;
-  checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean>;
-  checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   upsert(userId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<UserFeatures>;
   delete(userId: number, featureId: FeatureId): Promise<void>;
   findAutoOptInByUserId(userId: number): Promise<boolean>;
-  updateAutoOptIn(userId: number, enabled: boolean): Promise<void>;
 }
 
 export class UserFeatureRepository implements IUserFeatureRepository {
@@ -32,12 +26,6 @@ export class UserFeatureRepository implements IUserFeatureRepository {
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
-  }
-
-  async findByUserId(userId: number): Promise<UserFeatures[]> {
-    return this.prisma.userFeatures.findMany({
-      where: { userId },
-    });
   }
 
   @Memoize({
@@ -74,60 +62,6 @@ export class UserFeatureRepository implements IUserFeatureRepository {
     }
 
     return result;
-  }
-
-  async checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean> {
-    const query = Prisma.sql`
-      WITH RECURSIVE TeamHierarchy AS (
-        SELECT DISTINCT t.id, t."parentId",
-          CASE WHEN EXISTS (
-            SELECT 1 FROM "TeamFeatures" tf
-            WHERE tf."teamId" = t.id AND tf."featureId" = ${slug} AND tf."enabled" = true
-          ) THEN true ELSE false END as has_feature
-        FROM "Team" t
-        INNER JOIN "Membership" m ON m."teamId" = t.id
-        WHERE m."userId" = ${userId} AND m.accepted = true
-
-        UNION ALL
-
-        SELECT DISTINCT p.id, p."parentId",
-          CASE WHEN EXISTS (
-            SELECT 1 FROM "TeamFeatures" tf
-            WHERE tf."teamId" = p.id AND tf."featureId" = ${slug} AND tf."enabled" = true
-          ) THEN true ELSE false END as has_feature
-        FROM "Team" p
-        INNER JOIN TeamHierarchy c ON p.id = c."parentId"
-        WHERE NOT c.has_feature
-      )
-      SELECT 1
-      FROM TeamHierarchy
-      WHERE has_feature = true
-      LIMIT 1;
-    `;
-
-    const result = await this.prisma.$queryRaw<unknown[]>(query);
-    return result.length > 0;
-  }
-
-  async checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
-    const query = Prisma.sql`
-      SELECT 1
-      FROM "Team" t
-      INNER JOIN "Membership" m ON m."teamId" = t.id
-      WHERE m."userId" = ${userId}
-        AND m.accepted = true
-        AND EXISTS (
-          SELECT 1
-          FROM "TeamFeatures" tf
-          WHERE tf."teamId" = t.id
-            AND tf."featureId" = ${slug}
-            AND tf."enabled" = true
-        )
-      LIMIT 1;
-    `;
-
-    const result = await this.prisma.$queryRaw<unknown[]>(query);
-    return result.length > 0;
   }
 
   @Unmemoize({
@@ -183,15 +117,5 @@ export class UserFeatureRepository implements IUserFeatureRepository {
       select: { autoOptInFeatures: true },
     });
     return user?.autoOptInFeatures ?? false;
-  }
-
-  @Unmemoize({
-    keys: (userId: number) => [KEY.autoOptInByUserId(userId)],
-  })
-  async updateAutoOptIn(userId: number, enabled: boolean): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { autoOptInFeatures: enabled },
-    });
   }
 }
