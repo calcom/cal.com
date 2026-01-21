@@ -124,6 +124,50 @@ describe("replaceCloakedLinksInHtml", () => {
     });
   });
 
+  describe("incomplete hrefs", () => {
+    test("should use URL from link text when href is incomplete (https://)", () => {
+      const html =
+        '<a href="https://" rel="noopener" class="editor-link"><span>https://bristolwills.com/prepare-for-will-appointment</span><br></a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe(
+        '<a href="https://bristolwills.com/prepare-for-will-appointment" rel="noopener" class="editor-link">https://bristolwills.com/prepare-for-will-appointment</a>'
+      );
+    });
+
+    test("should use URL from link text when href is incomplete (http://)", () => {
+      const html = '<a href="http://">http://example.com/page</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe('<a href="http://example.com/page">http://example.com/page</a>');
+    });
+
+    test("should handle incomplete href with nested HTML tags", () => {
+      const html = '<a href="https://"><span>https://example.com</span></a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe('<a href="https://example.com">https://example.com</a>');
+    });
+
+    test("should handle incomplete href with additional attributes", () => {
+      const html =
+        '<a href="https://" target="_blank" rel="noopener">https://example.com/path</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe(
+        '<a href="https://example.com/path" target="_blank" rel="noopener">https://example.com/path</a>'
+      );
+    });
+
+    test("should not modify if link text doesn't contain a valid URL", () => {
+      const html = '<a href="https://">Click here</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe('<a href="https://">https://</a>');
+    });
+
+    test("should handle incomplete href when link text already matches", () => {
+      const html = '<a href="https://">https://example.com</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe('<a href="https://example.com">https://example.com</a>');
+    });
+  });
+
   describe("edge cases", () => {
     test("should handle links with single quotes in href", () => {
       const html = "<a href='https://example.com'>Click here</a>";
