@@ -32,7 +32,7 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
         if (booking?.user?.id === host.id) {
           noShowHost = true;
           noShowHostAudit.new = noShowHost;
-          return bookingRepository.updateNoShowHost(booking.uid, true);
+          return bookingRepository.updateNoShowHost({ bookingUid: booking.uid, noShowHost: true });
         }
         // If there are more than one host then it is stored in attendees table
         else if (booking.attendees?.some((attendee) => attendee.email === host.email)) {
@@ -43,7 +43,7 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
           }
           const currentAttendeeNoShow = attendee.noShow;
 
-          await attendeeRepository.updateNoShow(attendee.id, true);
+          await attendeeRepository.updateNoShow({ attendeeId: attendee.id, noShow: true });
           attendeesNoShowHostMap.set(attendee.id, { old: currentAttendeeNoShow ?? null, new: true });
         }
         return Promise.resolve();

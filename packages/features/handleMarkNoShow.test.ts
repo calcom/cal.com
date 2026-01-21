@@ -368,19 +368,23 @@ describe("handleMarkNoShow", () => {
       return Promise.resolve({ uid: where.uid, noShowHost: data.noShowHost });
     });
 
-    mockFindByBookingUidAndEmails.mockImplementation((bookingUid: string, emails: string[]) => {
-      const attendees = DB.attendees[bookingUid] ?? [];
-      return Promise.resolve(attendees.filter((a) => emails.includes(a.email)).map((a) => ({ ...a })));
-    });
+    mockFindByBookingUidAndEmails.mockImplementation(
+      ({ bookingUid, emails }: { bookingUid: string; emails: string[] }) => {
+        const attendees = DB.attendees[bookingUid] ?? [];
+        return Promise.resolve(attendees.filter((a) => emails.includes(a.email)).map((a) => ({ ...a })));
+      }
+    );
 
-    mockFindIdAndEmailByBookingUidAndEmails.mockImplementation((bookingUid: string, emails: string[]) => {
-      const attendees = DB.attendees[bookingUid] ?? [];
-      return Promise.resolve(
-        attendees.filter((a) => emails.includes(a.email)).map((a) => ({ id: a.id, email: a.email }))
-      );
-    });
+    mockFindIdAndEmailByBookingUidAndEmails.mockImplementation(
+      ({ bookingUid, emails }: { bookingUid: string; emails: string[] }) => {
+        const attendees = DB.attendees[bookingUid] ?? [];
+        return Promise.resolve(
+          attendees.filter((a) => emails.includes(a.email)).map((a) => ({ id: a.id, email: a.email }))
+        );
+      }
+    );
 
-    mockUpdateNoShow.mockImplementation((attendeeId: number, noShow: boolean) => {
+    mockUpdateNoShow.mockImplementation(({ attendeeId, noShow }: { attendeeId: number; noShow: boolean }) => {
       for (const bookingUid of Object.keys(DB.attendees)) {
         const attendee = DB.attendees[bookingUid].find((a) => a.id === attendeeId);
         if (attendee) {
@@ -391,13 +395,15 @@ describe("handleMarkNoShow", () => {
       return Promise.resolve(null);
     });
 
-    mockUpdateNoShowHost.mockImplementation((bookingUid: string, noShowHost: boolean) => {
-      const booking = DB.bookings[bookingUid];
-      if (booking) {
-        booking.noShowHost = noShowHost;
+    mockUpdateNoShowHost.mockImplementation(
+      ({ bookingUid, noShowHost }: { bookingUid: string; noShowHost: boolean }) => {
+        const booking = DB.bookings[bookingUid];
+        if (booking) {
+          booking.noShowHost = noShowHost;
+        }
+        return Promise.resolve({ id: booking?.id ?? 1 });
       }
-      return Promise.resolve({ id: booking?.id ?? 1 });
-    });
+    );
 
     mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
 

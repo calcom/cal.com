@@ -21,10 +21,13 @@ export class AttendeeRepository implements IAttendeeRepository {
     return attendee;
   }
 
-  async findByBookingIdAndSeatReference(
-    bookingId: number,
-    seatReferenceUid: string
-  ): Promise<{ email: string }[]> {
+  async findByBookingIdAndSeatReference({
+    bookingId,
+    seatReferenceUid,
+  }: {
+    bookingId: number;
+    seatReferenceUid: string;
+  }): Promise<{ email: string }[]> {
     return this.prismaClient.attendee.findMany({
       where: {
         bookingId,
@@ -36,10 +39,13 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async findByBookingUidAndEmails(
-    bookingUid: string,
-    emails: string[]
-  ): Promise<{ id: number; email: string; noShow: boolean | null }[]> {
+  async findByBookingUidAndEmails({
+    bookingUid,
+    emails,
+  }: {
+    bookingUid: string;
+    emails: string[];
+  }): Promise<{ id: number; email: string; noShow: boolean | null }[]> {
     return this.prismaClient.attendee.findMany({
       where: {
         booking: { uid: bookingUid },
@@ -49,10 +55,13 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async findIdAndEmailByBookingUidAndEmails(
-    bookingUid: string,
-    emails: string[]
-  ): Promise<{ id: number; email: string }[]> {
+  async findIdAndEmailByBookingUidAndEmails({
+    bookingUid,
+    emails,
+  }: {
+    bookingUid: string;
+    emails: string[];
+  }): Promise<{ id: number; email: string }[]> {
     return this.prismaClient.attendee.findMany({
       where: {
         booking: { uid: bookingUid },
@@ -62,10 +71,13 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async updateNoShow(
-    attendeeId: number,
-    noShow: boolean
-  ): Promise<{ noShow: boolean | null; email: string }> {
+  async updateNoShow({
+    attendeeId,
+    noShow,
+  }: {
+    attendeeId: number;
+    noShow: boolean;
+  }): Promise<{ noShow: boolean | null; email: string }> {
     return this.prismaClient.attendee.update({
       where: { id: attendeeId },
       data: { noShow },
@@ -114,11 +126,15 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async updateManyNoShowByBookingIdAndEmails(
-    bookingId: number,
-    emails: string[],
-    noShow: boolean
-  ): Promise<{ count: number }> {
+  async updateManyNoShowByBookingIdAndEmails({
+    bookingId,
+    emails,
+    noShow,
+  }: {
+    bookingId: number;
+    emails: string[];
+    noShow: boolean;
+  }): Promise<{ count: number }> {
     return this.prismaClient.attendee.updateMany({
       where: {
         bookingId,
@@ -128,11 +144,15 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async updateManyNoShowByBookingIdExcludingEmails(
-    bookingId: number,
-    excludeEmails: string[],
-    noShow: boolean
-  ): Promise<{ count: number }> {
+  async updateManyNoShowByBookingIdExcludingEmails({
+    bookingId,
+    excludeEmails,
+    noShow,
+  }: {
+    bookingId: number;
+    excludeEmails: string[];
+    noShow: boolean;
+  }): Promise<{ count: number }> {
     return this.prismaClient.attendee.updateMany({
       where: {
         bookingId,

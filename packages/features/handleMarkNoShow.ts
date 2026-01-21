@@ -150,7 +150,7 @@ const getBookingAttendeesFromEmails = async (
   emails: string[]
 ): Promise<EmailToAttendeesMap> => {
   const attendeeRepository = new AttendeeRepository(prisma);
-  const attendees = await attendeeRepository.findByBookingUidAndEmails(bookingUid, emails);
+  const attendees = await attendeeRepository.findByBookingUidAndEmails({ bookingUid, emails });
   const emailToAttendeeMap = attendees.reduce((acc, a) => {
     acc[a.email] = a;
     return acc;
@@ -369,7 +369,7 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
-      await bookingRepository.updateNoShowHost(bookingUid, true);
+      await bookingRepository.updateNoShowHost({ bookingUid, noShowHost: true });
       responsePayload.setNoShowHost(true);
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
@@ -399,7 +399,10 @@ const updateAttendees = async (
   attendees: NonNullable<TNoShowInputSchema["attendees"]>
 ) => {
   const attendeeRepository = new AttendeeRepository(prisma);
-  const allAttendees = await attendeeRepository.findIdAndEmailByBookingUidAndEmails(bookingUid, attendeeEmails);
+  const allAttendees = await attendeeRepository.findIdAndEmailByBookingUidAndEmails({
+    bookingUid,
+    emails: attendeeEmails,
+  });
 
   const allAttendeesMap = allAttendees.reduce(
     (acc, attendee) => {
@@ -412,7 +415,7 @@ const updateAttendees = async (
   const updatePromises = attendees.map((attendee) => {
     const attendeeToUpdate = allAttendeesMap[attendee.email];
     if (!attendeeToUpdate) return;
-    return attendeeRepository.updateNoShow(attendeeToUpdate.id, attendee.noShow);
+    return attendeeRepository.updateNoShow({ attendeeId: attendeeToUpdate.id, noShow: attendee.noShow });
   });
 
   const results = await Promise.allSettled(updatePromises);

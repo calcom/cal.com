@@ -40,15 +40,19 @@ const markGuestAsNoshowInBooking = async ({
     let updateAttendeeEmails: string[];
     if (guestsThatDidntJoinTheCall && guestsThatDidntJoinTheCall.length > 0) {
       const emailsToUpdate = guestsThatDidntJoinTheCall.map((g) => g.email);
-      await attendeeRepository.updateManyNoShowByBookingIdAndEmails(bookingId, emailsToUpdate, true);
+      await attendeeRepository.updateManyNoShowByBookingIdAndEmails({
+        bookingId,
+        emails: emailsToUpdate,
+        noShow: true,
+      });
       updateAttendeeEmails = emailsToUpdate;
     } else {
       const hostsThatJoinedTheCallEmails = hostsThatJoinedTheCall.map((h) => h.email);
-      await attendeeRepository.updateManyNoShowByBookingIdExcludingEmails(
+      await attendeeRepository.updateManyNoShowByBookingIdExcludingEmails({
         bookingId,
-        hostsThatJoinedTheCallEmails,
-        true
-      );
+        excludeEmails: hostsThatJoinedTheCallEmails,
+        noShow: true,
+      });
       // TODO: It is possible that by the time the updateMany query runs, there were more attendees added, though it would be a rare/unexpected thing because triggerGuestNoShow is called after the meeting has ended, and after that time attendees aren't updated
       updateAttendeeEmails = attendeesBefore
         .filter((a) => !hostsThatJoinedTheCallEmails.includes(a.email))
