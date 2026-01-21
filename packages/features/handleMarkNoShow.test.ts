@@ -253,6 +253,39 @@ const expectBookingNoShowHostState = (bookingUid: string, expectedNoShowHost: bo
   expect(booking?.noShowHost).toBe(expectedNoShowHost);
 };
 
+type ExpectedAuditData = {
+  bookingUid: string;
+  source: string;
+  actor: { identifiedBy: string; userUuid: string };
+  organizationId: number | null;
+  hostNoShow?: { old: boolean | null; new: boolean };
+  attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
+};
+
+const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
+  expect(mockOnNoShowUpdated).toHaveBeenCalledTimes(1);
+  const call = mockOnNoShowUpdated.mock.calls[0][0];
+
+  expect(call.bookingUid).toBe(expected.bookingUid);
+  expect(call.source).toBe(expected.source);
+  expect(call.actor).toEqual(expected.actor);
+  expect(call.organizationId).toBe(expected.organizationId);
+
+  if (expected.hostNoShow) {
+    expect(call.auditData.hostNoShow).toEqual(expected.hostNoShow);
+  }
+
+  if (expected.attendeesNoShow) {
+    expect(Object.keys(call.auditData.attendeesNoShow)).toHaveLength(
+      Object.keys(expected.attendeesNoShow).length
+    );
+    for (const [id, expectedValue] of Object.entries(expected.attendeesNoShow)) {
+      const actualValue = call.auditData.attendeesNoShow[id];
+      expect(actualValue).toEqual(expectedValue);
+    }
+  }
+};
+
 describe("handleMarkNoShow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -492,7 +525,7 @@ describe("handleMarkNoShow", () => {
     it("should call BookingEventHandlerService.onNoShowUpdated with correct args", async () => {
       const bookingUid = "test-booking-audit";
       createMockBooking({ uid: bookingUid });
-      createMockAttendee({ bookingUid, email: "attendee@example.com", noShow: false });
+      const attendee = createMockAttendee({ bookingUid, email: "attendee@example.com", noShow: false });
 
       await handleMarkNoShow({
         bookingUid,
@@ -502,15 +535,13 @@ describe("handleMarkNoShow", () => {
         actionSource: "WEBAPP",
       });
 
-      expect(mockOnNoShowUpdated).toHaveBeenCalledWith(
-        expect.objectContaining({
-          bookingUid,
-          source: "WEBAPP",
-          auditData: expect.objectContaining({
-            attendeesNoShow: [{ old: false, new: true }],
-          }),
-        })
-      );
+      expectNoShowBookingAudit({
+        bookingUid,
+        source: "WEBAPP",
+        actor: { identifiedBy: "user", userUuid: "user-uuid-123" },
+        organizationId: null,
+        attendeesNoShow: { [attendee.id]: { old: false, new: true } },
+      });
     });
 
     it("should include old and new values in audit data for host", async () => {
@@ -524,13 +555,13 @@ describe("handleMarkNoShow", () => {
         actionSource: "WEBAPP",
       });
 
-      expect(mockOnNoShowUpdated).toHaveBeenCalledWith(
-        expect.objectContaining({
-          auditData: expect.objectContaining({
-            hostNoShow: { old: false, new: true },
-          }),
-        })
-      );
+      expectNoShowBookingAudit({
+        bookingUid,
+        source: "WEBAPP",
+        actor: { identifiedBy: "user", userUuid: "user-uuid-123" },
+        organizationId: null,
+        hostNoShow: { old: false, new: true },
+      });
     });
   });
 

@@ -195,9 +195,13 @@ async function fireNoShowUpdated({
   }
 
   if (updatedAttendees) {
-    auditData.attendeesNoShow = updatedAttendees.map((attendee) => {
-      return { old: emailToAttendeeMap[attendee.email]?.noShow ?? null, new: attendee.noShow };
-    });
+    auditData.attendeesNoShow = {};
+    for (const attendee of updatedAttendees) {
+      const dbAttendee = emailToAttendeeMap[attendee.email];
+      if (dbAttendee) {
+        auditData.attendeesNoShow[dbAttendee.id] = { old: dbAttendee.noShow ?? null, new: attendee.noShow };
+      }
+    }
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
