@@ -15,7 +15,7 @@ import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
-import { Label, Select, SettingsToggle, TextAreaField, TextField } from "@calcom/ui/components/form";
+import { CheckboxField, Label, Select, SettingsToggle, TextAreaField, TextField } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
 import { useState } from "react";
@@ -274,6 +274,21 @@ export const EventSetupTab = (
                     );
                     if (option) formMethods.setValue("length", option.value, { shouldDirty: true });
                   }}
+                />
+              </div>
+              <div className="mt-4">
+                <Controller
+                  name="metadata.hideDurationSelectorInBookingPage"
+                  control={formMethods.control}
+                  render={({ field: { value, onChange } }) => (
+                    <CheckboxField
+                      data-testid="hide-duration-selector-checkbox"
+                      checked={value ?? false}
+                      onChange={(e) => onChange(e.target.checked)}
+                      description={t("hide_duration_selector_in_booking_page")}
+                      disabled={lengthLockedProps.disabled}
+                    />
+                  )}
                 />
               </div>
             </div>
