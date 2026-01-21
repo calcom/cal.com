@@ -7,7 +7,6 @@ import {
   closeOAuthClientDetails,
   createApprovedOAuthClientAsAdmin,
   createPendingOAuthClient,
-  goToAdminOAuthSettings,
   openOAuthClientDetailsFromList,
 } from "./oauth-client-helpers";
 
@@ -76,7 +75,17 @@ test.describe("OAuth clients admin", () => {
       logoFileName: "cal.png",
     });
 
-    await page.goto("/settings/admin");
+    page.on("response", async (res) => {
+  const url = res.url();
+  if (url.includes("/api/trpc") && url.toLowerCase().includes("oauth")) {
+    console.log("oauth trpc:", res.status(), url);
+    if (res.status() >= 400) {
+      console.log(await res.text());
+    }
+  }
+});
+
+    await page.goto("/settings/admin/oauth");
     await page.waitForLoadState();
 
     const pending1Name = `${testPrefix}pending-1-${Date.now()}`;
@@ -87,7 +96,8 @@ test.describe("OAuth clients admin", () => {
     const toBeRejected = await createPendingOAuthClient(page, makeClientInput(pending2Name));
     const staysPending = await createPendingOAuthClient(page, makeClientInput(pending3Name));
 
-    await goToAdminOAuthSettings(page);
+    await page.goto("/settings/admin/oauth");
+    await page.waitForLoadState();
 
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeApproved.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
