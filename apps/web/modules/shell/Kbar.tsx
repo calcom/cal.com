@@ -18,7 +18,7 @@ import {
 } from "kbar";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 type ShortcutArrayType = {
   shortcuts?: string[];
@@ -383,18 +383,21 @@ function NoResultsFound({ searchQuery }: { searchQuery: string }): JSX.Element {
   const { t } = useLocale();
   const helpUrl = `https://cal.com/help/welcome?search=${encodeURIComponent(searchQuery)}`;
 
-  const openHelpDesk = (): void => {
-    window.open(helpUrl, "_blank", "noopener,noreferrer");
-  };
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "Enter") {
+        window.open(helpUrl, "_blank", "noopener,noreferrer");
+      }
+    };
 
-  const handleKeyDown = (event: React.KeyboardEvent): void => {
-    if (event.key === "Enter") {
-      openHelpDesk();
-    }
-  };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [helpUrl]);
 
   return (
-    <div className="px-4 py-6 text-center" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="px-4 py-6 text-center">
       <p className="mb-3 text-sm text-subtle">{t("kbar_no_results_found")}</p>
       <a
         href={helpUrl}
