@@ -76,7 +76,7 @@ export const createEmbedsFixture = (page: Page) => {
             }
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-expect-error
+            //@ts-ignore
             let api = window.Cal;
 
             if (!api) {

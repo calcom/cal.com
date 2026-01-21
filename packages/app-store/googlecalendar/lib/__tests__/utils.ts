@@ -149,8 +149,6 @@ export const createMockJWTInstance = ({
       scopes: ["https://www.googleapis.com/auth/calendar"],
       subject: email,
     },
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     authorize: authorizeError
       ? vi.fn().mockRejectedValue(authorizeError)
       : vi.fn().mockResolvedValue({

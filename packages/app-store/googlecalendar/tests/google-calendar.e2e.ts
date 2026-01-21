@@ -174,8 +174,6 @@ test.describe("Google Calendar", async () => {
       // The GCal event UID persists after reschedule but should get the rescheduled data
       const gCalRescheduledEventResponse = await authedCalendar.events.get({
         calendarId: "primary",
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-expect-error
         eventId: gCalReference.uid,
       });
 
@@ -221,8 +219,6 @@ test.describe("Google Calendar", async () => {
 
       const canceledGCalEventResponse = await authedCalendar.events.get({
         calendarId: "primary",
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-expect-error
         eventId: gCalReference.uid,
       });
 

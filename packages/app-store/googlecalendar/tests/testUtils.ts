@@ -98,8 +98,6 @@ export const createBookingAndFetchGCalEvent = async (
 
   const gCalEventResponse = await authedCalendar.events.get({
     calendarId: "primary",
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-expect-error
     eventId: gCalReference.uid,
   });
 
