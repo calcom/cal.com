@@ -23,23 +23,53 @@ vi.mock("@calcom/prisma", () => ({
 const {
   mockFindByUidIncludeEventTypeAttendeesAndUser,
   mockFindByUidIncludeEventTypeAndReferences,
+  mockUpdateNoShowHost,
   MockBookingRepository,
 } = vi.hoisted(() => {
   const mockFindByUidIncludeEventTypeAttendeesAndUser = vi.fn();
   const mockFindByUidIncludeEventTypeAndReferences = vi.fn();
+  const mockUpdateNoShowHost = vi.fn();
   class MockBookingRepository {
     findByUidIncludeEventTypeAttendeesAndUser = mockFindByUidIncludeEventTypeAttendeesAndUser;
     findByUidIncludeEventTypeAndReferences = mockFindByUidIncludeEventTypeAndReferences;
+    updateNoShowHost = mockUpdateNoShowHost;
   }
   return {
     mockFindByUidIncludeEventTypeAttendeesAndUser,
     mockFindByUidIncludeEventTypeAndReferences,
+    mockUpdateNoShowHost,
     MockBookingRepository,
   };
 });
 
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
   BookingRepository: MockBookingRepository,
+}));
+
+const {
+  mockFindByBookingUidAndEmails,
+  mockFindIdAndEmailByBookingUidAndEmails,
+  mockUpdateNoShow,
+  MockAttendeeRepository,
+} = vi.hoisted(() => {
+  const mockFindByBookingUidAndEmails = vi.fn();
+  const mockFindIdAndEmailByBookingUidAndEmails = vi.fn();
+  const mockUpdateNoShow = vi.fn();
+  class MockAttendeeRepository {
+    findByBookingUidAndEmails = mockFindByBookingUidAndEmails;
+    findIdAndEmailByBookingUidAndEmails = mockFindIdAndEmailByBookingUidAndEmails;
+    updateNoShow = mockUpdateNoShow;
+  }
+  return {
+    mockFindByBookingUidAndEmails,
+    mockFindIdAndEmailByBookingUidAndEmails,
+    mockUpdateNoShow,
+    MockAttendeeRepository,
+  };
+});
+
+vi.mock("@calcom/features/bookings/repositories/AttendeeRepository", () => ({
+  AttendeeRepository: MockAttendeeRepository,
 }));
 
 const { mockDoesUserIdHaveAccessToBooking, MockBookingAccessService } = vi.hoisted(() => {
@@ -336,6 +366,37 @@ describe("handleMarkNoShow", () => {
         booking.noShowHost = data.noShowHost;
       }
       return Promise.resolve({ uid: where.uid, noShowHost: data.noShowHost });
+    });
+
+    mockFindByBookingUidAndEmails.mockImplementation((bookingUid: string, emails: string[]) => {
+      const attendees = DB.attendees[bookingUid] ?? [];
+      return Promise.resolve(attendees.filter((a) => emails.includes(a.email)).map((a) => ({ ...a })));
+    });
+
+    mockFindIdAndEmailByBookingUidAndEmails.mockImplementation((bookingUid: string, emails: string[]) => {
+      const attendees = DB.attendees[bookingUid] ?? [];
+      return Promise.resolve(
+        attendees.filter((a) => emails.includes(a.email)).map((a) => ({ id: a.id, email: a.email }))
+      );
+    });
+
+    mockUpdateNoShow.mockImplementation((attendeeId: number, noShow: boolean) => {
+      for (const bookingUid of Object.keys(DB.attendees)) {
+        const attendee = DB.attendees[bookingUid].find((a) => a.id === attendeeId);
+        if (attendee) {
+          attendee.noShow = noShow;
+          return Promise.resolve({ noShow, email: attendee.email });
+        }
+      }
+      return Promise.resolve(null);
+    });
+
+    mockUpdateNoShowHost.mockImplementation((bookingUid: string, noShowHost: boolean) => {
+      const booking = DB.bookings[bookingUid];
+      if (booking) {
+        booking.noShowHost = noShowHost;
+      }
+      return Promise.resolve({ id: booking?.id ?? 1 });
     });
 
     mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
