@@ -173,6 +173,7 @@ export const getConnectedCalendars = async (
             },
           };
         }
+
         return {
           integration: safeToSendIntegration,
           credentialId,
@@ -208,7 +209,7 @@ export const getConnectedCalendars = async (
     })
   );
 
-  let destinationCalendar: IntegrationCalendar | null = null;
+  let destinationCalendar: IntegrationCalendar | undefined;
   if (destinationCalendarExternalId) {
     for (const connectedCalendar of connectedCalendars) {
       if (!("calendars" in connectedCalendar) || !connectedCalendar.calendars) {
