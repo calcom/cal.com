@@ -12,6 +12,7 @@ import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
+import { updateProfilePhotoMicrosoft } from "@calcom/app-store/_utils/oauth/updateProfilePhotoMicrosoft";
 import {
   createGoogleCalendarServiceWithGoogleType,
   type GoogleCalendar,
@@ -40,6 +41,7 @@ import {
   GOOGLE_OAUTH_SCOPES,
   HOSTED_CAL_FEATURES,
   IS_CALCOM,
+  MICROSOFT_CALENDAR_SCOPES,
 } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
@@ -132,7 +134,8 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
 
 const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string) => {
   const [orgUsername, apexDomain] = email.split("@");
-  if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
+  if (!ORGANIZATIONS_AUTOLINK || (idP !== "GOOGLE" && idP !== "AZUREAD"))
+    return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
       organizationSettings: {
@@ -481,9 +484,14 @@ if (IS_OUTLOOK_LOGIN_ENABLED) {
     AzureADProvider({
       clientId: OUTLOOK_CLIENT_ID!,
       clientSecret: OUTLOOK_CLIENT_SECRET!,
-      tenantId: process.env.AZURE_AD_TENANT_ID, // Use AZURE_AD_TENANT_ID for tenant ID
-      // Keeping allowDangerousEmailAccountLinking consistent with other providers
+      tenantId: process.env.AZURE_AD_TENANT_ID,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: ["openid", "profile", "email", ...MICROSOFT_CALENDAR_SCOPES].join(" "),
+          prompt: "consent",
+        },
+      },
     })
   );
 }
@@ -649,12 +657,15 @@ export const getOptions = ({
           orgRole = membership?.role;
         }
 
+        // Don't spread ...token here - it may contain large OAuth tokens (access_token, refresh_token, id_token)
+        // that bloat the JWT cookie. Only include the specific fields we need.
         return {
+          sub: token.sub,
           ...existingUserWithoutTeamsField,
-          ...token,
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
+          impersonatedBy: token.impersonatedBy,
           orgAwareUsername: profileOrg ? profile.username : existingUser.username,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
@@ -793,16 +804,88 @@ export const getOptions = ({
           }
           await updateProfilePhotoGoogle(oAuth2Client, Number(user.id));
         }
+
+        // Installing Outlook Calendar by default for Microsoft/Azure AD sign-in
+        // Note: offline_access is requested but not returned in scope list by Microsoft
+        const microsoftCalendarScopesToCheck = MICROSOFT_CALENDAR_SCOPES.filter(
+          (scope) => scope !== "offline_access"
+        );
+        if (
+          account.provider === "azure-ad" &&
+          !(await CredentialRepository.findFirstByAppIdAndUserId({
+            userId: Number(user.id),
+            appId: "office365-calendar",
+          })) &&
+          microsoftCalendarScopesToCheck.every((scope) => grantedScopes.includes(scope))
+        ) {
+          const credentialKey = {
+            access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            email: user.email,
+            expiry_date: account.expires_at,
+          };
+
+          const outlookCredential = await CredentialRepository.create({
+            userId: Number(user.id),
+            key: credentialKey,
+            appId: "office365-calendar",
+            type: "office365_calendar",
+          });
+
+          // Fetch default calendar from Microsoft Graph API
+          try {
+            const calendarResponse = await fetch(
+              "https://graph.microsoft.com/v1.0/me/calendars?$select=id,isDefaultCalendar",
+              {
+                headers: {
+                  Authorization: `Bearer ${account.access_token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (calendarResponse.ok) {
+              const calendarData = await calendarResponse.json();
+              const defaultCalendar = calendarData.value?.find(
+                (cal: { isDefaultCalendar?: boolean }) => cal.isDefaultCalendar
+              );
+
+              if (defaultCalendar?.id) {
+                await prisma.selectedCalendar.create({
+                  data: {
+                    userId: Number(user.id),
+                    integration: "office365_calendar",
+                    externalId: defaultCalendar.id,
+                    credentialId: outlookCredential.id,
+                  },
+                });
+              }
+            }
+          } catch (error) {
+            log.error("Failed to fetch default calendar for Microsoft sign-in", error);
+          }
+
+          // Update profile photo for Microsoft/Azure AD sign-in
+          await updateProfilePhotoMicrosoft(account.access_token!, Number(user.id));
+        } else if (account.provider === "azure-ad" && account.access_token) {
+          // Update profile photo even if calendar wasn't installed
+          await updateProfilePhotoMicrosoft(account.access_token, Number(user.id));
+        }
+
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
-        const { upId } = determineProfile({ profiles: allProfiles, token });
-        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId }));
+        const profileResult = determineProfile({ profiles: allProfiles, token });
+        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId: profileResult.upId }));
+        // Don't spread ...token here - it may contain large OAuth tokens (access_token, refresh_token, id_token)
+        // that bloat the JWT cookie. Only include the specific fields we need.
         return {
-          ...token,
-          upId,
+          sub: token.sub,
+          upId: profileResult.upId,
+          profileId: profileResult.id ?? token.profileId ?? null,
           id: existingUser.id,
           name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
+          avatarUrl: existingUser.avatarUrl,
           role: existingUser.role,
           impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
@@ -904,6 +987,17 @@ async signIn(params: {
         const idP = mapIdentityProvider(account.provider);
         // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
         const isEmailVerified = user.emailVerified || (profile as any)?.email_verified;
+
+        // For Azure AD, check xms_edov (Email Domain Owner Verified) claim
+        // xms_edov returns inconsistent types: boolean for work/school, string "1" for personal accounts
+        const xmsEdov = (profile as any)?.xms_edov;
+        const isAzureEmailDomainVerified =
+          xmsEdov === true || xmsEdov === "1" || xmsEdov === 1;
+
+        if (idP === IdentityProvider.AZUREAD && !isAzureEmailDomainVerified) {
+          log.error("Azure AD email domain not verified (xms_edov claim)", safeStringify({ user, xmsEdov }));
+          return "/auth/error?error=unverified-email";
+        }
 
         if (!isEmailVerified && idP !== IdentityProvider.AZUREAD) {
           log.error("Attention: SAML/Google User email is not verified in the IdP", safeStringify({ user }));
@@ -1194,7 +1288,7 @@ async signIn(params: {
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
-        // Associate with organization if enabled by flag and idP is Google (for now)
+        // Associate with organization if enabled by flag and idP is Google or Azure AD
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
@@ -1226,6 +1320,11 @@ async signIn(params: {
             user.email
           );
           await calcomAdapter.linkAccount(linkAccountNewUserData);
+
+          // Update profile photo for new Microsoft/Azure AD users
+          if (account.provider === "azure-ad" && account.access_token) {
+            await updateProfilePhotoMicrosoft(account.access_token, newUser.id);
+          }
 
           waitUntil(
             (async () => {
