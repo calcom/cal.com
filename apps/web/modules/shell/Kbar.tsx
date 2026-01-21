@@ -383,16 +383,27 @@ function NoResultsFound({ searchQuery }: { searchQuery: string }): JSX.Element {
   const { t } = useLocale();
   const helpUrl = `https://cal.com/help/welcome?search=${encodeURIComponent(searchQuery)}`;
 
+  const openHelpDesk = (): void => {
+    window.open(helpUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent): void => {
+    if (event.key === "Enter") {
+      openHelpDesk();
+    }
+  };
+
   return (
-    <div className="px-4 py-6 text-center">
+    <div className="px-4 py-6 text-center" onKeyDown={handleKeyDown} tabIndex={0}>
       <p className="mb-3 text-sm text-subtle">{t("kbar_no_results_found")}</p>
       <a
         href={helpUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 text-emphasis text-sm underline transition hover:text-default">
+        className="flex items-center justify-center gap-2 text-emphasis text-sm transition hover:text-default">
         <Icon name="external-link" className="h-4 w-4" />
-        {t("kbar_search_help_desk", { query: searchQuery })}
+        {t("kbar_search_help_desk_prefix")} <span className="underline">&quot;{searchQuery}&quot;</span>{" "}
+        {t("kbar_search_help_desk_suffix")}
       </a>
     </div>
   );
