@@ -251,8 +251,13 @@ class PipedriveCrmService implements CRM {
       due_time: startDate.toTimeString().split(" ")[0].substring(0, 5),
       duration: `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`,
       note: this.getMeetingBody(event),
-      location: getLocation(event),
-      person_id: parseInt(contacts[0].id),
+      location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
+     person_id: parseInt(contacts[0].id),
     };
 
     return this.requestPipedrive<{ success: boolean; data: PipedriveActivity }>("activities", {
@@ -275,7 +280,12 @@ class PipedriveCrmService implements CRM {
       due_time: startDate.toTimeString().split(" ")[0].substring(0, 5),
       duration: `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`,
       note: this.getMeetingBody(event),
-      location: getLocation(event),
+      location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
     };
 
     return this.requestPipedrive<{ success: boolean; data: PipedriveActivity }>(`activities/${uid}`, {
