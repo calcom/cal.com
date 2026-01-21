@@ -69,14 +69,31 @@ function getFeatureOptInTimestamp(featureId: string): number | null {
   return null;
 }
 
+function isFeatureDismissed(featureId: string): boolean {
+  return isBooleanFeatureInMap(DISMISSED_STORAGE_KEY, featureId);
+}
+
+function setFeatureDismissed(featureId: string): void {
+  setBooleanFeatureInMap(DISMISSED_STORAGE_KEY, featureId, true);
+}
+
+function setFeatureOptedIn(featureId: string): void {
+  setTimestampFeatureInMap(OPTED_IN_STORAGE_KEY, featureId, Date.now());
+}
+
+function isFeatureTracked(featureId: string): boolean {
+  return isBooleanFeatureInMap(TRACKED_STORAGE_KEY, featureId);
+}
+
+function setFeatureTracked(featureId: string): void {
+  setBooleanFeatureInMap(TRACKED_STORAGE_KEY, featureId, true);
+}
+
 export {
-  DISMISSED_STORAGE_KEY,
-  OPTED_IN_STORAGE_KEY,
-  TRACKED_STORAGE_KEY,
-  getBooleanFeaturesMap,
-  getTimestampFeaturesMap,
-  setBooleanFeatureInMap,
-  setTimestampFeatureInMap,
-  isBooleanFeatureInMap,
   getFeatureOptInTimestamp,
+  isFeatureDismissed,
+  setFeatureDismissed,
+  setFeatureOptedIn,
+  isFeatureTracked,
+  setFeatureTracked,
 };

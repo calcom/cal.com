@@ -7,11 +7,9 @@ import { useCallback, useMemo, useState } from "react";
 
 import {
   getFeatureOptInTimestamp,
-  isBooleanFeatureInMap,
-  setBooleanFeatureInMap,
-  setTimestampFeatureInMap,
-  DISMISSED_STORAGE_KEY,
-  OPTED_IN_STORAGE_KEY,
+  isFeatureDismissed,
+  setFeatureDismissed,
+  setFeatureOptedIn,
 } from "../lib/feature-opt-in-storage";
 import { useFormbricksOptInTracking } from "./useFormbricksOptInTracking";
 
@@ -53,7 +51,7 @@ function isFeatureOptedIn(featureId: string): boolean {
 
 function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(() => isBooleanFeatureInMap(DISMISSED_STORAGE_KEY, featureId));
+  const [isDismissed, setIsDismissed] = useState(() => isFeatureDismissed(featureId));
   const [isOptedIn, setIsOptedIn] = useState(() => isFeatureOptedIn(featureId));
 
   const featureConfig = useMemo(() => getOptInFeatureConfig(featureId) ?? null, [featureId]);
@@ -108,12 +106,12 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   );
 
   const dismiss = useCallback(() => {
-    setBooleanFeatureInMap(DISMISSED_STORAGE_KEY, featureId, true);
+    setFeatureDismissed(featureId);
     setIsDismissed(true);
   }, [featureId]);
 
   const markOptedIn = useCallback(() => {
-    setTimestampFeatureInMap(OPTED_IN_STORAGE_KEY, featureId, Date.now());
+    setFeatureOptedIn(featureId);
     setIsOptedIn(true);
   }, [featureId]);
 

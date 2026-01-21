@@ -6,9 +6,8 @@ import { useEffect, useRef } from "react";
 
 import {
   getFeatureOptInTimestamp,
-  isBooleanFeatureInMap,
-  setBooleanFeatureInMap,
-  TRACKED_STORAGE_KEY,
+  isFeatureTracked,
+  setFeatureTracked,
 } from "../lib/feature-opt-in-storage";
 
 /**
@@ -23,7 +22,7 @@ export function useFormbricksOptInTracking(featureId: string, featureConfig: Opt
 
     if (hasTrackedRef.current) return;
 
-    const alreadyTracked = isBooleanFeatureInMap(TRACKED_STORAGE_KEY, featureId);
+    const alreadyTracked = isFeatureTracked(featureId);
     if (alreadyTracked) return;
 
     const optInTimestamp = getFeatureOptInTimestamp(featureId);
@@ -34,7 +33,7 @@ export function useFormbricksOptInTracking(featureId: string, featureConfig: Opt
 
     const trackAction = (): void => {
       trackFormbricksAction(actionName);
-      setBooleanFeatureInMap(TRACKED_STORAGE_KEY, featureId, true);
+      setFeatureTracked(featureId);
       hasTrackedRef.current = true;
     };
 
