@@ -21,6 +21,7 @@ import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hoo
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
+import { useRoundRobinChunking } from "@calcom/features/bookings/Booker/components/hooks/useRoundRobinChunking";
 import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
@@ -93,7 +94,10 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
 
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
-
+  const [roundRobinChunkSettings, setRoundRobinChunkSettings] = useBookerStoreContext(
+    (state) => [state.roundRobinChunkSettings, state.setRoundRobinChunkSettings],
+    shallow
+  );
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
@@ -155,6 +159,21 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     useApiV2: props.useApiV2,
     bookerLayout,
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
+    roundRobinChunkSettings: roundRobinChunkSettings ?? undefined,
+  });
+  const { roundRobinChunkInfo, handleLoadNextRoundRobinChunk } =
+    useRoundRobinChunking({
+      roundRobinChunkInfo: schedule.data?.roundRobinChunkInfo,
+      isFetching: schedule.isFetching,
+      roundRobinChunkSettings,
+      setRoundRobinChunkSettings,
+      resetDeps: [
+      props.username,
+      props.eventSlug,
+      props.entity.orgSlug,
+      props.entity.eventTypeId,
+      event.data?.id,
+    ],
   });
   const bookings = useBookings({
     event,
@@ -256,6 +275,9 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
       event={event}
       bookerLayout={bookerLayout}
       schedule={schedule}
+      onLoadNextRoundRobinChunk={
+        roundRobinChunkInfo?.hasMoreNonFixedHosts ? handleLoadNextRoundRobinChunk : undefined
+      }
       verifyCode={verifyCode}
       isPlatform={false}
       areInstantMeetingParametersSet={areInstantMeetingParametersSet}

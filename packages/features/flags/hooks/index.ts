@@ -35,6 +35,7 @@ const initialData: AppFlags = {
   "booking-audit": false,
   "monthly-proration": false,
   "sidebar-tips": false,
+  "calendar-chunking": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

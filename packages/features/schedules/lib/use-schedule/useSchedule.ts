@@ -35,6 +35,8 @@ export type UseScheduleWithCacheArgs = {
     extraDays: number;
     columnViewExtraDays: { current: number };
   };
+  roundRobinManualChunking?: boolean;
+  roundRobinChunkOffset?: number;
 };
 
 const getAvailabilityLoadedEventPayload = ({
@@ -66,6 +68,8 @@ export const useSchedule = ({
   useApiV2 = false,
   enabled: enabledProp = true,
   bookerLayout,
+  roundRobinManualChunking,
+  roundRobinChunkOffset,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -117,6 +121,8 @@ export const useSchedule = ({
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
+    ...(roundRobinManualChunking ? { roundRobinManualChunking: true } : {}),
+    ...(typeof roundRobinChunkOffset === "number" ? { roundRobinChunkOffset } : {}),
   };
 
   const options = {
@@ -151,6 +157,8 @@ export const useSchedule = ({
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
+    roundRobinManualChunking: roundRobinManualChunking ? true : undefined,
+    roundRobinChunkOffset,
   });
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {

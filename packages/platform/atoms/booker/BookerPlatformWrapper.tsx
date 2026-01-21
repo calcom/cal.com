@@ -21,6 +21,7 @@ import {
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import { useRoundRobinChunking } from "@calcom/features/bookings/Booker/components/hooks/useRoundRobinChunking";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -111,9 +112,13 @@ const BookerPlatformWrapperComponent = (
   const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(
     Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
   );
+  const [roundRobinChunkSettings, setRoundRobinChunkSettings] = useBookerStoreContext(
+    (state) => [state.roundRobinChunkSettings, state.setRoundRobinChunkSettings],
+    shallow
+  );
   const prevStateRef = useRef<BookerStoreValues | null>(null);
   const bookerStoreContext = useContext(BookerStoreContext);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const getStateValues = useCallback((state: any): BookerStoreValues => {
     return Object.fromEntries(
       Object.entries(state).filter(([_, value]) => typeof value !== "function")
@@ -336,6 +341,12 @@ const BookerPlatformWrapperComponent = (
           rrHostSubsetIds: rrHostSubsetIds,
         }
       : {}),
+    ...(roundRobinChunkSettings?.manual
+      ? {
+          roundRobinManualChunking: true,
+          roundRobinChunkOffset: roundRobinChunkSettings.chunkOffset,
+        }
+      : {}),
     enabled:
       Boolean(teamId || username) &&
       Boolean(month) &&
@@ -346,6 +357,18 @@ const BookerPlatformWrapperComponent = (
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
+  });
+  const { roundRobinChunkInfo, handleLoadNextRoundRobinChunk } = useRoundRobinChunking({
+    roundRobinChunkInfo: schedule.data?.roundRobinChunkInfo,
+    isFetching: schedule.isFetching,
+    roundRobinChunkSettings,
+    setRoundRobinChunkSettings,
+    resetDeps: [
+      props.entity?.orgSlug,
+      props.username,
+      props.isTeamEvent ? props.teamId : null,
+      event?.data?.id,
+    ],
   });
 
   useEffect(() => {
@@ -645,6 +668,9 @@ const BookerPlatformWrapperComponent = (
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
         eventMetaChildren={props.eventMetaChildren}
         roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
+        onLoadNextRoundRobinChunk={
+          roundRobinChunkInfo?.hasMoreNonFixedHosts ? handleLoadNextRoundRobinChunk : undefined
+        }
       />
     </AtomsWrapper>
   );

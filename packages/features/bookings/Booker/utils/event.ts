@@ -71,6 +71,7 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
   bookerLayout,
+  roundRobinChunkSettings,
 }: {
   username?: string | null;
   eventSlug?: string | null;
@@ -91,6 +92,10 @@ export const useScheduleForEvent = ({
     layout: string;
     extraDays: number;
     columnViewExtraDays: { current: number };
+  };
+  roundRobinChunkSettings?: {
+    manual: boolean;
+    chunkOffset: number;
   };
 }) => {
   const { timezone } = useBookerTime();
@@ -117,6 +122,8 @@ export const useScheduleForEvent = ({
     teamMemberEmail,
     useApiV2: useApiV2,
     bookerLayout,
+    roundRobinManualChunking: roundRobinChunkSettings?.manual,
+    roundRobinChunkOffset: roundRobinChunkSettings?.chunkOffset,
   });
 
   return {
@@ -125,6 +132,7 @@ export const useScheduleForEvent = ({
     isError: schedule?.isError,
     isSuccess: schedule?.isSuccess,
     isLoading: schedule?.isLoading,
+    isFetching: schedule?.isFetching,
     invalidate: schedule?.invalidate,
     dataUpdatedAt: schedule?.dataUpdatedAt,
   };

@@ -10,6 +10,7 @@ export interface IFeaturesRepository {
   getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>>;
   checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean>;
+  checkIfTeamHasFeatureNonHierarchical(teamId: number, slug: FeatureId): Promise<boolean>;
   getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]>;
   setUserFeatureState(
     input:

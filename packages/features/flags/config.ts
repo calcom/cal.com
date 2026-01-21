@@ -36,6 +36,7 @@ export type AppFlags = {
   "booking-audit": boolean;
   "monthly-proration": boolean;
   "sidebar-tips": boolean;
+  "calendar-chunking": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;
