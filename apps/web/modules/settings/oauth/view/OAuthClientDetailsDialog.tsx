@@ -143,7 +143,7 @@ const OAuthClientDetailsDialog = ({
       const canApprove = Boolean(onApprove) && (status === "PENDING" || status === "REJECTED");
 
       return (
-        <div className="flex w-full items-center justify-end gap-2">
+        <div className="flex gap-2 justify-end items-center w-full">
           {closeButton}
           {canReject ? (
             <Button
@@ -180,7 +180,7 @@ const OAuthClientDetailsDialog = ({
 
     if (canEdit) {
       return (
-        <div className="flex w-full items-center justify-end gap-2">
+        <div className="flex gap-2 justify-end items-center w-full">
           {closeButton}
           <Button type="submit" loading={isUpdatePending} data-testid="oauth-client-details-save">
             {t("save")}
@@ -189,12 +189,12 @@ const OAuthClientDetailsDialog = ({
       );
     }
 
-    return <div className="flex w-full items-center justify-end">{closeButton}</div>;
+    return <div className="flex justify-end items-center w-full">{closeButton}</div>;
   })();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent enableOverflow type="creation"> 
+      <DialogContent enableOverflow type="creation">
         {client ? (
           <form
             data-testid="oauth-client-details-form"
@@ -211,7 +211,7 @@ const OAuthClientDetailsDialog = ({
               });
             })}>
             {status ? (
-              <div className="flex items-center justify-start">
+              <div className="flex justify-start items-center">
                 <Badge data-testid="oauth-client-details-status-badge" variant={getStatusBadgeVariant(status).variant}>
                   {t(getStatusBadgeVariant(status).labelKey)}
                 </Badge>
@@ -223,24 +223,24 @@ const OAuthClientDetailsDialog = ({
             ) : null}
 
             {status === "APPROVED" ? (
-              <Alert severity="info" title={t("oauth_client_approved_reapproval_info")} />
+              <Alert severity="warning" title={t("oauth_client_approved_reapproval_info")} />
             ) : null}
 
             {status === "REJECTED" && client.rejectionReason ? (
-              <div className="text-subtle text-sm" data-testid="oauth-client-details-rejection-reason-display">
+              <div className="text-sm text-subtle" data-testid="oauth-client-details-rejection-reason-display">
                 <span className="font-medium">{t("oauth_client_rejection_reason")}:</span> {client.rejectionReason}
               </div>
             ) : null}
 
             <div>
-              <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
+              <div className="mb-1 text-sm text-subtle">{t("client_id")}</div>
               <div className="flex">
                 <code
                   data-testid="oauth-client-details-client-id"
-                  className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
+                  className="px-2 py-1 w-full font-mono text-sm truncate align-middle rounded-md rounded-r-none bg-subtle text-default">
                   {client.clientId}
                 </code>
-                <Tooltip side="top" content={t("copy_to_clipboard")}> 
+                <Tooltip side="top" content={t("copy_to_clipboard")}>
                   <Button
                     onClick={() => {
                       copyToClipboard(client.clientId, {
@@ -338,7 +338,7 @@ const OAuthClientDetailsDialog = ({
                     className={showRejectionReasonError ? "border-error" : undefined}
                   />
                   {showRejectionReasonError ? (
-                    <p className="text-error text-sm">{t("is_required")}</p>
+                    <p className="text-sm text-error">{t("is_required")}</p>
                   ) : null}
                 </div>
               </ConfirmationDialogContent>
