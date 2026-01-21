@@ -18,29 +18,23 @@ export class RescheduleNoticeValidator implements Validator {
       return;
     }
 
-    try {
-      const originalRescheduledBooking = await getOriginalRescheduledBooking(
-        actualRescheduleUid,
-        !!ctx.eventType.seatsPerTimeSlot
+    const originalRescheduledBooking = await getOriginalRescheduledBooking(
+      actualRescheduleUid,
+      !!ctx.eventType.seatsPerTimeSlot
+    );
+
+    const isUserOrganizer =
+      ctx.userId && originalRescheduledBooking.userId && ctx.userId === originalRescheduledBooking.userId;
+
+    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
+    if (
+      !isUserOrganizer &&
+      isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
+    ) {
+      throw new ErrorWithCode(
+        ErrorCode.Forbidden,
+        "Rescheduling is not allowed within the minimum notice period before the event"
       );
-
-      const isUserOrganizer =
-        ctx.userId && originalRescheduledBooking.userId && ctx.userId === originalRescheduledBooking.userId;
-
-      const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
-      if (
-        !isUserOrganizer &&
-        isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
-      ) {
-        throw new ErrorWithCode(
-          ErrorCode.Forbidden,
-          "Rescheduling is not allowed within the minimum notice period before the event"
-        );
-      }
-    } catch (error) {
-      if (error instanceof ErrorWithCode) {
-        throw error;
-      }
     }
   }
 }

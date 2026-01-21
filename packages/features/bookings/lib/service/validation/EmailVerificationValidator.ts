@@ -13,10 +13,6 @@ export class EmailVerificationValidator implements Validator {
       throw new ErrorWithCode(ErrorCode.BadRequest, "email_verification_required");
     }
 
-    try {
-      await verifyCodeUnAuthenticated(ctx.bookerEmail, ctx.verificationCode);
-    } catch {
-      throw new ErrorWithCode(ErrorCode.InvalidVerificationCode, "invalid_verification_code");
-    }
+    await verifyCodeUnAuthenticated(ctx.bookerEmail, ctx.verificationCode);
   }
 }
