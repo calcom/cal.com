@@ -230,7 +230,7 @@ const nextConfig = (phase: string): NextConfig => {
       "jose",
     ],
     experimental: {
-      optimizePackageImports: ["@calcom/ui"],
+      optimizePackageImports: ["@calcom/ui", "kbar"],
     },
     productionBrowserSourceMaps: true,
     transpilePackages: [
