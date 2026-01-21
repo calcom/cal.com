@@ -296,7 +296,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
   let connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"] = [];
-  let destinationCalendar: IntegrationCalendar | null = null;
+  let destinationCalendar: IntegrationCalendar | undefined;
 
   if (!skipSync) {
     const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey(
