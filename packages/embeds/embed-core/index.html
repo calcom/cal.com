@@ -516,8 +516,18 @@
     if (initialNamespace.startsWith("skeletonDemo") || initialNamespace === "twoStepSlotSelection") {
       document.getElementById("misc-embeds").style.display = "none";
     }
-    // Hide heading and note for twoStepSlotSelection to prevent pointer event interception on mobile
+    // Hide all non-essential content for twoStepSlotSelection to prevent pointer event interception on mobile
     if (initialNamespace === "twoStepSlotSelection") {
+      // Hide the page variations header at the top of the body
+      const pageHeader = document.body.querySelector(':scope > div:first-child');
+      if (pageHeader) pageHeader.style.display = "none";
+      
+      // Hide skeletonDemo containers
+      const skeletonDemo = document.getElementById("cal-booking-place-skeletonDemo");
+      const skeletonDemoElementClick = document.getElementById("cal-booking-place-skeletonDemoElementClick");
+      if (skeletonDemo) skeletonDemo.style.display = "none";
+      if (skeletonDemoElementClick) skeletonDemoElementClick.style.display = "none";
+      
       const container = document.getElementById("cal-booking-place-twoStepSlotSelection");
       if (container) {
         const h3 = container.querySelector("h3");
