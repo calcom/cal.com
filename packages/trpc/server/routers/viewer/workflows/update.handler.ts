@@ -35,7 +35,7 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone">;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone" | "organization">;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -412,6 +412,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
           inboundAgentId: newStep.inboundAgentId || null,
+          sourceLocale: newStep.sourceLocale ?? null,
+          autoTranslateEnabled: newStep.autoTranslateEnabled ?? false,
         })
       ) {
         // check if step that require team plan already existed before
@@ -469,12 +471,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           includeCalendarEvent: newStep.includeCalendarEvent,
           agentId: newStep.agentId || null,
           verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
-          autoTranslateEnabled: ctx.user.organizationId ? (newStep.autoTranslateEnabled ?? false) : false,
+          autoTranslateEnabled: ctx.user.organization?.id ? (newStep.autoTranslateEnabled ?? false) : false,
           sourceLocale: newStep.sourceLocale ?? ctx.user.locale,
         });
 
         if (
-          ctx.user.organizationId &&
+          ctx.user.organization?.id &&
           newStep.autoTranslateEnabled &&
           (newStep.reminderBody || newStep.emailSubject)
         ) {
@@ -544,7 +546,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }),
           id: undefined,
           senderName: undefined,
-          autoTranslateEnabled: ctx.user.organizationId ? (newStep.autoTranslateEnabled ?? false) : false,
+          autoTranslateEnabled: ctx.user.organization?.id ? (newStep.autoTranslateEnabled ?? false) : false,
         };
       })
   );
@@ -574,7 +576,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       );
     }
 
-    if (ctx.user.organizationId) {
+    if (ctx.user.organization?.id) {
       await Promise.all(
         createdSteps
           .filter((step) => step.autoTranslateEnabled && (step.reminderBody || step.emailSubject))

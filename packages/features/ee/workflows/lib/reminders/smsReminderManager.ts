@@ -173,7 +173,7 @@ const scheduleSMSReminderForEvt = async (
 
     let smsMessage = message;
 
-    if (smsMessage && args.autoTranslateEnabled && action === WorkflowActions.SMS_ATTENDEE) {
+    if (smsMessage && args.autoTranslateEnabled && action === WorkflowActions.SMS_ATTENDEE && workflowStepId) {
       const attendeeLocale = attendeeToBeUsedInSMS.language?.locale || "en";
       const bodyTranslation = await WorkflowStepTranslationRepository.findByLocale(
         workflowStepId,
