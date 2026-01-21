@@ -618,7 +618,6 @@ if (only === "all" || only == "ns:twoStepSlotSelection") {
         "flag.coep": "true",
         name: "John",
         email: "john@booker.com",
-        guests: ["a@b.com"],
         notes: ["test"],
         useSlotsViewOnSmallScreen: "true",
       },
