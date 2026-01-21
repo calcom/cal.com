@@ -32,24 +32,24 @@ async function waitForAdminSection(page: Page, sectionTestId: string) {
 }
 
 async function navigateToAdminOAuthPage(page: Page): Promise<void> {
-  await page.goto("/settings/admin/oauth");
-
   const listClientsPromise = page.waitForResponse(
     (res) => res.url().includes("/api/trpc") && res.url().includes("listClients"),
     { timeout: 30_000 }
   );
 
+  await page.goto("/settings/admin/oauth");
   await page.waitForLoadState("networkidle");
 
   try {
     await listClientsPromise;
   } catch {
-    await page.reload();
-    await page.waitForLoadState("networkidle");
-    await page.waitForResponse(
+    const reloadListClientsPromise = page.waitForResponse(
       (res) => res.url().includes("/api/trpc") && res.url().includes("listClients"),
       { timeout: 30_000 }
     );
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await reloadListClientsPromise;
   }
 }
 
