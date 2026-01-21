@@ -1,3 +1,4 @@
+import process from "node:process";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import {
   buildActorEmail,
@@ -29,6 +30,50 @@ import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttende
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
 
+type GetWebhooksServiceArgs = {
+  platformClientId?: string;
+  orgId: number | undefined;
+  booking: {
+    id: number;
+    eventType: {
+      id: number;
+      teamId: number | null;
+      userId: number | null;
+    } | null;
+  } | null;
+};
+
+type HandleMarkHostNoShowArgs = {
+  bookingUid: string;
+  noShowHost: boolean;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+};
+
+type HandleMarkAttendeeNoShowArgs = {
+  bookingUid: string;
+  attendees?: { email: string; noShow: boolean }[];
+  noShowHost?: boolean;
+  userId: number;
+  userUuid: string;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+};
+
+type HandleMarkNoShowArgs = {
+  bookingUid: string;
+  attendees?: { email: string; noShow: boolean }[];
+  noShowHost?: boolean;
+  userId?: number;
+  userUuid?: string;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+  actor: Actor;
+};
+
 const buildResultPayload = async (
   bookingUid: string,
   attendeeEmails: string[],
@@ -59,6 +104,12 @@ const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   console.error("Failed to update no-show status", failedMessage.join(","));
 };
 
+type ResponsePayloadResult = {
+  attendees: NoShowAttendees;
+  noShowHost: boolean;
+  message: string;
+};
+
 class ResponsePayload {
   attendees: NoShowAttendees;
   noShowHost: boolean;
@@ -82,7 +133,7 @@ class ResponsePayload {
     this.message = message;
   }
 
-  getPayload() {
+  getPayload(): ResponsePayloadResult {
     return {
       attendees: this.attendees,
       noShowHost: this.noShowHost,
@@ -91,6 +142,7 @@ class ResponsePayload {
   }
 }
 
+type EmailToAttendeesMap = Record<string, { id: number; email: string; noShow: boolean | null }>;
 /**
  * Fetches attendees from the database by their emails for a given booking.
  * Returns a map of email to attendee data for efficient lookup.
@@ -98,10 +150,7 @@ class ResponsePayload {
 const getBookingAttendeesFromEmails = async (
   bookingUid: string,
   emails: string[]
-): Promise<{
-  attendees: { id: number; email: string; noShow: boolean | null }[];
-  emailToAttendee: Record<string, { id: number; email: string; noShow: boolean | null }>;
-}> => {
+): Promise<EmailToAttendeesMap> => {
   const attendees = await prisma.attendee.findMany({
     where: {
       booking: { uid: bookingUid },
@@ -109,57 +158,52 @@ const getBookingAttendeesFromEmails = async (
     },
     select: { id: true, email: true, noShow: true },
   });
-  const emailToAttendee = attendees.reduce(
-    (acc, a) => {
-      acc[a.email] = a;
-      return acc;
-    },
-    {} as Record<string, { id: number; email: string; noShow: boolean | null }>
-  );
-  return { attendees, emailToAttendee };
+  const emailToAttendeeMap = attendees.reduce((acc, a) => {
+    acc[a.email] = a;
+    return acc;
+  }, {} as EmailToAttendeesMap);
+  return emailToAttendeeMap;
 };
 
 async function fireNoShowUpdated({
-  noShowHost,
+  updatedNoShowHost,
   booking,
-  attendees,
-  dbEmailToAttendee,
+  updatedAttendees,
+  emailToAttendeeMap,
   actor,
   orgId,
   actionSource,
 }: {
-  noShowHost?: boolean;
+  updatedNoShowHost?: boolean;
   booking: {
     uid: string;
     noShowHost: boolean | null;
   };
-  attendees?: NoShowAttendees;
-  dbEmailToAttendee: Record<string, { id: number; email: string; noShow: boolean | null }>;
+  updatedAttendees?: NoShowAttendees;
+  emailToAttendeeMap: EmailToAttendeesMap;
   actor: Actor;
   orgId: number | null;
   actionSource: ValidActionSource;
-}) {
+}): Promise<void> {
   const auditData: {
     hostNoShow?: { old: boolean | null; new: boolean };
     attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
   } = {};
 
-  if (noShowHost !== undefined) {
-    auditData.hostNoShow = { old: booking.noShowHost, new: noShowHost };
+  if (updatedNoShowHost !== undefined) {
+    auditData.hostNoShow = { old: booking.noShowHost, new: updatedNoShowHost };
   }
 
-  if (attendees) {
-    auditData.attendeesNoShow = attendees.map((attendee) => {
-      return { old: dbEmailToAttendee[attendee.email]?.noShow ?? null, new: attendee.noShow };
+  if (updatedAttendees) {
+    auditData.attendeesNoShow = updatedAttendees.map((attendee) => {
+      return { old: emailToAttendeeMap[attendee.email]?.noShow ?? null, new: attendee.noShow };
     });
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
 
-  if (
-    auditData.hostNoShow ||
-    (auditData.attendeesNoShow && Object.keys(auditData.attendeesNoShow).length > 0)
-  ) {
+  const isSomethingChanged = auditData.hostNoShow || auditData.attendeesNoShow;
+  if (isSomethingChanged) {
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
       actor,
@@ -170,11 +214,7 @@ async function fireNoShowUpdated({
   }
 }
 
-/**
- * Internal function that handles both host and attendee no-show marking.
- * Use the wrapper functions `handleMarkHostNoShow` and `handleMarkAttendeeNoShow` instead.
- */
-const handleMarkNoShowInternal = async ({
+const handleMarkNoShow = async ({
   bookingUid,
   attendees,
   noShowHost,
@@ -183,13 +223,7 @@ const handleMarkNoShowInternal = async ({
   locale,
   platformClientParams,
   actionSource,
-}: TNoShowInputSchema & {
-  userId?: number;
-  actor: Actor;
-  locale?: string;
-  platformClientParams?: PlatformClientParams;
-  actionSource: ValidActionSource;
-}) => {
+}: HandleMarkNoShowArgs): Promise<ResponsePayloadResult> => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
@@ -205,9 +239,10 @@ const handleMarkNoShowInternal = async ({
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
 
-    const [orgId, { emailToAttendee: dbEmailToAttendee }] = await Promise.all([
+    const [orgId, emailToAttendeeMap] = await Promise.all([
       getOrgIdFromMemberOrTeamId({
         memberId: booking.eventType?.userId,
+        // TODO: What about parent Event's teamId?
         teamId: booking.eventType?.teamId,
       }),
       getBookingAttendeesFromEmails(bookingUid, attendeeEmails),
@@ -217,7 +252,6 @@ const handleMarkNoShowInternal = async ({
       await assertCanAccessBooking(bookingUid, userId);
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
-
       const { webhooks, bookingId } = await getWebhooksService({
         platformClientId: platformClientParams?.platformClientId,
         orgId,
@@ -351,10 +385,10 @@ const handleMarkNoShowInternal = async ({
     }
 
     await fireNoShowUpdated({
-      noShowHost,
       booking,
-      attendees,
-      dbEmailToAttendee,
+      updatedNoShowHost: noShowHost,
+      updatedAttendees: attendees,
+      emailToAttendeeMap,
       actor,
       orgId: orgId ?? null,
       actionSource,
@@ -419,22 +453,7 @@ const updateAttendees = async (
     .map((x) => ({ email: x.email, noShow: x.noShow }));
 };
 
-const getWebhooksService = async ({
-  platformClientId,
-  orgId,
-  booking,
-}: {
-  platformClientId?: string;
-  orgId: number | undefined;
-  booking: {
-    id: number;
-    eventType: {
-      id: number;
-      teamId: number | null;
-      userId: number | null;
-    } | null;
-  } | null;
-}) => {
+const getWebhooksService = async ({ platformClientId, orgId, booking }: GetWebhooksServiceArgs) => {
   const webhooks = await WebhookService.init({
     teamId: booking?.eventType?.teamId,
     userId: booking?.eventType?.userId,
@@ -478,13 +497,7 @@ export const handleMarkHostNoShow = async ({
   actionSource,
   locale,
   platformClientParams,
-}: {
-  bookingUid: string;
-  noShowHost: boolean;
-  actionSource: ValidActionSource;
-  locale?: string;
-  platformClientParams?: PlatformClientParams;
-}) => {
+}: HandleMarkHostNoShowArgs): Promise<ResponsePayloadResult> => {
   const actorEmail = buildActorEmail({
     identifier: getUniqueIdentifier({ prefix: "attendee" }),
     actorType: "guest",
@@ -493,7 +506,7 @@ export const handleMarkHostNoShow = async ({
   // TODO: Accept attendee email/name from the caller to track which attendee triggered this action
   const actor = makeGuestActor({ email: actorEmail, name: null });
 
-  return handleMarkNoShowInternal({
+  return handleMarkNoShow({
     bookingUid,
     noShowHost,
     actor,
@@ -517,47 +530,10 @@ export const handleMarkAttendeeNoShow = async ({
   actionSource,
   locale,
   platformClientParams,
-}: {
-  bookingUid: string;
-  attendees?: { email: string; noShow: boolean }[];
-  noShowHost?: boolean;
-  userId: number;
-  userUuid: string;
-  actionSource: ValidActionSource;
-  locale?: string;
-  platformClientParams?: PlatformClientParams;
-}) => {
+}: HandleMarkAttendeeNoShowArgs): Promise<ResponsePayloadResult> => {
   const actor = makeUserActor(userUuid);
 
-  return handleMarkNoShowInternal({
-    bookingUid,
-    attendees,
-    noShowHost,
-    userId,
-    actor,
-    actionSource,
-    locale,
-    platformClientParams,
-  });
-};
-
-const handleMarkNoShow = async ({
-  bookingUid,
-  attendees,
-  noShowHost,
-  userId,
-  locale,
-  platformClientParams,
-  actionSource,
-  actor,
-}: TNoShowInputSchema & {
-  userId?: number;
-  locale?: string;
-  platformClientParams?: PlatformClientParams;
-  actionSource: ValidActionSource;
-  actor: Actor;
-}) => {
-  return handleMarkNoShowInternal({
+  return handleMarkNoShow({
     bookingUid,
     attendees,
     noShowHost,
