@@ -19,4 +19,6 @@ export const BOOKING_DI_TOKENS = {
   ATTENDEE_REPOSITORY_MODULE: Symbol("AttendeeRepositoryModule"),
   VALIDATION_PIPELINE: Symbol("ValidationPipeline"),
   VALIDATION_PIPELINE_MODULE: Symbol("ValidationPipelineModule"),
+  AVAILABILITY_CALCULATOR_FACTORY: Symbol("AvailabilityCalculatorFactory"),
+  AVAILABILITY_CALCULATOR_FACTORY_MODULE: Symbol("AvailabilityCalculatorFactoryModule"),
 };
