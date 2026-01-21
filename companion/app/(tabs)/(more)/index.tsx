@@ -4,6 +4,7 @@ import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react
 import { Header } from "@/components/Header";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryContext } from "@/contexts/QueryContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -17,10 +18,13 @@ interface MoreMenuItem {
 
 export default function More() {
   const { logout } = useAuth();
+  const { clearCache } = useQueryContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const performLogout = async () => {
     try {
+      // Clear in-memory cache before logout
+      await clearCache();
       await logout();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -84,7 +88,7 @@ export default function More() {
   ];
 
   return (
-    <View className="flex-1 bg-[#f8f9fa]">
+    <View className="flex-1 bg-white">
       <Header />
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
@@ -112,8 +116,24 @@ export default function More() {
           ))}
         </View>
 
-        {/* Sign Out Button */}
+        {/* Delete Account Link */}
         <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <TouchableOpacity
+            onPress={() =>
+              openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
+            }
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50"
+          >
+            <View className="flex-1 flex-row items-center">
+              <Ionicons name="trash-outline" size={20} color="#991B1B" />
+              <Text className="ml-3 text-base font-medium text-[#991B1B]">Delete Account</Text>
+            </View>
+            <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Sign Out Button */}
+        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           <TouchableOpacity
             onPress={handleSignOut}
             className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"

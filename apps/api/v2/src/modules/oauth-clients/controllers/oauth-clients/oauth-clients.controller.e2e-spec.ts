@@ -1,25 +1,3 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { AuthModule } from "@/modules/auth/auth.module";
-import { ApiAuthStrategy } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { ApiAuthMockStrategy } from "test/mocks/api-auth-mock.strategy";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
 import {
   APPS_READ,
   APPS_WRITE,
@@ -34,11 +12,32 @@ import {
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
 import type {
+  ApiSuccessResponse,
   CreateOAuthClientInput,
   UpdateOAuthClientInput,
-  ApiSuccessResponse,
 } from "@calcom/platform-types";
 import type { Membership, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { ApiAuthMockStrategy } from "test/mocks/api-auth-mock.strategy";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { AuthModule } from "@/modules/auth/auth.module";
+import { ApiAuthStrategy } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("OAuth Clients Endpoints", () => {
   describe("User Not Authenticated", () => {
