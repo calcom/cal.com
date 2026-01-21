@@ -1,10 +1,8 @@
 "use client";
 
-import { isSupportedCountry } from "libphonenumber-js";
-import { useState, useEffect } from "react";
-
 import { trpc } from "@calcom/trpc/react";
-
+import { isSupportedCountry } from "libphonenumber-js";
+import { useEffect, useState } from "react";
 import BasePhoneInput, { type PhoneInputProps } from "./PhoneInput";
 
 export function PhoneInputWebWrapper(props: Omit<PhoneInputProps, "defaultCountry">) {
@@ -25,8 +23,10 @@ export function PhoneInputWebWrapper(props: Omit<PhoneInputProps, "defaultCountr
       if (isSupportedCountry(data.countryCode)) {
         setDefaultCountry(data.countryCode.toLowerCase());
       } else {
-        const browserCountry = navigator.language.split("-").pop()?.toLowerCase();
-        setDefaultCountry(browserCountry && isSupportedCountry(browserCountry) ? browserCountry : "us");
+        const browserCountry = navigator.language.split("-").pop()?.toUpperCase();
+        setDefaultCountry(
+          browserCountry && isSupportedCountry(browserCountry) ? browserCountry.toLowerCase() : "us"
+        );
       }
     },
     [query.data]
