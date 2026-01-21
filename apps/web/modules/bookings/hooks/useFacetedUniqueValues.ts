@@ -18,7 +18,9 @@ export function useFacetedUniqueValues({
 ) => () => Map<FacetedValue, number> {
   const eventTypes = useEventTypes();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery();
+  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery(undefined, {
+    enabled: canReadOthersBookings,
+  });
   const { data: currentUser } = useMeQuery();
 
   return useCallback(
