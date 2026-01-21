@@ -137,7 +137,7 @@ class FeishuCalendarService implements Calendar {
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
       ? event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
-        event.destinationCalendar[0]
+      event.destinationCalendar[0]
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -176,7 +176,7 @@ class FeishuCalendarService implements Calendar {
   private createAttendees = async (event: CalendarEvent, eventId: string, credentialId: number) => {
     const mainHostDestinationCalendar = event.destinationCalendar
       ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-        event.destinationCalendar[0]
+      event.destinationCalendar[0]
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -406,24 +406,47 @@ class FeishuCalendarService implements Calendar {
 
   private translateAttendees = (event: CalendarEvent): FeishuEventAttendee[] => {
     const attendeeArray: FeishuEventAttendee[] = [];
-    event.attendees
-      .filter((att) => att.email)
-      .forEach((att) => {
-        const attendee: FeishuEventAttendee = {
+    // Use a Set to track all emails and prevent any duplicates in the final list
+    const addedEmails = new Set<string>();
+
+    // Helper function to add attendees if they haven't been added yet
+    const addUniqueAttendee = (email: string, is_optional: boolean) => {
+      if (email && !addedEmails.has(email.toLowerCase())) {
+        attendeeArray.push({
           type: "third_party",
-          is_optional: false,
-          third_party_email: att.email,
-        };
-        attendeeArray.push(attendee);
-      });
+          is_optional,
+          third_party_email: email,
+        });
+        addedEmails.add(email.toLowerCase());
+      }
+    };
+
+    // 1. Create a Set of optional guest emails for easy lookup
+    const optionalGuestEmails = new Set<string>();
+    event.optionalGuestTeamMembers?.forEach((guest) => {
+      if (guest?.email) {
+        optionalGuestEmails.add(guest.email.trim().toLowerCase());
+      }
+    });
+
+    // 2. Add the main booker as a required attendee
+    event.attendees.forEach((attendee) => addUniqueAttendee(attendee.email, false));
+
+    // 3. Add the REQUIRED team members, filtering out optionals and the current user
     event.team?.members.forEach((member) => {
-      if (member.email !== this.credential.user?.email) {
-        const attendee: FeishuEventAttendee = {
-          type: "third_party",
-          is_optional: false,
-          third_party_email: member.email,
-        };
-        attendeeArray.push(attendee);
+      if (
+        member.email &&
+        member.email !== this.credential.user?.email &&
+        !optionalGuestEmails.has(member.email.toLowerCase())
+      ) {
+        addUniqueAttendee(member.email, false);
+      }
+    });
+
+    // 4. Add the OPTIONAL team members
+    event.optionalGuestTeamMembers?.forEach((guest) => {
+      if (guest?.email) {
+        addUniqueAttendee(guest.email, true);
       }
     });
 

@@ -1522,6 +1522,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withOptionalGuestTeamMembers(eventType.optionalGuestTeamMembers || [])
     .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null)
     .build();

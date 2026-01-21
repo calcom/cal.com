@@ -68,7 +68,7 @@ interface GoogleCalError extends Error {
   code?: number;
 }
 
-const isGaxiosResponse= (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
+const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
 class GoogleCalendarService implements Calendar {
@@ -146,18 +146,28 @@ class GoogleCalendarService implements Calendar {
         id: String(event.organizer.id),
         responseStatus: "accepted",
         organizer: true,
-        // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
-        // We use || instead of ?? here to handle empty strings
         email: hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email,
       },
       ...(event.hideOrganizerEmail && !isOrganizerExempt ? [] : eventAttendees),
     ];
 
+    // Create a set of optional guest emails for easy lookup.
+    const optionalGuestEmails = new Set<string>();
+    event.optionalGuestTeamMembers?.forEach((guest) => {
+      if (guest?.email) {
+        optionalGuestEmails.add(guest.email.trim().toLowerCase());
+      }
+    });
+
     if (event.team?.members) {
-      // TODO: Check every other CalendarService for team members
       const teamAttendeesWithoutCurrentUser = event.team.members
-        .filter((member) => member.email !== this.credential.user?.email)
+        // We now filter out the current user AND any member who is in the optional list.
+        .filter(
+          (member) =>
+            member.email !== this.credential.user?.email &&
+            !optionalGuestEmails.has(member.email.toLowerCase())
+        )
         .map((m) => {
           const teamMemberDestinationCalendar = event.destinationCalendar?.find(
             (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id
@@ -169,6 +179,25 @@ class GoogleCalendarService implements Calendar {
           };
         });
       attendees.push(...teamAttendeesWithoutCurrentUser);
+    }
+
+    if (event.optionalGuestTeamMembers) {
+      const optionalGuestMembers = event.optionalGuestTeamMembers
+        .map(({ email, name }) => ({
+          email,
+          displayName: name,
+          optional: true,
+          responseStatus: "needsAction",
+        }))
+        .filter((guest) => {
+          if (!guest.email) {
+            return false;
+          }
+          // This filter is still useful to prevent the booker from being added as optional, etc.
+          const guestEmail = guest.email.toLowerCase();
+          return !attendees.some((attendee) => attendee.email && attendee.email.toLowerCase() === guestEmail);
+        });
+      attendees.push(...optionalGuestMembers);
     }
 
     return attendees;
@@ -732,14 +761,14 @@ class GoogleCalendarService implements Calendar {
 
       return filteredCalendars.map(
         (cal) =>
-          ({
-            externalId: cal.id ?? "No id",
-            integration: this.integrationName,
-            name: cal.summary ?? "No name",
-            primary: cal.primary ?? false,
-            readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
-            email: cal.id ?? "",
-          } satisfies IntegrationCalendar)
+        ({
+          externalId: cal.id ?? "No id",
+          integration: this.integrationName,
+          name: cal.summary ?? "No name",
+          primary: cal.primary ?? false,
+          readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
+          email: cal.id ?? "",
+        } satisfies IntegrationCalendar)
       );
     } catch (error) {
       this.log.error("There was an error getting calendars: ", safeStringify(error));

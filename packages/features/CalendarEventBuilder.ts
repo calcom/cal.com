@@ -116,11 +116,11 @@ export class CalendarEventBuilder {
     const videoRef = references.find((r) => r.type.endsWith("_video"));
     const videoCallData = videoRef
       ? {
-          type: videoRef.type,
-          id: videoRef.meetingId,
-          password: videoRef.meetingPassword,
-          url: videoRef.meetingUrl,
-        }
+        type: videoRef.type,
+        id: videoRef.meetingId,
+        password: videoRef.meetingPassword,
+        url: videoRef.meetingUrl,
+      }
       : undefined;
     const appsStatus: AppsStatus[] = [];
 
@@ -511,6 +511,19 @@ export class CalendarEventBuilder {
     this.event = {
       ...this.event,
       oneTimePassword,
+    };
+    return this;
+  }
+
+  withOptionalGuestTeamMembers(
+    optionalGuestTeamMembers?: {
+      email: string;
+      name: string | null;
+    }[]
+  ) {
+    this.event = {
+      ...this.event,
+      optionalGuestTeamMembers: optionalGuestTeamMembers || [],
     };
     return this;
   }

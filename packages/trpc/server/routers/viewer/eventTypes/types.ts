@@ -233,6 +233,7 @@ export type TUpdateInputSchema = {
   instantMeetingSchedule?: number | null;
   multiplePrivateLinks?: (string | HashedLinkInput)[];
   hostGroups?: HostGroupInput[];
+  optionalGuestTeamMembers?: { id: number }[] | null;
 };
 
 // ============================================================================
@@ -417,6 +418,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     instantMeetingSchedule: z.number().nullable().optional(),
     multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])).optional(),
     hostGroups: z.array(hostGroupSchema).optional(),
+    optionalGuestTeamMembers: z.array(z.object({ id: z.number() })).nullable().optional(),
   })
   .strict();
 

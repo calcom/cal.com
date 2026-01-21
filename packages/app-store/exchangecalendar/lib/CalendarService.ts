@@ -61,12 +61,34 @@ class ExchangeCalendarService implements Calendar {
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
+    // Create a set of optional guest emails for easy lookup.
+    const optionalGuestEmails = new Set<string>();
+    event.optionalGuestTeamMembers?.forEach((guest) => {
+      if (guest?.email) {
+        optionalGuestEmails.add(guest.email.trim().toLowerCase());
+      }
+    });
+
+    // Add the main booker as required
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
+
+    // Add team members as required, ONLY if they aren't optional
     if (event.team?.members) {
-      event.team.members.forEach((member: Person) => {
-        appointment.RequiredAttendees.Add(new Attendee(member.email));
+      event.team.members
+        .filter((member) => member.email && !optionalGuestEmails.has(member.email.trim().toLowerCase()))
+        .forEach((member: Person) => {
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        });
+    }
+
+    // Add optional members to the optional list
+    if (event.optionalGuestTeamMembers) {
+      event.optionalGuestTeamMembers.forEach((member: { email: string | null }) => {
+        if (member.email) {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        }
       });
     }
     return appointment
@@ -76,7 +98,7 @@ class ExchangeCalendarService implements Calendar {
           uid: appointment.Id.UniqueId,
           id: appointment.Id.UniqueId,
           password: "",
-          type: "",
+          type: "exchange_calendar",
           url: "",
           additionalInfo: {},
         };
@@ -97,14 +119,40 @@ class ExchangeCalendarService implements Calendar {
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
+
+    // Clear old attendees before adding new ones
+    appointment.RequiredAttendees.Clear();
+    appointment.OptionalAttendees.Clear();
+
+    const optionalGuestEmails = new Set(
+      event.optionalGuestTeamMembers
+        ?.filter((guest) => guest?.email)
+        .map((guest) => guest.email.trim().toLowerCase()) ?? []
+    );
+
+    // Add the main booker as required
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
+    // Add team members as required, ONLY if they aren't optional
     if (event.team?.members) {
-      event.team.members.forEach((member) => {
-        appointment.RequiredAttendees.Add(new Attendee(member.email));
+      event.team.members
+        .filter((member) => member.email && !optionalGuestEmails.has(member.email.trim().toLowerCase()))
+        .forEach((member) => {
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        });
+    }
+
+    // Add optional members to the optional list
+    if (event.optionalGuestTeamMembers) {
+      event.optionalGuestTeamMembers.forEach((member) => {
+        if (member.email) {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        }
       });
     }
+
+
     return appointment
       .Update(
         ConflictResolutionMode.AlwaysOverwrite,
@@ -115,7 +163,7 @@ class ExchangeCalendarService implements Calendar {
           uid: appointment.Id.UniqueId,
           id: appointment.Id.UniqueId,
           password: "",
-          type: "",
+          type: "exchange_calendar",
           url: "",
           additionalInfo: {},
         };

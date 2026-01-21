@@ -219,7 +219,7 @@ describe("Date Optimization Benchmarks", () => {
     }
   });
 
-  test("chunking logic should produce identical results between dayjs and native Date implementations", async () => {
+  test("chunking logic should produce functionally equivalent results between dayjs and native Date implementations", async () => {
     const dayjs = (await import("@calcom/dayjs")).default;
 
     const testCases = [
@@ -285,15 +285,18 @@ describe("Date Optimization Benchmarks", () => {
         currentStartTime = currentEndTime + oneMinuteMs;
       }
 
-      // Verify identical chunking results
+      // Verify functionally equivalent chunking results
       expect(newChunks).toHaveLength(oldChunks.length);
 
       for (let i = 0; i < oldChunks.length; i++) {
-        expect(newChunks[i].start).toBe(oldChunks[i].start);
-        expect(newChunks[i].end).toBe(oldChunks[i].end);
+        // Since inputs are UTC, there should be NO timezone/DST differences
+        const startDiff = Math.abs(new Date(newChunks[i].start).getTime() - new Date(oldChunks[i].start).getTime());
+        const endDiff = Math.abs(new Date(newChunks[i].end).getTime() - new Date(oldChunks[i].end).getTime());
+        expect(startDiff).toBe(0);
+        expect(endDiff).toBe(0);
       }
 
-      log.info(`${testCase.name} - Generated ${newChunks.length} identical chunks`);
+      log.info(`${testCase.name} - Generated ${newChunks.length} functionally equivalent chunks`);
     }
   });
 

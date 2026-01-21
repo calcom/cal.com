@@ -69,6 +69,7 @@ import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
+import OptionalTeamGuestSetting from "./OptionalTeamGuestSetting";
 import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
 import DisableReschedulingController from "./DisableReschedulingController";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
@@ -1433,6 +1434,9 @@ export const EventAdvancedTab = ({
           );
         }}
       />
+      {team?.members && team.members.length > 0 && (
+        <OptionalTeamGuestSetting team={team} eventType={eventType} />
+      )}
       {isRoundRobinEventType && (
         <Controller
           name="rescheduleWithSameRoundRobinHost"

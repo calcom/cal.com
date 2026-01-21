@@ -182,6 +182,13 @@ const getEventTypesFromDBSelect = {
       name: true,
     },
   },
+  optionalGuestTeamMembers: {
+    select: {
+      name: true,
+      email: true,
+      id: true,
+    },
+  },
   rrHostSubsetEnabled: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   autoTranslateInstantMeetingTitleEnabled: true,

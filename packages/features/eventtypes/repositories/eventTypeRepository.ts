@@ -578,6 +578,11 @@ export class EventTypeRepository {
           field: true,
         },
       },
+      optionalGuestTeamMembers: {
+        select: {
+          id: true,
+        },
+      },
       recurringEvent: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
@@ -876,6 +881,11 @@ export class EventTypeRepository {
           translatedText: true,
           targetLocale: true,
           field: true,
+        },
+      },
+      optionalGuestTeamMembers: {
+        select: {
+          id: true,
         },
       },
       recurringEvent: true,

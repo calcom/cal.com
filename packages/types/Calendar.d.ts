@@ -224,6 +224,10 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
+  optionalGuestTeamMembers?: {
+    email: string;
+    name: string | null;
+  }[];
   organizationId?: number | null;
   hasOrganizerChanged?: boolean;
 }
