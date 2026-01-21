@@ -516,12 +516,11 @@
     if (initialNamespace.startsWith("skeletonDemo") || initialNamespace === "twoStepSlotSelection") {
       document.getElementById("misc-embeds").style.display = "none";
     }
-    // For twoStepSlotSelection, disable pointer events on body and re-enable only on the iframe container
+    // For twoStepSlotSelection, disable pointer events on body and re-enable only on the .place div containing the iframe
     if (initialNamespace === "twoStepSlotSelection") {
       document.body.style.pointerEvents = "none";
       const container = document.getElementById("cal-booking-place-twoStepSlotSelection");
       if (container) {
-        container.style.pointerEvents = "auto";
         const place = container.querySelector(".place");
         if (place) place.style.pointerEvents = "auto";
       }
