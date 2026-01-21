@@ -1,4 +1,4 @@
-import { getRedisService } from "./types";
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 
 interface UnmemoizeOptions {
   // biome-ignore lint/complexity/noBannedTypes: Decorator keys function needs to accept any argument types

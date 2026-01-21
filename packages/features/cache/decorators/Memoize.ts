@@ -1,6 +1,6 @@
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 import type { ZodSchema } from "zod";
-
-import { DEFAULT_TTL_MS, getRedisService } from "./types";
+import { DEFAULT_TTL_MS } from "./types";
 
 interface MemoizeOptions {
   // biome-ignore lint/complexity/noBannedTypes: Decorator key function needs to accept any argument types

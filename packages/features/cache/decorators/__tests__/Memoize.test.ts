@@ -1,22 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-
 import { Memoize } from "../Memoize";
-import type { IRedisService } from "../types";
-import { DEFAULT_TTL_MS, setRedisService } from "../types";
+import { DEFAULT_TTL_MS } from "../types";
 
 const createMockRedis = (): IRedisService => ({
   get: vi.fn(),
   set: vi.fn(),
   del: vi.fn(),
+  expire: vi.fn(),
+  lrange: vi.fn(),
+  lpush: vi.fn(),
 });
 
-describe("Memoize decorator", () => {
-  let mockRedis: IRedisService;
+let mockRedis: IRedisService;
 
+vi.mock("@calcom/features/di/containers/Redis", () => ({
+  getRedisService: () => mockRedis,
+}));
+
+describe("Memoize decorator", () => {
   beforeEach(() => {
     mockRedis = createMockRedis();
-    setRedisService(mockRedis);
     vi.clearAllMocks();
   });
 

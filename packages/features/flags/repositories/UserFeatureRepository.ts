@@ -1,20 +1,23 @@
 import type { PrismaClient, UserFeatures } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-
 import { Memoize, Unmemoize } from "../../cache/decorators";
 import type { FeatureId } from "../config";
 import { booleanSchema, userFeaturesSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:user";
 const KEY = {
-  byUserIdAndFeatureId: (userId: number, featureId: string): string => `${CACHE_PREFIX}:${userId}:${featureId}`,
+  byUserIdAndFeatureId: (userId: number, featureId: string): string =>
+    `${CACHE_PREFIX}:${userId}:${featureId}`,
   autoOptInByUserId: (userId: number): string => `${CACHE_PREFIX}:autoOptIn:${userId}`,
 };
 
 export interface IUserFeatureRepository {
   findByUserId(userId: number): Promise<UserFeatures[]>;
   findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null>;
-  findByUserIdAndFeatureIds(userId: number, featureIds: FeatureId[]): Promise<Partial<Record<FeatureId, UserFeatures>>>;
+  findByUserIdAndFeatureIds(
+    userId: number,
+    featureIds: FeatureId[]
+  ): Promise<Partial<Record<FeatureId, UserFeatures>>>;
   checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean>;
   checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   upsert(userId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<UserFeatures>;

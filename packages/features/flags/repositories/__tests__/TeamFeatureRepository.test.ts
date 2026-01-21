@@ -1,7 +1,6 @@
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { IRedisService } from "../../../cache/decorators/types";
-import { setRedisService } from "../../../cache/decorators/types";
 import { TeamFeatureRepository } from "../TeamFeatureRepository";
 
 interface MockPrisma {
@@ -24,6 +23,9 @@ function createMockRedis(): IRedisService {
     get: vi.fn(),
     set: vi.fn(),
     del: vi.fn(),
+    expire: vi.fn(),
+    lrange: vi.fn(),
+    lpush: vi.fn(),
   };
 }
 
@@ -44,15 +46,19 @@ function createMockPrisma(): MockPrisma {
   };
 }
 
+let mockRedis: IRedisService;
+
+vi.mock("@calcom/features/di/containers/Redis", () => ({
+  getRedisService: () => mockRedis,
+}));
+
 describe("TeamFeatureRepository", () => {
-  let mockRedis: IRedisService;
   let mockPrisma: MockPrisma;
   let repository: TeamFeatureRepository;
 
   beforeEach(() => {
     mockRedis = createMockRedis();
     mockPrisma = createMockPrisma();
-    setRedisService(mockRedis);
     repository = new TeamFeatureRepository(mockPrisma as unknown as PrismaClient);
     vi.clearAllMocks();
   });
