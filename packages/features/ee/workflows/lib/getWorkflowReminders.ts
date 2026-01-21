@@ -10,6 +10,7 @@ type PartialWorkflowStep =
         teamId?: number;
         team?: {
           isOrganization: boolean;
+          parentId?: number | null;
         } | null;
       };
     })
@@ -153,6 +154,7 @@ export const select = {
           team: {
             select: {
               isOrganization: true,
+              parentId: true,
             },
           },
         },

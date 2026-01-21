@@ -40,6 +40,17 @@ export class WorkflowReminderRepository {
         workflowStep: {
           select: {
             action: true,
+            workflow: {
+              select: {
+                teamId: true,
+                team: {
+                  select: {
+                    isOrganization: true,
+                    parentId: true,
+                  },
+                },
+              },
+            },
           },
         },
         scheduledDate: true,
@@ -137,6 +148,7 @@ export class WorkflowReminderRepository {
                 team: {
                   select: {
                     isOrganization: true,
+                    parentId: true,
                   },
                 },
               },

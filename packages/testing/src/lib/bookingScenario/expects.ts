@@ -1,3 +1,4 @@
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import prismaMock from "../__mocks__/prisma";
 
 import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
@@ -1442,4 +1443,78 @@ export function expectNoAttemptToCreateCalendarEvent(calendarMock: CalendarServi
 
 export function expectNoAttemptToGetAvailability(calendarMock: CalendarServiceMethodMock) {
   expect(calendarMock.getAvailabilityCalls.length).toBe(0);
+}
+
+export function expectEmailSentViaCustomSmtp({
+  emails,
+  to,
+  expectedFromEmail,
+  expectedHost,
+}: {
+  emails: Fixtures["emails"];
+  to: string;
+  expectedFromEmail?: string;
+  expectedHost?: string;
+}) {
+  const allEmails = emails.get();
+  const email = allEmails.find((e) => e.to.includes(to));
+  console.log("allEmails", allEmails);
+
+  if (!email) {
+    throw new Error(
+      `No email found sent to ${to}. All emails: ${JSON.stringify(
+        allEmails.map((e) => ({ to: e.to, subject: e.subject }))
+      )}`
+    );
+  }
+
+  expect(email.smtpConfig).toBeDefined();
+  // expect(email.smtpConfig?.isCustomSmtp).toBe(true);
+
+  if (expectedFromEmail) {
+    expect(email.smtpConfig?.fromEmail).toBe(expectedFromEmail);
+  }
+
+  if (expectedHost) {
+    expect(email.smtpConfig?.host).toBe(expectedHost);
+  }
+}
+
+export function expectEmailSentViaDefaultSmtp({ emails, to }: { emails: Fixtures["emails"]; to: string }) {
+  const allEmails = emails.get();
+  const email = allEmails.find((e) => e.to.includes(to));
+
+  if (!email) {
+    throw new Error(
+      `No email found sent to ${to}. All emails: ${JSON.stringify(
+        allEmails.map((e) => ({ to: e.to, subject: e.subject }))
+      )}`
+    );
+  }
+
+  expect(email.smtpConfig?.isCustomSmtp).toBe(false);
+}
+
+export function expectEmailSmtpConfig({
+  emails,
+  to,
+  expectedConfig,
+}: {
+  emails: Fixtures["emails"];
+  to: string;
+  expectedConfig: Partial<TestEmailSmtpConfig>;
+}) {
+  const allEmails = emails.get();
+  const email = allEmails.find((e) => e.to.includes(to));
+
+  if (!email) {
+    throw new Error(
+      `No email found sent to ${to}. All emails: ${JSON.stringify(
+        allEmails.map((e) => ({ to: e.to, subject: e.subject }))
+      )}`
+    );
+  }
+
+  expect(email.smtpConfig).toBeDefined();
+  expect(email.smtpConfig).toEqual(expect.objectContaining(expectedConfig));
 }

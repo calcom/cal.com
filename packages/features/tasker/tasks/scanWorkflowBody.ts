@@ -165,6 +165,7 @@ export async function scanWorkflowBody(payload: string) {
   }
 
   const isOrg = !!workflow?.team?.isOrganization;
+  const organizationId = isOrg ? workflow?.teamId : workflow?.team?.parentId ?? null;
 
   await scheduleWorkflowNotifications({
     activeOn: workflow.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
@@ -178,6 +179,7 @@ export async function scanWorkflowBody(payload: string) {
     trigger: workflow.trigger,
     userId,
     teamId: workflow.team?.id || null,
+    organizationId,
   });
 }
 

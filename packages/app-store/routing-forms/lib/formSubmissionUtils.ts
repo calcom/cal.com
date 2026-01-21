@@ -9,13 +9,12 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { App_RoutingForms_Form, User } from "@calcom/prisma/client";
+import type { App_RoutingForms_Form, Prisma, User } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
-import type { FormResponse, SerializableForm, SerializableField, OrderedResponses } from "../types/types";
+import type { FormResponse, OrderedResponses, SerializableField, SerializableForm } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/formSubmissionUtils"] });
@@ -98,12 +97,13 @@ export function getFieldResponse({
 export const sendResponseEmail = async (
   form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
   orderedResponses: OrderedResponses,
-  toAddresses: string[]
+  toAddresses: string[],
+  organizationId?: number | null
 ) => {
   try {
     if (typeof window === "undefined") {
       const { default: ResponseEmail } = await import("../emails/templates/response-email");
-      const email = new ResponseEmail({ form: form, toAddresses, orderedResponses });
+      const email = new ResponseEmail({ form: form, toAddresses, orderedResponses, organizationId });
       await email.sendEmail();
     }
   } catch (e) {
@@ -192,11 +192,14 @@ export async function _onFormSubmission(
       },
       rootData: {
         // Send responses unwrapped at root level for backwards compatibility
-        ...Object.entries(fieldResponsesByIdentifier).reduce((acc, [key, value]) => {
-          const normalizedKey = normalizeIdentifierForHandlebars(key);
-          acc[normalizedKey] = value.value;
-          return acc;
-        }, {} as Record<string, FormResponse[keyof FormResponse]["value"]>),
+        ...Object.entries(fieldResponsesByIdentifier).reduce(
+          (acc, [key, value]) => {
+            const normalizedKey = normalizeIdentifierForHandlebars(key);
+            acc[normalizedKey] = value.value;
+            return acc;
+          },
+          {} as Record<string, FormResponse[keyof FormResponse]["value"]>
+        ),
       },
     }).catch((e) => {
       console.error(`Error executing routing form webhook`, webhook, e);
@@ -265,13 +268,13 @@ export async function _onFormSubmission(
               ","
             )}`
           );
-          await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+          await sendResponseEmail(form, orderedResponses, form.userWithEmails, orgId);
         }
       } else if (form.settings?.emailOwnerOnSubmission) {
         moduleLogger.debug(
           `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
         );
-        await sendResponseEmail(form, orderedResponses, [form.user.email]);
+        await sendResponseEmail(form, orderedResponses, [form.user.email], orgId);
       }
     } catch (e) {
       moduleLogger.error("Error triggering routing form response side effects", e);

@@ -26,7 +26,8 @@ export async function scheduleBookingReminders(
   trigger: WorkflowTriggerEvents,
   userId: number,
   teamId: number | null,
-  isOrg: boolean
+  isOrg: boolean,
+  organizationId: number | null = null
 ) {
   if (!bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
@@ -120,6 +121,8 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           workflowStepId: step.id,
           verifiedAt: step?.verifiedAt ?? null,
+          isOrganization: isOrg,
+          organizationId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -139,6 +142,7 @@ export async function scheduleBookingReminders(
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
           creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+          organizationId,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -157,6 +161,7 @@ export async function scheduleBookingReminders(
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
           creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+          organizationId,
         });
       } else if (booking.smsReminderNumber) {
         if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -177,6 +182,7 @@ export async function scheduleBookingReminders(
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
             creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+            organizationId,
           });
         } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
           await scheduleWhatsappReminder({
@@ -196,6 +202,7 @@ export async function scheduleBookingReminders(
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
             creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+            organizationId,
           });
         }
       } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {

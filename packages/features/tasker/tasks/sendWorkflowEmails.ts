@@ -25,6 +25,7 @@ export const ZSendWorkflowEmailsSchemaEager = z.object({
         .passthrough()
     )
     .optional(),
+  organizationId: z.number().nullable().optional(),
 });
 
 const ZSendWorkflowEmailsSchemaLazy = z.object({

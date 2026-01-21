@@ -121,6 +121,7 @@ const processWorkflowStep = async (
     workflowStep: step,
     seatReferenceUid: seatReferenceUid,
     creditCheckFn,
+    evtOrganizationId: calendarEvent?.organizationId,
   });
 
   if (isSMSAction(step.action)) {
@@ -318,6 +319,10 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
 
         if (sendTo) {
           const t = await getTranslation(sendTo.locale ?? "en", "common");
+          const workflow = msg.workflowStep?.workflow;
+          const organizationId = workflow?.team?.isOrganization
+            ? workflow?.teamId
+            : workflow?.team?.parentId ?? null;
           await sendOrScheduleWorkflowEmails({
             to: [sendTo.email],
             subject: t("notification_about_your_booking"),
@@ -325,6 +330,7 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
             replyTo: msg.booking?.user?.email ?? "",
             sendAt: msg.scheduledDate,
             referenceUid: msg.uuid || undefined,
+            organizationId,
           });
         }
       }

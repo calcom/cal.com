@@ -17,6 +17,10 @@ type TWorkflow = {
   timeUnit: (typeof TIME_UNIT)[number] | null;
   userId: number | null;
   teamId: number | null;
+  team?: {
+    isOrganization: boolean;
+    parentId: number | null;
+  } | null;
   steps: {
     id: number;
     action: (typeof WORKFLOW_ACTIONS)[number];
@@ -40,6 +44,13 @@ export const ZWorkflow: z.ZodType<TWorkflow> = z.object({
   timeUnit: z.enum(TIME_UNIT).nullable(),
   userId: z.number().nullable(),
   teamId: z.number().nullable(),
+  team: z
+    .object({
+      isOrganization: z.boolean(),
+      parentId: z.number().nullable(),
+    })
+    .nullable()
+    .optional(),
   steps: z
     .object({
       id: z.number(),

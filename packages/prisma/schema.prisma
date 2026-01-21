@@ -596,6 +596,7 @@ model Team {
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
+  smtpConfigurations     SmtpConfiguration[]
   roles                  Role[] // Added for Role relation
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
@@ -714,6 +715,33 @@ model OrganizationSettings {
   disableAttendeeRescheduleRequestEmail Boolean @default(false)
   disableAttendeeLocationChangeEmail    Boolean @default(false)
   disableAttendeeNewEventEmail          Boolean @default(false)
+}
+
+model SmtpConfiguration {
+  id             Int  @id @default(autoincrement())
+  organizationId Int
+  organization   Team @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  fromEmail String
+  fromName  String
+
+  smtpHost     String
+  smtpPort     Int
+  smtpUser     String  @db.Text
+  smtpPassword String  @db.Text
+  smtpSecure   Boolean @default(true)
+
+  lastTestedAt DateTime?
+  lastError    String?
+
+  isEnabled Boolean @default(true)
+  isPrimary Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, fromEmail])
+  @@index([organizationId])
 }
 
 enum MembershipRole {

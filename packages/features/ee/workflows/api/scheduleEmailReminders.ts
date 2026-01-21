@@ -358,6 +358,9 @@ export async function handler(req: NextRequest) {
           // Organization accounts are allowed to use cloaked links (URL behind text)
           // since they are paid accounts with lower spam/scam risk
           const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
+          const organizationId = isOrganization
+            ? reminder.workflowStep?.workflow?.teamId
+            : reminder.workflowStep?.workflow?.team?.parentId ?? null;
           const processedEmailBody = isOrganization
             ? emailContent.emailBody
             : replaceCloakedLinksInHtml(emailContent.emailBody);
@@ -377,6 +380,7 @@ export async function handler(req: NextRequest) {
                 ]
               : undefined,
             sender: reminder.workflowStep.sender,
+            organizationId,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
               replyTo:
                 reminder.booking?.eventType?.customReplyToEmail ??
@@ -464,6 +468,9 @@ export async function handler(req: NextRequest) {
           // Organization accounts are allowed to use cloaked links (URL behind text)
           // since they are paid accounts with lower spam/scam risk
           const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
+          const organizationId = isOrganization
+            ? reminder.workflowStep?.workflow?.teamId
+            : reminder.workflowStep?.workflow?.team?.parentId ?? null;
           const processedEmailBody = isOrganization
             ? emailContent.emailBody
             : replaceCloakedLinksInHtml(emailContent.emailBody);
@@ -473,6 +480,7 @@ export async function handler(req: NextRequest) {
             to: [sendTo],
             html: processedEmailBody,
             sender: reminder.workflowStep?.sender,
+            organizationId,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
               replyTo:
                 reminder.booking?.eventType?.customReplyToEmail ||

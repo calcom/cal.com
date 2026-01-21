@@ -82,6 +82,7 @@ const includedFields = {
       members: true,
       logoUrl: true,
       isOrganization: true,
+      parentId: true,
     },
   },
 } satisfies Prisma.WorkflowInclude;
@@ -107,6 +108,7 @@ export class WorkflowRepository {
             members: true,
             name: true,
             isOrganization: true,
+            parentId: true,
           },
         },
         time: true,
@@ -507,6 +509,7 @@ export class WorkflowRepository {
         team: {
           select: {
             isOrganization: true,
+            parentId: true,
           },
         },
         teamId: true,
@@ -574,6 +577,7 @@ export class WorkflowRepository {
             members: true,
             name: true,
             isOrganization: true,
+            parentId: true,
           },
         },
         steps: {
@@ -640,6 +644,8 @@ export class WorkflowRepository {
             slug: true,
             name: true,
             members: true,
+            isOrganization: true,
+            parentId: true,
           },
         },
         activeOnTeams: {
@@ -686,6 +692,8 @@ export class WorkflowRepository {
             slug: true,
             name: true,
             members: true,
+            isOrganization: true,
+            parentId: true,
           },
         },
         activeOn: {
@@ -748,6 +756,8 @@ export class WorkflowRepository {
             slug: true,
             name: true,
             members: true,
+            isOrganization: true,
+            parentId: true,
           },
         },
       },
@@ -805,6 +815,8 @@ export class WorkflowRepository {
             slug: true,
             name: true,
             members: true,
+            isOrganization: true,
+            parentId: true,
           },
         },
       },
@@ -837,6 +849,8 @@ export class WorkflowRepository {
             id: true,
             name: true,
             slug: true,
+            isOrganization: true,
+            parentId: true,
           },
         },
       },

@@ -604,6 +604,12 @@ export async function handleWorkflowsUpdate({
           action: WorkflowActions.EMAIL_HOST,
         },
       },
+      team: {
+        select: {
+          isOrganization: true,
+          parentId: true,
+        },
+      },
     },
   });
 

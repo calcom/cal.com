@@ -70,6 +70,10 @@ export class EmailWorkflowService {
 
     const workflow = workflowReminder.workflowStep.workflow;
     const isOrganization = workflow.team?.isOrganization ?? false;
+    const workflowOrganizationId = workflow.team?.isOrganization
+      ? workflow.teamId
+      : workflow.team?.parentId ?? null;
+    const organizationId = workflowOrganizationId ?? evt.organizationId ?? null;
 
     let emailAttendeeSendToOverride: string | null = null;
     if (workflowReminder.seatReferenceId) {
@@ -87,6 +91,7 @@ export class EmailWorkflowService {
       workflowStep: workflowReminder.workflowStep,
       seatReferenceUid: workflowReminder.seatReferenceId || undefined,
       creditCheckFn,
+      evtOrganizationId: evt.organizationId,
     });
 
     const hideBranding = await getHideBranding({
@@ -112,6 +117,7 @@ export class EmailWorkflowService {
       template: workflowReminder.workflowStep.template,
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
       isOrganization,
+      organizationId,
     });
 
     const results = await Promise.allSettled(
@@ -152,12 +158,15 @@ export class EmailWorkflowService {
   }: {
     evt?: CalendarEvent;
     workflowStep: WorkflowStep;
-    workflow: Pick<Workflow, "userId">;
+    workflow: Pick<Workflow, "userId" | "teamId"> & {
+      team?: { isOrganization?: boolean; parentId?: number | null } | null;
+    };
     emailAttendeeSendToOverride?: string | null;
     formData?: FormSubmissionData;
     commonScheduleFunctionParams: ReturnType<typeof WorkflowService.generateCommonScheduleFunctionParams>;
     hideBranding?: boolean;
   }) {
+    const isOrganization = workflow.team?.isOrganization ?? false;
     if (!workflowStep.verifiedAt) {
       throw new Error(`Workflow step ${workflowStep.id} is not verified`);
     }
@@ -237,6 +246,7 @@ export class EmailWorkflowService {
       includeCalendarEvent: workflowStep.includeCalendarEvent,
       ...contextData,
       verifiedAt: workflowStep.verifiedAt,
+      isOrganization,
     } as const;
   }
 
@@ -253,6 +263,7 @@ export class EmailWorkflowService {
     includeCalendarEvent,
     triggerEvent,
     isOrganization,
+    organizationId,
   }: {
     evt: BookingInfo;
     sendTo: string[];
@@ -266,6 +277,7 @@ export class EmailWorkflowService {
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
     isOrganization?: boolean;
+    organizationId?: number | null;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
@@ -554,6 +566,7 @@ export class EmailWorkflowService {
       }),
       attachments,
       sender,
+      organizationId,
     };
   }
 }

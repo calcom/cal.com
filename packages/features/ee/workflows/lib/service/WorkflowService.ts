@@ -344,12 +344,19 @@ export class WorkflowService {
     workflowStep,
     seatReferenceUid,
     creditCheckFn,
+    evtOrganizationId,
   }: {
     workflow: Omit<Workflow, "steps">;
     workflowStep: WorkflowStep;
     seatReferenceUid: string | undefined;
     creditCheckFn: CreditCheckFn;
+    evtOrganizationId?: number | null;
   }) {
+    const workflowOrganizationId = workflow.team?.isOrganization
+      ? workflow.teamId
+      : workflow.team?.parentId ?? null;
+    const organizationId = workflowOrganizationId ?? evtOrganizationId ?? null;
+
     return {
       triggerEvent: workflow.trigger,
       timeSpan: {
@@ -363,6 +370,7 @@ export class WorkflowService {
       seatReferenceUid,
       verifiedAt: workflowStep.verifiedAt || null,
       creditCheckFn,
+      organizationId,
     };
   }
 }

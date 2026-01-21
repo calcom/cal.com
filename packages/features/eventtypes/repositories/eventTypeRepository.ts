@@ -753,6 +753,8 @@ export class EventTypeRepository {
                   slug: true,
                   name: true,
                   members: true,
+                  isOrganization: true,
+                  parentId: true,
                 },
               },
               activeOn: {
@@ -1053,6 +1055,8 @@ export class EventTypeRepository {
                   slug: true,
                   name: true,
                   members: true,
+                  isOrganization: true,
+                  parentId: true,
                 },
               },
               activeOn: {

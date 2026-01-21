@@ -11,6 +11,12 @@ export const workflowSelect = {
   userId: true,
   teamId: true,
   name: true,
+  team: {
+    select: {
+      isOrganization: true,
+      parentId: true,
+    },
+  },
   steps: {
     select: {
       id: true,
