@@ -357,7 +357,8 @@ export function AdvancedTab(props: AdvancedTabProps) {
                     backgroundColor: "#F2F2F7",
                     borderTopLeftRadius: 20,
                     borderTopRightRadius: 20,
-                    maxHeight: "70%",
+                    height: "70%",
+                    width: "100%",
                   }
             }
           >
