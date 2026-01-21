@@ -13,16 +13,15 @@ export interface Validator {
   validate(ctx: BookingValidationContext): Promise<void>;
 }
 
-export class ValidationPipeline {
-  private validators: Validator[] = [];
+export interface IValidationPipelineDeps {
+  validators: Validator[];
+}
 
-  add(validator: Validator): this {
-    this.validators.push(validator);
-    return this;
-  }
+export class ValidationPipeline {
+  constructor(private deps: IValidationPipelineDeps) {}
 
   async run(ctx: BookingValidationContext): Promise<void> {
-    for (const validator of this.validators) {
+    for (const validator of this.deps.validators) {
       await validator.validate(ctx);
     }
   }
