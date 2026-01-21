@@ -6,6 +6,8 @@ import { localeOptions } from "@calcom/lib/i18n";
 
 import type { EventSetupTabProps } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import { EventSetupTab } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
+import CalVideoSettings from "../../locations/CalVideoSettings";
+import DefaultLocationSettings from "../../locations/DefaultLocationSettings";
 
 const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
   const orgBranding = useOrgBranding();
@@ -19,6 +21,8 @@ const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
       hasOrgBranding={!!orgBranding}
       orgId={session.data?.user.org?.id}
       localeOptions={localeOptions}
+      CalVideoSettingsComponent={CalVideoSettings}
+      DefaultLocationSettingsComponent={DefaultLocationSettings}
       {...props}
     />
   );

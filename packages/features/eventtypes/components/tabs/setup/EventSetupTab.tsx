@@ -23,6 +23,7 @@ import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "reac
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
 import type { LocationCustomClassNames } from "../../locations/types";
+import type { DefaultLocationSettingsProps } from "@calcom/features/eventtypes/components/locations/Locations";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -53,6 +54,8 @@ export type EventSetupTabProps = Pick<
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 > & {
   customClassNames?: EventSetupTabCustomClassNames;
+  CalVideoSettingsComponent?: React.ComponentType;
+  DefaultLocationSettingsComponent?: React.ComponentType<DefaultLocationSettingsProps>;
 };
 export const EventSetupTab = (
   props: EventSetupTabProps & {

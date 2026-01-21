@@ -17,6 +17,8 @@ import type { TFormType } from "@components/apps/installation/ConfigureStepCard"
 import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
 import Locations from "@calcom/features/eventtypes/components/locations/Locations";
 import type { TLocationOptions, TEventTypeLocation } from "@calcom/features/eventtypes/components/locations/Locations";
+import CalVideoSettings from "~/event-types/components/locations/CalVideoSettings";
+import DefaultLocationSettings from "~/event-types/components/locations/DefaultLocationSettings";
 
 const LocationsWrapper = ({
   eventType,
@@ -63,6 +65,8 @@ const LocationsWrapper = ({
         setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
         control={formMethods.control as unknown as Control<LocationFormValues>}
         formState={formMethods.formState as unknown as FormState<LocationFormValues>}
+        CalVideoSettingsComponent={CalVideoSettings}
+        DefaultLocationSettingsComponent={DefaultLocationSettings}
       />
     </div>
   );
