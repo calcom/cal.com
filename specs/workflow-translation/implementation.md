@@ -17,19 +17,32 @@
 
 ## Files Changed
 
-- `packages/prisma/schema.prisma`
-- `packages/features/ee/workflows/repositories/WorkflowStepTranslationRepository.ts` (new)
-- `packages/features/ee/workflows/repositories/WorkflowStepTranslationRepository.test.ts` (new)
-- `packages/features/tasker/tasks/translateWorkflowStepData.ts` (new)
-- `packages/features/tasker/tasks/translateWorkflowStepData.test.ts` (new)
-- `packages/features/tasker/tasker.ts`
-- `packages/features/tasker/tasks/index.ts`
-- `packages/features/ee/workflows/lib/service/EmailWorkflowService.ts`
-- `packages/features/ee/workflows/lib/reminders/smsReminderManager.ts`
-- `packages/trpc/server/routers/viewer/workflows/update.schema.ts`
-- `packages/trpc/server/routers/viewer/workflows/update.handler.ts`
-- `apps/web/modules/ee/workflows/components/WorkflowStepContainer.tsx`
-- `apps/web/public/static/locales/en/common.json`
+### New Files
+
+- `packages/features/ee/workflows/repositories/WorkflowStepTranslationRepository.ts`
+- `packages/features/ee/workflows/repositories/WorkflowStepTranslationRepository.test.ts`
+- `packages/features/tasker/tasks/translateWorkflowStepData.ts`
+- `packages/features/tasker/tasks/translateWorkflowStepData.test.ts`
+
+### Modified Files
+
+- `packages/prisma/schema.prisma` - Added WorkflowStepTranslation model and WorkflowStep fields
+- `packages/features/tasker/tasker.ts` - Register translateWorkflowStepData task
+- `packages/features/tasker/tasks/index.ts` - Export translateWorkflowStepData
+- `packages/features/ee/workflows/lib/service/EmailWorkflowService.ts` - Translation lookup at send time
+- `packages/features/ee/workflows/lib/service/EmailWorkflowService.test.ts` - Auto translation tests
+- `packages/features/ee/workflows/lib/reminders/smsReminderManager.ts` - Translation lookup
+- `packages/features/ee/workflows/lib/reminders/emailReminderManager.ts` - Pass autoTranslateEnabled/sourceLocale
+- `packages/features/ee/workflows/lib/scheduleBookingReminders.ts` - Pass fields to scheduleEmailReminder
+- `packages/features/ee/workflows/lib/types.ts` - Added autoTranslateEnabled/sourceLocale to WorkflowStep type
+- `packages/features/ee/workflows/lib/getAllWorkflows.ts` - Added fields to workflowSelect
+- `packages/features/ee/workflows/lib/schema.ts` - Added fields to formSchema
+- `packages/features/ee/workflows/lib/test/workflows.test.ts` - Added fields to test select
+- `packages/features/ee/workflows/repositories/WorkflowReminderRepository.ts` - Added fields to findByIdIncludeStepAndWorkflow
+- `packages/trpc/server/routers/viewer/workflows/update.schema.ts` - Added fields to step schema
+- `packages/trpc/server/routers/viewer/workflows/update.handler.ts` - Org-only enforcement, trigger translation task
+- `apps/web/modules/ee/workflows/components/WorkflowStepContainer.tsx` - UI toggle
+- `apps/web/public/static/locales/en/common.json` - Translation strings
 
 ## Verification
 

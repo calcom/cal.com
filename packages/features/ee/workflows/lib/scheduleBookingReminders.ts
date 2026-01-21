@@ -120,6 +120,8 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           workflowStepId: step.id,
           verifiedAt: step?.verifiedAt ?? null,
+          autoTranslateEnabled: step.autoTranslateEnabled,
+          sourceLocale: step.sourceLocale,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
