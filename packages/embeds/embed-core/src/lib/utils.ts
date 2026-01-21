@@ -32,8 +32,9 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
     return result;
   }
 
+  // Consider setting atleast ES2015 as target
+  // @ts-ignore TS2802: IterableIterator iteration requires downlevelIteration
   for (const [key, value] of entries) {
-    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which embed-core doesn't target
     if (result.hasOwnProperty(key)) {
       let currentValue = result[key];
       if (!Array.isArray(currentValue)) {
