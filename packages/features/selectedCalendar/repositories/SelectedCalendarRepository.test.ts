@@ -40,6 +40,8 @@ const mockSelectedCalendar: SelectedCalendar = {
   channelResourceUri: "test-resource-uri",
   channelExpiration: new Date(Date.now() + 86400000),
   syncSubscribedAt: new Date(),
+  syncSubscribedErrorAt: null,
+  syncSubscribedErrorCount: 0,
   syncToken: "test-sync-token",
   syncedAt: new Date(),
   syncErrorAt: null,
@@ -122,7 +124,6 @@ describe("SelectedCalendarRepository", () => {
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: ["google_calendar", "office365_calendar"] },
-          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
           user: {
             teams: {
               some: {
@@ -131,7 +132,24 @@ describe("SelectedCalendarRepository", () => {
               },
             },
           },
-          AND: undefined,
+          AND: [
+            {
+              OR: [
+                { syncSubscribedAt: null },
+                { channelExpiration: null },
+                { channelExpiration: { lte: expect.any(Date) } },
+              ],
+            },
+            {
+              OR: [
+                { syncSubscribedErrorAt: null },
+                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
+              ],
+            },
+            {
+              syncSubscribedErrorCount: { lt: 3 },
+            },
+          ],
         },
         take: 10,
       });
@@ -152,7 +170,6 @@ describe("SelectedCalendarRepository", () => {
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: [] },
-          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
           user: {
             teams: {
               some: {
@@ -161,7 +178,24 @@ describe("SelectedCalendarRepository", () => {
               },
             },
           },
-          AND: undefined,
+          AND: [
+            {
+              OR: [
+                { syncSubscribedAt: null },
+                { channelExpiration: null },
+                { channelExpiration: { lte: expect.any(Date) } },
+              ],
+            },
+            {
+              OR: [
+                { syncSubscribedErrorAt: null },
+                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
+              ],
+            },
+            {
+              syncSubscribedErrorCount: { lt: 3 },
+            },
+          ],
         },
         take: 5,
       });
@@ -182,7 +216,6 @@ describe("SelectedCalendarRepository", () => {
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: ["google_calendar"] },
-          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
           user: {
             teams: {
               some: {
@@ -191,7 +224,24 @@ describe("SelectedCalendarRepository", () => {
               },
             },
           },
-          AND: undefined,
+          AND: [
+            {
+              OR: [
+                { syncSubscribedAt: null },
+                { channelExpiration: null },
+                { channelExpiration: { lte: expect.any(Date) } },
+              ],
+            },
+            {
+              OR: [
+                { syncSubscribedErrorAt: null },
+                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
+              ],
+            },
+            {
+              syncSubscribedErrorCount: { lt: 3 },
+            },
+          ],
         },
         take: 10,
       });
@@ -215,7 +265,6 @@ describe("SelectedCalendarRepository", () => {
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: ["google_calendar"] },
-          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
           user: {
             teams: {
               some: {
@@ -225,6 +274,22 @@ describe("SelectedCalendarRepository", () => {
             },
           },
           AND: [
+            {
+              OR: [
+                { syncSubscribedAt: null },
+                { channelExpiration: null },
+                { channelExpiration: { lte: expect.any(Date) } },
+              ],
+            },
+            {
+              OR: [
+                { syncSubscribedErrorAt: null },
+                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
+              ],
+            },
+            {
+              syncSubscribedErrorCount: { lt: 3 },
+            },
             { NOT: { externalId: { endsWith: "@group.v.calendar.google.com" } } },
             { NOT: { externalId: { endsWith: "@group.calendar.google.com" } } },
           ],

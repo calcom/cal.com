@@ -66,15 +66,7 @@ export default function ProfileSheet() {
         ),
       external: true,
     },
-    {
-      id: "publicPage",
-      label: "View public page",
-      icon: "globe-outline",
-      onPress: () => {
-        if (publicPageUrl) openInAppBrowser(publicPageUrl, "Public page");
-      },
-      external: true,
-    },
+
     {
       id: "copyPublicPage",
       label: "Copy public page link",

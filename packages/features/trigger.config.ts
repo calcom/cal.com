@@ -20,6 +20,7 @@ export default defineConfig({
     "./bookings/lib/tasker/trigger/notifications",
     "./calendars/lib/tasker/trigger",
     "./ee/billing/service/proration/tasker/trigger",
+    "./ee/organizations/lib/billing/tasker/trigger",
   ], // Customize based on your project structure
 
   // Retry configuration

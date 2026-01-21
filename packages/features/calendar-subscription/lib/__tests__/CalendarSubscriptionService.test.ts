@@ -45,6 +45,8 @@ const mockSelectedCalendar: SelectedCalendar = {
   channelResourceUri: "test-resource-uri",
   channelExpiration: new Date(Date.now() + 86400000),
   syncSubscribedAt: new Date(),
+  syncSubscribedErrorAt: null,
+  syncSubscribedErrorCount: 0,
   syncToken: "test-sync-token",
   syncedAt: new Date(),
   syncErrorAt: null,
@@ -160,6 +162,8 @@ describe("CalendarSubscriptionService", () => {
       calendarSyncService: mockCalendarSyncService,
     });
 
+    mockSelectedCalendar.syncSubscribedErrorCount = 0;
+
     const { getCredentialForSelectedCalendar } = await import("../__mocks__/delegationCredential");
     getCredentialForSelectedCalendar.mockResolvedValue(mockCredential);
   });
@@ -178,7 +182,34 @@ describe("CalendarSubscriptionService", () => {
         channelKind: "google_calendar",
         channelExpiration: mockSubscriptionResult.expiration,
         syncSubscribedAt: expect.any(Date),
+        syncSubscribedErrorAt: null,
+        syncSubscribedErrorCount: 0,
       });
+    });
+
+    test("should record subscribe errors and retry later", async () => {
+      const subscribeError = new Error("subscribe failed");
+      mockAdapter.subscribe.mockRejectedValue(subscribeError);
+
+      await expect(service.subscribe("test-calendar-id")).rejects.toThrow(subscribeError);
+
+      expect(mockSelectedCalendarRepository.updateSubscription).toHaveBeenCalledWith("test-calendar-id", {
+        syncSubscribedAt: null,
+        syncSubscribedErrorAt: expect.any(Date),
+        syncSubscribedErrorCount: 1,
+      });
+    });
+
+    test("should skip subscription attempts after hitting error threshold", async () => {
+      mockSelectedCalendarRepository.findById.mockResolvedValue({
+        ...mockSelectedCalendar,
+        syncSubscribedErrorCount: CalendarSubscriptionService.MAX_SUBSCRIBE_ERRORS,
+      });
+
+      await service.subscribe("test-calendar-id");
+
+      expect(mockAdapter.subscribe).not.toHaveBeenCalled();
+      expect(mockSelectedCalendarRepository.updateSubscription).not.toHaveBeenCalled();
     });
 
     test("should return early if selected calendar not found", async () => {

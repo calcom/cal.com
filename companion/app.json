@@ -57,6 +57,27 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200
         }
+      ],
+      [
+        "@react-native-community/datetimepicker",
+        {
+          "android": {
+            "datePicker": {
+              "colorAccent": {
+                "light": "#000000"
+              },
+              "textColorPrimary": {
+                "light": "#000000"
+              }
+            },
+            "timePicker": {
+              "background": { "light": "#ffffff" },
+              "numbersBackgroundColor": { "light": "#ffffff" },
+              "headerBackground": { "light": "#000000" },
+              "numbersSelectorColor": { "light": "#000000" }
+            }
+          }
+        }
       ]
     ],
     "experiments": {

@@ -4,15 +4,14 @@
  * iOS Settings style with grouped input rows and section headers.
  */
 
-import { Ionicons } from "@expo/vector-icons";
 import type React from "react";
 import { useState } from "react";
-import { Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import { AddLocationTrigger, LocationsList } from "@/components/LocationsList";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
 import { createLocationItemFromOption } from "@/utils/locationHelpers";
 import { slugify } from "@/utils/slugify";
-import { BasicsTabIOSPicker } from "./BasicsTabIOSPicker";
+import { NavigationRow, SettingRow, SettingsGroup } from "../SettingsUI";
 
 interface BasicsTabProps {
   eventTitle: string;
@@ -40,38 +39,7 @@ interface BasicsTabProps {
   bookingUrl?: string;
 }
 
-// Section header
-function SectionHeader({ title, rightElement }: { title: string; rightElement?: React.ReactNode }) {
-  return (
-    <View className="flex-row items-center justify-between mb-2 px-4">
-      <Text
-        className="text-[13px] uppercase tracking-wide text-[#6D6D72]"
-        style={{ letterSpacing: 0.5 }}
-      >
-        {title}
-      </Text>
-      {rightElement}
-    </View>
-  );
-}
-
-// Settings group container
-function SettingsGroup({
-  children,
-  header,
-  headerRight,
-}: {
-  children: React.ReactNode;
-  header?: string;
-  headerRight?: React.ReactNode;
-}) {
-  return (
-    <View>
-      {header ? <SectionHeader title={header} rightElement={headerRight} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-    </View>
-  );
-}
+// Local components removed in favor of SettingsUI
 
 // Input row with label
 function InputRow({
@@ -119,106 +87,7 @@ function InputRow({
   );
 }
 
-// Navigation row with value and chevron
-function NavigationRow({
-  title,
-  value,
-  onPress,
-  isFirst = false,
-  isLast = false,
-  options,
-  onSelect,
-}: {
-  title: string;
-  value?: string;
-  onPress: () => void;
-  isFirst?: boolean;
-  isLast?: boolean;
-  options?: string[];
-  onSelect?: (value: string) => void;
-}) {
-  const height = isFirst || isLast ? 52 : 44;
-  return (
-    <View className="bg-white pl-4" style={{ height }}>
-      <View
-        className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
-        }`}
-        style={{ height }}
-      >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-          {title}
-        </Text>
-        <View className="flex-row items-center">
-          {Platform.OS === "ios" && options && onSelect ? (
-            <>
-              {value ? (
-                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-                  {value}
-                </Text>
-              ) : null}
-              <BasicsTabIOSPicker
-                options={options}
-                selectedValue={value || ""}
-                onSelect={onSelect}
-              />
-            </>
-          ) : (
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={onPress}
-              activeOpacity={0.5}
-            >
-              {value ? (
-                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-                  {value}
-                </Text>
-              ) : null}
-              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// Toggle row
-function SettingRow({
-  title,
-  value,
-  onValueChange,
-  isFirst = false,
-  isLast = false,
-}: {
-  title: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  isFirst?: boolean;
-  isLast?: boolean;
-}) {
-  const height = isFirst || isLast ? 52 : 44;
-  return (
-    <View className="bg-white pl-4">
-      <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height, flexDirection: "row", alignItems: "center" }}
-      >
-        <Text className="flex-1 text-[17px] text-black" style={{ fontWeight: "400" }}>
-          {title}
-        </Text>
-        <View style={{ alignSelf: "center", justifyContent: "center" }}>
-          <Switch
-            value={value}
-            onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
+// NavigationRow and SettingRow removed in favor of SettingsUI
 
 export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -326,7 +195,7 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
                 title="Default duration"
                 value={props.defaultDuration || "Select"}
                 onPress={() => props.setShowDefaultDurationDropdown(true)}
-                options={props.selectedDurations}
+                options={props.selectedDurations.map((d) => ({ label: d, value: d }))}
                 onSelect={props.setDefaultDuration}
               />
             ) : null}

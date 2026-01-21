@@ -716,6 +716,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     return acc;
   }, {});
 
+  // Determine calVideoSettings to pass to children:
+  // - If calVideoSettings provided in input, sync to children
+  // - If Cal Video location removed, delete from children (pass null)
+  // - Otherwise, leave children's settings untouched (pass undefined)
+  let calVideoSettingsForChildren: typeof calVideoSettings | null | undefined = undefined;
+  if (calVideoSettings !== undefined) {
+    calVideoSettingsForChildren = calVideoSettings;
+  } else if (eventType.calVideoSettings && !isCalVideoLocationActive) {
+    calVideoSettingsForChildren = null;
+  }
+
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
@@ -726,6 +737,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
     updatedValues,
+    calVideoSettings: calVideoSettingsForChildren,
   });
 
   // Clean up empty host groups

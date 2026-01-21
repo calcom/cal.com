@@ -4,10 +4,10 @@
  * iOS Settings style with grouped rows and section headers.
  */
 
-import { Ionicons } from "@expo/vector-icons";
-import { Alert, Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { openInAppBrowser } from "@/utils/browser";
+import { Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SettingRow, SettingsGroup } from "../SettingsUI";
 import { RecurringTabIOSPicker } from "./RecurringTabIOSPicker";
+import { Ionicons } from "@expo/vector-icons";
 
 interface RecurringTabProps {
   recurringEnabled: boolean;
@@ -28,94 +28,7 @@ const frequencyToLabel: Record<string, string> = {
   yearly: "year",
 };
 
-// Section header
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <Text
-      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
-      style={{ letterSpacing: 0.5 }}
-    >
-      {title}
-    </Text>
-  );
-}
-
-// Settings group container
-function SettingsGroup({ children, header }: { children: React.ReactNode; header?: string }) {
-  return (
-    <View>
-      {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-    </View>
-  );
-}
-
-// Toggle row with description
-function SettingRow({
-  title,
-  description,
-  value,
-  onValueChange,
-  learnMoreUrl,
-  isLast = false,
-}: {
-  title: string;
-  description?: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  learnMoreUrl?: string;
-  isLast?: boolean;
-}) {
-  const showDescription = () => {
-    if (!description) return;
-
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: "OK", style: "cancel" }];
-
-    if (learnMoreUrl) {
-      buttons.unshift({
-        text: "Learn more",
-        onPress: () => openInAppBrowser(learnMoreUrl, "Learn more"),
-      });
-    }
-
-    Alert.alert(title, description, buttons);
-  };
-
-  return (
-    <View className="bg-white pl-4">
-      <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ minHeight: 44, flexDirection: "row", alignItems: "center" }}
-      >
-        <TouchableOpacity
-          className="flex-1 flex-row items-center py-3"
-          onPress={description ? showDescription : undefined}
-          activeOpacity={description ? 0.7 : 1}
-          disabled={!description}
-        >
-          <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-            {title}
-          </Text>
-          {description ? (
-            <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
-          ) : null}
-        </TouchableOpacity>
-        <View style={{ alignSelf: "center", justifyContent: "center" }}>
-          <Switch
-            value={value}
-            onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
+// Local components removed in favor of SettingsUI
 
 export function RecurringTab({
   recurringEnabled,
@@ -137,7 +50,7 @@ export function RecurringTab({
           description="People can subscribe for recurring events. When enabled, you can set how often the event repeats and for how many occurrences."
           value={recurringEnabled}
           onValueChange={setRecurringEnabled}
-          learnMoreUrl="https://cal.com/docs/core-features/event-types/recurring-events"
+          learnMoreUrl="https://cal.com/help/event-types/recurring-events"
           isLast
         />
       </SettingsGroup>

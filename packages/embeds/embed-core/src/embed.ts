@@ -483,7 +483,9 @@ export class Cal {
         // linkReady event isn't received anyway by parent as it isn't whitelisted to be sent to parent but it is a safe guard
         return;
       }
-      this.iframe!.style.visibility = "";
+      if (this.iframe) {
+        this.iframe.style.visibility = "";
+      }
 
       // Removes the loader
       // TODO: We should be using consistent approach of "state" attribute for modalBox and inlineEl.
@@ -1052,7 +1054,7 @@ class CalApi {
     const { embedConfig: previousEmbedConfig, embedRenderStartTime: previousEmbedRenderStartTime } =
       this.cal.getPreviousModalRenderStartVariables();
 
-    let enrichedConfig;
+    let enrichedConfig: PrefillAndIframeAttrsConfig;
     const configWithGuestKeyAndColorScheme = withColorScheme(
       Cal.ensureGuestKey({
         ...config,
@@ -1061,7 +1063,7 @@ class CalApi {
       containerEl
     );
 
-    let enrichedPrerenderOptions;
+    let enrichedPrerenderOptions: ModalPrerenderOptions | undefined;
     if (isPrerendering) {
       const preparationResult = this.cal.prepareForPrerender({
         calLink,
@@ -1578,7 +1580,7 @@ document.addEventListener("click", (e) => {
   const namespace = calLinkEl.dataset.calNamespace;
   const configString = calLinkEl.dataset.calConfig || "";
   const calOrigin = calLinkEl.dataset.calOrigin || "";
-  let config;
+  let config: PrefillAndIframeAttrsConfig;
   try {
     config = JSON.parse(configString);
   } catch {
@@ -1602,7 +1604,7 @@ document.addEventListener("click", (e) => {
   });
 
   function getCalLinkEl(target: EventTarget | null) {
-    let calLinkEl;
+    let calLinkEl: HTMLElement | Element | undefined;
     if (!(target instanceof HTMLElement)) {
       return null;
     }
@@ -1641,7 +1643,7 @@ let currentColorScheme: string | null = null;
 })();
 
 function getEmbedApiFn(ns: string) {
-  let api;
+  let api: GlobalCalWithoutNs | GlobalCal;
   if (ns === DEFAULT_NAMESPACE) {
     api = globalCal;
   } else {

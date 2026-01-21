@@ -881,6 +881,7 @@
   "available_durations": "Available durations",
   "default_duration": "Default duration",
   "default_duration_no_options": "Please choose available durations first",
+  "hide_duration_selector_in_booking_page": "Hide duration selector",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
   "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
