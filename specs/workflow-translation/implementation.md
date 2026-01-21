@@ -1,29 +1,38 @@
 # Workflow Translation Implementation
 
-## Status: in-progress
+## Status: complete
 
 ## Completed
 
 - [x] Database schema: Added `WorkflowStepAutoTranslatedField` enum
 - [x] Database schema: Added `WorkflowStepTranslation` model
 - [x] Database schema: Added `autoTranslateEnabled`, `sourceLocale`, `translations` to WorkflowStep
+- [x] Created WorkflowStepTranslationRepository
+- [x] Created translateWorkflowStepData tasker task
+- [x] Integrated translation lookup in EmailWorkflowService
+- [x] Integrated translation lookup in smsReminderManager
+- [x] Updated workflow update handler to trigger translation
+- [x] Added UI toggle in WorkflowStepContainer
+- [x] Added unit tests
 
-## In Progress
+## Files Changed
 
-- WorkflowStepTranslationRepository
+- `packages/prisma/schema.prisma`
+- `packages/features/ee/workflows/repositories/WorkflowStepTranslationRepository.ts` (new)
+- `packages/features/ee/workflows/repositories/WorkflowStepTranslationRepository.test.ts` (new)
+- `packages/features/tasker/tasks/translateWorkflowStepData.ts` (new)
+- `packages/features/tasker/tasks/translateWorkflowStepData.test.ts` (new)
+- `packages/features/tasker/tasker.ts`
+- `packages/features/tasker/tasks/index.ts`
+- `packages/features/ee/workflows/lib/service/EmailWorkflowService.ts`
+- `packages/features/ee/workflows/lib/reminders/smsReminderManager.ts`
+- `packages/trpc/server/routers/viewer/workflows/update.schema.ts`
+- `packages/trpc/server/routers/viewer/workflows/update.handler.ts`
+- `apps/web/modules/ee/workflows/components/WorkflowStepContainer.tsx`
+- `apps/web/public/static/locales/en/common.json`
 
-## Blocked
+## Verification
 
-## Next Steps
-
-1. Create WorkflowStepTranslationRepository
-2. Create translateWorkflowStepData tasker task
-3. Integrate translation lookup in EmailWorkflowService
-4. Integrate translation lookup in smsReminderManager
-5. Update workflow update handler to trigger translation
-6. Add UI toggle in WorkflowStepContainer
-
-## Session Notes
-
-### 2025-01-21
-- Added schema changes to packages/prisma/schema.prisma
+- [ ] Run `yarn workspace @calcom/prisma db-migrate`
+- [ ] Run `yarn prisma generate`
+- [ ] Run `yarn type-check:ci --force`
