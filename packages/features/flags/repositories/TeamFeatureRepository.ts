@@ -1,6 +1,7 @@
 import type { PrismaClient, TeamFeatures } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import { Memoize, Unmemoize } from "../../cache/decorators";
+import { Memoize } from "../../cache/decorators/Memoize";
+import { Unmemoize } from "../../cache/decorators/Unmemoize";
 import type { FeatureId, TeamFeatures as TeamFeaturesMap } from "../config";
 import { booleanSchema, teamFeaturesMapSchema, teamFeaturesSchema } from "./schemas";
 

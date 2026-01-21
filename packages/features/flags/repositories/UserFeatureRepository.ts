@@ -1,6 +1,7 @@
 import type { PrismaClient, UserFeatures } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import { Memoize, Unmemoize } from "../../cache/decorators";
+import { Memoize } from "../../cache/decorators/Memoize";
+import { Unmemoize } from "../../cache/decorators/Unmemoize";
 import type { FeatureId } from "../config";
 import { booleanSchema, userFeaturesSchema } from "./schemas";
 

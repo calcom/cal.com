@@ -1,5 +1,5 @@
 import type { Feature, PrismaClient } from "@calcom/prisma/client";
-import { Memoize } from "../../cache/decorators";
+import { Memoize } from "../../cache/decorators/Memoize";
 import type { AppFlags, FeatureId } from "../config";
 import { appFlagsSchema, featureArraySchema, featureSchema } from "./schemas";
 
