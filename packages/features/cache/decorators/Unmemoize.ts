@@ -23,13 +23,7 @@ export function Unmemoize(config: UnmemoizeOptions) {
       try {
         const redis = getRedisService();
         const keysToInvalidate = config.keys(...args) as string[];
-        await Promise.all(
-          keysToInvalidate.map((key) =>
-            redis.del(key).catch(() => {
-              // Silently ignore cache invalidation errors
-            })
-          )
-        );
+        await Promise.allSettled(keysToInvalidate.map((key) => redis.del(key)));
       } catch {
         // Silently ignore cache invalidation errors
       }
