@@ -402,6 +402,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
     organizationId: ownerProfile?.organizationId ?? null,
+    schedulingType: bookingToDelete.eventType?.schedulingType,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
