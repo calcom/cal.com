@@ -1,18 +1,13 @@
-import { useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
-import type { MultiValue } from "react-select";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { LocationCustomClassNames } from "../../locations/types";
 import type {
   EventTypeSetupProps,
+  FormValues,
   InputClassNames,
+  LocationFormValues,
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -20,14 +15,14 @@ import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, Select, SettingsToggle, TextAreaField, TextField } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
-
 import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
+import { useState } from "react";
+import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
+import type { MultiValue } from "react-select";
+import type { LocationCustomClassNames } from "../../locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -80,7 +75,7 @@ export const EventSetupTab = (
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const multipleDurationOptions = [
-    5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
+    5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
   ].map((mins) => ({
     value: mins,
     label: t("multiple_duration_mins", { count: mins }),
@@ -109,7 +104,7 @@ export const EventSetupTab = (
       <div className={classNames("stack-y-4", customClassNames?.wrapper)}>
         <div
           className={classNames(
-            "border-subtle stack-y-6 rounded-lg border p-6",
+            "stack-y-6 rounded-lg border border-subtle p-6",
             customClassNames?.titleSection?.container
           )}>
           <TextField
@@ -169,7 +164,7 @@ export const EventSetupTab = (
             className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <span className="max-w-24 md:max-w-56 inline-block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                <span className="inline-block min-w-0 max-w-24 overflow-hidden text-ellipsis whitespace-nowrap md:max-w-56">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
@@ -187,7 +182,7 @@ export const EventSetupTab = (
         </div>
         <div
           className={classNames(
-            "border-subtle rounded-lg border p-6",
+            "rounded-lg border border-subtle p-6",
             customClassNames?.durationSection?.container
           )}>
           {multipleDuration ? (
@@ -212,7 +207,7 @@ export const EventSetupTab = (
                   isSearchable={false}
                   isDisabled={lengthLockedProps.disabled}
                   className={classNames(
-                    "min-h-[36px]! h-auto text-sm",
+                    "h-auto min-h-[36px]! text-sm",
                     customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
                   )}
                   innerClassNames={
@@ -306,7 +301,7 @@ export const EventSetupTab = (
                   message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
                 },
               })}
-              addOnSuffix={<>{t("minutes")}</>}
+              addOnSuffix={t("minutes")}
               min={MIN_EVENT_DURATION_MINUTES}
               max={MAX_EVENT_DURATION_MINUTES}
             />
@@ -341,7 +336,7 @@ export const EventSetupTab = (
         </div>
         <div
           className={classNames(
-            "border-subtle rounded-lg border p-6",
+            "rounded-lg border border-subtle p-6",
             customClassNames?.locationSection?.container
           )}>
           <div>
