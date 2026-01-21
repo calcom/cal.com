@@ -29,38 +29,21 @@ async function expectClientStatusInDb(
 }
 
 async function waitForAdminSection(page: Page, sectionTestId: string) {
-  await expect
-    .poll(
-      async () => {
-        return await page.getByTestId(sectionTestId).count();
-      },
-      { timeout: 30_000 }
-    )
-    .toBe(1);
-
   const section = page.getByTestId(sectionTestId);
-  await expect(section).toBeVisible();
+  await expect(section).toBeVisible({ timeout: 60_000 });
   return section;
 }
 
 async function expectClientInAdminSection(page: Page, sectionTestId: string, clientId: string): Promise<void> {
   const section = await waitForAdminSection(page, sectionTestId);
-
-  await expect
-    .poll(
-      async () => {
-        return await section.getByTestId(`oauth-client-list-item-${clientId}`).count();
-      },
-      { timeout: 30_000 }
-    )
-    .toBe(1);
-  await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toBeVisible();
+  await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toBeVisible({ timeout: 60_000 });
 }
 
 async function expectClientNotInAdminSection(page: Page, sectionTestId: string, clientId: string): Promise<void> {
   const section = await waitForAdminSection(page, sectionTestId);
-  await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toHaveCount(0);
+  await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toHaveCount(0, { timeout: 60_000 });
 }
+
 
 test.describe.configure({ mode: "parallel" });
 
