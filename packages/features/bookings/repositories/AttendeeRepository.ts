@@ -62,7 +62,10 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async updateNoShow(attendeeId: number, noShow: boolean): Promise<{ noShow: boolean | null; email: string }> {
+  async updateNoShow(
+    attendeeId: number,
+    noShow: boolean
+  ): Promise<{ noShow: boolean | null; email: string }> {
     return this.prismaClient.attendee.update({
       where: { id: attendeeId },
       data: { noShow },
@@ -70,9 +73,14 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async findByBookingId(
-    bookingId: number
-  ): Promise<{ id: number; email: string; noShow: boolean | null }[]> {
+  async findByIdWithNoShow(id: number): Promise<{ id: number; noShow: boolean | null } | null> {
+    return this.prismaClient.attendee.findUnique({
+      where: { id },
+      select: { id: true, noShow: true },
+    });
+  }
+
+  async findByBookingId(bookingId: number): Promise<{ id: number; email: string; noShow: boolean | null }[]> {
     return this.prismaClient.attendee.findMany({
       where: { bookingId },
       select: { id: true, email: true, noShow: true },

@@ -1,6 +1,8 @@
 import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -9,6 +11,9 @@ import type { Booking } from "./common";
 import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
 
 const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTheCall: Host[]) => {
+  const bookingRepository = new BookingRepository(prisma);
+  const attendeeRepository = new AttendeeRepository(prisma);
+
   try {
     let noShowHost = booking.noShowHost;
     const noShowHostAudit: { old: boolean | null; new: boolean | null } = {
@@ -27,38 +32,24 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
         if (booking?.user?.id === host.id) {
           noShowHost = true;
           noShowHostAudit.new = noShowHost;
-          return prisma.booking.update({
-            where: {
-              uid: booking.uid,
-            },
-            data: {
-              noShowHost: true,
-            },
-          });
+          return bookingRepository.updateNoShowHost(booking.uid, true);
         }
         // If there are more than one host then it is stored in attendees table
         else if (booking.attendees?.some((attendee) => attendee.email === host.email)) {
-          const attendee = await prisma.attendee.findUnique({
-            where: {
-              id: host.id,
-            },
-          });
+          const attendee = await attendeeRepository.findByIdWithNoShow(host.id);
           if (!attendee) {
             log.error("Attendee not found for host", safeStringify(host));
             throw new Error("Attendee not found for host");
           }
-          const currentAttendeeNoShow = attendee?.noShow;
+          const currentAttendeeNoShow = attendee.noShow;
 
-          await prisma.attendee.update({
-            where: { id: attendee.id },
-            data: { noShow: true },
-          });
+          await attendeeRepository.updateNoShow(attendee.id, true);
           attendeesNoShowHostMap.set(attendee.id, { old: currentAttendeeNoShow ?? null, new: true });
         }
         return Promise.resolve();
       })
     );
-    const updatedAttendees = await prisma.attendee.findMany({ where: { bookingId: booking.id } });
+    const updatedAttendees = await attendeeRepository.findByBookingIdWithDetails(booking.id);
 
     try {
       const orgId = await getOrgIdFromMemberOrTeamId({
