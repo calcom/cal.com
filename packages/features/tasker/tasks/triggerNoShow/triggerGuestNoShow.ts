@@ -1,6 +1,7 @@
 import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -29,40 +30,32 @@ const markGuestAsNoshowInBooking = async ({
   updatedAttendees: UpdatedAttendee[] | null;
   attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[];
 }> => {
+  const attendeeRepository = new AttendeeRepository(prisma);
+
   try {
-    const attendeesBefore = await prisma.attendee.findMany({
-      where: { bookingId },
-      select: { id: true, email: true, noShow: true },
-    });
+    // Get attendees before update to capture previous noShow values
+    const attendeesBefore = await attendeeRepository.findByBookingId(bookingId);
     const attendeesBeforeMap = new Map(attendeesBefore.map((a) => [a.email, a]));
 
     let updateAttendeeEmails: string[];
     if (guestsThatDidntJoinTheCall && guestsThatDidntJoinTheCall.length > 0) {
       const emailsToUpdate = guestsThatDidntJoinTheCall.map((g) => g.email);
-      await prisma.attendee.updateMany({
-        where: {
-          bookingId,
-          email: { in: emailsToUpdate },
-        },
-        data: { noShow: true },
-      });
+      await attendeeRepository.updateManyNoShowByBookingIdAndEmails(bookingId, emailsToUpdate, true);
       updateAttendeeEmails = emailsToUpdate;
     } else {
       const hostsThatJoinedTheCallEmails = hostsThatJoinedTheCall.map((h) => h.email);
-      await prisma.attendee.updateMany({
-        where: {
-          bookingId,
-          email: { notIn: hostsThatJoinedTheCallEmails },
-        },
-        data: { noShow: true },
-      });
+      await attendeeRepository.updateManyNoShowByBookingIdExcludingEmails(
+        bookingId,
+        hostsThatJoinedTheCallEmails,
+        true
+      );
       // TODO: It is possible that by the time the updateMany query runs, there were more attendees added, though it would be a rare/unexpected thing because triggerGuestNoShow is called after the meeting has ended, and after that time attendees aren't updated
       updateAttendeeEmails = attendeesBefore
         .filter((a) => !hostsThatJoinedTheCallEmails.includes(a.email))
         .map((a) => a.email);
     }
 
-    const updatedAttendees = await prisma.attendee.findMany({ where: { bookingId } });
+    const updatedAttendees = await attendeeRepository.findByBookingIdWithDetails(bookingId);
 
     const attendeesMarkedNoShow = updateAttendeeEmails
       .map((email) => {
