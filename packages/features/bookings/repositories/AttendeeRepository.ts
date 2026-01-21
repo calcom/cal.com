@@ -62,7 +62,7 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async updateNoShow(attendeeId: number, noShow: boolean): Promise<{ noShow: boolean; email: string }> {
+  async updateNoShow(attendeeId: number, noShow: boolean): Promise<{ noShow: boolean | null; email: string }> {
     return this.prismaClient.attendee.update({
       where: { id: attendeeId },
       data: { noShow },
