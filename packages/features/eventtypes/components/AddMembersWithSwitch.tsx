@@ -1,4 +1,3 @@
-import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type {
   FormValues,
@@ -10,10 +9,9 @@ import { Segment } from "@calcom/features/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
-import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from "react";
+import { type ComponentProps, type Dispatch, type SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
-import { AddMembersWithSwitchWebWrapper } from "@calcom/web/modules/event-types/components/AddMembersWithSwitchWebWrapper";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
@@ -348,25 +346,3 @@ export function AddMembersWithSwitch({
       );
   }
 }
-
-const AddMembersWithSwitchWrapper = ({
-  containerClassName,
-  ...props
-}: AddMembersWithSwitchProps & {
-  containerClassName?: string;
-}) => {
-  const isPlatform = useIsPlatform();
-  const AddMembersWithSwitchWrapped = useMemo(
-    () => (isPlatform ? AddMembersWithSwitchPlatformWrapper : AddMembersWithSwitchWebWrapper),
-    [isPlatform]
-  );
-  return (
-    <div className="rounded-md">
-      <div className={`flex flex-col rounded-md pb-2 pt-6 ${containerClassName}`}>
-        <AddMembersWithSwitchWrapped {...props} />
-      </div>
-    </div>
-  );
-};
-
-export default AddMembersWithSwitchWrapper;
