@@ -1494,7 +1494,7 @@ model WorkflowStep {
   inboundAgentId String? @unique
   inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
-  autoTranslateEnabled Boolean                     @default(false)
+  autoTranslateEnabled Boolean                   @default(false)
   sourceLocale         String?
   translations         WorkflowStepTranslation[]
 
@@ -2411,7 +2411,6 @@ model WorkflowStepTranslation {
   updatedAt      DateTime                        @updatedAt
 
   @@unique([workflowStepId, field, targetLocale])
-  @@index([workflowStepId, field, targetLocale])
 }
 
 enum WatchlistType {

@@ -20,9 +20,6 @@ CREATE TABLE "public"."WorkflowStepTranslation" (
 );
 
 -- CreateIndex
-CREATE INDEX "WorkflowStepTranslation_workflowStepId_field_targetLocale_idx" ON "public"."WorkflowStepTranslation"("workflowStepId", "field", "targetLocale");
-
--- CreateIndex
 CREATE UNIQUE INDEX "WorkflowStepTranslation_workflowStepId_field_targetLocale_key" ON "public"."WorkflowStepTranslation"("workflowStepId", "field", "targetLocale");
 
 -- AddForeignKey
