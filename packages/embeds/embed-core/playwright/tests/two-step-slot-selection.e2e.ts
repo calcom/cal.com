@@ -59,6 +59,14 @@ test.describe("Two Step Slot Selection", () => {
     // Wait for modal to open
     await expect(embedIframe.locator(".two-step-slot-selection-modal-header")).toBeVisible();
 
+    // Wait for time slots to be visible in the modal
+    await embedIframe.waitForSelector('[data-testid="time"]');
+
+    // Wait for the async skipConfirmStep validation to complete
+    // The useSkipConfirmStep hook runs an async schema validation when bookerState becomes "selecting_time"
+    // We need to give it time to validate the prefilled form data
+    await embedIframe.waitForTimeout(1000);
+
     // Click on a time slot - this should show the confirm button since form is prefilled
     await embedIframe.locator('[data-testid="time"]').first().click();
 
