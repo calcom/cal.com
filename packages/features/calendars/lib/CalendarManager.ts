@@ -83,9 +83,13 @@ export const getConnectedCalendars = async (
           };
         }
         const cals = await calendarInstance.listCalendars();
+        let foundDestinationCalendarInThisCredential = false;
         const calendars = sortBy(
           cals.map((cal: IntegrationCalendar) => {
-            if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
+            if (!destinationCalendar && cal.externalId === destinationCalendarExternalId) {
+              destinationCalendar = cal;
+              foundDestinationCalendarInThisCredential = true;
+            }
             return {
               ...cal,
               readOnly: cal.readOnly || false,
@@ -107,11 +111,9 @@ export const getConnectedCalendars = async (
             },
           };
         }
-        // HACK https://github.com/calcom/cal.com/pull/7644/files#r1131508414
-        if (destinationCalendar && !Object.isFrozen(destinationCalendar)) {
+        if (foundDestinationCalendarInThisCredential && destinationCalendar) {
           destinationCalendar.primaryEmail = primary.email;
           destinationCalendar.integrationTitle = integration.title;
-          destinationCalendar = Object.freeze(destinationCalendar);
         }
 
         return {
