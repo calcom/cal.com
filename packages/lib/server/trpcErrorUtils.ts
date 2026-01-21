@@ -37,7 +37,9 @@ export function isTRPCErrorLike(err: unknown): err is TRPCErrorLike {
     "name" in err &&
     err.name === "TRPCError" &&
     "code" in err &&
-    typeof (err as TRPCErrorLike).code === "string"
+    typeof (err as TRPCErrorLike).code === "string" &&
+    "message" in err &&
+    typeof (err as TRPCErrorLike).message === "string"
   );
 }
 
