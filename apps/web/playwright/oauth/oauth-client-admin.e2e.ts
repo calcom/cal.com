@@ -1,7 +1,5 @@
-import { expect, type Page } from "@playwright/test";
-
 import type { PrismaClient } from "@calcom/prisma";
-
+import { expect, type Page } from "@playwright/test";
 import { test } from "../lib/fixtures";
 import {
   closeOAuthClientDetails,
@@ -33,16 +31,45 @@ async function waitForAdminSection(page: Page, sectionTestId: string) {
   return section;
 }
 
-async function expectClientInAdminSection(page: Page, sectionTestId: string, clientId: string): Promise<void> {
+async function navigateToAdminOAuthPage(page: Page): Promise<void> {
+  await page.goto("/settings/admin/oauth");
+
+  const listClientsPromise = page.waitForResponse(
+    (res) => res.url().includes("/api/trpc") && res.url().includes("listClients"),
+    { timeout: 30_000 }
+  );
+
+  await page.waitForLoadState("networkidle");
+
+  try {
+    await listClientsPromise;
+  } catch {
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await page.waitForResponse(
+      (res) => res.url().includes("/api/trpc") && res.url().includes("listClients"),
+      { timeout: 30_000 }
+    );
+  }
+}
+
+async function expectClientInAdminSection(
+  page: Page,
+  sectionTestId: string,
+  clientId: string
+): Promise<void> {
   const section = await waitForAdminSection(page, sectionTestId);
   await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toBeVisible({ timeout: 60_000 });
 }
 
-async function expectClientNotInAdminSection(page: Page, sectionTestId: string, clientId: string): Promise<void> {
+async function expectClientNotInAdminSection(
+  page: Page,
+  sectionTestId: string,
+  clientId: string
+): Promise<void> {
   const section = await waitForAdminSection(page, sectionTestId);
   await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toHaveCount(0, { timeout: 60_000 });
 }
-
 
 test.describe.configure({ mode: "parallel" });
 
@@ -61,7 +88,11 @@ test.describe("OAuth clients admin", () => {
     await users.deleteAll();
   });
 
-  test("can manage pending/approved/rejected clients and can create approved clients as admin", async ({ page, prisma, users }, testInfo) => {
+  test("can manage pending/approved/rejected clients and can create approved clients as admin", async ({
+    page,
+    prisma,
+    users,
+  }, testInfo) => {
     const adminUser = await users.create({ role: "ADMIN" });
     await adminUser.apiLogin();
 
@@ -76,17 +107,16 @@ test.describe("OAuth clients admin", () => {
     });
 
     page.on("response", async (res) => {
-  const url = res.url();
-  if (url.includes("/api/trpc") && url.toLowerCase().includes("oauth")) {
-    console.log("oauth trpc:", res.status(), url);
-    if (res.status() >= 400) {
-      console.log(await res.text());
-    }
-  }
-});
+      const url = res.url();
+      if (url.includes("/api/trpc") && url.toLowerCase().includes("oauth")) {
+        console.log("oauth trpc:", res.status(), url);
+        if (res.status() >= 400) {
+          console.log(await res.text());
+        }
+      }
+    });
 
-    await page.goto("/settings/admin/oauth");
-    await page.waitForLoadState();
+    await navigateToAdminOAuthPage(page);
 
     const pending1Name = `${testPrefix}pending-1-${Date.now()}`;
     const pending2Name = `${testPrefix}pending-2-${Date.now()}`;
@@ -96,8 +126,7 @@ test.describe("OAuth clients admin", () => {
     const toBeRejected = await createPendingOAuthClient(page, makeClientInput(pending2Name));
     const staysPending = await createPendingOAuthClient(page, makeClientInput(pending3Name));
 
-    await page.goto("/settings/admin/oauth");
-    await page.waitForLoadState();
+    await navigateToAdminOAuthPage(page);
 
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeApproved.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
