@@ -77,7 +77,10 @@ ${organizer + attendees + teamMembers.join("")}
   `;
 };
 
-export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
+export const getAdditionalNotes = (
+  calEvent: Pick<CalendarEvent, "additionalNotes" | "bookingFields">,
+  t: TFunction
+) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
