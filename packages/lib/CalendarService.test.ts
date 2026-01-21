@@ -110,9 +110,10 @@ describe("BaseCalendarService - CalDAV Duplicate Invitation Fix", () => {
       // Verify METHOD:PUBLISH is removed
       expect(iCalString).not.toContain("METHOD:PUBLISH");
 
-      // Verify SCHEDULE-AGENT=CLIENT is injected
-      expect(iCalString).toContain("ORGANIZER;SCHEDULE-AGENT=CLIENT;CN=Test");
-      expect(iCalString).toContain("ATTENDEE;SCHEDULE-AGENT=CLIENT;CN=Guest");
+      // Verify SCHEDULE-AGENT=CLIENT is injected (parameter order may vary)
+      const unfolded = iCalString.replace(/\r?\n[ \t]/g, "");
+      expect(unfolded).toContain("ORGANIZER;CN=Test;SCHEDULE-AGENT=CLIENT");
+      expect(unfolded).toContain("ATTENDEE;CN=Guest;SCHEDULE-AGENT=CLIENT");
     });
 
     it("should handle properties without existing parameters", async () => {
@@ -169,8 +170,8 @@ describe("BaseCalendarService - CalDAV Duplicate Invitation Fix", () => {
       const organizerMatches = iCalString.match(/ORGANIZER;SCHEDULE-AGENT=CLIENT/g);
       expect(organizerMatches).toHaveLength(1);
 
-      // Attendee should still get SCHEDULE-AGENT injected
-      expect(iCalString).toContain("ATTENDEE;SCHEDULE-AGENT=CLIENT;CN=Guest");
+      // Attendee should still get SCHEDULE-AGENT injected (parameter order may vary)
+      expect(iCalString).toContain("ATTENDEE;CN=Guest;SCHEDULE-AGENT=CLIENT");
     });
 
     it("should handle mixed line endings (CRLF and LF)", async () => {
@@ -362,7 +363,8 @@ describe("BaseCalendarService - CalDAV Duplicate Invitation Fix", () => {
       const data = calledArg.calendarObject.data;
 
       expect(data).not.toContain("METHOD:PUBLISH");
-      expect(data).toContain("ORGANIZER;SCHEDULE-AGENT=CLIENT;CN=Test");
+      // Parameter order may vary - SCHEDULE-AGENT is inserted before the colon
+      expect(data).toContain("ORGANIZER;CN=Test;SCHEDULE-AGENT=CLIENT");
     });
   });
 
@@ -420,8 +422,10 @@ describe("BaseCalendarService - CalDAV Duplicate Invitation Fix", () => {
       const iCalString = calledArg.iCalString;
 
       // Should unfold the line, inject SCHEDULE-AGENT, and potentially refold
-      expect(iCalString).toContain("SCHEDULE-AGENT=CLIENT");
-      expect(iCalString).toContain("Very Long Name That Could Be Folded");
+      // Unfold the result to check content since line folding may split the parameter
+      const unfolded = iCalString.replace(/\r?\n[ \t]/g, "");
+      expect(unfolded).toContain("SCHEDULE-AGENT=CLIENT");
+      expect(unfolded).toContain("Very Long Name That Could Be Folded");
     });
 
     it("should fold lines longer than 75 octets", async () => {
@@ -485,9 +489,11 @@ describe("BaseCalendarService - CalDAV Duplicate Invitation Fix", () => {
       const iCalString = calledArg.iCalString;
 
       // Should properly unfold, inject SCHEDULE-AGENT, and maintain other parameters
-      expect(iCalString).toContain("SCHEDULE-AGENT=CLIENT");
-      expect(iCalString).toContain("RSVP=TRUE");
-      expect(iCalString).toContain("PARTSTAT=NEEDS-ACTION");
+      // Unfold the result to check content since line folding may split the parameter
+      const unfolded = iCalString.replace(/\r?\n[ \t]/g, "");
+      expect(unfolded).toContain("SCHEDULE-AGENT=CLIENT");
+      expect(unfolded).toContain("RSVP=TRUE");
+      expect(unfolded).toContain("PARTSTAT=NEEDS-ACTION");
     });
 
     it("should handle non-ASCII characters and fold by UTF-8 byte count, not character count", async () => {
