@@ -2,6 +2,7 @@ const base = require("@calcom/config/tailwind-preset");
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   ...base,
+  darkMode: "class",
   content: [
     ...base.content,
     "../../packages/app-store/routing-forms/**/*.{js,ts,jsx,tsx}",

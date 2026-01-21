@@ -131,7 +131,7 @@ export const WorkflowStatusDialog = ({
       )}
 
       {workflows.length === 0 ? (
-        <div className="py-8 text-center text-sm text-gray-500">{t("no_reminders")}</div>
+        <div className="py-8 text-center text-sm text-gray-500">{t("no_workflows")}</div>
       ) : (
         workflows.map((workflow: any) => (
           <div key={workflow.workflowId} className="border-subtle rounded-md border p-3">
@@ -150,7 +150,7 @@ export const WorkflowStatusDialog = ({
                 return (
                   <div
                     key={stepIndex}
-                    className="flex items-center justify-between rounded-md bg-gray-50 p-2">
+                    className="flex items-center justify-between rounded-md bg-gray-50 p-2 dark:bg-[hsla(220,2%,26%,0.3)]">
                     <div className="flex items-center gap-2">
                       <Icon name={getChannelIcon(step.channel)} className="text-muted h-3.5 w-3.5" />
                       <span className="text-default text-xs">{step.stepName}</span>
@@ -215,7 +215,7 @@ export const WorkflowStatusDialog = ({
                     <span className="text-default text-sm font-medium">{attendeeInsight.attendeeEmail}</span>
                     {!hasWorkflows && (
                       <Badge variant="gray" size="sm">
-                        {t("no_reminders")}
+                        {t("no_workflows")}
                       </Badge>
                     )}
                   </div>

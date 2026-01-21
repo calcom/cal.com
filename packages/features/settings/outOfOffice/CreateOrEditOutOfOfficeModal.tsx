@@ -353,7 +353,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               <p className="text-emphasis block text-sm font-medium">{t("notes")}</p>
               <TextArea
                 data-testid="notes_input"
-                className="border-subtle mt-1 h-10 w-full rounded-lg border px-2"
+                className="mt-1 h-10 w-full rounded-lg border px-2"
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {
