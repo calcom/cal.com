@@ -52,6 +52,7 @@
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
       "!!packages/prisma/enums",
+      "!!apps/api/v2/client",
       "!!*.lock",
       "!!*.log",
       "!!.gitignore",
