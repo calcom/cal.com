@@ -505,6 +505,226 @@ describe("Teams Memberships Endpoints", () => {
         .expect(400);
     });
 
+    // Auto-accept tests for sub-teams of organizations
+    describe("auto-accept based on email domain for org sub-teams", () => {
+      let orgWithAutoAccept: Team;
+      let subteamWithAutoAccept: Team;
+      let subteamEventType: EventType;
+      let userWithMatchingEmail: User;
+      let userWithUppercaseEmail: User;
+      let userWithMatchingEmailForOverride: User;
+      let userWithNonMatchingEmail: User;
+
+      beforeAll(async () => {
+        // Create org with auto-accept settings
+        orgWithAutoAccept = await teamsRepositoryFixture.create({
+          name: `auto-accept-org-${randomString()}`,
+          isOrganization: true,
+        });
+
+        // Create organization settings with orgAutoAcceptEmail
+        await teamsRepositoryFixture.createOrgSettings(orgWithAutoAccept.id, {
+          orgAutoAcceptEmail: "acme.com",
+          isOrganizationVerified: true,
+          isOrganizationConfigured: true,
+          isAdminAPIEnabled: true,
+        });
+
+        // Create subteam
+        subteamWithAutoAccept = await teamsRepositoryFixture.create({
+          name: `auto-accept-subteam-${randomString()}`,
+          isOrganization: false,
+          parent: { connect: { id: orgWithAutoAccept.id } },
+        });
+
+        // Create event type with assignAllTeamMembers
+        subteamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+          schedulingType: "COLLECTIVE",
+          team: { connect: { id: subteamWithAutoAccept.id } },
+          title: "Auto Accept Event Type",
+          slug: "auto-accept-event-type",
+          length: 30,
+          assignAllTeamMembers: true,
+          bookingFields: [],
+          locations: [],
+        });
+
+        // Create users with different email domains
+        userWithMatchingEmail = await userRepositoryFixture.create({
+          email: `alice-${randomString()}@acme.com`,
+          username: `alice-${randomString()}`,
+        });
+
+        userWithUppercaseEmail = await userRepositoryFixture.create({
+          email: `bob-${randomString()}@ACME.COM`,
+          username: `bob-${randomString()}`,
+        });
+
+        userWithMatchingEmailForOverride = await userRepositoryFixture.create({
+          email: `david-${randomString()}@acme.com`,
+          username: `david-${randomString()}`,
+        });
+
+        userWithNonMatchingEmail = await userRepositoryFixture.create({
+          email: `charlie-${randomString()}@external.com`,
+          username: `charlie-${randomString()}`,
+        });
+
+        // Add users to org
+        await membershipsRepositoryFixture.create({
+          role: "MEMBER",
+          accepted: true,
+          user: { connect: { id: userWithMatchingEmail.id } },
+          team: { connect: { id: orgWithAutoAccept.id } },
+        });
+
+        await membershipsRepositoryFixture.create({
+          role: "MEMBER",
+          accepted: true,
+          user: { connect: { id: userWithUppercaseEmail.id } },
+          team: { connect: { id: orgWithAutoAccept.id } },
+        });
+
+        await membershipsRepositoryFixture.create({
+          role: "MEMBER",
+          accepted: true,
+          user: { connect: { id: userWithMatchingEmailForOverride.id } },
+          team: { connect: { id: orgWithAutoAccept.id } },
+        });
+
+        await membershipsRepositoryFixture.create({
+          role: "MEMBER",
+          accepted: true,
+          user: { connect: { id: userWithNonMatchingEmail.id } },
+          team: { connect: { id: orgWithAutoAccept.id } },
+        });
+
+        // Create profiles for users
+        await profileRepositoryFixture.create({
+          uid: `usr-${userWithMatchingEmail.id}`,
+          username: userWithMatchingEmail.username || `user-${userWithMatchingEmail.id}`,
+          organization: { connect: { id: orgWithAutoAccept.id } },
+          user: { connect: { id: userWithMatchingEmail.id } },
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-${userWithUppercaseEmail.id}`,
+          username: userWithUppercaseEmail.username || `user-${userWithUppercaseEmail.id}`,
+          organization: { connect: { id: orgWithAutoAccept.id } },
+          user: { connect: { id: userWithUppercaseEmail.id } },
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-${userWithMatchingEmailForOverride.id}`,
+          username:
+            userWithMatchingEmailForOverride.username || `user-${userWithMatchingEmailForOverride.id}`,
+          organization: { connect: { id: orgWithAutoAccept.id } },
+          user: { connect: { id: userWithMatchingEmailForOverride.id } },
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-${userWithNonMatchingEmail.id}`,
+          username: userWithNonMatchingEmail.username || `user-${userWithNonMatchingEmail.id}`,
+          organization: { connect: { id: orgWithAutoAccept.id } },
+          user: { connect: { id: userWithNonMatchingEmail.id } },
+        });
+
+        // Make teamAdmin an admin of the org and subteam for API access
+        await membershipsRepositoryFixture.create({
+          role: "ADMIN",
+          accepted: true,
+          user: { connect: { id: teamAdmin.id } },
+          team: { connect: { id: orgWithAutoAccept.id } },
+        });
+
+        await membershipsRepositoryFixture.create({
+          role: "ADMIN",
+          accepted: true,
+          user: { connect: { id: teamAdmin.id } },
+          team: { connect: { id: subteamWithAutoAccept.id } },
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-org-${teamAdmin.id}`,
+          username: teamAdmin.username || `admin-${teamAdmin.id}`,
+          organization: { connect: { id: orgWithAutoAccept.id } },
+          user: { connect: { id: teamAdmin.id } },
+        });
+      });
+
+      it("should auto-accept when email matches orgAutoAcceptEmail for sub-team", async () => {
+        const response = await request(app.getHttpServer())
+          .post(`/v2/teams/${subteamWithAutoAccept.id}/memberships`)
+          .send({
+            userId: userWithMatchingEmail.id,
+            role: "MEMBER",
+          } satisfies CreateTeamMembershipInput)
+          .expect(201);
+
+        const responseBody: CreateTeamMembershipOutput = response.body;
+        expect(responseBody.data.accepted).toBe(true);
+
+        // Verify EventTypes assignment
+        const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(subteamWithAutoAccept.id);
+        const eventTypeWithAssignAll = eventTypes.find((et) => et.assignAllTeamMembers);
+        expect(eventTypeWithAssignAll).toBeTruthy();
+        const userIsHost = eventTypeWithAssignAll?.hosts.some((h) => h.userId === userWithMatchingEmail.id);
+        expect(userIsHost).toBe(true);
+      });
+
+      it("should handle case-insensitive email domain matching for sub-team", async () => {
+        // User with email="bob@ACME.COM" should match orgAutoAcceptEmail="acme.com"
+        const response = await request(app.getHttpServer())
+          .post(`/v2/teams/${subteamWithAutoAccept.id}/memberships`)
+          .send({
+            userId: userWithUppercaseEmail.id,
+            role: "MEMBER",
+          } satisfies CreateTeamMembershipInput)
+          .expect(201);
+
+        const responseBody: CreateTeamMembershipOutput = response.body;
+        expect(responseBody.data.accepted).toBe(true);
+      });
+
+      it("should ALWAYS auto-accept when email matches, even if accepted:false for sub-team", async () => {
+        const response = await request(app.getHttpServer())
+          .post(`/v2/teams/${subteamWithAutoAccept.id}/memberships`)
+          .send({
+            userId: userWithMatchingEmailForOverride.id,
+            role: "MEMBER",
+            accepted: false,
+          } satisfies CreateTeamMembershipInput)
+          .expect(201);
+
+        const responseBody: CreateTeamMembershipOutput = response.body;
+        // Should override to true because email matches
+        expect(responseBody.data.accepted).toBe(true);
+      });
+
+      it("should NOT auto-accept when email does not match orgAutoAcceptEmail for sub-team", async () => {
+        const response = await request(app.getHttpServer())
+          .post(`/v2/teams/${subteamWithAutoAccept.id}/memberships`)
+          .send({
+            userId: userWithNonMatchingEmail.id,
+            role: "MEMBER",
+          } satisfies CreateTeamMembershipInput)
+          .expect(201);
+
+        const responseBody: CreateTeamMembershipOutput = response.body;
+        expect(responseBody.data.accepted).toBe(false);
+      });
+
+      afterAll(async () => {
+        await userRepositoryFixture.deleteByEmail(userWithMatchingEmail.email);
+        await userRepositoryFixture.deleteByEmail(userWithUppercaseEmail.email);
+        await userRepositoryFixture.deleteByEmail(userWithMatchingEmailForOverride.email);
+        await userRepositoryFixture.deleteByEmail(userWithNonMatchingEmail.email);
+        await teamsRepositoryFixture.deleteOrgSettings(orgWithAutoAccept.id);
+        await teamsRepositoryFixture.delete(subteamWithAutoAccept.id);
+        await teamsRepositoryFixture.delete(orgWithAutoAccept.id);
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(teamAdmin.email);
       await userRepositoryFixture.deleteByEmail(teammateInvitedViaApi.email);
