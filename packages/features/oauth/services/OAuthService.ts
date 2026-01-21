@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import jwt from "jsonwebtoken";
 
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
