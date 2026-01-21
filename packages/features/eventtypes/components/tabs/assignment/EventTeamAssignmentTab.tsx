@@ -425,10 +425,8 @@ const RoundRobinHosts = ({
 
   const AddMembersWithSwitchComponent = ({
     groupId,
-    containerClassName,
   }: {
     groupId: string | null;
-    containerClassName?: string;
   }) => {
     return (
       <AddMembersWithSwitch
@@ -444,7 +442,6 @@ const RoundRobinHosts = ({
         isRRWeightsEnabled={isRRWeightsEnabled}
         isFixed={false}
         groupId={groupId}
-        containerClassName={containerClassName || (assignAllTeamMembers ? "-mt-4" : "")}
         onActive={() => handleMembersActivation(groupId)}
         customClassNames={customClassNames?.addMembers}
       />
