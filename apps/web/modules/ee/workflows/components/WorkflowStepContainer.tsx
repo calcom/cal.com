@@ -297,8 +297,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps): JSX.Ele
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ATTENDEE ||
-      step?.action === WorkflowActions.EMAIL_HOST ||
-      step?.action === WorkflowActions.EMAIL_ADDRESS
+    step?.action === WorkflowActions.EMAIL_HOST ||
+    step?.action === WorkflowActions.EMAIL_ADDRESS
   );
 
   const trigger = useWatch({
@@ -594,11 +594,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps): JSX.Ele
                             step.template === WorkflowTemplates.CUSTOM
                               ? step
                               : {
-                                  ...step,
-                                  reminderBody: " ",
-                                  emailSubject: " ",
-                                  template: WorkflowTemplates.CUSTOM,
-                                }
+                                ...step,
+                                reminderBody: " ",
+                                emailSubject: " ",
+                                template: WorkflowTemplates.CUSTOM,
+                              }
                           );
                           form.setValue("steps", updatedSteps);
                           setUpdateTemplate(!updateTemplate);
@@ -1345,7 +1345,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps): JSX.Ele
                       )}>
                       {t("email_subject")}
                     </Label>
-                    {!props.readOnly && !isFormTrigger(trigger) && (
+                    {!props.readOnly && !isFormTrigger(trigger) && (hasPaidPlan || isSMSAction(step.action)) && (
                       <div className="grow text-right">
                         <AddVariablesDropdown
                           addVariable={addVariableEmailSubject}
@@ -1360,7 +1360,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps): JSX.Ele
                       refEmailSubject.current = e;
                     }}
                     rows={2}
-                    disabled={props.readOnly || (!hasActiveTeamPlan && !isEmailAction(step.action))}
+                    disabled={props.readOnly || (!hasPaidPlan && !isSMSAction(step.action))}
                     className="my-0 focus:ring-transparent"
                     required
                     {...restEmailSubjectForm}
@@ -1392,7 +1392,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps): JSX.Ele
                 editable={
                   !props.readOnly &&
                   !isWhatsappAction(step.action) &&
-                  (hasActiveTeamPlan || isSMSAction(step.action) || isEmailAction(step.action))
+                  (hasPaidPlan || isSMSAction(step.action))
                 }
                 excludedToolbarItems={
                   isSMSAction(step.action)
@@ -1671,22 +1671,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps): JSX.Ele
                   subscriptionStatus: phone.subscriptionStatus ?? undefined,
                 }))
               ).length > 0 && (
-                <div className="rounded-lg bg-cal-muted p-3">
-                  <div className="flex items-center gap-2">
-                    <Icon name="phone" className="h-4 w-4 text-emphasis" />
-                    <span className="font-medium text-emphasis text-sm">
-                      {formatPhoneNumber(
-                        getActivePhoneNumbers(
-                          agentData?.outboundPhoneNumbers?.map((phone) => ({
-                            ...phone,
-                            subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                          }))
-                        )?.[0]?.phoneNumber
-                      )}
-                    </span>
+                  <div className="rounded-lg bg-cal-muted p-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="phone" className="h-4 w-4 text-emphasis" />
+                      <span className="font-medium text-emphasis text-sm">
+                        {formatPhoneNumber(
+                          getActivePhoneNumbers(
+                            agentData?.outboundPhoneNumbers?.map((phone) => ({
+                              ...phone,
+                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                            }))
+                          )?.[0]?.phoneNumber
+                        )}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               <p className="text-sm text-subtle">{t("the_action_will_disconnect_phone_number")}</p>
             </div>
             <DialogFooter showDivider>
