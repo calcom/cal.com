@@ -15,7 +15,10 @@ const useSkipConfirmStep = (
   bookingFields?: BookerEvent["bookingFields"],
   locations?: BookerEvent["locations"]
 ) => {
-  const bookingFormValues = bookingForm.getValues();
+  // Use watch() instead of getValues() to ensure re-renders when form values change
+  // getValues() doesn't trigger re-renders, so the effect wouldn't re-run when
+  // prefilled values are loaded asynchronously
+  const bookingFormValues = bookingForm.watch();
 
   const [canSkip, setCanSkip] = useState(false);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
