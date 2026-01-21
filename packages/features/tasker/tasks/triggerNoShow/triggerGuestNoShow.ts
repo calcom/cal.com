@@ -1,11 +1,14 @@
-import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
+import {
+  calculateMaxStartTime,
+  fireNoShowUpdatedEvent,
+  log,
+  prepareNoShowTrigger,
+  sendWebhookPayload,
+} from "./common";
 
 type UpdatedAttendee = {
   id: number;
@@ -79,46 +82,9 @@ const markGuestAsNoshowInBooking = async ({
   }
 };
 
-const fireNoShowUpdated = async (
-  booking: {
-    id: number;
-    uid: string;
-    user?: { id: number } | null;
-    eventType?: { teamId?: number | null } | null;
-  },
-  attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[]
-): Promise<void> => {
-  try {
-    const orgId = await getOrgIdFromMemberOrTeamId({
-      memberId: booking.user?.id,
-      // We don't care about user events here, so managed event child aren't considered
-      teamId: booking.eventType?.teamId,
-    });
-
-    const attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> = {};
-    for (const attendee of attendeesMarkedNoShow) {
-      attendeesNoShow[attendee.id] = { old: attendee.previousNoShow, new: attendee.noShow };
-    }
-
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onNoShowUpdated({
-      bookingUid: booking.uid,
-      actor: makeSystemActor(),
-      organizationId: orgId ?? null,
-      source: "SYSTEM",
-      auditData: {
-        attendeesNoShow,
-      },
-    });
-  } catch (error) {
-    log.error("Error logging audit for automatic guest no-show", error);
-  }
-};
-
 export async function triggerGuestNoShow(payload: string): Promise<void> {
   const result = await prepareNoShowTrigger(payload);
   if (!result) return;
-
   const {
     webhook,
     booking,
@@ -144,9 +110,10 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         guestsThatDidntJoinTheCall,
       });
 
-      if (attendeesMarkedNoShow.length > 0) {
-        await fireNoShowUpdated(booking, attendeesMarkedNoShow);
-      }
+      const attendeesNoShowAudit = new Map(
+        attendeesMarkedNoShow.map((a) => [a.id, { old: a.previousNoShow, new: a.noShow }])
+      );
+      await fireNoShowUpdatedEvent({ booking, attendeesNoShowAudit });
 
       const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
       const bookingWithUpdatedData = updatedAttendees
@@ -169,9 +136,10 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         hostsThatJoinedTheCall,
       });
 
-      if (attendeesMarkedNoShow.length > 0) {
-        await fireNoShowUpdated(booking, attendeesMarkedNoShow);
-      }
+      const attendeesNoShowAudit = new Map(
+        attendeesMarkedNoShow.map((a) => [a.id, { old: a.previousNoShow, new: a.noShow }])
+      );
+      await fireNoShowUpdatedEvent({ booking, attendeesNoShowAudit });
 
       const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
 
@@ -187,10 +155,6 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         participants,
         originalRescheduledBooking
       );
-
-      if (attendeesMarkedNoShow.length > 0) {
-        await fireNoShowUpdated(booking, attendeesMarkedNoShow);
-      }
     }
   }
 }

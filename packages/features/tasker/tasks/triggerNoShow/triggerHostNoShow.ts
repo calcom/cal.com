@@ -1,26 +1,33 @@
-import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { Booking } from "./common";
-import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
+import {
+  calculateMaxStartTime,
+  fireNoShowUpdatedEvent,
+  log,
+  prepareNoShowTrigger,
+  sendWebhookPayload,
+} from "./common";
 
 const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTheCall: Host[]) => {
   const bookingRepository = new BookingRepository(prisma);
   const attendeeRepository = new AttendeeRepository(prisma);
 
   try {
+    if (hostsThatDidntJoinTheCall.length === 0) {
+      return null;
+    }
+
     let noShowHost = booking.noShowHost;
     const noShowHostAudit: { old: boolean | null; new: boolean | null } = {
       old: booking.noShowHost,
       new: null,
     };
-    const attendeesNoShowHostMap = new Map<
+    const attendeesNoShowAudit = new Map<
       number,
       {
         old: boolean | null;
@@ -44,36 +51,18 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
           const currentAttendeeNoShow = attendee.noShow;
 
           await attendeeRepository.updateNoShow({ attendeeId: attendee.id, noShow: true });
-          attendeesNoShowHostMap.set(attendee.id, { old: currentAttendeeNoShow ?? null, new: true });
+          attendeesNoShowAudit.set(attendee.id, { old: currentAttendeeNoShow ?? null, new: true });
         }
         return Promise.resolve();
       })
     );
     const updatedAttendees = await attendeeRepository.findByBookingIdWithDetails(booking.id);
 
-    try {
-      const orgId = await getOrgIdFromMemberOrTeamId({
-        memberId: booking.user?.id,
-        teamId: booking.eventType?.teamId,
-      });
-
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      await bookingEventHandlerService.onNoShowUpdated({
-        bookingUid: booking.uid,
-        actor: makeSystemActor(),
-        organizationId: orgId ?? null,
-        source: "SYSTEM",
-        auditData: {
-          // Set hostNoShow only when it was updated in DB
-          ...(noShowHostAudit.new
-            ? { hostNoShow: { old: noShowHostAudit.old, new: noShowHostAudit.new } }
-            : {}),
-          attendeesNoShow: Object.fromEntries(attendeesNoShowHostMap),
-        },
-      });
-    } catch (error) {
-      log.error("Error logging audit for automatic host no-show", error);
-    }
+    await fireNoShowUpdatedEvent({
+      booking,
+      noShowHostAudit,
+      attendeesNoShowAudit,
+    });
 
     return { noShowHost, attendees: updatedAttendees };
   } catch (error) {

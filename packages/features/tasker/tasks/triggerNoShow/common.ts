@@ -1,16 +1,16 @@
 import dayjs from "@calcom/dayjs";
-import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
-import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
+import type { TTriggerNoShowPayloadSchema, TWebhook } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 type OriginalRescheduledBooking =
@@ -139,6 +139,56 @@ export async function getParticipantsWithEmail(
 }
 
 export const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
+
+export const fireNoShowUpdatedEvent = async ({
+  booking,
+  noShowHostAudit,
+  attendeesNoShowAudit,
+}: {
+  booking: {
+    id: number;
+    uid: string;
+    user?: { id: number } | null;
+    eventType?: { teamId?: number | null } | null;
+  };
+  noShowHostAudit?: { old: boolean | null; new: boolean | null };
+  attendeesNoShowAudit?: Map<number, { old: boolean | null; new: boolean }>;
+}): Promise<void> => {
+  const hasHostNoShow = noShowHostAudit && noShowHostAudit.new !== null;
+  const hasAttendeesNoShow = attendeesNoShowAudit && attendeesNoShowAudit.size > 0;
+
+  if (!hasHostNoShow && !hasAttendeesNoShow) {
+    return;
+  }
+
+  try {
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.user?.id,
+      teamId: booking.eventType?.teamId,
+    });
+
+    const { getBookingEventHandlerService } = await import(
+      "@calcom/features/bookings/di/BookingEventHandlerService.container"
+    );
+    const { makeSystemActor } = await import("@calcom/features/booking-audit/lib/makeActor");
+
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    await bookingEventHandlerService.onNoShowUpdated({
+      bookingUid: booking.uid,
+      actor: makeSystemActor(),
+      organizationId: orgId ?? null,
+      source: "SYSTEM",
+      auditData: {
+        ...(hasHostNoShow && noShowHostAudit.new !== null
+          ? { hostNoShow: { old: noShowHostAudit.old, new: noShowHostAudit.new } }
+          : {}),
+        ...(hasAttendeesNoShow ? { attendeesNoShow: Object.fromEntries(attendeesNoShowAudit) } : {}),
+      },
+    });
+  } catch (error) {
+    log.error("Error logging audit for automatic no-show", error);
+  }
+};
 
 export const prepareNoShowTrigger = async (
   payload: string

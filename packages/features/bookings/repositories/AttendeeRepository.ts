@@ -55,22 +55,6 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async findIdAndEmailByBookingUidAndEmails({
-    bookingUid,
-    emails,
-  }: {
-    bookingUid: string;
-    emails: string[];
-  }): Promise<{ id: number; email: string }[]> {
-    return this.prismaClient.attendee.findMany({
-      where: {
-        booking: { uid: bookingUid },
-        email: { in: emails },
-      },
-      select: { id: true, email: true },
-    });
-  }
-
   async updateNoShow({
     attendeeId,
     noShow,

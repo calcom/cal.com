@@ -75,13 +75,16 @@ type HandleMarkNoShowArgs = {
   actor: Actor;
 };
 
-const buildResultPayload = async (
-  bookingUid: string,
-  attendeeEmails: string[],
-  inputAttendees: NonNullable<TNoShowInputSchema["attendees"]>,
-  t: TFunction
-) => {
-  const attendees = await updateAttendees(bookingUid, attendeeEmails, inputAttendees);
+const buildResultPayload = async ({
+  inputAttendees,
+  t,
+  emailToAttendeeMap,
+}: {
+  inputAttendees: NonNullable<TNoShowInputSchema["attendees"]>;
+  t: TFunction;
+  emailToAttendeeMap: EmailToAttendeeMap;
+}): Promise<{message: string; attendees: NoShowAttendees}> => {
+  const attendees = await updateAttendees({ attendees: inputAttendees, emailToAttendeeMap });
 
   if (attendees.length === 1) {
     const [attendee] = attendees;
@@ -143,18 +146,18 @@ class ResponsePayload {
   }
 }
 
-type EmailToAttendeesMap = Record<string, { id: number; email: string; noShow: boolean | null }>;
+type EmailToAttendeeMap = Record<string, { id: number; email: string; noShow: boolean | null }>;
 
 const getBookingAttendeesFromEmails = async (
   bookingUid: string,
   emails: string[]
-): Promise<EmailToAttendeesMap> => {
+): Promise<EmailToAttendeeMap> => {
   const attendeeRepository = new AttendeeRepository(prisma);
-  const attendees = await attendeeRepository.findByBookingUidAndEmails({ bookingUid, emails });
-  const emailToAttendeeMap = attendees.reduce((acc, a) => {
+  const dbAttendees = await attendeeRepository.findByBookingUidAndEmails({ bookingUid, emails });
+  const emailToAttendeeMap = dbAttendees.reduce((acc, a) => {
     acc[a.email] = a;
     return acc;
-  }, {} as EmailToAttendeesMap);
+  }, {} as EmailToAttendeeMap);
   return emailToAttendeeMap;
 };
 
@@ -173,7 +176,7 @@ async function fireNoShowUpdated({
     noShowHost: boolean | null;
   };
   updatedAttendees?: NoShowAttendees;
-  emailToAttendeeMap: EmailToAttendeesMap;
+  emailToAttendeeMap: EmailToAttendeeMap;
   actor: Actor;
   orgId: number | null;
   actionSource: ValidActionSource;
@@ -248,7 +251,11 @@ const handleMarkNoShow = async ({
     if (attendees && attendeeEmails.length > 0) {
       await assertCanAccessBooking(bookingUid, userId);
 
-      const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
+      const payload = await buildResultPayload({
+        inputAttendees: attendees,
+        t,
+        emailToAttendeeMap,
+      });
       const { webhooks, bookingId } = await getWebhooksService({
         platformClientId: platformClientParams?.platformClientId,
         orgId,
@@ -393,28 +400,17 @@ const handleMarkNoShow = async ({
   }
 };
 
-const updateAttendees = async (
-  bookingUid: string,
-  attendeeEmails: string[],
-  attendees: NonNullable<TNoShowInputSchema["attendees"]>
-) => {
+const updateAttendees = async ({
+  attendees,
+  emailToAttendeeMap,
+}: {
+  attendees: NonNullable<TNoShowInputSchema["attendees"]>;
+  emailToAttendeeMap: EmailToAttendeeMap; 
+}): Promise<NoShowAttendees> => {
   const attendeeRepository = new AttendeeRepository(prisma);
-  const allAttendees = await attendeeRepository.findIdAndEmailByBookingUidAndEmails({
-    bookingUid,
-    emails: attendeeEmails,
-  });
-
-  const allAttendeesMap = allAttendees.reduce(
-    (acc, attendee) => {
-      acc[attendee.email] = attendee;
-      return acc;
-    },
-    {} as Record<string, { id: number; email: string }>
-  );
-
   const updatePromises = attendees.map((attendee) => {
-    const attendeeToUpdate = allAttendeesMap[attendee.email];
-    if (!attendeeToUpdate) return;
+    const attendeeToUpdate = emailToAttendeeMap[attendee.email];
+    if (!attendeeToUpdate) return null;
     return attendeeRepository.updateNoShow({ attendeeId: attendeeToUpdate.id, noShow: attendee.noShow });
   });
 
