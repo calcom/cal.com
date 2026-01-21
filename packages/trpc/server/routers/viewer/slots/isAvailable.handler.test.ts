@@ -112,6 +112,7 @@ describe("isAvailableHandler", () => {
       mockGetOriginalRescheduledBooking.mockResolvedValue({
         userId: organizerUserId,
         eventType: {
+          id: 1, // Matches input eventTypeId
           hosts: [],
         },
       });
@@ -130,6 +131,39 @@ describe("isAvailableHandler", () => {
       // Organizer should bypass minimum notice
       expect(result.slots[0].status).toBe("available");
     });
+    
+    it("should NOT bypass minimum notice if rescheduling unrelated event type", async () => {
+      const currentUserId = 123;
+      const organizerUserId = 123;
+      
+      mockGetSession.mockResolvedValue({
+        user: { id: currentUserId },
+      });
+
+      // User IS the organizer of the booking being rescheduled (Booking A)
+      mockGetOriginalRescheduledBooking.mockResolvedValue({
+        userId: organizerUserId,
+        eventTypeId: 999, // Original booking is for Event Type 999
+        eventType: {
+          hosts: [],
+        },
+      });
+
+      // But is checking availability for a DIFFERENT Event Type (Event Type 1)
+      const input: TIsAvailableInputSchema = {
+        slots: [createSlotInput(30)], 
+        eventTypeId: 1, // Target is Event Type 1
+        rescheduleUid: "test-reschedule-uid",
+      };
+
+      const result = await isAvailableHandler({
+        ctx: createMockContext(),
+        input,
+      });
+
+      // Should NOT bypass because the rescheduleUid belongs to a different event type
+      expect(result.slots[0].status).toBe("minBookNoticeViolation");
+    });
 
     it("should bypass minimum notice for host when rescheduling", async () => {
       const currentUserId = 456;
@@ -143,6 +177,7 @@ describe("isAvailableHandler", () => {
       mockGetOriginalRescheduledBooking.mockResolvedValue({
         userId: organizerUserId,
         eventType: {
+          id: 1, // Matches input eventTypeId
           hosts: [{ userId: hostUserId }],
         },
       });
@@ -174,6 +209,7 @@ describe("isAvailableHandler", () => {
       mockGetOriginalRescheduledBooking.mockResolvedValue({
         userId: organizerUserId,
         eventType: {
+          id: 1, // Matches input eventTypeId
           hosts: [{ userId: hostUserId }],
         },
       });

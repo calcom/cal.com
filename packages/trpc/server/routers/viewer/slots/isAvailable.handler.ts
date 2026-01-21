@@ -57,12 +57,20 @@ export const isAvailableHandler = async ({
           rescheduleUid,
           !!eventType.seatsPerTimeSlot
         );
-        // Check if user is the organizer
-        const isUserOrganizer = originalBooking.userId && currentUserId === originalBooking.userId;
-        // Check if user is a host
-        const isUserHost =
-          originalBooking.eventType?.hosts?.some((host) => host.userId === currentUserId) ?? false;
-        isHostOrOrganizer = isUserOrganizer || isUserHost;
+
+        // Security check: Ensure the reschedule is for the same event type
+        // This prevents using a booking from one event type to bypass restrictions on another
+        // We use eventType.id because originalBooking.eventTypeId might be null for old bookings, but the relation should exist
+        const isSameEventType = originalBooking.eventType?.id === eventTypeId;
+
+        if (isSameEventType) {
+          // Check if user is the organizer
+          const isUserOrganizer = originalBooking.userId && currentUserId === originalBooking.userId;
+          // Check if user is a host
+          const isUserHost =
+            originalBooking.eventType?.hosts?.some((host) => host.userId === currentUserId) ?? false;
+          isHostOrOrganizer = isUserOrganizer || isUserHost;
+        }
       }
     } catch (error) {
       log.warn("Failed to check if user is host/organizer for reschedule in isAvailable", safeStringify({ error }));
