@@ -120,7 +120,7 @@ export const getConnectedCalendars = async (
     };
     primary?: ConnectedCalendar;
   }[];
-  destinationCalendar: IntegrationCalendar | null;
+  destinationCalendar: IntegrationCalendar | undefined;
 }> => {
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
