@@ -14,6 +14,8 @@ services:
     container_name: database
     image: postgres
     restart: always
+    ports:
+    - "5432:5432"
     volumes:
       - database-data:/var/lib/postgresql
     environment:
@@ -27,6 +29,7 @@ services:
     container_name: redis
     image: redis:latest
     restart: always
+    
     volumes:
       - redis-data:/data
     networks:

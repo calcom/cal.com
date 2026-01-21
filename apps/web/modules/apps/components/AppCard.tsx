@@ -54,6 +54,14 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
+  //Function for logosrc
+  const logoSrc =app.logo && app.logo.startsWith("http")
+    ? app.logo
+    : app.logo
+      ? `${WEBAPP_URL}${app.logo.startsWith("/") ? "" : "/"}${app.logo}`
+      : "/icons/app-default.svg";
+
+
   useEffect(() => {
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
@@ -95,18 +103,22 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       router.push(getAppOnboardingUrl({ slug: app.slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
     }
   };
+  
 
   return (
     <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
         <img
-          src={app.logo}
-          alt={`${app.name} Logo`}
-          className={classNames(
-            app.logo.includes("-dark") && "dark:invert",
-            "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
-          )}
-        />
+  src={logoSrc}
+  alt={`${app.name} Logo`}
+  onError={(e) => {
+    (e.currentTarget as HTMLImageElement).src = "/icons/app-default.svg";
+  }}
+  className={classNames(
+    app.logo?.includes("-dark") && "dark:invert",
+    "mb-4 h-12 w-12 rounded-sm"
+  )}
+/>
       </div>
       <div className="flex items-center">
         <h3 className="text-emphasis font-medium">
