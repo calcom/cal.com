@@ -1,9 +1,9 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 
 import type { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
+import { Prisma } from "@calcom/prisma/client";
 
 type InputScheduleAvailabilityTransformed = {
   days: number[];
@@ -227,6 +227,48 @@ export class SchedulesRepository_2024_06_11 {
       where: {
         userId,
       },
+    });
+  }
+
+  async getSchedulesByUserIds(userIds: number[], skip: number, take: number) {
+    return this.dbRead.prisma.schedule.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      include: {
+        availability: true,
+      },
+      skip,
+      take,
+    });
+  }
+
+  async getSchedulesByIds(scheduleIds: number[], skip: number, take: number) {
+    return this.dbRead.prisma.schedule.findMany({
+      where: {
+        id: {
+          in: scheduleIds,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        timeZone: true,
+        availability: {
+          select: {
+            days: true,
+            startTime: true,
+            endTime: true,
+            date: true,
+          },
+        },
+      },
+      orderBy: { id: 'asc' },
+      skip,
+      take,
     });
   }
 }

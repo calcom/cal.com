@@ -1,5 +1,5 @@
 import { getEnv } from "@/env";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
@@ -10,7 +10,6 @@ import {
   ThrottlerException,
   ThrottlerRequest,
   ThrottlerModuleOptions,
-  seconds,
 } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { z } from "zod";
@@ -218,18 +217,18 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     if (authorizationHeader) {
       const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
       return isApiKey(authorizationHeader, apiKeyPrefix)
-        ? `api_key_${hashAPIKey(stripApiKey(authorizationHeader, apiKeyPrefix))}`
-        : `access_token_${authorizationHeader}`;
+        ? `api_key_${sha256Hash(stripApiKey(authorizationHeader, apiKeyPrefix))}`
+        : `access_token_${sha256Hash(authorizationHeader)}`;
     }
 
     const oauthClientId = request.get(X_CAL_CLIENT_ID);
 
     if (oauthClientId) {
-      return `oauth_client_${oauthClientId}`;
+      return `oauth_client_${sha256Hash(oauthClientId)}`;
     }
 
     if (IP) {
-      return `ip_${IP}`;
+      return `ip_${sha256Hash(IP.toString())}`;
     }
 
     this.logger.verbose(`no tracker found: ${request.url}`);

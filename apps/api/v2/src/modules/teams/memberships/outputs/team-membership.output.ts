@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { MembershipRole } from "@prisma/client";
 import { Expose, Transform, Type } from "class-transformer";
 import { IsBoolean, IsInt, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
+
+import { MembershipRole } from "@calcom/platform-libraries";
 
 class MembershipUserOutputDto {
   @IsOptional()

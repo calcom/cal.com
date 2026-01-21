@@ -7,7 +7,6 @@ Cal.config.forwardQueryParams = true;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const callback = function (e: any) {
   const detail = e.detail;
-  console.log("Event: ", e.type, detail);
 };
 
 // @ts-expect-error  window.calOrigin is set in index.html
@@ -45,6 +44,63 @@ if (themeInParam && !theme) {
 }
 
 const calLink = searchParams.get("cal-link");
+
+function fakeEvent({
+  namespace,
+  eventType,
+  data
+}) {
+  window.postMessage({
+    fullType: `CAL:${namespace}:${eventType}`,
+    namespace,
+    originator: "CAL",
+    type: eventType,
+    data,
+  })
+}
+
+window.heavilyCustomizeUi = function ({ namespace }) {
+  Cal.ns[namespace]("ui", {
+    theme: "light",
+    cssVarsPerTheme: {
+      light: {
+        "cal-brand": "#6F61C0",
+        "cal-text": "#6F61C0",
+        "cal-text-emphasis": "#4D408D",
+        "cal-border-emphasis": "#4D408D",
+        "cal-text-error": "pink",
+        "cal-border": "#A090E0",
+        "cal-border-default": "#A090E0",
+        "cal-border-subtle": "#A090E0",
+        "cal-border-booker": "red",
+        "cal-text-muted": "#C0B8FF",
+        "cal-bg-emphasis": "#E1DFFF",
+        "cal-border-booker-width": "3px",
+        "cal-radius": "1px",
+        "cal-radius-md": "2px",
+        "cal-radius-lg": "3px",
+        "cal-radius-xl": "4px",
+        "cal-radius-2xl": "5px",
+        "cal-radius-3xl": "6px",
+        "cal-radius-full": "7px",
+        "cal-spacing-px": "5px",
+        // More CSS variables are defined here
+        // https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js
+      },
+      dark: {
+        // Set the similar variables as in light theme but for dark mode.
+      },
+    },
+  });
+};
+
+window.fakeErrorScenario = function ({ namespace }) {
+  fakeEvent({
+    namespace,
+    eventType: "linkFailed",
+    data: { code: 500 }
+  });
+};
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
@@ -288,7 +344,7 @@ if (only === "all" || only === "inline-routing-form") {
   ]);
 }
 
-if (only === "all" || only === "hideEventTypeDetails") {
+if (only === "all" || only === "ns:hideEventTypeDetails") {
   const identifier = "hideEventTypeDetails";
   Cal("init", identifier, {
     debug: true,
@@ -367,6 +423,11 @@ Cal("init", "popupRescheduleWithReschedulePath", {
 });
 
 Cal("init", "popupRescheduleWithRescheduleUidParam", {
+  debug: true,
+  origin: origin,
+});
+
+Cal("init", "popupCancelBooking", {
   debug: true,
   origin: origin,
 });
@@ -631,6 +692,24 @@ Cal("on", {
   callback: bookingSuccessfulV2Callback,
 });
 
+const bookerReadyCallback = (e: EmbedEvent<"bookerReady">) => {
+  const data = e.detail.data;
+  console.log("bookerReady", {
+    eventId: data.eventId,
+    eventSlug: data.eventSlug,
+  });
+
+  Cal("off", {
+    action: "bookerReady",
+    callback: bookerReadyCallback,
+  });
+};
+
+Cal("on", {
+  action: "bookerReady",
+  callback: bookerReadyCallback,
+});
+
 if (only === "all" || only === "ns:skeletonDemo") {
   Cal("init", "skeletonDemo", {
     debug: true,
@@ -690,6 +769,40 @@ if (only === "all" || only === "ns:routingFormWithoutPrerender") {
   Cal.ns.routingFormWithoutPrerender("on", {
     action: "*",
     callback,
+  });
+}
+
+if (only === "all" || only === "ns:containerScrollToTimeslot") {
+  Cal("init", "containerScrollToTimeslot", {
+    debug: true,
+    origin,
+  });
+  Cal.ns.containerScrollToTimeslot("inline", {
+    elementOrSelector: "#cal-booking-place-containerScrollToTimeslot .place",
+    calLink: "free/30min",
+    config: {
+      iframeAttrs: {
+        id: "cal-booking-place-containerScrollToTimeslot-iframe",
+      },
+      "flag.coep": "true",
+    },
+  });
+}
+
+if (only === "all" || only === "ns:windowScrollToTimeslot") {
+  Cal("init", "windowScrollToTimeslot", {
+    debug: true,
+    origin,
+  });
+  Cal.ns.windowScrollToTimeslot("inline", {
+    elementOrSelector: "#cal-booking-place-windowScrollToTimeslot .place",
+    calLink: "free/30min",
+    config: {
+      iframeAttrs: {
+        id: "cal-booking-place-windowScrollToTimeslot-iframe",
+      },
+      "flag.coep": "true",
+    },
   });
 }
 

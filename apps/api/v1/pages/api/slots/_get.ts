@@ -3,8 +3,8 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { isSupportedTimeZone } from "@calcom/lib/dayjs";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";
@@ -48,7 +48,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       : availableSlots.slots;
 
     return { slots: slotsInProvidedTimeZone };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);

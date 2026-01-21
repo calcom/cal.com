@@ -1,22 +1,24 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import { EventCollectionProvider } from "next-collect/client";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
-import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
+import DynamicPostHogProvider from "~/ee/posthog/providerDynamic";
+import DynamicPostHogPageView from "~/ee/posthog/pageViewDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import DynamicHelpscoutProvider from "@calcom/web/modules/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/web/modules/ee/support/lib/intercom/providerDynamic";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
+import { useNuqsParams } from "@lib/hooks/useNuqsParams";
 import type { WithLocaleProps } from "@lib/withLocale";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
 
@@ -25,12 +27,11 @@ import { getThemeProviderProps } from "./getThemeProviderProps";
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithLocaleProps<
-      WithNonceProps<{
-        themeBasis?: string;
-        session: Session;
-      }>
-    >
+    WithLocaleProps<{
+      nonce: string | undefined;
+      themeBasis?: string;
+      session: Session;
+    }>
   >,
   "Component"
 > & {
@@ -78,6 +79,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
+        //eslint-disable-next-line react/no-unknown-property
         <style jsx global>
           {`
             .dark {
@@ -110,22 +112,29 @@ const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const isThemeSupported = useIsThemeSupported();
+  const nuqsParams = useNuqsParams();
 
   const RemainingProviders = (
     <>
-      <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-        <TooltipProvider>
-          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-          <CalcomThemeProvider
-            nonce={props.nonce}
-            isThemeSupported={isThemeSupported}
-            isBookingPage={props.isBookingPage || isBookingPage}>
+      <TooltipProvider>
+        {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+        <CalcomThemeProvider
+          nonce={props.nonce}
+          isThemeSupported={isThemeSupported}
+          isBookingPage={props.isBookingPage || isBookingPage}>
+          <NuqsAdapter {...nuqsParams}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>{props.children}</OrgBrandProvider>
+              {props.isBookingPage || isBookingPage ? (
+                <OrgBrandProvider>{props.children}</OrgBrandProvider>
+              ) : (
+                <DynamicIntercomProvider>
+                  <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                </DynamicIntercomProvider>
+              )}
             </FeatureFlagsProvider>
-          </CalcomThemeProvider>
-        </TooltipProvider>
-      </EventCollectionProvider>
+          </NuqsAdapter>
+        </CalcomThemeProvider>
+      </TooltipProvider>
     </>
   );
 
@@ -136,7 +145,10 @@ const AppProviders = (props: PageWrapperProps) => {
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
+        <DynamicPostHogProvider>
+          <DynamicPostHogPageView />
+          {RemainingProviders}
+        </DynamicPostHogProvider>
       </DynamicHelpscoutProvider>
     </>
   );

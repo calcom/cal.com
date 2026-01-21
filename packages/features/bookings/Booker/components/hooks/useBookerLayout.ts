@@ -2,13 +2,13 @@ import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
 import { extraDaysConfig } from "../../config";
-import { useBookerStore } from "../../store";
 import type { BookerLayout } from "../../types";
 import { validateLayout } from "../../utils/layout";
 import { getQueryParam } from "../../utils/query-param";
@@ -18,7 +18,7 @@ export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 export const useBookerLayout = (
   profileBookerLayouts: BookerEvent["profile"]["bookerLayouts"] | undefined | null
 ) => {
-  const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
+  const [_layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -56,7 +56,7 @@ export const useBookerLayout = (
       layout !== _layout
     ) {
       const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
-      validLayout && setLayout(validLayout);
+      if (validLayout) setLayout(validLayout);
     }
   }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile]);
 
@@ -76,7 +76,12 @@ export const useBookerLayout = (
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
-  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+  const hideEventTypeDetailsParam = getQueryParam("hideEventTypeDetails");
+  const hideEventTypeDetails = isEmbed
+    ? embedUiConfig.hideEventTypeDetails
+    : typeof hideEventTypeDetailsParam === "string"
+    ? hideEventTypeDetailsParam === "true"
+    : false;
 
   return {
     shouldShowFormInDialog,

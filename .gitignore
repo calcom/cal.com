@@ -60,17 +60,22 @@ yarn-error.log*
 .history/
 
 # Typescript
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # turbo
 .turbo
 
 # Prisma generated files
-packages/prisma/zod/*.ts
+packages/prisma/client/*
+!packages/prisma/client/index.ts
+apps/api/v2/generated/prisma/*
+packages/prisma/generated/prisma/*
+packages/prisma/zod/**/*.ts
 packages/prisma/enums
 
 # Builds
 dist
+packages/app-store/types
 
 # Linting
 lint-results
@@ -97,3 +102,11 @@ apps/auth
 !.yarn/sdks
 !.yarn/versions
 i18n.cache
+packages/**/.yarn/ci-cache/
+
+# AI - session/user specific files (keep CLAUDE.md and .cursor/skills tracked)
+.claude/plans/
+.claude/settings.local.json
+
+# trigger.dev
+.trigger

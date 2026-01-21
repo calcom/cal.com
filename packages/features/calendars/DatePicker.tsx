@@ -4,16 +4,17 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
+import type { Slots } from "@calcom/features/calendars/lib/types";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
-import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import type { PeriodData } from "@calcom/types/Event";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
 
@@ -43,19 +44,12 @@ export type DatePickerProps = {
   /** used to query the multiple selected dates */
   eventSlug?: string;
   /** To identify days that are not available and should display OOO and redirect if toUser exists */
-  slots?: Record<
-    string,
-    {
-      time: string;
-      userIds?: number[];
-      away?: boolean;
-      fromUser?: IFromUser;
-      toUser?: IToUser;
-      reason?: string;
-      emoji?: string;
-    }[]
-  >;
+  slots?: Slots;
   periodData?: PeriodData;
+  // Whether this is a compact sidebar view or main monthly view
+  isCompact?: boolean;
+  // Whether to show the no availability dialog
+  showNoAvailabilityDialog?: boolean;
 };
 
 const Day = ({
@@ -65,6 +59,8 @@ const Day = ({
   away,
   emoji,
   customClassName,
+  showMonthTooltip,
+  isFirstDayOfNextMonth,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
@@ -75,12 +71,14 @@ const Day = ({
     dayContainer?: string;
     dayActive?: string;
   };
+  showMonthTooltip?: boolean;
+  isFirstDayOfNextMonth?: boolean;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
 
-  return (
+  const buttonContent = (
     <button
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
@@ -113,6 +111,33 @@ const Day = ({
       )}
     </button>
   );
+
+  const content = showMonthTooltip ? (
+    <Tooltip content={date.format("MMMM")}>{buttonContent}</Tooltip>
+  ) : (
+    buttonContent
+  );
+
+  return (
+    <>
+      {isFirstDayOfNextMonth && (
+        <div
+          className={classNames(
+            "absolute top-0 z-10 mx-auto w-fit rounded-full font-semibold uppercase tracking-wide",
+            active ? "text-white" : "text-default",
+            disabled && "bg-emphasis"
+          )}
+          style={{
+            fontSize: "10px",
+            lineHeight: "13px",
+            padding: disabled ? "0 3px" : "3px 3px 3px 4px",
+          }}>
+          {date.format("MMM")}
+        </div>
+      )}
+      {content}
+    </>
+  );
 };
 
 const Days = ({
@@ -129,6 +154,8 @@ const Days = ({
   customClassName,
   isBookingInPast,
   periodData,
+  isCompact,
+  showNoAvailabilityDialog = true,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -143,23 +170,53 @@ const Days = ({
   scrollToTimeSlots?: () => void;
   isBookingInPast: boolean;
   periodData: PeriodData;
+  isCompact?: boolean;
 }) => {
-  // Create placeholder elements for empty days in first week
-  const weekdayOfFirst = browsingDate.date(1).day();
-
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
     minDate,
     includedDates: props.includedDates,
   });
 
-  const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
-  for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
-    const date = browsingDate.set("date", day);
-    days.push(date);
+  const today = dayjs();
+  const firstDayOfMonth = browsingDate.startOf("month");
+  const isSecondWeekOver = today.isAfter(firstDayOfMonth.add(2, "week"));
+  let days: (Dayjs | null)[] = [];
+
+  const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
+  const totalDays = daysInMonth(browsingDate);
+
+  const showNextMonthDays = isSecondWeekOver && !isCompact;
+
+  // Only apply end-of-month logic for main monthly view (not compact sidebar)
+  if (showNextMonthDays) {
+    const startDay = 8;
+    const pad = getPadding(startDay);
+    days = Array(pad).fill(null);
+
+    for (let day = startDay; day <= totalDays; day++) {
+      days.push(browsingDate.set("date", day));
+    }
+
+    const remainingInRow = days.length % 7;
+    const extraDays = (remainingInRow > 0 ? 7 - remainingInRow : 0) + 7;
+    const nextMonth = browsingDate.add(1, "month");
+
+    // Add days starting from day 1 of next month
+    for (let i = 0; i < extraDays; i++) {
+      days.push(nextMonth.set("date", 1 + i));
+    }
+  } else {
+    // Traditional calendar grid logic for compact sidebar or early in month
+    const pad = getPadding(1);
+    days = Array(pad).fill(null);
+
+    for (let day = 1; day <= totalDays; day++) {
+      days.push(browsingDate.set("date", day));
+    }
   }
 
-  const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
+  const [selectedDatesAndTimes] = useBookerStoreContext((state) => [state.selectedDatesAndTimes], shallow);
 
   const isActive = (day: dayjs.Dayjs) => {
     // for selecting a range of dates
@@ -188,20 +245,31 @@ const Days = ({
 
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
+
     const dateKey = yyyymmdd(day);
-    const oooInfo = slots && slots?.[dateKey] ? slots?.[dateKey]?.find((slot) => slot.away) : null;
+    const daySlots = slots?.[dateKey] || [];
+    const oooInfo = daySlots.find((slot) => slot.away) || null;
+
+    const isNextMonth = day.month() !== browsingDate.month();
+    const isFirstDayOfNextMonth = isSecondWeekOver && !isCompact && isNextMonth && day.date() === 1;
+
     const included = includedDates?.includes(dateKey);
     const excluded = excludedDates.includes(dateKey);
 
-    const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
+    const hasAvailableSlots = daySlots.some((slot) => !slot.away);
+    const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
-    const disabled = away ? !oooInfo?.toUser : !included || excluded;
+
+    // OOO dates are selectable only if there's a redirect user OR the note is public
+    const oooIsSelectable = oooInfo?.toUser || oooInfo?.showNotePublicly;
+    const disabled = away ? !oooIsSelectable : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
-      day: day,
+      day,
       disabled,
       away,
       emoji: oooInfo?.emoji,
+      isFirstDayOfNextMonth,
     };
   });
 
@@ -239,13 +307,13 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji, isFirstDayOfNextMonth }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
+              className="bg-cal-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-8 w-9" />
@@ -265,18 +333,24 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
+              showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
+              isFirstDayOfNextMonth={isFirstDayOfNextMonth}
             />
           )}
         </div>
       ))}
-      {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityDialog
-          month={month}
-          nextMonthButton={nextMonthButton}
-          browsingDate={browsingDate}
-          periodData={periodData}
-        />
-      )}
+      {!props.isLoading &&
+        !isBookingInPast &&
+        includedDates &&
+        includedDates?.length === 0 &&
+        showNoAvailabilityDialog && (
+          <NoAvailabilityDialog
+            month={month}
+            nextMonthButton={nextMonthButton}
+            browsingDate={browsingDate}
+            periodData={periodData}
+          />
+        )}
     </>
   );
 };
@@ -297,6 +371,8 @@ const DatePicker = ({
     periodDays: null,
     periodType: "UNLIMITED",
   },
+  isCompact,
+  showNoAvailabilityDialog,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -315,7 +391,7 @@ const DatePicker = ({
     minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
 
   const { i18n, t } = useLocale();
-  const bookingData = useBookerStore((state) => state.bookingData);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
@@ -406,6 +482,8 @@ const DatePicker = ({
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
           periodData={periodData}
+          isCompact={isCompact}
+          showNoAvailabilityDialog={showNoAvailabilityDialog}
         />
       </div>
     </div>

@@ -5,7 +5,7 @@
  * see: https://github.com/calcom/cal.com/pull/10480
  *      https://github.com/calcom/cal.com/pull/10968
  */
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   TestData,
@@ -19,16 +19,18 @@ import {
   BookingLocations,
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
 
 import { PeriodType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -49,7 +51,7 @@ describe("handleNewBooking", () => {
             2. following year without bookings: should create a booking in the database
         `,
         async ({}) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
 
           const booker = getBooker({
             email: "booker@example.com",
@@ -167,7 +169,7 @@ describe("handleNewBooking", () => {
             2. following year without bookings: should create a booking in the database
         `,
         async ({}) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
 
           const booker = getBooker({
             email: "booker@example.com",
@@ -296,7 +298,7 @@ describe("handleNewBooking", () => {
       test.skipIf([todayDate, tomorrowDate].includes("01"))(
         `should fail a booking if exceeds booking limits with bookings in the past`,
         async ({}) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
 
           const booker = getBooker({
             email: "booker@example.com",
@@ -377,7 +379,7 @@ describe("handleNewBooking", () => {
       test(
         `should fail a booking if exceeds booking limits with bookings in week across two months`,
         async ({}) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
 
           const booker = getBooker({
             email: "booker@example.com",
@@ -466,7 +468,7 @@ describe("handleNewBooking", () => {
 
   describe("Buffers", () => {
     test("should throw error when booking is not respecting buffers with event types that have before and after buffer ", async ({}) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -560,7 +562,7 @@ describe("handleNewBooking", () => {
 
     test(`should throw error when booking is within a before event buffer of an existing booking
         `, async ({}) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -627,7 +629,7 @@ describe("handleNewBooking", () => {
   });
   test(`should throw error when booking is within a after event buffer of an existing booking
         `, async ({}) => {
-    const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+    const handleNewBooking = getNewBookingHandler();
 
     const booker = getBooker({
       email: "booker@example.com",
@@ -695,7 +697,7 @@ describe("handleNewBooking", () => {
   test(
     `should fail booking if the start date is in the past`,
     async ({}) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -770,7 +772,7 @@ describe("handleNewBooking", () => {
       async () => {
         // In IST it is 2024-05-22 12:39am
         vi.setSystemTime("2024-05-21T19:09:13Z");
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",

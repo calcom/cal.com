@@ -1,11 +1,10 @@
 import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import { assignValueToUserInOrgBulk } from "@calcom/lib/service/attribute/server/assignValueToUser";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -13,6 +12,7 @@ import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/team
 import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+import { assignValueToUserInOrgBulk } from "./assignValueToUser";
 import getAttributesFromScimPayload from "./getAttributesFromScimPayload";
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 import dSyncUserSelect from "./users/dSyncUserSelect";
@@ -78,6 +78,9 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   }
 
   if (user) {
+    if (user.organizationId && user.organizationId !== org.id) {
+      throw new Error("User belongs to another organization.");
+    }
     if (eventData.active) {
       if (await new UserRepository(prisma).isAMemberOfOrganization({ user, organizationId })) {
         await syncCustomAttributesToUser({

@@ -4,6 +4,7 @@ import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSw
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
+import cn from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { AppListCard } from "@calcom/ui/components/app-list-card";
 import type { ButtonProps } from "@calcom/ui/components/button";
@@ -14,12 +15,12 @@ import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/c
 import { Switch } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 
+import * as Connect from "../../connect";
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
 import { useDeleteCalendarCredentials } from "../../hooks/calendars/useDeleteCalendarCredentials";
 import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelectedCalendar";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
-import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
@@ -29,8 +30,34 @@ export type CalendarRedirectUrls = {
   outlook?: string;
 };
 
+export type SelectedCalendarsClassNames = {
+  container?: string;
+  header?: {
+    container?: string;
+    title?: string;
+    description?: string;
+  };
+  selectedCalendarsListClassNames?: {
+    container?: string;
+    selectedCalendar?: {
+      container?: string;
+      header?: {
+        container?: string;
+        title?: string;
+        description?: string;
+      };
+      body?: {
+        container?: string;
+        description?: string;
+      };
+    };
+  };
+  noSelectedCalendarsMessage?: string;
+};
+
 type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
+  classNamesObject?: SelectedCalendarsClassNames;
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
   isDryRun?: boolean;
@@ -41,6 +68,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
   calendarRedirectUrls,
   allowDelete,
   isDryRun,
+  classNamesObject,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -55,23 +83,33 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 
             if (!data.connectedCalendars.length) {
               return (
-                <SelectedCalendarsSettings classNames={classNames}>
+                <SelectedCalendarsSettings classNames={classNamesObject?.container || classNames}>
                   <SelectedCalendarsSettingsHeading
+                    classNames={classNamesObject?.header}
                     calendarRedirectUrls={calendarRedirectUrls}
                     isDryRun={isDryRun}
                   />
-                  <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
+                  <h1
+                    className={cn(
+                      "px-6 py-4 text-base leading-5",
+                      classNamesObject?.noSelectedCalendarsMessage
+                    )}>
+                    No connected calendars found.
+                  </h1>
                 </SelectedCalendarsSettings>
               );
             }
 
             return (
-              <SelectedCalendarsSettings classNames={classNames}>
+              <SelectedCalendarsSettings classNames={classNamesObject?.container || classNames}>
                 <SelectedCalendarsSettingsHeading
+                  classNames={classNamesObject?.header}
                   calendarRedirectUrls={calendarRedirectUrls}
                   isDryRun={isDryRun}
                 />
-                <List noBorderTreatment className="p-6 pt-2">
+                <List
+                  noBorderTreatment
+                  className={classNamesObject?.selectedCalendarsListClassNames?.container || "p-6 pt-2"}>
                   {data.connectedCalendars.map((connectedCalendar) => {
                     if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
                       return (
@@ -84,7 +122,18 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           description={
                             connectedCalendar.primary?.email ?? connectedCalendar.integration.description
                           }
-                          className="border-subtle mt-4 rounded-lg border"
+                          classNameObject={{
+                            container: cn(
+                              "border-subtle mt-4 rounded-lg border",
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.container
+                            ),
+                            title:
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.header
+                                ?.title,
+                            description:
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.header
+                                ?.description,
+                          }}
                           actions={
                             <div className="flex w-32 justify-end">
                               {allowDelete && !connectedCalendar.delegationCredentialId && (
@@ -98,9 +147,21 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                               )}
                             </div>
                           }>
-                          <div className="border-subtle border-t">
-                            <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                            <ul className="space-y-4 px-5 py-4">
+                          <div
+                            className={cn(
+                              "border-subtle border-t",
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.body
+                                ?.container
+                            )}>
+                            <p
+                              className={cn(
+                                "text-subtle px-5 pt-4 text-sm",
+                                classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.body
+                                  ?.description
+                              )}>
+                              {t("toggle_calendars_conflict")}
+                            </p>
+                            <ul className="stack-y-4 px-5 py-4">
                               {connectedCalendar.calendars?.map((cal) => {
                                 return (
                                   <PlatformCalendarSwitch
@@ -131,7 +192,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                         message={<span>{connectedCalendar.error?.message || t("calendar_error")}</span>}
                         iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                         actions={
-                          !Boolean(connectedCalendar.delegationCredentialId) && (
+                          !connectedCalendar.delegationCredentialId && (
                             <div className="flex w-32 justify-end">
                               <PlatformDisconnectIntegration
                                 credentialId={connectedCalendar.credentialId}
@@ -159,18 +220,28 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 const SelectedCalendarsSettingsHeading = ({
   calendarRedirectUrls,
   isDryRun,
+  classNames,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
   isDryRun?: boolean;
+  classNames?: {
+    container?: string;
+    title?: string;
+    description?: string;
+  };
 }) => {
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle border-b p-6">
+    <div className={cn("border-subtle border-b p-6", classNames?.container)}>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-emphasis text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
-          <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
+          <h4 className={cn("text-emphasis text-base font-semibold leading-5", classNames?.title)}>
+            {t("check_for_conflicts")}
+          </h4>
+          <p className={cn("text-default text-sm leading-tight", classNames?.description)}>
+            {t("select_calendars")}
+          </p>
         </div>
         <div className="flex flex-col xl:flex-row xl:space-x-5">
           <div className="flex items-center">
@@ -206,7 +277,7 @@ const PlatformDisconnectIntegration = (props: {
         description: t("app_removed_successfully"),
       });
       setModalOpen(false);
-      onSuccess && onSuccess();
+      if (onSuccess) onSuccess();
     },
     onError: () => {
       toast({
@@ -219,7 +290,7 @@ const PlatformDisconnectIntegration = (props: {
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={async () => {
-        !props.isDryRun && setModalOpen(false);
+        if (!props.isDryRun) setModalOpen(false);
 
         if (props.isDryRun) {
           toast({
@@ -341,7 +412,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Google" })}
               loadingLabel={t("add_calendar_label", { calendar: "Google" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -354,7 +425,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Outlook" })}
               loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -367,7 +438,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
         </div>

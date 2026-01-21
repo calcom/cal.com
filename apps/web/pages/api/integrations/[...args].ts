@@ -71,8 +71,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const redirectUrl = handler.redirect?.url ?? undefined;
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
-    if (!res.writableEnded) return res.status(200);
-    return res;
+    if (!res.writableEnded) res.status(200);
+    return;
   } catch (error) {
     console.error(error);
     if (error instanceof HttpError) {

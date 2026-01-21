@@ -1,10 +1,10 @@
 import type { NextApiRequest } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
@@ -42,7 +42,7 @@ export const isAvailableHandler = async ({
 
   // Check each slot's availability
   // Without uid, we must not check for reserved slots because if uuid isn't set in cookie yet, but it is going to be through reserveSlot request soon, we could consider the slot as reserved accidentally.
-  const slotsRepo = new SelectedSlotsRepository(ctx.prisma);
+  const slotsRepo = new PrismaSelectedSlotRepository(ctx.prisma);
   const reservedSlots = uid ? await slotsRepo.findManyReservedByOthers(slots, eventTypeId, uid) : [];
 
   // Map all slots to their availability status

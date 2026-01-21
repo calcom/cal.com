@@ -1,12 +1,6 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
-
-import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/payment-status-view";
+import LegacyPage, { LayoutWrapper } from "~/ee/organizations/new/payment-status-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -17,10 +11,7 @@ export const generateMetadata = async () =>
     "/settings/organizations/new/status"
   );
 
-const getData = withAppDirSsr(getServerSideProps);
-
-const ServerPage = async ({ params, searchParams }: PageProps) => {
-  await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
+const ServerPage = async () => {
   return (
     <LayoutWrapper>
       <LegacyPage />

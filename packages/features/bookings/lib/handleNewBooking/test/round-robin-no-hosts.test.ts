@@ -8,15 +8,17 @@ import {
   Timezones,
   getDate,
   getGoogleCalendarCredential,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect } from "vitest";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
 
 const timeout = process.env.CI ? 5000 : 20000;
 
@@ -26,7 +28,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   test(
     "should throw NoAvailableUsersFound when Round Robin event has both fixed and round robin hosts busy",
     async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -139,7 +141,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   test(
     "should throw RoundRobinHostsUnavailableForBooking when Round Robin event has fixed hosts but no round robin host is available",
     async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",

@@ -1,8 +1,9 @@
-import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { unstable_cache } from "next/cache";
 
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
   getEventTypeHosts,
   getProfileFromEvent,
@@ -11,12 +12,12 @@ import {
 } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getTeamEventType } from "@calcom/features/eventtypes/lib/getTeamEventType";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 export async function getCachedTeamData(teamSlug: string, orgSlug: string | null) {
   return unstable_cache(async () => getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
@@ -102,7 +103,7 @@ export async function getEnrichedEventType({
 }
 
 export async function shouldUseApiV2ForTeamSlots(teamId: number): Promise<boolean> {
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(teamId, "use-api-v2-for-team-slots");
   const useApiV2 = teamHasApiV2Route && Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 
@@ -122,21 +123,24 @@ export async function getCRMData(
   const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
+  const crmRecordIdParam = query["cal.crmRecordId"];
 
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
   let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
     ? crmContactOwnerRecordType[0]
     : crmContactOwnerRecordType;
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
+  let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
   if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-      "@calcom/lib/server/getTeamMemberEmailFromCrm"
+      "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );
     const {
       email,
       recordType,
       crmAppSlug: crmAppSlugQuery,
+      recordId: crmRecordIdQuery,
     } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
       query,
       eventData,
@@ -145,11 +149,24 @@ export async function getCRMData(
     teamMemberEmail = email ?? undefined;
     crmOwnerRecordType = recordType ?? undefined;
     crmAppSlug = crmAppSlugQuery ?? undefined;
+    crmRecordId = crmRecordIdQuery ?? undefined;
   }
 
   return {
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    crmRecordId,
   };
+}
+
+export async function getTeamId(teamSlug: string, orgSlug: string | null): Promise<number | null> {
+  const teamRepo = new TeamRepository(prisma);
+  const team = await teamRepo.findFirstBySlugAndParentSlug({
+    slug: teamSlug,
+    parentSlug: orgSlug,
+    select: { id: true },
+  });
+
+  return team?.id ?? null;
 }

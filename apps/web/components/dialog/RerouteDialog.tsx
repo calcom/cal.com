@@ -12,13 +12,13 @@ import FormInputFields, {
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForwardForReroute } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -187,7 +187,7 @@ const useReroutingState = ({ isOpenDialog }: Pick<RerouteDialogProps, "isOpenDia
   const status = (() => {
     if (!value) return ReroutingStatusEnum.REROUTING_NOT_INITIATED;
     if (value.error) return ReroutingStatusEnum.REROUTING_FAILED;
-    if (!!value.newBooking) return ReroutingStatusEnum.REROUTING_COMPLETE;
+    if (value.newBooking) return ReroutingStatusEnum.REROUTING_COMPLETE;
     return ReroutingStatusEnum.REROUTING_IN_PROGRESS;
   })();
 
@@ -373,9 +373,9 @@ const NewRoutingManager = ({
     reroutingState.value?.type === "reschedule_to_different_event_new_tab";
 
   return (
-    <div className="bg-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
+    <div className="bg-cal-muted flex flex-col stack-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("new_routing_status")}</h2>
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col stack-y-2">
         {reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED && reroutingPreview()}
         {(reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED || !isReroutingInNewTab) &&
           reroutingCTAs()}
@@ -539,18 +539,11 @@ const NewRoutingManager = ({
       url: chosenEventUrls.eventBookingAbsoluteUrl,
     });
 
-    console.log("SETTING NEW VALUE", {
-      type: "reschedule_to_different_event_new_tab",
-      reschedulerWindow,
-      newBooking: null,
-    });
     reroutingState.setValue({
       type: "reschedule_to_different_event_new_tab",
       reschedulerWindow,
       newBooking: null,
     });
-
-    console.log("VALUE NOW", JSON.stringify(reroutingState));
   }
 
   function reroutingPreview() {
@@ -574,7 +567,7 @@ const NewRoutingManager = ({
         throw new Error(t("something_went_wrong"));
       }
       return (
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col stack-y-2">
           <span className="text-default" data-testid="reroute-preview-event-type">
             <span className="font-semibold">{t("event_type")}:</span>{" "}
             <a
@@ -673,9 +666,9 @@ const CurrentRoutingStatus = ({
   const bookerUrl = useBookerUrl();
   if (!fullSlug) return null;
   return (
-    <div className="bg-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
+    <div className="bg-cal-muted flex flex-col stack-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("current_routing_status")}</h2>
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col stack-y-2">
         <span className="text-default" data-testid="current-routing-status-event-type">
           <span className="font-semibold">{t("event_type")}:</span>{" "}
           <a
@@ -910,7 +903,7 @@ export const RerouteDialog = ({ isOpenDialog, setIsOpenDialog, booking }: Rerout
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent enableOverflow preventCloseOnOutsideClick>
+      <DialogContent preventCloseOnOutsideClick  enableOverflow>
         <DialogHeader title={t("reroute_booking")} subtitle={t("reroute_booking_description")} />
         <RerouteDialogContentAndFooter
           booking={teamEventTypeBooking}

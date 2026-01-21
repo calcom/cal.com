@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 /*
  * The logic on this it's just using Credential Type doesn't reflect that some fields can be
@@ -9,6 +9,7 @@ export type CredentialPayload = Prisma.CredentialGetPayload<{
   select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
 }> & {
   delegatedToId?: string | null;
+  appName?: string;
 };
 
 export type CredentialForCalendarService = CredentialPayload & {

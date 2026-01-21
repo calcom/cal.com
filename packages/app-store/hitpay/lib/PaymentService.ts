@@ -1,4 +1,3 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import axios from "axios";
 import qs from "qs";
 import { v4 as uuidv4 } from "uuid";
@@ -9,6 +8,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -19,7 +19,7 @@ import type { PaidBooking } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:hitpay"] });
 
-export class PaymentService implements IAbstractPaymentService {
+class HitPayPaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof hitpayCredentialKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
@@ -239,4 +239,13 @@ export class PaymentService implements IAbstractPaymentService {
   isSetupAlready(): boolean {
     return !!this.credentials;
   }
+}
+
+/**
+ * Factory function that creates a HitPay Payment service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export function BuildPaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+  return new HitPayPaymentService(credentials);
 }

@@ -1,7 +1,11 @@
 "use client";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  Scope,
+  PERMISSION_REGISTRY,
+  getPermissionsForScope,
+} from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
@@ -12,12 +16,24 @@ interface SimplePermissionItemProps {
   resource: string;
   permissions: string[];
   onChange: (permissions: string[]) => void;
+  disabled?: boolean;
+  scope?: Scope;
+  isPrivate?: boolean;
 }
 
-export function SimplePermissionItem({ resource, permissions, onChange }: SimplePermissionItemProps) {
+export function SimplePermissionItem({
+  resource,
+  permissions,
+  onChange,
+  disabled,
+  scope = Scope.Organization,
+  isPrivate = false,
+}: SimplePermissionItemProps) {
   const { t } = useLocale();
-  const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions();
+  const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
+  const scopedRegistry = getPermissionsForScope(scope, isPrivate);
 
+  const registry = scopedRegistry || PERMISSION_REGISTRY;
   const isAllResources = resource === "*";
   const options = isAllResources
     ? [
@@ -33,14 +49,16 @@ export function SimplePermissionItem({ resource, permissions, onChange }: Simple
   return (
     <div className="flex items-center justify-between px-3 py-2">
       <span className="text-default text-sm font-medium leading-none">
-        {t(PERMISSION_REGISTRY[resource as Resource]._resource?.i18nKey || resource)}
+        {t(registry[resource as Resource]._resource?.i18nKey || resource)}
       </span>
       <ToggleGroup
         onValueChange={(val) => {
-          if (val) onChange(toggleResourcePermissionLevel(resource, val as PermissionLevel, permissions));
+          if (val && !disabled)
+            onChange(toggleResourcePermissionLevel(resource, val as PermissionLevel, permissions));
         }}
         value={getResourcePermissionLevel(resource, permissions)}
         options={options}
+        disabled={disabled}
       />
     </div>
   );

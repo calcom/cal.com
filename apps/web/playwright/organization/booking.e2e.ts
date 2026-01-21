@@ -184,7 +184,7 @@ test.describe("Bookings", () => {
           // Anyone of the teammates could be the Host of the booking.
           const chosenUser = await page.getByTestId("booking-host-name").textContent();
           expect(chosenUser).not.toBeNull();
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           expect(teamMatesObj.concat([{ name: owner.name! }]).some(({ name }) => name === chosenUser)).toBe(
             true
           );
@@ -248,7 +248,7 @@ test.describe("Bookings", () => {
           // Anyone of the teammates could be the Host of the booking.
           const chosenUser = await page.getByTestId("booking-host-name").textContent();
           expect(chosenUser).not.toBeNull();
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           expect(teamMatesObj.concat([{ name: owner.name! }]).some(({ name }) => name === chosenUser)).toBe(
             true
           );
@@ -407,7 +407,7 @@ test.describe("Bookings", () => {
       await page.goto(`/event-types/${teamEvent.id}?tabName=advanced`);
       await page.getByTestId("requires-confirmation").click();
       await page.getByTestId("update-eventtype").click();
-      await page.waitForResponse((response) => response.url().includes("/api/trpc/eventTypes/update"));
+      await page.waitForResponse((response) => response.url().includes("/api/trpc/eventTypesHeavy/update"));
 
       await doOnOrgDomain(
         {
@@ -780,24 +780,24 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 
   // Make email as not required
   await page.locator('[data-testid="field-email"] [data-testid="edit-field-action"]').click();
-  const emailRequiredFiled = await page.locator('[data-testid="field-required"]');
-  await emailRequiredFiled.locator("> :nth-child(2)").click();
+  const emailRequiredFiled = await page.locator('[data-testid="field-required"]').first();
+  await emailRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 };
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   await page.goto(`/event-types/${eventId}?tabName=advanced`);
-  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); // fix the race condition
+  await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics"); // fix the race condition
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();
-  const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');
-  await phoneRequiredFiled.locator("> :nth-child(1)").click();
+  const phoneRequiredFiled = await page.locator('[data-testid="field-required"]').first();
+  await phoneRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 };

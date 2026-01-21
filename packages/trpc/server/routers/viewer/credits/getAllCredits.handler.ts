@@ -1,4 +1,7 @@
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -16,18 +19,26 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
   const { teamId } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const team = await TeamService.fetchTeamOrThrow(teamId);
 
-    if (!adminMembership) {
+    const permissionService = new PermissionCheckService();
+    const hasManageBillingPermission = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId,
+      permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasManageBillingPermission) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });
     }
   } else {
     //if user is part of team, don't return any credits if teamId is not given
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+    const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(ctx.user.id);
 
-    if (memberships.length > 0) {
+    if (memberships && memberships.length > 0) {
       return null;
     }
   }

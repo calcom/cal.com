@@ -13,8 +13,8 @@ import "@calcom/atoms/globals.min.css";
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 type TUser = Data["users"][0];
 
-function generateRandomEmail() {
-  const localPartLength = 10;
+function generateRandomEmail(name: string) {
+  const localPartLength = 5;
   const domain = ["example.com", "example.net", "example.org"];
 
   const randomLocalPart = Array.from({ length: localPartLength }, () =>
@@ -23,7 +23,7 @@ function generateRandomEmail() {
 
   const randomDomain = domain[Math.floor(Math.random() * domain.length)];
 
-  return `${randomLocalPart}@${randomDomain}`;
+  return `${name}-${randomLocalPart}@${randomDomain}`;
 }
 
 // note(Lauris): needed because useEffect kicks in twice creating 2 parallel requests
@@ -50,11 +50,11 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    const randomEmailOne = generateRandomEmail();
-    const randomEmailTwo = generateRandomEmail();
-    const randomEmailThree = generateRandomEmail();
-    const randomEmailFour = generateRandomEmail();
-    const randomEmailFive = generateRandomEmail();
+    const randomEmailOne = generateRandomEmail("keith");
+    const randomEmailTwo = generateRandomEmail("somay");
+    const randomEmailThree = generateRandomEmail("rajiv");
+    const randomEmailFour = generateRandomEmail("morgan");
+    const randomEmailFive = generateRandomEmail("lauris");
 
     if (!seeding) {
       seeding = true;
@@ -73,7 +73,7 @@ export default function App({ Component, pageProps }: AppProps) {
     }
   }, []);
   useEffect(() => {
-    if (!!selectedUser) {
+    if (selectedUser) {
       setAccessToken(selectedUser.accessToken);
       setUserEmail(selectedUser.email);
       setUsername(selectedUser.username);
@@ -83,13 +83,15 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={`${poppins.className} text-black`}>
       {options.length > 0 && (
-        <Select defaultValue={selectedUser} onChange={setSelectedUser} options={options} />
+        <Select
+          defaultValue={options.find((opt: TUser | null) => opt?.email.includes("lauris"))}
+          onChange={(opt: TUser | null) => setSelectedUser(opt)}
+          options={options}
+        />
       )}
       <CalProvider
         accessToken={accessToken}
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
         clientId={process.env.NEXT_PUBLIC_X_CAL_ID ?? ""}
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
         options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}>
         {email ? (
           <>
@@ -107,16 +109,16 @@ export default function App({ Component, pageProps }: AppProps) {
         <div>
           <BookerEmbed
             customClassNames={{
-              bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+              bookerContainer: "bg-[#F5F2FE]! [&_button:!rounded-full] border-subtle border",
               datePickerCustomClassNames: {
-                datePickerDatesActive: "!bg-[#D7CEF5]",
+                datePickerDatesActive: "bg-[#D7CEF5]!",
               },
               eventMetaCustomClassNames: {
                 eventMetaTitle: "text-[#7151DC]",
               },
               availableTimeSlotsCustomClassNames: {
-                availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
-                availableTimes: "!bg-[#D7CEF5]",
+                availableTimeSlotsHeaderContainer: "bg-[#F5F2FE]!",
+                availableTimes: "bg-[#D7CEF5]!",
               },
             }}
             username={username}

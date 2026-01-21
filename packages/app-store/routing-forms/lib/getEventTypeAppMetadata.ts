@@ -1,7 +1,7 @@
+import type { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { enabledAppSlugs } from "./enabledApps";
-import type { Prisma } from ".prisma/client";
 
 const getEventTypeAppMetadata = (metadata: Prisma.JsonValue) => {
   const eventTypeMetadataParse = EventTypeMetaDataSchema.safeParse(metadata);

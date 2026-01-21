@@ -13,6 +13,7 @@ interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps,
     tooltip?: string;
     iconLeft?: ReactNode;
     dataTestId?: string;
+    onClick?: VoidFunction;
   }[];
   isFullWidth?: boolean;
   orientation?: "horizontal" | "vertical";
@@ -56,7 +57,7 @@ export const ToggleGroup = ({
             "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
         }}
         className={classNames(
-          `bg-subtle border-subtle rounded-[10px] border p-0.5`,
+          `bg-muted rounded-[10px] p-0.5`,
           orientation === "horizontal" && "inline-flex gap-0.5 rtl:flex-row-reverse",
           orientation === "vertical" && "flex w-fit flex-col gap-0.5",
           props.className,
@@ -67,13 +68,14 @@ export const ToggleGroup = ({
           <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
             <RadixToggleGroup.Item
               disabled={option.disabled}
+              onClick={option?.onClick}
               value={option.value}
               data-testid={option.dataTestId ?? `toggle-group-item-${option.value}`}
               className={classNames(
                 "aria-checked:bg-default aria-checked:border-subtle rounded-lg border border-transparent p-1.5 text-sm leading-none transition aria-checked:shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]",
                 option.disabled
                   ? "text-gray-400 hover:cursor-not-allowed"
-                  : "text-default [&[aria-checked='false']]:hover:text-emphasis",
+                  : "text-default [&[aria-checked='false']]:hover:text-emphasis [&[aria-checked='false']]:hover:bg-subtle cursor-pointer",
                 isFullWidth && "w-full"
               )}>
               <div

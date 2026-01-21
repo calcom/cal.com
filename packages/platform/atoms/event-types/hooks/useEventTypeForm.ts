@@ -4,19 +4,16 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import {
-  DEFAULT_PROMPT_VALUE,
-  DEFAULT_BEGIN_MESSAGE,
-} from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
-import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { locationsResolver } from "@calcom/app-store/locations";
+import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
+import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
+import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import type {
   FormValues,
   EventTypeSetupProps,
   EventTypeUpdateInput,
 } from "@calcom/features/eventtypes/lib/types";
-import { validateCustomEventName } from "@calcom/lib/event";
-import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -59,6 +56,7 @@ export const useEventTypeForm = ({
       seatsShowAttendees: eventType.seatsShowAttendees,
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
       lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
+      lockedTimeZone: eventType.lockedTimeZone || null,
       locations: eventType.locations || [],
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
@@ -73,7 +71,11 @@ export const useEventTypeForm = ({
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
-      multiplePrivateLinks: eventType.hashedLink.map((link) => link.link),
+      multiplePrivateLinks: eventType.hashedLink.map((link) => ({
+        link: link.link,
+        expiresAt: link.expiresAt,
+        maxUsageCount: link.maxUsageCount,
+      })),
       eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
@@ -92,10 +94,14 @@ export const useEventTypeForm = ({
       requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+      disabledCancelling: eventType.disableCancelling ?? false,
+      disabledRescheduling: eventType.disableRescheduling ?? false,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
+      hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
@@ -115,6 +121,7 @@ export const useEventTypeForm = ({
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
+      autoTranslateInstantMeetingTitleEnabled: eventType.autoTranslateInstantMeetingTitleEnabled ?? true,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
@@ -139,6 +146,7 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
+      showOptimizedSlots: eventType.showOptimizedSlots ?? false,
     };
   }, [eventType, periodDates]);
 
@@ -180,6 +188,7 @@ export const useEventTypeForm = ({
               enableAutomaticRecordingForOrganizer: z.boolean().nullable(),
               disableTranscriptionForGuests: z.boolean().nullable(),
               disableTranscriptionForOrganizer: z.boolean().nullable(),
+              requireEmailForGuests: z.boolean().nullable(),
             })
             .optional()
             .nullable(),
@@ -195,16 +204,6 @@ export const useEventTypeForm = ({
 
   // Watch all form values to trigger onFormStateChange on any change
   const watchedValues = form.watch();
-
-  useEffect(() => {
-    if (onFormStateChange) {
-      onFormStateChange({
-        isDirty: isFormDirty,
-        dirtyFields: dirtyFields as Partial<FormValues>,
-        values: watchedValues,
-      });
-    }
-  }, [isFormDirty, watchedValues, onFormStateChange]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -335,8 +334,9 @@ export const useEventTypeForm = ({
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
-    const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? values.seatsPerTimeSlot;
-    const finalRecurringEvent = recurringEvent ?? values.recurringEvent;
+    const finalSeatsPerTimeSlot =
+      seatsPerTimeSlot === undefined ? eventType.seatsPerTimeSlot : seatsPerTimeSlot;
+    const finalRecurringEvent = recurringEvent === undefined ? eventType.recurringEvent : recurringEvent;
 
     if (finalSeatsPerTimeSlot && finalRecurringEvent) {
       throw new Error(t("recurring_event_seats_error"));
@@ -378,7 +378,7 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, ...rest } = input;
+    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, ...rest } = input;
     const payload = {
       ...rest,
       length,
@@ -403,6 +403,8 @@ export const useEventTypeForm = ({
       children,
       assignAllTeamMembers,
       multiplePrivateLinks: values.multiplePrivateLinks,
+      disableCancelling: disabledCancelling,
+      disableRescheduling: disabledRescheduling,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
@@ -420,6 +422,16 @@ export const useEventTypeForm = ({
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };
+
+  useEffect(() => {
+    if (onFormStateChange) {
+      onFormStateChange({
+        isDirty: isFormDirty,
+        dirtyFields: dirtyFields as Partial<FormValues>,
+        values: watchedValues,
+      });
+    }
+  }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
 
   return { form, handleSubmit };
 };

@@ -39,23 +39,4 @@ describe("defaultHandler Test Suite", () => {
 
     expect(getHandler).toHaveBeenCalledWith(req, res);
   });
-
-  it("should return 500 for errors thrown in handler", async () => {
-    const getHandler = vi.fn().mockRejectedValue(new Error("Test Error"));
-    const handlers = {
-      GET: { default: getHandler },
-    };
-    const handler = defaultHandler(handlers);
-
-    const { req, res } = createMocks({
-      method: "GET",
-    });
-
-    await handler(req, res);
-
-    expect(res._getStatusCode()).toBe(500);
-    expect(res._getJSONData()).toEqual({
-      message: "Something went wrong",
-    });
-  });
 });

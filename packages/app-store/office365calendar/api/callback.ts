@@ -5,6 +5,7 @@ import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -91,14 +92,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
       },
     });
+
+    logger.info("Office365 Calendar: Received calendar response", {
+      userId: req.session?.user?.id,
+      status: calRequest.status,
+      statusText: calRequest.statusText,
+      url: calRequest.url,
+    });
+
     let calBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(calRequest);
+
+    logger.info("Office365 Calendar: handleErrorsJson completed", {
+      userId: req.session?.user?.id,
+      calendarCount: calBody.value?.length ?? 0,
+    });
 
     if (typeof responseBody === "string") {
       calBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
     }
 
-    const findDefaultCalendar = calBody.value.find((calendar) => calendar.isDefaultCalendar);
-
+    const findDefaultCalendar = (calBody.value ?? []).find((calendar) => calendar.isDefaultCalendar);
     if (findDefaultCalendar) {
       defaultCalendar = findDefaultCalendar;
     }
@@ -110,7 +123,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  if (defaultCalendar?.id && req.session?.user?.id) {
+  if (!defaultCalendar?.id) {
+    const errorMessage = "no_default_calendar";
+    res.redirect(
+      `${getSafeRedirectUrl(state?.onErrorReturnTo) ?? getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })}?error=${errorMessage}`
+    );
+    return;
+  }
+
+  if (req.session?.user?.id) {
     const credential = await prisma.credential.create({
       data: {
         type: "office365_calendar",

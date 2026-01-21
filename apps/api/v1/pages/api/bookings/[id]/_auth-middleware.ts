@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -34,7 +34,14 @@ async function authMiddleware(req: NextApiRequest) {
     where: { id: userId },
     select: {
       email: true,
-      bookings: true,
+      bookings: {
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+        },
+      },
     },
   });
 

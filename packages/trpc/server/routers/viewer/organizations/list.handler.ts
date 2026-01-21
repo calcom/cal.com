@@ -1,5 +1,6 @@
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,7 +18,8 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "You do not belong to an organization" });
   }
 
-  const currentOrg = await OrganizationRepository.findCurrentOrg({
+  const organizationRepository = getOrganizationRepository();
+  const currentOrg = await organizationRepository.findCurrentOrg({
     userId: ctx.user.id,
     orgId: organizationId,
   });
@@ -26,7 +28,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     return currentOrg;
   }
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
     organizationId,
     "delegation-credential"

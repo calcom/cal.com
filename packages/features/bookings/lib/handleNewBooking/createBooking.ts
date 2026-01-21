@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import type short from "short-uuid";
 import type { z } from "zod";
 
@@ -7,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -143,7 +143,7 @@ async function saveBooking(
   const createBookingObj = {
     include: {
       user: {
-        select: { email: true, name: true, timeZone: true, username: true },
+        select: { uuid: true, email: true, name: true, timeZone: true, username: true },
       },
       attendees: true,
       payment: true,
@@ -182,7 +182,7 @@ async function saveBooking(
       await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
     }
 
-    return booking;
+    return { ...booking, userUuid: booking.user?.uuid ?? null };
   });
 }
 
@@ -249,6 +249,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     dynamicEventSlugRef: !eventType.id ? eventType.slug : null,
     dynamicGroupSlugRef: !eventType.id ? (reqBody.user as string).toLowerCase() : null,
     iCalUID: evt.iCalUID ?? "",
+    iCalSequence: originalRescheduledBooking ? evt.iCalSequence || 1 : 0,
     user: {
       connect: {
         id: eventType.organizerUser.id,
@@ -257,8 +258,8 @@ function buildNewBookingData(params: CreateBookingParams) {
     destinationCalendar:
       evt.destinationCalendar && evt.destinationCalendar.length > 0
         ? {
-            connect: { id: evt.destinationCalendar[0].id },
-          }
+          connect: { id: evt.destinationCalendar[0].id },
+        }
         : undefined,
 
     routedFromRoutingFormReponse: routingFormResponseId
@@ -343,4 +344,4 @@ function buildNewBookingData(params: CreateBookingParams) {
   }
 }
 
-export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
+export type Booking = Awaited<ReturnType<typeof createBooking>>;

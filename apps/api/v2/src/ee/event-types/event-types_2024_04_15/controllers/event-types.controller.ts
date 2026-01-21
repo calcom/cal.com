@@ -47,7 +47,7 @@ import {
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
 import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries/event-types";
-import { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",

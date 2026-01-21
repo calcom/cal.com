@@ -3,7 +3,11 @@ import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
+import {
+  SlotsInputService_2024_09_04,
+  InternalGetSlotsQuery,
+  InternalGetSlotsQueryWithRouting,
+} from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
@@ -18,8 +22,15 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
-import { Booking, EventType } from "@calcom/prisma/client";
+import { SlotFormat } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
+import { validateRoundRobinSlotAvailability } from "@calcom/platform-libraries/slots";
+import type {
+  GetSlotsInput_2024_09_04,
+  GetSlotsInputWithRouting_2024_09_04,
+  ReserveSlotInput_2024_09_04,
+} from "@calcom/platform-types";
+import type { EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({
@@ -29,6 +40,7 @@ const eventTypeMetadataSchema = z
 
 const DEFAULT_RESERVATION_DURATION = 5;
 
+type InternalSlotsQuery = InternalGetSlotsQuery | InternalGetSlotsQueryWithRouting;
 @Injectable()
 export class SlotsService_2024_09_04 {
   constructor(
@@ -42,21 +54,18 @@ export class SlotsService_2024_09_04 {
     private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
-  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
+  private async fetchAndFormatSlots(queryTransformed: InternalSlotsQuery, format?: SlotFormat) {
     try {
-      const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
       const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
-        input: {
-          ...queryTransformed,
-          routingFormResponseId: queryTransformed.routingFormResponseId ?? undefined,
-        },
+        input: queryTransformed,
         ctx: {},
       });
+
       const formatted = await this.slotsOutputService.getAvailableSlots(
         availableSlots,
         queryTransformed.eventTypeId,
         queryTransformed.duration,
-        query.format,
+        format,
         queryTransformed.timeZone
       );
 
@@ -71,6 +80,16 @@ export class SlotsService_2024_09_04 {
       }
       throw error;
     }
+  }
+
+  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
+    const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+    return this.fetchAndFormatSlots(queryTransformed, query.format);
+  }
+
+  async getAvailableSlotsWithRouting(query: GetSlotsInputWithRouting_2024_09_04) {
+    const queryTransformed = await this.slotsInputService.transformRoutingGetSlotsQuery(query);
+    return this.fetchAndFormatSlots(queryTransformed, query.format);
   }
 
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {
@@ -130,13 +149,26 @@ export class SlotsService_2024_09_04 {
     }
 
     const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
-    if (nonSeatedEventAlreadyBooked) {
+    const isRoundRobinEvent = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
+    if (nonSeatedEventAlreadyBooked && !isRoundRobinEvent) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
-    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+    if (isRoundRobinEvent) {
+      try {
+        await validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new UnprocessableEntityException(error?.message);
+        }
+        throw error;
+      }
+    } else {
+      await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    }
 
-    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
 
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(

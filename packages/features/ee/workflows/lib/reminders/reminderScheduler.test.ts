@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -17,6 +17,16 @@ vi.mock("@calcom/features/ee/workflows/lib/reminders/providers/emailProvider", (
   sendOrScheduleWorkflowEmails: vi.fn(),
 }));
 
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    },
+  };
+});
 describe("reminderScheduler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,8 +34,6 @@ describe("reminderScheduler", () => {
 
   describe("cancelScheduledMessagesAndScheduleEmails", () => {
     it("should cancel SMS messages and schedule emails for team", async () => {
-      prismaMock.membership.findMany.mockResolvedValue([]);
-
       const mockScheduledMessages = [
         {
           id: 1,
@@ -53,7 +61,7 @@ describe("reminderScheduler", () => {
 
       prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
 
-      await cancelScheduledMessagesAndScheduleEmails({ teamId: 10 });
+      await cancelScheduledMessagesAndScheduleEmails({ teamId: 10, userIdsWithNoCredits: [1, 2, 3] });
 
       expect(twilioProvider.cancelSMS).toHaveBeenCalledWith("sms-123");
 
@@ -66,12 +74,13 @@ describe("reminderScheduler", () => {
       );
 
       const callArgs = prismaMock.workflowReminder.findMany.mock.calls[0][0];
-      expect(callArgs.where.workflowStep.workflow.OR).toEqual([{ userId: { in: [] } }, { teamId: 10 }]);
+      expect(callArgs.where.workflowStep.workflow.OR).toEqual([
+        { userId: { in: [1, 2, 3] } },
+        { teamId: 10 },
+      ]);
     });
 
     it("should cancel SMS messages and schedule emails for user", async () => {
-      prismaMock.membership.findMany.mockResolvedValue([]);
-
       const mockScheduledMessages = [
         {
           id: 1,
@@ -99,7 +108,7 @@ describe("reminderScheduler", () => {
 
       prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
 
-      await cancelScheduledMessagesAndScheduleEmails({ userId: 11 });
+      await cancelScheduledMessagesAndScheduleEmails({ userIdsWithNoCredits: [11] });
 
       const callArgs = prismaMock.workflowReminder.findMany.mock.calls[0][0];
       expect(callArgs.where.workflowStep.workflow.OR).toEqual([{ userId: { in: [11] } }]);

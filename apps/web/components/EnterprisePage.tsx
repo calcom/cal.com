@@ -1,11 +1,12 @@
 "use client";
 
-import Shell from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
+
+import Shell from "~/shell/Shell";
+import { UpgradeTip } from "~/shell/UpgradeTip";
 
 export default function EnterprisePage() {
   const { t } = useLocale();
@@ -52,9 +53,9 @@ export default function EnterprisePage() {
           features={features}
           background="/tips/enterprise"
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
-                <Button color="primary" href="https://i.cal.com/sales/enterprise?duration=25" target="_blank">
+                <Button color="primary" href="https://go.cal.com/quote" target="_blank">
                   {t("contact_sales")}
                 </Button>
                 <Button color="minimal" href="https://cal.com/enterprise" target="_blank">

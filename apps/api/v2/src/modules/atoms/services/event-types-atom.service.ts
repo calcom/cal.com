@@ -1,47 +1,68 @@
+import type { TeamQuery } from "@calcom/platform-libraries";
+import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
+import type {
+  App,
+  CredentialDataWithTeamName,
+  CredentialOwner,
+  CredentialPayload,
+  LocationOption,
+  TDependencyData,
+} from "@calcom/platform-libraries/app-store";
+import {
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  getAppFromSlug,
+  getEnabledAppsFromCredentials,
+} from "@calcom/platform-libraries/app-store";
+import {
+  bulkUpdateEventsToDefaultLocation,
+  bulkUpdateTeamEventsToDefaultLocation,
+  EventTypeMetaDataSchema,
+  getBulkTeamEventTypes,
+  getBulkUserEventTypes,
+  getEventTypeById,
+  getPublicEvent,
+  type PublicEventType,
+  TUpdateEventTypeInputSchema,
+  updateEventType,
+} from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from "@nestjs/common";
-
-import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
-import type { TeamQuery } from "@calcom/platform-libraries";
-import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/platform-libraries/app-store";
-import { getEnabledAppsFromCredentials, getAppFromSlug } from "@calcom/platform-libraries/app-store";
-import type {
-  App,
-  TDependencyData,
-  CredentialOwner,
-  CredentialPayload,
-  CredentialDataWithTeamName,
-  LocationOption,
-} from "@calcom/platform-libraries/app-store";
-import { type PublicEventType, getPublicEvent } from "@calcom/platform-libraries/event-types";
-import {
-  getEventTypeById,
-  bulkUpdateEventsToDefaultLocation,
-  bulkUpdateTeamEventsToDefaultLocation,
-  getBulkUserEventTypes,
-  getBulkTeamEventTypes,
-} from "@calcom/platform-libraries/event-types";
-import {
-  updateEventType,
-  TUpdateEventTypeInputSchema,
-  EventTypeMetaDataSchema,
-} from "@calcom/platform-libraries/event-types";
-import { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
   credentials: CredentialDataWithTeamName[];
   locationOption: LocationOption | null;
 };
+
+/**
+ * Normalizes a period date to UTC midnight.
+ * Atoms receives JSON where dates are strings (e.g., "2024-01-20T00:00:00.000Z" or "2024-01-20"),
+ * but TypeScript types them as Date. This function handles both cases.
+ * We extract the date part (YYYY-MM-DD) to avoid timezone shifts.
+ */
+function normalizePeriodDate(date: Date | string | null | undefined): Date | null | undefined {
+  if (date === undefined) return undefined;
+  if (date === null) return null;
+
+  // Handle both string (from JSON) and Date object (if already parsed)
+  const dateStr = typeof date === "string" ? date : date.toISOString();
+
+  // Extract the date part (first 10 chars: YYYY-MM-DD) to avoid timezone shifts
+  // e.g., "2024-01-20T00:00:00.000+04:00" -> "2024-01-20" -> UTC midnight Jan 20
+  const dateOnly = dateStr.slice(0, 10);
+  return new Date(dateOnly);
+}
 
 @Injectable()
 export class EventTypesAtomService {
@@ -53,7 +74,8 @@ export class EventTypesAtomService {
     private readonly dbWrite: PrismaWriteService,
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly teamEventTypeService: TeamsEventTypesService
+    private readonly teamEventTypeService: TeamsEventTypesService,
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
   ) {}
 
   private async getTeamSlug(teamId: number): Promise<string> {
@@ -79,6 +101,7 @@ export class EventTypesAtomService {
       currentOrganizationId: this.usersService.getUserMainOrgId(user),
       eventTypeId,
       userId: user.id,
+      userLocale: user.locale ?? "en",
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
       isTrpcCall: true,
@@ -88,10 +111,12 @@ export class EventTypesAtomService {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    if (eventType?.team?.id) {
-      await this.checkTeamOwnsEventType(user.id, eventType.eventType.id, eventType.team.id);
-    } else {
-      this.eventTypeService.checkUserOwnsEventType(user.id, eventType.eventType);
+    if (!isUserOrganizationAdmin) {
+      if (eventType?.team?.id) {
+        await this.checkTeamOwnsEventType(user.id, eventType.eventType.id, eventType.team.id);
+      } else {
+        this.eventTypeService.checkUserOwnsEventType(user.id, eventType.eventType);
+      }
     }
 
     // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
@@ -115,7 +140,8 @@ export class EventTypesAtomService {
     user: UserWithProfile,
     teamId: number
   ) {
-    await this.checkCanUpdateTeamEventType(user.id, eventTypeId, teamId, body.scheduleId);
+    await this.checkCanUpdateTeamEventType(user, eventTypeId, teamId, body.scheduleId);
+
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
     const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
 
@@ -127,12 +153,23 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         prisma: this.dbWrite.prisma,
       },
     });
@@ -157,12 +194,23 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         prisma: this.dbWrite.prisma,
       },
     });
@@ -175,14 +223,31 @@ export class EventTypesAtomService {
   }
 
   async checkCanUpdateTeamEventType(
-    userId: number,
+    user: UserWithProfile,
     eventTypeId: number,
     teamId: number,
     scheduleId: number | null | undefined
   ) {
-    await this.checkTeamOwnsEventType(userId, eventTypeId, teamId);
+    const organizationId = this.usersService.getUserMainOrgId(user);
+
+    if (organizationId) {
+      const isUserOrganizationAdmin = await this.membershipsRepository.isUserOrganizationAdmin(
+        user.id,
+        organizationId
+      );
+
+      if (isUserOrganizationAdmin) {
+        const orgTeam = await this.organizationsTeamsRepository.findOrgTeam(organizationId, teamId);
+        if (orgTeam) {
+          await this.teamEventTypeService.validateEventTypeExists(teamId, eventTypeId);
+          return;
+        }
+      }
+    }
+
+    await this.checkTeamOwnsEventType(user.id, eventTypeId, teamId);
     await this.teamEventTypeService.validateEventTypeExists(teamId, eventTypeId);
-    await this.eventTypeService.checkUserOwnsSchedule(userId, scheduleId);
+    await this.eventTypeService.checkUserOwnsSchedule(user.id, scheduleId);
   }
 
   async checkTeamOwnsEventType(userId: number, eventTypeId: number, teamId: number) {
@@ -266,6 +331,7 @@ export class EventTypesAtomService {
           async ({
             credentials: _,
             credential,
+
             key: _2 /* don't leak to frontend */,
             ...app
           }: EnabledAppType) => {
@@ -344,7 +410,7 @@ export class EventTypesAtomService {
       endTime: endTime.toString(),
     };
     if (!eventType) throw new NotFoundException(`Event type with uid ${uid} not found`);
-    if (eventType.users.length === 0 && !!!eventType.team)
+    if (eventType.users.length === 0 && !eventType.team)
       throw new NotFoundException(`No users found or no team present for event type with uid ${uid}`);
     const [user] = eventType?.users.length
       ? eventType.users

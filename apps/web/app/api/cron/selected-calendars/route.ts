@@ -6,13 +6,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { findUniqueDelegationCalendarCredential } from "@calcom/app-store/delegationCredential";
+import {
+  createGoogleCalendarServiceWithGoogleType,
+  type GoogleCalendar,
+} from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
-import { findUniqueDelegationCalendarCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import type { Ensure } from "@calcom/types/utils";
@@ -135,7 +138,7 @@ async function getCalendarService(delegationUserCredential: DelegationUserCreden
     return null;
   }
 
-  const googleCalendarService = new GoogleCalendarService(
+  const googleCalendarService = createGoogleCalendarServiceWithGoogleType(
     credentialForCalendarService as CredentialForCalendarServiceWithEmail
   );
 
@@ -146,7 +149,7 @@ async function fetchPrimaryCalendarId({
   googleCalendarService,
   delegationUserCredential,
 }: {
-  googleCalendarService: GoogleCalendarService;
+  googleCalendarService: GoogleCalendar;
   delegationUserCredential: DelegationUserCredentialWithEnsuredUser;
 }) {
   let primaryCalendarId;

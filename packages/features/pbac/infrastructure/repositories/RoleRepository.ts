@@ -5,6 +5,7 @@ import db from "@calcom/prisma";
 
 import type { Role, RolePermission, PermissionChange, CreateRoleData } from "../../domain/models/Role";
 import { RoleType } from "../../domain/models/Role";
+import { parsePermissionString } from "../../domain/types/permission-registry";
 import { RoleOutputMapper } from "../mappers/RoleOutputMapper";
 
 export class RoleRepository {
@@ -20,7 +21,12 @@ export class RoleRepository {
 
   async findByTeamId(teamId: number): Promise<Role[]> {
     const roles = await this.client.role.findMany({
-      where: { teamId },
+      where: {
+        OR: [
+          { teamId }, // Team-specific custom roles
+          { teamId: null, type: "SYSTEM" }, // Default/system roles available to all teams
+        ],
+      },
       include: { permissions: true },
     });
     return RoleOutputMapper.toDomainList(roles);
@@ -49,7 +55,7 @@ export class RoleRepository {
 
       if (data.permissions.length > 0) {
         const permissionData = data.permissions.map((permission) => {
-          const [resource, action] = permission.split(".");
+          const { resource, action } = parsePermissionString(permission);
           return {
             id: uuidv4(),
             roleId: role.id,
@@ -74,6 +80,13 @@ export class RoleRepository {
       this.client.rolePermission.deleteMany({ where: { roleId: id } }),
       this.client.role.delete({ where: { id } }),
     ]);
+  }
+
+  async reassignUsersToRole(fromRoleId: string, toRoleId: string): Promise<void> {
+    await this.client.membership.updateMany({
+      where: { customRoleId: fromRoleId },
+      data: { customRoleId: toRoleId },
+    });
   }
 
   async update(
@@ -103,7 +116,7 @@ export class RoleRepository {
         await trx.rolePermission.deleteMany({
           where: {
             roleId,
-            AND: permissionChanges.toRemove.map((p) => ({
+            OR: permissionChanges.toRemove.map((p) => ({
               resource: p.resource,
               action: p.action,
             })),

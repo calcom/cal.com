@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -24,11 +25,12 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
     "email-verification"
   );
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
+  const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
@@ -42,12 +44,26 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const redirectUrl = redirectUrlData.success && redirectUrlData.data ? redirectUrlData.data : null;
 
+  const session = await getServerSession({
+    req: ctx.req,
+  });
+
+  if (session?.user?.id) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: redirectUrl || "/",
+      },
+    } as const;
+  }
+
   const props = {
     redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
+    onboardingV3Enabled,
   };
 
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
