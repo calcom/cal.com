@@ -2,6 +2,8 @@ import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalen
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
+const MAX_SUBSCRIBE_ERRORS = 3;
+
 export class SelectedCalendarRepository implements ISelectedCalendarRepository {
   constructor(private prismaClient: PrismaClient) {}
 
@@ -26,10 +28,40 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
     integrations: string[];
     genericCalendarSuffixes?: string[];
   }) {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const needsSubscriptionFilter: Prisma.SelectedCalendarWhereInput = {
+      OR: [
+        { syncSubscribedAt: null },
+        { channelExpiration: null },
+        { channelExpiration: { lte: now } },
+      ],
+    };
+
+    const retryableWindowFilter: Prisma.SelectedCalendarWhereInput = {
+      OR: [{ syncSubscribedErrorAt: null }, { syncSubscribedErrorAt: { lt: oneDayAgo } }],
+    };
+
+    const retryableErrorCountFilter: Prisma.SelectedCalendarWhereInput = {
+      syncSubscribedErrorCount: { lt: MAX_SUBSCRIBE_ERRORS },
+    };
+
+    const suffixFilters =
+      genericCalendarSuffixes?.map<Prisma.SelectedCalendarWhereInput>((suffix) => ({
+        NOT: { externalId: { endsWith: suffix } },
+      })) ?? [];
+
+    const andFilters = [
+      needsSubscriptionFilter,
+      retryableWindowFilter,
+      retryableErrorCountFilter,
+      ...suffixFilters,
+    ];
+
     return this.prismaClient.selectedCalendar.findMany({
       where: {
         integration: { in: integrations },
-        OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: new Date() } }],
         user: {
           teams: {
             some: {
@@ -38,9 +70,7 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
             },
           },
         },
-        AND: genericCalendarSuffixes?.map((suffix) => ({
-          NOT: { externalId: { endsWith: suffix } },
-        })),
+        AND: andFilters.length ? andFilters : undefined,
       },
       take,
     });
@@ -69,6 +99,8 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
       | "channelKind"
       | "channelExpiration"
       | "syncSubscribedAt"
+      | "syncSubscribedErrorAt"
+      | "syncSubscribedErrorCount"
     >
   ) {
     return this.prismaClient.selectedCalendar.update({
