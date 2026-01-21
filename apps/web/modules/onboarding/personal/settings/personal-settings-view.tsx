@@ -204,7 +204,7 @@ export const PersonalSettingsView = ({
               {/* Bio */}
               <div className="flex w-full flex-col gap-1.5">
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("bio")}</Label>
-                <TextArea {...form.register("bio")} className="min-h-[108px]" />
+                <TextArea {...form.register("bio")} className="min-h-[108px] max-h-[150px]" />
                 {form.formState.errors.bio && (
                   <p className="text-error text-sm">{form.formState.errors.bio.message}</p>
                 )}
