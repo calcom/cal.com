@@ -1,3 +1,4 @@
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesController_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/controllers/schedules.controller";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
@@ -9,7 +10,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, UsersModule, TokensModule],
+  imports: [PrismaModule, UsersModule, TokensModule, EventTypesModule_2024_06_14],
   providers: [
     SchedulesRepository_2024_06_11,
     SchedulesService_2024_06_11,

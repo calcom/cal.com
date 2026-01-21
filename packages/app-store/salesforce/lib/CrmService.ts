@@ -226,7 +226,12 @@ class SalesforceCRMService implements CRM {
       EndDateTime: new Date(event.endTime).toISOString(),
       Subject: event.title,
       Description: this.getSalesforceEventBody(event),
-      Location: getLocation(event),
+      Location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       ...options,
       ...(event.recurringEvent && {
         IsRecurrence2: true,
@@ -334,7 +339,12 @@ class SalesforceCRMService implements CRM {
       EndDateTime: new Date(event.endTime).toISOString(),
       Subject: event.title,
       Description: this.getSalesforceEventBody(event),
-      Location: getLocation(event),
+      Location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       ...(event.recurringEvent && {
         IsRecurrence2: true,
         Recurrence2PatternText: new RRule(event.recurringEvent).toString(),
