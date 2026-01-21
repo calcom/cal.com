@@ -8,6 +8,7 @@ import {
 } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -143,21 +144,13 @@ class ResponsePayload {
 }
 
 type EmailToAttendeesMap = Record<string, { id: number; email: string; noShow: boolean | null }>;
-/**
- * Fetches attendees from the database by their emails for a given booking.
- * Returns a map of email to attendee data for efficient lookup.
- */
+
 const getBookingAttendeesFromEmails = async (
   bookingUid: string,
   emails: string[]
 ): Promise<EmailToAttendeesMap> => {
-  const attendees = await prisma.attendee.findMany({
-    where: {
-      booking: { uid: bookingUid },
-      email: { in: emails },
-    },
-    select: { id: true, email: true, noShow: true },
-  });
+  const attendeeRepository = new AttendeeRepository(prisma);
+  const attendees = await attendeeRepository.findByBookingUidAndEmails(bookingUid, emails);
   const emailToAttendeeMap = attendees.reduce((acc, a) => {
     acc[a.email] = a;
     return acc;
@@ -376,14 +369,7 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
-      await prisma.booking.update({
-        where: {
-          uid: bookingUid,
-        },
-        data: {
-          noShowHost: true,
-        },
-      });
+      await bookingRepository.updateNoShowHost(bookingUid, true);
       responsePayload.setNoShowHost(true);
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
@@ -412,24 +398,8 @@ const updateAttendees = async (
   attendeeEmails: string[],
   attendees: NonNullable<TNoShowInputSchema["attendees"]>
 ) => {
-  const allAttendees = await prisma.attendee.findMany({
-    where: {
-      AND: [
-        {
-          booking: {
-            uid: bookingUid,
-          },
-          email: {
-            in: attendeeEmails,
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      email: true,
-    },
-  });
+  const attendeeRepository = new AttendeeRepository(prisma);
+  const allAttendees = await attendeeRepository.findIdAndEmailByBookingUidAndEmails(bookingUid, attendeeEmails);
 
   const allAttendeesMap = allAttendees.reduce(
     (acc, attendee) => {
@@ -442,10 +412,7 @@ const updateAttendees = async (
   const updatePromises = attendees.map((attendee) => {
     const attendeeToUpdate = allAttendeesMap[attendee.email];
     if (!attendeeToUpdate) return;
-    return prisma.attendee.update({
-      where: { id: attendeeToUpdate.id },
-      data: { noShow: attendee.noShow },
-    });
+    return attendeeRepository.updateNoShow(attendeeToUpdate.id, attendee.noShow);
   });
 
   const results = await Promise.allSettled(updatePromises);

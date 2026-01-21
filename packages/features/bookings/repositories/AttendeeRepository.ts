@@ -1,5 +1,4 @@
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { IAttendeeRepository } from "./IAttendeeRepository";
 
 /**
@@ -34,6 +33,40 @@ export class AttendeeRepository implements IAttendeeRepository {
         },
       },
       select: { email: true },
+    });
+  }
+
+  async findByBookingUidAndEmails(
+    bookingUid: string,
+    emails: string[]
+  ): Promise<{ id: number; email: string; noShow: boolean | null }[]> {
+    return this.prismaClient.attendee.findMany({
+      where: {
+        booking: { uid: bookingUid },
+        email: { in: emails },
+      },
+      select: { id: true, email: true, noShow: true },
+    });
+  }
+
+  async findIdAndEmailByBookingUidAndEmails(
+    bookingUid: string,
+    emails: string[]
+  ): Promise<{ id: number; email: string }[]> {
+    return this.prismaClient.attendee.findMany({
+      where: {
+        booking: { uid: bookingUid },
+        email: { in: emails },
+      },
+      select: { id: true, email: true },
+    });
+  }
+
+  async updateNoShow(attendeeId: number, noShow: boolean): Promise<{ noShow: boolean; email: string }> {
+    return this.prismaClient.attendee.update({
+      where: { id: attendeeId },
+      data: { noShow },
+      select: { noShow: true, email: true },
     });
   }
 }

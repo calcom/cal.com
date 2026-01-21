@@ -1609,6 +1609,14 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async updateNoShowHost(bookingUid: string, noShowHost: boolean): Promise<{ id: number }> {
+    return await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { noShowHost },
+      select: { id: true },
+    });
+  }
+
   /**
    * Update a booking and return it with workflow reminders and references
    * Used during booking cancellation to update status and retrieve related data in one query
