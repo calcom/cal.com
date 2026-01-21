@@ -1,3 +1,4 @@
+import process from "node:process";
 import { syncVercelEnvVars } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 import dotEnv from "dotenv";
@@ -15,7 +16,12 @@ export default defineConfig({
   project: process.env.TRIGGER_DEV_PROJECT_REF ?? "", // e.g., "proj_abc123"
 
   // Directories containing your tasks
-  dirs: ["./bookings/lib/tasker/trigger/notifications"], // Customize based on your project structure
+  dirs: [
+    "./bookings/lib/tasker/trigger/notifications",
+    "./calendars/lib/tasker/trigger",
+    "./ee/billing/service/proration/tasker/trigger",
+    "./ee/organizations/lib/billing/tasker/trigger",
+  ], // Customize based on your project structure
 
   // Retry configuration
   retries: {
@@ -34,7 +40,16 @@ export default defineConfig({
 
   // Build configuration (optional)
   build: {
-    external: ["@prisma/client", "nodemailer", "jsdom", "playwright-core", "playwright", "chromium-bidi"],
+    external: [
+      "@prisma/client",
+      "nodemailer",
+      "jsdom",
+      "playwright-core",
+      "playwright",
+      "chromium-bidi",
+      "http-cookie-agent",
+      "deasync",
+    ],
     extensions: canSyncEnvVars
       ? [
           syncVercelEnvVars({

@@ -67,7 +67,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  let teamsData;
+  let teamsData: typeof user.teams extends (infer T)[] ? (T & { team: T extends { team: infer U } ? U & { metadata: ReturnType<typeof teamMetadataSchema.parse> } : never })[] : never;
 
   if (input?.includeOrg) {
     teamsData = user.teams
