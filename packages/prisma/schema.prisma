@@ -991,11 +991,13 @@ model SelectedCalendar {
   channelExpiration  DateTime? @db.Timestamp(3)
 
   // Used to calendar cache and sync
-  syncSubscribedAt DateTime? @db.Timestamp(3)
-  syncToken        String?
-  syncedAt         DateTime?
-  syncErrorAt      DateTime?
-  syncErrorCount   Int?      @default(0)
+  syncSubscribedAt         DateTime? @db.Timestamp(3)
+  syncSubscribedErrorAt    DateTime? @db.Timestamp(3)
+  syncSubscribedErrorCount Int       @default(0)
+  syncToken                String?
+  syncedAt                 DateTime?
+  syncErrorAt              DateTime?
+  syncErrorCount           Int?      @default(0)
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
