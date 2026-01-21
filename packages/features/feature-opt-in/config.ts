@@ -22,26 +22,33 @@ export interface OptInFeatureConfig {
 export const ALL_SCOPES: OptInFeatureScope[] = ["org", "team", "user"];
 
 /**
+ * Bookings V3 feature configuration for opt-in.
+ * Only enabled during E2E tests to allow testing the feature opt-in banner flow.
+ */
+const BOOKINGS_V3_CONFIG: OptInFeatureConfig = {
+  slug: "bookings-v3",
+  i18n: {
+    title: "bookings_v3_title",
+    name: "bookings_v3_name",
+    description: "bookings_v3_description",
+  },
+  bannerImage: {
+    src: "/opt_in_banner_bookings_v3.png",
+    width: 548,
+    height: 348,
+  },
+  policy: "permissive",
+  scope: ["org", "team", "user"],
+};
+
+/**
  * Features that appear in opt-in settings.
  * Add new features here to make them available for user/team opt-in.
+ *
+ * Note: bookings-v3 is only included during E2E tests to enable testing the feature opt-in banner flow.
  */
 export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
-  // Example - to be populated with actual features
-  // {
-  //   slug: "bookings-v3",
-  //   i18n: {
-  //     title: "bookings_v3_title",
-  //     name: "bookings_v3_name",
-  //     description: "bookings_v3_description",
-  //   },
-  //   bannerImage: {
-  //     src: "/opt_in_banner_bookings_v3.png",
-  //     width: 548,
-  //     height: 348,
-  //   },
-  //   policy: "permissive",
-  //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
-  // },
+  ...(process.env.NEXT_PUBLIC_IS_E2E ? [BOOKINGS_V3_CONFIG] : []),
 ];
 
 /**
