@@ -634,8 +634,14 @@ function FieldEditDialog({
   const hidden = fieldForm.getValues("hidden");
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
-      <DialogContent size="md" className="max-h-none" data-testid="edit-field-dialog" enableOverflow={true}>
+    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent
+        size="md"
+        className="max-h-none"
+        data-testid="edit-field-dialog"
+        enableOverflow={true}
+        forceOverlayWhenNoModal={true} // ← Add this to keep the backdrop
+      >
         <DialogHeader>
           <DialogTitle>{t("add_a_booking_question")}</DialogTitle>
           <DialogDescription>{t("booking_questions_description")}</DialogDescription>
