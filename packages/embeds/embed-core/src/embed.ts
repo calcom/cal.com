@@ -362,6 +362,7 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
+    // @ts-expect-error TS2802: URLSearchParams iteration requires downlevelIteration
     for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }

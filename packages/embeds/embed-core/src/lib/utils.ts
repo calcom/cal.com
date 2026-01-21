@@ -32,6 +32,7 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
     return result;
   }
 
+  // @ts-expect-error TS2802: IterableIterator iteration requires downlevelIteration
   for (const [key, value] of entries) {
     // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which embed-core doesn't target
     if (result.hasOwnProperty(key)) {
