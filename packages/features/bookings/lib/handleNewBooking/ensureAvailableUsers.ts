@@ -81,14 +81,14 @@ const _ensureAvailableUsers = async (
   > =
     eventType && (bookingLimits || durationLimits)
       ? await busyTimesService.getBusyTimesForLimitChecks({
-          userIds: eventType.users.map((u) => u.id),
-          eventTypeId: eventType.id,
-          startDate: startDateTimeUtc.format(),
-          endDate: endDateTimeUtc.format(),
-          rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-          bookingLimits,
-          durationLimits,
-        })
+        userIds: eventType.users.map((u) => u.id),
+        eventTypeId: eventType.id,
+        startDate: startDateTimeUtc.format(),
+        endDate: endDateTimeUtc.format(),
+        rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+        bookingLimits,
+        durationLimits,
+      })
       : [];
 
   const usersAvailability = await userAvailabilityService.getUsersAvailability({
@@ -120,11 +120,11 @@ const _ensureAvailableUsers = async (
       ...input,
       originalRescheduledBooking: input.originalRescheduledBooking
         ? {
-            ...input.originalRescheduledBooking,
-            user: input.originalRescheduledBooking?.user
-              ? getPiiFreeUser(input.originalRescheduledBooking.user)
-              : null,
-          }
+          ...input.originalRescheduledBooking,
+          user: input.originalRescheduledBooking?.user
+            ? getPiiFreeUser(input.originalRescheduledBooking.user)
+            : null,
+        }
         : undefined,
     },
   });
@@ -189,10 +189,10 @@ const _ensureAvailableUsers = async (
       const travelSchedules =
         isDefaultSchedule && !eventType.useBookerTimezone
           ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
-              startDate: dayjs(schedule.startDate),
-              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-              timeZone: schedule.timeZone,
-            }))
+            startDate: dayjs(schedule.startDate),
+            endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+            timeZone: schedule.timeZone,
+          }))
           : [];
 
       const { dateRanges: restrictionRanges } = buildDateRanges({
@@ -242,7 +242,7 @@ const _ensureAvailableUsers = async (
         availableUsers.push({ ...user, availabilityData: userAvailability });
       }
     } catch (error) {
-      console.log(`  - ERROR in conflict check:`, error);
+      // error is logged below safely
       loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);
     }
   });

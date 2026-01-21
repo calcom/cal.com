@@ -17,7 +17,9 @@ export const getCrm = async (credential: CredentialPayload, appOptions?: Record<
     return null;
   }
 
-  const crmServiceImportFn = await crmServiceGetter();
+  const crmServiceImportFn = await (typeof crmServiceGetter === "function"
+    ? crmServiceGetter()
+    : crmServiceGetter);
 
   const createCrmService = crmServiceImportFn.default;
 

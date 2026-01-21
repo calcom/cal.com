@@ -60,7 +60,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
     const handlerGetter = handlerMap[handlerKey as keyof typeof handlerMap];
     if (!handlerGetter) throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
-    const handlers = await handlerGetter();
+    const handlers = (await (typeof handlerGetter === "function"
+      ? handlerGetter()
+      : handlerGetter)) as unknown as Record<string, AppHandler | AppDeclarativeHandler>;
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
     if (typeof handler === "undefined")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });

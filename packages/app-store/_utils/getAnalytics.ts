@@ -23,7 +23,9 @@ export const getAnalyticsService = async ({
     return null;
   }
 
-  const analyticsApp = await analyticsAppGetter();
+  const analyticsApp = await (typeof analyticsAppGetter === "function"
+    ? analyticsAppGetter()
+    : analyticsAppGetter);
 
   const createAnalyticsService = analyticsApp.default;
 

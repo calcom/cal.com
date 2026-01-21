@@ -36,7 +36,9 @@ export const getCalendar = async (
     return null;
   }
 
-  const calendarApp = await calendarAppGetter();
+  const calendarApp = await (typeof calendarAppGetter === "function"
+    ? calendarAppGetter()
+    : calendarAppGetter);
 
   const createCalendarService = calendarApp.default;
 

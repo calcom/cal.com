@@ -6,5 +6,5 @@ export const AnalyticsServiceMap =
   process.env.NEXT_PUBLIC_IS_E2E === "1"
     ? {}
     : {
-        dub: import("./dub/lib/AnalyticsService"),
+        dub: () => import("./dub/lib/AnalyticsService"),
       };

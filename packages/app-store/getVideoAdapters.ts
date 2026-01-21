@@ -30,7 +30,9 @@ export const getVideoAdapters = async (withCredentials: CredentialPayload[]): Pr
       continue;
     }
 
-    const videoAdapterModule = await videoAdapterGetter();
+    const videoAdapterModule = await (typeof videoAdapterGetter === "function"
+      ? videoAdapterGetter()
+      : videoAdapterGetter);
     const makeVideoApiAdapter = videoAdapterModule.default as VideoApiAdapterFactory;
 
     if (makeVideoApiAdapter) {
