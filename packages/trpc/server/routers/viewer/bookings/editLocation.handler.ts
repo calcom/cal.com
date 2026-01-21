@@ -1,17 +1,18 @@
-import type { z } from "zod";
-
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -19,13 +20,12 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
-import type { userMetadata } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
-
 import { TRPCError } from "@trpc/server";
+import type { z } from "zod";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
@@ -37,6 +37,7 @@ type EditLocationOptions = {
     user: NonNullable<TrpcSessionUser>;
   } & BookingsProcedureContext;
   input: TEditLocationInputSchema;
+  actionSource: ValidActionSource;
 };
 
 type UserMetadata = z.infer<typeof userMetadata>;
@@ -124,6 +125,7 @@ async function updateBookingLocationInDb({
       iCalSequence: (evt.iCalSequence || 0) + 1,
     },
   });
+  return { updatedLocation: evt.location };
 }
 
 async function getAllCredentialsIncludeServiceAccountKey({
@@ -137,7 +139,7 @@ async function getAllCredentialsIncludeServiceAccountKey({
 }) {
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-  let conferenceCredential;
+  let conferenceCredential: Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>> | undefined;
 
   if (conferenceCredentialId) {
     // Validate that the credential is accessible before fetching it
@@ -260,9 +262,11 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   return appLink;
 }
 
-export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
+export async function editLocationHandler({ ctx, input, actionSource }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
+
+  const oldLocation = booking.location;
 
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
   const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
@@ -298,7 +302,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
 
   const additionalInformation = extractAdditionalInformation(updatedResult.results[0]);
 
-  await updateBookingLocationInDb({
+  const { updatedLocation } = await updateBookingLocationInDb({
     booking,
     evt: { ...evt, additionalInformation },
     references: updatedResult.referencesToCreate,
@@ -333,6 +337,20 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   } catch (error) {
     logger.error("Error sending LocationChangeEmails", safeStringify(error));
   }
+
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onLocationChanged({
+    bookingUid: booking.uid,
+    actor: makeUserActor(loggedInUser.uuid),
+    organizationId,
+    source: actionSource,
+    auditData: {
+      location: {
+        old: oldLocation,
+        new: updatedLocation,
+      },
+    },
+  });
 
   return { message: "Location updated" };
 }

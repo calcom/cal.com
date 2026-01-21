@@ -3,8 +3,16 @@ import type { OptInFeaturePolicy, OptInFeatureScope } from "./types";
 
 export interface OptInFeatureConfig {
   slug: FeatureId;
-  titleI18nKey: string;
-  descriptionI18nKey: string;
+  i18n: {
+    title: string;
+    name: string;
+    description: string;
+  };
+  bannerImage: {
+    src: string;
+    width: number;
+    height: number;
+  };
   policy: OptInFeaturePolicy;
   /** Scopes where this feature can be configured. Defaults to all scopes if not specified. */
   scope?: OptInFeatureScope[];
@@ -21,8 +29,16 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   // Example - to be populated with actual features
   // {
   //   slug: "bookings-v3",
-  //   titleI18nKey: "bookings_v3_title",
-  //   descriptionI18nKey: "bookings_v3_description",
+  //   i18n: {
+  //     title: "bookings_v3_title",
+  //     name: "bookings_v3_name",
+  //     description: "bookings_v3_description",
+  //   },
+  //   bannerImage: {
+  //     src: "/opt_in_banner_bookings_v3.png",
+  //     width: 548,
+  //     height: 348,
+  //   },
   //   policy: "permissive",
   //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
   // },
@@ -49,13 +65,19 @@ export function isOptInFeature(slug: string): slug is FeatureId {
 export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;
 
 /** Whether there are opt-in features available for the user scope */
-export const HAS_USER_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("user"));
+export const HAS_USER_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
+  (f) => !f.scope || f.scope.includes("user")
+);
 
 /** Whether there are opt-in features available for the team scope */
-export const HAS_TEAM_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("team"));
+export const HAS_TEAM_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
+  (f) => !f.scope || f.scope.includes("team")
+);
 
 /** Whether there are opt-in features available for the org scope */
-export const HAS_ORG_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some((f) => !f.scope || f.scope.includes("org"));
+export const HAS_ORG_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
+  (f) => !f.scope || f.scope.includes("org")
+);
 
 /**
  * Get opt-in features that are available for a specific scope.

@@ -458,9 +458,9 @@ export default abstract class BaseCalendarService implements Calendar {
           startDate.second = event.startDate.second;
           const iterator = event.iterator(startDate);
           let current: ICAL.Time;
-          let currentEvent;
-          let currentStart = null;
-          let currentError;
+          let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
+          let currentStart: ReturnType<typeof dayjs> | null = null;
+          let currentError: string | undefined;
 
           while (
             maxIterations > 0 &&
