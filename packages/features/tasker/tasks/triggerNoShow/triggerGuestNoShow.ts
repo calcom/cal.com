@@ -30,16 +30,15 @@ const markGuestAsNoshowInBooking = async ({
   attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[];
 }> => {
   try {
-    // Get attendees before update to capture previous noShow values
     const attendeesBefore = await prisma.attendee.findMany({
       where: { bookingId },
       select: { id: true, email: true, noShow: true },
     });
     const attendeesBeforeMap = new Map(attendeesBefore.map((a) => [a.email, a]));
 
-    let emailsToUpdate: string[];
+    let updateAttendeeEmails: string[];
     if (guestsThatDidntJoinTheCall && guestsThatDidntJoinTheCall.length > 0) {
-      emailsToUpdate = guestsThatDidntJoinTheCall.map((g) => g.email);
+      const emailsToUpdate = guestsThatDidntJoinTheCall.map((g) => g.email);
       await prisma.attendee.updateMany({
         where: {
           bookingId,
@@ -47,9 +46,9 @@ const markGuestAsNoshowInBooking = async ({
         },
         data: { noShow: true },
       });
+      updateAttendeeEmails = emailsToUpdate;
     } else {
       const hostsThatJoinedTheCallEmails = hostsThatJoinedTheCall.map((h) => h.email);
-      emailsToUpdate = attendeesBefore.filter((a) => !hostsThatJoinedTheCallEmails.includes(a.email)).map((a) => a.email);
       await prisma.attendee.updateMany({
         where: {
           bookingId,
@@ -57,28 +56,21 @@ const markGuestAsNoshowInBooking = async ({
         },
         data: { noShow: true },
       });
+      // TODO: It is possible that by the time the updateMany query runs, there were more attendees added, though it would be a rare/unexpected thing because triggerGuestNoShow is called after the meeting has ended, and after that time attendees aren't updated
+      updateAttendeeEmails = attendeesBefore
+        .filter((a) => !hostsThatJoinedTheCallEmails.includes(a.email))
+        .map((a) => a.email);
     }
 
-    // Fetch full attendee data after update for webhook payload
-    const updatedAttendees = await prisma.attendee.findMany({
-      where: { bookingId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        locale: true,
-        timeZone: true,
-        phoneNumber: true,
-        bookingId: true,
-        noShow: true,
-      },
-    });
+    const updatedAttendees = await prisma.attendee.findMany({ where: { bookingId } });
 
-    // Build attendeesMarkedNoShow with previous values
-    const attendeesMarkedNoShow = emailsToUpdate
+    const attendeesMarkedNoShow = updateAttendeeEmails
       .map((email) => {
         const before = attendeesBeforeMap.get(email);
-        if (!before) return null;
+        if (!before) {
+          // Ideally not possible because we fetched all attendees in attendeesBeforeMap
+          return null;
+        }
         return { id: before.id, noShow: true, previousNoShow: before.noShow };
       })
       .filter((a): a is { id: number; noShow: boolean; previousNoShow: boolean | null } => a !== null);
@@ -90,7 +82,7 @@ const markGuestAsNoshowInBooking = async ({
   }
 };
 
-const logGuestNoShowAudit = async (
+const fireNoShowUpdated = async (
   booking: {
     id: number;
     uid: string;
@@ -98,14 +90,14 @@ const logGuestNoShowAudit = async (
     eventType?: { teamId?: number | null } | null;
   },
   attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[]
-) => {
+): Promise<void> => {
   try {
     const orgId = await getOrgIdFromMemberOrTeamId({
       memberId: booking.user?.id,
+      // We don't care about user events here, so managed event child aren't considered
       teamId: booking.eventType?.teamId,
     });
 
-    // Build attendeesNoShow record with attendee IDs as keys
     const attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> = {};
     for (const attendee of attendeesMarkedNoShow) {
       attendeesNoShow[attendee.id] = { old: attendee.previousNoShow, new: attendee.noShow };
@@ -133,12 +125,15 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
   const {
     webhook,
     booking,
+    hosts,
     hostsThatJoinedTheCall,
     didGuestJoinTheCall,
     guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants,
   } = result;
+
+  const hostEmails = new Set(hosts.map((h) => h.email));
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
@@ -152,9 +147,13 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         guestsThatDidntJoinTheCall,
       });
 
-      // Use updated attendees for webhook payload (with noShow: true)
+      if (attendeesMarkedNoShow.length > 0) {
+        await fireNoShowUpdated(booking, attendeesMarkedNoShow);
+      }
+
+      const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
       const bookingWithUpdatedData = updatedAttendees
-        ? { ...booking, attendees: updatedAttendees, guests: updatedAttendees }
+        ? { ...booking, attendees: updatedAttendees, guests }
         : booking;
 
       await sendWebhookPayload(
@@ -165,10 +164,6 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         participants,
         originalRescheduledBooking
       );
-
-      if (attendeesMarkedNoShow.length > 0) {
-        await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
-      }
     }
   } else {
     if (!didGuestJoinTheCall) {
@@ -177,9 +172,14 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         hostsThatJoinedTheCall,
       });
 
-      // Use updated attendees for webhook payload (with noShow: true)
+      if (attendeesMarkedNoShow.length > 0) {
+        await fireNoShowUpdated(booking, attendeesMarkedNoShow);
+      }
+
+      const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
+
       const bookingWithUpdatedData = updatedAttendees
-        ? { ...booking, attendees: updatedAttendees, guests: updatedAttendees }
+        ? { ...booking, attendees: updatedAttendees, guests }
         : booking;
 
       await sendWebhookPayload(
@@ -192,7 +192,7 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
       );
 
       if (attendeesMarkedNoShow.length > 0) {
-        await logGuestNoShowAudit(booking, attendeesMarkedNoShow);
+        await fireNoShowUpdated(booking, attendeesMarkedNoShow);
       }
     }
   }
