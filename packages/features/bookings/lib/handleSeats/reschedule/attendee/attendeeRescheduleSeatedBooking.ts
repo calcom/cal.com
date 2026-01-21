@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";

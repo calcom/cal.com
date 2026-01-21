@@ -41,6 +41,7 @@ type AddGuestsOptions = {
 type Booking = NonNullable<
   Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendarAndBranding"]>>
 >;
+
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 export const addGuestsHandler = async ({
