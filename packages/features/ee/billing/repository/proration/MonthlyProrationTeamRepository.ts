@@ -94,13 +94,13 @@ export class MonthlyProrationTeamRepository {
           {
             teamBilling: {
               billingPeriod: "ANNUALLY",
-              subscriptionTrialEnd: { lt: new Date() },
+              OR: [{ subscriptionTrialEnd: { lt: new Date() } }, { subscriptionTrialEnd: null }],
             },
           },
           {
             organizationBilling: {
               billingPeriod: "ANNUALLY",
-              subscriptionTrialEnd: { lt: new Date() },
+              OR: [{ subscriptionTrialEnd: { lt: new Date() } }, { subscriptionTrialEnd: null }],
             },
           },
         ],
