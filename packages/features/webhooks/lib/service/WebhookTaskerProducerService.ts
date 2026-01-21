@@ -1,15 +1,21 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { ITasker, ILogger } from "../interface/infrastructure";
-import type { IWebhookProducerService, QueueWebhookParams } from "../interface/WebhookProducerService";
+import { v4 as uuidv4 } from "uuid";
+import type { ILogger, ITasker } from "../interface/infrastructure";
+import type {
+  IWebhookProducerService,
+  QueueBookingWebhookParams,
+  QueueFormWebhookParams,
+  QueueOOOWebhookParams,
+  QueuePaymentWebhookParams,
+  QueueRecordingWebhookParams,
+} from "../interface/WebhookProducerService";
+import type { WebhookTaskPayload } from "../types/webhookTask";
 
 /**
  * Lightweight Producer Service for webhook delivery.
- * 
+ *
  * DEPENDENCIES: Only Tasker and Logger (no Prisma, no repositories)
- * 
+ *
  * This service queues minimal webhook tasks to be processed by WebhookTaskConsumer.
  * The consumer handles the heavy lifting (DB queries, payload building, HTTP delivery).
  */
@@ -23,93 +29,186 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     this.log = logger.getSubLogger({ prefix: ["[WebhookTaskerProducerService]"] });
   }
 
-  async queueBookingCreatedWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_CREATED });
+  async queueBookingCreatedWebhook(params: QueueBookingWebhookParams): Promise<void> {
+    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, params);
   }
 
-  async queueBookingCancelledWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED });
+  async queueBookingCancelledWebhook(params: QueueBookingWebhookParams): Promise<void> {
+    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CANCELLED, params);
   }
 
-  async queueBookingRescheduledWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED });
+  async queueBookingRescheduledWebhook(params: QueueBookingWebhookParams): Promise<void> {
+    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, params);
   }
 
   /**
    * Queue a webhook for confirmed bookings.
-   * 
+   *
    * Note: Uses BOOKING_REQUESTED trigger event, as this is the webhook event
-   * that fires when bookings are confirmed/requested. 
+   * that fires when bookings are confirmed/requested.
    */
-  async queueBookingConfirmedWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED });
+  async queueBookingConfirmedWebhook(params: QueueBookingWebhookParams): Promise<void> {
+    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params);
   }
 
-  async queueBookingRejectedWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED });
+  async queueBookingRejectedWebhook(params: QueueBookingWebhookParams): Promise<void> {
+    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REJECTED, params);
   }
 
-  async queueBookingPaymentInitiatedWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED });
+  async queueBookingPaymentInitiatedWebhook(params: QueuePaymentWebhookParams): Promise<void> {
+    await this.queuePaymentWebhook(WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, params);
   }
 
-  async queueBookingPaidWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_PAID });
+  async queueBookingPaidWebhook(params: QueuePaymentWebhookParams): Promise<void> {
+    await this.queuePaymentWebhook(WebhookTriggerEvents.BOOKING_PAID, params);
   }
 
-  async queueBookingNoShowUpdatedWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED });
+  async queueBookingNoShowUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void> {
+    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, params);
   }
 
-  async queueFormSubmittedWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED });
+  async queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.info("Queueing form webhook task", {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
+      formId: params.formId,
+    });
+
+    const taskPayload: WebhookTaskPayload = {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
+      formId: params.formId,
+      teamId: params.teamId,
+      userId: params.userId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.queueTask(operationId, taskPayload);
   }
 
-  async queueRecordingReadyWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.RECORDING_READY });
+  async queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.info("Queueing recording webhook task", {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.RECORDING_READY,
+      recordingId: params.recordingId,
+      bookingUid: params.bookingUid,
+    });
+
+    const taskPayload: WebhookTaskPayload = {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.RECORDING_READY,
+      recordingId: params.recordingId,
+      bookingUid: params.bookingUid,
+      eventTypeId: params.eventTypeId,
+      teamId: params.teamId,
+      userId: params.userId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.queueTask(operationId, taskPayload);
   }
 
-  async queueOOOCreatedWebhook(params: QueueWebhookParams): Promise<void> {
-    await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.OOO_CREATED });
+  async queueOOOCreatedWebhook(params: QueueOOOWebhookParams): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.info("Queueing OOO webhook task", {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+      oooEntryId: params.oooEntryId,
+      userId: params.userId,
+    });
+
+    const taskPayload: WebhookTaskPayload = {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+      oooEntryId: params.oooEntryId,
+      userId: params.userId,
+      teamId: params.teamId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.queueTask(operationId, taskPayload);
   }
 
   /**
-   * Generic method to queue webhook delivery task.
-   * 
-   * This creates a lightweight task with minimal payload.
-   * The Consumer will fetch full data from database when processing.
+   * Internal helper to queue booking-related webhooks
    */
-  async queueWebhook(params: QueueWebhookParams): Promise<void> {
+  private async queueBookingWebhook(
+    triggerEvent: WebhookTriggerEvents,
+    params: QueueBookingWebhookParams
+  ): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
-    this.log.info("Queueing webhook delivery task", {
+    this.log.info("Queueing booking webhook task", {
       operationId,
-      triggerEvent: params.triggerEvent,
+      triggerEvent,
       bookingUid: params.bookingUid,
       eventTypeId: params.eventTypeId,
     });
 
+    const taskPayload: WebhookTaskPayload = {
+      operationId,
+      triggerEvent,
+      bookingUid: params.bookingUid,
+      eventTypeId: params.eventTypeId,
+      teamId: params.teamId,
+      userId: params.userId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.queueTask(operationId, taskPayload);
+  }
+
+  /**
+   * Internal helper to queue payment-related webhooks
+   */
+  private async queuePaymentWebhook(
+    triggerEvent: WebhookTriggerEvents,
+    params: QueuePaymentWebhookParams
+  ): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.info("Queueing payment webhook task", {
+      operationId,
+      triggerEvent,
+      bookingUid: params.bookingUid,
+    });
+
+    const taskPayload: WebhookTaskPayload = {
+      operationId,
+      triggerEvent,
+      bookingUid: params.bookingUid,
+      eventTypeId: params.eventTypeId,
+      teamId: params.teamId,
+      userId: params.userId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.queueTask(operationId, taskPayload);
+  }
+
+  /**
+   * Internal helper to queue task via Tasker
+   */
+  private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {
     try {
-      // Create minimal task payload (IDs only, no heavy data)
-      const taskPayload = {
-        operationId,
-        triggerEvent: params.triggerEvent,
-        bookingUid: params.bookingUid,
-        eventTypeId: params.eventTypeId,
-        teamId: params.teamId,
-        userId: params.userId,
-        orgId: params.orgId,
-        formId: params.formId,
-        recordingId: params.recordingId,
-        oooEntryId: params.oooEntryId,
-        oAuthClientId: params.oAuthClientId,
-        metadata: params.metadata,
-        timestamp: new Date().toISOString(),
-      };
-
-      // Queue the task (to be processed by WebhookTaskConsumer)
       await this.tasker.create("webhookDelivery", taskPayload);
-
       this.log.info("Webhook delivery task queued successfully", { operationId });
     } catch (error) {
       this.log.error("Failed to queue webhook delivery task", {

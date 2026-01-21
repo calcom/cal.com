@@ -1,14 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ITasker } from "../../interface";
 import type { ILogger } from "../../interface/infrastructure";
 import { WebhookTaskerProducerService } from "../WebhookTaskerProducerService";
 
 /**
  * Unit Tests for WebhookTaskerProducerService
- * 
+ *
  * Tests the lightweight Producer service for queueing webhook delivery tasks.
  */
 describe("WebhookTaskerProducerService", () => {
@@ -99,12 +97,11 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should log info messages", async () => {
       await producer.queueBookingCreatedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         bookingUid: "booking-123",
       });
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        "Queueing webhook delivery task",
+        "Queueing booking webhook task",
         expect.objectContaining({
           operationId: expect.any(String),
           triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
@@ -124,7 +121,6 @@ describe("WebhookTaskerProducerService", () => {
   describe("queueBookingCancelledWebhook", () => {
     it("should queue a BOOKING_CANCELLED webhook task", async () => {
       await producer.queueBookingCancelledWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
         bookingUid: "booking-456",
       });
 
@@ -138,27 +134,9 @@ describe("WebhookTaskerProducerService", () => {
     });
   });
 
-  describe("queueWebhook (generic method)", () => {
-    it("should queue any webhook event type", async () => {
-      await producer.queueWebhook({
-        triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-        formId: "form-789",
-        userId: 123,
-      });
-
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
-        expect.objectContaining({
-          triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-          formId: "form-789",
-          userId: 123,
-        })
-      );
-    });
-
+  describe("Metadata Support", () => {
     it("should include metadata if provided", async () => {
-      await producer.queueWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      await producer.queueBookingCreatedWebhook({
         bookingUid: "booking-123",
         metadata: { customField: "value" },
       });
@@ -177,7 +155,6 @@ describe("WebhookTaskerProducerService", () => {
 
       await expect(
         producer.queueBookingCreatedWebhook({
-          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
           bookingUid: "booking-123",
         })
       ).rejects.toThrow("Tasker failed");
@@ -194,7 +171,6 @@ describe("WebhookTaskerProducerService", () => {
   describe("All Event-Specific Methods", () => {
     it("should have queueBookingCreatedWebhook", async () => {
       await producer.queueBookingCreatedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -205,7 +181,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueBookingCancelledWebhook", async () => {
       await producer.queueBookingCancelledWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -216,7 +191,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueBookingRescheduledWebhook", async () => {
       await producer.queueBookingRescheduledWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -227,7 +201,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueBookingConfirmedWebhook", async () => {
       await producer.queueBookingConfirmedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -238,7 +211,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueBookingRejectedWebhook", async () => {
       await producer.queueBookingRejectedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -249,7 +221,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueBookingPaymentInitiatedWebhook", async () => {
       await producer.queueBookingPaymentInitiatedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -260,7 +231,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueBookingPaidWebhook", async () => {
       await producer.queueBookingPaidWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -271,7 +241,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueBookingNoShowUpdatedWebhook", async () => {
       await producer.queueBookingNoShowUpdatedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -282,7 +251,6 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueFormSubmittedWebhook", async () => {
       await producer.queueFormSubmittedWebhook({
-        triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
         formId: "form-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
@@ -293,8 +261,8 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueRecordingReadyWebhook", async () => {
       await producer.queueRecordingReadyWebhook({
-        triggerEvent: WebhookTriggerEvents.RECORDING_READY,
         recordingId: "rec-123",
+        bookingUid: "booking-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
         "webhookDelivery",
@@ -304,8 +272,8 @@ describe("WebhookTaskerProducerService", () => {
 
     it("should have queueOOOCreatedWebhook", async () => {
       await producer.queueOOOCreatedWebhook({
-        triggerEvent: WebhookTriggerEvents.OOO_CREATED,
         oooEntryId: 123,
+        userId: 456,
       });
       expect(mockTasker.create).toHaveBeenCalledWith(
         "webhookDelivery",

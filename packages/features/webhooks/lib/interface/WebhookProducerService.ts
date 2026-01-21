@@ -1,91 +1,22 @@
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 /**
- * Lightweight Producer Service for queueing webhook delivery tasks.
- * 
- * This service has NO heavy dependencies (no Prisma, no repositories).
- * It only queues tasks via Tasker, which will be processed by WebhookTaskConsumer.
- * 
- * This allows the producer to stay in the main app while the consumer
- * can be deployed to trigger.dev for scalability.
+ * Base parameters common to all webhook queue operations
  */
-export interface IWebhookProducerService {
-  /**
-   * Queue a webhook delivery task for BOOKING_CREATED event
-   */
-  queueBookingCreatedWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_CANCELLED event
-   */
-  queueBookingCancelledWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_RESCHEDULED event
-   */
-  queueBookingRescheduledWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_CONFIRMED event
-   */
-  queueBookingConfirmedWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_REJECTED event
-   */
-  queueBookingRejectedWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_PAYMENT_INITIATED event
-   */
-  queueBookingPaymentInitiatedWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_PAID event
-   */
-  queueBookingPaidWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_NO_SHOW_UPDATED event
-   */
-  queueBookingNoShowUpdatedWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for FORM_SUBMITTED event
-   */
-  queueFormSubmittedWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for RECORDING_READY event
-   */
-  queueRecordingReadyWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for OOO_CREATED event
-   */
-  queueOOOCreatedWebhook(params: QueueWebhookParams): Promise<void>;
-
-  /**
-   * Generic method to queue any webhook event
-   */
-  queueWebhook(params: QueueWebhookParams): Promise<void>;
-}
-
-/**
- * Parameters for queueing a webhook delivery task.
- * 
- * This is a MINIMAL payload - only what's needed to identify the entities.
- * The Consumer will fetch full data from database.
- */
-export interface QueueWebhookParams {
+interface BaseQueueWebhookParams {
   /** Unique identifier for this webhook operation (generated if not provided) */
   operationId?: string;
 
-  /** The webhook trigger event type */
-  triggerEvent: WebhookTriggerEvents;
+  /** Additional context data (kept minimal) */
+  metadata?: Record<string, unknown>;
+}
 
-  /** Booking UID (for booking-related webhooks) */
-  bookingUid?: string;
+/**
+ * Parameters for queueing booking-related webhooks
+ * Used for: BOOKING_CREATED, BOOKING_CANCELLED, BOOKING_RESCHEDULED,
+ *           BOOKING_CONFIRMED, BOOKING_REJECTED, BOOKING_NO_SHOW_UPDATED
+ */
+export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
+  /** Booking UID (required) */
+  bookingUid: string;
 
   /** Event Type ID */
   eventTypeId?: number;
@@ -99,18 +30,156 @@ export interface QueueWebhookParams {
   /** Organization ID */
   orgId?: number;
 
-  /** Form ID (for form webhooks) */
-  formId?: string;
+  /** OAuth Client ID (for platform webhooks) */
+  oAuthClientId?: string | null;
+}
 
-  /** Recording ID (for recording webhooks) */
-  recordingId?: string;
+/**
+ * Parameters for queueing payment-related webhooks
+ * Used for: BOOKING_PAYMENT_INITIATED, BOOKING_PAID
+ */
+export interface QueuePaymentWebhookParams extends BaseQueueWebhookParams {
+  /** Booking UID (required) */
+  bookingUid: string;
 
-  /** OOO Entry ID (for OOO webhooks) */
-  oooEntryId?: number;
+  /** Event Type ID */
+  eventTypeId?: number;
+
+  /** Team ID */
+  teamId?: number | null;
+
+  /** User ID */
+  userId?: number;
+
+  /** Organization ID */
+  orgId?: number;
 
   /** OAuth Client ID (for platform webhooks) */
   oAuthClientId?: string | null;
+}
 
-  /** Additional context data (kept minimal) */
-  metadata?: Record<string, unknown>;
+/**
+ * Parameters for queueing form-related webhooks
+ * Used for: FORM_SUBMITTED
+ */
+export interface QueueFormWebhookParams extends BaseQueueWebhookParams {
+  /** Form ID (required) */
+  formId: string;
+
+  /** Team ID */
+  teamId?: number | null;
+
+  /** User ID */
+  userId?: number;
+
+  /** OAuth Client ID (for platform webhooks) */
+  oAuthClientId?: string | null;
+}
+
+/**
+ * Parameters for queueing recording-related webhooks
+ * Used for: RECORDING_READY, RECORDING_TRANSCRIPTION_GENERATED
+ */
+export interface QueueRecordingWebhookParams extends BaseQueueWebhookParams {
+  /** Recording ID (required) */
+  recordingId: string;
+
+  /** Booking UID (required) */
+  bookingUid: string;
+
+  /** Event Type ID */
+  eventTypeId?: number;
+
+  /** Team ID */
+  teamId?: number | null;
+
+  /** User ID */
+  userId?: number;
+
+  /** OAuth Client ID (for platform webhooks) */
+  oAuthClientId?: string | null;
+}
+
+/**
+ * Parameters for queueing OOO-related webhooks
+ * Used for: OOO_CREATED
+ */
+export interface QueueOOOWebhookParams extends BaseQueueWebhookParams {
+  /** OOO Entry ID (required) */
+  oooEntryId: number;
+
+  /** User ID (required) */
+  userId: number;
+
+  /** Team ID */
+  teamId?: number | null;
+
+  /** OAuth Client ID (for platform webhooks) */
+  oAuthClientId?: string | null;
+}
+
+/**
+ * Lightweight Producer Service for queueing webhook delivery tasks.
+ *
+ * This service has NO heavy dependencies (no Prisma, no repositories).
+ * It only queues tasks via Tasker, which will be processed by WebhookTaskConsumer.
+ *
+ * This allows the producer to stay in the main app while the consumer
+ * can be deployed to trigger.dev for scalability.
+ */
+export interface IWebhookProducerService {
+  /**
+   * Queue a webhook delivery task for BOOKING_CREATED event
+   */
+  queueBookingCreatedWebhook(params: QueueBookingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for BOOKING_CANCELLED event
+   */
+  queueBookingCancelledWebhook(params: QueueBookingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for BOOKING_RESCHEDULED event
+   */
+  queueBookingRescheduledWebhook(params: QueueBookingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for BOOKING_CONFIRMED event
+   */
+  queueBookingConfirmedWebhook(params: QueueBookingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for BOOKING_REJECTED event
+   */
+  queueBookingRejectedWebhook(params: QueueBookingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for BOOKING_PAYMENT_INITIATED event
+   */
+  queueBookingPaymentInitiatedWebhook(params: QueuePaymentWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for BOOKING_PAID event
+   */
+  queueBookingPaidWebhook(params: QueuePaymentWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for BOOKING_NO_SHOW_UPDATED event
+   */
+  queueBookingNoShowUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for FORM_SUBMITTED event
+   */
+  queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for RECORDING_READY event
+   */
+  queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for OOO_CREATED event
+   */
+  queueOOOCreatedWebhook(params: QueueOOOWebhookParams): Promise<void>;
 }
