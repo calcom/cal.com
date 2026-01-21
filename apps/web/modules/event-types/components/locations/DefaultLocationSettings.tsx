@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { TextField } from "@calcom/ui/components/form";
 
-import LocationInput from "./LocationInput";
+import LocationInput from "@calcom/features/eventtypes/components/locations/LocationInput";
 import LocationOptionContainer from "@calcom/web/modules/event-types/components/locations/LocationSettingsContainer";
 
 const DefaultLocationSettings = ({
