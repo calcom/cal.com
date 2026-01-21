@@ -48,6 +48,10 @@ export const viewport = {
 
 export const metadata = {
   manifest: "/site.webmanifest",
+  icons: {
+    icon: "/calid_favicon.svg",
+    apple: "/apple-touch-icon.png",
+  },
   other: {
     "application-TileColor": "#ff0000",
   },
@@ -105,11 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }
         `}</style>
 
-        {/* Favicon and Icons */}
-        <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />
-        <link rel="manifest" href="/site.webmanifest" />
+        {/* Favicon and Icons - Set per-page via metadata */}
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
         <meta name="msapplication-TileColor" content="#ff0000" />
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />

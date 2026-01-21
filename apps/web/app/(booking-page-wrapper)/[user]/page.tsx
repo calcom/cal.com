@@ -45,8 +45,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     `/${decodeParams(await params).user}`
   );
   const faviconUrl = user.faviconUrl
-    ? `${getBrandLogoUrl({ faviconUrl: user.faviconUrl }, true)}?v=${Date.now()}`
-    : "/calid_favicon.svg"; // Fallback to your default
+    ? getBrandLogoUrl({ faviconUrl: user.faviconUrl }, true)
+    : "/calid_favicon.svg";
 
   return {
     ...metadata,
