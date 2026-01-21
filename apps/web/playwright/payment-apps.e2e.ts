@@ -13,15 +13,29 @@ async function goToAppsTab(page: Page, eventTypeId?: number): Promise<void> {
 }
 
 /**
- * Ensures an app is enabled in the App table.
+ * Ensures an app is enabled in the App table and returns a cleanup function.
  * This is needed because apps without valid keys are now disabled during seeding.
  * For E2E tests, we need to enable the app to test the UI behavior.
+ * The cleanup function restores the original enabled state to avoid side-effects.
  */
-async function ensureAppEnabled(appSlug: string): Promise<void> {
+async function ensureAppEnabled(appSlug: string): Promise<() => Promise<void>> {
+  const app = await prisma.app.findUnique({
+    where: { slug: appSlug },
+    select: { enabled: true },
+  });
+  const originalEnabled = app?.enabled ?? false;
+
   await prisma.app.update({
     where: { slug: appSlug },
     data: { enabled: true },
   });
+
+  return async () => {
+    await prisma.app.update({
+      where: { slug: appSlug },
+      data: { enabled: originalEnabled },
+    });
+  };
 }
 
 // biome-ignore lint/complexity/noExcessiveLinesPerFunction: E2E test suites naturally have many test cases
@@ -32,43 +46,47 @@ test.describe("Payment app", () => {
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
     // Ensure alby app is enabled (it may be disabled if keys are not configured)
-    await ensureAppEnabled("alby");
-    await prisma.credential.create({
-      data: {
-        type: "alby_payment",
-        appId: "alby",
-        userId: user.id,
-        key: {
-          account_id: "random",
-          account_email: "random@example.com",
-          webhook_endpoint_id: "ep_randomString",
-          webhook_endpoint_secret: "whsec_randomString",
-          account_lightning_address: "random@getalby.com",
+    const cleanupAlbyApp = await ensureAppEnabled("alby");
+    try {
+      await prisma.credential.create({
+        data: {
+          type: "alby_payment",
+          appId: "alby",
+          userId: user.id,
+          key: {
+            account_id: "random",
+            account_email: "random@example.com",
+            webhook_endpoint_id: "ep_randomString",
+            webhook_endpoint_secret: "whsec_randomString",
+            account_lightning_address: "random@getalby.com",
+          },
         },
-      },
-    });
+      });
 
-    await goToAppsTab(page, paymentEvent?.id);
+      await goToAppsTab(page, paymentEvent?.id);
 
-    await page.locator("#event-type-form").getByRole("switch").click();
-    await page.getByPlaceholder("Price").click();
-    await page.getByPlaceholder("Price").fill("200");
-    await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
-      action: () => page.locator("[data-testid=update-eventtype]").click(),
-    });
+      await page.locator("#event-type-form").getByRole("switch").click();
+      await page.getByPlaceholder("Price").click();
+      await page.getByPlaceholder("Price").fill("200");
+      await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
+        action: () => page.locator("[data-testid=update-eventtype]").click(),
+      });
 
-    await page.goto(`${user.username}/${paymentEvent?.slug}`);
+      await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
-    // expect 200 sats to be displayed in page
-    await expect(page.locator("text=200 sats").first()).toBeVisible();
+      // expect 200 sats to be displayed in page
+      await expect(page.locator("text=200 sats").first()).toBeVisible();
 
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await expect(page.locator("text=200 sats").first()).toBeVisible();
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await expect(page.locator("text=200 sats").first()).toBeVisible();
 
-    // go to /event-types and check if the price is 200 sats
-    await page.goto(`event-types/`);
-    await expect(page.locator("text=200 sats").first()).toBeVisible();
+      // go to /event-types and check if the price is 200 sats
+      await page.goto(`event-types/`);
+      await expect(page.locator("text=200 sats").first()).toBeVisible();
+    } finally {
+      await cleanupAlbyApp();
+    }
   });
 
   test("Should be able to edit stripe price, currency", async ({ page, users }) => {
@@ -169,27 +187,31 @@ test.describe("Payment app", () => {
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
     // Ensure alby app is enabled (it may be disabled if keys are not configured)
-    await ensureAppEnabled("alby");
-    await prisma.credential.create({
-      data: {
-        type: "alby_payment",
-        appId: "alby",
-        userId: user.id,
-        key: {},
-      },
-    });
+    const cleanupAlbyApp = await ensureAppEnabled("alby");
+    try {
+      await prisma.credential.create({
+        data: {
+          type: "alby_payment",
+          appId: "alby",
+          userId: user.id,
+          key: {},
+        },
+      });
 
-    await goToAppsTab(page, paymentEvent?.id);
+      await goToAppsTab(page, paymentEvent?.id);
 
-    await page.locator("#event-type-form").getByRole("switch").click();
+      await page.locator("#event-type-form").getByRole("switch").click();
 
-    // expect text "This app has not been setup yet" to be displayed
-    expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+      // expect text "This app has not been setup yet" to be displayed
+      expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
 
-    await page.getByRole("button", { name: "Setup" }).click();
+      await page.getByRole("button", { name: "Setup" }).click();
 
-    // Expect "Connect with Alby" to be displayed
-    expect(await page.locator("text=Connect with Alby").first()).toBeTruthy();
+      // Expect "Connect with Alby" to be displayed
+      expect(await page.locator("text=Connect with Alby").first()).toBeTruthy();
+    } finally {
+      await cleanupAlbyApp();
+    }
   });
 
   test("Should display App is not setup already for paypal", async ({ page, users }) => {
