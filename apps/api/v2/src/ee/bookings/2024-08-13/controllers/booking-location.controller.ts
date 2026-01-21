@@ -9,10 +9,18 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { Controller, Patch, Logger, Body, UseGuards, Param, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
+import { ApiExtraModels, ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
+import {
+  UpdateBookingLocationInput_2024_08_13,
+  UpdateInputAddressLocation_2024_08_13,
+  UpdateBookingInputAttendeeAddressLocation_2024_08_13,
+  UpdateBookingInputAttendeeDefinedLocation_2024_08_13,
+  UpdateBookingInputAttendeePhoneLocation_2024_08_13,
+  UpdateBookingInputLinkLocation_2024_08_13,
+  UpdateBookingInputPhoneLocation_2024_08_13,
+} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/bookings/:bookingUid/location",
@@ -20,6 +28,14 @@ import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")
+@ApiExtraModels(
+  UpdateInputAddressLocation_2024_08_13,
+  UpdateBookingInputAttendeeAddressLocation_2024_08_13,
+  UpdateBookingInputAttendeeDefinedLocation_2024_08_13,
+  UpdateBookingInputAttendeePhoneLocation_2024_08_13,
+  UpdateBookingInputLinkLocation_2024_08_13,
+  UpdateBookingInputPhoneLocation_2024_08_13
+)
 @ApiHeader({
   name: "cal-api-version",
   description: `Must be set to ${VERSION_2024_08_13}. This header is required as this endpoint does not exist in older API versions.`,

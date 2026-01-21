@@ -104,7 +104,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       },
     });
 
-    log.info("Calendar fetch completed", {
+    log.debug("Calendar fetch completed", {
       calendarCount: selectedCalendars.length,
       totalFetchDurationMs,
       totalEventsCount: results.length,
@@ -170,7 +170,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       }
     );
 
-    log.info("Calendar fetch with timezones completed", {
+    log.debug("Calendar fetch with timezones completed", {
       calendarCount: selectedCalendars.length,
       totalFetchDurationMs,
       totalEventsCount: results?.length ?? 0,
