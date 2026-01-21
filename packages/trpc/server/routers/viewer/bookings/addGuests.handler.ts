@@ -34,6 +34,7 @@ type AddGuestsOptions = {
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
 };
+
 type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 

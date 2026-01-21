@@ -251,11 +251,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       hideBranding: isPlatformBooking
         ? true
         : await shouldHideBrandingForEvent({
-            eventTypeId: eventType.id,
-            team: eventType?.parent?.team ?? eventType?.team,
-            owner: eventType.users[0] ?? null,
-            organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
-          }),
+          eventTypeId: eventType.id,
+          team: eventType?.parent?.team ?? eventType?.team,
+          owner: eventType.users[0] ?? null,
+          organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+        }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),

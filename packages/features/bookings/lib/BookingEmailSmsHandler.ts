@@ -317,7 +317,7 @@ export class BookingEmailSmsHandler {
       safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
     );
 
-      const eventWithNotes = withHideBranding({ ...evt, additionalNotes }, true);
+    const eventWithNotes = withHideBranding({ ...evt, additionalNotes }, true);
 
     try {
       await Promise.all([
