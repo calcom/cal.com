@@ -12,6 +12,7 @@ export const ZOutOfOfficeInputSchema = z.object({
   toTeamUserId: z.number().nullable(),
   reasonId: z.number().optional(),
   notes: z.string().nullable().optional(),
+  showNotePublicly: z.boolean().optional(),
 });
 
 export type TOutOfOfficeInputSchema = z.infer<typeof ZOutOfOfficeInputSchema>;

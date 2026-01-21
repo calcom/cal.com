@@ -12,18 +12,13 @@ ENV NODE_ENV="production"
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 ENV DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL}
 ENV DATABASE_URL=${DATABASE_URL}
+ENV USE_POOL="true"
 
 COPY . .
 
 RUN yarn install
-
-# Build prisma schema and make sure that it is linked to v2 node_modules
 RUN yarn workspace @calcom/api-v2 run generate-schemas
-RUN rm -rf apps/api/v2/node_modules
-RUN yarn install
-
-RUN yarn workspace @calcom/platform-libraries run build
-
+RUN yarn workspace @calcom/api-v2 run build:docker
 RUN yarn workspace @calcom/api-v2 run build
 
 EXPOSE 80

@@ -1,6 +1,6 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 import { createModule, bindModuleToClassOnToken, type ModuleLoader } from "../di";
 

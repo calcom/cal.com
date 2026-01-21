@@ -1,8 +1,8 @@
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
 
-import { CredentialRepository } from "../../../../lib/server/repository/credential";
 import { routingFormIncompleteBookingDataSchema } from "../../zod";
-import SalesforceCRMService from "../CrmService";
+import { createSalesforceCrmServiceWithSalesforceType } from "../CrmService";
 
 const log = logger.getSubLogger({ prefix: ["incomplete-booking: salesforce"] });
 
@@ -24,7 +24,7 @@ export const incompleteBookingAction = async (action: any, email: string) => {
   }
 
   if (writeToRecordObject) {
-    const crm = new SalesforceCRMService(credential, {});
+    const crm = createSalesforceCrmServiceWithSalesforceType(credential, {});
 
     await crm.incompleteBookingWriteToRecord(email, writeToRecordObject);
   }

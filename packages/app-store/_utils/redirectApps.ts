@@ -16,6 +16,7 @@ export const REDIRECT_APPS = [
   "telli",
   "vimcal",
   "wordpress",
+  "zapier",
 ];
 
 export const isRedirectApp = (slug: string): boolean => {

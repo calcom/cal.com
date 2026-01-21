@@ -1,6 +1,7 @@
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -34,10 +35,9 @@ export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
     });
   }
 
-  const allOrgTeams = await prisma.team.findMany({
-    where: {
-      parentId: currentUserOrgId,
-    },
+  const teamRepository = new TeamRepository(prisma);
+  const allOrgTeams = await teamRepository.findAllByParentId({
+    parentId: currentUserOrgId,
     select: {
       id: true,
       name: true,

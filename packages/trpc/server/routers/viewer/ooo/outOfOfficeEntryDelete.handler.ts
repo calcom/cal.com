@@ -1,4 +1,4 @@
-import { sendBookingRedirectNotification } from "@calcom/emails";
+import { sendBookingRedirectNotification } from "@calcom/emails/workflow-email-service";
 import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";

@@ -1,13 +1,12 @@
-import type { Session } from "next-auth";
-
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { Session } from "next-auth";
 import type { TGetInputSchema } from "./get.schema";
 
 type MeOptions = {
@@ -19,13 +18,12 @@ type MeOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: MeOptions) => {
-  const crypto = await import("crypto");
+  const crypto = await import("node:crypto");
 
   const { user: sessionUser, session } = ctx;
 
-  const allUserEnrichedProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(
-    sessionUser
-  );
+  const allUserEnrichedProfiles =
+    await ProfileRepository.findAllProfilesForUserIncludingMovedUser(sessionUser);
 
   const user = await new UserRepository(prisma).enrichUserWithTheProfile({
     user: sessionUser,
@@ -94,17 +92,13 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
         organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
-  const isTeamAdminOrOwner =
-    (await prisma.membership.findFirst({
-      where: {
-        userId: user.id,
-        accepted: true,
-        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-      },
-      select: {
-        id: true,
-      },
-    })) !== null;
+  const permissionCheckService = new PermissionCheckService();
+  const teamsWithWritePermission = await permissionCheckService.getTeamIdsWithPermission({
+    userId: user.id,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+  const canUpdateTeams = teamsWithWritePermission.length > 0;
 
   return {
     id: user.id,
@@ -112,8 +106,6 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     email: user.email,
     emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
     emailVerified: user.emailVerified,
-    startTime: user.startTime,
-    endTime: user.endTime,
     bufferTime: user.bufferTime,
     locale: user.locale,
     timeFormat: user.timeFormat,
@@ -140,10 +132,11 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
+    requiresBookerEmailVerification: user.requiresBookerEmailVerification,
     ...profileData,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
-    isTeamAdminOrOwner,
+    canUpdateTeams,
   };
 };

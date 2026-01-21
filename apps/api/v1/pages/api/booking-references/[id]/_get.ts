@@ -38,7 +38,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 export async function getHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  const booking_reference = await prisma.bookingReference.findUniqueOrThrow({ where: { id } });
+  const booking_reference = await prisma.bookingReference.findUniqueOrThrow({ where: { id, deleted: null } });
   return { booking_reference: schemaBookingReferenceReadPublic.parse(booking_reference) };
 }
 

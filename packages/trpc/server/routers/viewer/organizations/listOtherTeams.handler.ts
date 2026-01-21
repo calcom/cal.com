@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -13,7 +13,8 @@ export const listOtherTeamHandler = async ({ ctx: { user } }: ListOptions) => {
     return [];
   }
 
-  return await OrganizationRepository.findTeamsInOrgIamNotPartOf({
+  const organizationRepository = getOrganizationRepository();
+  return await organizationRepository.findTeamsInOrgIamNotPartOf({
     userId: user.id,
     parentId: user?.organization?.id ?? null,
   });
