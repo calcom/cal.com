@@ -2,7 +2,8 @@ import type { Table } from "@tanstack/react-table";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
+import { type ColumnFilter } from "@calcom/features/data-table";
+import { DataTableSelectionBar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";

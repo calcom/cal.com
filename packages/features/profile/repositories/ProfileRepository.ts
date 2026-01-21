@@ -7,12 +7,14 @@ import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { User as PrismaUser } from "@calcom/prisma/client";
+import type { PrismaClient, User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
+
+import type { IProfileRepository } from "@calcom/lib/server/repository/dto/IProfileRepository";
 
 const userSelect = {
   name: true,
@@ -95,7 +97,13 @@ export enum LookupTarget {
   Profile,
 }
 
-export class ProfileRepository {
+export class ProfileRepository implements IProfileRepository {
+  private prismaClient: PrismaClient;
+
+  constructor(deps: { prismaClient: PrismaClient }) {
+    this.prismaClient = deps.prismaClient;
+  }
+
   static generateProfileUid() {
     return uuidv4();
   }
@@ -207,12 +215,12 @@ export class ProfileRepository {
         },
         ...(movedFromUserId
           ? {
-              movedFromUser: {
-                connect: {
-                  id: movedFromUserId,
-                },
+            movedFromUser: {
+              connect: {
+                id: movedFromUserId,
               },
-            }
+            },
+          }
           : null),
 
         username: username || email.split("@")[0],
@@ -911,6 +919,22 @@ export class ProfileRepository {
     });
   }
 
+  /**
+   * Returns the first organization ID the user belongs to, or null if none.
+   * Used for org-specific blocking on personal events.
+   *
+   * TODO: When we support checking against multiple orgs, update this to return
+   * all org IDs and check if user is blocked in ANY of them.
+   */
+  static async findFirstOrganizationIdForUser({ userId }: { userId: number }): Promise<number | null> {
+    const profile = await prisma.profile.findFirst({
+      where: { userId },
+      select: { organizationId: true },
+    });
+
+    return profile?.organizationId ?? null;
+  }
+
   static async findManyForOrg({ organizationId }: { organizationId: number }) {
     return await prisma.profile.findMany({
       where: {
@@ -993,18 +1017,27 @@ export class ProfileRepository {
       profiles: {
         ...(orgSlug
           ? {
-              some: {
-                organization: {
-                  slug: orgSlug,
-                },
+            some: {
+              organization: {
+                slug: orgSlug,
               },
-            }
+            },
+          }
           : // If it's not orgSlug we want to ensure that no profile is there. Having a profile means that the user is a member of some organization.
-            {
-              none: {},
-            }),
+          {
+            none: {},
+          }),
       },
     };
+  }
+
+  async findFirstByUserId({ userId }: { userId: number }) {
+    return this.prismaClient.profile.findFirst({
+      where: {
+        userId,
+      },
+      select: profileSelect,
+    });
   }
 }
 

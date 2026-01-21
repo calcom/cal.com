@@ -18,6 +18,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFr
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
+  CalendarFetchMode,
   CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -34,7 +35,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = () => getCalendar(credential);
+        const calendar = () => getCalendar(credential, "slots");
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -236,7 +237,7 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean,
+  mode?: CalendarFetchMode,
   includeTimeZone?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
@@ -274,7 +275,7 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        shouldServeCache
+        mode ?? "slots"
       );
     }
   } catch (e) {
@@ -305,10 +306,10 @@ export const createEvent = async (
 ): Promise<EventResult<NewCalendarEventType>> => {
   // Some calendar libraries may edit the original event so let's clone it
   const formattedEvent = formatCalEvent(originalEvent);
-  const uid: string = getUid(formattedEvent);
-  const calendar = await getCalendar(credential);
+  const uid: string = getUid(formattedEvent.uid);
+  const calendar = await getCalendar(credential, "booking");
   let success = true;
-  let calError: string | undefined ;
+  let calError: string | undefined;
 
   log.debug(
     "Creating calendar event",
@@ -332,31 +333,31 @@ export const createEvent = async (
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = adapter
     ? await adapter
-        // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
-        // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
-        .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
-        .catch(async (error: { code: number; calError: string }) => {
-          success = false;
-          /**
-           * There is a time when selectedCalendar externalId doesn't match witch certain credential
-           * so google returns 404.
-           * */
-          if (error?.code === 404) {
-            return undefined;
-          }
-          if (error?.calError) {
-            calError = error.calError;
-          }
-          log.error(
-            "createEvent failed",
-            safeStringify(error),
-            safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
-          );
-          // @TODO: This code will be off till we can investigate an error with it
-          //https://github.com/calcom/cal.com/issues/3949
-          // await sendBrokenIntegrationEmail(calEvent, "calendar");
+      // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
+      // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
+      .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
+      .catch(async (error: { code: number; calError: string }) => {
+        success = false;
+        /**
+         * There is a time when selectedCalendar externalId doesn't match witch certain credential
+         * so google returns 404.
+         * */
+        if (error?.code === 404) {
           return undefined;
-        })
+        }
+        if (error?.calError) {
+          calError = error.calError;
+        }
+        log.error(
+          "createEvent failed",
+          safeStringify(error),
+          safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+        );
+        // @TODO: This code will be off till we can investigate an error with it
+        //https://github.com/calcom/cal.com/issues/3949
+        // await sendBrokenIntegrationEmail(calEvent, "calendar");
+        return undefined;
+      })
     : undefined;
   if (!creationResult) {
     logger.error(
@@ -400,11 +401,17 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const formattedEvent = formatCalEvent(rawCalEvent);
+
+  if (formattedEvent.hideCalendarNotes) {
+    formattedEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
+  }
+
   const calEvent = processEvent(formattedEvent);
-  const uid = getUid(calEvent);
-  const adapter = await ensureCalendarAdapter(await getCalendar(credential));
+  const uid = getUid(calEvent.uid);
+  const calendar = await getCalendar(credential, "booking");
+  const adapter = await ensureCalendarAdapter(calendar);
   let success = false;
-  let calError: string | undefined ;
+  let calError: string | undefined;
   let calWarnings: string[] | undefined = [];
   log.debug(
     "Updating calendar event",
@@ -423,24 +430,24 @@ export const updateEvent = async (
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     adapter && bookingRefUid
       ? await adapter
-          .updateEvent(bookingRefUid, calEvent, externalCalendarId)
-          .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
-            success = true;
-            return event;
-          })
-          .catch(async (e: { calError: string }) => {
-            // @TODO: This code will be off till we can investigate an error with it
-            // @see https://github.com/calcom/cal.com/issues/3949
-            // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error(
-              "updateEvent failed",
-              safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
-            );
-            if (e?.calError) {
-              calError = e.calError;
-            }
-            return undefined;
-          })
+        .updateEvent(bookingRefUid, calEvent, externalCalendarId)
+        .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
+          success = true;
+          return event;
+        })
+        .catch(async (e: { calError: string }) => {
+          // @TODO: This code will be off till we can investigate an error with it
+          // @see https://github.com/calcom/cal.com/issues/3949
+          // await sendBrokenIntegrationEmail(calEvent, "calendar");
+          log.error(
+            "updateEvent failed",
+            safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
+          );
+          if (e?.calError) {
+            calError = e.calError;
+          }
+          return undefined;
+        })
       : undefined;
 
   if (!updatedResult) {
@@ -485,7 +492,7 @@ export const deleteEvent = async ({
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
-  const calendar = await getCalendar(credential);
+  const calendar = await getCalendar(credential, "booking");
   log.debug(
     "Deleting calendar event",
     safeStringify({
@@ -513,7 +520,7 @@ export const deleteEvent = async ({
  * Process the calendar event by generating description and removing attendees if needed
  */
 const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
-  if (calEvent.seatsPerTimeSlot){
+  if (calEvent.seatsPerTimeSlot) {
     calEvent.responses = null;
     calEvent.userFieldsResponses = null;
     calEvent.additionalNotes = null;
