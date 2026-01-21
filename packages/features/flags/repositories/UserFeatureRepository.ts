@@ -19,6 +19,7 @@ export interface IUserFeatureRepository {
   upsert(userId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<UserFeatures>;
   delete(userId: number, featureId: FeatureId): Promise<void>;
   findAutoOptInByUserId(userId: number): Promise<boolean>;
+  setAutoOptIn(userId: number, enabled: boolean): Promise<void>;
 }
 
 export class UserFeatureRepository implements IUserFeatureRepository {
@@ -117,5 +118,15 @@ export class UserFeatureRepository implements IUserFeatureRepository {
       select: { autoOptInFeatures: true },
     });
     return user?.autoOptInFeatures ?? false;
+  }
+
+  @Unmemoize({
+    keys: (userId: number) => [KEY.autoOptInByUserId(userId)],
+  })
+  async setAutoOptIn(userId: number, enabled: boolean): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { autoOptInFeatures: enabled },
+    });
   }
 }

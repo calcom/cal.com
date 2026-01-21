@@ -20,6 +20,7 @@ export interface ITeamFeatureRepository {
   delete(teamId: number, featureId: FeatureId): Promise<void>;
   findAutoOptInByTeamId(teamId: number): Promise<boolean>;
   findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean>>;
+  setAutoOptIn(teamId: number, enabled: boolean): Promise<void>;
 }
 
 export class TeamFeatureRepository implements ITeamFeatureRepository {
@@ -149,5 +150,15 @@ export class TeamFeatureRepository implements ITeamFeatureRepository {
       result[teamId] = autoOptIn;
     }
     return result;
+  }
+
+  @Unmemoize({
+    keys: (teamId: number) => [KEY.autoOptInByTeamId(teamId)],
+  })
+  async setAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
+    await this.prisma.team.update({
+      where: { id: teamId },
+      data: { autoOptInFeatures: enabled },
+    });
   }
 }
