@@ -1,8 +1,8 @@
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
-import { TeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
-import { UserFeatureRepository } from "@calcom/features/flags/repositories/UserFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
@@ -19,8 +19,8 @@ const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum([
 ]);
 
 const featureOptInService: ReturnType<typeof getFeatureOptInService> = getFeatureOptInService();
-const teamFeatureRepository: TeamFeatureRepository = new TeamFeatureRepository(prisma);
-const userFeatureRepository: UserFeatureRepository = new UserFeatureRepository(prisma);
+const teamFeatureRepository: ReturnType<typeof getTeamFeatureRepository> = getTeamFeatureRepository();
+const userFeatureRepository: ReturnType<typeof getUserFeatureRepository> = getUserFeatureRepository();
 const teamRepository: TeamRepository = new TeamRepository(prisma);
 const membershipRepository: MembershipRepository = new MembershipRepository(prisma);
 
