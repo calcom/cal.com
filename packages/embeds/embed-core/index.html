@@ -516,18 +516,27 @@
     if (initialNamespace.startsWith("skeletonDemo") || initialNamespace === "twoStepSlotSelection") {
       document.getElementById("misc-embeds").style.display = "none";
     }
-    // For twoStepSlotSelection, explicitly disable pointer events on html, body, and container elements
-    // Only the .place div (containing the iframe) should receive pointer events
+    // For twoStepSlotSelection, make the .place div fill the entire viewport
+    // This ensures nothing else can intercept pointer events on mobile viewport
     if (initialNamespace === "twoStepSlotSelection") {
-      document.documentElement.style.pointerEvents = "none";
-      document.body.style.pointerEvents = "none";
       const container = document.getElementById("cal-booking-place-twoStepSlotSelection");
       if (container) {
-        container.style.pointerEvents = "none";
+        // Hide the container's other content (h3, note)
+        container.style.display = "contents";
         const inlineContainer = container.querySelector(".inline-embed-container");
-        if (inlineContainer) inlineContainer.style.pointerEvents = "none";
+        if (inlineContainer) {
+          inlineContainer.style.display = "contents";
+        }
         const place = container.querySelector(".place");
-        if (place) place.style.pointerEvents = "auto";
+        if (place) {
+          // Make the .place div fill the entire viewport
+          place.style.position = "fixed";
+          place.style.top = "0";
+          place.style.left = "0";
+          place.style.width = "100vw";
+          place.style.height = "100vh";
+          place.style.zIndex = "9999";
+        }
       }
     }
   </script>
