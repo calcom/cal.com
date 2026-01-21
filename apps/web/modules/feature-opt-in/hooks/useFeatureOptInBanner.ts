@@ -10,11 +10,10 @@ import {
   isBooleanFeatureInMap,
   setBooleanFeatureInMap,
   setTimestampFeatureInMap,
+  DISMISSED_STORAGE_KEY,
   OPTED_IN_STORAGE_KEY,
-} from "./useFormbricksOptInTracking";
+} from "../lib/feature-opt-in-storage";
 import { useFormbricksOptInTracking } from "./useFormbricksOptInTracking";
-
-const DISMISSED_STORAGE_KEY = "feature-opt-in-dismissed";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
