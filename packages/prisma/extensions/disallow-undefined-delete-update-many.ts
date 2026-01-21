@@ -16,7 +16,7 @@ export const checkUndefinedInValue = (where: any) => {
         continue;
       }
 
-      if (Object.hasOwn(whereInput, "in") && typeof whereInput.in === "undefined") {
+      if (Object.prototype.hasOwnProperty.call(whereInput, "in") && typeof whereInput.in === "undefined") {
         message = `The "in" value for the field "${key}" cannot be undefined.`;
         throw new Error(message);
       }

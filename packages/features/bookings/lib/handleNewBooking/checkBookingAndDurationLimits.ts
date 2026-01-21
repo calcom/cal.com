@@ -28,8 +28,8 @@ export class CheckBookingAndDurationLimitsService {
 
   async _checkBookingAndDurationLimits({ eventType, reqBodyStart, reqBodyRescheduleUid }: InputProps) {
     if (
-      Object.hasOwn(eventType, "bookingLimits") ||
-      Object.hasOwn(eventType, "durationLimits")
+      Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
+      Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
     ) {
       const startAsDate = dayjs(reqBodyStart).toDate();
       if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {

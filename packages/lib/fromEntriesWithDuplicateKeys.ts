@@ -8,7 +8,8 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
   // Consider setting atleast ES2015 as target
   // @ts-expect-error
   for (const [key, value] of entries) {
-    if (Object.hasOwn(result, key)) {
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022
+    if (result.hasOwnProperty(key)) {
       let currentValue = result[key];
       if (!Array.isArray(currentValue)) {
         currentValue = [currentValue];

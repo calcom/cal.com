@@ -66,81 +66,81 @@ const updateOrganizationSettings = async ({
   const data: Prisma.OrganizationSettingsUpdateInput = {};
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "lockEventTypeCreation")) {
+  if (Object.prototype.hasOwnProperty.call(input, "lockEventTypeCreation")) {
     data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "adminGetsNoSlotsNotification")) {
+  if (Object.prototype.hasOwnProperty.call(input, "adminGetsNoSlotsNotification")) {
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "allowSEOIndexing")) {
+  if (Object.prototype.hasOwnProperty.call(input, "allowSEOIndexing")) {
     data.allowSEOIndexing = input.allowSEOIndexing;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "orgProfileRedirectsToVerifiedDomain")) {
+  if (Object.prototype.hasOwnProperty.call(input, "orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disablePhoneOnlySMSNotifications")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disablePhoneOnlySMSNotifications")) {
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
-  if (Object.hasOwn(input, "disableAutofillOnBookingPage")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAutofillOnBookingPage")) {
     data.disableAutofillOnBookingPage = input.disableAutofillOnBookingPage;
   }
   
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "orgAutoJoinOnSignup")) {
+  if (Object.prototype.hasOwnProperty.call(input, "orgAutoJoinOnSignup")) {
     data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeConfirmationEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeConfirmationEmail")) {
     data.disableAttendeeConfirmationEmail = input.disableAttendeeConfirmationEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeCancellationEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeCancellationEmail")) {
     data.disableAttendeeCancellationEmail = input.disableAttendeeCancellationEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeRescheduledEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeRescheduledEmail")) {
     data.disableAttendeeRescheduledEmail = input.disableAttendeeRescheduledEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeRequestEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeRequestEmail")) {
     data.disableAttendeeRequestEmail = input.disableAttendeeRequestEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeReassignedEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeReassignedEmail")) {
     data.disableAttendeeReassignedEmail = input.disableAttendeeReassignedEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeAwaitingPaymentEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeAwaitingPaymentEmail")) {
     data.disableAttendeeAwaitingPaymentEmail = input.disableAttendeeAwaitingPaymentEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeRescheduleRequestEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeRescheduleRequestEmail")) {
     data.disableAttendeeRescheduleRequestEmail = input.disableAttendeeRescheduleRequestEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeLocationChangeEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeLocationChangeEmail")) {
     data.disableAttendeeLocationChangeEmail = input.disableAttendeeLocationChangeEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.hasOwn(input, "disableAttendeeNewEventEmail")) {
+  if (Object.prototype.hasOwnProperty.call(input, "disableAttendeeNewEventEmail")) {
     data.disableAttendeeNewEventEmail = input.disableAttendeeNewEventEmail;
   }
 

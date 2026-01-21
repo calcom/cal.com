@@ -634,7 +634,7 @@ export class InputBookingsService_2024_08_13 {
   isRescheduleSeatedBody(
     body: RescheduleBookingInput
   ): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return  Object.hasOwn(body, "seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -931,7 +931,7 @@ export class InputBookingsService_2024_08_13 {
   isCancelSeatedBody(
     body: CancelBookingInput
   ): body is CancelSeatedBookingInput_2024_08_13 {
-    return  Object.hasOwn(body, "seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputCancelBooking(

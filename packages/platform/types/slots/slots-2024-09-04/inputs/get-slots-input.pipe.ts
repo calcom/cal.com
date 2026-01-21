@@ -131,18 +131,21 @@ export class GetSlotsInputPipe implements PipeTransform {
   }
 
   private isById(value: GetSlotsInput_2024_09_04): value is ById_2024_09_04 {
-    return  Object.hasOwn(value, "eventTypeId");
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which platform-types doesn't target
+    return value.hasOwnProperty("eventTypeId");
   }
 
   private isByUsernameAndEventTypeSlug(
     value: GetSlotsInput_2024_09_04
   ): value is ByUsernameAndEventTypeSlug_2024_09_04 {
-    return  Object.hasOwn(value, "username") && Object.hasOwn(value, "eventTypeSlug");
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which platform-types doesn't target
+    return value.hasOwnProperty("username") && value.hasOwnProperty("eventTypeSlug");
   }
 
   private isByTeamSlugAndEventTypeSlug(
     value: GetSlotsInput_2024_09_04
   ): value is ByTeamSlugAndEventTypeSlug_2024_09_04 {
-    return  Object.hasOwn(value, "teamSlug") && Object.hasOwn(value, "eventTypeSlug");
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which platform-types doesn't target
+    return value.hasOwnProperty("teamSlug") && value.hasOwnProperty("eventTypeSlug");
   }
 }
