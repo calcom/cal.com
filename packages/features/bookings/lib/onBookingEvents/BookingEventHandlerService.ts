@@ -248,16 +248,20 @@ export class BookingEventHandlerService {
   }
 
   async onLocationChanged(params: OnLocationChangedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
-    await this.bookingAuditProducerService.queueLocationChangedAudit({
-      bookingUid,
-      actor,
-      organizationId,
-      source,
-      operationId,
-      data: auditData,
-      context,
-    });
+    try {
+      const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
+      await this.bookingAuditProducerService.queueLocationChangedAudit({
+        bookingUid,
+        actor,
+        organizationId,
+        source,
+        operationId,
+        data: auditData,
+        context,
+      });
+    } catch (error) {
+      this.log.error("Error while onLocationChanged", safeStringify(error));
+    }
   }
 
   async onAttendeeNoShowUpdated(params: OnAttendeeNoShowUpdatedParams) {
