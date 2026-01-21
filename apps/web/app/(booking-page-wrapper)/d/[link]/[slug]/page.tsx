@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/d/[link]/[slug]/getServerSideProps";
-import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
+import type { PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
 import Type from "~/d/[link]/d-type-view";
 

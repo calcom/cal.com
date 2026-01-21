@@ -643,7 +643,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                   <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore this exists wtf?
+                    // @ts-expect-error this exists wtf?
                     (team.isOrgAdmin && team.isOrgAdmin)) && (
                     <>
                       {/* TODO */}

@@ -24,7 +24,7 @@ describe("RoutingEventsInsights", () => {
       organizationId?: number | null;
       routingFormId?: string | null;
     }) {
-      return super.getWhereForTeamOrAllTeams(params);
+      return RoutingEventsInsights.getWhereForTeamOrAllTeams(params);
     }
   }
 

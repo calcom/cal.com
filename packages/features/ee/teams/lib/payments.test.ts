@@ -16,7 +16,7 @@ beforeEach(async () => {
   vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "STRIPE_TEAM_MONTHLY_PRICE_ID");
   vi.resetAllMocks();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   await prismock.reset();
 });
 
@@ -24,7 +24,7 @@ afterEach(async () => {
   vi.unstubAllEnvs();
   vi.resetAllMocks();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   await prismock.reset();
 });
 
@@ -660,7 +660,7 @@ async function createOrgWithMembersAndPaymentData({
 
 function mockStripePricesCreate(data) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  //@ts-expect-error
   return vi.mocked(stripe.prices.create).mockImplementation(() => new Promise((resolve) => resolve(data)));
 }
 
@@ -668,7 +668,7 @@ function mockStripeCheckoutPricesRetrieve(data) {
   return vi.mocked(stripe.prices.retrieve).mockImplementation(
     async () =>
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       new Promise((resolve) => {
         resolve(data);
       })
@@ -678,7 +678,7 @@ function mockStripeCheckoutPricesRetrieve(data) {
 function mockStripeCheckoutSessionRetrieve(data, expectedArgs) {
   return vi.mocked(stripe.checkout.sessions.retrieve).mockImplementation(async (sessionId) =>
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       const conditionMatched = expectedArgs[0] === sessionId;
       return new Promise((resolve) => resolve(conditionMatched ? data : null));
@@ -689,7 +689,7 @@ function mockStripeCheckoutSessionRetrieve(data, expectedArgs) {
 function mockStripeCheckoutSessionsCreate(data) {
   return vi.mocked(stripe.checkout.sessions.create).mockImplementation(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     async () => new Promise((resolve) => resolve(data))
   );
 }
@@ -697,7 +697,7 @@ function mockStripeCheckoutSessionsCreate(data) {
 function mockStripeSubscriptionsRetrieve(data, expectedArgs) {
   return vi.mocked(stripe.subscriptions.retrieve).mockImplementation(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     async (subscriptionId) => {
       const conditionMatched = expectedArgs ? expectedArgs[0] === subscriptionId : true;
       return new Promise((resolve) => resolve(conditionMatched ? data : undefined));
@@ -708,7 +708,7 @@ function mockStripeSubscriptionsRetrieve(data, expectedArgs) {
 function mockStripeSubscriptionsUpdate(data) {
   return vi.mocked(stripe.subscriptions.update).mockImplementation(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     async () => new Promise((resolve) => resolve(data))
   );
 }

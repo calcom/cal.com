@@ -150,7 +150,7 @@ export const createMockJWTInstance = ({
       subject: email,
     },
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     authorize: authorizeError
       ? vi.fn().mockRejectedValue(authorizeError)
       : vi.fn().mockResolvedValue({
@@ -177,7 +177,7 @@ export const createMockJWTInstance = ({
     createGToken: vi.fn(),
   };
 
-  vi.mocked(JWT).mockImplementation(function() {
+  vi.mocked(JWT).mockImplementation(() => {
     setLastCreatedJWT(mockJWTInstance);
     return mockJWTInstance as unknown as JWT;
   });

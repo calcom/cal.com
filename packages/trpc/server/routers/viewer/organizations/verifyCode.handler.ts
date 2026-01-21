@@ -9,6 +9,7 @@ import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
+import process from "node:process";
 
 type VerifyCodeOptions = {
   ctx: {

@@ -10,6 +10,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import { createHandler } from "./createWithPaymentIntent.handler";
+import process from "node:process";
 
 vi.stubEnv("STRIPE_PRIVATE_KEY", "test-stripe-private-key");
 vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "test-stripe-org-monthly-price-id");

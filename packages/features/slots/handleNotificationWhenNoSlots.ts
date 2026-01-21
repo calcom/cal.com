@@ -5,6 +5,7 @@ import type { MembershipRepository } from "@calcom/features/membership/repositor
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import process from "node:process";
 
 type EventDetails = {
   username: string;

@@ -39,13 +39,14 @@ export async function assignmentReasonHandler({
           recordId ? ` (Account ID: ${recordId})` : ""
         }`,
       };
-    case RoutingReasons.ACCOUNT_LOOKUP_FIELD:
+    case RoutingReasons.ACCOUNT_LOOKUP_FIELD: {
       const assignmentReason = await handleAccountLookupFieldReason(
         routingFormResponseId,
         teamMemberEmail,
         recordId
       );
       return { ...returnObject, assignmentReason };
+    }
   }
 }
 

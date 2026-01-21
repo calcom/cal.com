@@ -10,6 +10,7 @@ import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import { getEmailsReceivedByUser } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
+import process from "node:process";
 
 test.describe.configure({ mode: "parallel" });
 

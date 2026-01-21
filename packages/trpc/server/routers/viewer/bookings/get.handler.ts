@@ -1,5 +1,5 @@
 import type { Kysely } from "kysely";
-import { type SelectQueryBuilder } from "kysely";
+import type { SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";

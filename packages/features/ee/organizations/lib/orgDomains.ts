@@ -6,6 +6,7 @@ import { getTldPlus1 } from "@calcom/lib/getTldPlus1";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import type { Prisma } from "@calcom/prisma/client";
+import process from "node:process";
 
 const log = logger.getSubLogger({
   prefix: ["orgDomains.ts"],

@@ -3,6 +3,7 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 
 import { CallToAction, Separator, CallToActionTable } from "../components";
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
+import process from "node:process";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
   const seedData = {

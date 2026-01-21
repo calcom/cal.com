@@ -24,6 +24,7 @@ import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
 import type { UiConfig, EmbedPageType, PrefillAndIframeAttrsConfig, ModalPrerenderOptions } from "./types";
 import { getMaxHeightForModal } from "./ui-utils";
+import process from "node:process";
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
@@ -361,7 +362,7 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
-    // @ts-ignore TS2802: URLSearchParams iteration requires downlevelIteration
+    // @ts-expect-error TS2802: URLSearchParams iteration requires downlevelIteration
     for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }
@@ -862,7 +863,7 @@ class CalApi {
 
     CalApi.initializedNamespaces.push(this.cal.namespace);
 
-    const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
+    const { calOrigin, origin, ...restConfig } = config;
 
     this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
 

@@ -1,6 +1,6 @@
 import { setUser as SentrySetUser } from "@sentry/nextjs";
 import { cookies, headers } from "next/headers";
-import React from "react";
+import type React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 

@@ -89,7 +89,7 @@ class PipedriveCrmService implements CRM {
           }),
         });
       },
-      isTokenObjectUnusable: async function (response) {
+      isTokenObjectUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["pipedrive-crm:isTokenObjectUnusable"] });
         myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {
@@ -107,7 +107,7 @@ class PipedriveCrmService implements CRM {
         }
         return null;
       },
-      isAccessTokenUnusable: async function (response) {
+      isAccessTokenUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["pipedrive-crm:isAccessTokenUnusable"] });
         myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok && response.status === 401) {

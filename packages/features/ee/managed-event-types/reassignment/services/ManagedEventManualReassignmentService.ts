@@ -8,14 +8,14 @@ import {
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import {
+import type {
   BookingRepository,
-  type ManagedEventReassignmentCreatedBooking,
-  type ManagedEventCancellationResult,
+  ManagedEventReassignmentCreatedBooking,
+  ManagedEventCancellationResult,
 } from "@calcom/features/bookings/repositories/BookingRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -32,7 +32,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 import {
-  ManagedEventAssignmentReasonService,
+  type ManagedEventAssignmentReasonService,
   ManagedEventReassignmentType,
 } from "@calcom/features/ee/managed-event-types/reassignment/services/ManagedEventAssignmentReasonRecorder";
 import {
@@ -458,7 +458,7 @@ export class ManagedEventManualReassignmentService {
     }
 
     let videoCallUrl: string | null = null;
-    let videoCallData: CalendarEvent["videoCallData"] = undefined;
+    let videoCallData: CalendarEvent["videoCallData"] ;
     const additionalInformation: AdditionalInformation = {};
 
     try {

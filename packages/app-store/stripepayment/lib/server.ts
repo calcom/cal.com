@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { z } from "zod";
+import process from "node:process";
 
 export type StripePaymentData = Stripe.Response<Stripe.PaymentIntent> & {
   stripe_publishable_key: string;

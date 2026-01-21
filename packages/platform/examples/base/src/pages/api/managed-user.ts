@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 import prisma from "../../lib/prismaClient";
+import process from "node:process";
 
 type Data = {
   email: string;

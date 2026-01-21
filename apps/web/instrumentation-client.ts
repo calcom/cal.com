@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 import * as Sentry from "@sentry/nextjs";
 import { initBotId } from "botid/client/core";
+import process from "node:process";
 
 if (process.env.NODE_ENV === "production") {
   Sentry.init({

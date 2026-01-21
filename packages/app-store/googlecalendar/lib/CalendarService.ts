@@ -69,7 +69,7 @@ interface GoogleCalError extends Error {
 }
 
 const isGaxiosResponse= (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
-  typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
+  typeof error === "object" && !!error && Object.hasOwn(error, "config");
 
 class GoogleCalendarService implements Calendar {
   private integrationName = "";

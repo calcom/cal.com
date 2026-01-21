@@ -2,7 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Button } from "@calcom/ui/components/button";
 
-import { useGatedFeaturesStore, GatedFeatures } from "../stores/gatedFeaturesStore";
+import { useGatedFeaturesStore, type GatedFeatures } from "../stores/gatedFeaturesStore";
 
 type FeatureContent = {
   badgeText: string;

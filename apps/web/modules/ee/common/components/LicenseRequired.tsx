@@ -2,13 +2,15 @@
 
 import { useSession } from "next-auth/react";
 import type { AriaRole, ComponentType } from "react";
-import React, { Fragment, useEffect } from "react";
+import type React from "react";
+import { Fragment, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import process from "node:process";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";

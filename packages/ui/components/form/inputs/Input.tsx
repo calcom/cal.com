@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import React, { forwardRef, useCallback, useId, useState } from "react";
+import type React from "react";
+import { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

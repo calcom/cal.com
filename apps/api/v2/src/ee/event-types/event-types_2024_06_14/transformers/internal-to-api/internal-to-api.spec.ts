@@ -185,7 +185,7 @@ describe("transformLocationsInternalToApi", () => {
     ];
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
@@ -206,7 +206,7 @@ describe("transformLocationsInternalToApi", () => {
     ];
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
@@ -892,7 +892,7 @@ describe("transformBookingFieldsInternalToApi", () => {
     ];
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);

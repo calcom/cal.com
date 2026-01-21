@@ -1,4 +1,5 @@
 // How to get it? -> Establish a connection with Google(e.g. through cal.com app) and then copy the refresh_token from there.
+import process from "node:process";
 export const GOOGLE_REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;

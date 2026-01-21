@@ -6,6 +6,7 @@ import { lockUser, LockReason } from "@calcom/features/ee/api-keys/lib/autoLock"
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 
 import { scanWorkflowBody, iffyScanBody } from "./scanWorkflowBody";
+import process from "node:process";
 
 vi.mock("@calcom/features/ee/api-keys/lib/autoLock", async (importActual) => {
   const actual = await importActual<typeof import("@calcom/features/ee/api-keys/lib/autoLock")>();

@@ -11,6 +11,7 @@ import { selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/l
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
 import { createBookingAndFetchGCalEvent, deleteBookingAndEvent, assertValueExists } from "./testUtils";
+import process from "node:process";
 
 test.describe("Google Calendar", async () => {
   // Skip till the tests are flaky
@@ -154,7 +155,7 @@ test.describe("Google Calendar", async () => {
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
       const rescheduledBookingUrl = await page.url();
-      const rescheduledBookingUid = rescheduledBookingUrl.match(/booking\/([^\/?]+)/);
+      const rescheduledBookingUid = rescheduledBookingUrl.match(/booking\/([^/?]+)/);
 
       assertValueExists(rescheduledBookingUid, "rescheduledBookingUid");
 
@@ -174,7 +175,7 @@ test.describe("Google Calendar", async () => {
       const gCalRescheduledEventResponse = await authedCalendar.events.get({
         calendarId: "primary",
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         eventId: gCalReference.uid,
       });
 
@@ -221,7 +222,7 @@ test.describe("Google Calendar", async () => {
       const canceledGCalEventResponse = await authedCalendar.events.get({
         calendarId: "primary",
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         eventId: gCalReference.uid,
       });
 

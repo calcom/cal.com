@@ -7,6 +7,7 @@ import {
   EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
   EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS,
 } from "./constants";
+import process from "node:process";
 
 vi.mock("./tailwindCss", () => ({
   default: "mockedTailwindCss",

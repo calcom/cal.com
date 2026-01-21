@@ -2,6 +2,7 @@ import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import process from "node:process";
 
 interface HelpscoutMenuItemProps {
   onHelpItemSelect: () => void;

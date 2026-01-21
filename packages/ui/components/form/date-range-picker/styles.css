@@ -233,7 +233,7 @@ button.react-calendar__tile.react-calendar__month-view__days__day {
 }
 
 .react-calendar__tile--now::before {
-  content: "\A";
+  content: "A";
   width: 4px;
   height: 4px;
   border-radius: 50%;

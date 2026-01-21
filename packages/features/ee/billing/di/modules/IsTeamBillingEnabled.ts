@@ -1,4 +1,4 @@
-import { type Container, createModule, ModuleLoader } from "@calcom/features/di/di";
+import { type Container, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
 import { DI_TOKENS } from "../tokens";
@@ -11,7 +11,7 @@ isTeamBillingEnabledModule.bind(token).toFactory(() => {
 
 export const isTeamBillingEnabledModuleLoader: ModuleLoader = {
   token,
-  loadModule: function (container: Container) {
+  loadModule: (container: Container) => {
     container.load(token, isTeamBillingEnabledModule);
   },
 };

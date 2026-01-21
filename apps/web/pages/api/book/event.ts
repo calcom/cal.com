@@ -13,6 +13,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
+import process from "node:process";
 
 async function handler(req: NextApiRequest & { userId?: number; traceContext: TraceContext }) {
   const userIp = getIP(req);

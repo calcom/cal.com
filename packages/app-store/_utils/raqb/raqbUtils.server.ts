@@ -83,8 +83,7 @@ export function getValueOfAttributeOption(
     return transformAttributeOption(attributeOptions);
   }
   return attributeOptions
-    .map(transformAttributeOption)
-    .flat()
+    .flatMap(transformAttributeOption)
     .filter((value, index, self) => self.indexOf(value) === index);
 
   function transformAttributeOption(

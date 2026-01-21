@@ -9,6 +9,7 @@ import {
   getMaxHeightForModal,
 } from "./ui-utils";
 import type { ExternalThemeClass } from "./ui/themeClass";
+import process from "node:process";
 type ShadowRootWithStyle = ShadowRoot & {
   host: HTMLElement & { style: CSSStyleDeclaration };
 };

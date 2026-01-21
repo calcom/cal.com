@@ -138,7 +138,7 @@ describe("processPaymentRefund", () => {
     await prismock.credential.create({ data: mockCredential });
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     const mockNow = dayjs(mockStartTime).businessDaysSubtract(3).toDate();
 
     vi.useFakeTimers();

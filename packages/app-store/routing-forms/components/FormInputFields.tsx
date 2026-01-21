@@ -64,7 +64,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
               placeholder={field.placeholder ?? ""}
               // required property isn't accepted by query-builder types
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              /* @ts-ignore */
+              /* @ts-expect-error */
               required={!!field.required}
               listValues={options}
               disabled={disabledFields?.includes(fieldIdentifier)}

@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import React from "react";
+import type React from "react";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
 

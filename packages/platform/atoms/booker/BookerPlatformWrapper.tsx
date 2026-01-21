@@ -579,16 +579,16 @@ const BookerPlatformWrapperComponent = (
         confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""
         hasSession={hasSession}
-        onGoBackInstantMeeting={function (): void {
+        onGoBackInstantMeeting={(): void => {
           throw new Error("Function not implemented.");
         }}
-        onConnectNowInstantMeeting={function (): void {
+        onConnectNowInstantMeeting={(): void => {
           throw new Error("Function not implemented.");
         }}
-        onOverlayClickNoCalendar={function (): void {
+        onOverlayClickNoCalendar={(): void => {
           throw new Error("Function not implemented.");
         }}
-        onClickOverlayContinue={function (): void {
+        onClickOverlayContinue={(): void => {
           throw new Error("Function not implemented.");
         }}
         onOverlaySwitchStateChange={onOverlaySwitchStateChange}

@@ -1,4 +1,4 @@
-import { type DMMF } from "@prisma/client/runtime/client";
+import type { DMMF } from "@prisma/client/runtime/client";
 import { getDMMF } from "@prisma/internals";
 import { readFileSync } from "node:fs";
 import { beforeEach, vi } from "vitest";

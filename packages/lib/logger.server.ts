@@ -1,6 +1,7 @@
 import fs from "node:fs"
 
 import logger from "./logger";
+import process from "node:process";
 
 /** This should be used if we want to ensure a log statement is always executed.
  *

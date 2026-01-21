@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { generateUniqueAPIKey as generateHashedApiKey } from "../lib/apiKeys";
+import process from "node:process";
 
 export class PrismaApiKeyRepository {
   constructor(private prismaClient: PrismaClient) {}

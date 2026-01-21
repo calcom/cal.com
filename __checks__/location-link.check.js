@@ -4,6 +4,7 @@
  */
 
 // Create a Chromium browser
+import process from "node:process";
 const { chromium } = require("playwright");
 
 // Checkly supports top level await, but we wrap your code in an async function so you can run it locally too.

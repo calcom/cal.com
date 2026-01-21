@@ -1,5 +1,6 @@
-import { FC } from "react";
+import type { FC } from "react";
 import { LiveChatLoaderProvider } from "react-live-chat-loader";
+import process from "node:process";
 
 const Provider: FC<{ children: React.ReactNode }> = ({ children }) => (
   <LiveChatLoaderProvider providerKey={process.env.NEXT_PUBLIC_HELPSCOUT_KEY || ""} provider="helpScout">

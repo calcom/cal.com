@@ -584,7 +584,7 @@ export class InputBookingsService_2024_08_13 {
       );
 
     const newRequest = { ...request };
-    let userId: number | undefined = undefined;
+    let userId: number | undefined ;
 
     if (
       oAuthClientParams &&
@@ -634,7 +634,7 @@ export class InputBookingsService_2024_08_13 {
   isRescheduleSeatedBody(
     body: RescheduleBookingInput
   ): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return Object.prototype.hasOwnProperty.call(body, "seatUid");
+    return  Object.hasOwn(body, "seatUid");
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -931,7 +931,7 @@ export class InputBookingsService_2024_08_13 {
   isCancelSeatedBody(
     body: CancelBookingInput
   ): body is CancelSeatedBookingInput_2024_08_13 {
-    return Object.prototype.hasOwnProperty.call(body, "seatUid");
+    return  Object.hasOwn(body, "seatUid");
   }
 
   async transformInputCancelBooking(

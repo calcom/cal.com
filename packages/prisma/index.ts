@@ -6,6 +6,7 @@ import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallo
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
+import process from "node:process";
 
 const connectionString = process.env.DATABASE_URL || "";
 const pool =

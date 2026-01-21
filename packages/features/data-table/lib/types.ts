@@ -18,7 +18,7 @@ export type { SortingState } from "@tanstack/react-table";
 
 export const SYSTEM_SEGMENT_PREFIX = "system_";
 
-export { ColumnFilterType, TextFilterOperator };
+export { ColumnFilterType, type TextFilterOperator };
 
 export const textFilterOperators = [
   "equals",

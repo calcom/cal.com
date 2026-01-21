@@ -2,6 +2,7 @@ import { captureException, startSpan } from "@sentry/nextjs";
 
 import logger from "./logger";
 import { redactSensitiveData } from "./redactSensitiveData";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["Telemetry"] });
 

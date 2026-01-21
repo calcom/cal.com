@@ -388,7 +388,7 @@ test.describe("Routing Forms", () => {
       // This also delete forms on cascade
       await users.deleteAll();
     });
-    const createUserAndLogin = async function ({ users, page }: { users: Fixtures["users"]; page: Page }) {
+    const createUserAndLogin = async ({ users, page }: { users: Fixtures["users"]; page: Page }) => {
       const user = await users.create(
         { username: "routing-forms" },
         { seedRoutingForms: true, hasTeam: true }

@@ -12,6 +12,7 @@ import type {
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { clientSecretVerifier, oidcPath, samlAudience, samlDatabaseUrl, samlPath } from "./saml";
+import process from "node:process";
 
 export type { OAuthTokenReq, OAuthReq, SAMLResponsePayload };
 

@@ -2,7 +2,8 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import React, { useCallback, useState, useEffect } from "react";
+import type React from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";

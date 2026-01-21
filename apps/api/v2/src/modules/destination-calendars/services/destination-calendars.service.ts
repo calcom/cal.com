@@ -20,8 +20,7 @@ export class DestinationCalendarsService {
   ) {
     const userCalendars = await this.calendarsService.getCalendars(userId);
     const allCalendars: Calendar[] = userCalendars.connectedCalendars
-      .map((cal: ConnectedCalendar) => cal.calendars ?? [])
-      .flat();
+      .flatMap((cal: ConnectedCalendar) => cal.calendars ?? []);
     const credentialId = allCalendars.find(
       (cal: Calendar) =>
         cal.externalId === externalId && cal.integration === integration && cal.readOnly === false

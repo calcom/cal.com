@@ -10,7 +10,7 @@ eventTypeRepositoryModule.bind(token).toClass(EventTypeRepository, [DI_TOKENS.PR
 
 export const moduleLoader = {
   token,
-  loadModule: function (container: Container) {
+  loadModule: (container: Container) => {
     container.load(moduleToken, eventTypeRepositoryModule);
   },
 } satisfies ModuleLoader;

@@ -10,6 +10,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
+import process from "node:process";
 
 type UpdateOptions = {
   ctx: {

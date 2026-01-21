@@ -18,10 +18,11 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
-import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
 import { createMockJWTInstance, createCredentialForCalendarService } from "./utils";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 

@@ -4,7 +4,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
-import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
+import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,

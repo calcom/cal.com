@@ -216,7 +216,7 @@ export class CalendarAuth {
           statusText: result.statusText,
         });
       },
-      isTokenObjectUnusable: async function (response) {
+      isTokenObjectUnusable: async (response) => {
         // TODO: Confirm that if this logic should go to isAccessTokenUnusable
         if (!response.ok || (response.status < 200 && response.status >= 300)) {
           const responseBody = await response.json();

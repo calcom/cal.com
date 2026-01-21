@@ -28,6 +28,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import process from "node:process";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 

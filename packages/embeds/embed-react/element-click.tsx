@@ -10,7 +10,7 @@ import { getCalApi } from "./src/index";
 const calNamespace = "element-click";
 function App() {
   useEffect(() => {
-    (async function () {
+    (async () => {
       const cal = await getCalApi({
         embedJsUrl: "http://localhost:3000/embed/embed.js",
         namespace: calNamespace,

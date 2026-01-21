@@ -17,7 +17,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
-import { WorkflowActions } from "@calcom/prisma/enums";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 
 import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
 

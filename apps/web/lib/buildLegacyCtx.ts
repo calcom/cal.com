@@ -1,5 +1,5 @@
 import type { SearchParams } from "app/_types";
-import { type Params } from "app/_types";
+import type { Params } from "app/_types";
 import type { ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
 

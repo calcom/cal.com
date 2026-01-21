@@ -286,12 +286,12 @@ export const useEventTypeForm = ({
     Object.keys(dirtyFields).forEach((key) => {
       const typedKey = key as keyof typeof dirtyFields;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       updatedFields[typedKey] = undefined;
       const isDirty = isFieldDirty(typedKey);
       if (isDirty) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         updatedFields[typedKey] = values[typedKey];
       }
     });

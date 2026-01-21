@@ -2,6 +2,7 @@
 //  using local prisma db, not related to the cal.com monorepo prisma client
 // eslint-disable-next-line
 import { PrismaClient } from "@prisma/client";
+import process from "node:process";
 
 const prismaClientSingleton = () => {
   return new PrismaClient();

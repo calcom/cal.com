@@ -8,6 +8,7 @@ import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, CrmEvent, Contact } from "@calcom/types/CrmService";
+import process from "node:process";
 
 // Schema that supports both OAuth and API key credentials
 const credentialSchema = z

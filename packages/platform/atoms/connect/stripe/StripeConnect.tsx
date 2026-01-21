@@ -64,8 +64,8 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   return (
     <AtomsWrapper>
       <Button
-        StartIcon={!!icon ? icon : "credit-card"}
-        color={!!color ? color : "primary"}
+        StartIcon={icon ? icon : "credit-card"}
+        color={color ? color : "primary"}
         disabled={isClickable ? false : isDisabled}
         className={cn(
           "",

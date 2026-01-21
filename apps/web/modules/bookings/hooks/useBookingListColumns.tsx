@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import BookingListItem from "@calcom/web/components/booking/BookingListItem";
 
 import type { RowData, BookingListingStatus } from "../types";

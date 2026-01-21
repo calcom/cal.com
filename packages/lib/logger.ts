@@ -1,6 +1,7 @@
-import { Logger, ISettingsParam } from "tslog";
+import { Logger, type ISettingsParam } from "tslog";
 
 import { IS_PRODUCTION } from "./constants";
+import process from "node:process";
 
 export const loggerConfig: ISettingsParam<unknown> = {
   minLevel: parseInt(process.env.NEXT_PUBLIC_LOGGER_LEVEL || "4"),

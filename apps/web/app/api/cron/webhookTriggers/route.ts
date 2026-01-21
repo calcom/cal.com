@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { handleWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/handleWebhookScheduledTriggers";
 import prisma from "@calcom/prisma";
+import process from "node:process";
 
 async function postHandler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");

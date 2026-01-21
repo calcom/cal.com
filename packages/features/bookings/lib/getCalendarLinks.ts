@@ -12,7 +12,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 type RecurringEventOrPrismaJsonObject = RecurringEvent | Prisma.JsonObject | null | undefined;
-export const enum CalendarLinkType {
+export enum CalendarLinkType {
   GOOGLE_CALENDAR = "googleCalendar",
   MICROSOFT_OFFICE = "microsoftOffice",
   MICROSOFT_OUTLOOK = "microsoftOutlook",

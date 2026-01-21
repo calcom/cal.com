@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import { TRPCError } from "@trpc/server";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import process from "node:process";
 
 enum DirectAction {
   ACCEPT = "accept",

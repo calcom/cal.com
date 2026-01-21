@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { TaskProcessor } from "../task-processor";
+import process from "node:process";
 
 async function handler(request: NextRequest) {
   const authHeader = request.headers.get("authorization");

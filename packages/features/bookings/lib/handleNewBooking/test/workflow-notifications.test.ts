@@ -27,6 +27,7 @@ import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import process from "node:process";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");

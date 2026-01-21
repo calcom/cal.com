@@ -6,6 +6,7 @@ import { RedisService } from "@calcom/features/redis/RedisService";
 import prisma from "@calcom/prisma";
 
 import { handleAutoLock } from "./autoLock";
+import process from "node:process";
 
 // Mock the dependencies
 vi.mock("@calcom/features/redis/RedisService");

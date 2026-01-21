@@ -12,6 +12,7 @@ import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { getTrackingFromCookies, type TrackingData } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { z } from "zod";
+import process from "node:process";
 
 const Params = z.object({
   username: z.string().optional(),

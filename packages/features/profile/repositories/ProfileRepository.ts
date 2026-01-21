@@ -535,7 +535,7 @@ export class ProfileRepository implements IProfileRepository {
         }
       }
 
-      const user = await this.findUserByid({ id: targetUserId });
+      const user = await ProfileRepository.findUserByid({ id: targetUserId });
       if (!user) {
         return null;
       }
@@ -639,7 +639,7 @@ export class ProfileRepository implements IProfileRepository {
 
     if (profile.organization?.isPlatform && !user.isPlatformManaged) {
       return {
-        ...this.buildPersonalProfileFromUser({ user }),
+        ...ProfileRepository.buildPersonalProfileFromUser({ user }),
         ...ProfileRepository.getInheritedDataFromUser({ user }),
       };
     }

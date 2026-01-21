@@ -74,10 +74,7 @@ export const processPaymentRefund = async ({
     const refundDeadline =
       refundCountCalendarDays === true
         ? dayjs(startTime).subtract(refundDaysCount, "days")
-        : // businessDaysSubtract exists on extended dayjs instance, but ts is messing up
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          dayjs(startTime).businessDaysSubtract(refundDaysCount);
+        : dayjs(startTime).businessDaysSubtract(refundDaysCount);
     if (dayjs().isAfter(refundDeadline)) return;
   }
   await handlePaymentRefund(successPayment.id, paymentAppCredential);

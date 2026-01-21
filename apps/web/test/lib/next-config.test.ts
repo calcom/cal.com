@@ -1,6 +1,7 @@
 import { it, expect, describe, beforeAll } from "vitest";
 
 import { getRegExpThatMatchesAllOrgDomains } from "../../getNextjsOrgRewriteConfig";
+import process from "node:process";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { match, pathToRegexp } = require("next/dist/compiled/path-to-regexp");
@@ -10,7 +11,7 @@ let orgUserRouteMatch: MatcherRes;
 
 beforeAll(async () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  //@ts-expect-error
   process.env.NEXT_PUBLIC_WEBAPP_URL = "http://example.com";
   const { orgUserRoutePath, orgUserTypeRoutePath } = await import("../../pagesAndRewritePaths");
 

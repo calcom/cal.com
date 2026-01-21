@@ -30,6 +30,7 @@ import { useNuqsParams } from "@lib/hooks/useNuqsParams";
 import type { WithLocaleProps } from "@lib/withLocale";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
+import process from "node:process";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -95,9 +96,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
         set: function (this) {
           // empty setter on purpose
         },
-        get: function () {
-          return locale;
-        },
+        get: () => locale,
       });
     } catch (error) {
       console.error(error);
@@ -123,7 +122,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   return <I18nextAdapter {...passedProps} />;
 };
 
-const enum ThemeSupport {
+enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages

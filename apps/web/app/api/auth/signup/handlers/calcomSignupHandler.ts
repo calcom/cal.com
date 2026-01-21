@@ -32,6 +32,7 @@ import {
   throwIfTokenExpired,
   validateAndGetCorrectedUsernameForTeam,
 } from "@calcom/features/auth/signup/utils/token";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 

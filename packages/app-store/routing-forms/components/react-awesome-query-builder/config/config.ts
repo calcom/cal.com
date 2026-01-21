@@ -1,6 +1,3 @@
-// Figure out why routing-forms/env.d.ts doesn't work
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
 import type { Operators, Types } from "./BasicConfig";
 import BasicConfig from "./BasicConfig";
 import { ConfigFor } from "./types";

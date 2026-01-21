@@ -7,7 +7,7 @@ import { Button } from "@calcom/ui/components/button";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { CreateScheduleForm } from "../CreateScheduleForm";
-import { ActionButtonsClassNames } from "../CreateScheduleForm";
+import type { ActionButtonsClassNames } from "../CreateScheduleForm";
 
 export const CreateSchedulePlatformWrapper = ({
   name,

@@ -1,5 +1,5 @@
-import React, { FC } from "react";
-import { SupportedCommands } from "src/types";
+import React, { type FC } from "react";
+import type { SupportedCommands } from "src/types";
 
 import Create from "./commandViews/Create";
 import CreateTemplate from "./commandViews/Create";

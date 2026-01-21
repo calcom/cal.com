@@ -11,6 +11,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import { default as webPrisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import process from "node:process";
 
 const helpscoutRequestBodySchema = z.object({
   customer: z.object({

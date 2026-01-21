@@ -46,6 +46,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import process from "node:process";
 
 vi.mock("@calcom/app-store/calendar.services.generated", () => {
   class MockGoogleCalendarService {

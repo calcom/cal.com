@@ -9,6 +9,7 @@ import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { AttendeeInBookingInfo, BookingInfo } from "../types";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate, { transformBookingResponsesToVariableFormat } from "./templates/customTemplate";
+import process from "node:process";
 
 export const bulkShortenLinks = async (links: string[]) => {
   if (!process.env.DUB_API_KEY) {

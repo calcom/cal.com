@@ -32,6 +32,7 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 

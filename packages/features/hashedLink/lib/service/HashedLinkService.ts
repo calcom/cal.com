@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { HashedLinkRepository } from "../repository/HashedLinkRepository";
-import { type HashedLinkInputType } from "../repository/HashedLinkRepository";
+import type { HashedLinkInputType } from "../repository/HashedLinkRepository";
 
 type NormalizedLink = {
   link: string;

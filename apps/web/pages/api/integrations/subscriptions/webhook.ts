@@ -7,6 +7,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { prisma } from "@calcom/prisma";
+import process from "node:process";
 
 export const config = {
   api: {

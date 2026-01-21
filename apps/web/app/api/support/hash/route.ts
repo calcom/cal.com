@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import process from "node:process";
 
 async function getHandler() {
   const headersList = await headers();

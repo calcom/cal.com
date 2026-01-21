@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
+import type React from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";

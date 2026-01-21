@@ -2,6 +2,7 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { prisma } from "@calcom/prisma";
 
 import type { TUpdateInputSchema } from "./update.schema";
+import process from "node:process";
 
 type UpdateOptions = {
   ctx: Record<string, unknown>;

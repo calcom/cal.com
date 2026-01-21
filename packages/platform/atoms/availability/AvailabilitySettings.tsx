@@ -1,7 +1,8 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import React, {
+import type React from "react";
+import {
   useMemo,
   useState,
   useEffect,

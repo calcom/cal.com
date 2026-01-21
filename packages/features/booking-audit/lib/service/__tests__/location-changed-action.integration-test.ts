@@ -14,7 +14,7 @@ import {
   enableFeatureForOrganization,
   cleanupTestData,
 } from "./integration-utils";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { BookingStatus } from "@calcom/prisma/enums";
 
 describe("Location Changed Action Integration", () => {
   let bookingAuditTaskConsumer: BookingAuditTaskConsumer;

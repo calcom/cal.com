@@ -1,6 +1,7 @@
 import { Redis } from "@upstash/redis";
 
 import type { IRedisService } from "./IRedisService";
+import process from "node:process";
 
 export class RedisService implements IRedisService {
   private redis: Redis;

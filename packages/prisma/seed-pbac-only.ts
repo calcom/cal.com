@@ -5,6 +5,7 @@
  * Run with: npx tsx packages/prisma/seed-pbac-only.ts
  */
 import { createPBACOrganization } from "./seed-pbac-organization";
+import process from "node:process";
 
 async function main() {
   console.log("🚀 Starting PBAC organization seed...");

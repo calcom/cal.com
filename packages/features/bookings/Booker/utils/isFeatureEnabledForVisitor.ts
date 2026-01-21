@@ -1,4 +1,5 @@
 import { getCookie } from "@calcom/lib/cookie";
+import process from "node:process";
 
 /**
  * NOTE: Feature can be easily rolled back by setting percentage to 0

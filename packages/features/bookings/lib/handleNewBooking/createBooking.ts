@@ -273,7 +273,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     newBookingData.recurringEventId = reqBody.recurringEventId;
   }
 
-  let originalBookingUpdateDataForCancellation: Prisma.BookingUpdateArgs | undefined = undefined;
+  let originalBookingUpdateDataForCancellation: Prisma.BookingUpdateArgs | undefined ;
 
   if (originalRescheduledBooking) {
     newBookingData.metadata = {

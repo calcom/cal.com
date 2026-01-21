@@ -1,6 +1,6 @@
 import { InternalTasker } from "./internal-tasker";
 // import { RedisTasker } from "./redis-tasker";
-import { type Tasker, type TaskerTypes } from "./tasker";
+import type { Tasker, TaskerTypes } from "./tasker";
 
 /**
  * This is a factory class that creates Taskers.

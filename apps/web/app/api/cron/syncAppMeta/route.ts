@@ -7,6 +7,7 @@ import { shouldEnableApp } from "@calcom/app-store/_utils/validateAppKeys";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories, Prisma } from "@calcom/prisma/client";
+import process from "node:process";
 
 const isDryRun = process.env.CRON_ENABLE_APP_SYNC !== "true";
 const log = logger.getSubLogger({

@@ -1,4 +1,5 @@
 import prisma from ".";
+import process from "node:process";
 
 // TODO: Put some restrictions here to run it on local DB only.
 // Production DB currently doesn't support app deletion

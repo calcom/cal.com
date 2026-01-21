@@ -33,6 +33,7 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import process from "node:process";
 
 class ExchangeCalendarService implements Calendar {
   private url = "";
@@ -165,7 +166,7 @@ class ExchangeCalendarService implements Calendar {
             calendarFolderId,
             new CalendarView(DateTime.Parse(dateFrom), DateTime.Parse(dateTo))
           )
-          .then(function (params) {
+          .then((params) => {
             const ret: EventBusyDate[] = [];
 
             for (let k = 0; k < params.Items.length; k++) {

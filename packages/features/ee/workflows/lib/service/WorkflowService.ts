@@ -16,7 +16,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents, WorkflowType, WorkflowMethods } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
@@ -207,7 +207,7 @@ export class WorkflowService {
         ...workflows.filter(
           (workflow) =>
             workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT ||
-            this._beforeAfterEventTriggers.includes(workflow.trigger)
+            WorkflowService._beforeAfterEventTriggers.includes(workflow.trigger)
         )
       );
     } else if (!isConfirmedByDefault) {
@@ -218,7 +218,7 @@ export class WorkflowService {
       workflowsToTrigger.push(
         ...workflows.filter(
           (workflow) =>
-            this._beforeAfterEventTriggers.includes(workflow.trigger) ||
+            WorkflowService._beforeAfterEventTriggers.includes(workflow.trigger) ||
             (isNormalBookingOrFirstRecurringSlot && workflow.trigger === WorkflowTriggerEvents.NEW_EVENT)
         )
       );

@@ -7,6 +7,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import process from "node:process";
 
 interface BotDetectionConfig {
   eventTypeId?: number;

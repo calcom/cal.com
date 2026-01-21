@@ -98,7 +98,7 @@ class UpdateBookingInputLocationValidator_2024_08_13 implements ValidatorConstra
 
 export function ValidateUpdateBookingLocation_2024_08_13(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateUpdateLocation",
       target: object.constructor,

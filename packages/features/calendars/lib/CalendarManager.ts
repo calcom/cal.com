@@ -298,7 +298,7 @@ export const createEvent = async (
   const uid: string = getUid(formattedEvent.uid);
   const calendar = await getCalendar(credential, "booking");
   let success = true;
-  let calError: string | undefined = undefined;
+  let calError: string | undefined ;
 
   log.debug(
     "Creating calendar event",
@@ -397,7 +397,7 @@ export const updateEvent = async (
   const uid = getUid(calEvent.uid);
   const calendar = await getCalendar(credential, "booking");
   let success = false;
-  let calError: string | undefined = undefined;
+  let calError: string | undefined ;
   let calWarnings: string[] | undefined = [];
   log.debug(
     "Updating calendar event",

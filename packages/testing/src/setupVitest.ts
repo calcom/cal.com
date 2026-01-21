@@ -4,6 +4,7 @@ import { vi, expect } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
 
 import type { CalendarService } from "@calcom/types/Calendar";
+import process from "node:process";
 
 global.ResizeObserver = ResizeObserver;
 const fetchMocker = createFetchMock(vi);

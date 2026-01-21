@@ -2,7 +2,8 @@
 
  
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";

@@ -52,7 +52,7 @@ export default defineConfig({
           access_token: c.uuid(row.access_token),
           expires_at: c.int(row.expires_at, {
             min: 0,
-            max: Math.pow(4, 8) - 1,
+            max: 4 ** 8 - 1,
           }),
           token_type: c.uuid(row.token_type),
           id_token: c.uuid(row.id_token),
@@ -148,7 +148,7 @@ export default defineConfig({
         return {
           amount: c.int(row.amount, {
             min: 0,
-            max: Math.pow(4, 8) - 1,
+            max: 4 ** 8 - 1,
           }),
           currency: c.sentence(row.currency),
           data: {
@@ -188,7 +188,7 @@ export default defineConfig({
           id: c
             .int(row.id, {
               min: 1,
-              max: Math.pow(4, 8) - 1,
+              max: 4 ** 8 - 1,
             })
             .toString(),
           identifier: c.uuid(row.identifier),

@@ -104,7 +104,7 @@ class BookingLimitsCountValidator implements ValidatorConstraintInterface {
 }
 
 export function ValidateBookingLimitsCount(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateBookingLimitsCount",
       target: object.constructor,

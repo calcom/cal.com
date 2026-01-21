@@ -15,16 +15,16 @@ export const createEmbedsFixture = (page: Page) => {
             calNamespace
           );
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           window.eventsFiredStoreForPlaywright = window.eventsFiredStoreForPlaywright || {};
 
           // Add a postMessage listener immediately to capture __iframeReady events
           // This avoids the race condition where the event fires before Cal.ns[namespace] is ready
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           if (!window.postMessageListenerAdded) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
+            //@ts-expect-error
             window.postMessageListenerAdded = true;
             window.addEventListener("message", (event) => {
               // Filter for Cal.com embed messages
@@ -41,13 +41,13 @@ export const createEmbedsFixture = (page: Page) => {
                 if (type === "__iframeReady" && namespace === calNamespace) {
                   console.log("PlaywrightTest postMessage:", "Setting window.iframeReady = true");
                   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  //@ts-ignore
+                  //@ts-expect-error
                   window.iframeReady = true;
                 }
 
                 // Store the event in our event store
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                //@ts-ignore
+                //@ts-expect-error
                 const store = window.eventsFiredStoreForPlaywright;
                 if (store) {
                   const eventStore = (store[`${type}-${namespace}`] = store[`${type}-${namespace}`] || []);
@@ -62,21 +62,21 @@ export const createEmbedsFixture = (page: Page) => {
               // Firefox seems to execute this snippet for iframe as well. Avoid that. It must be executed only for parent frame.
 
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+              //@ts-expect-error
               window.initialBodyVisibility = document.body.style.visibility;
 
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+              //@ts-expect-error
               window.initialBodyBackground = document.body.style.background;
 
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+              //@ts-expect-error
               window.initialValuesSet = true;
               return;
             }
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
+            //@ts-expect-error
             let api = window.Cal;
 
             if (!api) {
@@ -86,7 +86,7 @@ export const createEmbedsFixture = (page: Page) => {
             }
             if (calNamespace) {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+              //@ts-expect-error
               api = window.Cal.ns[calNamespace];
               console.log("Using api from namespace-", { calNamespace, api });
             }
@@ -101,11 +101,11 @@ export const createEmbedsFixture = (page: Page) => {
               callback: (e) => {
                 console.log("Playwright Embed Fixture: Received event", JSON.stringify(e.detail));
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
+                // @ts-expect-error
                 window.iframeReady = true; // Technically if there are multiple cal embeds, it can be set due to some other iframe. But it works for now. Improve it when it doesn't work
 
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
+                // @ts-expect-error
                 const store = window.eventsFiredStoreForPlaywright;
                 const eventStore = (store[`${e.detail.type}-${e.detail.namespace}`] =
                   store[`${e.detail.type}-${e.detail.namespace}`] || []);
@@ -139,7 +139,7 @@ export const createEmbedsFixture = (page: Page) => {
         return await page.evaluate(
           ({ actionType, calNamespace }) => {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
+            //@ts-expect-error
             return window.eventsFiredStoreForPlaywright[`${actionType}-${calNamespace}`];
           },
           { actionType, calNamespace }

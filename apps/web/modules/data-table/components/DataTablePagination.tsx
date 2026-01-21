@@ -1,6 +1,6 @@
 "use client";
 
-import { type Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table";
 
 import { Pagination } from "@calcom/ui/components/pagination";
 

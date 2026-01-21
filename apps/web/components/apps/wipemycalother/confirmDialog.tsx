@@ -11,6 +11,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import process from "node:process";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;

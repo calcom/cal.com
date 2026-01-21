@@ -530,7 +530,7 @@ export class InputEventTypesService_2024_06_14 {
   ) {
     const calendars: ConnectedCalendarsData = await this.calendarsService.getCalendars(userId);
 
-    const allCals = calendars.connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+    const allCals = calendars.connectedCalendars.flatMap((cal) => cal.calendars ?? []);
 
     const matchedCalendar = allCals.find(
       (cal) =>
@@ -552,7 +552,7 @@ export class InputEventTypesService_2024_06_14 {
   async validateInputUseDestinationCalendarEmail(userId: number) {
     const calendars: ConnectedCalendarsData = await this.calendarsService.getCalendars(userId);
 
-    const allCals = calendars.connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+    const allCals = calendars.connectedCalendars.flatMap((cal) => cal.calendars ?? []);
 
     const primaryCalendar = allCals.find((cal) => cal.primary);
 

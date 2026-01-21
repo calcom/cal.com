@@ -22,7 +22,7 @@ test.describe("Users can impersonate", async () => {
     await expect(page.getByText("User Impersonation")).toBeVisible();
     const adminInput = page.getByTestId("admin-impersonation-input");
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore the username does exist
+    // @ts-expect-error the username does exist
     await adminInput.fill(userToImpersonate.username);
     await page.getByTestId("impersonation-submit").click();
 

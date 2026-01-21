@@ -22,6 +22,7 @@ import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
+import process from "node:process";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",

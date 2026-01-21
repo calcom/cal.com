@@ -121,9 +121,9 @@ export function createProfilesWithPermissions(
   teamPermissionsMap: Map<number, TeamPermissions>
 ): ProfileWithPermissions[] {
   return eventTypeGroups.map((group) => {
-    let canCreateEventTypes: boolean | undefined = undefined;
-    let canUpdateEventTypes: boolean | undefined = undefined;
-    let canDeleteEventTypes: boolean | undefined = undefined;
+    let canCreateEventTypes: boolean | undefined ;
+    let canUpdateEventTypes: boolean | undefined ;
+    let canDeleteEventTypes: boolean | undefined ;
 
     if (group.teamId) {
       const permissions = teamPermissionsMap.get(group.teamId);

@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import { Fragment } from "react";
+import process from "node:process";
 
 const initPostProvider = () => {
   // eslint-disable-next-line turbo/no-undeclared-env-vars

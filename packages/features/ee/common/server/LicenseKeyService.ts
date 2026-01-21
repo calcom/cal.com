@@ -9,6 +9,7 @@ import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
 import { generateNonce, createSignature } from "./private-api-utils";
+import process from "node:process";
 
 export enum UsageEvent {
   BOOKING = "booking",

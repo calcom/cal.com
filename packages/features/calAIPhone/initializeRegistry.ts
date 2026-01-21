@@ -1,6 +1,7 @@
 import { AIPhoneServiceRegistry } from "./AIPhoneServiceRegistry";
 import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 import { RetellAIPhoneServiceProviderFactory } from "./providers/retellAI";
+import process from "node:process";
 
 /**
  * Initialize the AI Phone Service Registry

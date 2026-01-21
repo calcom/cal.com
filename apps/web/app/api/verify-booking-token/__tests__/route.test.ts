@@ -90,6 +90,7 @@ function expectErrorRedirect(res: Response, path: string, error: string) {
 
 // Import after mocks are set up
 import { GET, POST } from "../route";
+import process from "node:process";
 const DB = {
   bookings: {} as Record<
     string,

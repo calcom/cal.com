@@ -178,7 +178,7 @@ export async function getConnectedApps({
 
       // We need to know if app is payment type
       // undefined it means that app don't require app/setup/page
-      let isSetupAlready = undefined;
+      let isSetupAlready ;
       if (credential && app.categories.includes("payment")) {
         const paymentAppImportFn = PaymentServiceMap[app.dirName as keyof typeof PaymentServiceMap];
         if (paymentAppImportFn) {

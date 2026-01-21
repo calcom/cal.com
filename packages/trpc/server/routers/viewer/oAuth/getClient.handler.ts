@@ -1,5 +1,5 @@
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
-import { OAUTH_ERROR_REASONS, OAuthErrorReason } from "@calcom/features/oauth/services/OAuthService";
+import { OAUTH_ERROR_REASONS, type OAuthErrorReason } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { httpStatusToTrpcCode } from "@calcom/trpc/server/lib/toTRPCError";

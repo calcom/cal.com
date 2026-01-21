@@ -3,6 +3,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import prisma from "@calcom/prisma";
+import process from "node:process";
 
 export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,

@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { prisma } from "@calcom/prisma";
 
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export async function getServerSideProps(context: GetServerSidePropsContext) {

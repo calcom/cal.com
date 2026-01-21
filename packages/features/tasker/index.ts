@@ -1,5 +1,6 @@
 import type { Tasker } from "./tasker";
 import { getTasker } from "./tasker-factory";
+import process from "node:process";
 
 const globalForTasker = global as unknown as {
   tasker: Tasker;

@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type { TAddClientInputSchema } from "./addClient.schema";
 

@@ -8,6 +8,7 @@ import * as path from "node:path";
 import { createRequire } from "node:module";
 
 import { copyIcons, removeTempDir } from "./generate-icons.mjs";
+import process from "node:process";
 
 const require = createRequire(import.meta.url);
 const biomeBin = require.resolve("@biomejs/biome/bin/biome");

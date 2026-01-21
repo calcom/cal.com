@@ -12,6 +12,7 @@ import {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } from "./pagesAndRewritePaths";
+import process from "node:process";
 
 dotenvConfig({ path: "../../.env" });
 

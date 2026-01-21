@@ -283,7 +283,7 @@ const FormEdit = ({
     remove: removeHookFormField,
     swap: swapHookFormField,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore https://github.com/react-hook-form/react-hook-form/issues/6679
+    //@ts-expect-error https://github.com/react-hook-form/react-hook-form/issues/6679
   } = useFieldArray({
     control: hookForm.control,
     name: fieldsNamespace,
@@ -295,7 +295,7 @@ const FormEdit = ({
   const addField = () => {
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       id: uuidv4(),
       // This is same type from react-awesome-query-builder
       type: "text",

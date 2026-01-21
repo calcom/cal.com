@@ -8,6 +8,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { apiKeyCreateBodySchema, apiKeyPublicSchema } from "~/lib/validations/api-key";
+import process from "node:process";
 
 async function postHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;

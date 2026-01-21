@@ -20,6 +20,7 @@ import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import * as recordedDailyVideoRoute from "@calcom/web/app/api/recorded-daily-video/route";
+import process from "node:process";
 
 // Mock the next/headers module before importing the handler
 vi.mock("next/headers", () => ({

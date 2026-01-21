@@ -8,6 +8,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import process from "node:process";
 
 export const scanWorkflowBodySchema = z.object({
   userId: z.number(),

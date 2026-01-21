@@ -64,7 +64,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     user.userLevelSelectedCalendars
   );
 
-  const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+  const allCals = connectedCalendars.flatMap((cal) => cal.calendars ?? []);
 
   const firstConnectedCalendar = getFirstConnectedCalendar({
     connectedCalendars,

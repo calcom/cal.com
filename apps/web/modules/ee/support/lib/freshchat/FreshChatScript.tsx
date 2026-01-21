@@ -2,6 +2,7 @@ import Script from "next/script";
 import { z } from "zod";
 
 import { trpc } from "@calcom/trpc/react";
+import process from "node:process";
 
 const nonEmptySchema = z.string().min(1);
 declare global {

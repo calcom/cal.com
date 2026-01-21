@@ -150,7 +150,7 @@ class BookingWindowValidator implements ValidatorConstraintInterface {
 }
 
 export function ValidateBookingWindow(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateBookingWindow",
       target: object.constructor,

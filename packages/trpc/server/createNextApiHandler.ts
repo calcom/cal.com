@@ -3,6 +3,7 @@ import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adap
 
 import { createContext as createTrpcContext } from "./createContext";
 import { onErrorHandler } from "./onErrorHandler";
+import process from "node:process";
 
 /**
  * Creates an API handler executed by Next.js.

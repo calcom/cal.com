@@ -523,7 +523,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
     prisma.eventType
       .createMany({
         data: managedEventTypes
-          .map((eventType) =>
+          .flatMap((eventType) =>
             userIds.map((userId) =>
               generateNewChildEventTypeDataForDB({
                 eventType,
@@ -532,8 +532,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
                 includeUserConnect: false,
               })
             )
-          )
-          .flat(),
+          ),
         skipDuplicates: true,
       })
       .catch((error) => {
@@ -548,7 +547,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
     prisma.host
       .createMany({
         data: teamEventTypes
-          .map((eventType) => {
+          .flatMap((eventType) => {
             return userIds.map((userId) => {
               return {
                 userId,
@@ -556,8 +555,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
                 isFixed: eventType.schedulingType === "COLLECTIVE",
               };
             });
-          })
-          .flat(),
+          }),
         skipDuplicates: true,
       })
       .catch((error) => {
@@ -599,13 +597,12 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
       prisma.workflowsOnEventTypes
         .createMany({
           data: createdChildrenEventTypes
-            .map((eventType) =>
+            .flatMap((eventType) =>
               eventType.workflows.map((workflow) => ({
                 eventTypeId: eventType.id,
                 workflowId: workflow.id,
               }))
-            )
-            .flat(),
+            ),
           skipDuplicates: true,
         })
         .catch((error) => {

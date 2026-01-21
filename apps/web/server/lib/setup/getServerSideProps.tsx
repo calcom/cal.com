@@ -6,6 +6,7 @@ import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeployme
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import process from "node:process";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;

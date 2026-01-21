@@ -21,6 +21,7 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 import type { Ensure } from "@calcom/types/utils";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
+import process from "node:process";
 
 const limitOnQueryingGoogleCalendar = 50;
 const log = logger.getSubLogger({ prefix: ["[api]", "[delegation]", "[selected-calendars/cron]"] });

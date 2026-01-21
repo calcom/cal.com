@@ -5,6 +5,6 @@ const skipWarnings = ["1", "true", "yes", "on"].includes(
 
 export default {
   "(apps|packages|companion)/**/*.{js,ts,jsx,tsx}": (files) =>
-    `biome lint --config-path=biome-staged.json ${files.join(" ")}`,
+    `./scripts/lint-staged-biome.sh ${files.join(" ")}`,
   "packages/prisma/schema.prisma": ["prisma format"],
 };

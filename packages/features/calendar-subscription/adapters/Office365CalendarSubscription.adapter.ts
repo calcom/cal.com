@@ -8,6 +8,7 @@ import type {
   CalendarCredential,
   CalendarSubscriptionEventItem,
 } from "../lib/CalendarSubscriptionPort.interface";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["MicrosoftCalendarSubscriptionAdapter"] });
 

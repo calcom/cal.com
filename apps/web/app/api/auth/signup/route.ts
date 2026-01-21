@@ -14,6 +14,7 @@ import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { prisma } from "@calcom/prisma";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import process from "node:process";
 
 async function ensureSignupIsEnabled(body: Record<string, string>) {
   const { token } = signupSchema

@@ -3,7 +3,7 @@ import {
   makeUserActor,
   makeGuestActor,
 } from "@calcom/features/booking-audit/lib/makeActor";
-import { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
 /**
  * Used to create actor for new booking/reschedule booking scenarios

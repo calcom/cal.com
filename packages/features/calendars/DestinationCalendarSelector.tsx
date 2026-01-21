@@ -88,8 +88,7 @@ const DestinationCalendarSelector = ({
 
   useEffect(() => {
     const selected = connectedCalendarsList
-      ?.map((connected) => connected.calendars ?? [])
-      .flat()
+      ?.flatMap((connected) => connected.calendars ?? [])
       .find((cal) => cal.externalId === value);
 
     if (selected) {

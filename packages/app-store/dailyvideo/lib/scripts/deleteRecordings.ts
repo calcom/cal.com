@@ -7,6 +7,7 @@
 // 2. Delete recordings from the JSON file (shows preview first, then prompts for confirmation):
 //    ts-node packages/app-store/dailyvideo/lib/scripts/deleteRecordings.ts delete
 
+import process from "node:process";
 interface Recording {
   id: string;
   room_name: string;
@@ -98,7 +99,7 @@ async function getAllRecordingsOlderThan6Months(): Promise<Recording[]> {
 
         if (response.status === 429) {
           if (retries < maxRetries) {
-            const backoffDelay = Math.pow(2, retries) * 1000;
+            const backoffDelay = 2 ** retries * 1000;
             console.log(
               `Rate limit exceeded (429). Retrying in ${backoffDelay / 1000}s... (attempt ${retries + 1}/${
                 maxRetries + 1
@@ -115,7 +116,7 @@ async function getAllRecordingsOlderThan6Months(): Promise<Recording[]> {
         throw new Error(`HTTP error! status: ${response.status}`);
       } catch (error) {
         if (retries < maxRetries && (error as Error).message.includes("fetch")) {
-          const backoffDelay = Math.pow(2, retries) * 1000;
+          const backoffDelay = 2 ** retries * 1000;
           console.log(
             `Network error. Retrying in ${backoffDelay / 1000}s... (attempt ${retries + 1}/${maxRetries + 1})`
           );
@@ -267,7 +268,7 @@ async function deleteRecording(recordingId: string, apiKey: string): Promise<boo
 
       if (response.status === 429) {
         if (retries < maxRetries) {
-          const backoffDelay = Math.pow(2, retries) * 1000;
+          const backoffDelay = 2 ** retries * 1000;
           console.log(
             `Rate limit for ${recordingId}. Retrying in ${backoffDelay / 1000}s... (attempt ${retries + 1}/${
               maxRetries + 1
@@ -288,7 +289,7 @@ async function deleteRecording(recordingId: string, apiKey: string): Promise<boo
         retries < maxRetries &&
         (errorMessage.includes("fetch failed") || errorMessage.includes("TIMEOUT"))
       ) {
-        const backoffDelay = Math.pow(2, retries) * 1000;
+        const backoffDelay = 2 ** retries * 1000;
         console.log(
           `Network error for ${recordingId}. Retrying in ${backoffDelay / 1000}s... (attempt ${retries + 1}/${
             maxRetries + 1

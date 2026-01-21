@@ -96,7 +96,7 @@ class RoutingEventsInsights {
     organizationId?: number | undefined;
     routingFormId?: string | undefined;
   }) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await RoutingEventsInsights.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -215,7 +215,7 @@ class RoutingEventsInsights {
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await RoutingEventsInsights.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -231,7 +231,7 @@ class RoutingEventsInsights {
       },
     });
 
-    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+    const fields = routingFormFieldsSchema.parse(routingForms.flatMap((f) => f.fields));
 
     return fields;
   }
@@ -243,7 +243,7 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
   }: RoutingFormInsightsTeamFilter) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await RoutingEventsInsights.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -260,7 +260,7 @@ class RoutingEventsInsights {
       },
     });
 
-    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+    const fields = routingFormFieldsSchema.parse(routingForms.flatMap((f) => f.fields));
     const ids = new Set<string>();
     const headers = (fields || [])
       .filter((f) => !f.deleted)

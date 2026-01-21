@@ -18,6 +18,7 @@ import type {
   RetellCallListResponse,
   RetellVoice,
 } from "./types";
+import process from "node:process";
 
 const RETELL_API_KEY = process.env.RETELL_AI_KEY;
 

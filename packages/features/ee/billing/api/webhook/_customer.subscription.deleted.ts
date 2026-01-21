@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import type { LazyModule, SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
+import process from "node:process";
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
 

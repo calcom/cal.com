@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 import { AppDependencyComponent } from "@calcom/app-store/AppDependencyComponent";
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";

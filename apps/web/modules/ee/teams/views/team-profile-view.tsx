@@ -46,7 +46,7 @@ import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
-const regex = new RegExp("^[a-zA-Z0-9-]*$");
+const regex = /^[a-zA-Z0-9-]*$/;
 
 
 

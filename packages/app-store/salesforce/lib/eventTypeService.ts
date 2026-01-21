@@ -17,7 +17,7 @@ export class EventTypeService {
 
     if (!eventType) return null;
 
-    return this.getEventTypeAppDataFromMetadata(eventType.metadata, appSlug);
+    return EventTypeService.getEventTypeAppDataFromMetadata(eventType.metadata, appSlug);
   }
 
   static getEventTypeAppDataFromMetadata(metadata: Prisma.JsonValue, appSlug: keyof typeof appDataSchemas) {

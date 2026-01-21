@@ -720,7 +720,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // - If calVideoSettings provided in input, sync to children
   // - If Cal Video location removed, delete from children (pass null)
   // - Otherwise, leave children's settings untouched (pass undefined)
-  let calVideoSettingsForChildren: typeof calVideoSettings | null | undefined = undefined;
+  let calVideoSettingsForChildren: typeof calVideoSettings | null | undefined ;
   if (calVideoSettings !== undefined) {
     calVideoSettingsForChildren = calVideoSettings;
   } else if (eventType.calVideoSettings && !isCalVideoLocationActive) {

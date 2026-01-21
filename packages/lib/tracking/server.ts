@@ -1,4 +1,5 @@
 import type { NextApiRequest } from "next";
+import process from "node:process";
 
 export type GoogleAdsTrackingData = {
   gclid: string;

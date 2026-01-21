@@ -9,7 +9,7 @@ import { getCalApi } from "./src/index";
 
 function App() {
   useEffect(() => {
-    (async function () {
+    (async () => {
       const cal = await getCalApi({
         namespace: "floating",
         embedJsUrl: "http://localhost:3000/embed/embed.js",

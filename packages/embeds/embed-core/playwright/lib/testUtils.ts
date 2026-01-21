@@ -78,7 +78,7 @@ export const getEmbedIframe = async ({
     () => {
       const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       return iframe && iframe.contentWindow && window.iframeReady;
     },
     { polling: 500 }

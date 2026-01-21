@@ -266,7 +266,7 @@ export const createSalesforceMock = () => {
 
   // Mock connection interface
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   const mockConnection = {
     query: vi.fn().mockImplementation(handleQuery),
     search: vi.fn().mockImplementation((searchQuery: string) => {
@@ -298,7 +298,7 @@ export const createSalesforceMock = () => {
     sobject: vi.fn().mockReturnValue({
       create: vi.fn().mockImplementation(async (data) => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
         let result;
 
@@ -331,7 +331,7 @@ export const createSalesforceMock = () => {
       }),
       update: vi.fn().mockImplementation(async (data) => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         const objectType = mockConnection.sobject.mock.calls[mockConnection.sobject.mock.calls.length - 1][0];
         const id = data.Id;
         let record;

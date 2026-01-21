@@ -1,4 +1,4 @@
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 export interface IRoleManager {
   isPBACEnabled: boolean;

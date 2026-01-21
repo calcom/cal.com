@@ -48,13 +48,13 @@ export class EventTypesService_2024_06_14 {
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     const { eventType: eventTypeCreated } = await createEventType({
       input: rest,
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -67,7 +67,7 @@ export class EventTypesService_2024_06_14 {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -317,7 +317,7 @@ export class EventTypesService_2024_06_14 {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });

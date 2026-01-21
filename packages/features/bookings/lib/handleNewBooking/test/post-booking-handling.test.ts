@@ -28,6 +28,7 @@ import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import process from "node:process";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 export type CustomNextApiResponse = NextApiResponse & Response;

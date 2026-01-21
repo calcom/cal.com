@@ -43,7 +43,7 @@ export class EventTypesService_2024_04_15 {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -149,7 +149,7 @@ export class EventTypesService_2024_04_15 {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });

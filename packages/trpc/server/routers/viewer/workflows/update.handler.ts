@@ -160,8 +160,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
 
     activeOnWithChildren = activeOnEventTypes
-      .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
-      .flat();
+      .flatMap((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)));
 
     let oldActiveOnEventTypes: { id: number; children: { id: number }[] }[];
     if (userWorkflow.isActiveOnAll) {

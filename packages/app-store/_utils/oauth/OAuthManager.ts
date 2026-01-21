@@ -21,7 +21,7 @@ import type { OAuth2TokenResponseInDbWhenExistsSchema, OAuth2UniversalSchema } f
 import { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";
 
 const log = logger.getSubLogger({ prefix: ["app-store/_utils/oauth/OAuthManager"] });
-export const enum TokenStatus {
+export enum TokenStatus {
   UNUSABLE_TOKEN_OBJECT,
   UNUSABLE_ACCESS_TOKEN,
   INCONCLUSIVE,

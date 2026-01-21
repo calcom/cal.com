@@ -95,7 +95,7 @@ class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
 }
 
 export function ValidateBookingLimistsDuration(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateBookingLimistsDuration",
       target: object.constructor,

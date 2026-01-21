@@ -3,6 +3,7 @@ import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
+import process from "node:process";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
 export const isSAMLLoginEnabled = samlDatabaseUrl.length > 0;

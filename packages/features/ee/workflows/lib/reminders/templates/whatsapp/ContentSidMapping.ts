@@ -1,4 +1,5 @@
 import { WorkflowTemplates } from "@calcom/prisma/enums";
+import process from "node:process";
 
 export const getContentSidForTemplate = (template?: WorkflowTemplates): string | undefined => {
   if (!template) {

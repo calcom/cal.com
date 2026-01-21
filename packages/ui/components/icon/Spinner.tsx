@@ -1,4 +1,5 @@
-import React, { forwardRef } from "react";
+import type React from "react";
+import { forwardRef } from "react";
 
 export const Spinner = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function Spinner(props) {
   return (

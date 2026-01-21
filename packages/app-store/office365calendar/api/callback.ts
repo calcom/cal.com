@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Set the isDefaultCalendar as selectedCalendar
   // If a user has multiple calendars, keep on making calls until we find the default calendar
-  let defaultCalendar: OfficeCalendar | undefined = undefined;
+  let defaultCalendar: OfficeCalendar | undefined ;
   let requestUrl = "https://graph.microsoft.com/v1.0/me/calendars?$select=id,isDefaultCalendar";
   let finishedParsingCalendars = false;
 

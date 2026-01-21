@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
+import process from "node:process";
 
 test.describe.configure({ mode: "parallel" });
 

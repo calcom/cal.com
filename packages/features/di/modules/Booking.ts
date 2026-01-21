@@ -10,7 +10,7 @@ bookingRepositoryModule.bind(token).toClass(BookingRepository, [DI_TOKENS.PRISMA
 
 export const moduleLoader = {
   token,
-  loadModule: function (container: Container) {
+  loadModule: (container: Container) => {
     container.load(moduleToken, bookingRepositoryModule);
   },
 };

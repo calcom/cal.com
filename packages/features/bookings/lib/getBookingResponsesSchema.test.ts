@@ -115,7 +115,7 @@ describe("getBookingResponsesSchema", () => {
         });
         expect(parsedResponsesWithJustName.success).toBe(false);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         expect(parsedResponsesWithJustName.error.issues[0]).toEqual(
           expect.objectContaining({
             path: ["email"],
@@ -129,7 +129,7 @@ describe("getBookingResponsesSchema", () => {
 
         expect(parsedResponsesWithJustEmail.success).toBe(false);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         expect(parsedResponsesWithJustEmail.error.issues[0]).toEqual(
           expect.objectContaining({
             message: "Invalid input",
@@ -165,7 +165,7 @@ describe("getBookingResponsesSchema", () => {
         });
         expect(parsedResponses.success).toBe(false);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         expect(parsedResponses.error.issues[0]).toEqual(
           expect.objectContaining({
             // We don't get zod default email address validation error because `bookingResponses` schema defines email as z.string() only

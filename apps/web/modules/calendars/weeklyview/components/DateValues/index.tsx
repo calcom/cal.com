@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

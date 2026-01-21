@@ -7,6 +7,7 @@ import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import process from "node:process";
 
 export const dynamic = "force-dynamic";
 

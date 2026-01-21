@@ -10,7 +10,7 @@ import type {
   WorkflowStep as PrismaWorkflowStep,
 } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { WorkflowActions } from "@calcom/prisma/enums";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 

@@ -10,6 +10,7 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import { CHECKOUT_SESSION_TYPES } from "../../constants";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["checkout.session.completed"] });
 

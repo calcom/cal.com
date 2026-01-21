@@ -8,7 +8,7 @@ Values can be strings (up to 500 characters), numbers, or booleans.`;
 export type Metadata = Record<string, string | number | boolean>;
 
 export function ValidateMetadata(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateMetadata",
       target: object.constructor,

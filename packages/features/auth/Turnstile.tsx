@@ -2,6 +2,7 @@ import type { TurnstileProps } from "react-turnstile";
 import Turnstile from "react-turnstile";
 
 import { CLOUDFLARE_SITE_ID } from "@calcom/lib/constants";
+import process from "node:process";
 
 type Props = Omit<TurnstileProps, "sitekey">;
 

@@ -1,3 +1,4 @@
+import process from "node:process";
 const fs = require("node:fs");
 const path = require("node:path");
 const glob = require("glob");

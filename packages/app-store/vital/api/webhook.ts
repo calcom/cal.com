@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return;
           }
 
-          if (!Object.prototype.hasOwnProperty.call(event.data, parameterFilter)) {
+          if (!Object.hasOwn(event.data, parameterFilter)) {
             res.status(500).json({ message: "Selected param not available" });
             return;
           }

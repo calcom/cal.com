@@ -7,6 +7,7 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { GoogleCalendarSubscriptionAdapter } from "../GoogleCalendarSubscription.adapter";
+import process from "node:process";
 
 const addMonthsFromNow = (months: number) => {
   const date = dayjs();

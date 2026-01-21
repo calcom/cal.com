@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { getTeamBillingServiceFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import prisma from "@calcom/prisma";
+import process from "node:process";
 
 const querySchema = z.object({
   page: z.coerce.number().min(0).optional().default(0),

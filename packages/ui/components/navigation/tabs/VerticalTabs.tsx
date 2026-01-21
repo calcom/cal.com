@@ -16,7 +16,7 @@ export interface NavTabProps {
   iconClassName?: string;
 }
 
-const NavTabs = function ({
+const NavTabs = ({
   tabs,
   className = "",
   sticky,
@@ -25,8 +25,7 @@ const NavTabs = function ({
   itemClassname,
   iconClassName,
   ...props
-}: NavTabProps) {
-  return (
+}: NavTabProps) => (
     <nav
       className={classNames(
         `no-scrollbar flex flex-col stack-y-1 overflow-scroll ${className}`,
@@ -52,6 +51,5 @@ const NavTabs = function ({
       ))}
     </nav>
   );
-};
 
 export default NavTabs;

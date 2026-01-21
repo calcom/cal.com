@@ -20,7 +20,7 @@ import { RESCHEDULED_BY_DOCS } from "@calcom/platform-types";
 type BookingName = { firstName: string; lastName: string };
 
 function ValidateBookingName(validationOptions?: ValidationOptions) {
-  return function (target: object, propertyName: string) {
+  return (target: object, propertyName: string) => {
     registerDecorator({
       name: "validateBookingName",
       target: target.constructor,

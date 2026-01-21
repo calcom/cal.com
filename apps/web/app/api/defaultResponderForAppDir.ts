@@ -9,6 +9,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import process from "node:process";
 
 type Handler<T extends NextResponse | Response = NextResponse> = (
   req: NextRequest,

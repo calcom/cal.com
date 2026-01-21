@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 
-const enum ThemeSupport {
+enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages

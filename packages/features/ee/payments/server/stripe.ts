@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import process from "node:process";
 
 declare global {
   // eslint-disable-next-line no-var

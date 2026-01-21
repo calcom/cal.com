@@ -1,4 +1,4 @@
-import { Booking } from "@calcom/prisma/client";
+import type { Booking } from "@calcom/prisma/client";
 import type { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 
 export interface BookingWhereInput {

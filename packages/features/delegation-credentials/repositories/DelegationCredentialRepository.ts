@@ -64,7 +64,7 @@ export class DelegationCredentialRepository {
     const { serviceAccountKey, ...rest } = delegationCredential;
 
     // Decrypt the service account key if it exists
-    const decryptedKey = this.decryptServiceAccountKey(serviceAccountKey);
+    const decryptedKey = DelegationCredentialRepository.decryptServiceAccountKey(serviceAccountKey);
     const parsedServiceAccountKey = serviceAccountKeySchema.safeParse(decryptedKey);
 
     return {
@@ -80,7 +80,7 @@ export class DelegationCredentialRepository {
     workspacePlatformId: number;
     serviceAccountKey: ServiceAccountKey;
   }) {
-    const encryptedKey = this.encryptServiceAccountKey(data.serviceAccountKey);
+    const encryptedKey = DelegationCredentialRepository.encryptServiceAccountKey(data.serviceAccountKey);
     return await prisma.delegationCredential.create({
       data: {
         workspacePlatform: {

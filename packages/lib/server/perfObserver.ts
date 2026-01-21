@@ -1,6 +1,7 @@
 import { PerformanceObserver } from "node:perf_hooks";
 
 import logger from "../logger";
+import process from "node:process";
 
 declare global {
   // eslint-disable-next-line no-var

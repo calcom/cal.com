@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";

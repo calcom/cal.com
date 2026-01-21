@@ -15,6 +15,7 @@ import logger from "@calcom/lib/logger";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 

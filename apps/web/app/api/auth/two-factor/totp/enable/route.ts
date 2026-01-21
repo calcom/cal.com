@@ -12,6 +12,7 @@ import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import process from "node:process";
 
 async function postHandler(req: NextRequest) {
   const body = await parseRequestData(req);

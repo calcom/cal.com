@@ -9,6 +9,7 @@ import type { CalendarFetchMode, EventBusyDate, SelectedCalendar } from "@calcom
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { normalizeTimezone } from "./timezone-conversion";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 

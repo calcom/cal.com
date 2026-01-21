@@ -464,7 +464,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     embed: {
       as: RoutingFormEmbedButton,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       embedUrl: embedLink,
       // We are okay with namespace clashing here if just in case names clash
       namespace: slugify((routingForm?.name || "").substring(0, 5)),

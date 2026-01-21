@@ -1,4 +1,4 @@
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";

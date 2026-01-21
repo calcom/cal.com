@@ -3,6 +3,7 @@ import { _generateMetadata } from "app/_utils";
 import { z } from "zod";
 
 import VerifyPage from "~/auth/verify-view";
+import process from "node:process";
 
 const querySchema = z.object({
   stripeCustomerId: z.string().optional(),

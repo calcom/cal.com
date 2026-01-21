@@ -1,5 +1,6 @@
 import { GoogleTagManager } from "@next/third-parties/google";
 import { useQuery } from "@tanstack/react-query";
+import process from "node:process";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 

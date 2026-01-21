@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { getDeploymentKey, getDeploymentSignatureToken } from "../../deployment/lib/getDeploymentKey";
 import { NoopLicenseKeyService } from "./LicenseKeyService";
 import { createSignature, generateNonce } from "./private-api-utils";
+import process from "node:process";
 
 const baseUrl = "http://test-api.com";
 const licenseKey = "test-license-key";

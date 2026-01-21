@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
-import React from "react";
+import type React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailField, Label, TextField, PasswordField } from "@calcom/ui/components/form";
+import process from "node:process";
 
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
   const { t } = useLocale();

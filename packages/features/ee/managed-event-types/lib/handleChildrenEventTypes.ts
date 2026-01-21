@@ -198,7 +198,7 @@ export default async function handleChildrenEventTypes({
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
   // Store result for existent event types deletion process
-  let deletedExistentEventTypes = undefined;
+  let deletedExistentEventTypes ;
 
   // New users added
   if (newUserIds?.length) {

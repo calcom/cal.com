@@ -1699,7 +1699,7 @@ export function mockNoTranslations() {
   });
 }
 
-export const enum BookingLocations {
+export enum BookingLocations {
   CalVideo = "integrations:daily",
   ZoomVideo = "integrations:zoom",
   GoogleMeet = "integrations:google:meet",
@@ -1815,9 +1815,9 @@ export async function mockCalendar(
     const resolvedService = await calendarServicePromise;
     vi.mocked(resolvedService.default).mockImplementation(function MockCalendarService(credential) {
         return {
-          createEvent: async function (
+          createEvent: async (
             ...rest: Parameters<Calendar["createEvent"]>
-          ): Promise<NewCalendarEventType> {
+          ): Promise<NewCalendarEventType> => {
             if (calendarData?.creationCrash) {
               throw new Error("MockCalendarService.createEvent fake error");
             }
@@ -1890,9 +1890,9 @@ export async function mockCalendar(
               });
             }
           },
-          updateEvent: async function (
+          updateEvent: async (
             ...rest: Parameters<Calendar["updateEvent"]>
-          ): Promise<NewCalendarEventType> {
+          ): Promise<NewCalendarEventType> => {
             if (calendarData?.updationCrash) {
               throw new Error("MockCalendarService.updateEvent fake error");
             }
@@ -1965,9 +1965,7 @@ export async function mockCalendar(
               resolve(calendarData?.busySlots || []);
             });
           },
-          listCalendars: async function (): Promise<IntegrationCalendar[]> {
-            return Promise.resolve([]);
-          },
+          listCalendars: async (): Promise<IntegrationCalendar[]> => Promise.resolve([]),
         } as Calendar;
       }
     );

@@ -22,6 +22,7 @@ import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, Language } from "../types";
 import { getLlmId } from "../types";
 import { replaceEventTypePlaceholders } from "../utils/promptUtils";
+import process from "node:process";
 
 type Dependencies = {
   retellRepository: RetellAIRepository;

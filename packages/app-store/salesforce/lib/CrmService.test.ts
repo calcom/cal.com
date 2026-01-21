@@ -124,7 +124,7 @@ describe("SalesforceCRMService", () => {
 
     service = createSalesforceCrmServiceWithSalesforceType(mockCredential, {}, true);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore - accessing private property for testing
+    // @ts-expect-error - accessing private property for testing
     service.conn = Promise.resolve(mockConnection);
   });
 

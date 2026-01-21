@@ -11,7 +11,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { JsonObject } from "@calcom/types/Json";
 
-import { BookingEmailAndSmsAsyncTasksPayload, BookingTasks } from "./types";
+import type { BookingEmailAndSmsAsyncTasksPayload, BookingTasks } from "./types";
 
 export interface IBookingTaskServiceDependencies {
   emailsAndSmsHandler: BookingEmailSmsHandler;

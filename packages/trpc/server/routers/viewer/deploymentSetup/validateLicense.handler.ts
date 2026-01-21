@@ -2,6 +2,7 @@ import LicenseKeyService from "@calcom/features/ee/common/server/LicenseKeyServi
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TValidateLicenseInputSchema } from "./validateLicense.schema";
+import process from "node:process";
 
 type ValidateLicenseOptions = {
   ctx: {

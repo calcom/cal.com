@@ -5,6 +5,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import process from "node:process";
 
 dotEnv.config({ path: ".env" });
 
@@ -72,7 +73,7 @@ const DEFAULT_CHROMIUM: NonNullable<PlaywrightTestConfig["projects"]>[number]["u
     cookies: [
       {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore TS definitions for USE are wrong.
+        // @ts-expect-error TS definitions for USE are wrong.
         url: WEBAPP_URL,
         name: "calcom-timezone-dialog",
         expires: -1,
@@ -122,7 +123,7 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TS definitions for USE are wrong.
+      // @ts-expect-error TS definitions for USE are wrong.
       use: DEFAULT_CHROMIUM,
     },
     {
@@ -133,7 +134,7 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TS definitions for USE are wrong.
+      // @ts-expect-error TS definitions for USE are wrong.
       use: DEFAULT_CHROMIUM,
     },
     {
@@ -157,7 +158,7 @@ const config: PlaywrightTestConfig = {
       },
       testMatch: /.*\.e2e\.tsx?/,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TS definitions for USE are wrong.
+      // @ts-expect-error TS definitions for USE are wrong.
       use: {
         ...DEFAULT_CHROMIUM,
         baseURL: "http://localhost:3101/",
@@ -265,16 +266,17 @@ expect.extend({
       };
     }
 
-    const iframeReadyEventDetail = await new Promise(async (resolve) => {
-      const iframeReadyCheckInterval = setInterval(async () => {
-        const iframeReadyEventDetail = await getActionFiredDetails({
+    const iframeReadyEventDetail = await new Promise((resolve) => {
+      const iframeReadyCheckInterval = setInterval(() => {
+        getActionFiredDetails({
           calNamespace,
           actionType: "linkReady",
+        }).then((detail) => {
+          if (detail) {
+            clearInterval(iframeReadyCheckInterval);
+            resolve(detail);
+          }
         });
-        if (iframeReadyEventDetail) {
-          clearInterval(iframeReadyCheckInterval);
-          resolve(iframeReadyEventDetail);
-        }
       }, 500);
     });
 
@@ -293,13 +295,13 @@ expect.extend({
     } = await iframe.evaluate(() => {
       return {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         visibility: window.initialBodyVisibility,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         background: window.initialBodyBackground,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         initialValuesSet: window.initialValuesSet,
       };
     });
