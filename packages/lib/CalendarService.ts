@@ -827,3 +827,5 @@ export default abstract class BaseCalendarService implements Calendar {
     });
   }
 }
+
+export { foldLine, addScheduleAgentClient };
