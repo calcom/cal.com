@@ -516,29 +516,12 @@
     if (initialNamespace.startsWith("skeletonDemo") || initialNamespace === "twoStepSlotSelection") {
       document.getElementById("misc-embeds").style.display = "none";
     }
-    // Hide all non-essential content for twoStepSlotSelection to prevent pointer event interception on mobile
+    // For twoStepSlotSelection, disable pointer events on body and re-enable only on the iframe container
     if (initialNamespace === "twoStepSlotSelection") {
-      // Hide the page variations header at the top of the body
-      const pageHeader = document.body.querySelector(':scope > div:first-child');
-      if (pageHeader) pageHeader.style.display = "none";
-      
-      // Hide skeletonDemo containers
-      const skeletonDemo = document.getElementById("cal-booking-place-skeletonDemo");
-      const skeletonDemoElementClick = document.getElementById("cal-booking-place-skeletonDemoElementClick");
-      if (skeletonDemo) skeletonDemo.style.display = "none";
-      if (skeletonDemoElementClick) skeletonDemoElementClick.style.display = "none";
-      
+      document.body.style.pointerEvents = "none";
       const container = document.getElementById("cal-booking-place-twoStepSlotSelection");
       if (container) {
-        const h3 = container.querySelector("h3");
-        const note = container.querySelector("i");
-        const inlineContainer = container.querySelector(".inline-embed-container");
-        if (h3) h3.style.display = "none";
-        if (note) note.style.display = "none";
-        // Set pointer-events to none on container elements to prevent interception
-        container.style.pointerEvents = "none";
-        if (inlineContainer) inlineContainer.style.pointerEvents = "none";
-        // Re-enable pointer events on the iframe container
+        container.style.pointerEvents = "auto";
         const place = container.querySelector(".place");
         if (place) place.style.pointerEvents = "auto";
       }
