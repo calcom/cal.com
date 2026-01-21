@@ -13,7 +13,6 @@ export const EventTypeListItem = ({
   filteredEventTypes,
   handleEventTypePress,
   handleCopyLink,
-  handlePreview,
   onEdit,
   onDuplicate,
   onDelete,
@@ -59,12 +58,6 @@ export const EventTypeListItem = ({
     onPress: () => void;
     role: "default" | "destructive";
   }[] = [
-    {
-      label: "Preview",
-      icon: "arrow.up.right.square",
-      onPress: () => handlePreview(item),
-      role: "default",
-    },
     {
       label: "Copy link",
       icon: "link",
