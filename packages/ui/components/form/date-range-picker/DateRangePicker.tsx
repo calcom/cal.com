@@ -17,6 +17,7 @@ type DatePickerWithRangeProps = {
   minDate?: Date | null;
   maxDate?: Date;
   withoutPopover?: boolean;
+  popoverModal?: boolean;
   "data-testid"?: string;
   strictlyBottom?: boolean;
   allowPastDates?: boolean;
@@ -30,6 +31,7 @@ export function DatePickerWithRange({
   onDatesChange,
   disabled,
   withoutPopover,
+  popoverModal = true,
   "data-testid": testId,
   strictlyBottom,
   allowPastDates = false,
@@ -97,7 +99,7 @@ export function DatePickerWithRange({
   return (
     <div className={classNames("grid gap-2", className)}>
       {/* modal prop required for iOS compatibility when nested inside Dialog modals */}
-      <Popover.Root modal>
+      <Popover.Root modal={popoverModal}>
         <Popover.Trigger asChild>
           <Button
             data-testid="date-range"

@@ -111,6 +111,7 @@ const TravelScheduleModal = ({
                     startDate,
                     endDate,
                   }}
+                  popoverModal={isMobile}
                   onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
                     // If newStartDate does become undefined - we resort back to to-todays date
                     setStartDate(newStartDate ?? new Date());
