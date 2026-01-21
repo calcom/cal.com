@@ -128,6 +128,10 @@ export const viewerTeamsRouter = router({
     const { default: handler } = await import("./listInvites.handler");
     return handler(opts);
   }),
+  hasTeamMembership: authedProcedure.query(async (opts) => {
+    const { default: handler } = await import("./hasTeamMembership.handler");
+    return handler(opts);
+  }),
   createInvite: authedProcedure.input(ZCreateInviteInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./createInvite.handler");
     return handler(opts);

@@ -593,4 +593,21 @@ export class MembershipRepository {
     });
     return !!pendingInvite;
   }
+
+  /**
+   * Checks if a user has any team membership (pending or accepted).
+   * This is used to determine if a user was invited to a team and should skip
+   * the individual/team onboarding selection screen.
+   */
+  static async hasAnyTeamMembershipByUserId({ userId }: { userId: number }): Promise<boolean> {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!membership;
+  }
 }

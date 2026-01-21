@@ -64,9 +64,12 @@ export async function checkOnboardingRedirect(
   // Determine which onboarding path to use
   const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
-  const hasPendingInvite = await MembershipRepository.hasPendingInviteByUserId({ userId });
+  // Check if user has any team membership (pending or accepted)
+  // Users who sign up with an invite token have their membership auto-accepted,
+  // so we need to check for any membership, not just pending ones
+  const hasTeamMembership = await MembershipRepository.hasAnyTeamMembershipByUserId({ userId });
 
-  if (hasPendingInvite && onboardingV3Enabled) {
+  if (hasTeamMembership && onboardingV3Enabled) {
     return "/onboarding/personal/settings";
   }
 
