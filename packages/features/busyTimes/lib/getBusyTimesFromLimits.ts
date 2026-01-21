@@ -110,7 +110,9 @@ const _getBusyTimesFromBookingLimits = async (params: {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
 
       // Determine the source based on whether this is a team limit or event type limit
-      const source = teamId ? "Team Booking Limit" : "Booking Limit";
+      // Include the limit value and unit for display in Troubleshooter
+      const baseSource = teamId ? "Team Booking Limit" : "Booking Limit";
+      const source = `${baseSource}: ${limit} per ${unit}`;
 
       // special handling of yearly limits to improve performance
       if (unit === "year") {
@@ -176,8 +178,11 @@ const _getBusyTimesFromDurationLimits = async (
 
       const selectedDuration = (duration || eventType.length) ?? 0;
 
+      // Include the limit value and unit for display in Troubleshooter
+      const source = `Duration Limit: ${limit} min per ${unit}`;
+
       if (selectedDuration > limit) {
-        limitManager.addBusyTime(periodStart, unit, undefined, "Duration Limit");
+        limitManager.addBusyTime(periodStart, unit, undefined, source);
         continue;
       }
 
@@ -191,7 +196,7 @@ const _getBusyTimesFromDurationLimits = async (
           rescheduleUid,
         });
         if (totalYearlyDuration + selectedDuration > limit) {
-          limitManager.addBusyTime(periodStart, unit, undefined, "Duration Limit");
+          limitManager.addBusyTime(periodStart, unit, undefined, source);
           if (periodStartDates.every((start) => limitManager.isAlreadyBusy(start, unit))) {
             return;
           }
@@ -209,7 +214,7 @@ const _getBusyTimesFromDurationLimits = async (
         }
         totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
         if (totalDuration > limit) {
-          limitManager.addBusyTime(periodStart, unit, undefined, "Duration Limit");
+          limitManager.addBusyTime(periodStart, unit, undefined, source);
           break;
         }
       }
