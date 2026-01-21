@@ -16,6 +16,13 @@ export interface OptInFeatureConfig {
   policy: OptInFeaturePolicy;
   /** Scopes where this feature can be configured. Defaults to all scopes if not specified. */
   scope?: OptInFeatureScope[];
+  /** Formbricks tracking configuration for delayed survey triggering after opt-in. */
+  formbricks?: {
+    /** The action name to track (e.g., "visit_bookings_v3_page"). */
+    actionName: string;
+    /** Delay in milliseconds before tracking the action after opt-in. */
+    delayMs: number;
+  };
 }
 
 /** All available scopes for feature opt-in configuration */
@@ -41,6 +48,10 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   //   },
   //   policy: "permissive",
   //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
+  //   formbricks: {
+  //     actionName: "visit_bookings_v3_page",
+  //     delayMs: 86400000, // 24 hours - delay before tracking after opt-in
+  //   },
   // },
 ];
 
