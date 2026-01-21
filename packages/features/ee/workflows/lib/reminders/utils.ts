@@ -126,6 +126,15 @@ const escapeHtml = (str: string): string =>
     .replace(/"/g, "&quot;");
 
 /**
+ * Escapes HTML attribute values to prevent attribute injection.
+ */
+const escapeHtmlAttribute = (str: string): string =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+/**
  * Replaces cloaked links in HTML content with visible URLs.
  * This ensures recipients can see the actual destination of links,
  * helping them identify potentially malicious URLs.
@@ -156,7 +165,7 @@ export const replaceCloakedLinksInHtml = (html: string): string => {
       const urlMatch = linkText.match(urlPattern);
       if (urlMatch) {
         actualUrl = urlMatch[0];
-        attributes = attributes.replace(/href=["'][^"']+["']/, `href="${actualUrl}"`);
+        attributes = attributes.replace(/href=["'][^"']+["']/, `href="${escapeHtmlAttribute(actualUrl)}"`);
         hrefWasUpdated = true;
       }
     }

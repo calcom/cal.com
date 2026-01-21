@@ -166,6 +166,19 @@ describe("replaceCloakedLinksInHtml", () => {
       const result = replaceCloakedLinksInHtml(html);
       expect(result).toBe('<a href="https://example.com">https://example.com</a>');
     });
+
+    test("should escape quotes in URL when fixing incomplete href to prevent attribute injection", () => {
+      const html = '<a href="https://">https://example.com?q="test"</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe('<a href="https://example.com?q=&quot;test&quot;">https://example.com?q=&quot;test&quot;</a>');
+    });
+
+    test("should escape single quotes in URL when fixing incomplete href attribute", () => {
+      const html = "<a href='https://'>https://example.com?q='test'</a>";
+      const result = replaceCloakedLinksInHtml(html);
+      // Single quotes in href attribute are escaped, but in link text they don't need escaping
+      expect(result).toBe("<a href=\"https://example.com?q=&#39;test&#39;\">https://example.com?q='test'</a>");
+    });
   });
 
   describe("edge cases", () => {
