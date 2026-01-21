@@ -1,6 +1,5 @@
 import type { Dayjs } from "@calcom/dayjs";
-import type { EventBusyDate } from "@calcom/types/Calendar";
-
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { IntervalLimitUnit } from "./intervalLimitSchema";
 
 type BusyMapKey = `${IntervalLimitUnit}-${ReturnType<Dayjs["toISOString"]>}`;
@@ -9,7 +8,12 @@ type BusyMapKey = `${IntervalLimitUnit}-${ReturnType<Dayjs["toISOString"]>}`;
  * Helps create, check, and return busy times from limits (with parallel support)
  */
 export default class LimitManager {
-  private busyMap: Map<BusyMapKey, EventBusyDate> = new Map();
+  private busyMap: Map<BusyMapKey, EventBusyDetails> = new Map();
+  private source: string;
+
+  constructor(source: string) {
+    this.source = source;
+  }
 
   /**
    * Creates a busy map key
@@ -48,13 +52,14 @@ export default class LimitManager {
   }
 
   /**
-   * Adds a new busy time
+   * Adds a new busy time with an optional source override
    */
-  addBusyTime(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string) {
+  addBusyTime(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string, source?: string) {
     const tzStart = timeZone ? start.tz(timeZone) : start;
     this.busyMap.set(`${unit}-${tzStart.toISOString()}`, {
       start: tzStart.toISOString(),
       end: tzStart.endOf(unit).toISOString(),
+      source: source ?? this.source,
     });
   }
 

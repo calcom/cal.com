@@ -620,7 +620,7 @@ export class UserAvailabilityService {
         start: dayjs(a.start).toISOString(),
         end: dayjs(a.end).toISOString(),
         title: a.title,
-        source: params.withSource ? a.source : undefined,
+        source: a.source,
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,

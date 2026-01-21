@@ -450,7 +450,7 @@ export class AvailableSlotsService {
       durationLimits,
     });
 
-    const globalLimitManager = new LimitManager();
+    const globalLimitManager = new LimitManager("Booking Limit");
 
     if (bookingLimits) {
       for (const key of descendingLimitKeys) {
@@ -478,7 +478,7 @@ export class AvailableSlotsService {
 
             totalBookings++;
             if (totalBookings >= limit) {
-              globalLimitManager.addBusyTime(periodStart, unit, timeZone);
+              globalLimitManager.addBusyTime(periodStart, unit, timeZone, "Booking Limit");
               break;
             }
           }
@@ -488,7 +488,7 @@ export class AvailableSlotsService {
 
     for (const user of users) {
       const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
-      const limitManager = new LimitManager();
+      const limitManager = new LimitManager("Booking Limit");
 
       limitManager.mergeBusyTimes(globalLimitManager);
 
@@ -520,7 +520,7 @@ export class AvailableSlotsService {
                   timeZone,
                 });
               } catch {
-                limitManager.addBusyTime(periodStart, unit, timeZone);
+                limitManager.addBusyTime(periodStart, unit, timeZone, "Booking Limit");
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
                 ) {
@@ -540,7 +540,7 @@ export class AvailableSlotsService {
 
               totalBookings++;
               if (totalBookings >= limit) {
-                limitManager.addBusyTime(periodStart, unit, timeZone);
+                limitManager.addBusyTime(periodStart, unit, timeZone, "Booking Limit");
                 break;
               }
             }
@@ -567,7 +567,7 @@ export class AvailableSlotsService {
             const selectedDuration = (duration || eventType.length) ?? 0;
 
             if (selectedDuration > limit) {
-              limitManager.addBusyTime(periodStart, unit, timeZone);
+              limitManager.addBusyTime(periodStart, unit, timeZone, "Duration Limit");
               continue;
             }
 
@@ -579,7 +579,7 @@ export class AvailableSlotsService {
                 rescheduleUid,
               });
               if (totalYearlyDuration + selectedDuration > limit) {
-                limitManager.addBusyTime(periodStart, unit, timeZone);
+                limitManager.addBusyTime(periodStart, unit, timeZone, "Duration Limit");
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
                 ) {
@@ -598,7 +598,7 @@ export class AvailableSlotsService {
               }
               totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
               if (totalDuration > limit) {
-                limitManager.addBusyTime(periodStart, unit, timeZone);
+                limitManager.addBusyTime(periodStart, unit, timeZone, "Duration Limit");
                 break;
               }
             }
@@ -651,7 +651,7 @@ export class AvailableSlotsService {
       userId,
     }));
 
-    const globalLimitManager = new LimitManager();
+    const globalLimitManager = new LimitManager("Team Booking Limit");
 
     for (const key of descendingLimitKeys) {
       const limit = bookingLimits?.[key];
@@ -678,7 +678,7 @@ export class AvailableSlotsService {
 
           totalBookings++;
           if (totalBookings >= limit) {
-            globalLimitManager.addBusyTime(periodStart, unit, timeZone);
+            globalLimitManager.addBusyTime(periodStart, unit, timeZone, "Team Booking Limit");
             break;
           }
         }
@@ -689,7 +689,7 @@ export class AvailableSlotsService {
 
     for (const user of users) {
       const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
-      const limitManager = new LimitManager();
+      const limitManager = new LimitManager("Team Booking Limit");
 
       limitManager.mergeBusyTimes(globalLimitManager);
 
@@ -721,7 +721,7 @@ export class AvailableSlotsService {
                 timeZone,
               });
             } catch {
-              limitManager.addBusyTime(periodStart, unit, timeZone);
+              limitManager.addBusyTime(periodStart, unit, timeZone, "Team Booking Limit");
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
               ) {
@@ -741,7 +741,7 @@ export class AvailableSlotsService {
 
             totalBookings++;
             if (totalBookings >= limit) {
-              limitManager.addBusyTime(periodStart, unit, timeZone);
+              limitManager.addBusyTime(periodStart, unit, timeZone, "Team Booking Limit");
               break;
             }
           }
@@ -1307,7 +1307,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone ?? "UTC";
+          : (restrictionSchedule.timeZone ?? "UTC");
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({

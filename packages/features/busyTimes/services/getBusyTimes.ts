@@ -11,9 +11,7 @@ import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Booking, EventType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, EventType, Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -150,12 +148,14 @@ export class BusyTimesService {
             aggregate.push({
               start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
               end: dayjs(startTime).toDate(), // The event starts after the buffer
+              source: "Buffer Time",
             });
           }
           if (minutesToBlockAfterEvent) {
             aggregate.push({
               start: dayjs(endTime).toDate(), // The event ends before the buffer
               end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
+              source: "Buffer Time",
             });
           }
           return aggregate;
@@ -245,20 +245,23 @@ export class BusyTimesService {
           }
         }
 
+        const calendarBusyTimesWithDayjs = calendarBusyTimes.map((value) => ({
+          ...value,
+          end: dayjs(value.end),
+          start: dayjs(value.start),
+          source: value.source ?? "Calendar",
+        }));
+
         const result = subtract(
-          calendarBusyTimes.map((value) => ({
-            ...value,
-            end: dayjs(value.end),
-            start: dayjs(value.start),
-          })),
+          calendarBusyTimesWithDayjs,
           openSeatsDateRanges
-        );
+        ) as typeof calendarBusyTimesWithDayjs;
 
         busyTimes.push(
           ...result.map((busyTime) => ({
-            ...busyTime,
             start: busyTime.start.subtract(afterEventBuffer || 0, "minute").toDate(),
             end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
+            source: busyTime.source,
           }))
         );
       }
