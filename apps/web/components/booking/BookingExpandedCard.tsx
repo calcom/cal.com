@@ -36,7 +36,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const defaultLabels = {
     attendeePhoneNumber: t("phone_number"),
-    rescheduleReason: t("reschedule_reason_label"),
+    rescheduleReason: t("reschedule_reason"),
     notes: t("additional_notes"),
     guests: t("guests"),
   };
