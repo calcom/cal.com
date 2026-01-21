@@ -14,7 +14,7 @@ import { albyCredentialKeysSchema } from "./albyCredentialKeysSchema";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:alby"] });
 
-export class PaymentService implements IAbstractPaymentService {
+class AlbyPaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof albyCredentialKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
@@ -137,4 +137,13 @@ export class PaymentService implements IAbstractPaymentService {
   isSetupAlready(): boolean {
     return !!this.credentials;
   }
+}
+
+/**
+ * Factory function that creates an Alby Payment service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export function BuildPaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+  return new AlbyPaymentService(credentials);
 }

@@ -1,3 +1,10 @@
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { MembershipRole } from "@calcom/platform-libraries";
+import { SkipTakePagination } from "@calcom/platform-types";
+import type { Webhook } from "@calcom/prisma/client";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -6,8 +13,8 @@ import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator"
 import { IsOAuthClientWebhookGuard } from "@/modules/webhooks/guards/is-oauth-client-webhook-guard";
 import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
-  OAuthClientWebhookOutputResponseDto,
   OAuthClientWebhookOutputDto,
+  OAuthClientWebhookOutputResponseDto,
   OAuthClientWebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/oauth-client-webhook.output";
 import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
@@ -15,14 +22,6 @@ import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pi
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { OAuthClientWebhooksService } from "@/modules/webhooks/services/oauth-clients-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
-import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { MembershipRole } from "@calcom/platform-libraries";
-import { SkipTakePagination } from "@calcom/platform-types";
-import type { Webhook } from "@calcom/prisma/client";
 
 import { OAuthClientGuard } from "../../guards/oauth-client-guard";
 
@@ -31,7 +30,7 @@ import { OAuthClientGuard } from "../../guards/oauth-client-guard";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, OrganizationRolesGuard, OAuthClientGuard)
-@DocsTags("Platform / Webhooks")
+@DocsTags("Deprecated: Platform / Webhooks")
 @ApiHeader({
   name: X_CAL_SECRET_KEY,
   description: "OAuth client secret key",
@@ -45,7 +44,10 @@ export class OAuthClientWebhooksController {
 
   @Post("/")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Create a webhook" })
+  @ApiOperation({
+    summary: "Create a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async createOAuthClientWebhook(
     @Body() body: CreateWebhookInputDto,
     @Param("clientId") oAuthClientId: string
@@ -65,7 +67,10 @@ export class OAuthClientWebhooksController {
 
   @Patch("/:webhookId")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Update a webhook" })
+  @ApiOperation({
+    summary: "Update a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @UseGuards(IsOAuthClientWebhookGuard)
   async updateOAuthClientWebhook(
     @Body() body: UpdateWebhookInputDto,
@@ -85,7 +90,10 @@ export class OAuthClientWebhooksController {
 
   @Get("/:webhookId")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @ApiOperation({ summary: "Get a webhook" })
+  @ApiOperation({
+    summary: "Get a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @UseGuards(IsOAuthClientWebhookGuard)
   async getOAuthClientWebhook(@GetWebhook() webhook: Webhook): Promise<OAuthClientWebhookOutputResponseDto> {
     return {
@@ -98,7 +106,10 @@ export class OAuthClientWebhooksController {
 
   @Get("/")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @ApiOperation({ summary: "Get all webhooks" })
+  @ApiOperation({
+    summary: "Get all webhooks",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async getOAuthClientWebhooks(
     @Param("clientId") oAuthClientId: string,
     @Query() pagination: SkipTakePagination
@@ -120,7 +131,10 @@ export class OAuthClientWebhooksController {
 
   @Delete("/:webhookId")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Delete a webhook" })
+  @ApiOperation({
+    summary: "Delete a webhook",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @UseGuards(IsOAuthClientWebhookGuard)
   async deleteOAuthClientWebhook(
     @GetWebhook() webhook: Webhook
@@ -136,7 +150,10 @@ export class OAuthClientWebhooksController {
 
   @Delete("/")
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  @ApiOperation({ summary: "Delete all webhooks" })
+  @ApiOperation({
+    summary: "Delete all webhooks",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async deleteAllOAuthClientWebhooks(
     @Param("clientId") oAuthClientId: string
   ): Promise<DeleteManyWebhooksOutputResponseDto> {

@@ -472,6 +472,7 @@ export class TeamRepository {
     const org = await this.prismaClient.team.findFirst({
       where: {
         slug,
+        parentId: null,
         isOrganization: true,
       },
       select: {
@@ -610,6 +611,16 @@ export class TeamRepository {
           parentId: orgId, // Finds any team whose orgId is NOT the target ID
         },
       },
+    });
+  }
+
+  async findByIdsAndOrgId({ teamIds, orgId }: { teamIds: number[]; orgId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        OR: [{ id: orgId }, { parentId: orgId }],
+      },
+      select: { id: true },
     });
   }
 
