@@ -24,6 +24,7 @@ interface HandleAutoLockInput {
 export enum LockReason {
   RATE_LIMIT = "Auto-locking user due to rate limit exceeded",
   SPAM_WORKFLOW_BODY = "Auto-locking user due to spam detected in workflow body",
+  MALICIOUS_URL_IN_WORKFLOW = "Auto-locking user due to malicious URL detected in workflow",
 }
 
 const log = logger.getSubLogger({ prefix: ["[autoLock]"] });

@@ -8,6 +8,7 @@ import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
+import { OAuthClientStatus } from "@calcom/prisma/enums";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import process from "node:process";
 
@@ -52,6 +53,7 @@ export class OAuthService {
   private readonly accessCodeRepository: AccessCodeRepository;
   private readonly teamsRepository: TeamRepository;
   private readonly oAuthClientRepository: OAuthClientRepository;
+
   constructor(
     private readonly deps: {
       oAuthClientRepository: OAuthClientRepository;
@@ -68,8 +70,29 @@ export class OAuthService {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
-      throw new ErrorWithCode(ErrorCode.NotFound, "unauthorized_client");
+      throw new ErrorWithCode(ErrorCode.NotFound, "unauthorized_client", { reason: "client_not_found" });
     }
+
+    return {
+      clientId: client.clientId,
+      redirectUri: client.redirectUri,
+      name: client.name,
+      logo: client.logo,
+      isTrusted: client.isTrusted,
+      clientType: client.clientType,
+    };
+  }
+
+  async getClientForAuthorization(clientId: string, redirectUri: string): Promise<OAuth2Client> {
+    const client = await this.oAuthClientRepository.findByClientId(clientId);
+
+    if (!client) {
+      throw new ErrorWithCode(ErrorCode.NotFound, "unauthorized_client", { reason: "client_not_found" });
+    }
+
+    this.validateRedirectUri(client.redirectUri, redirectUri);
+
+    this.ensureClientIsApproved(client);
 
     return {
       clientId: client.clientId,
@@ -96,6 +119,8 @@ export class OAuthService {
     if (!client) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", { reason: "client_not_found" });
     }
+
+    this.ensureClientIsApproved(client);
 
     // RFC 6749 4.1.2.1: Redirect URI mismatch on Auth step is 'invalid_request'
     this.validateRedirectUri(client.redirectUri, redirectUri);
@@ -147,6 +172,12 @@ export class OAuthService {
     });
 
     return { redirectUrl, authorizationCode, client };
+  }
+
+  private ensureClientIsApproved(client: { status: OAuthClientStatus }): void {
+    if (client.status !== OAuthClientStatus.APPROVED) {
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", { reason: "client_not_approved" });
+    }
   }
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
@@ -286,6 +317,8 @@ export class OAuthService {
       });
     }
 
+    this.ensureClientIsApproved(client);
+
     const decodedToken = this.verifyRefreshToken(refreshToken);
 
     if (!decodedToken || decodedToken.token_type !== "Refresh Token") {
@@ -424,6 +457,7 @@ export class OAuthService {
 
 export type OAuthErrorReason =
   | "client_not_found"
+  | "client_not_approved"
   | "redirect_uri_mismatch"
   | "pkce_required"
   | "invalid_code_challenge_method"
@@ -440,7 +474,8 @@ export type OAuthErrorReason =
 // Mapping of OAuth error reasons to descriptive messages, keeping previous messages for compatibility
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   client_not_found: "OAuth client with ID not found",
-  redirect_uri_mismatch: "redirect_uri does not match registered redirect URI",
+  client_not_approved: "OAuth client is not approved",
+  redirect_uri_mismatch: "redirect_uri does not match OAuth client's redirect URI",
   pkce_required: "code_challenge required for public clients",
   invalid_code_challenge_method: "code_challenge_method must be S256",
   team_not_found_or_no_access: "Team not found or user is not an admin/owner",

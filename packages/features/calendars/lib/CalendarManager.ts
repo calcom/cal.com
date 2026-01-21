@@ -54,7 +54,6 @@ export const getConnectedCalendars = async (
   selectedCalendars: { externalId: string }[],
   destinationCalendarExternalId?: string
 ) => {
-  let destinationCalendar: IntegrationCalendar | undefined;
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
@@ -85,7 +84,6 @@ export const getConnectedCalendars = async (
         const cals = await calendarInstance.listCalendars();
         const calendars = sortBy(
           cals.map((cal: IntegrationCalendar) => {
-            if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
               readOnly: cal.readOnly || false,
@@ -106,12 +104,6 @@ export const getConnectedCalendars = async (
               message: "No primary calendar found",
             },
           };
-        }
-        // HACK https://github.com/calcom/cal.com/pull/7644/files#r1131508414
-        if (destinationCalendar && !Object.isFrozen(destinationCalendar)) {
-          destinationCalendar.primaryEmail = primary.email;
-          destinationCalendar.integrationTitle = integration.title;
-          destinationCalendar = Object.freeze(destinationCalendar);
         }
 
         return {
@@ -148,6 +140,27 @@ export const getConnectedCalendars = async (
       }
     })
   );
+
+  let destinationCalendar: IntegrationCalendar | undefined;
+  if (destinationCalendarExternalId) {
+    for (const connectedCalendar of connectedCalendars) {
+      if (!("calendars" in connectedCalendar) || !connectedCalendar.calendars) {
+        continue;
+      }
+      const calendar = connectedCalendar.calendars.find(
+        (cal) => cal.externalId === destinationCalendarExternalId
+      );
+      if (calendar) {
+        destinationCalendar = {
+          ...calendar,
+          primary: calendar.primary ?? undefined,
+          primaryEmail: connectedCalendar.primary?.email,
+          integrationTitle: connectedCalendar.integration?.title,
+        };
+        break;
+      }
+    }
+  }
 
   return { connectedCalendars, destinationCalendar };
 };
