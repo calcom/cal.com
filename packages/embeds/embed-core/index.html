@@ -516,6 +516,23 @@
     if (initialNamespace.startsWith("skeletonDemo") || initialNamespace === "twoStepSlotSelection") {
       document.getElementById("misc-embeds").style.display = "none";
     }
+    // Hide heading and note for twoStepSlotSelection to prevent pointer event interception on mobile
+    if (initialNamespace === "twoStepSlotSelection") {
+      const container = document.getElementById("cal-booking-place-twoStepSlotSelection");
+      if (container) {
+        const h3 = container.querySelector("h3");
+        const note = container.querySelector("i");
+        const inlineContainer = container.querySelector(".inline-embed-container");
+        if (h3) h3.style.display = "none";
+        if (note) note.style.display = "none";
+        // Set pointer-events to none on container elements to prevent interception
+        container.style.pointerEvents = "none";
+        if (inlineContainer) inlineContainer.style.pointerEvents = "none";
+        // Re-enable pointer events on the iframe container
+        const place = container.querySelector(".place");
+        if (place) place.style.pointerEvents = "auto";
+      }
+    }
   </script>
 </body>
 
