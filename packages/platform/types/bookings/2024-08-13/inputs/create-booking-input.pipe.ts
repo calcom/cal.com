@@ -102,10 +102,12 @@ export class CreateBookingInputPipe implements PipeTransform {
   private isRecurringBookingInput(
     value: CreateBookingInput
   ): value is CreateRecurringBookingInput_2024_08_13 {
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which platform-types doesn't target
     return value.hasOwnProperty("recurrenceCount");
   }
 
   private isInstantBookingInput(value: CreateBookingInput): value is CreateInstantBookingInput_2024_08_13 {
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which platform-types doesn't target
     return value.hasOwnProperty("instant") && "instant" in value && value.instant === true;
   }
 }

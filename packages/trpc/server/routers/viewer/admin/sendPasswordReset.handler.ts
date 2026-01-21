@@ -6,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminPasswordResetSchema } from "./sendPasswordReset.schema";
+import process from "node:process";
 
 type GetOptions = {
   ctx: {

@@ -42,8 +42,8 @@ vi.mock("@calcom/ui/components/toast", () => ({
 }));
 
 const renderComponent = ({
-  formBuilderProps: formBuilderProps,
-  formDefaultValues: formDefaultValues,
+  formBuilderProps,
+  formDefaultValues,
 }: {
   formBuilderProps: Parameters<typeof FormBuilder>[0];
   formDefaultValues: { [x: string]: {} | undefined };

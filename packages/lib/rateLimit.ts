@@ -2,10 +2,11 @@ import { Ratelimit, type LimitOptions, type RatelimitResponse } from "@unkey/rat
 
 import { isIpInBanListString } from "./getIP";
 import logger from "./logger";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 
-export { type RatelimitResponse };
+export type { RatelimitResponse };
 
 export type RateLimitHelper = {
   rateLimitingType?:

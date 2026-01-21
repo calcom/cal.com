@@ -15,6 +15,7 @@ import type {
   OrganizationOnboardingData,
   OrganizationData,
 } from "../onboarding/types";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["BillingEnabledOrgOnboardingService"] });
 

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";

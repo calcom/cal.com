@@ -10,6 +10,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma, UserPermissionRole } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import process from "node:process";
 
 export async function createUserAndEventType({
   user,

@@ -6,6 +6,7 @@ import {
   deleteDomain as deleteVercelDomain,
   createDomain as createVercelDomain,
 } from "./deploymentServices/vercel";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["domainManager/organization"] });
 export const deleteDomain = async (slug: string) => {

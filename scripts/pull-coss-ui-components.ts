@@ -9,6 +9,7 @@
 import { promises as fs } from 'node:fs';
 import https from 'node:https';
 import path from 'node:path';
+import process from "node:process";
 
 const REGISTRY_BASE_URL = 'https://coss.com/ui/r';
 const UI_JSON_URL = `${REGISTRY_BASE_URL}/ui.json`;

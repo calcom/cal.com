@@ -3,6 +3,7 @@ import type { ClientRequest } from "@sendgrid/client/src/request";
 import type { ClientResponse } from "@sendgrid/client/src/response";
 
 import logger from "@calcom/lib/logger";
+import process from "node:process";
 
 export type SendgridFieldOptions = [string, string][];
 

@@ -11,6 +11,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
+import process from "node:process";
 
 /**
  * Cron webhook

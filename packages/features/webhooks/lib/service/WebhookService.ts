@@ -6,6 +6,7 @@ import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type { ITasker, ILogger } from "../interface/infrastructure";
 import type { IWebhookRepository, IWebhookService } from "../interface/services";
+import process from "node:process";
 
 export class WebhookService implements IWebhookService {
   private readonly log: ILogger;

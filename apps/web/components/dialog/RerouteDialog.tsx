@@ -31,7 +31,7 @@ import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-const enum ReroutingStatusEnum {
+enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",
   REROUTING_IN_PROGRESS = "in_progress",
   REROUTING_COMPLETE = "complete",

@@ -12,6 +12,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
+import process from "node:process";
 
 type GetOptions = {
   ctx: {

@@ -584,7 +584,7 @@ export class InputBookingsService_2024_08_13 {
       );
 
     const newRequest = { ...request };
-    let userId: number | undefined = undefined;
+    let userId: number | undefined ;
 
     if (
       oAuthClientParams &&

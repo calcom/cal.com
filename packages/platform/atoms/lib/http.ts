@@ -4,7 +4,7 @@ import { CAL_API_VERSION_HEADER, X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@
 
 // Immediately Invoked Function Expression to create simple singleton class like
 
-const http = (function () {
+const http = (() => {
   const instance = axios.create({
     timeout: 10000,
     headers: {},

@@ -33,7 +33,7 @@ export class LayoutValidator implements ValidatorConstraintInterface {
 }
 
 function IsValidLayout(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "IsValidLayout",
       target: object.constructor,
@@ -61,7 +61,7 @@ export class DefaultLayoutEnabledValidator implements ValidatorConstraintInterfa
 }
 
 function IsDefaultLayoutWithinEnabledLayouts(validationOptions?: ValidationOptions) {
-  return function (object: any) {
+  return (object: any) => {
     registerDecorator({
       name: "isDefaultLayoutWithinEnabledLayouts",
       target: object,

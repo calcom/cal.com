@@ -1,7 +1,7 @@
 "use client";
 
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import React from "react";
+import type React from "react";
 
 import classNames from "@calcom/ui/classNames";
 

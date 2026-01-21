@@ -11,6 +11,7 @@ import {
   checkGlobalPermission,
   checkPBACImpersonationPermission,
 } from "./ImpersonationProvider";
+import process from "node:process";
 
 const session: Session = {
   expires: "2021-08-31T15:00:00.000Z",

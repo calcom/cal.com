@@ -12,6 +12,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
 import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
+import process from "node:process";
 
 /**
  * @swagger

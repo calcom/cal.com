@@ -12,6 +12,7 @@ import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
 
 import { getBillingProviderService, getTeamBillingServiceFactory } from "./di/containers/Billing";
 import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 

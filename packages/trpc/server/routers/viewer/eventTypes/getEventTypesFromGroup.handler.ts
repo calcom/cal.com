@@ -144,7 +144,7 @@ export const getEventTypesFromGroup = async ({
     eventTypes.push(...teamEventTypes);
   }
 
-  let nextCursor: number | null | undefined = undefined;
+  let nextCursor: number | null | undefined ;
   if (eventTypes.length > limit) {
     const nextItem = eventTypes.pop();
     nextCursor = nextItem?.id;

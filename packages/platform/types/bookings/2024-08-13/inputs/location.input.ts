@@ -198,7 +198,7 @@ class BookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInt
 
 export function ValidateBookingLocation_2024_08_13(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateLocation",
       target: object.constructor,

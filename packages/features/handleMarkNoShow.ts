@@ -1,4 +1,4 @@
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";

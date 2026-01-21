@@ -767,7 +767,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
 
 export function ValidateOutputBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateOutputBookingFields",
       target: object.constructor,

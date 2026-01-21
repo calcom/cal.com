@@ -5,6 +5,7 @@ import { uuid } from "short-uuid";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
 import { test } from "../lib/fixtures";
+import process from "node:process";
 
 /**
  * Utility function to complete the organization onboarding wizard steps

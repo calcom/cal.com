@@ -15,6 +15,7 @@ import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { CreateUsersFixture } from "../fixtures/users";
 import type { Fixtures } from "./fixtures";
+import process from "node:process";
 
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };

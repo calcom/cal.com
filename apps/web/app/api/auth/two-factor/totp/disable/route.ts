@@ -14,6 +14,7 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import process from "node:process";
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);

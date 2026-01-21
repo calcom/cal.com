@@ -9,6 +9,7 @@ import { SalesforceRecordEnum } from "../enums";
 import getAllPossibleWebsiteValuesFromEmailDomain from "../utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "../utils/getDominantAccountId";
 import { GetAccountRecordsForRRSkip } from "./documents/queries";
+import process from "node:process";
 
 export class SalesforceGraphQLClient {
   private log: typeof logger;
@@ -127,8 +128,6 @@ export class SalesforceGraphQLClient {
       const relatedContactsResults = queryData.uiapi.query.relatedContacts?.edges;
 
       if (!relatedContactsResults) return [];
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - in CD/CI pipeline this will have any type
       const relatedContacts = relatedContactsResults.reduce((contacts, edge) => {
         const node = edge?.node;
         if (!node) {
@@ -169,8 +168,6 @@ export class SalesforceGraphQLClient {
       }
 
       // Get a contact from the dominant account
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - in CD/CI pipeline this will have any type
       const contactUnderAccount = relatedContacts.find((contact) => contact.AccountId === dominantAccountId);
       if (!contactUnderAccount) {
         log.error(

@@ -21,7 +21,7 @@ vi.mock("@calcom/prisma", () => ({
 // Mock service account key functions
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   const actual = await importOriginal<typeof import("@calcom/lib/crypto")>();
   return {
     ...actual,

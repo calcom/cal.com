@@ -137,19 +137,21 @@ export const useConnect = (props: UseConnectGoogleMeetProps) => {
 
   const connect = async (app: App["slug"]) => {
     switch (app) {
-      case ZOOM:
+      case ZOOM: {
         const zoomRedirectUri = await refetchZoomAuthUrl();
         if (zoomRedirectUri.data) {
           window.location.href = zoomRedirectUri.data;
         }
         break;
+      }
 
-      case OFFICE_365_VIDEO:
+      case OFFICE_365_VIDEO: {
         const office365RedirectUri = await refetchOffice365AuthUrl();
         if (office365RedirectUri.data) {
           window.location.href = office365RedirectUri.data;
         }
         break;
+      }
       case GOOGLE_MEET:
         connectNonOauthApp.mutate(app);
 

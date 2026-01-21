@@ -19,6 +19,7 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 import { paymentOptionEnum } from "../zod";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
 import type { StripePaymentData, StripeSetupIntentData } from "./server";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:stripe"] });
 

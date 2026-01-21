@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import path from "node:path";
 
 import { lucideIconList } from "../components/icon/icon-list.mjs";
+import process from "node:process";
 
 const cwd = process.cwd();
 const inputDir = path.join(cwd, "../../", "node_modules", "lucide-static", "icons");

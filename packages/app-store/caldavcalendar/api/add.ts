@@ -6,6 +6,7 @@ import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { BuildCalendarService } from "../lib";
+import process from "node:process";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -53,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const adminUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}${
             parsedUrl.port ? `:${parsedUrl.port}` : ""
           }/admin/?/settings/standard/`;
-          message = `Couldn\'t connect to caldav account, please verify WebDAV authentication type is set to "Basic"`;
+          message = `Couldn't connect to caldav account, please verify WebDAV authentication type is set to "Basic"`;
           return res.status(500).json({ message, actionUrl: adminUrl });
         }
       }

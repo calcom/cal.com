@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import process from "node:process";
 
 export type CloseComLead = {
   companyName?: string | null | undefined;

@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TSetPasswordSchema } from "./setPassword.schema";
+import process from "node:process";
 
 type UpdateOptions = {
   ctx: {

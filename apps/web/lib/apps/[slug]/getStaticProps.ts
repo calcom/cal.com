@@ -9,6 +9,7 @@ import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import logger from "@calcom/lib/logger";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["lib", "parseFrontmatter"] });
 

@@ -1,5 +1,5 @@
 import { createContainer } from "@calcom/features/di/di";
-import { CalendarsTaskService } from "@calcom/features/calendars/lib/tasker/CalendarsTaskService";
+import type { CalendarsTaskService } from "@calcom/features/calendars/lib/tasker/CalendarsTaskService";
 
 import { moduleLoader as taskServiceModuleLoader } from "./CalendarsTaskService.module";
 

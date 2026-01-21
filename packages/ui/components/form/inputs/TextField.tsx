@@ -1,7 +1,8 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import React, { forwardRef, useId, useState } from "react";
+import type React from "react";
+import { forwardRef, useId, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";

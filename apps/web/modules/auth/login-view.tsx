@@ -30,6 +30,7 @@ import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
 import type { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
+import process from "node:process";
 
 interface LoginValues {
   email: string;

@@ -1,5 +1,5 @@
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
+import type { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import type { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";

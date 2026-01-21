@@ -55,7 +55,8 @@ import { dub } from "./dub";
 import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
-import { UserProfile } from "@calcom/types/UserProfile";
+import type { UserProfile } from "@calcom/types/UserProfile";
+import process from "node:process";
 
 type UserWithProfiles = NonNullable<
   Awaited<ReturnType<UserRepository["findByEmailAndIncludeProfilesAndPassword"]>>
@@ -504,7 +505,7 @@ export const getOptions = ({
   getTrackingData: () => TrackingData;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
@@ -884,7 +885,7 @@ export const getOptions = ({
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore-error TODO validate email_verified key on profile
+        // @ts-expect-error-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {

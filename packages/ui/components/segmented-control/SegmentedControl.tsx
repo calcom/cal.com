@@ -11,7 +11,7 @@ export interface SegmentedControlProps<T extends string> {
     "data-testid"?: string;
 }
 
-const SegmentedControl = function <T extends string>({
+const SegmentedControl = <T extends string,>({
     data,
     value,
     onChange,
@@ -19,7 +19,7 @@ const SegmentedControl = function <T extends string>({
     className,
     "data-testid": dataTestId,
     ...props
-}: SegmentedControlProps<T>) {
+}: SegmentedControlProps<T>) => {
     const handleChange = (newValue: T) => {
         if (!disabled) {
             onChange(newValue);

@@ -1,5 +1,5 @@
 import { lookup } from "node:dns";
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 
 import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";

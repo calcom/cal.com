@@ -15,6 +15,7 @@ import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import type { OrgProfile, PersonalProfile, UserAsPersonalProfile } from "@calcom/types/UserProfile";
 
 import { Resource, CustomAction } from "../../../pbac/domain/types/permission-registry";
+import process from "node:process";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
@@ -338,7 +339,7 @@ const ImpersonationProvider = CredentialsProvider({
   },
   async authorize(creds, req) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore need to figure out how to correctly type this
+    // @ts-expect-error need to figure out how to correctly type this
     const session = await getSession({ req });
     const teamId = parseTeamId(creds);
     checkSelfImpersonation(session, creds);

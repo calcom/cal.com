@@ -30,6 +30,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import process from "node:process";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 

@@ -3,6 +3,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { deleteMultipleScheduledSMS } from "../reminders/providers/twilioProvider";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowReminderRepository } from "../repository/workflowReminder";
+import process from "node:process";
 
 export class WorkflowOptOutService {
   static async optOutPhoneNumber(phoneNumber: string) {

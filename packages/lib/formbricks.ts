@@ -1,6 +1,7 @@
 import { FormbricksAPI } from "@formbricks/api";
 
 import type { Feedback } from "@calcom/emails/templates/feedback-email";
+import process from "node:process";
 
 enum Rating {
   "Extremely unsatisfied" = 1,

@@ -9,6 +9,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
+import process from "node:process";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, query } = context;

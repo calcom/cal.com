@@ -62,9 +62,9 @@ export class StripeController {
     const accessToken = authorization.replace("Bearer ", "");
 
     const state: OAuthCallbackState = {
-      onErrorReturnTo: !!onErrorReturnTo ? onErrorReturnTo : origin,
+      onErrorReturnTo: onErrorReturnTo ? onErrorReturnTo : origin,
       fromApp: false,
-      returnTo: !!returnTo ? returnTo : origin,
+      returnTo: returnTo ? returnTo : origin,
       accessToken,
     };
 

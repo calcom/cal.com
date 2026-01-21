@@ -34,6 +34,7 @@ import {
   triggerRecordingReadyWebhook,
   triggerTranscriptionGeneratedWebhook,
 } from "@calcom/web/lib/daily-webhook/triggerWebhooks";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 

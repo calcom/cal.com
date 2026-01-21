@@ -7,6 +7,7 @@ import { ENDPOINTS } from "@calcom/trpc/react/shared";
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
 
 import { trpc } from "./trpc";
+import process from "node:process";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveEndpoint = (links: any) => {

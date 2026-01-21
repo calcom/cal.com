@@ -6,6 +6,7 @@ import { BillingEnabledOrgOnboardingService } from "./BillingEnabledOrgOnboardin
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import { SelfHostedOrganizationOnboardingService } from "./SelfHostedOnboardingService";
 import type { OnboardingUser } from "./types";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
 
@@ -17,7 +18,7 @@ const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
  */
 export class OrganizationOnboardingFactory {
   static create(user: OnboardingUser): IOrganizationOnboardingService {
-    const isBillingEnabled = this.isBillingEnabled();
+    const isBillingEnabled = OrganizationOnboardingFactory.isBillingEnabled();
 
     log.debug(
       "Creating onboarding service",

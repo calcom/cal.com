@@ -8,6 +8,7 @@ import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
+import process from "node:process";
 
 async function postHandler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");

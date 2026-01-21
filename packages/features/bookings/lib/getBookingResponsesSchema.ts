@@ -384,7 +384,7 @@ function preprocess<T extends z.ZodType>({
   );
   if (isPartialSchema) {
     // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
-    return preprocessed.catch(function (res?: { error?: unknown[] }) {
+    return preprocessed.catch((res?: { error?: unknown[] }) => {
       console.error("Failed to preprocess query params, prefilling will be skipped", res?.error);
       return {};
     });

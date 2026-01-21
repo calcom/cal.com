@@ -1001,7 +1001,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
 
 export function ValidateInputBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateInputBookingFields",
       target: object.constructor,

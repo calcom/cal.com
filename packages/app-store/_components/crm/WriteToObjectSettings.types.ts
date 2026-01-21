@@ -1,4 +1,4 @@
-import { CrmFieldType, WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
+import type { CrmFieldType, WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
 
 export { CrmFieldType, DateFieldType, WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
 

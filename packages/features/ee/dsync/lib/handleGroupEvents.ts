@@ -161,7 +161,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     await prisma.membership.createMany({
       data: [
         ...users
-          .map((user) => {
+          .flatMap((user) => {
             return [
               {
                 createdAt: new Date(),
@@ -178,8 +178,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
                 accepted: true,
               },
             ];
-          })
-          .flat(),
+          }),
       ],
       skipDuplicates: true,
     });

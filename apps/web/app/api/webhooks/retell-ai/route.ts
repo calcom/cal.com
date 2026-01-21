@@ -11,6 +11,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
 

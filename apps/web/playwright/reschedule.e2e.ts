@@ -15,6 +15,7 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
+import process from "node:process";
 
 test.describe.configure({ mode: "parallel" });
 

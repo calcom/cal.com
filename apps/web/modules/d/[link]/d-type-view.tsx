@@ -3,7 +3,7 @@
 import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
-import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
+import type { PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
 import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
 

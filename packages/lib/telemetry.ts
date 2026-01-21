@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { NextRequest, NextResponse } from "next/server";
 
 import { CONSOLE_URL } from "./constants";
+import process from "node:process";
 
 export const telemetryEventTypes = {
   pageView: "page_view",

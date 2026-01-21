@@ -8,6 +8,7 @@ import type {
 import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { getTimeZone } from "@calcom/lib/dayjs";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import process from "node:process";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
@@ -184,7 +185,7 @@ function buildSlotsWithDateRanges({
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
 
-      let dateOutOfOfficeExists = undefined;
+      let dateOutOfOfficeExists ;
       if (datesOutOfOffice) {
         const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
           ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")

@@ -7,6 +7,7 @@ import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
+import process from "node:process";
 
 test.describe.configure({ mode: "parallel" });
 

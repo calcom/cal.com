@@ -1,5 +1,5 @@
 import db from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { RoleType as DomainRoleType } from "../domain/models/Role";
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";

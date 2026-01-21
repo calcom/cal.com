@@ -90,7 +90,7 @@ export class ConfirmationPolicyValidator implements ValidatorConstraintInterface
 
 // Custom decorator for confirmation validation
 export function ValidateConfirmationPolicy(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateConfirmationPolicy",
       target: object.constructor,

@@ -1,5 +1,6 @@
 import { Logger } from "@nestjs/common";
 import webpush from "web-push";
+import process from "node:process";
 
 const logger = new Logger("WebPush");
 let isVapidConfigured = false;

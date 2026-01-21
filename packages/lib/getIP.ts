@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 import z from "zod";
 
 import logger from "./logger";
+import process from "node:process";
 
 export function parseIpFromHeaders(value: string | string[]) {
   return Array.isArray(value) ? value[0] : value.split(",")[0];

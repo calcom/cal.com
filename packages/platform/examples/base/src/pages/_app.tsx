@@ -9,6 +9,7 @@ import Select from "react-select";
 
 import { CalProvider, BookerEmbed, Router } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
+import process from "node:process";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 type TUser = Data["users"][0];

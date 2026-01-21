@@ -412,7 +412,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   type="button"
                   color="minimal"
                   variant="icon"
-                  onClick={async function () {
+                  onClick={async () => {
                     try {
                       // Required for Safari but also works on Chrome
                       // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/

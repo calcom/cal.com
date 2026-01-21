@@ -51,9 +51,7 @@ const ServerPage = async () => {
         name: name as AppCategories,
         count,
       }))
-      .sort(function (a, b) {
-        return b.count - a.count;
-      }),
+      .sort((a, b) => b.count - a.count),
     appStore,
     userAdminTeams: userAdminTeamsIds,
   };

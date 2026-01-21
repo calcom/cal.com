@@ -1,6 +1,6 @@
 "use client";
 
-import { type Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table";
 
 import { useDataTable, useFilterableColumns } from "@calcom/features/data-table/hooks";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";

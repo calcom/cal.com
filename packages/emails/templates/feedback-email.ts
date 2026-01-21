@@ -2,6 +2,7 @@ import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
+import process from "node:process";
 
 export interface Feedback {
   username: string;

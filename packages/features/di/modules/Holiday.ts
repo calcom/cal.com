@@ -10,7 +10,7 @@ holidayRepositoryModule.bind(token).toClass(PrismaHolidayRepository, [DI_TOKENS.
 
 export const moduleLoader = {
   token,
-  loadModule: function (container: Container) {
+  loadModule: (container: Container) => {
     container.load(moduleToken, holidayRepositoryModule);
   },
 };

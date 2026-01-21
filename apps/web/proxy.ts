@@ -8,6 +8,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
+import process from "node:process";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {

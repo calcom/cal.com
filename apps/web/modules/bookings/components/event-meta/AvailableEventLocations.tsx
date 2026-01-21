@@ -10,6 +10,7 @@ import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import process from "node:process";
 
 const excludeNullValues = (value: unknown) => !!value;
 

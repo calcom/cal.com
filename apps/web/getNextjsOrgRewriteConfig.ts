@@ -1,3 +1,4 @@
+import process from "node:process";
 const isSingleOrgModeEnabled = !!process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG;
 const orgSlugCaptureGroupName = "orgSlug";
 

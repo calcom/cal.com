@@ -85,7 +85,7 @@ export function useInitialFormValues({
     eventType?.owner?.profile?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
     false;
   useEffect(() => {
-    (async function () {
+    (async () => {
       if (Object.keys(formValues).length) {
         setInitialValuesState({
           values: formValues,

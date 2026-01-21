@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import * as React from "react";
+import type * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { vi } from "vitest";
@@ -11,7 +11,7 @@ vi.mock("@formkit/auto-animate/react", () => ({
 }));
 
 const renderComponent = ({
-  props: props,
+  props,
   formDefaultValues,
 }: {
   props: Parameters<typeof FormBuilderField>[0];

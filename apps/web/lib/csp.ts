@@ -2,6 +2,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { buildNonce } from "./buildNonce";
+import process from "node:process";
 
 function getCspPolicy(nonce: string) {
   //TODO: Do we need to explicitly define it in turbo.json

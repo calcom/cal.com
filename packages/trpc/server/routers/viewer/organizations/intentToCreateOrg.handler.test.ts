@@ -9,6 +9,7 @@ import {
 } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import process from "node:process";
 
 vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
   LicenseKeySingleton: {

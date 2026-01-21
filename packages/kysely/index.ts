@@ -2,6 +2,7 @@ import { Kysely, ParseJSONResultsPlugin, PostgresDialect, DeduplicateJoinsPlugin
 import { Pool } from "pg";
 
 import type { DB, Booking } from "./types";
+import process from "node:process";
 
 export type { DB, Booking };
 

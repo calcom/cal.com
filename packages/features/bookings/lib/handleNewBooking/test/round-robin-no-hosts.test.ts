@@ -19,6 +19,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import process from "node:process";
 
 const timeout = process.env.CI ? 5000 : 20000;
 

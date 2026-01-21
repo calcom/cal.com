@@ -248,7 +248,7 @@ class SalesforceCRMService implements CRM {
     const writeToEventRecord = await this.generateWriteToEventBody(event);
     log.info(`Writing to event fields: ${Object.keys(writeToEventRecord)} `);
 
-    let ownerId: string | undefined = undefined;
+    let ownerId: string | undefined ;
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
@@ -585,7 +585,7 @@ class SalesforceCRMService implements CRM {
   }) {
     // Escape SOSL reserved characters: ? & | ! { } [ ] ( ) ^ ~ * : \ " ' + -
     // eslint-disable-next-line no-useless-escape
-    const escapedEmail = email.replace(/([?&|!{}[\]()^~*:\\"'+\-])/g, "\\$1");
+    const escapedEmail = email.replace(/([?&|!{}[\]()^~*:\\"'+-])/g, "\\$1");
     const searchResult = await conn.search(
       `FIND {${escapedEmail}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
     );
@@ -794,7 +794,7 @@ class SalesforceCRMService implements CRM {
         records: { WhoId: string }[];
       };
 
-      let salesforceAttendeeEmail: string | undefined = undefined;
+      let salesforceAttendeeEmail: string | undefined ;
       // Figure out if the attendee is a contact or lead
       const contactQuery = (await conn.query(
         `SELECT Email FROM Contact WHERE Id = '${salesforceEvent.records[0].WhoId}'`

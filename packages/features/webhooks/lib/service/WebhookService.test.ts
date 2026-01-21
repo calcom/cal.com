@@ -3,10 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber } from "../dto/types";
-import { IWebhookRepository, WebhookVersion } from "../interface/IWebhookRepository";
+import { type IWebhookRepository, WebhookVersion } from "../interface/IWebhookRepository";
 import { WebhookService } from "./WebhookService";
-import { ILogger, ITasker } from "../interface/infrastructure";
-import { WebhookPayload } from "../factory/types";
+import type { ILogger, ITasker } from "../interface/infrastructure";
+import type { WebhookPayload } from "../factory/types";
+import process from "node:process";
 
 describe("WebhookService", () => {
   let mockFetch: ReturnType<typeof vi.fn>;

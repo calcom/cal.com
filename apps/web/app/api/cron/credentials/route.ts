@@ -13,6 +13,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
+import process from "node:process";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["[api]", "[delegation]", "[credentials/cron]"] });
 const batchSizeToCreateCredentials = 100;

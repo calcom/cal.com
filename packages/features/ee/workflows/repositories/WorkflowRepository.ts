@@ -14,8 +14,8 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import {
   MembershipRole,
-  TimeUnit,
-  WorkflowTriggerEvents,
+  type TimeUnit,
+  type WorkflowTriggerEvents,
   WorkflowType as PrismaWorkflowType,
 } from "@calcom/prisma/enums";
 import { WorkflowMethods } from "@calcom/prisma/enums";
@@ -486,7 +486,7 @@ export class WorkflowRepository {
 
     results.forEach((result, index) => {
       if (result.status !== "fulfilled") {
-        this.log.error(
+        WorkflowRepository.log.error(
           `An error occurred when deleting reminder ${remindersToDelete[index].id}, method: ${remindersToDelete[index].method}`,
           result.reason
         );

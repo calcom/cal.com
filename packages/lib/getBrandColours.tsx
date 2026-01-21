@@ -104,9 +104,7 @@ function normalizeHexCode(hex: string | null, dark: boolean) {
   if (hex.length === 3) {
     hex = hex
       .split("")
-      .map(function (hex) {
-        return hex + hex;
-      })
+      .map((hex) => hex + hex)
       .join("");
   }
 

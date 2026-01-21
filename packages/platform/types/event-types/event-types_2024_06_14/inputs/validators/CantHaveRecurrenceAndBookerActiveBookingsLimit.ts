@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { ValidationOptions, registerDecorator, ValidationArguments } from "class-validator";
+import { type ValidationOptions, registerDecorator, type ValidationArguments } from "class-validator";
 
 import type { BaseCreateEventTypeInput } from "../create-event-type.input";
 
@@ -8,7 +8,7 @@ export const FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE =
 
 export function CantHaveRecurrenceAndBookerActiveBookingsLimit(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any) {
+  return (object: any) => {
     registerDecorator({
       name: "cantHaveRecurrenceAndBookerActiveBookingsLimit",
       target: object,

@@ -121,7 +121,7 @@ export const listOtherTeamMembers = async ({ ctx, input }: ListOptions) => {
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
   });
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined ;
   if (members && members.length > limit) {
     const nextItem = members.pop();
     nextCursor = nextItem?.id || null;

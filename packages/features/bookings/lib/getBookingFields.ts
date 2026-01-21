@@ -14,6 +14,7 @@ import {
   eventTypeBookingFields,
   EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
+import process from "node:process";
 
 export type Fields = z.infer<typeof eventTypeBookingFields>;
 

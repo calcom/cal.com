@@ -1,4 +1,4 @@
-import { createModule, ModuleLoader, bindModuleToClassOnToken } from "@calcom/features/di/di";
+import { createModule, type ModuleLoader, bindModuleToClassOnToken } from "@calcom/features/di/di";
 
 import { TeamBillingServiceFactory } from "../../service/teams/TeamBillingServiceFactory";
 import { DI_TOKENS } from "../tokens";

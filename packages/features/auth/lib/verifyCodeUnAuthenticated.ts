@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { totpRawCheck } from "@calcom/lib/totp";
+import process from "node:process";
 
 export const verifyCodeUnAuthenticated = async (email: string, code: string) => {
   if (!email || !code) {

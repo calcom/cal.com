@@ -18,6 +18,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./test/getNewBookingHandler";
+import process from "node:process";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;

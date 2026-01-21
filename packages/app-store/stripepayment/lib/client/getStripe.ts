@@ -1,5 +1,6 @@
 import type { Stripe } from "@stripe/stripe-js";
 import { loadStripe } from "@stripe/stripe-js/pure";
+import process from "node:process";
 
 export type Maybe<T> = T | undefined | null;
 

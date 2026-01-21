@@ -95,7 +95,7 @@ describe("Query Builder Config", () => {
       );
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const jsonLogic = AttributesBaseConfig.operators.multiselect_some_in.jsonLogic(
         ["A"],
         "multiselect_some_in",
@@ -122,7 +122,7 @@ describe("Query Builder Config", () => {
 
     it("should provide jsonlogic for between operator", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const jsonLogic = AttributesBaseConfig.operators.between.jsonLogic(
         { var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" },
         "between",
@@ -140,7 +140,7 @@ describe("Query Builder Config", () => {
 
     it("should provide jsonlogic for not_between operator", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const jsonLogic = AttributesBaseConfig.operators.not_between.jsonLogic(
         { var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" },
         "not_between",

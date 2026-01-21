@@ -1,7 +1,7 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { type NextPage } from "next";
+import type { NextPage } from "next";
 import { useEffect } from "react";
 
 import CustomError from "./error";

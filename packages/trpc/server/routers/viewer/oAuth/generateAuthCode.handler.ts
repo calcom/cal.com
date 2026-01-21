@@ -1,5 +1,5 @@
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
-import { OAuthErrorReason, OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
+import { type OAuthErrorReason, OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { AccessScope } from "@calcom/prisma/enums";

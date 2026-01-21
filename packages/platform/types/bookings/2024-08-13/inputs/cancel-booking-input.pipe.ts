@@ -77,6 +77,7 @@ export class CancelBookingInputPipe implements PipeTransform {
   private isCancelSeatedBookingInput(
     value: CancelBookingInput
   ): value is CancelSeatedBookingInput_2024_08_13 {
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022 which platform-types doesn't target
     return value.hasOwnProperty("seatUid");
   }
 }

@@ -26,6 +26,7 @@ import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import EventManager from "./EventManager";
+import process from "node:process";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,

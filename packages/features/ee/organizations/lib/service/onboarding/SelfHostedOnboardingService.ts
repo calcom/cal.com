@@ -19,6 +19,7 @@ import type {
   OrganizationOnboardingData,
   OrganizationData,
 } from "./types";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["SelfHostedOrganizationOnboardingService"] });
 

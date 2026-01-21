@@ -34,6 +34,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
+import process from "node:process";
 
 const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
 const DEFAULT_CALENDAR_TYPE = "caldav";
@@ -624,8 +625,7 @@ export default abstract class BaseCalendarService implements Calendar {
         promise.status === "fulfilled"
     );
     const flatResult = fulfilledPromises
-      .map((promise) => promise.value)
-      .flat()
+      .flatMap((promise) => promise.value)
       .filter((obj) => obj !== null);
     return flatResult as DAVObject[];
   }

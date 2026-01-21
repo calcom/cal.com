@@ -14,6 +14,7 @@ import type { Contact } from "@calcom/web/modules/ee/support/lib/intercom/interc
 import { intercom } from "@calcom/web/modules/ee/support/lib/intercom/intercom";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: [`/api/support/conversation`] });
 

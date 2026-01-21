@@ -4,6 +4,7 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
 import type { TUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["checkIfUserEmailVerificationRequired"] });
 

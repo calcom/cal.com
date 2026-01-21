@@ -13,6 +13,7 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import process from "node:process";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),

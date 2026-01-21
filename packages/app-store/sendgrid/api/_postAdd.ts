@@ -8,6 +8,7 @@ import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import process from "node:process";
 
 export async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);

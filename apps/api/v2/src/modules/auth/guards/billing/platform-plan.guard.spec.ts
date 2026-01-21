@@ -38,7 +38,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: "sub_123",
         plan: "SCALE",
@@ -60,7 +60,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: false,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: undefined,
     });
 
@@ -72,7 +72,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: null,
         plan: "STARTER",
@@ -87,7 +87,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: "sub_123",
         plan: "STARTER",

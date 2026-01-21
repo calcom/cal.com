@@ -5,6 +5,7 @@ import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import process from "node:process";
 
 type GetOptions = {
   ctx: {

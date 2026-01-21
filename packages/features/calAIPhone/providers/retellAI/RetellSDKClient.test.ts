@@ -12,6 +12,7 @@ import type {
   ImportPhoneNumberParams,
   RetellDynamicVariables,
 } from "./types";
+import process from "node:process";
 
 let RetellSDKClient: typeof import("./RetellSDKClient").RetellSDKClient;
 

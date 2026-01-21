@@ -18,6 +18,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
+import process from "node:process";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
 test.describe.configure({ mode: "parallel" });

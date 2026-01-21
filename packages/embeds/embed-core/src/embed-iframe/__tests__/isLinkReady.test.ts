@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { type EmbedStore } from "../lib/embedStore";
+import type { EmbedStore } from "../lib/embedStore";
 import { fakeCurrentDocumentUrl, takeBookerToSlotsLoadingState, takeBookerToReadyState } from "./test-utils";
 
 beforeEach(() => {

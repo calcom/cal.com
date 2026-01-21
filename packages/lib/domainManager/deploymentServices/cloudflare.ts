@@ -4,6 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import logger from "../../logger";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["cloudflare/deploymentService"] });
 

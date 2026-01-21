@@ -239,7 +239,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     }
   }
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined ;
   if (teamMembers && teamMembers.length > limit) {
     const nextItem = teamMembers.pop();
     nextCursor = nextItem?.id;

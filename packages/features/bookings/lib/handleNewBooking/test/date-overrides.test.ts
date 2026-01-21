@@ -29,6 +29,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import process from "node:process";
 
 export const Timezones = {
   "-05:00": "America/New_York",

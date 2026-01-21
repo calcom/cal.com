@@ -1,5 +1,6 @@
 import schedulePayload from "./schedulePayload";
 import sendPayload from "./sendPayload";
+import process from "node:process";
 
 type SendOrSchedulePayload = typeof sendPayload;
 

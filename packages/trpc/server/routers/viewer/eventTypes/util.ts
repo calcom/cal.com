@@ -59,7 +59,7 @@ export const eventOwnerProcedure = authedProcedure
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const isAuthorized = (function () {
+    const isAuthorized = (() => {
       if (event.team) {
         const teamMember = event.team.members.find((member) => member.userId === ctx.user.id);
         const isOwnerOrAdmin = teamMember?.role === "ADMIN" || teamMember?.role === "OWNER";
@@ -73,7 +73,7 @@ export const eventOwnerProcedure = authedProcedure
       throw new TRPCError({ code: "FORBIDDEN" });
     }
 
-    const isAllowed = (function () {
+    const isAllowed = (() => {
       if (event.team) {
         const allTeamMembers = event.team.members.map((member) => member.userId);
         return input.users.every((userId: number) => allTeamMembers.includes(userId));
@@ -173,7 +173,7 @@ export const createEventPbacProcedure = (
 
       // Validate that assigned users are allowed
       if (input.users && input.users.length > 0) {
-        const isAllowed = (function () {
+        const isAllowed = (() => {
           if (event.team) {
             const allTeamMembers = event.team.members.map((member) => member.userId);
             return input.users?.every((userId: number) => allTeamMembers.includes(userId)) ?? true;

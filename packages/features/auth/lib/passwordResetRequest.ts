@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
+import process from "node:process";
 
 export const PASSWORD_RESET_EXPIRY_HOURS = 6;
 

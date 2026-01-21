@@ -11,6 +11,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { schemaCredentialPostBody, schemaCredentialPostParams } from "~/lib/validations/credential-sync";
+import process from "node:process";
 
 /**
  * @swagger

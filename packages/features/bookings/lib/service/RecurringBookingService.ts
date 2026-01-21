@@ -1,6 +1,6 @@
 import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-import { CreationSource, SchedulingType } from "@calcom/prisma/enums";
+import { type CreationSource, SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -47,7 +47,7 @@ export const handleNewRecurringBooking = async function (
   const firstBooking = data[0];
   const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  let luckyUsers = undefined;
+  let luckyUsers ;
 
   const handleBookingMeta = {
     userId: input.userId,

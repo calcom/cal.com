@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import type { PropsWithChildren, ReactElement } from "react";
-import React from "react";
+import type React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 

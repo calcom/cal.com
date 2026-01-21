@@ -11,6 +11,7 @@ import { prisma } from "@calcom/prisma";
 import { isAdminGuard } from "../utils/isAdmin";
 import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
+import process from "node:process";
 
 // This verifies the apiKey and sets the user if it is valid.
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {

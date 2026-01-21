@@ -17,7 +17,7 @@ import {
   ZSubmitBatchProcessorJobRes,
   ZGetTranscriptAccessLink,
   getMeetingInformationResponseSchema,
-  TGetMeetingInformationResponsesSchema,
+  type TGetMeetingInformationResponsesSchema,
 } from "../zod";
 import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
 import { fetcher } from "./dailyApiFetcher";
@@ -29,6 +29,7 @@ import {
   meetingTokenSchema,
   ZGetMeetingTokenResponseSchema,
 } from "./types";
+import process from "node:process";
 
 export interface DailyEventResult {
   id: string;

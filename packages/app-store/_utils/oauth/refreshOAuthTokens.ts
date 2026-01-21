@@ -3,6 +3,7 @@ import {
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
+import process from "node:process";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const refreshOAuthTokens = async (refreshFunction: () => any, appSlug: string, userId: number | null) => {

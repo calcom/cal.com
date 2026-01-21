@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import process from "node:process";
 
 const mockRegularUser = {
   id: 1,

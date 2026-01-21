@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { BuildCalendarService } from "../lib";
+import process from "node:process";
 
 const bodySchema = z
   .object({

@@ -15,7 +15,7 @@ import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getA
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
 
-export const enum EmbedTabName {
+export enum EmbedTabName {
   HTML = "embed-code",
   IFRAME_REACT = "embed-react",
   ATOM_REACT = "embed-atom-react",

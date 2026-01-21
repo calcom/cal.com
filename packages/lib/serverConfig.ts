@@ -4,6 +4,7 @@ import type SMTPConnection from "nodemailer/lib/smtp-connection";
 import { isENVDev } from "@calcom/lib/env";
 
 import { getAdditionalEmailHeaders } from "./getAdditionalEmailHeaders";
+import process from "node:process";
 
 function detectTransport(): SendmailTransport.Options | SMTPConnection.Options | string {
   if (process.env.RESEND_API_KEY) {

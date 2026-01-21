@@ -33,7 +33,7 @@ import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton"
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
-const regex = new RegExp("^[a-zA-Z0-9-]*$");
+const regex = /^[a-zA-Z0-9-]*$/;
 
 const teamProfileFormSchema = z.object({
   name: z.string(),

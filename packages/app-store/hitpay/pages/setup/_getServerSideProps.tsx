@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";

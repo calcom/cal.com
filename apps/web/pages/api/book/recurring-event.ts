@@ -7,6 +7,7 @@ import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import process from "node:process";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 

@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import process from "node:process";
 
 const TEMPLATE_LANGUAGE = "en";
 const SPECIFIC_LOCALES = process.argv.slice(2) || [];

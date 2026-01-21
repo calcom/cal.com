@@ -44,9 +44,10 @@ export class ConferencingService {
 
   async connectUserNonOauthApp(app: string, userId: number) {
     switch (app) {
-      case GOOGLE_MEET:
+      case GOOGLE_MEET: {
         const credential = await this.googleMeetService.connectGoogleMeetToUser(userId);
         return credential;
+      }
       default:
         throw new BadRequestException("Invalid conferencing app. Available apps: GOOGLE_MEET.");
     }

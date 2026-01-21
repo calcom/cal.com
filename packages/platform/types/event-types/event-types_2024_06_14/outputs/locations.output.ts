@@ -167,7 +167,7 @@ class OutputLocationValidator_2024_06_14 implements ValidatorConstraintInterface
 
 export function ValidateOutputLocations_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateLocation",
       target: object.constructor,

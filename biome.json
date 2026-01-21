@@ -52,6 +52,7 @@
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
       "!!packages/prisma/enums",
+      "!!apps/api/v2/client",
       "!!*.lock",
       "!!*.log",
       "!!.gitignore",
@@ -135,14 +136,14 @@
           "correctness": {
             "useImportExtensions": "warn",
             "noProcessGlobal": "warn",
-            "useExhaustiveDependencies": "warn",
+            "useExhaustiveDependencies": "error",
             "noUnknownProperty": "warn",
-            "noUnreachable": "warn",
-            "noEmptyPattern": "warn",
-            "noSwitchDeclarations": "warn",
-            "useHookAtTopLevel": "warn",
-            "useJsxKeyInIterable": "warn",
-            "noUnsafeOptionalChaining": "warn"
+            "noUnreachable": "error",
+            "noEmptyPattern": "error",
+            "noSwitchDeclarations": "error",
+            "useHookAtTopLevel": "error",
+            "useJsxKeyInIterable": "error",
+            "noUnsafeOptionalChaining": "error"
           },
           "style": {
             "useExportsLast": "warn",
@@ -163,19 +164,19 @@
             "noImgElement": "warn"
           },
           "suspicious": {
-            "noDoubleEquals": "warn",
-            "noAssignInExpressions": "warn",
+            "noDoubleEquals": "error",
+            "noAssignInExpressions": "error",
             "noExplicitAny": "warn",
             "useIterableCallbackReturn": "warn",
             "noImplicitAnyLet": "warn",
-            "noRedeclare": "warn",
-            "noControlCharactersInRegex": "warn",
+            "noRedeclare": "error",
+            "noControlCharactersInRegex": "error",
             "noArrayIndexKey": "warn",
-            "noShadowRestrictedNames": "warn",
-            "noAsyncPromiseExecutor": "warn"
+            "noShadowRestrictedNames": "error",
+            "noAsyncPromiseExecutor": "error"
           },
           "security": {
-            "noBlankTarget": "warn",
+            "noBlankTarget": "error",
             "noDangerouslySetInnerHtml": "warn"
           }
         }
@@ -207,6 +208,9 @@
         "rules": {
           "style": {
             "noProcessEnv": "off"
+          },
+          "correctness": {
+            "useHookAtTopLevel": "off"
           }
         }
       }

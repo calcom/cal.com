@@ -1,6 +1,7 @@
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
+import process from "node:process";
 
 export const metadata = {
   name: "Cal Video",

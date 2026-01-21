@@ -1,9 +1,9 @@
 // Theme application function - will be stringified and injected. So, it must not use anything from the closure
-export const applyTheme = function () {
+export const applyTheme = () => {
   try {
     // This utility is a replica of @calcom/lib/webstorage.ts but we can reuse it because applyTheme is stringified and injected, so we can't have deps here
     const safeLocalStorage = {
-      getItem: function (key: string) {
+      getItem: (key: string) => {
         try {
           // eslint-disable-next-line @calcom/eslint/avoid-web-storage
           return localStorage.getItem(key);
@@ -11,7 +11,7 @@ export const applyTheme = function () {
           return null;
         }
       },
-      key: function (index: number) {
+      key: (index: number) => {
         try {
           // eslint-disable-next-line @calcom/eslint/avoid-web-storage
           return localStorage.key(index);
@@ -19,7 +19,7 @@ export const applyTheme = function () {
           return null;
         }
       },
-      getLength: function () {
+      getLength: () => {
         try {
           // eslint-disable-next-line @calcom/eslint/avoid-web-storage
           return localStorage.length;
@@ -59,7 +59,7 @@ export const applyTheme = function () {
 };
 
 // ToDesktop class application function - will be stringified and injected. So, it must not use anything from the closure
-export const applyToDesktopClass = function () {
+export const applyToDesktopClass = () => {
   try {
     const onReady = () => {
       if (typeof window !== "undefined" && window.calIsDesktopApp && document.documentElement) {

@@ -1,5 +1,6 @@
 import { CronJob } from "cron";
 import dotEnv from "dotenv";
+import process from "node:process";
 
 dotEnv.config({ path: "../../.env" });
 
@@ -21,7 +22,7 @@ try {
   new CronJob(
     // Each 5 seconds
     "*/5 * * * * *",
-    async function () {
+    async () => {
       await Promise.allSettled([
         fetchCron("/cron/calendar-subscriptions"),
         // fetchCron("/cron/calVideoNoShowWebhookTriggers"),

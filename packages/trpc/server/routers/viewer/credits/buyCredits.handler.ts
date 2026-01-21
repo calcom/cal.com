@@ -11,6 +11,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import type { TBuyCreditsSchema } from "./buyCredits.schema";
+import process from "node:process";
 
 type BuyCreditsOptions = {
   ctx: {

@@ -5,6 +5,7 @@ import { PostHogProvider } from "posthog-js/react";
 import { useEffect, useRef } from "react";
 
 import { useGeo } from "@calcom/web/app/GeoContext";
+import process from "node:process";
 
 function Provider({ children }: { children: React.ReactNode }) {
   const initializeOnce = useRef(false);

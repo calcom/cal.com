@@ -20,7 +20,7 @@ export function getiCalEventAsString(
     user: Partial<User> | null;
   }
 ) {
-  let recurrenceRule: string | undefined = undefined;
+  let recurrenceRule: string | undefined ;
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEvent?.count) {
     recurrenceRule = new RRule(recurringEvent).toString().replace("RRULE:", "");

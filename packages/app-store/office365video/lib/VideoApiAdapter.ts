@@ -108,12 +108,12 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         body: new URLSearchParams(params),
       });
     },
-    isTokenObjectUnusable: async function () {
+    isTokenObjectUnusable: async () => {
       // TODO: Implement this. As current implementation of CalendarService doesn't handle it. It hasn't been handled in the OAuthManager implementation as well.
       // This is a placeholder for future implementation.
       return null;
     },
-    isAccessTokenUnusable: async function () {
+    isAccessTokenUnusable: async () => {
       // TODO: Implement this
       return null;
     },

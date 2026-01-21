@@ -48,7 +48,7 @@ export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
 
 function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any) {
+  return (object: any) => {
     registerDecorator({
       name: "requireEventTypeIdentification",
       target: object,
@@ -77,7 +77,7 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
 
 function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any) {
+  return (object: any) => {
     registerDecorator({
       name: "requireEmailOrPhone",
       target: object,

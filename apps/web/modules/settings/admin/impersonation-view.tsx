@@ -12,6 +12,7 @@ import { PanelCard } from "@calcom/ui/components/card";
 import { TextField } from "@calcom/ui/components/form";
 
 import RecentImpersonationsList from "../../../components/settings/admin/RecentImpersonationsList";
+import process from "node:process";
 
 const ImpersonationView = () => {
   const { t } = useLocale();

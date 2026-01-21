@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import tasker from "..";
+import process from "node:process";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");

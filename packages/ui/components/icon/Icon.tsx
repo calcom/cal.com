@@ -1,4 +1,4 @@
-import { type SVGProps } from "react";
+import type { SVGProps } from "react";
 
 import cn from "@calcom/ui/classNames";
 
@@ -25,5 +25,5 @@ function Icon({
     </svg>
   );
 }
-export { IconName, Icon };
+export { type IconName, Icon };
 export default Icon;

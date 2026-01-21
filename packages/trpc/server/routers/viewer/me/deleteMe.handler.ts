@@ -9,6 +9,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TDeleteMeInputSchema } from "./deleteMe.schema";
+import process from "node:process";
 
 type DeleteMeOptions = {
   ctx: {

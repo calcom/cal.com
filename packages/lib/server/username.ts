@@ -9,6 +9,7 @@ import { RedirectType } from "@calcom/prisma/enums";
 import { IS_PREMIUM_USERNAME_ENABLED } from "../constants";
 import logger from "../logger";
 import notEmpty from "../notEmpty";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["server/username"] });
 const cachedData: Set<string> = new Set();

@@ -61,6 +61,7 @@ import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-pe
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
 import { EventTypesList } from "./EventTypesList";
+import process from "node:process";
 
 interface Props {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;

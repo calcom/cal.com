@@ -5,6 +5,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import renderEmail from "../src/renderEmail";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
+import process from "node:process";
 
 /**
  * TODO: Remove once fully migrated to V2

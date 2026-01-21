@@ -9,6 +9,7 @@ import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import process from "node:process";
 
 const querySchema = z.object({
   page: z.coerce.number().min(0).optional().default(0),

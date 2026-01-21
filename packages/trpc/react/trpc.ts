@@ -11,6 +11,7 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "../types/server/routers/_app";
 import { ENDPOINTS } from "./shared";
+import process from "node:process";
 
 type Maybe<T> = T | null | undefined;
 

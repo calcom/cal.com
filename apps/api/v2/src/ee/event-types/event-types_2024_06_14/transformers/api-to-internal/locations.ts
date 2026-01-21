@@ -60,9 +60,10 @@ function transformLocation<T extends InputLocation_2024_06_14>(location: T) {
         link: location.link,
         displayLocationPublicly: location.public,
       } satisfies OrganizerLinkLocation;
-    case "integration":
+    case "integration": {
       const integrationLabel = apiToInternalintegrationsMapping[location.integration];
       return { type: integrationLabel } satisfies OrganizerIntegrationLocation;
+    }
     case "phone":
       return {
         type: "userPhone",

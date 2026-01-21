@@ -114,8 +114,6 @@ describe("SalesforceCRMService", () => {
       )
     );
     // Override jsforce mock with our custom mock
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore - Not full implementation of jsforce.Connection
     vi.mocked(jsforce.Connection).mockImplementation(function() {
       return {
         ...salesforceMock.mockConnection,

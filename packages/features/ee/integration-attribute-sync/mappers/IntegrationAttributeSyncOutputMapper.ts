@@ -8,7 +8,7 @@ import type {
   AttributeSyncRule,
   IntegrationAttributeSync,
 } from "../repositories/IIntegrationAttributeSyncRepository";
-import { AttributeSyncIntegrations } from "../repositories/IIntegrationAttributeSyncRepository";
+import type { AttributeSyncIntegrations } from "../repositories/IIntegrationAttributeSyncRepository";
 import { attributeSyncRuleSchema } from "../schemas/zod";
 
 type PrismaIntegrationAttributeSyncWithRelations = Pick<

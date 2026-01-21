@@ -5,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import { hashAPIKey } from "./apiKeys";
+import process from "node:process";
 
 // This is the number of times a user can exceed the rate limit before being locked
 const DEFAULT_AUTOLOCK_THRESHOLD = 5;

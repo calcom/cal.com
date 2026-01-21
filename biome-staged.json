@@ -1,4 +1,4 @@
 {
   "extends": ["./biome.json"],
-  "linter": { "rules": { "nursery": { "useExplicitType": "error" } } }
+  "linter": { "rules": { "nursery": { "useExplicitType": "warn" } } }
 }

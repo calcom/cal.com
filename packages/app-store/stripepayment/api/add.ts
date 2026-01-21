@@ -7,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { getStripeAppKeys } from "../lib/getStripeAppKeys";
+import process from "node:process";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { client_id } = await getStripeAppKeys();

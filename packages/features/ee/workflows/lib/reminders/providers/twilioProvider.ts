@@ -8,6 +8,7 @@ import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
+import process from "node:process";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 

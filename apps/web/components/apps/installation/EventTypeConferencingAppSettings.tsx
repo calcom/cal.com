@@ -31,7 +31,7 @@ const LocationsWrapper = ({
   const formMethods = useFormContext<TFormType>();
 
   const prefillLocation = useMemo(() => {
-    let res: SingleValueLocationOption | undefined = undefined;
+    let res: SingleValueLocationOption | undefined ;
     for (const item of eventType?.locationOptions || []) {
       for (const option of item.options) {
         if (option.slug === slug) {

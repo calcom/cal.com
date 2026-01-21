@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 import { Icon } from "../icon";
 import type { IconName } from "../icon";

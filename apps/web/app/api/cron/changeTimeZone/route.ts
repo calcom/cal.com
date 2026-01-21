@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import prisma from "@calcom/prisma";
+import process from "node:process";
 
 const travelScheduleSelect = {
   id: true,

@@ -6,7 +6,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { FilterSegmentRepository } from "../../repositories/filterSegment";
-import { type TDeleteFilterSegmentInputSchema } from "../../repositories/filterSegment.type";
+import type { TDeleteFilterSegmentInputSchema } from "../../repositories/filterSegment.type";
 
 const repository = new FilterSegmentRepository();
 

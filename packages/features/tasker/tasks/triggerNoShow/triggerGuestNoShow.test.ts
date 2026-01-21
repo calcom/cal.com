@@ -22,6 +22,7 @@ import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName
 import type { TSendNoShowWebhookPayloadSchema } from "./schema";
 import { triggerGuestNoShow } from "./triggerGuestNoShow";
 import { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
+import process from "node:process";
 
 vi.mock("@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName", () => ({
   getMeetingSessionsFromRoomName: vi.fn(),

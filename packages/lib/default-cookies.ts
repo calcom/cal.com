@@ -1,4 +1,5 @@
 import type { CookieOption, CookiesOptions } from "next-auth";
+import process from "node:process";
 
 /**
  * Copy from 'https://github.com/nextauthjs/next-auth/blob/227ff2259f/src/core/lib/cookie.ts' as we can't import it directly

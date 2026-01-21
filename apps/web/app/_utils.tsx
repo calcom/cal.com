@@ -1,4 +1,4 @@
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { cookies, headers } from "next/headers";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";

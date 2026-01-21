@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
 import { BuildCalendarService } from "../lib";
+import process from "node:process";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {

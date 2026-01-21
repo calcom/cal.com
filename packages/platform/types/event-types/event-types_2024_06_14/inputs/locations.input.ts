@@ -256,7 +256,7 @@ class InputTeamLocationValidator_2024_06_14 implements ValidatorConstraintInterf
 
 export function ValidateLocations_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateLocation",
       target: object.constructor,
@@ -269,7 +269,7 @@ export function ValidateLocations_2024_06_14(validationOptions?: ValidationOptio
 
 export function ValidateTeamLocations_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateTeamLocation",
       target: object.constructor,

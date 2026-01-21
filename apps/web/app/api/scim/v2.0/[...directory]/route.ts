@@ -109,7 +109,7 @@ async function handleScimRequest(request: NextRequest, method: string, params: P
     );
   }
 
-  let body: object | undefined = undefined;
+  let body: object | undefined ;
   try {
     body = await request.json().catch(() => undefined);
   } catch (e) {

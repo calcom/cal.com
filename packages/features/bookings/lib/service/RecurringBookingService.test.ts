@@ -26,6 +26,7 @@ import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import process from "node:process";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 

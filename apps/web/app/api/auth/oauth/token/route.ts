@@ -7,6 +7,7 @@ import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.containe
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
+import process from "node:process";
 
 async function handler(req: NextRequest) {
   const { code, client_id, client_secret, grant_type, redirect_uri, code_verifier } = await parseUrlFormData(

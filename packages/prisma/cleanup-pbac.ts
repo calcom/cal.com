@@ -5,6 +5,7 @@
  * Run with: npx tsx packages/prisma/cleanup-pbac.ts
  */
 import prisma from ".";
+import process from "node:process";
 
 async function cleanupPBACOrganization() {
   console.log("🧹 Cleaning up PBAC Demo Organization...");

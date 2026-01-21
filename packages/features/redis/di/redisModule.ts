@@ -3,6 +3,7 @@ import { DI_TOKENS } from "@calcom/features/di/tokens";
 
 import { NoopRedisService } from "../NoopRedisService";
 import { RedisService } from "../RedisService";
+import process from "node:process";
 
 const redisModule = createModule();
 

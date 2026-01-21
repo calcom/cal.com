@@ -44,7 +44,7 @@ const updatePackageJson = ({
 const workspaceDir = path.resolve(__dirname, "..", "..", "..");
 
 export const BaseAppFork = {
-  create: async function ({
+  create: async ({
     category,
     editMode = false,
     description,
@@ -66,7 +66,7 @@ export const BaseAppFork = {
     template: string;
     isTemplate: boolean;
     oldSlug?: string;
-  }) {
+  }) => {
     const appDirPath = getAppDirPath(slug, isTemplate);
     if (!editMode) {
       await execSync(IS_WINDOWS_PLATFORM ? `mkdir ${appDirPath}` : `mkdir -p ${appDirPath}`);
@@ -129,7 +129,7 @@ export const BaseAppFork = {
     await execSync("yarn");
   },
 
-  delete: async function ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) {
+  delete: async ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) => {
     const appDirPath = getAppDirPath(slug, isTemplate);
     await execSync(IS_WINDOWS_PLATFORM ? `rd /s /q ${appDirPath}` : `rm -rf ${appDirPath}`);
   },

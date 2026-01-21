@@ -14,7 +14,7 @@ import type { ConfigFor } from "./types";
 
 export { ConfigFor } from "./types";
 
-const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
+const renderComponent = <T1,>(props: T1 | undefined, Component: React.FC<T1>) => {
   if (!props) {
     return <div />;
   }

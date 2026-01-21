@@ -7,7 +7,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
-import { type IconName } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
 
 import { EventDetailBlocks } from "@calcom/features/bookings/types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
@@ -174,7 +174,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
               </EventMetaBlock>
             );
 
-          case EventDetailBlocks.PRICE:
+          case EventDetailBlocks.PRICE: {
             const paymentAppData = getPaymentAppData(event);
             if (event.price <= 0 || paymentAppData.price <= 0) return null;
 
@@ -194,6 +194,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
                 />
               </EventMetaBlock>
             );
+          }
         }
       })}
     </>

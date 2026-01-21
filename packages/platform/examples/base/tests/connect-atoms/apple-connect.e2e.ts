@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import process from "node:process";
 
 test("connect calendar using the apple connect atom", async ({ page }) => {
   const appleId = process.env.ATOMS_E2E_APPLE_ID;

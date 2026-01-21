@@ -1,4 +1,4 @@
-import { UiConfig } from "../types";
+import type { UiConfig } from "../types";
 
 /**
  * Maps old CSS variable names to new Tailwind v4 variable names.

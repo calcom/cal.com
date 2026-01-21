@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 
-import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+import type { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 
 export interface IBillingProviderService {
   checkoutSessionIsPaid(paymentId: string): Promise<boolean>;

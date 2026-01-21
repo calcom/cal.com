@@ -9,6 +9,7 @@ import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
+import process from "node:process";
 
 const isInWatchMode = process.argv[2] === "--watch";
 

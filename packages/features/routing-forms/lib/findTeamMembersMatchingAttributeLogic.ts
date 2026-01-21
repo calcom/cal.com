@@ -36,7 +36,7 @@ type RunAttributeLogicOptions = {
   enableTroubleshooter: boolean;
 };
 
-export const enum TroubleshooterCase {
+export enum TroubleshooterCase {
   IS_A_ROUTER = "is-a-router",
   NO_LOGIC_FOUND = "no-logic-found",
   MATCH_RESULTS_READY = "match-results-ready",

@@ -1,7 +1,6 @@
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 
-export const getSampleUserInSession = function () {
-  return {
+export const getSampleUserInSession = () => ({
     locale: "",
     avatar: "",
     organization: {
@@ -41,5 +40,4 @@ export const getSampleUserInSession = function () {
     completedOnboarding: false,
     allowSEOIndexing: false,
     receiveMonthlyDigestEmail: false,
-  };
-};
+  });

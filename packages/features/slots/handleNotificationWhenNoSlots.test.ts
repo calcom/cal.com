@@ -7,6 +7,7 @@ import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails/organization-email-service";
 import { getNoSlotsNotificationService } from "@calcom/features/di/containers/NoSlotsNotification";
 import { RedisService } from "@calcom/features/redis/RedisService";
+import process from "node:process";
 
 vi.mock("@calcom/features/redis/RedisService", () => {
   const mockedRedis = vi.fn();

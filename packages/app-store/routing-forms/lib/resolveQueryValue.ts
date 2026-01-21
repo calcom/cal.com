@@ -31,7 +31,7 @@ const replaceAttributeOptionIdsWithOptionLabel = ({
 }) => {
   const queryValueString = JSON.stringify(queryValue);
   let queryValueWithLabels = queryValueString;
-  const allAttributesOptions = attributes.map((attribute) => attribute.options).flat();
+  const allAttributesOptions = attributes.flatMap((attribute) => attribute.options);
   // Because all attribute option Ids are unique, we can reliably identify them along any number of attribute options of different attributes
   allAttributesOptions.forEach((attributeOption) => {
     const attributeOptionId = attributeOption.id;

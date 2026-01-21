@@ -6,6 +6,7 @@
  * // Run this immediately after the above commands
  * Terminal 2: Run `node rate-limit-test-google-service-account-impersonation.js email2@cal.com 100` - Check for email2's limit, it should not hit the limit
  */
+import process from "node:process";
 const { calendar_v3 } = require("@googleapis/calendar");
 const { JWT } = require("googleapis-common");
 
@@ -27,7 +28,7 @@ async function sendRequest(calendar) {
 const args = process.argv.slice(2);
 const emailToImpersonate = args[0];
 const totalRequestsArg = args[1];
-(async function () {
+(async () => {
   console.log({ emailToImpersonate, totalRequestsArg });
   const authClient = new JWT({
     email: serviceAccountClientEmail,

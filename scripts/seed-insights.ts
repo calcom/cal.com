@@ -18,6 +18,7 @@ import {
 	seedRoutingFormResponses,
 	seedRoutingForms,
 } from "./seed-utils";
+import process from "node:process";
 
 // Valid statuses for seed data
 // AWAITING_HOST is excluded because it requires special handling:

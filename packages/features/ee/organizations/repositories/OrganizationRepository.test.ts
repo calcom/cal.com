@@ -68,7 +68,7 @@ async function createTeam({
 beforeEach(async () => {
   vi.resetAllMocks();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   await prismock.reset();
 });
 

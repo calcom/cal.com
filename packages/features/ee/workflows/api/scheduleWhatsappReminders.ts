@@ -18,6 +18,7 @@ import {
   getContentSidForTemplate,
   getContentVariablesForTemplate,
 } from "../lib/reminders/templates/whatsapp/ContentSidMapping";
+import process from "node:process";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");

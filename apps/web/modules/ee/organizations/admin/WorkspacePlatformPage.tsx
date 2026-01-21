@@ -392,7 +392,7 @@ function UpdatePlatformDialog({
       onOpenChange(false);
       await utils.viewer.admin.workspacePlatform.list.invalidate();
     },
-    onError: function (error) {
+    onError: (error) => {
       showToast(error.message, "error");
     },
   });

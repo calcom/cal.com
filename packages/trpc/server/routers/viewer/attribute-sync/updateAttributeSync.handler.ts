@@ -7,7 +7,7 @@ import {
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
-import { ZUpdateAttributeSyncSchema } from "./updateAttributeSync.schema";
+import type { ZUpdateAttributeSyncSchema } from "./updateAttributeSync.schema";
 
 type UpdateAttributeSyncOptions = {
   ctx: {

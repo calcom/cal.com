@@ -17,6 +17,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import process from "node:process";
 
 interface Props {
   team: RouterOutputs["viewer"]["organizations"]["listOtherTeams"][number];

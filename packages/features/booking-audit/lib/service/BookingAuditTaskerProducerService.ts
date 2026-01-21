@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import { IS_PRODUCTION } from "@calcom/lib/constants";

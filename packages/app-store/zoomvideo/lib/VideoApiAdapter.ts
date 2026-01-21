@@ -407,7 +407,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           }),
         });
       },
-      isTokenObjectUnusable: async function (response) {
+      isTokenObjectUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isTokenObjectUnusable"] });
         myLog.info(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {
@@ -438,7 +438,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         }
         return null;
       },
-      isAccessTokenUnusable: async function (response) {
+      isAccessTokenUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isAccessTokenUnusable"] });
         myLog.info(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {

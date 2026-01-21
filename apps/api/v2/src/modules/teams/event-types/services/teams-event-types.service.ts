@@ -45,7 +45,7 @@ export class TeamsEventTypesService {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -129,7 +129,7 @@ export class TeamsEventTypesService {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });

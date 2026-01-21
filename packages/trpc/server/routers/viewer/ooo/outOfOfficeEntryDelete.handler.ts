@@ -6,7 +6,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import { isAdminForUser } from "./outOfOffice.utils";
-import { type TOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
+import type { TOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
 
 type TBookingRedirectDelete = {
   ctx: {

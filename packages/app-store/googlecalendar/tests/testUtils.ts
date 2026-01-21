@@ -1,4 +1,4 @@
-import { calendar_v3 } from "@googleapis/calendar";
+import type { calendar_v3 } from "@googleapis/calendar";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
@@ -25,7 +25,7 @@ export const createBookingAndFetchGCalEvent = async (
   await selectSecondAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   await page.waitForNavigation({ state: "networkidle" });
   await page.locator("[data-testid=success-page]");
 
@@ -91,15 +91,13 @@ export const createBookingAndFetchGCalEvent = async (
   expect(refreshedCredential).toBeTruthy();
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  //@ts-expect-error
   const googleCalendarService = createGoogleCalendarServiceWithGoogleType(refreshedCredential);
 
   const authedCalendar = await googleCalendarService.authedCalendar();
 
   const gCalEventResponse = await authedCalendar.events.get({
     calendarId: "primary",
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     eventId: gCalReference.uid,
   });
 

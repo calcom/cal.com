@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import React from "react";
+import type React from "react";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 

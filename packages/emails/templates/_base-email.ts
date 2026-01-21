@@ -10,6 +10,7 @@ import { setTestEmail } from "@calcom/lib/testEmails";
 import { prisma } from "@calcom/prisma";
 
 import { sanitizeDisplayName } from "../lib/sanitizeDisplayName";
+import process from "node:process";
 
 export default class BaseEmail {
   name = "";

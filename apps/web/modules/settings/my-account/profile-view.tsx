@@ -6,7 +6,8 @@ import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
-import React, { useRef, useState } from "react";
+import type React from "react";
+import { useRef, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -53,6 +54,7 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 import type { TRPCClientErrorLike } from "@trpc/client";
 
 import { CompanyEmailOrganizationBanner } from "./components/CompanyEmailOrganizationBanner";
+import process from "node:process";
 
 interface DeleteAccountValues {
   totpCode: string;

@@ -27,6 +27,7 @@ import { Select } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import process from "node:process";
 
 export type { TimeRange };
 

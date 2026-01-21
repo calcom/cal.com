@@ -11,6 +11,7 @@ import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan
 import { useBootIntercom } from "@calcom/web/modules/ee/support/lib/intercom/useIntercom";
 
 import { IntercomContactForm } from "~/ee/support/components/IntercomContactForm";
+import process from "node:process";
 
 declare global {
   interface Window {

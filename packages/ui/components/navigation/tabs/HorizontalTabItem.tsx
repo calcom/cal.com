@@ -24,7 +24,7 @@ export type HorizontalTabItemProps = {
   matchFullPath?: boolean;
 };
 
-const HorizontalTabItem = function ({
+const HorizontalTabItem = ({
   name,
   href,
   linkShallow,
@@ -32,7 +32,7 @@ const HorizontalTabItem = function ({
   avatar,
   matchFullPath,
   ...props
-}: HorizontalTabItemProps) {
+}: HorizontalTabItemProps) => {
   const isCurrent = useUrlMatchesCurrentUrl(href, matchFullPath) || props?.isActive;
   const { t } = useLocale();
 

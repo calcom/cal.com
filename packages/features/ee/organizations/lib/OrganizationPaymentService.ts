@@ -14,6 +14,7 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 import type { OnboardingUser } from "./service/onboarding/types";
+import process from "node:process";
 
 type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });

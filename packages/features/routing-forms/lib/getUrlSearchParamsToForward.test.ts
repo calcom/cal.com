@@ -12,8 +12,9 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
 
   // Consider setting atleast ES2015 as target
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   for (const [key, value] of entries) {
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn requires ES2022
     if (result.hasOwnProperty(key)) {
       let currentValue = result[key];
       if (!Array.isArray(currentValue)) {
