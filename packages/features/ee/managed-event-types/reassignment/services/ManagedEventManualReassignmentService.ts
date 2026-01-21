@@ -5,7 +5,10 @@ import {
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
-import { withHideBranding } from "@calcom/features/profile/lib/hideBranding";
+import {
+  withHideBranding,
+  shouldHideBrandingForEvent,
+} from "@calcom/features/profile/lib/hideBranding";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
@@ -213,6 +216,7 @@ export class ManagedEventManualReassignmentService {
         videoCallData,
         additionalInformation,
         reassignReason,
+        orgId,
         logger: reassignLogger,
       });
     }
@@ -661,6 +665,7 @@ export class ManagedEventManualReassignmentService {
     videoCallData,
     additionalInformation,
     reassignReason,
+    orgId,
     logger,
   }: {
     newBooking: ManagedEventReassignmentCreatedBooking;
@@ -674,10 +679,20 @@ export class ManagedEventManualReassignmentService {
     videoCallData: CalendarEvent["videoCallData"];
     additionalInformation: AdditionalInformation;
     reassignReason?: string;
+    orgId: number | null;
     logger: ReturnType<typeof loggerType.getSubLogger>;
   }) {
     try {
       const eventTypeMetadata = targetEventTypeDetails.metadata as EventTypeMetadata | undefined;
+
+      const hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: targetEventTypeDetails.id,
+        team: targetEventTypeDetails.team ?? null,
+        owner: targetEventTypeDetails.owner
+          ? { id: newUser.id, hideBranding: targetEventTypeDetails.owner.hideBranding }
+          : null,
+        organizationId: orgId,
+      });
 
       const bookerUrlForEmail = await getBookerBaseUrl(targetEventTypeDetails.team?.parentId ?? null);
 
@@ -732,7 +747,7 @@ export class ManagedEventManualReassignmentService {
       calEvent.additionalInformation = additionalInformation;
 
       await sendReassignedScheduledEmailsAndSMS({
-        calEvent: withHideBranding(calEvent),
+        calEvent: withHideBranding(calEvent, hideBranding),
         members: [
           {
             ...newUser,
@@ -766,7 +781,7 @@ export class ManagedEventManualReassignmentService {
         };
 
         await sendRoundRobinReassignedEmailsAndSMS({
-          calEvent: withHideBranding(cancelledCalEvent),
+          calEvent: withHideBranding(cancelledCalEvent, hideBranding),
           members: [
             {
               ...originalUser,
@@ -784,7 +799,7 @@ export class ManagedEventManualReassignmentService {
 
       if (dayjs(calEvent.startTime).isAfter(dayjs())) {
         await sendReassignedUpdatedEmailsAndSMS({
-          calEvent: withHideBranding(calEvent),
+          calEvent: withHideBranding(calEvent, hideBranding),
           eventTypeMetadata,
           showAttendees: !!targetEventTypeDetails.seatsShowAttendees,
         });
