@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { AVATAR_FALLBACK, LOGO, MSTILE_ICON, CAL_URL } from "@calcom/lib/constants";
-import type { User, CalIdTeam } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 
 /**
  * Gives an organization aware avatar url for a user
@@ -21,18 +21,22 @@ export const getUserAvatarUrl = (user: Pick<User, "avatarUrl"> | undefined) => {
 };
 
 export const getBrandLogoUrl = (
-  entity: Partial<Pick<User | CalIdTeam, "bannerUrl" | "faviconUrl">>,
+  entity: { bannerUrl?: string | null; faviconUrl?: string | null },
   isFavicon?: boolean
 ) => {
   const url = isFavicon ? entity?.faviconUrl : entity?.bannerUrl || entity?.faviconUrl;
   if (url) {
-    const isAbsoluteUrl = z.string().url().safeParse(url).success;
-    if (isAbsoluteUrl) {
+    // If URL starts with http:// or https://, it's absolute
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
-    } else {
-      return CAL_URL + url;
     }
+    // If URL starts with /, it's already an absolute path, return as-is
+    if (url.startsWith("/")) {
+      return url;
+    }
+    // Otherwise, prepend CAL_URL
+    return CAL_URL + url;
   }
-  if (isFavicon) return CAL_URL + MSTILE_ICON;
-  return CAL_URL + LOGO;
+  if (isFavicon) return MSTILE_ICON;
+  return LOGO;
 };
