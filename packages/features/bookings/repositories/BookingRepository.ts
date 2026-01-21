@@ -1619,41 +1619,6 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     });
   }
 
-  async findByIdIncludeDestinationCalendar(bookingId: number) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        id: bookingId,
-      },
-      include: {
-        attendees: true,
-        eventType: true,
-        destinationCalendar: true,
-        references: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            timeZone: true,
-            locale: true,
-            organizationId: true,
-            hideBranding: true,
-            username: true,
-            destinationCalendar: true,
-            credentials: {
-              select: safeCredentialSelect,
-            },
-            profiles: {
-              select: {
-                organizationId: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
   async findByIdForReassignment(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
