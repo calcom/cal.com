@@ -15,12 +15,13 @@ import logger from "@calcom/lib/logger";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates, WorkflowStepAutoTranslatedField } from "@calcom/prisma/enums";
 import { SchedulingType, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
+import { WorkflowStepTranslationRepository } from "../../repositories/WorkflowStepTranslationRepository";
 import { isEmailAction, getTemplateBodyForAction, getTemplateSubjectForAction } from "../actionHelperFunctions";
 import { detectMatchedTemplate } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
@@ -237,6 +238,9 @@ export class EmailWorkflowService {
       includeCalendarEvent: workflowStep.includeCalendarEvent,
       ...contextData,
       verifiedAt: workflowStep.verifiedAt,
+      workflowStepId: workflowStep.id,
+      autoTranslateEnabled: workflowStep.autoTranslateEnabled,
+      sourceLocale: workflowStep.sourceLocale,
     } as const;
   }
 
@@ -253,6 +257,9 @@ export class EmailWorkflowService {
     includeCalendarEvent,
     triggerEvent,
     isOrganization,
+    workflowStepId,
+    autoTranslateEnabled,
+    sourceLocale,
   }: {
     evt: BookingInfo;
     sendTo: string[];
@@ -266,6 +273,9 @@ export class EmailWorkflowService {
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
     isOrganization?: boolean;
+    workflowStepId?: number;
+    autoTranslateEnabled?: boolean;
+    sourceLocale?: string | null;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
@@ -477,10 +487,34 @@ export class EmailWorkflowService {
         eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
       };
 
-      const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
+      let translatedEmailBody = emailBody;
+      let translatedEmailSubject = emailSubject;
+
+      if (autoTranslateEnabled && isEmailAttendeeAction && workflowStepId) {
+        const [bodyTranslation, subjectTranslation] = await Promise.all([
+          WorkflowStepTranslationRepository.findByLocale(
+            workflowStepId,
+            WorkflowStepAutoTranslatedField.REMINDER_BODY,
+            locale
+          ),
+          WorkflowStepTranslationRepository.findByLocale(
+            workflowStepId,
+            WorkflowStepAutoTranslatedField.EMAIL_SUBJECT,
+            locale
+          ),
+        ]);
+        if (bodyTranslation?.translatedText) {
+          translatedEmailBody = bodyTranslation.translatedText;
+        }
+        if (subjectTranslation?.translatedText) {
+          translatedEmailSubject = subjectTranslation.translatedText;
+        }
+      }
+
+      const emailSubjectTemplate = customTemplate(translatedEmailSubject, variables, locale, evt.organizer.timeFormat);
       emailContent.emailSubject = emailSubjectTemplate.text;
       emailContent.emailBody = customTemplate(
-        emailBody,
+        translatedEmailBody,
         variables,
         locale,
         evt.organizer.timeFormat,

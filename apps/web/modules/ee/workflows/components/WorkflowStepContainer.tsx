@@ -1690,6 +1690,30 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   />
                 </div>
               )}
+              {props.isOrganization &&
+                (step.action === WorkflowActions.EMAIL_ATTENDEE ||
+                  step.action === WorkflowActions.SMS_ATTENDEE ||
+                  step.action === WorkflowActions.WHATSAPP_ATTENDEE) && (
+                  <div className="mt-2">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.autoTranslateEnabled`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          disabled={props.readOnly}
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.autoTranslateEnabled`) || false
+                          }
+                          description={t("auto_translate_for_attendees")}
+                          descriptionClassName="ml-0"
+                          onChange={(e) =>
+                            form.setValue(`steps.${step.stepNumber - 1}.autoTranslateEnabled`, e.target.checked)
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                )}
               {!props.readOnly && (
                 <div className="ml-1 mt-2">
                   <button

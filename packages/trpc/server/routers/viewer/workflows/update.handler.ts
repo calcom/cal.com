@@ -472,7 +472,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           includeCalendarEvent: newStep.includeCalendarEvent,
           agentId: newStep.agentId || null,
           verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+          autoTranslateEnabled: newStep.autoTranslateEnabled ?? false,
+          sourceLocale: newStep.sourceLocale ?? ctx.user.locale,
         });
+
+        if (isOrg && newStep.autoTranslateEnabled && (newStep.reminderBody || newStep.emailSubject)) {
+          await tasker.create("translateWorkflowStepData", {
+            workflowStepId: oldStep.id,
+            reminderBody: newStep.reminderBody,
+            emailSubject: newStep.emailSubject,
+            userLocale: newStep.sourceLocale || ctx.user.locale,
+          });
+        }
 
         if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
           await tasker.create("scanWorkflowBody", {
@@ -559,7 +570,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           })
         )
       );
-    } else if (!isFormTrigger(trigger)) {
+    }
+
+    if (isOrg) {
+      await Promise.all(
+        createdSteps
+          .filter((step) => step.autoTranslateEnabled && (step.reminderBody || step.emailSubject))
+          .map((step) =>
+            tasker.create("translateWorkflowStepData", {
+              workflowStepId: step.id,
+              reminderBody: step.reminderBody,
+              emailSubject: step.emailSubject,
+              userLocale: step.sourceLocale || ctx.user.locale,
+            })
+          )
+      );
+    }
+
+    if (!SCANNING_WORKFLOW_STEPS && !isFormTrigger(trigger)) {
       // schedule notification for new step (only for event-based triggers)
       await scheduleWorkflowNotifications({
         activeOn: activeOnEventTypeIds,

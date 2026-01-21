@@ -1494,6 +1494,10 @@ model WorkflowStep {
   inboundAgentId String? @unique
   inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
+  autoTranslateEnabled Boolean                     @default(false)
+  sourceLocale         String?
+  translations         WorkflowStepTranslation[]
+
   @@index([workflowId])
 }
 
@@ -2301,6 +2305,11 @@ enum EventTypeAutoTranslatedField {
   TITLE
 }
 
+enum WorkflowStepAutoTranslatedField {
+  REMINDER_BODY
+  EMAIL_SUBJECT
+}
+
 model DelegationCredential {
   id                  String                @id @default(uuid())
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
@@ -2388,6 +2397,21 @@ model EventTypeTranslation {
 
   @@unique([eventTypeId, field, targetLocale])
   @@index([eventTypeId, field, targetLocale])
+}
+
+model WorkflowStepTranslation {
+  uid            String                          @id @default(cuid())
+  workflowStep   WorkflowStep                    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStepId Int
+  field          WorkflowStepAutoTranslatedField
+  sourceLocale   String
+  targetLocale   String
+  translatedText String                          @db.Text
+  createdAt      DateTime                        @default(now())
+  updatedAt      DateTime                        @updatedAt
+
+  @@unique([workflowStepId, field, targetLocale])
+  @@index([workflowStepId, field, targetLocale])
 }
 
 enum WatchlistType {
