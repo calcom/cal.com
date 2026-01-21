@@ -76,12 +76,12 @@ export interface WebhookFeature {
    *
    * Handle all booking-related webhook events:
    * - BOOKING_CREATED
-   * - BOOKING_CANCELLED
+   * - BOOKING_REQUESTED (pending confirmation)
    * - BOOKING_RESCHEDULED
-   * - BOOKING_CONFIRMED
+   * - BOOKING_CANCELLED
    * - BOOKING_REJECTED
-   * - BOOKING_PAID
    * - BOOKING_PAYMENT_INITIATED
+   * - BOOKING_PAID
    * - BOOKING_NO_SHOW_UPDATED
    */
   booking: IBookingWebhookService;

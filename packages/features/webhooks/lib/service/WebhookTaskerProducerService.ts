@@ -42,12 +42,11 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   }
 
   /**
-   * Queue a webhook for confirmed bookings.
+   * Queue a webhook for requested bookings.
    *
-   * Note: Uses BOOKING_REQUESTED trigger event, as this is the webhook event
-   * that fires when bookings are confirmed/requested.
+   * This fires when bookings require confirmation (status = PENDING).
    */
-  async queueBookingConfirmedWebhook(params: QueueBookingWebhookParams): Promise<void> {
+  async queueBookingRequestedWebhook(params: QueueBookingWebhookParams): Promise<void> {
     await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params);
   }
 

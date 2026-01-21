@@ -199,8 +199,8 @@ describe("WebhookTaskerProducerService", () => {
       );
     });
 
-    it("should have queueBookingConfirmedWebhook", async () => {
-      await producer.queueBookingConfirmedWebhook({
+    it("should have queueBookingRequestedWebhook", async () => {
+      await producer.queueBookingRequestedWebhook({
         bookingUid: "test-123",
       });
       expect(mockTasker.create).toHaveBeenCalledWith(

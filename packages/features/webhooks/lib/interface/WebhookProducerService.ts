@@ -12,7 +12,7 @@ interface BaseQueueWebhookParams {
 /**
  * Parameters for queueing booking-related webhooks
  * Used for: BOOKING_CREATED, BOOKING_CANCELLED, BOOKING_RESCHEDULED,
- *           BOOKING_CONFIRMED, BOOKING_REJECTED, BOOKING_NO_SHOW_UPDATED
+ *           BOOKING_REQUESTED, BOOKING_REJECTED, BOOKING_NO_SHOW_UPDATED
  */
 export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   /** Booking UID (required) */
@@ -144,9 +144,11 @@ export interface IWebhookProducerService {
   queueBookingRescheduledWebhook(params: QueueBookingWebhookParams): Promise<void>;
 
   /**
-   * Queue a webhook delivery task for BOOKING_CONFIRMED event
+   * Queue a webhook delivery task for BOOKING_REQUESTED event
+   *
+   * Note: This fires when bookings require confirmation (status = PENDING)
    */
-  queueBookingConfirmedWebhook(params: QueueBookingWebhookParams): Promise<void>;
+  queueBookingRequestedWebhook(params: QueueBookingWebhookParams): Promise<void>;
 
   /**
    * Queue a webhook delivery task for BOOKING_REJECTED event

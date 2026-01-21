@@ -3,7 +3,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 /**
  * Test Fixtures for Webhook Payload Compatibility Testing
- * 
+ *
  * These fixtures provide consistent test data for comparing
  * current implementation vs new Producer/Consumer pattern.
  */
@@ -80,10 +80,7 @@ export function createTestWebhookSubscriber() {
     secret: "test-secret-key",
     time: null,
     timeUnit: null,
-    eventTriggers: [
-      WebhookTriggerEvents.BOOKING_CREATED,
-      WebhookTriggerEvents.BOOKING_CANCELLED,
-    ],
+    eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED, WebhookTriggerEvents.BOOKING_CANCELLED],
   };
 }
 
@@ -94,7 +91,7 @@ export const testTriggerEvents = {
   bookingCreated: WebhookTriggerEvents.BOOKING_CREATED,
   bookingCancelled: WebhookTriggerEvents.BOOKING_CANCELLED,
   bookingRescheduled: WebhookTriggerEvents.BOOKING_RESCHEDULED,
-  bookingConfirmed: WebhookTriggerEvents.BOOKING_REQUESTED,
+  bookingRequested: WebhookTriggerEvents.BOOKING_REQUESTED,
   bookingRejected: WebhookTriggerEvents.BOOKING_REJECTED,
   bookingPaymentInitiated: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
   bookingPaid: WebhookTriggerEvents.BOOKING_PAID,
