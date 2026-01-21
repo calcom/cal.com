@@ -48,7 +48,7 @@ export const getCalEventResponses = ({
   }
 
   const PHONE_FIELD_LABELS: Record<string, string> = {
-    number_text_notifications: "Phone Number (text notification)",
+    number_text_notifications: "Phone Number (Text Notification)",
     phone: "Phone Number",
     phone_number: "Phone Number",
     attendeePhoneNumber: "Phone Number",
