@@ -1,25 +1,38 @@
-import { expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
-
 import prisma from "@calcom/prisma";
-
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
-async function goToAppsTab(page: Page, eventTypeId?: number) {
+async function goToAppsTab(page: Page, eventTypeId?: number): Promise<void> {
   await page.goto(`event-types/${eventTypeId}?tabName=apps`);
   await expect(page.getByTestId("vertical-tab-apps").first()).toHaveAttribute("aria-current", "page");
 }
 
+/**
+ * Ensures an app is enabled in the App table.
+ * This is needed because apps without valid keys are now disabled during seeding.
+ * For E2E tests, we need to enable the app to test the UI behavior.
+ */
+async function ensureAppEnabled(appSlug: string): Promise<void> {
+  await prisma.app.update({
+    where: { slug: appSlug },
+    data: { enabled: true },
+  });
+}
+
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: E2E test suites naturally have many test cases
 test.describe("Payment app", () => {
   test("Should be able to edit alby price, currency", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
+    // Ensure alby app is enabled (it may be disabled if keys are not configured)
+    await ensureAppEnabled("alby");
     await prisma.credential.create({
       data: {
         type: "alby_payment",
@@ -155,6 +168,8 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
+    // Ensure alby app is enabled (it may be disabled if keys are not configured)
+    await ensureAppEnabled("alby");
     await prisma.credential.create({
       data: {
         type: "alby_payment",
