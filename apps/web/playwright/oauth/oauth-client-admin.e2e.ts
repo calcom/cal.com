@@ -6,6 +6,7 @@ import {
   createApprovedOAuthClientAsAdmin,
   createPendingOAuthClient,
   openOAuthClientDetailsFromList,
+  goToAdminOAuthSettings
 } from "./oauth-client-helpers";
 
 async function expectClientStatusInDb(
@@ -29,39 +30,6 @@ async function waitForAdminSection(page: Page, sectionTestId: string) {
   const section = page.getByTestId(sectionTestId);
   await expect(section).toBeVisible({ timeout: 60_000 });
   return section;
-}
-
-async function navigateToAdminOAuthPage(page: Page): Promise<void> {
-  const maxAttempts = 3;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    await page.goto("/settings/admin/oauth");
-    await page.waitForLoadState("networkidle");
-
-    // Check if the admin page loaded correctly by looking at the URL
-    // If the session doesn't have ADMIN role, we'll be redirected away
-    const currentUrl = page.url();
-    if (currentUrl.includes("/settings/admin/oauth")) {
-      // Also wait for the page content to be ready
-      // The admin view makes listClients API calls when it loads
-      try {
-        await page.waitForSelector('[data-testid="open-admin-oauth-client-create-dialog"]', { timeout: 10_000 });
-        return;
-      } catch {
-        // Button not found, page might still be loading or redirected
-      }
-    }
-
-    // If not on admin page, wait a bit and try again
-    // This handles session propagation timing issues in CI
-    if (attempt < maxAttempts) {
-      await page.waitForTimeout(2000);
-    }
-  }
-
-  // Final attempt - just navigate and let the test assertions handle any failure
-  await page.goto("/settings/admin/oauth");
-  await page.waitForLoadState("networkidle");
 }
 
 async function expectClientInAdminSection(
@@ -117,18 +85,6 @@ test.describe("OAuth clients admin", () => {
       logoFileName: "cal.png",
     });
 
-    page.on("response", async (res) => {
-      const url = res.url();
-      if (url.includes("/api/trpc") && url.toLowerCase().includes("oauth")) {
-        console.log("oauth trpc:", res.status(), url);
-        if (res.status() >= 400) {
-          console.log(await res.text());
-        }
-      }
-    });
-
-    await navigateToAdminOAuthPage(page);
-
     const pending1Name = `${testPrefix}pending-1-${Date.now()}`;
     const pending2Name = `${testPrefix}pending-2-${Date.now()}`;
     const pending3Name = `${testPrefix}pending-3-${Date.now()}`;
@@ -137,7 +93,7 @@ test.describe("OAuth clients admin", () => {
     const toBeRejected = await createPendingOAuthClient(page, makeClientInput(pending2Name));
     const staysPending = await createPendingOAuthClient(page, makeClientInput(pending3Name));
 
-    await navigateToAdminOAuthPage(page);
+    await goToAdminOAuthSettings(page);
 
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeApproved.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
