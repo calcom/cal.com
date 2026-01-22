@@ -54,7 +54,9 @@ export const useOAuthClient = ({
             if (response.data.status === SUCCESS_STATUS) {
               onSuccess(response.data.data);
             }
-            http.setClientIdHeader(clientId);
+            if (!isOAuth2) {
+              http.setClientIdHeader(clientId);
+            }
           })
           .catch((err: AxiosError) => {
             if (err.response?.status === 401) {
