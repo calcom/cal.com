@@ -856,12 +856,12 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
     SELECT "child"."id"
     FROM "public"."EventType" AS "parent"
     LEFT JOIN "public"."EventType" "child" ON ("parent"."id") = ("child"."parentId")
-    WHERE "parent"."teamId" IN (${Prisma.join(teamIds)})
+    WHERE "parent"."id" IN (SELECT "id" FROM "EventType" WHERE "teamId" IN (${Prisma.join(teamIds)}))
       AND "child"."id" IS NOT NULL
     UNION
     SELECT "parent"."id"
     FROM "public"."EventType" AS "parent"
-    WHERE "parent"."teamId" IN (${Prisma.join(teamIds)})
+    WHERE "parent"."id" IN (SELECT "id" FROM "EventType" WHERE "teamId" IN (${Prisma.join(teamIds)}))
   `;
 
   return result.map((row) => row.id);
