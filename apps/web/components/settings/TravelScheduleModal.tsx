@@ -1,3 +1,9 @@
+import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { DatePicker, SettingsToggle } from "@calcom/ui/components/form";
+import { DatePickerWithRange as DateRangePicker } from "@calcom/ui/components/form/date-range-picker/DateRangePicker";
 import { Button } from "@coss/ui/components/button";
 import {
   Dialog,
@@ -9,18 +15,10 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@coss/ui/components/dialog";
-import { useIsMobile } from "@coss/ui/hooks/use-mobile";
 import { Label } from "@coss/ui/components/label";
+import { useIsMobile } from "@coss/ui/hooks/use-mobile";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
-
-import dayjs from "@calcom/dayjs";
-import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DatePicker, SettingsToggle } from "@calcom/ui/components/form";
-import { DatePickerWithRange as DateRangePicker } from "@calcom/ui/components/form/date-range-picker/DateRangePicker";
-
 import type { FormValues } from "~/settings/my-account/general-view";
 
 interface TravelScheduleModalProps {
@@ -45,6 +43,7 @@ const TravelScheduleModal = ({
 
   const [selectedTimeZone, setSelectedTimeZone] = useState(preferredTimezone);
   const [isNoEndDate, setIsNoEndDate] = useState(false);
+  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const isOverlapping = (newSchedule: { startDate: Date; endDate?: Date }) => {
@@ -76,6 +75,7 @@ const TravelScheduleModal = ({
     setEndDate(new Date());
     setSelectedTimeZone(preferredTimezone);
     setIsNoEndDate(false);
+    setIsDateRangeOpen(false);
   };
 
   const createNewSchedule = () => {
@@ -95,7 +95,15 @@ const TravelScheduleModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(open) => onOpenChange(open)}>
+    <Dialog
+      open={open}
+      disablePointerDismissal={isDateRangeOpen}
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen);
+        if (!nextOpen) {
+          setIsDateRangeOpen(false);
+        }
+      }}>
       <DialogPopup>
         <DialogHeader>
           <DialogTitle>{t("travel_schedule")}</DialogTitle>
@@ -112,6 +120,7 @@ const TravelScheduleModal = ({
                     endDate,
                   }}
                   popoverModal={isMobile}
+                  onPopoverOpenChange={setIsDateRangeOpen}
                   onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
                     // If newStartDate does become undefined - we resort back to to-todays date
                     setStartDate(newStartDate ?? new Date());
@@ -144,6 +153,9 @@ const TravelScheduleModal = ({
                 onCheckedChange={(checked) => {
                   setEndDate(!checked ? startDate : undefined);
                   setIsNoEndDate(checked);
+                  if (checked) {
+                    setIsDateRangeOpen(false);
+                  }
                   setErrorMessage("");
                 }}
               />

@@ -53,6 +53,23 @@ Legacy names may remain for compatibility, but new usage should follow Base UI n
 
 ## Troubleshooting
 
+### Base UI Dialog closes when a Radix Popover is opened
+
+**Symptom**: A Base UI `Dialog` closes when you open a Radix `Popover` inside it and then click anywhere in the dialog. This is most visible in Chrome.
+
+**Root cause**: Radix popovers render in a portal outside the dialog DOM tree. Base UI's dialog uses outside-interaction detection to dismiss itself. In Chrome, focus and pointer events from the popover portal can be interpreted as outside presses, so the dialog closes even though the user is still interacting with the dialog.
+
+**Solution**: Disable pointer dismissal while the Radix popover is open or migrate the popover to Base UI. For the travel schedule modal, we track the Radix popover open state and pass `disablePointerDismissal` to the dialog while the calendar is open.
+
+```tsx
+// apps/web/components/settings/TravelScheduleModal.tsx
+const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
+
+<Dialog open={open} disablePointerDismissal={isDateRangeOpen} onOpenChange={onOpenChange}>
+  <DateRangePicker onPopoverOpenChange={setIsDateRangeOpen} />
+</Dialog>
+```
+
 ### Infinite loop with lazy-loaded components inside Base UI Dialog
 
 **Symptom**: When opening a coss-ui `Dialog` (Base UI) containing a lazy-loaded component (via `next/dynamic`), an infinite render loop occurs:
