@@ -932,8 +932,8 @@ export class AvailableSlotsService {
     timeZone?: string,
     minimumBookingNotice?: number
   ) {
-    // Use nullish coalescing (??) instead of logical OR (||) to allow 0 as a valid value
-    const startTimeMin = dayjs.utc().add(minimumBookingNotice ?? 1, "minutes");
+    // Always ensure at least 1 minute buffer to prevent booking at exact current time
+    const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
     const startTime =
       timeZone === "Etc/GMT"
         ? dayjs.utc(startTimeInput)
