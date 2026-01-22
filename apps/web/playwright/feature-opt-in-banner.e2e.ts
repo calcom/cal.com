@@ -1,5 +1,5 @@
+import { OPT_IN_FEATURES } from "@calcom/features/feature-opt-in/config";
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -10,6 +10,10 @@ test.describe("Feature Opt-In Banner", () => {
     users,
     prisma,
   }) => {
+    if (!OPT_IN_FEATURES.some((item) => item.slug === "bookings-v3")) {
+      return;
+    }
+
     // Enable the bookings-v3 feature flag globally in the database
     // This is required for the banner to show (globalEnabled must be true)
     // Use upsert to ensure the feature exists and is enabled
