@@ -98,15 +98,15 @@ export default function TeamListItem(props: Props) {
     ? getTeamUrlSync({ orgSlug: team.slug, teamSlug: null })
     : getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug });
   const teamInfo = (
-    <div className="item-center flex truncate p-5">
+    <div className="item-center flex min-w-0 flex-1 shrink-0 p-5">
       <Avatar
         size="md"
         imageSrc={getPlaceholderAvatar(team?.logoUrl || team?.parent?.logoUrl, team?.name as string)}
         alt="Team logo"
         className="inline-flex justify-center"
       />
-      <div className="ms-3 inline-block truncate">
-        <span className="text-default text-sm font-bold">{team.name}</span>
+      <div className="ms-3 inline-block min-w-0 flex-1 truncate">
+        <span className="text-default block truncate text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
           {team.slug ? `${teamUrl}` : <Badge>{t("upgrade")}</Badge>}
         </span>
@@ -137,7 +137,7 @@ export default function TeamListItem(props: Props) {
       )}
       <div
         className={classNames(
-          "flex items-center  justify-between",
+          "flex flex-wrap gap-2 items-center  justify-between",
           !isInvitee && "hover:bg-cal-muted group"
         )}>
         {!isInvitee ? (
