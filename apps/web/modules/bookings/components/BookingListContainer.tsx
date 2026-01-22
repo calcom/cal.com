@@ -1,16 +1,7 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-
 import dayjs from "@calcom/dayjs";
-import {
-  useDataTable,
-  DataTableFilters,
-  DataTableSegment,
-  useDisplayedFilterCount,
-} from "@calcom/features/data-table";
+import { useDataTable, useDisplayedFilterCount } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -19,7 +10,9 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
-
+import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useBookingListColumns } from "~/bookings/hooks/useBookingListColumns";
 import { useBookingListData } from "~/bookings/hooks/useBookingListData";
@@ -27,14 +20,15 @@ import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
 import { useListNavigationCapabilities } from "~/bookings/hooks/useListNavigationCapabilities";
-
+import { DataTableFilters, DataTableSegment } from "~/data-table/components";
 import {
   BookingDetailsSheetStoreProvider,
   useBookingDetailsSheetStore,
 } from "../store/bookingDetailsSheetStore";
-import type { RowData, BookingListingStatus, BookingsGetOutput } from "../types";
+import type { BookingListingStatus, BookingsGetOutput, RowData } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingList } from "./BookingList";
+import { BookingsCsvDownload } from "./BookingsCsvDownload";
 import { ViewToggleButton } from "./ViewToggleButton";
 
 interface FilterButtonProps {
@@ -71,6 +65,7 @@ interface BookingListContainerProps {
     canReadOthersBookings: boolean;
   };
   bookingsV3Enabled: boolean;
+  bookingAuditEnabled: boolean;
 }
 
 interface BookingListInnerProps extends BookingListContainerProps {
@@ -87,6 +82,7 @@ function BookingListInner({
   permissions,
   bookings,
   bookingsV3Enabled,
+  bookingAuditEnabled,
   data,
   isPending,
   hasError,
@@ -121,7 +117,11 @@ function BookingListInner({
     handleBookingClick,
   });
 
-  const finalData = useBookingListData({ data, status, userTimeZone: user?.timeZone });
+  const finalData = useBookingListData({
+    data,
+    status,
+    userTimeZone: user?.timeZone,
+  });
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
@@ -186,7 +186,8 @@ function BookingListInner({
         {/* Desktop: auto-pushed to right via flex-grow spacer, Mobile: continue on second row */}
         <div className="hidden grow md:block" />
 
-        <DataTableSegment.Select shortLabel />
+        <DataTableSegment.Select />
+        <BookingsCsvDownload status={status} />
         {bookingsV3Enabled && <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />}
       </div>
       {displayedFilterCount > 0 && showFilters && (
@@ -221,6 +222,7 @@ function BookingListInner({
           userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
           userId={user?.id}
           userEmail={user?.email}
+          bookingAuditEnabled={bookingAuditEnabled}
         />
       )}
     </>

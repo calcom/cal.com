@@ -1,612 +1,6 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/v2/oauth-clients/{clientId}/users": {
-      "get": {
-        "operationId": "OAuthClientUsersController_getManagedUsers",
-        "summary": "Get all managed users",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to skip",
-            "example": 0,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "emails",
-            "required": false,
-            "in": "query",
-            "description": "Filter managed users by email. If you want to filter by multiple emails, separate them with a comma.",
-            "example": "?emails=email1@example.com,email2@example.com",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      },
-      "post": {
-        "operationId": "OAuthClientUsersController_createUser",
-        "summary": "Create a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateManagedUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/users/{userId}": {
-      "get": {
-        "operationId": "OAuthClientUsersController_getUserById",
-        "summary": "Get a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      },
-      "patch": {
-        "operationId": "OAuthClientUsersController_updateUser",
-        "summary": "Update a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateManagedUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      },
-      "delete": {
-        "operationId": "OAuthClientUsersController_deleteUser",
-        "summary": "Delete a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
-      "post": {
-        "operationId": "OAuthClientUsersController_forceRefresh",
-        "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth/{clientId}/refresh": {
-      "post": {
-        "operationId": "OAuthFlowController_refreshTokens",
-        "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-secret-key",
-            "required": true,
-            "in": "header",
-            "description": "OAuth client secret key.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/webhooks": {
-      "post": {
-        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
-        "summary": "Create a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateWebhookInputDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "get": {
-        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
-        "summary": "Get all webhooks",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of items to return",
-            "example": 25,
-            "schema": {
-              "minimum": 1,
-              "maximum": 250,
-              "default": 250,
-              "type": "number"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Number of items to skip",
-            "example": 0,
-            "schema": {
-              "minimum": 0,
-              "default": 0,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "delete": {
-        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
-        "summary": "Delete all webhooks",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
-      "patch": {
-        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
-        "summary": "Update a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "webhookId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateWebhookInputDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "get": {
-        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
-        "summary": "Get a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "delete": {
-        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
-        "summary": "Delete a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      }
-    },
     "/v2/organizations/{orgId}/attributes": {
       "get": {
         "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
@@ -2810,6 +2204,7 @@
                   "booking.readOrgBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readOrgAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -2831,7 +2226,9 @@
                   "watchlist.create",
                   "watchlist.read",
                   "watchlist.update",
-                  "watchlist.delete"
+                  "watchlist.delete",
+                  "featureOptIn.read",
+                  "featureOptIn.update"
                 ]
               }
             }
@@ -3480,6 +2877,31 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3598,6 +3020,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -6342,6 +5789,7 @@
                   "booking.readTeamBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readTeamAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -6354,7 +5802,9 @@
                   "webhook.create",
                   "webhook.read",
                   "webhook.update",
-                  "webhook.delete"
+                  "webhook.delete",
+                  "featureOptIn.read",
+                  "featureOptIn.update"
                 ]
               }
             }
@@ -6974,6 +6424,16 @@
               "default": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID",
+            "example": 1,
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7178,6 +6638,16 @@
             "name": "userId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID",
+            "example": 1,
             "schema": {
               "type": "number"
             }
@@ -10638,6 +10108,64 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/{bookingUid}/location": {
+      "patch": {
+        "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
+        "summary": "Update booking location for an existing booking",
+        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingLocationInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateBookingLocationOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
     "/v2/bookings/{bookingUid}/guests": {
       "post": {
         "operationId": "BookingGuestsController_2024_08_13_addGuests",
@@ -10878,13 +10406,24 @@
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "summary": "Get busy times",
-        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
+        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?timeZone=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`. Note: loggedInUsersTz is deprecated, use timeZone instead.",
         "parameters": [
           {
             "name": "loggedInUsersTz",
-            "required": true,
+            "required": false,
             "in": "query",
-            "description": "The timezone of the logged in user represented as a string",
+            "deprecated": true,
+            "description": "Deprecated: Use timeZone instead. The timezone of the user represented as a string",
+            "example": "America/New_York",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "The timezone for the busy times query represented as a string",
             "example": "America/New_York",
             "schema": {
               "type": "string"
@@ -11480,6 +11019,816 @@
           }
         },
         "tags": ["Conferencing"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users": {
+      "get": {
+        "operationId": "OAuthClientUsersController_getManagedUsers",
+        "summary": "Get all managed users",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "emails",
+            "required": false,
+            "in": "query",
+            "description": "Filter managed users by email. If you want to filter by multiple emails, separate them with a comma.",
+            "example": "?emails=email1@example.com,email2@example.com",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUsersOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      },
+      "post": {
+        "operationId": "OAuthClientUsersController_createUser",
+        "summary": "Create a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateManagedUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users/{userId}": {
+      "get": {
+        "operationId": "OAuthClientUsersController_getUserById",
+        "summary": "Get a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      },
+      "patch": {
+        "operationId": "OAuthClientUsersController_updateUser",
+        "summary": "Update a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateManagedUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      },
+      "delete": {
+        "operationId": "OAuthClientUsersController_deleteUser",
+        "summary": "Delete a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
+      "post": {
+        "operationId": "OAuthClientUsersController_forceRefresh",
+        "summary": "Force refresh tokens",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuthFlowController_refreshTokens",
+        "summary": "Refresh managed user tokens",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "required": true,
+            "in": "header",
+            "description": "OAuth client secret key.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks": {
+      "post": {
+        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
+        "summary": "Create a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
+        "summary": "Get all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
+        "summary": "Delete all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
+        "summary": "Update a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
+        "summary": "Get a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
+        "summary": "Delete a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      }
+    },
+    "/v2/oauth-clients": {
+      "post": {
+        "operationId": "OAuthClientsController_createOAuthClient",
+        "summary": "Create an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create an OAuth client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      },
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClients",
+        "summary": "Get all OAuth clients",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}": {
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClientById",
+        "summary": "Get an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      },
+      "patch": {
+        "operationId": "OAuthClientsController_updateOAuthClient",
+        "summary": "Update an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      },
+      "delete": {
+        "operationId": "OAuthClientsController_deleteOAuthClient",
+        "summary": "Delete an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
       }
     },
     "/v2/destination-calendars": {
@@ -12620,6 +12969,7 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
+        "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
         "parameters": [
           {
             "name": "Authorization",
@@ -12654,194 +13004,6 @@
           }
         },
         "tags": ["Me"]
-      }
-    },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "Create an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "Get all OAuth clients",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "Get an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "Update an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "Delete an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request": {
@@ -14403,6 +14565,184 @@
         "tags": ["Teams"]
       }
     },
+    "/v2/teams/{teamId}/bookings": {
+      "get": {
+        "operationId": "TeamsBookingsController_getAllTeamBookings",
+        "summary": "Get team bookings",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "example": "?status=upcoming,past",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["upcoming", "recurring", "past", "cancelled", "unconfirmed"]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
+            "example": "?eventTypeIds=100,200",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type id belonging to the team.",
+            "example": "?eventTypeId=100",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with start after this date string.",
+            "example": "?afterStart=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with end before this date string.",
+            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Bookings"]
+      }
+    },
     "/v2/teams/{teamId}/event-types": {
       "post": {
         "operationId": "TeamsEventTypesController_createTeamEventType",
@@ -14705,6 +15045,293 @@
           }
         },
         "tags": ["Teams / Event Types"]
+      }
+    },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}/webhooks": {
+      "post": {
+        "operationId": "TeamsEventTypesWebhooksController_createTeamEventTypeWebhook",
+        "summary": "Create a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "get": {
+        "operationId": "TeamsEventTypesWebhooksController_getTeamEventTypeWebhooks",
+        "summary": "Get all webhooks for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "delete": {
+        "operationId": "TeamsEventTypesWebhooksController_deleteAllTeamEventTypeWebhooks",
+        "summary": "Delete all webhooks for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      }
+    },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "TeamsEventTypesWebhooksController_updateTeamEventTypeWebhook",
+        "summary": "Update a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "get": {
+        "operationId": "TeamsEventTypesWebhooksController_getTeamEventTypeWebhook",
+        "summary": "Get a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "delete": {
+        "operationId": "TeamsEventTypesWebhooksController_deleteTeamEventTypeWebhook",
+        "summary": "Delete a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      }
+    },
+    "/v2/teams/{teamId}/invite": {
+      "post": {
+        "operationId": "TeamsInviteController_createInvite",
+        "summary": "Create team invite link",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateInviteOutputDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Invite"]
       }
     },
     "/v2/teams/{teamId}/memberships": {
@@ -17762,6 +18389,31 @@
           }
         }
       },
+      "DisableRescheduling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Disable rescheduling when less than the specified number of minutes before the meeting. If set, `disabled` should be false or undefined.",
+            "example": 60
+          }
+        }
+      },
+      "DisableCancelling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
       "CalVideoSettings": {
         "type": "object",
         "properties": {
@@ -17792,6 +18444,11 @@
           "disableTranscriptionForOrganizer": {
             "type": "boolean",
             "description": "If true, the organizer will not be able to receive transcription of the meeting"
+          },
+          "sendTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           }
         }
       },
@@ -17901,11 +18558,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -18060,6 +18717,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -19004,6 +19743,31 @@
           }
         }
       },
+      "DisableCancellingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
+      "DisableReschedulingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Rescheduling is disabled when less than the specified number of minutes before the meeting.",
+            "example": 60
+          }
+        }
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -19268,6 +20032,41 @@
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Arrange time slots to optimize availability."
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -19277,6 +20076,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full URL to the booking page for this event type",
+            "example": "https://cal.com/john-doe/30min",
+            "format": "uri"
           }
         },
         "required": [
@@ -19300,7 +20105,8 @@
           "hidden",
           "bookingRequiresAuthentication",
           "ownerId",
-          "users"
+          "users",
+          "bookingUrl"
         ]
       },
       "CreateEventTypeOutput_2024_06_14": {
@@ -19624,6 +20430,41 @@
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Arrange time slots to optimize availability."
+          },
           "teamId": {
             "type": "number"
           },
@@ -19832,11 +20673,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -19991,6 +20832,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -21456,11 +22379,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -21615,6 +22538,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "schedulingType": {
             "type": "string",
@@ -21919,11 +22924,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -22078,6 +23083,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "schedulingType": {
             "type": "string",
@@ -22297,7 +23384,8 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success"
+            "example": "success",
+            "enum": ["success", "error"]
           },
           "data": {
             "$ref": "#/components/schemas/InviteDataDto"
@@ -22825,6 +23913,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         },
         "required": ["active", "subscriberUrl", "triggers"]
@@ -22893,6 +23987,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         }
       },
@@ -26359,6 +27459,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26380,7 +27481,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26463,6 +27566,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26484,7 +27588,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26595,6 +27701,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26616,7 +27723,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26698,6 +27807,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26719,7 +27829,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           }
@@ -26781,6 +27893,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26793,7 +27906,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26864,6 +27979,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26876,7 +27992,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26975,6 +28093,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26987,7 +28106,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -27057,6 +28178,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -27069,7 +28191,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           }
@@ -28226,6 +29350,11 @@
             "type": "string",
             "example": "jane100@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "jane100@example.com",
+            "description": "Clean email for display purposes"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -28235,7 +29364,7 @@
             "example": "America/Los_Angeles"
           }
         },
-        "required": ["id", "name", "email", "username", "timeZone"]
+        "required": ["id", "name", "email", "displayEmail", "username", "timeZone"]
       },
       "EventType": {
         "type": "object",
@@ -28261,6 +29390,11 @@
           "email": {
             "type": "string",
             "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
           },
           "timeZone": {
             "type": "string",
@@ -28324,7 +29458,7 @@
             "example": "+1234567890"
           }
         },
-        "required": ["name", "email", "timeZone", "absent"]
+        "required": ["name", "email", "displayEmail", "timeZone", "absent"]
       },
       "BookingOutput_2024_08_13": {
         "type": "object",
@@ -28652,6 +29786,11 @@
             "type": "string",
             "example": "john@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -28731,7 +29870,15 @@
             }
           }
         },
-        "required": ["name", "email", "timeZone", "absent", "seatUid", "bookingFieldsResponses"]
+        "required": [
+          "name",
+          "email",
+          "displayEmail",
+          "timeZone",
+          "absent",
+          "seatUid",
+          "bookingFieldsResponses"
+        ]
       },
       "CreateSeatedBookingOutput_2024_08_13": {
         "type": "object",
@@ -29442,10 +30589,6 @@
             "example": "success",
             "enum": ["success", "error"]
           },
-          "message": {
-            "type": "string",
-            "example": "This endpoint will require authentication in a future release."
-          },
           "error": {
             "type": "object"
           },
@@ -29472,10 +30615,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "message": {
-            "type": "string",
-            "example": "This endpoint will require authentication in a future release."
           },
           "error": {
             "type": "object"
@@ -29730,9 +30869,14 @@
           "email": {
             "type": "string",
             "example": "john.doe@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Clean email for display purposes"
           }
         },
-        "required": ["id", "name", "email"]
+        "required": ["id", "name", "email", "displayEmail"]
       },
       "ReassignBookingOutput_2024_08_13": {
         "type": "object",
@@ -30033,6 +31177,164 @@
         "required": ["guests"]
       },
       "AddGuestsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
+              }
+            ],
+            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateInputAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "address",
+            "description": "only allowed value for type is `address` - it refers to address defined by the organizer."
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": ["type", "address"]
+      },
+      "UpdateBookingInputAttendeeAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": ["type", "address"]
+      },
+      "UpdateBookingInputAttendeeDefinedLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          },
+          "location": {
+            "type": "string",
+            "example": "321 Example St, City, Country"
+          }
+        },
+        "required": ["type", "location"]
+      },
+      "UpdateBookingInputAttendeePhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": ["type", "phone"]
+      },
+      "UpdateBookingInputLinkLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "link",
+            "description": "only allowed value for type is `link` - it refers to link defined by the organizer."
+          },
+          "link": {
+            "type": "string",
+            "example": "https://meet.google.com/txi-fein-xyz"
+          }
+        },
+        "required": ["type", "link"]
+      },
+      "UpdateBookingInputPhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "phone",
+            "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": ["type", "phone"]
+      },
+      "UpdateBookingLocationInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateBookingLocationOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {

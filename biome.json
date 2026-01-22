@@ -1,6 +1,26 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": true,
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              ["**/__mocks__/**", "**/bookingScenario*"],
+              [":PACKAGE_WITH_PROTOCOL:", ":PACKAGE:"],
+              ["@calcom/**", "@ee/**"],
+              ["@lib/**", "@components/**", "@server/**", "@trpc/**"],
+              "~/**",
+              ":PATH:"
+            ]
+          }
+        }
+      }
+    },
+    "enabled": true
+  },
   "css": {
     "parser": {
       "tailwindDirectives": true
@@ -45,9 +65,13 @@
       "!!packages/lib/raqb/resolveQueryValue.test.ts",
       "!!packages/ui/components/editor/plugins/ToolbarPlugin.tsx",
       "!!packages/embeds/embed-core/src/lib/domUtils.ts"
-    ]
+    ],
+    "maxSize": 2097152
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "arrowParentheses": "always",
       "bracketSpacing": true,
@@ -92,10 +116,17 @@
         "rules": {
           "nursery": {
             "useQwikValidLexicalScope": "off",
-            "useExplicitType": "warn",
+            "useExplicitType": "info",
             "noReactForwardRef": "warn",
-            "noTernary": "warn",
-            "noUnresolvedImports": "warn"
+            "noTernary": "info",
+            "noUnresolvedImports": "warn",
+            "useSortedClasses": {
+              "level": "warn",
+              "options": {
+                "attributes": ["className", "classList"],
+                "functions": ["clsx", "cva", "cn", "tw"]
+              }
+            }
           },
           "correctness": {
             "useImportExtensions": "warn",
@@ -112,16 +143,22 @@
           "style": {
             "useExportsLast": "warn",
             "noProcessEnv": "warn",
-            "useNodejsImportProtocol": "error"
+            "useNodejsImportProtocol": "error",
+            "noNestedTernary": "warn"
           },
           "complexity": {
-            "noExcessiveLinesPerFunction": "warn"
+            "noExcessiveLinesPerFunction": {
+              "level": "warn",
+              "options": {
+                "maxLines": 100,
+                "skipBlankLines": true
+              }
+            }
           },
           "performance": {
             "noImgElement": "warn"
           },
           "suspicious": {
-            "noReactSpecificProps": "warn",
             "noDoubleEquals": "warn",
             "noAssignInExpressions": "warn",
             "noExplicitAny": "warn",
@@ -141,7 +178,37 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          },
+          "correctness": {
+            "noProcessGlobal": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/api/v2/src/config/app.ts",
+        "apps/api/v2/src/main.ts",
+        "apps/api/v2/src/bootstrap.ts",
+        "apps/api/v2/src/config/env.ts",
+        "apps/api/v2/src/env.ts",
+        "apps/api/v2/test/setEnvVars.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.e2e-spec.ts", "**/*.integration-test.ts"],
       "linter": {
         "rules": {
           "complexity": {
@@ -219,6 +286,14 @@
                   {
                     "group": ["../trpc/**"],
                     "message": "features package should not import from trpc to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "message": "features package should not import from @calcom/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../../apps/web/**"],
+                    "message": "features package should not import from apps/web to avoid circular dependencies."
                   }
                 ]
               }
@@ -239,6 +314,97 @@
                   {
                     "group": ["../apps/web/**"],
                     "message": "trpc package should not import from apps/web to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/testing/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "message": "testing package should not import from @calcom/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@calcom/features", "@calcom/features/**"],
+                    "message": "testing package should not import from @calcom/features to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../../apps/web/**"],
+                    "message": "testing package should not import from apps/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../features/**"],
+                    "message": "testing package should not import from features to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@calcom/trpc", "@calcom/trpc/**"],
+                    "message": "atoms package should not import from @calcom/trpc."
+                  },
+                  {
+                    "group": ["../../trpc", "../../trpc/**"],
+                    "message": "atoms package should not import from trpc."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@calcom/*",
+                      "@calcom/**",
+                      "!@calcom/platform-constants",
+                      "!@calcom/platform-constants/**",
+                      "!@calcom/platform-enums",
+                      "!@calcom/platform-enums/**",
+                      "!@calcom/platform-libraries",
+                      "!@calcom/platform-libraries/**",
+                      "!@calcom/platform-types",
+                      "!@calcom/platform-types/**",
+                      "!@calcom/platform-utils",
+                      "!@calcom/platform-utils/**",
+                      "!@calcom/prisma",
+                      "!@calcom/prisma/**"
+                    ],
+                    "message": "API v2 should only import from @calcom/platform-constants, @calcom/platform-enums, @calcom/platform-libraries, @calcom/platform-types, @calcom/platform-utils, and @calcom/prisma. Other @calcom packages are not allowed."
                   }
                 ]
               }

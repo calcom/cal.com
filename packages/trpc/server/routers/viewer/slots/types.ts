@@ -76,14 +76,6 @@ export const reserveSlotSchema = z
     "Either slotUtcStartDate, slotUtcEndDate or eventTypeId should be filled in."
   );
 
-export type Slot = {
-  time: string;
-  userIds?: number[];
-  attendees?: number;
-  bookingUid?: string;
-  users?: string[];
-};
-
 export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
 });
