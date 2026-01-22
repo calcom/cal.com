@@ -38,8 +38,12 @@ const mockWorkflowReminderRepository: Pick<WorkflowReminderRepository, "findById
   findByIdIncludeStepAndWorkflow: vi.fn(),
 };
 
-const mockBookingSeatRepository: Pick<BookingSeatRepository, "getByUidIncludeAttendee"> = {
+const mockBookingSeatRepository: Pick<
+  BookingSeatRepository,
+  "getByUidIncludeAttendee" | "getByReferenceUidWithAttendeeDetails"
+> = {
   getByUidIncludeAttendee: vi.fn(),
+  getByReferenceUidWithAttendeeDetails: vi.fn(),
 };
 
 describe("EmailWorkflowService", () => {
@@ -580,6 +584,285 @@ describe("EmailWorkflowService", () => {
       });
 
       expect(result.attachments).toBeUndefined();
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - Platform URL handling", () => {
+    const baseBookingInfo = {
+      uid: "booking-123",
+      bookerUrl: "https://cal.com",
+      title: "Test Meeting",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: "h:mma",
+        username: "organizer-user",
+      },
+      attendees: [
+        {
+          name: "Attendee Name",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      eventType: {
+        slug: "test-event",
+        recurringEvent: null,
+      },
+    };
+
+    test("should use platform cancel URL when platformClientId and platformCancelUrl are provided", async () => {
+      const mockBookingInfoWithPlatform = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithPlatform,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Cancel here: {CANCEL_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // The cancel link should use the platform URL
+      expect(result.html).toContain("https://platform.example.com/cancel/booking-123");
+      expect(result.html).toContain("slug=test-event");
+      expect(result.html).toContain("username=organizer-user");
+      expect(result.html).toContain("cancel=true");
+    });
+
+    test("should use platform reschedule URL when platformClientId and platformRescheduleUrl are provided", async () => {
+      const mockBookingInfoWithPlatform = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithPlatform,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Reschedule here: {RESCHEDULE_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // The reschedule link should use the platform URL
+      expect(result.html).toContain("https://platform.example.com/reschedule/booking-123");
+      expect(result.html).toContain("slug=test-event");
+      expect(result.html).toContain("username=organizer-user");
+      expect(result.html).toContain("reschedule=true");
+    });
+
+    test("should use standard bookerUrl when platformClientId is not provided", async () => {
+      const mockBookingInfoWithoutPlatform = {
+        ...baseBookingInfo,
+        platformClientId: null,
+        platformCancelUrl: null,
+        platformRescheduleUrl: null,
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithoutPlatform,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Cancel: {CANCEL_URL} Reschedule: {RESCHEDULE_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // Should use standard bookerUrl pattern
+      expect(result.html).toContain("https://cal.com/booking/booking-123?cancel=true");
+      expect(result.html).toContain("https://cal.com/reschedule/booking-123");
+      // Should NOT contain platform URLs
+      expect(result.html).not.toContain("platform.example.com");
+    });
+
+    test("should include teamId in platform cancel URL when team is provided", async () => {
+      const mockBookingInfoWithTeam = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+        team: {
+          id: 42,
+          name: "Test Team",
+          members: [],
+        },
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithTeam,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Cancel here: {CANCEL_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("teamId=42");
+    });
+
+    test("should include teamId in platform reschedule URL when team is provided", async () => {
+      const mockBookingInfoWithTeam = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+        team: {
+          id: 42,
+          name: "Test Team",
+          members: [],
+        },
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithTeam,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Reschedule here: {RESCHEDULE_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("teamId=42");
+    });
+
+    test("should include seatReferenceUid in platform cancel URL for seated events", async () => {
+      const mockBookingInfoWithPlatform = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithPlatform,
+        sendTo: ["attendee@example.com"],
+        seatReferenceUid: "seat-ref-456",
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Cancel here: {CANCEL_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("seatReferenceUid=seat-ref-456");
+    });
+
+    test("should use seatReferenceUid as uid in platform reschedule URL for seated events", async () => {
+      const mockBookingInfoWithPlatform = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithPlatform,
+        sendTo: ["attendee@example.com"],
+        seatReferenceUid: "seat-ref-456",
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Reschedule here: {RESCHEDULE_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // For seated events with EMAIL_ATTENDEE action, the reschedule URL should use seatReferenceUid
+      expect(result.html).toContain("https://platform.example.com/reschedule/seat-ref-456");
+    });
+
+    test("should include allRemainingBookings=true for recurring events in platform cancel URL", async () => {
+      const mockBookingInfoWithRecurring = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+        eventType: {
+          slug: "test-event",
+          recurringEvent: { freq: 2, count: 5, interval: 1 },
+        },
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithRecurring,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Cancel here: {CANCEL_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("allRemainingBookings=true");
+    });
+
+    test("should include allRemainingBookings=false for non-recurring events in platform cancel URL", async () => {
+      const mockBookingInfoNonRecurring = {
+        ...baseBookingInfo,
+        platformClientId: "platform-client-123",
+        platformCancelUrl: "https://platform.example.com/cancel",
+        platformRescheduleUrl: "https://platform.example.com/reschedule",
+        eventType: {
+          slug: "test-event",
+          recurringEvent: null,
+        },
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoNonRecurring,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Cancel here: {CANCEL_URL}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("allRemainingBookings=false");
     });
   });
 });
