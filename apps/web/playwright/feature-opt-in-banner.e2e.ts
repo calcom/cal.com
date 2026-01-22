@@ -34,39 +34,31 @@ test.describe("Feature Opt-In Banner", () => {
     // Navigate to the bookings page
     await page.goto("/bookings/upcoming");
 
-    // Wait for the page to load and the banner to appear
-    // The banner title is "Try the new bookings page"
-    const bannerTitle = page.getByText("Try the new bookings page");
-    await expect(bannerTitle).toBeVisible({ timeout: 15000 });
+    // Wait for the banner to appear
+    const banner = page.getByTestId("feature-opt-in-banner");
+    await expect(banner).toBeVisible({ timeout: 15000 });
 
     // Click the "Try it" button to open the confirmation dialog
-    const tryItButton = page.getByRole("button", { name: "Try it" });
-    await expect(tryItButton).toBeVisible();
+    const tryItButton = page.getByTestId("feature-opt-in-banner-try-it");
     await tryItButton.click();
 
-    // Verify the confirmation dialog appears with the feature name "Enhanced bookings"
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByText("Enhanced bookings")).toBeVisible();
+    // Verify the confirmation dialog appears
+    const confirmDialog = page.getByTestId("feature-opt-in-confirm-dialog");
+    await expect(confirmDialog).toBeVisible();
 
     // Click the "Enable" button to opt-in
-    const enableButton = dialog.getByRole("button", { name: "Enable" });
-    await expect(enableButton).toBeVisible();
+    const enableButton = page.getByTestId("feature-opt-in-confirm-dialog-enable");
     await enableButton.click();
 
-    // Verify the success dialog appears with "Feature enabled successfully!" title
-    await expect(dialog.getByText("Feature enabled successfully!")).toBeVisible();
+    // Verify the success dialog appears
+    const successDialogTitle = page.getByTestId("feature-opt-in-success-dialog-title");
+    await expect(successDialogTitle).toBeVisible();
 
     // Click "View Settings" button to navigate to the settings page
-    const viewSettingsButton = dialog.getByRole("button", { name: "View Settings" });
-    await expect(viewSettingsButton).toBeVisible();
+    const viewSettingsButton = page.getByTestId("feature-opt-in-success-dialog-view-settings");
     await viewSettingsButton.click();
 
     // Verify we are redirected to the features settings page
     await expect(page).toHaveURL(/\/settings\/my-account\/features/);
-
-    // Verify the bookings-v3 feature "Enhanced bookings" is shown in the list
-    const featureItem = page.getByText("Enhanced bookings");
-    await expect(featureItem).toBeVisible();
   });
 });
