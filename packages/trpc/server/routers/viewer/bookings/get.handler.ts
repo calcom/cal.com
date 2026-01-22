@@ -9,7 +9,6 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma as prismaSingleton } from "@calcom/prisma";
 import type { Booking, Prisma as PrismaClientType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -848,14 +847,12 @@ async function enrichAttendeesWithUserData<
  * @param teamIds Array of team IDs to filter by
  * @returns Array of event type IDs or undefined if no teamIds provided
  */
-async function getEventTypeIdsFromTeamIdsFilter(_prisma: PrismaClient, teamIds?: number[]) {
+async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {
   if (!teamIds || teamIds.length === 0) {
     return undefined;
   }
 
-  // Use the prisma singleton directly for raw queries since the passed PrismaClient type
-  // doesn't expose $queryRaw at runtime in all contexts
-  const result = await prismaSingleton.$queryRaw<{ id: number }[]>`
+  const result = await prisma.$queryRaw<{ id: number }[]>`
     SELECT "child"."id" FROM "public"."EventType" AS "parent"
     LEFT JOIN "public"."EventType" "child" ON ("parent"."id") = ("child"."parentId")
     WHERE "parent"."id" IN (SELECT "id" FROM "EventType" WHERE "teamId" IN (${Prisma.join(teamIds)}))

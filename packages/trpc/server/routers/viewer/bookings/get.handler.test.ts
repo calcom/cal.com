@@ -120,6 +120,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       findUnique: vi.fn(),
       groupBy: vi.fn(),
     },
+    $queryRaw: vi.fn().mockResolvedValue([]),
   } as unknown as PrismaClient;
 
   // Create a comprehensive kysely mock that handles all chain methods
@@ -338,7 +339,7 @@ describe("getBookings - PBAC Permission Checks", () => {
     it("should get event types from teams where user has booking.read permission", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([{ id: 10 }, { id: 11 }]);
+      mockPrisma.$queryRaw = vi.fn().mockResolvedValue([{ id: 10 }, { id: 11 }]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
       await getBookings({
@@ -351,8 +352,8 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Verify event types are fetched from team 1
-      expect(mockPrisma.eventType.findMany).toHaveBeenCalled();
+      // Verify event types are fetched from team 1 using raw SQL query
+      expect(mockPrisma.$queryRaw).toHaveBeenCalled();
     });
   });
 
