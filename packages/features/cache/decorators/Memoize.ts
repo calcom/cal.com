@@ -43,7 +43,9 @@ export function Memoize(config: MemoizeOptions) {
           }
         }
       } catch (error) {
-        log.warn("Cache read failed, proceeding to fetch from source", { cacheKey, error });
+        log.warn("Cache read failed, proceeding to fetch from source", {
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
       }
 
       const result = await originalMethod.apply(this, args);
@@ -54,7 +56,9 @@ export function Memoize(config: MemoizeOptions) {
           const redis = getRedisService();
           await redis.set(cacheKey, result, { ttl: config.ttl ?? DEFAULT_TTL_MS });
         } catch (error) {
-          log.warn("Cache write failed", { cacheKey, error });
+          log.warn("Cache write failed", {
+            message: error instanceof Error ? error.message : "Unknown error",
+          });
         }
       }
 
