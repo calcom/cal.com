@@ -1,4 +1,5 @@
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import {
   cleanIntegrationKeys,
   getCalendarCredentials,
@@ -388,8 +389,13 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   }
   // very explicit about skipping sync.
   if (skipSync) {
+    // TODO: Make calendar types more flexible so this isn't needed
     calendarCredentials.map(async (item) => {
-      const { integration, credential } = item;
+      const { integration } = item;
+      // TODO: Make calendar types more flexible somehow so this isn't needed
+      const credential: typeof item.credential & { selectedCalendars: { id: string }[] } =
+        item.credential as CredentialDataWithTeamName & { selectedCalendars: { id: string }[] };
+
       const safeToSendIntegration = cleanIntegrationKeys(integration);
       connectedCalendars.push({
         integration: safeToSendIntegration,
