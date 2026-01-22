@@ -1,5 +1,3 @@
-import type { EventStatus } from "ics";
-
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
@@ -12,31 +10,39 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { SchedulingType, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  SchedulingType,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { CalendarEvent } from "@calcom/types/Calendar";
-
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { EventStatus } from "ics";
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import { isEmailAction, getTemplateBodyForAction, getTemplateSubjectForAction } from "../actionHelperFunctions";
+import {
+  getTemplateBodyForAction,
+  getTemplateSubjectForAction,
+  isEmailAction,
+} from "../actionHelperFunctions";
 import { detectMatchedTemplate } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
 } from "../reminders/templates/customTemplate";
-import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
+import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import type {
-  FormSubmissionData,
-  WorkflowContextData,
   AttendeeInBookingInfo,
   BookingInfo,
+  FormSubmissionData,
   ScheduleEmailReminderAction,
+  WorkflowContextData,
 } from "../types";
 import { WorkflowService } from "./WorkflowService";
 
@@ -438,7 +444,25 @@ export class EmailWorkflowService {
         sendToEmail: sendTo[0],
       });
       const meetingUrl =
-        getVideoCallUrlFromCalEvent({ videoCallData: evt.videoCallData }) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+        getVideoCallUrlFromCalEvent({ videoCallData: evt.videoCallData }) ||
+        bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+
+      const cancelLink = this.buildCancelLink({
+        evt,
+        bookerUrl,
+        recipientEmail,
+        isEmailAttendeeAction,
+        seatReferenceUid,
+      });
+
+      const rescheduleLink = this.buildRescheduleLink({
+        evt,
+        bookerUrl,
+        recipientEmail,
+        isEmailAttendeeAction,
+        seatReferenceUid,
+      });
+
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -453,22 +477,9 @@ export class EmailWorkflowService {
         additionalNotes: evt.additionalNotes,
         responses: transformBookingResponsesToVariableFormat(evt.responses),
         meetingUrl,
-        cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
-          recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
-        }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
+        cancelLink,
         cancelReason: evt.cancellationReason,
-        rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
-          recipientEmail
-            ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
-                isEmailAttendeeAction && seatReferenceUid
-                  ? `&seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
-                  : ""
-              }`
-            : isEmailAttendeeAction && seatReferenceUid
-              ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
-              : ""
-        }`,
-
+        rescheduleLink,
         rescheduleReason: evt.rescheduleReason,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
@@ -519,10 +530,9 @@ export class EmailWorkflowService {
     };
 
     const shouldIncludeCalendarEvent =
-    includeCalendarEvent &&
-    triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
+      includeCalendarEvent && triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
 
-  const attachments = shouldIncludeCalendarEvent
+    const attachments = shouldIncludeCalendarEvent
       ? [
           {
             content:
@@ -555,5 +565,84 @@ export class EmailWorkflowService {
       attachments,
       sender,
     };
+  }
+
+  private buildCancelLink({
+    evt,
+    bookerUrl,
+    recipientEmail,
+    isEmailAttendeeAction,
+    seatReferenceUid,
+  }: {
+    evt: BookingInfo;
+    bookerUrl: string;
+    recipientEmail: string | null;
+    isEmailAttendeeAction: boolean;
+    seatReferenceUid?: string;
+  }): string {
+    if (evt.platformClientId && evt.platformCancelUrl) {
+      const platformCancelLink = new URL(`${evt.platformCancelUrl}/${evt.uid}`);
+      if (evt.eventType?.slug) {
+        platformCancelLink.searchParams.append("slug", evt.eventType.slug);
+      }
+      if (evt.organizer.username) {
+        platformCancelLink.searchParams.append("username", evt.organizer.username);
+      }
+      platformCancelLink.searchParams.append("cancel", "true");
+      platformCancelLink.searchParams.append("allRemainingBookings", String(!!evt.eventType?.recurringEvent));
+      if (isEmailAttendeeAction && seatReferenceUid) {
+        platformCancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
+      }
+      if (evt.team) {
+        platformCancelLink.searchParams.append("teamId", evt.team.id.toString());
+      }
+      return platformCancelLink.toString();
+    }
+
+    return `${bookerUrl}/booking/${evt.uid}?cancel=true${
+      recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
+    }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`;
+  }
+
+  private buildRescheduleLink({
+    evt,
+    bookerUrl,
+    recipientEmail,
+    isEmailAttendeeAction,
+    seatReferenceUid,
+  }: {
+    evt: BookingInfo;
+    bookerUrl: string;
+    recipientEmail: string | null;
+    isEmailAttendeeAction: boolean;
+    seatReferenceUid?: string;
+  }): string {
+    if (evt.platformClientId && evt.platformRescheduleUrl) {
+      const uidForReschedule = isEmailAttendeeAction && seatReferenceUid ? seatReferenceUid : evt.uid;
+      const platformRescheduleLink = new URL(`${evt.platformRescheduleUrl}/${uidForReschedule}`);
+      if (evt.eventType?.slug) {
+        platformRescheduleLink.searchParams.append("slug", evt.eventType.slug);
+      }
+      if (evt.organizer.username) {
+        platformRescheduleLink.searchParams.append("username", evt.organizer.username);
+      }
+      platformRescheduleLink.searchParams.append("reschedule", "true");
+      if (evt.team) {
+        platformRescheduleLink.searchParams.append("teamId", evt.team.id.toString());
+      }
+      return platformRescheduleLink.toString();
+    }
+
+    return `${bookerUrl}/reschedule/${evt.uid}${
+      recipientEmail
+        ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
+            isEmailAttendeeAction && seatReferenceUid
+              ? `&seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+              : ""
+          }`
+        : isEmailAttendeeAction && seatReferenceUid
+          ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+          : ""
+    }`;
   }
 }
