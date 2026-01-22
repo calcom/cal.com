@@ -21,16 +21,12 @@ import { getQueryParam } from "../../utils/query-param";
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 
 export const useBookerLayout = (
-  profileBookerLayouts:
-    | BookerEvent["profile"]["bookerLayouts"]
-    | undefined
-    | null
+  profileBookerLayouts: BookerEvent["profile"]["bookerLayouts"] | undefined | null,
+  isEmbedOverride?: boolean
 ) => {
-  const [_layout, setLayout] = useBookerStoreContext(
-    (state) => [state.layout, state.setLayout],
-    shallow
-  );
-  const isEmbed = useIsEmbed();
+  const [_layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
+  const _isEmbed = useIsEmbed();
+  const isEmbed = isEmbedOverride ?? _isEmbed;
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const embedUiConfig = useEmbedUiConfig();
@@ -99,8 +95,8 @@ export const useBookerLayout = (
   const hideEventTypeDetails = isEmbed
     ? embedUiConfig.hideEventTypeDetails
     : typeof hideEventTypeDetailsParam === "string"
-    ? hideEventTypeDetailsParam === "true"
-    : false;
+      ? hideEventTypeDetailsParam === "true"
+      : false;
 
   const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
 
