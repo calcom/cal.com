@@ -148,14 +148,14 @@ export class BusyTimesService {
             aggregate.push({
               start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
               end: dayjs(startTime).toDate(), // The event starts after the buffer
-              source: "Buffer Time",
+              source: "busy_time.buffer_time",
             });
           }
           if (minutesToBlockAfterEvent) {
             aggregate.push({
               start: dayjs(endTime).toDate(), // The event ends before the buffer
               end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-              source: "Buffer Time",
+              source: "busy_time.buffer_time",
             });
           }
           return aggregate;
@@ -245,20 +245,21 @@ export class BusyTimesService {
           }
         }
 
-        const calendarBusyTimesWithDayjs = calendarBusyTimes.map((value) => ({
-          ...value,
-          end: dayjs(value.end),
-          start: dayjs(value.start),
-          source: value.source ?? "Calendar",
-        }));
-
-        const result = subtract(calendarBusyTimesWithDayjs, openSeatsDateRanges);
+        const result = subtract(
+          calendarBusyTimes.map((value) => ({
+            ...value,
+            end: dayjs(value.end),
+            start: dayjs(value.start),
+            source: value.source ?? "busy_time.calendar",
+          })),
+          openSeatsDateRanges
+        );
 
         busyTimes.push(
           ...result.map((busyTime) => ({
+            ...busyTime,
             start: busyTime.start.subtract(afterEventBuffer || 0, "minute").toDate(),
             end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
-            source: busyTime.source,
           }))
         );
       }

@@ -6,7 +6,6 @@ import type { Availability } from "@calcom/prisma/client";
 export type DateRange = {
   start: Dayjs;
   end: Dayjs;
-  source?: string;
 };
 
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;

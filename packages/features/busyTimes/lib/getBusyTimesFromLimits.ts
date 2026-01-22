@@ -28,7 +28,6 @@ const _getBusyTimesFromLimits = async (
   performance.mark("limitsStart");
 
   // shared amongst limiters to prevent processing known busy periods
-  // Default source will be overridden when adding specific limit types
   const limitManager = new LimitManager();
 
   // run this first, as counting bookings should always run faster..
@@ -132,7 +131,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
@@ -156,7 +154,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
@@ -195,7 +192,6 @@ const _getBusyTimesFromDurationLimits = async (
         limitManager.addBusyTime({
           start: periodStart,
           unit,
-          timeZone: undefined,
           title,
           source,
         });
@@ -215,7 +211,6 @@ const _getBusyTimesFromDurationLimits = async (
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
@@ -239,7 +234,6 @@ const _getBusyTimesFromDurationLimits = async (
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
