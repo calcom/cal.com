@@ -923,10 +923,9 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
   return (
     <div className="flex items-center gap-4">
       <TextField
-        className="!pl-2"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4 shrink-0" />}
-        addOnClassname="pl-2.5"
-        containerClassName="w-53 sm:w-58 md:w-45 lg:w-64 focus:ring-offset-0! [&>div]:gap-1.5"
+        className="max-w-64"
+        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        containerClassName="max-w-64 focus:ring-offset-0!"
         type="search"
         value={searchTerm}
         autoComplete="false"
