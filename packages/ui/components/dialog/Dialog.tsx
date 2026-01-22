@@ -79,7 +79,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         const primaryButton =
           dialogContent.querySelector<HTMLButtonElement>('[data-dialog-primary="true"]') ||
           dialogContent.querySelector<HTMLButtonElement>(
-            '[class*="bg-brand-default"]:not([disabled]), button[type="submit"]:not([disabled])'
+            'button[class*="bg-brand-default"]:not([disabled]), button[type="submit"]:not([disabled])'
           );
 
         if (primaryButton && !primaryButton.disabled) {
