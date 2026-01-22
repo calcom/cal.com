@@ -124,9 +124,8 @@ function UsersTableBare() {
             pages: cachedData.pages.map((page) => ({
               ...page,
               rows: page.rows.map((row) => {
-                const newUser = row;
-                if (row.id === userId) newUser.locked = locked;
-                return newUser;
+                if (row.id === userId) return { ...row, locked };
+                return row;
               }),
             })),
           };
