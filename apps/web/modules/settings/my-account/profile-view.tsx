@@ -68,7 +68,7 @@ type Email = {
 export type FormValues = {
   username: string;
   avatarUrl: string | null;
-  givenName: string;
+  firstName: string;
   lastName: string;
   email: string;
   bio: string;
@@ -273,7 +273,7 @@ const ProfileView = ({ user }: Props) => {
   const defaultValues = {
     username: user.username || "",
     avatarUrl: user.avatarUrl,
-    givenName: user.givenName || "",
+    firstName: user.firstName || "",
     lastName: user.lastName || "",
     email: userEmail,
     bio: user.bio || "",
@@ -594,7 +594,7 @@ const ProfileForm = ({
   const profileFormSchema = z.object({
     username: z.string(),
     avatarUrl: z.string().nullable(),
-    givenName: z
+    firstName: z
       .string()
       .trim()
       .min(1, t("you_need_to_add_a_name"))
@@ -760,7 +760,7 @@ const ProfileForm = ({
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6 grid grid-cols-2 gap-4">
-          <TextField label={t("given_name")} {...formMethods.register("givenName")} />
+          <TextField label={t("first_name")} {...formMethods.register("firstName")} />
           <TextField label={t("last_name")} {...formMethods.register("lastName")} />
         </div>
         <div className="mt-6">

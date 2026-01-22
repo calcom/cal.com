@@ -49,7 +49,7 @@ export const PersonalSettingsView = ({
   }, [personalDetails.avatar, user]);
 
   const formSchema = z.object({
-    givenName: z
+    firstName: z
       .string()
       .min(1, t("name_required"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
@@ -67,7 +67,7 @@ export const PersonalSettingsView = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      givenName: personalDetails.givenName || user?.givenName || "",
+      firstName: personalDetails.firstName || user?.firstName || "",
       lastName: personalDetails.lastName || user?.lastName || "",
       bio: personalDetails.bio || "",
     },
@@ -103,14 +103,14 @@ export const PersonalSettingsView = ({
   const handleContinue = form.handleSubmit(async (data) => {
     // Save to store
     setPersonalDetails({
-      givenName: data.givenName,
+      firstName: data.firstName,
       lastName: data.lastName || "",
       bio: data.bio || "",
     });
 
     // Save to backend
     await mutation.mutateAsync({
-      givenName: data.givenName,
+      firstName: data.firstName,
       lastName: data.lastName || null,
       bio: data.bio || "",
     });
@@ -192,9 +192,9 @@ export const PersonalSettingsView = ({
               <div className="flex w-full flex-col gap-1.5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <TextField label={t("given_name")} {...form.register("givenName")} placeholder={t("given_name_placeholder")} />
-                    {form.formState.errors.givenName && (
-                      <p className="text-error text-sm">{form.formState.errors.givenName.message}</p>
+                    <TextField label={t("first_name")} {...form.register("firstName")} placeholder={t("first_name_placeholder")} />
+                    {form.formState.errors.firstName && (
+                      <p className="text-error text-sm">{form.formState.errors.firstName.message}</p>
                     )}
                   </div>
                   <div>
@@ -235,7 +235,7 @@ export const PersonalSettingsView = ({
         {/* Right column - Browser view */}
         <OnboardingBrowserView
           avatar={imageSrc || personalDetails.avatar || user.avatar}
-          name={[form.watch("givenName"), form.watch("lastName")].filter(Boolean).join(" ") || [personalDetails.givenName, personalDetails.lastName].filter(Boolean).join(" ") || user.name || undefined}
+          name={[form.watch("firstName"), form.watch("lastName")].filter(Boolean).join(" ") || [personalDetails.firstName, personalDetails.lastName].filter(Boolean).join(" ") || user.name || undefined}
           bio={form.watch("bio") || personalDetails.bio || undefined}
           username={personalDetails.username || user.username || undefined}
         />

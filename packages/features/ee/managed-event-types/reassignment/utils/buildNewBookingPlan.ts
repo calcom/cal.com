@@ -40,6 +40,7 @@ export function buildNewBookingPlan({
     eventName: targetEventTypeDetails.eventName,
     teamName: targetEventTypeDetails.team?.name,
     host: newUser.name || "Nameless",
+    hostFirstName: newUser.firstName,
     location: originalBookingFull.location || "",
     bookingFields,
     eventDuration: dayjs(originalBookingFull.endTime).diff(originalBookingFull.startTime, "minutes"),

@@ -54,13 +54,13 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     secondaryEmails: undefined,
   };
 
-  // If givenName or lastName is provided, compute the combined name
-  if (input.givenName !== undefined || input.lastName !== undefined) {
-    const givenName = input.givenName ?? user.givenName ?? "";
+  // If firstName or lastName is provided, compute the combined name
+  if (input.firstName !== undefined || input.lastName !== undefined) {
+    const firstName = input.firstName ?? user.firstName ?? "";
     const lastName = input.lastName !== undefined ? input.lastName : user.lastName;
-    const combinedName = [givenName, lastName].filter(Boolean).join(" ").trim();
+    const combinedName = [firstName, lastName].filter(Boolean).join(" ").trim();
     data.name = combinedName || null;
-    data.givenName = givenName;
+    data.firstName = firstName;
     data.lastName = lastName;
   }
 
@@ -240,7 +240,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       identityProviderId: true,
       metadata: true,
       name: true,
-      givenName: true,
+      firstName: true,
       lastName: true,
       createdDate: true,
       avatarUrl: true,
@@ -262,7 +262,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     identityProviderId: string | null;
     metadata: JsonValue;
     name: string | null;
-    givenName: string;
+    firstName: string;
     lastName: string | null;
     createdDate: Date;
     avatarUrl: string | null;

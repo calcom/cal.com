@@ -46,6 +46,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   locale: "en",
   email: "john.doe@example.com",
   name: "John doe",
+  firstName: "John",
   destinationCalendar: null,
   hideBranding: true,
   brandColor: "#797979",

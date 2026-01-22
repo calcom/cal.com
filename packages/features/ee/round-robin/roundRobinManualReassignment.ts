@@ -194,6 +194,7 @@ export const roundRobinManualReassignment = async ({
       // we send on behalf of team if >1 round robin attendee | collective
       teamName: teamMembers.length > 1 ? eventType.team?.name : null,
       host: newUser.name || "Nameless",
+      hostFirstName: newUser.firstName,
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
       eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
