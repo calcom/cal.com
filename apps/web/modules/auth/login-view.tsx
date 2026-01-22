@@ -83,6 +83,7 @@ function BackgroundGrid() {
         height={height}
         viewBox={`0 0 ${width} ${height}`}
         fill="none"
+        className="[--grid-fill:#f7f7f7] [--grid-stroke:rgba(34,42,53,0.08)] dark:[--grid-fill:#1f1f1f] dark:[--grid-stroke:rgba(255,255,255,0.08)]"
       >
         <defs>
           <radialGradient id="gridFade" cx="50%" cy="50%" rx="70%" ry="70%">
@@ -121,8 +122,8 @@ function BackgroundGrid() {
                 width={size}
                 height={size}
                 rx={radius}
-                fill="#f7f7f7"
-                stroke="rgba(34,42,53,0.08)"
+                fill="var(--grid-fill)"
+                stroke="var(--grid-stroke)"
                 strokeWidth="1"
                 filter="url(#gridShadow)"
               />
@@ -236,26 +237,30 @@ export default function Login({
   };
 
   const showSocialLogin = isGoogleLoginEnabled || isOutlookLoginEnabled;
+  const socialProviderCount = [
+    isGoogleLoginEnabled,
+    isOutlookLoginEnabled,
+  ].filter(Boolean).length;
   const showSignupLink =
     process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" &&
     searchParams?.get("register") !== "false";
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-10">
+    <div className="relative flex min-h-screen items-center justify-center bg-default/80 px-4 py-10">
       <BackgroundGrid />
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center">
         {/* Main Card */}
-        <div className="w-full rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <div className="w-full rounded-xl border border-subtle bg-default p-10 shadow-sm">
           {/* Logo */}
           <div className="mb-2 text-center">
-            <h1 className="font-cal text-xl font-bold text-zinc-900">
+            <h1 className="font-cal text-xl font-bold text-emphasis">
               Cal.com
             </h1>
           </div>
 
           {/* Heading */}
-          <p className="mb-6 text-center text-sm text-zinc-500">
+          <p className="mb-8 text-center text-sm text-subtle">
             {twoFactorRequired ? t("2fa_code") : t("welcome_back_sign_in")}
           </p>
 
@@ -263,7 +268,11 @@ export default function Login({
             {/* Social Login Buttons */}
             {!twoFactorRequired && showSocialLogin && (
               <>
-                <div className="flex gap-3">
+                <div
+                  className={`grid gap-2 ${
+                    socialProviderCount === 2 ? "grid-cols-2" : ""
+                  }`}
+                >
                   {isGoogleLoginEnabled && (
                     <Button
                       variant="outline"
@@ -299,6 +308,16 @@ export default function Login({
                       <span>Microsoft</span>
                     </Button>
                   )}
+                  {displaySSOLogin && (
+                    <>
+                      <SAMLLogin
+                        disabled={formState.isSubmitting}
+                        samlTenantID={samlTenantID}
+                        samlProductID={samlProductID}
+                        setErrorMessage={setErrorMessage}
+                      />
+                    </>
+                  )}
                 </div>
 
                 {/* Divider */}
@@ -325,7 +344,7 @@ export default function Login({
               />
 
               {!twoFactorRequired && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {/* Email Field */}
                   <Field>
                     <FieldLabel>{t("email")}</FieldLabel>
@@ -342,7 +361,15 @@ export default function Login({
 
                   {/* Password Field */}
                   <Field>
-                    <FieldLabel>{t("password")}</FieldLabel>
+                    <div className="flex w-full items-center justify-between">
+                      <FieldLabel>{t("password")}</FieldLabel>
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-sm text-subtle hover:text-emphasis"
+                      >
+                        {t("forgot")}
+                      </Link>
+                    </div>
                     <InputGroup>
                       <InputGroupInput
                         id="password"
@@ -455,24 +482,10 @@ export default function Login({
           <div className="mt-6 text-center">
             <Link
               href={`${WEBSITE_URL}/signup`}
-              className="text-sm font-medium text-zinc-900 hover:underline"
+              className="text-sm font-medium text-emphasis hover:underline"
             >
               {t("create_account")}
             </Link>
-            {displaySSOLogin && (
-              <>
-                <Icon
-                  name="circle"
-                  className="mx-4 inline-block size-1.5 fill-zinc-300 text-zinc-300"
-                />
-                <SAMLLogin
-                  disabled={formState.isSubmitting}
-                  samlTenantID={samlTenantID}
-                  samlProductID={samlProductID}
-                  setErrorMessage={setErrorMessage}
-                />
-              </>
-            )}
           </div>
         )}
       </div>
