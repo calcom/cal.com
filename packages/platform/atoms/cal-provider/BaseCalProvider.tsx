@@ -45,6 +45,7 @@ export type CalProviderProps = {
   version?: API_VERSIONS_ENUM;
   organizationId?: number;
   isEmbed?: boolean;
+  isOAuth2?: boolean;
 } & i18nProps;
 
 export function BaseCalProvider({
@@ -58,6 +59,7 @@ export function BaseCalProvider({
   organizationId,
   onTimezoneChange,
   isEmbed,
+  isOAuth2
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
@@ -83,6 +85,7 @@ export function BaseCalProvider({
 
   const { isInit } = useOAuthClient({
     isEmbed,
+    isOAuth2,
     clientId,
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
@@ -157,6 +160,7 @@ export function BaseCalProvider({
       exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
+
 
   return isInit ? (
     <AtomsContext.Provider

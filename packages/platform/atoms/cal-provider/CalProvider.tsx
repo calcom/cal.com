@@ -38,6 +38,7 @@ export function CalProvider({
   version = VERSION_2024_06_14,
   organizationId,
   isEmbed = false,
+  isOAuth2 = false
 }: CalProviderProps) {
   useEffect(() => {
     http.setVersionHeader(version);
@@ -57,6 +58,7 @@ export function CalProvider({
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider
         isEmbed={isEmbed}
+        isOAuth2={isOAuth2}
         autoUpdateTimezone={autoUpdateTimezone}
         onTimezoneChange={onTimezoneChange}
         clientId={clientId}
