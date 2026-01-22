@@ -1,6 +1,7 @@
 import z from "zod";
 
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 import { Task } from "@calcom/features/tasker/repository";
@@ -192,7 +193,11 @@ export async function scanWorkflowBody(payload: string) {
   }
 
   const isOrg = !!workflow?.team?.isOrganization;
-  const organizationId = isOrg ? workflow?.teamId : workflow?.team?.parentId ?? null;
+  let organizationId: number | null = isOrg ? workflow?.teamId : workflow?.team?.parentId ?? null;
+
+  if (!organizationId && workflow.userId) {
+    organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId: workflow.userId });
+  }
 
   const updatedWorkflowSteps = await prisma.workflowStep.findMany({
     where: {

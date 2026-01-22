@@ -1469,7 +1469,7 @@ export function expectEmailSentViaCustomSmtp({
   }
 
   expect(email.smtpConfig).toBeDefined();
-  // expect(email.smtpConfig?.isCustomSmtp).toBe(true);
+  expect(email.smtpConfig?.isCustomSmtp).toBe(true);
 
   if (expectedFromEmail) {
     expect(email.smtpConfig?.fromEmail).toBe(expectedFromEmail);

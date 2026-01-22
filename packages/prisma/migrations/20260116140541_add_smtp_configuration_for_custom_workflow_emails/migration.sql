@@ -6,7 +6,7 @@ CREATE TABLE "public"."SmtpConfiguration" (
     "id" SERIAL NOT NULL,
     "organizationId" INTEGER NOT NULL,
     "fromEmail" TEXT NOT NULL,
-    "fromName" TEXT,
+    "fromName" TEXT NOT NULL,
     "smtpHost" TEXT NOT NULL,
     "smtpPort" INTEGER NOT NULL,
     "smtpUser" TEXT NOT NULL,
