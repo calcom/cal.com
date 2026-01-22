@@ -40,6 +40,16 @@ interface handleChildrenEventTypesProps {
     | undefined;
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
   updatedValues: Prisma.EventTypeUpdateInput;
+  calVideoSettings?: {
+    disableRecordingForGuests?: boolean | null;
+    disableRecordingForOrganizer?: boolean | null;
+    enableAutomaticTranscription?: boolean | null;
+    enableAutomaticRecordingForOrganizer?: boolean | null;
+    disableTranscriptionForGuests?: boolean | null;
+    disableTranscriptionForOrganizer?: boolean | null;
+    redirectUrlOnExit?: string | null;
+    requireEmailForGuests?: boolean | null;
+  } | null;
 }
 
 const sendAllSlugReplacementEmails = async (
@@ -138,6 +148,7 @@ export default async function handleChildrenEventTypes({
   prisma,
   profileId,
   updatedValues: _updatedValues,
+  calVideoSettings,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
@@ -266,6 +277,26 @@ export default async function handleChildrenEventTypes({
 
         await tx.workflowsOnEventTypes.createMany({
           data: workflowConnections,
+          skipDuplicates: true,
+        });
+      }
+
+      // Create CalVideoSettings for new children if parent has settings
+      if (calVideoSettings && createdEvents.length > 0) {
+        const calVideoSettingsToCreate = createdEvents.map((event) => ({
+          eventTypeId: event.id,
+          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+          disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+          enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+          enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+          disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+          disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+          redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+          requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+        }));
+
+        await tx.calVideoSettings.createMany({
+          data: calVideoSettingsToCreate,
           skipDuplicates: true,
         });
       }
@@ -421,6 +452,58 @@ export default async function handleChildrenEventTypes({
           });
         }
       });
+    }
+
+    // Sync CalVideoSettings to existing children
+    if (oldEventTypes.length > 0) {
+      const childEventTypeIds = oldEventTypes.map((e) => e.id);
+      const BATCH_SIZE = 50;
+
+      if (calVideoSettings) {
+        // Parent has CalVideoSettings - upsert for all children
+        for (let i = 0; i < childEventTypeIds.length; i += BATCH_SIZE) {
+          const batch = childEventTypeIds.slice(i, i + BATCH_SIZE);
+          await Promise.all(
+            batch.map((eventTypeId) =>
+              prisma.calVideoSettings.upsert({
+                where: { eventTypeId },
+                update: {
+                  disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+                  disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+                  enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+                  enableAutomaticRecordingForOrganizer:
+                    calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+                  disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+                  requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+                  updatedAt: new Date(),
+                },
+                create: {
+                  eventTypeId,
+                  disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+                  disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+                  enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+                  enableAutomaticRecordingForOrganizer:
+                    calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+                  disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+                  requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+                },
+              })
+            )
+          );
+        }
+      } else if (calVideoSettings === null) {
+        // Parent's CalVideoSettings were removed - delete from all children
+        await prisma.calVideoSettings.deleteMany({
+          where: {
+            eventTypeId: { in: childEventTypeIds },
+          },
+        });
+      }
+      // Note: If calVideoSettings is undefined, don't touch children's settings
     }
   }
 
