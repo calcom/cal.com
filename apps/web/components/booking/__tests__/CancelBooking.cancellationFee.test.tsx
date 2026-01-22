@@ -1,16 +1,41 @@
-import { render, screen } from "@testing-library/react";
-import * as React from "react";
-import { describe, expect, it, vi, beforeAll } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
+import { describe, expect, it, vi, beforeAll, afterAll, afterEach } from "vitest";
 
 import * as shouldChargeModule from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 
 import CancelBooking from "../CancelBooking";
 
+// Mock the embed-iframe module to prevent it from scheduling timers/RAF that can cause
+// teardown issues when jsdom environment is destroyed
+vi.mock("@calcom/embed-core/embed-iframe", () => ({
+  sdkActionManager: null,
+}));
+
+// Store original scrollIntoView to restore later
+const originalScrollIntoView = Element.prototype.scrollIntoView;
+
 beforeAll(() => {
+  // jsdom doesn't implement scrollIntoView, so we need to mock it
   Element.prototype.scrollIntoView = vi.fn();
 });
 
-vi.mock("@calcom/trpc", () => ({
+afterAll(() => {
+  // Restore scrollIntoView to avoid polluting other tests in the same worker
+  if (originalScrollIntoView) {
+    Element.prototype.scrollIntoView = originalScrollIntoView;
+  } else {
+    // If it was originally undefined, delete it
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+  }
+  // Clean up module mocks to avoid polluting other tests
+  vi.unmock("@calcom/embed-core/embed-iframe");
+});
+
+afterEach(() => {
+  cleanup();
+});
+
+vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
       bookings: {
@@ -56,12 +81,6 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
       }
       return key;
     },
-  }),
-}));
-
-vi.mock("@calcom/lib/hooks/useTelemetry", () => ({
-  useTelemetry: () => ({
-    event: vi.fn(),
   }),
 }));
 
@@ -131,6 +150,7 @@ const mockProps = {
     eventType: {},
   },
   internalNotePresets: [],
+  renderContext: "booking-single-view" as const,
 };
 
 const mockBookingWithoutCancellationFee = {

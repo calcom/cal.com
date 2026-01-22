@@ -3,10 +3,10 @@ import dayjs from "@calcom/dayjs";
 import type { CalendarEvent } from "../types/events";
 
 export interface OverlapLayoutConfig {
-  baseWidthPercent?: number;
-  offsetStepPercent?: number;
   baseZIndex?: number;
   safetyMarginPercent?: number;
+  minWidthPercent?: number;
+  curveExponent?: number;
 }
 
 export interface EventLayout {
@@ -19,11 +19,59 @@ export interface EventLayout {
 }
 
 const DEFAULT_CONFIG: Required<OverlapLayoutConfig> = {
-  baseWidthPercent: 80,
-  offsetStepPercent: 8,
   baseZIndex: 60,
   safetyMarginPercent: 0.5,
+  minWidthPercent: 25,
+  curveExponent: 1.3,
 };
+
+/**
+ * Calculates variable widths for each event in a cascade based on position
+ * Leftmost (longest) events get more width, rightmost (shortest) get less width
+ * Uses anchor points for 2-4 events and smooth easing curve for 5+ events
+ * 
+ * @param groupSize - Number of overlapping events in the group
+ * @param minWidthPercent - Minimum width to maintain readability (default 25%)
+ * @param curveExponent - Easing curve exponent for width distribution (default 1.3)
+ * @returns Array of width percentages, one for each position in the cascade
+ */
+function calculateVariableWidths(
+  groupSize: number,
+  minWidthPercent: number,
+  curveExponent: number
+): number[] {
+  if (groupSize <= 1) {
+    return [100]; // Single event gets full width (100%)
+  }
+  
+  // Define anchor points for first and last widths based on group size
+  let wFirst: number;
+  let wLast: number;
+  
+  if (groupSize === 2) {
+    wFirst = 80;
+    wLast = 50;
+  } else if (groupSize === 3) {
+    wFirst = 55;
+    wLast = 33;
+  } else if (groupSize === 4) {
+    wFirst = 40;
+    wLast = 25;
+  } else {
+    wFirst = Math.max(30, 40 - 3 * (groupSize - 4));
+    wLast = minWidthPercent;
+  }
+  
+  const widths: number[] = [];
+  for (let i = 0; i < groupSize; i++) {
+    const t = groupSize > 1 ? i / (groupSize - 1) : 0;
+    const easedT = Math.pow(1 - t, curveExponent);
+    const width = wLast + (wFirst - wLast) * easedT;
+    widths.push(Math.max(minWidthPercent, width));
+  }
+  
+  return widths;
+}
 
 /**
  * Rounds a number to 3 decimal places using standard rounding
@@ -95,14 +143,13 @@ export function buildOverlapGroups(sortedEvents: CalendarEvent[]): CalendarEvent
 
 /**
  * Calculates layout information for all events including position and z-index
- * Dynamically adjusts offset step to prevent overflow when many events overlap
- * Uses safety margin and floor rounding to guarantee no overflow even with CSS box model effects
+ * Uses variable widths and spreads events across full width with last event aligned to right edge
  */
 export function calculateEventLayouts(
   events: CalendarEvent[],
   config: OverlapLayoutConfig = {}
 ): EventLayout[] {
-  const { baseWidthPercent, offsetStepPercent, baseZIndex, safetyMarginPercent } = {
+  const { baseZIndex, safetyMarginPercent, minWidthPercent, curveExponent } = {
     ...DEFAULT_CONFIG,
     ...config,
   };
@@ -114,30 +161,43 @@ export function calculateEventLayouts(
 
   groups.forEach((group, groupIndex) => {
     const groupSize = group.length;
-    const allowedOffsetSpace = Math.max(0, 100 - baseWidthPercent - safetyMarginPercent);
-    const stepUsed = Math.min(
-      offsetStepPercent,
-      allowedOffsetSpace / Math.max(1, groupSize - 1)
-    );
-
-    group.forEach((event, indexInGroup) => {
-      const leftRaw = indexInGroup * stepUsed;
-      const left = round3(leftRaw);
-      
-      const maxWidthCap = 100 - left - safetyMarginPercent;
-      const widthCap = Math.min(baseWidthPercent, maxWidthCap);
-      
-      const width = floor3(Math.max(0, widthCap));
-
+    
+    const widths = calculateVariableWidths(groupSize, minWidthPercent, curveExponent);
+    const Rmax = 100 - safetyMarginPercent;
+    
+    if (groupSize === 1) {
+      const width = floor3(Math.min(widths[0], Rmax));
       layouts.push({
-        event,
-        leftOffsetPercent: left,
+        event: group[0],
+        leftOffsetPercent: 0,
         widthPercent: width,
-        baseZIndex: baseZIndex + indexInGroup,
+        baseZIndex: baseZIndex,
         groupIndex,
-        indexInGroup,
+        indexInGroup: 0,
       });
-    });
+    } else {
+      const Rmin = widths[0];
+      
+      group.forEach((event, indexInGroup) => {
+        const t = indexInGroup / (groupSize - 1);
+        const ri = Rmin + (Rmax - Rmin) * t;
+        const leftRaw = ri - widths[indexInGroup];
+        const left = round3(leftRaw);
+        
+        const maxWidthCap = Rmax - left;
+        const widthCap = Math.min(widths[indexInGroup], maxWidthCap);
+        const width = floor3(Math.max(0, widthCap));
+
+        layouts.push({
+          event,
+          leftOffsetPercent: left,
+          widthPercent: width,
+          baseZIndex: baseZIndex + indexInGroup,
+          groupIndex,
+          indexInGroup,
+        });
+      });
+    }
   });
 
   return layouts;

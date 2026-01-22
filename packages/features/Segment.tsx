@@ -1,21 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
-
-import { buildStateFromQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { buildStateFromQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils.client";
 import {
-  withRaqbSettingsAndWidgets,
   ConfigFor,
+  withRaqbSettingsAndWidgets,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { trpc, type RouterOutputs } from "@calcom/trpc";
+import { type RouterOutputs, trpc } from "@calcom/trpc/react";
 import cn from "@calcom/ui/classNames";
+import { useCallback, useState } from "react";
+import type { BuilderProps, ImmutableTree, JsonTree } from "react-awesome-query-builder";
+import { Builder, Utils as QbUtils, Query } from "react-awesome-query-builder";
 
 export type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 export function useAttributes(teamId: number) {
@@ -34,12 +32,14 @@ function SegmentWithAttributes({
   queryValue: initialQueryValue,
   onQueryValueChange,
   className,
+  filterMemberIds,
 }: {
   attributes: Attributes;
   teamId: number;
   queryValue: AttributesQueryValue | null;
   onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
   className?: string;
+  filterMemberIds?: number[];
 }) {
   const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
     attributes,
@@ -91,7 +91,7 @@ function SegmentWithAttributes({
         />
       </div>
       <div className="mt-4 text-sm">
-        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} />
+        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} filterMemberIds={filterMemberIds} />
       </div>
     </div>
   );
@@ -100,17 +100,19 @@ function SegmentWithAttributes({
 function MatchingTeamMembers({
   teamId,
   queryValue,
+  filterMemberIds,
 }: {
   teamId: number;
   queryValue: AttributesQueryValue | null;
+  filterMemberIds?: number[];
 }) {
   const { t } = useLocale();
 
   // Check if queryValue has valid children properties value
   const hasValidValue = queryValue?.children1
     ? Object.values(queryValue.children1).some(
-        (child) => child.properties?.value?.[0] !== undefined && child.properties?.value?.[0] !== null
-      )
+      (child) => child.properties?.value?.[0] !== undefined && child.properties?.value?.[0] !== null
+    )
     : false;
 
   const { data: matchingTeamMembersWithResult, isPending } =
@@ -127,7 +129,7 @@ function MatchingTeamMembers({
 
   if (!hasValidValue) {
     return (
-      <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
+      <div className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4">
         <div className="text-subtle flex items-center text-sm font-medium">
           <span>{t("no_filter_set")}</span>
         </div>
@@ -138,7 +140,7 @@ function MatchingTeamMembers({
   if (isPending) {
     return (
       <div
-        className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4"
+        className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4"
         data-testid="segment_loading_state">
         <div className="text-emphasis flex items-center text-sm font-medium">
           <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
@@ -158,10 +160,14 @@ function MatchingTeamMembers({
   }
 
   if (!matchingTeamMembersWithResult) return <span>{t("something_went_wrong")}</span>;
-  const { result: matchingTeamMembers } = matchingTeamMembersWithResult;
+  const { result: allMatchingTeamMembers } = matchingTeamMembersWithResult;
+
+  const matchingTeamMembers = filterMemberIds
+    ? allMatchingTeamMembers?.filter((member) => filterMemberIds.includes(member.id))
+    : allMatchingTeamMembers;
 
   return (
-    <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
+    <div className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4">
       <div className="text-emphasis flex items-center text-sm font-medium">
         <span>{t("x_matching_members", { x: matchingTeamMembers?.length ?? 0 })}</span>
       </div>
@@ -184,11 +190,13 @@ export function Segment({
   queryValue,
   onQueryValueChange,
   className,
+  filterMemberIds,
 }: {
   teamId: number;
   queryValue: AttributesQueryValue | null;
   onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
   className?: string;
+  filterMemberIds?: number[];
 }) {
   const { attributes, isPending } = useAttributes(teamId);
   const { t } = useLocale();
@@ -205,6 +213,7 @@ export function Segment({
       queryValue={queryValue}
       onQueryValueChange={onQueryValueChange}
       className={className}
+      filterMemberIds={filterMemberIds}
     />
   );
 }

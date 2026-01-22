@@ -14,7 +14,7 @@ test.afterEach(async ({ users, orgs }) => {
 test.describe("Organization - Privacy", () => {
   test(`Private Org \n 
         1) Org Member cannot see members of orgs\n
-        2) Org Owner/Admin can see members`, async ({ page, users, orgs }) => {
+        2) Org Owner/Admin can see members`, async ({ page, browser, users, orgs }) => {
     const org = await orgs.create({
       name: "TestOrg",
       isPrivate: true,
@@ -49,21 +49,22 @@ test.describe("Organization - Privacy", () => {
     await page.goto(`/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
 
-    const tableLocator = await page.getByTestId("user-list-data-table");
+    const tableLocator = page.getByTestId("user-list-data-table").first();
 
     await expect(tableLocator).toBeVisible();
 
-    await memberInOrg.apiLogin();
-    await page.goto(`/settings/organizations/${org.slug}/members`);
-    await page.waitForLoadState("domcontentloaded");
-    const userDataTable = await page.getByTestId("user-list-data-table");
-    const membersPrivacyWarning = await page.getByTestId("members-privacy-warning");
+    const [secondContext, secondPage] = await memberInOrg.apiLoginOnNewBrowser(browser);
+    await secondPage.goto(`/settings/organizations/${org.slug}/members`);
+    await secondPage.waitForLoadState("domcontentloaded");
+    const userDataTable = secondPage.getByTestId("user-list-data-table").first();
+    const membersPrivacyWarning = secondPage.getByTestId("members-privacy-warning").first();
     await expect(userDataTable).toBeHidden();
     await expect(membersPrivacyWarning).toBeVisible();
+    await secondContext.close();
   });
   test(`Private Org - Private Team\n 
         1) Team Member cannot see members in team\n
-        2) Team Admin/Owner can see members in team`, async ({ page, users, orgs }) => {
+        2) Team Admin/Owner can see members in team`, async ({ page, browser, users, orgs }) => {
     const org = await orgs.create({
       name: "TestOrg",
       isPrivate: true,
@@ -118,27 +119,28 @@ test.describe("Organization - Privacy", () => {
     expect(memberUser?.user.email).toBeDefined();
     // @ts-expect-error expect doesnt assert on a type level
     const memberOfTeam = await users.set(memberUser?.user.email);
-    await memberOfTeam.apiLogin();
+    const [secondContext, secondPage] = await memberOfTeam.apiLoginOnNewBrowser(browser);
 
-    await page.goto(`/settings/teams/${teamId}/settings`);
-    await page.waitForLoadState("domcontentloaded");
+    await secondPage.goto(`/settings/teams/${teamId}/settings`);
+    await secondPage.waitForLoadState("domcontentloaded");
 
     // As a user we can not see the privacy settings when a team is private
-    await expect(page.getByTestId("make-team-private-check")).toBeHidden();
+    await expect(secondPage.getByTestId("make-team-private-check")).toBeHidden();
 
-    await page.goto(`/settings/teams/${teamId}/members`);
-    await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    await secondPage.goto(`/settings/teams/${teamId}/members`);
+    await secondPage.waitForLoadState("domcontentloaded");
+    await secondPage.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
 
     // As a user we can not see the member list when a team is private
-    const hiddenTableLocator = await page.getByTestId("team-member-list-container");
+    const hiddenTableLocator = secondPage.getByTestId("team-member-list-container");
     await expect(hiddenTableLocator).toBeHidden();
+    await secondContext.close();
   });
   test(`Private Org - Public Team\n 
         1) All team members can see members in team \n
         2) Privacy settings are hidden to non-admin members \n
         3) Admin/Owner can see members in team \n
-        4) Only Team Admin/Owner can see privacy settings`, async ({ page, users, orgs }) => {
+        4) Only Team Admin/Owner can see privacy settings`, async ({ page, browser, users, orgs }) => {
     const org = await orgs.create({
       name: "TestOrg",
     });
@@ -188,7 +190,7 @@ test.describe("Organization - Privacy", () => {
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(500);
-    const memberTableLocator = await page.getByTestId("team-member-list-container");
+    const memberTableLocator = page.getByTestId("team-member-list-container");
     await expect(memberTableLocator).toBeVisible();
 
     // 2) Privacy settings are hidden to non-admin members
@@ -196,18 +198,19 @@ test.describe("Organization - Privacy", () => {
     await page.waitForLoadState("domcontentloaded");
     await expect(page.getByTestId("make-team-private-check")).toBeHidden();
 
-    await owner.apiLogin();
+    const [secondContext, secondPage] = await owner.apiLoginOnNewBrowser(browser);
 
     // 3) Admin/Owner can see members in team
-    await page.goto(`/settings/teams/${teamId}/members`);
-    await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
-    const adminTableLocator = await page.getByTestId("team-member-list-container");
+    await secondPage.goto(`/settings/teams/${teamId}/members`);
+    await secondPage.waitForLoadState("domcontentloaded");
+    await secondPage.waitForTimeout(500);
+    const adminTableLocator = secondPage.getByTestId("team-member-list-container");
     await expect(adminTableLocator).toBeVisible();
 
     // 4) Only Team Admin/Owner can see privacy settings
-    await page.goto(`/settings/teams/${teamId}/settings`);
-    await page.waitForLoadState("domcontentloaded");
-    await expect(page.getByTestId("make-team-private-check")).toBeVisible();
+    await secondPage.goto(`/settings/teams/${teamId}/settings`);
+    await secondPage.waitForLoadState("domcontentloaded");
+    await expect(secondPage.getByTestId("make-team-private-check")).toBeVisible();
+    await secondContext.close();
   });
 });

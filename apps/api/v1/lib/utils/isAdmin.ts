@@ -16,15 +16,15 @@ export const isAdminGuard = async (req: NextApiRequest) => {
     where: {
       userId: userId,
       accepted: true,
+      role: {
+        in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      },
       team: {
         isOrganization: true,
         organizationSettings: {
-          is: {
-            isAdminAPIEnabled: true,
-          },
+          isAdminAPIEnabled: true,
         },
       },
-      OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
     },
     select: {
       team: {

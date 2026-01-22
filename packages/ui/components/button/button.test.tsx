@@ -7,11 +7,13 @@ import { Button, buttonClasses } from "./Button";
 
 const observeMock = vi.fn();
 
-window.ResizeObserver = vi.fn().mockImplementation(() => ({
-  disconnect: vi.fn(),
-  observe: observeMock,
-  unobserve: vi.fn(),
-}));
+window.ResizeObserver = vi.fn().mockImplementation(function() {
+  return {
+    disconnect: vi.fn(),
+    observe: observeMock,
+    unobserve: vi.fn(),
+  };
+});
 
 vi.mock("../tooltip", async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

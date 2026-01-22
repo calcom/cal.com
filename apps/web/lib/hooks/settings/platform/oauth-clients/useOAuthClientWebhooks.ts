@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 import type { ApiSuccessResponse } from "@calcom/platform-types";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 type Input = {
   active: boolean;
@@ -19,6 +20,7 @@ type Output = {
   triggers: WebhookTriggerEvents[];
   secret?: string;
   payloadTemplate: string | undefined | null;
+  version?: WebhookVersion;
 };
 
 export const useOAuthClientWebhooks = (clientId: string) => {

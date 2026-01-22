@@ -1,12 +1,10 @@
 import { useRouter } from "next/navigation";
 
-import { setShowWelcomeToCalcomModalFlag } from "@calcom/features/shell/hooks/useWelcomeToCalcomModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import { setShowWelcomeToCalcomModalFlag } from "@calcom/web/modules/shell/hooks/useWelcomeToCalcomModal";
 
 const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
 
@@ -32,7 +30,6 @@ const DEFAULT_EVENT_TYPES = [
 export const useSubmitPersonalOnboarding = () => {
   const router = useRouter();
   const { t } = useLocale();
-  const telemetry = useTelemetry();
   const utils = trpc.useUtils();
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
@@ -62,7 +59,7 @@ export const useSubmitPersonalOnboarding = () => {
       // Check if org modal flag is set - if so, don't show personal modal
       // Organization onboarding takes precedence
       const hasOrgModalFlag = sessionStorage.getItem(ORG_MODAL_STORAGE_KEY) === "true";
-      
+
       if (!hasOrgModalFlag) {
         // Only set personal modal flag if org modal flag is not set
         setShowWelcomeToCalcomModalFlag();
@@ -80,7 +77,7 @@ export const useSubmitPersonalOnboarding = () => {
   });
 
   const submitPersonalOnboarding = () => {
-    telemetry.event(telemetryEventTypes.onboardingFinished);
+    // telemetry.event(telemetryEventTypes.onboardingFinished);
     mutation.mutate({
       completedOnboarding: true,
     });

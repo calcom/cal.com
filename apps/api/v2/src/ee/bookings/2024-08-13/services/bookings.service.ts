@@ -37,7 +37,6 @@ import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
-
 export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
 
 import {
@@ -69,6 +68,7 @@ import {
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -115,7 +115,7 @@ export class BookingsService_2024_08_13 {
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeAccessService: EventTypeAccessService
-  ) {}
+  ) { }
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
     let bookingTeamEventType = false;
@@ -321,8 +321,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -336,8 +335,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -351,8 +349,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -367,8 +364,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -464,6 +460,7 @@ export class BookingsService_2024_08_13 {
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -488,6 +485,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
@@ -889,6 +887,8 @@ export class BookingsService_2024_08_13 {
     const res = await handleCancelBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
+      userUuid: authUser?.uuid,
+      actionSource: "API_V2",
       arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
       platformClientId: bookingRequest.platformClientId,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -919,7 +919,12 @@ export class BookingsService_2024_08_13 {
     return await this.getBooking(recurringBookingUid, authUser);
   }
 
-  async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
+  async markAbsent(
+    bookingUid: string,
+    bookingOwnerId: number,
+    body: MarkAbsentBookingInput_2024_08_13,
+    userUuid?: string
+  ) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
 
@@ -945,6 +950,7 @@ export class BookingsService_2024_08_13 {
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
+      userUuid,
       platformClientParams,
     });
 
@@ -1138,6 +1144,8 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
@@ -1171,6 +1179,8 @@ export class BookingsService_2024_08_13 {
         reason,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
