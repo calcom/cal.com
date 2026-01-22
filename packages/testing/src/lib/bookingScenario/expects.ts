@@ -1459,7 +1459,6 @@ export function expectEmailSentViaCustomSmtp({
 }) {
   const allEmails = emails.get();
   const email = allEmails.find((e) => e.to.includes(to));
-  console.log("allEmails", allEmails);
 
   if (!email) {
     throw new Error(

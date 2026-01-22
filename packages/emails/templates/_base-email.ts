@@ -205,20 +205,15 @@ export default class BaseEmail {
             emailClass: this.constructor.name,
           });
         } catch (defaultSmtpError) {
-          console.error(
-            "sendEmail failed with both org and default SMTP",
-            `from: ${sanitizedFrom}`,
-            `subject: ${"subject" in payload ? payload.subject : ""}`,
-            { orgSmtpError, defaultSmtpError }
-          );
+          log.error("sendEmail failed with both org and default SMTP", {
+            organizationId: this.organizationId,
+            emailClass: this.constructor.name,
+          });
         }
       } else {
-        console.error(
-          "sendEmail",
-          `from: ${finalFrom}`,
-          `subject: ${"subject" in payload ? payload.subject : ""}`,
-          orgSmtpError
-        );
+        log.error("sendEmail failed", {
+          emailClass: this.constructor.name,
+        });
       }
     }
 

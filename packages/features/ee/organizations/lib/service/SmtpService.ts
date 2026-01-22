@@ -44,7 +44,6 @@ export class SmtpService {
       return { success: true };
     } catch (err) {
       const error = err instanceof Error ? err.message : "Unknown error";
-      console.log("err: ", err);
       return { success: false, error };
     } finally {
       transport.close();
