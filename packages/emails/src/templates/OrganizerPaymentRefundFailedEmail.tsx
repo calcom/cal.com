@@ -16,6 +16,7 @@ export const OrganizerPaymentRefundFailedEmail = (
         <>
           {t("check_with_provider_and_user", {
             user: props.calEvent.attendees[0].name,
+            interpolation: { escapeValue: false },
           })}
         </>
       }>
