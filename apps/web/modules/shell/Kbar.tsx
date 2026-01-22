@@ -261,7 +261,7 @@ function useEventTypesAction(): void {
     actions = eventTypeActions;
   }
 
-  useRegisterActions(actions);
+  useRegisterActions(actions, [data]);
 }
 
 function useUpcomingBookingsAction(): void {
@@ -300,7 +300,7 @@ function useUpcomingBookingsAction(): void {
     });
   }, [data?.bookings, router]);
 
-  useRegisterActions(bookingActions);
+  useRegisterActions(bookingActions, [bookingActions]);
 }
 
 const KBarRoot = ({ children }: { children: ReactNode }): JSX.Element => {
