@@ -32,7 +32,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
       withSource: true,
     },
     {
-      enabled: !!session?.user?.username,
+      // Busy Times need eventTypeId to correctly have all busy times. event.id check here also avoids sending double requests for availability.user
+      enabled: !!session?.user?.username && !!event?.id,
     }
   );
 
@@ -66,7 +67,6 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     //   .toDate(),
 
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
-      // Translate the title if it's a translation key (e.g., "busy_time.event_booking_limit")
       const translatedTitle = event.title ? t(event.title) : t("busy");
       return {
         id: idx,

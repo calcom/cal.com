@@ -4434,6 +4434,7 @@
   "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
   "overwrite_existing_contact_owner": "Overwrite existing contact owner",
   "busy_time": {
+    "busy": "Busy",
     "event_booking_limit": "Event Booking Limit",
     "event_duration_limit": "Event Duration Limit",
     "team_booking_limit": "Team Booking Limit"
