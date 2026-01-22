@@ -10,7 +10,7 @@ import type {
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { groupHostsByGroupId, getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
+import { groupHostsByGroupId, getHostsFromOtherGroups, sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -127,27 +127,6 @@ export const PriorityDialog = (
     </Dialog>
   );
 };
-
-export function sortHosts(
-  hostA: { priority: number | null; weight: number | null },
-  hostB: { priority: number | null; weight: number | null },
-  isRRWeightsEnabled: boolean
-) {
-  const weightA = hostA.weight ?? 100;
-  const priorityA = hostA.priority ?? 2;
-  const weightB = hostB.weight ?? 100;
-  const priorityB = hostB.priority ?? 2;
-
-  if (isRRWeightsEnabled) {
-    if (weightA === weightB) {
-      return priorityB - priorityA;
-    } else {
-      return weightB - weightA;
-    }
-  } else {
-    return priorityB - priorityA;
-  }
-}
 
 export type WeightDialogCustomClassNames = {
   container?: string;

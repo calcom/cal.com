@@ -1,4 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { prisma } from "@calcom/prisma";
 
 import type { IRemoveMemberService } from "./IRemoveMemberService";
@@ -14,7 +15,8 @@ export class RemoveMemberServiceFactory {
     const featuresRepository = new FeaturesRepository(prisma);
     const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(teamId, "pbac");
 
-    const service = isPBACEnabled ? new PBACRemoveMemberService() : new LegacyRemoveMemberService();
+    const teamRepository = new TeamRepository(prisma);
+    const service = isPBACEnabled ? new PBACRemoveMemberService() : new LegacyRemoveMemberService(teamRepository);
 
     return service;
   }

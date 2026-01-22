@@ -82,8 +82,8 @@ export async function toggleDelegationCredentialEnabled(
       log.error(`Delegation credential ${input.id} has no workspace platform slug`);
     }
 
-    let calendarAppName;
-    let conferencingAppName;
+    let calendarAppName: string;
+    let conferencingAppName: string;
 
     if (slug === "google") {
       calendarAppName = "Google Calendar";
