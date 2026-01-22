@@ -13,6 +13,7 @@ import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import type { BookingListingStatus } from "../types";
 
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type TranslationFunction = (key: string) => string;
 
 const BATCH_SIZE = 100;
 
@@ -20,17 +21,17 @@ interface BookingsCsvDownloadProps {
   status: BookingListingStatus;
 }
 
-function transformBookingToCsv(booking: BookingOutput) {
+function transformBookingToCsv(booking: BookingOutput, t: TranslationFunction) {
   return {
-    "Booking UID": booking.uid,
-    Title: booking.title,
-    Status: booking.status,
-    "Start Time": dayjs(booking.startTime).format("YYYY-MM-DD HH:mm:ss"),
-    "End Time": dayjs(booking.endTime).format("YYYY-MM-DD HH:mm:ss"),
-    "Attendee Name": booking.attendees.map((a) => a.name).join("; "),
-    "Attendee Email": booking.attendees.map((a) => a.email).join("; "),
-    "Event Type": booking.eventType?.title ?? "",
-    Location: booking.location ?? "",
+    [t("booking_uid")]: booking.uid,
+    [t("title")]: booking.title,
+    [t("status")]: booking.status,
+    [t("start_time")]: dayjs(booking.startTime).format("YYYY-MM-DD HH:mm:ss"),
+    [t("end_time")]: dayjs(booking.endTime).format("YYYY-MM-DD HH:mm:ss"),
+    [t("attendee_name")]: booking.attendees.map((a) => a.name).join("; "),
+    [t("email")]: booking.attendees.map((a) => a.email).join("; "),
+    [t("event_type")]: booking.eventType?.title ?? "",
+    [t("location")]: booking.location ?? "",
   };
 }
 
@@ -98,8 +99,8 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
       showProgressToast(100);
 
       // Transform and download
-      const csvData = allBookings.map(transformBookingToCsv);
-      const filename = `bookings-${status}-${dayjs().format("YYYY-MM-DD")}.csv`;
+      const csvData = allBookings.map((booking) => transformBookingToCsv(booking, t));
+      const filename = `${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`;
       downloadAsCsv(csvData, filename);
     } catch {
       showToast(t("unexpected_error_try_again"), "error");
