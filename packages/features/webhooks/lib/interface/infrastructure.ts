@@ -1,11 +1,6 @@
-export interface ITasker {
-  create(
-    taskName: string,
-    payload: string,
-    options?: { scheduledAt?: Date; referenceUid?: string }
-  ): Promise<string>;
-  cancelWithReference(referenceUid: string, taskName: string): Promise<string | null>;
-}
+import type { Tasker } from "@calcom/features/tasker/tasker";
+
+export type ITasker = Tasker;
 
 export interface ILogger {
   debug(message: string, meta?: Record<string, unknown>): void;
