@@ -158,6 +158,7 @@ export default function ApiKeyDialogForm({
               name="note"
               label={t("personal_note")}
               labelProps={{ className: "font-medium text-default text-sm" }}
+              className="mt-1 h-10 w-full rounded-lg border px-2"
               placeholder={t("personal_note_placeholder")}
               value={value || ""}
               rows={3}

@@ -1,3 +1,4 @@
+// Custom Image Uploader
 "use client";
 
 import { useCallback, useState } from "react";
@@ -19,6 +20,10 @@ import {
 import { triggerToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./common";
 import type { FileEvent, Area } from "./common";
+
+// Custom Image Uploader
+
+// Custom Image Uploader
 
 const MAX_IMAGE_SIZE = 512;
 
@@ -130,9 +135,13 @@ export default function ImageUploader({
     [result, handleAvatarChange]
   );
 
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <Dialog
+      open={isOpen}
       onOpenChange={(opened) => {
+        setIsOpen(opened);
         // unset file on close
         if (!opened) {
           setFile(null);
@@ -195,7 +204,10 @@ export default function ImageUploader({
           <Button
             data-testid={testId ? `upload-${testId}` : "upload-avatar"}
             color="primary"
-            onClick={() => showCroppedImage(croppedAreaPixels)}>
+            onClick={() => {
+              showCroppedImage(croppedAreaPixels);
+              setIsOpen(false);
+            }}>
             {t("save")}
           </Button>
         </DialogFooter>
