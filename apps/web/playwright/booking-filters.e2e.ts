@@ -1,7 +1,5 @@
-import { expect } from "@playwright/test";
-
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -9,9 +7,9 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking Filters", () => {
-  test("Member role should not see the member filter", async ({ page, users }) => {
+  test("Member role should see the member filter with only themselves as option", async ({ page, users }) => {
     const teamMateName = "team mate 1";
-    await users.create(undefined, {
+    const owner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
       teammates: [{ name: teamMateName }],
@@ -31,7 +29,15 @@ test.describe("Booking Filters", () => {
     await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
     await bookingsGetResponse;
     await page.locator('[data-testid="add-filter-button"]').click();
-    await expect(page.locator('[data-testid="add-filter-item-userId"]')).toBeHidden();
+    await expect(page.locator('[data-testid="add-filter-item-userId"]')).toBeVisible();
+
+    // Click on the member filter to open options
+    await page.locator('[data-testid="add-filter-item-userId"]').click();
+
+    // Verify only the current user (member) is shown as an option, not the owner
+    const filterOptions = page.getByTestId("select-filter-options-userId");
+    await expect(filterOptions.getByRole("option", { name: teamMateName })).toBeVisible();
+    await expect(filterOptions.getByRole("option", { name: owner.name ?? "" })).toBeHidden();
   });
 
   test("Admin role should see the member filter", async ({ page, users }) => {
