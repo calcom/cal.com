@@ -5,7 +5,7 @@ import { locales as i18nLocales } from "@calcom/lib/i18n";
 import logger from "@calcom/lib/logger";
 import { WorkflowStepAutoTranslatedField } from "@calcom/prisma/enums";
 
-export const ZTranslateWorkflowStepDataPayloadSchema = z.object({
+const ZTranslateWorkflowStepDataPayloadSchema = z.object({
   workflowStepId: z.number(),
   reminderBody: z.string().nullable().optional(),
   emailSubject: z.string().nullable().optional(),
@@ -34,6 +34,8 @@ const SUPPORTED_LOCALES = [
   "nb",
 ] as const;
 
+type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
+
 async function processTranslations({
   text,
   userLocale,
@@ -42,7 +44,7 @@ async function processTranslations({
 }: {
   text: string;
   field: WorkflowStepAutoTranslatedField;
-} & Pick<z.infer<typeof ZTranslateWorkflowStepDataPayloadSchema>, "userLocale" | "workflowStepId">) {
+} & Pick<z.infer<typeof ZTranslateWorkflowStepDataPayloadSchema>, "userLocale" | "workflowStepId">): Promise<void> {
   const { LingoDotDevService } = await import("@calcom/lib/server/service/lingoDotDev");
 
   try {
@@ -54,12 +56,14 @@ async function processTranslations({
       targetLocales.map((targetLocale) => LingoDotDevService.localizeText(text, userLocale, targetLocale))
     );
 
-    const validTranslations = translations
-      .filter((trans): trans is string => trans !== null)
-      .map((trans, index) => ({
-        translatedText: trans,
-        targetLocale: targetLocales[index],
-      }));
+    const translationsWithLocales = translations.map((trans, index) => ({
+      translatedText: trans,
+      targetLocale: targetLocales[index],
+    }));
+
+    const validTranslations = translationsWithLocales.filter(
+      (item): item is { translatedText: string; targetLocale: SupportedLocale } => item.translatedText !== null
+    );
 
     if (validTranslations.length > 0) {
       const translationData = validTranslations.map(({ translatedText, targetLocale }) => ({
@@ -69,19 +73,18 @@ async function processTranslations({
         translatedText,
       }));
 
-      const upsertMany =
-        field === WorkflowStepAutoTranslatedField.REMINDER_BODY
-          ? WorkflowStepTranslationRepository.upsertManyBodyTranslations
-          : WorkflowStepTranslationRepository.upsertManySubjectTranslations;
-
-      await upsertMany(translationData);
+      if (field === WorkflowStepAutoTranslatedField.REMINDER_BODY) {
+        await WorkflowStepTranslationRepository.upsertManyBodyTranslations(translationData);
+      } else {
+        await WorkflowStepTranslationRepository.upsertManySubjectTranslations(translationData);
+      }
     }
   } catch (error) {
     logger.error(`Failed to process workflow step ${field} translations:`, error);
   }
 }
 
-export async function translateWorkflowStepData(payload: string): Promise<void> {
+async function translateWorkflowStepData(payload: string): Promise<void> {
   const { workflowStepId, reminderBody, emailSubject, userLocale } =
     ZTranslateWorkflowStepDataPayloadSchema.parse(JSON.parse(payload));
 
@@ -102,3 +105,5 @@ export async function translateWorkflowStepData(payload: string): Promise<void> 
       }),
   ]);
 }
+
+export { ZTranslateWorkflowStepDataPayloadSchema, translateWorkflowStepData };
