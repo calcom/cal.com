@@ -6,8 +6,6 @@ import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/bi
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
-const log = logger.getSubLogger({ prefix: ["subscription-updated-webhook"] });
-import type { Prisma } from "@calcom/prisma/client";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["subscription-updated-webhook"] });
