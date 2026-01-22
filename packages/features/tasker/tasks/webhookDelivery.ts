@@ -1,6 +1,7 @@
 import { getWebhookTaskConsumer } from "@calcom/features/di/webhooks/containers/webhook";
 import { webhookTaskPayloadSchema } from "@calcom/features/webhooks/lib/types/webhookTask";
 import logger from "@calcom/lib/logger";
+import type { ILogger } from "@calcom/lib/tasker/types";
 
 /**
  * Webhook Delivery Task Handler
@@ -15,7 +16,7 @@ import logger from "@calcom/lib/logger";
  * This handler can be deployed to trigger.dev for scalability.
  */
 
-const log = logger.getSubLogger({ prefix: ["webhookDelivery"] });
+const log: ILogger = logger.getSubLogger({ prefix: ["webhookDelivery"] });
 
 export async function webhookDelivery(payload: string, taskId?: string): Promise<void> {
   try {
