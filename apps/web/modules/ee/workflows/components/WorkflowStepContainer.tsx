@@ -1575,6 +1575,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="mb-6">
                   <div className="flex items-center">
                     <Label
+                      data-testid="email-subject-label"
                       className={classNames(
                         "flex-none",
                         props.readOnly || isFormTrigger(trigger) || !hasPaidPlan

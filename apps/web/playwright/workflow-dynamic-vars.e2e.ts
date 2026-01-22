@@ -34,7 +34,7 @@ test.describe("Workflow Dynamic Variables - Paid Plan Features", () => {
     await editSelectedWorkflow("Email Subject Test Workflow");
     await page.waitForLoadState("networkidle");
 
-    const emailSubjectLabel = page.getByText("Email subject");
+    const emailSubjectLabel = page.getByTestId("email-subject-label");
     await expect(emailSubjectLabel).toBeVisible();
 
     const emailSubjectTextarea = page.locator("textarea").first();
@@ -76,8 +76,8 @@ test.describe("Workflow Dynamic Variables - Paid Plan Features", () => {
     const addVariableButton = page.locator('[aria-label="Add variable"]').first();
     await addVariableButton.click();
 
-    await expect(page.getByText("{ORGANIZER_NAME}")).toBeVisible();
-    await expect(page.getByPlaceholder(/search variables/i)).toBeVisible();
+    await expect(page.getByTestId("variable-option-organizer_name")).toBeVisible();
+    await expect(page.getByTestId("search-variables-input")).toBeVisible();
   });
 
   test("can insert dynamic variable from dropdown", async ({ page, workflowPage }) => {
@@ -90,7 +90,7 @@ test.describe("Workflow Dynamic Variables - Paid Plan Features", () => {
     const addVariableButton = page.locator('[aria-label="Add variable"]').first();
     await addVariableButton.click();
 
-    const variableOption = page.getByText("{ORGANIZER_NAME}");
+    const variableOption = page.getByTestId("variable-option-organizer_name");
     await expect(variableOption).toBeVisible();
 
     await variableOption.click();
@@ -128,7 +128,7 @@ test.describe("Workflow Dynamic Variables - Free Plan Users", () => {
     await editSelectedWorkflow("Free User Subject Workflow");
     await page.waitForLoadState("networkidle");
 
-    const emailSubjectLabel = page.getByText("Email subject");
+    const emailSubjectLabel = page.getByTestId("email-subject-label");
     await expect(emailSubjectLabel).toBeVisible();
 
     const emailSubjectTextarea = page.locator("textarea").first();
