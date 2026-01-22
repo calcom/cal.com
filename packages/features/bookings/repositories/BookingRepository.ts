@@ -244,7 +244,6 @@ const selectStatementToGetBookingForCalEventBuilder = {
       timeFormat: true,
       destinationCalendar: true,
       profiles: { select: { organizationId: true } },
-      isPlatformManaged: true,
     },
   },
   // destination calendar of the Organizer

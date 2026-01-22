@@ -6,8 +6,6 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
-import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
-import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { prisma } from "@calcom/prisma";
 
@@ -51,17 +49,7 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
       throw new Error("Booking not found");
     }
 
-    // Fetch platform OAuth client params if user is platform managed
-    let platformParams = {};
-    if (booking.user?.isPlatformManaged) {
-      const platformOAuthClientRepository = new PlatformOAuthClientRepository();
-      const platformOAuthClient = await platformOAuthClientRepository.getByUserId(booking.user.id);
-      if (platformOAuthClient) {
-        platformParams = getPlatformParams(platformOAuthClient);
-      }
-    }
-
-    const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, platformParams)).build();
+    const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, {})).build();
 
     if (!calendarEvent) {
       throw new Error("Calendar event could not be built");
