@@ -1,29 +1,26 @@
+import {
+  buildCalEventFromBooking,
+  CredentialRepository,
+  makeUserActor,
+  updateEvent,
+} from "@calcom/platform-libraries";
+import type {
+  BookingInputLocation_2024_08_13,
+  UpdateBookingInputLocation_2024_08_13,
+  UpdateBookingLocationInput_2024_08_13,
+} from "@calcom/platform-types";
+import type { Booking } from "@calcom/prisma/client";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  ForbiddenException,
-} from "@nestjs/common";
-
-import {
-  updateEvent,
-  CredentialRepository,
-  buildCalEventFromBooking,
-} from "@calcom/platform-libraries";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
-import type {
-  UpdateBookingLocationInput_2024_08_13,
-  BookingInputLocation_2024_08_13,
-  UpdateBookingInputLocation_2024_08_13,
-} from "@calcom/platform-types";
-import type { Booking } from "@calcom/prisma/client";
 
 @Injectable()
 export class BookingLocationService_2024_08_13 {
@@ -35,7 +32,8 @@ export class BookingLocationService_2024_08_13 {
     private readonly usersRepository: UsersRepository,
     private readonly inputService: InputBookingsService_2024_08_13,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly eventTypeAccessService: EventTypeAccessService
+    private readonly eventTypeAccessService: EventTypeAccessService,
+    private readonly bookingEventHandlerService: BookingEventHandlerService
   ) {}
 
   async updateBookingLocation(
@@ -89,6 +87,7 @@ export class BookingLocationService_2024_08_13 {
     user: ApiAuthGuardUser
   ) {
     const bookingUid = existingBooking.uid;
+    const oldLocation = existingBooking.location;
     const bookingLocation =
       this.getLocationValue(inputLocation) ?? existingBooking.location;
 
@@ -136,6 +135,19 @@ export class BookingLocationService_2024_08_13 {
         responses: updatedBookingResponses,
       }
     );
+
+    await this.bookingEventHandlerService.onLocationChanged({
+      bookingUid: existingBooking.uid,
+      actor: makeUserActor(user.uuid),
+      organizationId: existingBookingHost.organizationId ?? null,
+      source: "API_V2",
+      auditData: {
+        location: {
+          old: oldLocation,
+          new: bookingLocation,
+        },
+      },
+    });
 
     return this.bookingsService.getBooking(updatedBooking.uid, user);
   }
