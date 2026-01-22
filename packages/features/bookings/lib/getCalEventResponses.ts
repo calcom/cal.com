@@ -48,13 +48,13 @@ export const getCalEventResponses = ({
   }
 
   const PHONE_FIELD_LABELS: Record<string, string> = {
-    number_text_notifications: "Phone Number (Text Notification)",
-    phone: "Phone Number",
-    phone_number: "Phone Number",
-    attendeePhoneNumber: "Phone Number",
+    number_text_notifications: "number_text_notifications",
+    phone: "phone_number",
+    phone_number: "phone_number",
+    attendeePhoneNumber: "phone_number",
   };
 
-  const PHONE_KEYS = ["attendeePhoneNumber", "number_text_notifications", "phone_number", "phone"] as const;
+  const PHONE_KEYS = ["attendeePhoneNumber", "smsReminderNumber", "phone_number", "phone"] as const;
 
   const parsedBookingFields = bookingFields ? eventTypeBookingFields.parse(bookingFields) : null;
 
