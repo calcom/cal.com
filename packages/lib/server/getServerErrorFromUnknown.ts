@@ -14,6 +14,16 @@ function hasName(cause: unknown): cause is { name: string } {
   return !!cause && typeof cause === "object" && "name" in cause;
 }
 
+function isTimeoutError(cause: unknown): boolean {
+  if (!(cause instanceof Error)) return false;
+  const message = cause.message.toLowerCase();
+  return (
+    message.includes("timed out") ||
+    message.includes("timeout") ||
+    message.includes("function_invocation_timeout")
+  );
+}
+
 function isZodError(cause: unknown): cause is ZodError {
   return cause instanceof ZodError || (hasName(cause) && cause.name === "ZodError");
 }
@@ -103,6 +113,15 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     });
   }
   if (cause instanceof Error) {
+    // Check for timeout errors and return 504 Gateway Timeout
+    if (isTimeoutError(cause)) {
+      return new HttpError({
+        statusCode: 504,
+        message: "Request timed out. Please try again.",
+        cause,
+        data: traceId ? { ...tracedData, traceId } : undefined,
+      });
+    }
     const statusCode = getHttpStatusCode(cause);
     return getHttpError({ statusCode, cause, traceId, tracedData });
   }

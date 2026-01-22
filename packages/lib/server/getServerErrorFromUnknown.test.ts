@@ -40,6 +40,29 @@ const test409Codes = [
 ];
 
 describe("getServerErrorFromUnknown", () => {
+  describe("Timeout error handling", () => {
+    test("should return 504 for Vercel timeout error", () => {
+      const error = new Error("Vercel Runtime Timeout Error: Task timed out after 60 seconds");
+      const result = getServerErrorFromUnknown(error);
+      expect(result.statusCode).toBe(504);
+      expect(result.message).toBe("Request timed out. Please try again.");
+    });
+
+    test("should return 504 for generic timeout error", () => {
+      const error = new Error("Request timed out");
+      const result = getServerErrorFromUnknown(error);
+      expect(result.statusCode).toBe(504);
+      expect(result.message).toBe("Request timed out. Please try again.");
+    });
+
+    test("should return 504 for FUNCTION_INVOCATION_TIMEOUT error", () => {
+      const error = new Error("FUNCTION_INVOCATION_TIMEOUT");
+      const result = getServerErrorFromUnknown(error);
+      expect(result.statusCode).toBe(504);
+      expect(result.message).toBe("Request timed out. Please try again.");
+    });
+  });
+
   test("should handle a StripeInvalidRequestError", () => {
     const stripeError = {
       name: "StripeInvalidRequestError",
