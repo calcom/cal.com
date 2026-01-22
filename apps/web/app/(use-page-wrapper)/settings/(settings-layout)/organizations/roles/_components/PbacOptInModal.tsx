@@ -51,7 +51,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
             <FingerprintAnimation isHovered={isButtonHovered} />
 
             <div className="flex w-full flex-col items-center gap-1 text-center">
-              <h2 className="font-heading text-emphasis text-xl">{t("pbac_opt_in_title")}</h2>
+              <h2 className="font-cal text-emphasis text-xl font-semibold">{t("pbac_opt_in_title")}</h2>
               <p className="text-default text-sm">{t("pbac_opt_in_description")}</p>
             </div>
           </div>

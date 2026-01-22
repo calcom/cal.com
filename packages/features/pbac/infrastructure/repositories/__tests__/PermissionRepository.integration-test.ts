@@ -969,5 +969,132 @@ describe("PermissionRepository - Integration Tests", () => {
 
       expect(result).toContain(testTeamId);
     });
+
+    it("should filter teams by orgId when provided", async () => {
+      // Create two organizations
+      const org1 = await prisma.team.create({
+        data: {
+          name: `Org 1 ${Date.now()}`,
+          slug: `org1-${Date.now()}`,
+          isOrganization: true,
+        },
+      });
+
+      const org2 = await prisma.team.create({
+        data: {
+          name: `Org 2 ${Date.now()}`,
+          slug: `org2-${Date.now()}`,
+          isOrganization: true,
+        },
+      });
+
+      // Create teams within each organization
+      const team1 = await prisma.team.create({
+        data: {
+          name: `Team 1 ${Date.now()}`,
+          slug: `team1-${Date.now()}`,
+          parentId: org1.id,
+        },
+      });
+
+      const team2 = await prisma.team.create({
+        data: {
+          name: `Team 2 ${Date.now()}`,
+          slug: `team2-${Date.now()}`,
+          parentId: org2.id,
+        },
+      });
+
+      // Create memberships with ADMIN role in both organizations
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org1.id,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org2.id,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+        },
+      });
+
+      // Without orgId, should return both organizations
+      const resultWithoutScope = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(resultWithoutScope).toContain(org1.id);
+      expect(resultWithoutScope).toContain(org2.id);
+
+      // With orgId = org1, should only return org1 and its child teams
+      const resultWithScope = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+        orgId: org1.id,
+      });
+
+      expect(resultWithScope).toContain(org1.id);
+      expect(resultWithScope).toContain(team1.id);
+      expect(resultWithScope).not.toContain(org2.id);
+      expect(resultWithScope).not.toContain(team2.id);
+
+      // Cleanup
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.team.deleteMany({ where: { id: { in: [org1.id, org2.id, team1.id, team2.id] } } });
+    });
+
+    it("should include child teams when orgId is provided", async () => {
+      // Create organization
+      const org = await prisma.team.create({
+        data: {
+          name: `Org ${Date.now()}`,
+          slug: `org-${Date.now()}`,
+          isOrganization: true,
+        },
+      });
+
+      // Create child team
+      const childTeam = await prisma.team.create({
+        data: {
+          name: `Child Team ${Date.now()}`,
+          slug: `child-team-${Date.now()}`,
+          parentId: org.id,
+        },
+      });
+
+      // Create membership with ADMIN role in organization
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org.id,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+        },
+      });
+
+      // With orgId, should return both org and child team
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+        orgId: org.id,
+      });
+
+      expect(result).toContain(org.id);
+      expect(result).toContain(childTeam.id);
+
+      // Cleanup
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.team.deleteMany({ where: { id: { in: [org.id, childTeam.id] } } });
+    });
   });
 });

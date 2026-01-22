@@ -71,7 +71,7 @@ export const ErrorPage: React.FC<Props> = (props) => {
     <>
       <div className="bg-subtle flex h-screen">
         <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
-          <h1 className="font-heading text-emphasis text-6xl">{statusCode}</h1>
+          <h1 className="font-cal text-emphasis text-6xl">{statusCode}</h1>
           <h2 className="text-emphasis mt-6 max-w-2xl text-2xl font-medium">
             It&apos;s not you, it&apos;s us.
           </h2>

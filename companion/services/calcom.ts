@@ -318,18 +318,6 @@ async function getUserProfile(): Promise<UserProfile> {
   return _userProfilePromise;
 }
 
-// Get cached username or fetch if not available
-async function getUsername(): Promise<string> {
-  const profile = await getUserProfile();
-  return profile.username;
-}
-
-// Build shareable link for event type
-async function buildEventTypeLink(eventTypeSlug: string): Promise<string> {
-  const username = await getUsername();
-  return `https://cal.com/${username}/${eventTypeSlug}`;
-}
-
 // Clear cached profile (useful for logout)
 function clearUserProfile(): void {
   _userProfile = null;
@@ -874,28 +862,10 @@ async function getTranscripts(bookingUid: string): Promise<BookingTranscript[]> 
 }
 
 async function getEventTypes(): Promise<EventType[]> {
-  // Get cached user profile to extract username (uses in-flight deduplication)
-  let username: string | undefined;
-  try {
-    const userProfile = await getUserProfile();
-    // Extract username from response
-    if (userProfile?.username) {
-      username = userProfile.username;
-    }
-  } catch (_error) {}
-
-  // Build query string with username and sorting
-  const params = new URLSearchParams();
-  if (username) {
-    params.append("username", username);
-  }
+  // For authenticated users, no username/orgSlug params needed - API uses auth token
+  // This also ensures hidden event types are returned (they're filtered out when username is provided)
   // Sort by creation date descending (newer first) to match main codebase behavior
-  // Main codebase uses position: "desc", id: "desc" - since API doesn't expose position,
-  // we use sortCreatedAt: "desc" for similar behavior (newer event types first)
-  params.append("sortCreatedAt", "desc");
-
-  const queryString = params.toString();
-  const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
+  const endpoint = `/event-types?sortCreatedAt=desc`;
 
   const response = await makeRequest<unknown>(endpoint, {}, "2024-06-14");
 
@@ -1663,6 +1633,12 @@ async function deleteEventTypePrivateLink(eventTypeId: number, linkId: number): 
   }
 }
 
+// Helper to get username
+async function getUsername(): Promise<string> {
+  const profile = await getUserProfile();
+  return profile.username;
+}
+
 // Export as object to satisfy noStaticOnlyClass rule
 export const CalComAPIService = {
   setAccessToken,
@@ -1673,7 +1649,6 @@ export const CalComAPIService = {
   updateUserProfile,
   getUserProfile,
   getUsername,
-  buildEventTypeLink,
   clearUserProfile,
   testRawBookingsAPI,
   deleteEventType,

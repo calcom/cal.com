@@ -1,7 +1,15 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import type { ColorValue, ImageSourcePropType } from "react-native";
 import { Tabs, VectorIcon } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
+
+// Type for vector icon families that support getImageSource
+type VectorIconFamily = {
+  getImageSource: (name: string, size: number, color: ColorValue) => Promise<ImageSourcePropType>;
+};
+
+const SELECTED_COLOR = "#000000";
 
 export default function TabLayout() {
   if (Platform.OS === "web") {
@@ -10,42 +18,65 @@ export default function TabLayout() {
 
   return (
     <NativeTabs
-      tintColor="#000000" // Base tint color (black for selected)
+      tintColor={SELECTED_COLOR}
+      iconColor={Platform.select({ android: "#8E8E93", ios: undefined })}
+      indicatorColor={Platform.select({ android: "#00000015", ios: undefined })}
+      backgroundColor={Platform.select({ android: "#FFFFFFFF", ios: undefined })}
       labelStyle={{
-        default: { color: "#8E8E93", fontSize: 8.5 }, // Gray text when unselected
-        selected: { color: "#000000", fontSize: 10 }, // Black text when selected
+        default: { color: "#8E8E93", fontSize: Platform.select({ android: 11, ios: 8.5 }) },
+        selected: { color: SELECTED_COLOR, fontSize: Platform.select({ android: 12, ios: 10 }) },
       }}
       disableTransparentOnScrollEdge={true}
     >
       <NativeTabs.Trigger name="(event-types)">
-        <NativeTabs.Trigger.Icon
-          sf="link"
-          src={<VectorIcon family={MaterialCommunityIcons} name="link" />}
-        />
+        {Platform.select({
+          ios: <NativeTabs.Trigger.Icon sf="link" />,
+          android: (
+            <NativeTabs.Trigger.Icon
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="link-outline" />}
+              selectedColor={SELECTED_COLOR}
+            />
+          ),
+        })}
         <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(bookings)">
-        <NativeTabs.Trigger.Icon
-          sf="calendar"
-          src={<VectorIcon family={MaterialCommunityIcons} name="calendar" />}
-        />
+        {Platform.select({
+          ios: <NativeTabs.Trigger.Icon sf="calendar" />,
+          android: (
+            <NativeTabs.Trigger.Icon
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="calendar-outline" />}
+              selectedColor={SELECTED_COLOR}
+            />
+          ),
+        })}
         <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(availability)">
-        <NativeTabs.Trigger.Icon
-          sf={{ default: "clock", selected: "clock.fill" }}
-          src={<VectorIcon family={MaterialCommunityIcons} name="clock" />}
-        />
+        {Platform.select({
+          ios: <NativeTabs.Trigger.Icon sf={{ default: "clock", selected: "clock.fill" }} />,
+          android: (
+            <NativeTabs.Trigger.Icon
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="time-outline" />}
+              selectedColor={SELECTED_COLOR}
+            />
+          ),
+        })}
         <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(more)">
-        <NativeTabs.Trigger.Icon
-          sf={{ default: "ellipsis", selected: "ellipsis" }}
-          src={<VectorIcon family={MaterialCommunityIcons} name="dots-horizontal" />}
-        />
+        {Platform.select({
+          ios: <NativeTabs.Trigger.Icon sf={{ default: "ellipsis", selected: "ellipsis" }} />,
+          android: (
+            <NativeTabs.Trigger.Icon
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="ellipsis-horizontal" />}
+              selectedColor={SELECTED_COLOR}
+            />
+          ),
+        })}
         <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>

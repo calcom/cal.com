@@ -248,16 +248,20 @@ export class BookingEventHandlerService {
   }
 
   async onLocationChanged(params: OnLocationChangedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
-    await this.bookingAuditProducerService.queueLocationChangedAudit({
-      bookingUid,
-      actor,
-      organizationId,
-      source,
-      operationId,
-      data: auditData,
-      context,
-    });
+    try {
+      const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
+      await this.bookingAuditProducerService.queueLocationChangedAudit({
+        bookingUid,
+        actor,
+        organizationId,
+        source,
+        operationId,
+        data: auditData,
+        context,
+      });
+    } catch (error) {
+      this.log.error("Error while onLocationChanged", safeStringify(error));
+    }
   }
 
   async onAttendeeNoShowUpdated(params: OnAttendeeNoShowUpdatedParams) {
@@ -345,6 +349,77 @@ export class BookingEventHandlerService {
   }) {
     const { bookings, actor, organizationId, operationId, source, context } = params;
     await this.bookingAuditProducerService.queueBulkCancelledAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
+      context,
+    });
+  }
+
+  async onBulkBookingsCreated(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: CreatedAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+  }) {
+    const { bookings, actor, organizationId, operationId, source } = params;
+    await this.bookingAuditProducerService.queueBulkCreatedAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
+    });
+  }
+
+  async onBulkBookingsRescheduled(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: RescheduledAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+  }) {
+    const { bookings, actor, organizationId, operationId, source } = params;
+    await this.bookingAuditProducerService.queueBulkRescheduledAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
+    });
+  }
+
+  async onBulkBookingsRejected(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: RejectedAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+    context?: BookingAuditContext;
+  }) {
+    const { bookings, actor, organizationId, operationId, source, context } = params;
+    await this.bookingAuditProducerService.queueBulkRejectedAudit({
       bookings: bookings.map((booking) => ({
         bookingUid: booking.bookingUid,
         data: booking.auditData,

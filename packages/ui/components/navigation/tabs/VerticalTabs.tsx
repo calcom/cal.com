@@ -10,6 +10,7 @@ export interface NavTabProps {
   children?: React.ReactNode;
   className?: string;
   sticky?: boolean;
+  stickyOffset?: number | string;
   linkShallow?: boolean;
   linkScroll?: boolean;
   itemClassname?: string;
@@ -20,6 +21,7 @@ const NavTabs = function ({
   tabs,
   className = "",
   sticky,
+  stickyOffset = 24,
   linkShallow,
   linkScroll,
   itemClassname,
@@ -28,17 +30,13 @@ const NavTabs = function ({
 }: NavTabProps) {
   return (
     <nav
-      className={classNames(
-        `no-scrollbar flex flex-col stack-y-1 overflow-scroll ${className}`,
-        sticky && "sticky top-0 -mt-7"
-      )}
+      className={classNames(`no-scrollbar flex flex-col stack-y-1 overflow-scroll ${className}`, sticky && "sticky")}
       style={{
         maxWidth: "256px",
+        ...(sticky ? { top: stickyOffset } : {}),
       }}
       aria-label="Tabs"
       {...props}>
-      {/* padding top for sticky */}
-      {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
         <VerticalTabItem
