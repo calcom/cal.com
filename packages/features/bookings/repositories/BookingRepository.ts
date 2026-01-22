@@ -2040,6 +2040,10 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
             reasonString: true,
             reasonEnum: true,
           },
+          orderBy: {
+            createdAt: "asc",
+          },
+          take: 1,
         },
       },
     });
