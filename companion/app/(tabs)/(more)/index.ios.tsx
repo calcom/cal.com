@@ -8,7 +8,7 @@ import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryContext } from "@/contexts/QueryContext";
 import { useUserProfile } from "@/hooks";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showNotAvailableAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
 
@@ -54,36 +54,38 @@ export default function More() {
     ]);
   };
 
+  // handleNotAvailable replaced by global showNotAvailableAlert
+
   const menuItems: MoreMenuItem[] = [
     {
       name: "Apps",
       icon: "grid-outline",
-      isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/apps", "Apps page"),
+      isExternal: false,
+      onPress: () => showNotAvailableAlert(),
     },
     {
       name: "Routing",
       icon: "git-branch-outline",
-      isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/routing", "Routing page"),
+      isExternal: false,
+      onPress: () => showNotAvailableAlert(),
     },
     {
       name: "Workflows",
       icon: "flash-outline",
-      isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/workflows", "Workflows page"),
+      isExternal: false,
+      onPress: () => showNotAvailableAlert(),
     },
     {
       name: "Insights",
       icon: "bar-chart-outline",
-      isExternal: true,
-      onPress: () => openInAppBrowser("https://app.cal.com/insights", "Insights page"),
+      isExternal: false,
+      onPress: () => showNotAvailableAlert(),
     },
     {
       name: "Support",
       icon: "help-circle-outline",
-      isExternal: true,
-      onPress: () => openInAppBrowser("https://go.cal.com/support", "Support"),
+      isExternal: false,
+      onPress: () => showNotAvailableAlert(),
     },
   ];
 
@@ -172,13 +174,7 @@ export default function More() {
         {/* Footer Note */}
         <Text className="mt-6 px-1 text-center text-xs text-gray-400">
           The companion app is an extension of the web application.{"\n"}
-          For advanced features, visit{" "}
-          <Text
-            className="text-gray-800"
-            onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
-          >
-            app.cal.com
-          </Text>
+          For advanced features, visit <Text className="text-gray-800">app.cal.com</Text>
         </Text>
       </ScrollView>
 
