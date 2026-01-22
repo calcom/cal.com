@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import process from "node:process";
 
 const ALGORITHM = "aes256";
 const INPUT_ENCODING = "utf8";
@@ -38,4 +39,21 @@ export const symmetricDecrypt = function (text: string, key: string) {
   deciphered += decipher.final(INPUT_ENCODING);
 
   return deciphered;
+};
+
+/**
+ * Creates an encrypted version of a credential key for storage.
+ * Uses CALENDSO_ENCRYPTION_KEY environment variable for encryption.
+ *
+ * @param key The credential key object or value to encrypt
+ * @returns The encrypted key string, or null if encryption key is not available
+ */
+export const createEncryptedKey = (key: unknown): string | null => {
+  const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
+  if (!encryptionKey) {
+    return null;
+  }
+
+  const keyString = typeof key === "string" ? key : JSON.stringify(key);
+  return symmetricEncrypt(keyString, encryptionKey);
 };

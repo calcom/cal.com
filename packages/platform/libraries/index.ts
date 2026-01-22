@@ -12,7 +12,7 @@ import {
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
-import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
+import { createEncryptedKey, symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -71,7 +71,7 @@ export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { bookingMetadataSchema, teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
-export { symmetricEncrypt, symmetricDecrypt };
+export { createEncryptedKey, symmetricEncrypt, symmetricDecrypt };
 
 export { getTranslation };
 
