@@ -112,7 +112,8 @@ export async function createNestApp(): Promise<
     // Preserved as requested:
     bodyParser: false,
   });
-
+app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "1mb" }));
   // Custom query parser configuration for the underlying Express app
   app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000 }));
 
