@@ -188,6 +188,23 @@ export async function createUserAndEventType({
   return theUser;
 }
 
+type OAuthClientInput = {
+  clientId: string;
+  clientSecret: string;
+  name: string;
+  purpose: string;
+  redirectUri: string;
+  websiteUrl: string;
+  enablePkce: boolean;
+};
+
+export async function createOAuthClientForUser(userId: number, oAuthClient: OAuthClientInput) {
+  await prisma.oAuthClient.create({
+      data: oAuthClient
+    });
+  console.log(`\t👤 Created OAuth2 client '${oAuthClient.name}' for user with id '${userId}'`);
+}
+
 export async function createTeamAndAddUsers(
   teamInput: Prisma.TeamCreateInput,
   users: { id: number; username: string; role?: MembershipRole }[] = []
