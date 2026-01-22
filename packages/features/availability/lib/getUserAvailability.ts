@@ -535,11 +535,32 @@ export class UserAvailabilityService {
       : user.userLevelSelectedCalendars;
 
     let busyTimesFromLimits: EventBusyDetails[] = [];
-
     if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
       busyTimesFromLimits = initialData.busyTimesFromLimits.get(user.id) || [];
     } else if (eventType && (bookingLimits || durationLimits)) {
-      // Fall back to individual query if not available in initialData
+      // Fetch bookings for limit checks if not provided in initialData
+      let busyTimesFromLimitsBookings = initialData?.busyTimesFromLimitsBookings ?? [];
+
+      if (!busyTimesFromLimitsBookings || busyTimesFromLimitsBookings.length === 0) {
+        const busyTimesService = getBusyTimesService();
+        const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
+          dateFrom.toISOString(),
+          dateTo.toISOString(),
+          bookingLimits || durationLimits
+        );
+
+        busyTimesFromLimitsBookings = await busyTimesService.getBusyTimesForLimitChecks({
+          userIds: [user.id],
+          eventTypeId: eventType.id,
+          startDate: limitDateFrom.format(),
+          endDate: limitDateTo.format(),
+          rescheduleUid: initialData?.rescheduleUid ?? undefined,
+          bookingLimits,
+          durationLimits,
+        });
+      }
+
+      // Calculate busy times from limits using the fetched bookings
       busyTimesFromLimits = await getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
@@ -547,7 +568,7 @@ export class UserAvailabilityService {
         dateTo.tz(finalTimezone),
         duration,
         eventType,
-        initialData?.busyTimesFromLimitsBookings ?? [],
+        busyTimesFromLimitsBookings,
         finalTimezone,
         initialData?.rescheduleUid ?? undefined
       );

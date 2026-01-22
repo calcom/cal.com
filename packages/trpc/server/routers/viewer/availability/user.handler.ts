@@ -1,9 +1,7 @@
+import { findUsersForAvailabilityCheck } from "@calcom/features/availability/lib/findUsersForAvailabilityCheck";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TUserInputSchema } from "./user.schema";
-
-import { findUsersForAvailabilityCheck } from "@calcom/features/availability/lib/findUsersForAvailabilityCheck";
 
 type UserOptions = {
   ctx: {
