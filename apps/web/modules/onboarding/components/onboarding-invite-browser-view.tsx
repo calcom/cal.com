@@ -7,9 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
+import classNames from "@calcom/ui/classNames";
 
 import { useOnboardingStore, type Invite } from "../store/onboarding-store";
-import classNames from "@calcom/ui/classNames";
 
 type OnboardingInviteBrowserViewProps = {
   teamName?: string;
@@ -68,19 +68,14 @@ export const OnboardingInviteBrowserView = ({
 
   // Use default values if not provided
   const rawInviterName = user?.name || user?.username || "Alex";
-  const displayInviterName =
-    rawInviterName.charAt(0).toUpperCase() + rawInviterName.slice(1);
+  const displayInviterName = rawInviterName.charAt(0).toUpperCase() + rawInviterName.slice(1);
 
   // Use organization or team data based on context
   const displayName = useOrganizationInvites
     ? organizationDetails.name || teamName || "Deel"
     : teamName || teamDetails.name || "Deel";
-  const displayBio = useOrganizationInvites
-    ? organizationDetails.bio || ""
-    : teamDetails.bio || "";
-  const avatar = useOrganizationInvites
-    ? organizationBrand.logo || null
-    : teamBrand.logo || null;
+  const displayBio = useOrganizationInvites ? organizationDetails.bio || "" : teamDetails.bio || "";
+  const avatar = useOrganizationInvites ? organizationBrand.logo || null : teamBrand.logo || null;
 
   // Get invites based on context - use watched invites if provided, otherwise fall back to store
   let actualInvites: Invite[] = [];
@@ -97,9 +92,7 @@ export const OnboardingInviteBrowserView = ({
   }
 
   // Filter out empty invites (where email is empty or just whitespace)
-  const validInvites = actualInvites.filter(
-    (invite) => invite.email && invite.email.trim().length > 0
-  );
+  const validInvites = actualInvites.filter((invite) => invite.email && invite.email.trim().length > 0);
 
   // Add migrated members if using organization invites
   const migratedInvites: Invite[] = [];
@@ -140,9 +133,7 @@ export const OnboardingInviteBrowserView = ({
   const maxItems = 9;
 
   // Create a set of migrated member emails for quick lookup
-  const migratedEmails = new Set(
-    migratedMembers.map((member) => member.email.toLowerCase())
-  );
+  const migratedEmails = new Set(migratedMembers.map((member) => member.email.toLowerCase()));
 
   // Add all invites (form invites + migrated members)
   for (let i = 0; i < allInvites.length && i < maxItems; i++) {
@@ -183,8 +174,7 @@ export const OnboardingInviteBrowserView = ({
             transition={{
               duration: 0.5,
               ease: "backOut",
-            }}
-          >
+            }}>
             <div className="bg-default border-subtle flex flex-col rounded-2xl border">
               {useOrganizationInvites || organizationBrand.banner || avatar ? (
                 <div className="relative p-1">
@@ -243,8 +233,7 @@ export const OnboardingInviteBrowserView = ({
                 className={classNames(
                   `flex flex-col items-start gap-1 px-4 pb-4`,
                   useOrganizationInvites || organizationBrand.banner || avatar ? "pt-8" : "pt-4"
-                )}
-              >
+                )}>
                 {!useOrganizationInvites && !organizationBrand.banner && avatar && (
                   <Avatar
                     size="lg"
@@ -269,14 +258,8 @@ export const OnboardingInviteBrowserView = ({
                   key={`${item.email}-${index}`}
                   className={`bg-default border-subtle flex aspect-square w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-4 ${
                     !item.isReal ? "opacity-60" : ""
-                  }`}
-                >
-                  <Avatar
-                    size="mdLg"
-                    imageSrc={undefined}
-                    alt={item.name}
-                    className="mt-4"
-                  />
+                  }`}>
+                  <Avatar size="mdLg" imageSrc={undefined} alt={item.name} className="mt-4" />
                   <div className="flex w-full min-w-0 flex-col items-center gap-4">
                     <div className="flex w-full min-w-0 flex-col items-center">
                       <p className="text-default w-full truncate text-center text-sm font-semibold leading-tight">
