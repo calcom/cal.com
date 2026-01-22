@@ -403,14 +403,19 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
 
 
   const hasTeamLimits = () => {
+    const team = eventType.team as { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } | null | undefined;
+    const parentTeam = (eventType.parent as { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } } | null | undefined)?.team;
+
     const teamHasLimits =
-      !!eventType.team?.bookingLimits && Object.keys(eventType.team.bookingLimits).length > 0;
+      !!team?.bookingLimits && Object.keys(team.bookingLimits).length > 0;
 
     const parentTeamHasLimits =
-      !!eventType.parent?.team?.bookingLimits &&
-      Object.keys(eventType.parent.team.bookingLimits).length > 0;
+      !!parentTeam?.bookingLimits &&
+      Object.keys(parentTeam.bookingLimits).length > 0;
 
-    const includeManaged = !!eventType.parent?.team?.includeManagedEventsInLimits || eventType.team?.includeManagedEventsInLimits;
+    const includeManaged =
+      !!parentTeam?.includeManagedEventsInLimits ||
+      !!team?.includeManagedEventsInLimits;
 
     if (teamHasLimits) {
       if(eventType.schedulingType === SchedulingType.MANAGED) return includeManaged;
