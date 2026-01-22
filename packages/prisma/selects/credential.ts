@@ -10,11 +10,6 @@ export const credentialForCalendarServiceSelect = {
       email: true,
     },
   },
-  selectedCalendars: {
-    select: {
-      id: true,
-    },
-  },
   teamId: true,
   key: true,
   invalid: true,

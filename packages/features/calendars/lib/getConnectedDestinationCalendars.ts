@@ -295,7 +295,14 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
         enabled: true,
       },
     },
-    select: credentialForCalendarServiceSelect,
+    select: {
+      selectedCalendars: {
+        select: {
+          id: true,
+        },
+      },
+      ...credentialForCalendarServiceSelect,
+    },
   });
 
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
