@@ -933,34 +933,9 @@ async function getAuthHeader(): Promise<string> {
 async function fetchEventTypes(): Promise<unknown[]> {
   const authHeader = await getAuthHeader();
 
-  const userResponse = await fetchWithTimeout(`${API_BASE_URL}/me`, {
-    headers: {
-      Authorization: authHeader,
-      "Content-Type": "application/json",
-      "cal-api-version": "2024-06-11",
-    },
-  });
-
-  if (!userResponse.ok) {
-    throw new Error(`Failed to get user: ${userResponse.statusText}`);
-  }
-
-  const userData = await userResponse.json();
-  const username = userData?.data?.username as string | undefined;
-  // For org users, include org slug to avoid username collisions across orgs
-  const orgSlug = userData?.data?.organization?.slug as string | undefined;
-
-  const params = new URLSearchParams();
-  if (username) {
-    params.append("username", username);
-  }
-  if (orgSlug) {
-    params.append("orgSlug", orgSlug);
-  }
-  const queryString = params.toString();
-  const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
-
-  const response = await fetchWithTimeout(endpoint, {
+  // For authenticated users, no username/orgSlug params needed - API uses auth token
+  // This also ensures hidden event types are returned (they're filtered out when username is provided)
+  const response = await fetchWithTimeout(`${API_BASE_URL}/event-types`, {
     headers: {
       Authorization: authHeader,
       "Content-Type": "application/json",

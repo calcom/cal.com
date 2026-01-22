@@ -39,10 +39,10 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
     <SettingsHeader
       title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton /> : null}
-      borderInShellHeader={false}>
+      CTA={<CreateNewWebhookButton />}
+      borderInShellHeader={true}>
       {webhookGroups.length ? (
-        <div className={classNames("mt-6")}>
+        <div>
           {webhookGroups.map((group) => (
             <div key={group.teamId}>
               {hasTeams && (
@@ -59,7 +59,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                 </div>
               )}
               <div className="flex flex-col" key={group.profile.slug}>
-                <div className={classNames("border-subtle mb-8 mt-3 rounded-lg border border-t")}>
+                <div className={classNames("border-subtle mb-8 rounded-b-lg border border-t-0", hasTeams && "mt-3")}>
                   {group.webhooks.map((webhook, index) => (
                     <WebhookListItem
                       key={webhook.id}
@@ -84,9 +84,8 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
           Icon="link"
           headline={t("create_your_first_webhook")}
           description={t("create_your_first_webhook_description", { appName: APP_NAME })}
-          className="mt-6 rounded-b-lg"
+          className="rounded-b-lg rounded-t-none border-t-0"
           buttonRaw={<CreateNewWebhookButton />}
-          border={true}
         />
       )}
     </SettingsHeader>

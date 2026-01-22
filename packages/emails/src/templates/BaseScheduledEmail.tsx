@@ -48,6 +48,7 @@ export const BaseScheduledEmail = (
     date: `${getRecipientStart("h:mma")} - ${getRecipientEnd("h:mma")}, ${t(
       getRecipientStart("dddd").toLowerCase()
     )}, ${t(getRecipientStart("MMMM").toLowerCase())} ${getRecipientStart("D, YYYY")}`,
+    interpolation: { escapeValue: false },
   });
 
   let rescheduledBy = props.calEvent.rescheduledBy;

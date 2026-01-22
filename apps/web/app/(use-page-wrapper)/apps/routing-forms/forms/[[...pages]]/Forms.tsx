@@ -169,7 +169,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("upgrade")}
                 </Button>
-                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                <Button color="minimal" href="https://cal.com/routing" target="_blank">
                   {t("learn_more")}
                 </Button>
               </ButtonGroup>

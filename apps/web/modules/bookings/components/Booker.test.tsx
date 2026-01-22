@@ -13,12 +13,30 @@ import "@calcom/lib/__mocks__/logger";
 import React from "react";
 import { vi } from "vitest";
 
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => "/test-path",
+    useSearchParams: () => new URLSearchParams(),
+    useParams: () => ({}),
+  };
+});
+
 import "@calcom/dayjs/__mocks__";
 import "@calcom/features/auth/Turnstile";
 
-import { Booker } from "./Booker";
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
+import { Booker } from "./Booker";
 
 vi.mock("framer-motion", async (importOriginal) => {
   const actual = (await importOriginal()) as any;
@@ -175,9 +193,12 @@ describe("Booker", () => {
   });
 
   it("should render null when in loading state", () => {
-    const { container } = render(<Booker {...defaultProps as unknown as BookerProps & WrappedBookerProps} />, {
-      mockStore: { state: "loading" },
-    });
+    const { container } = render(
+      <Booker {...(defaultProps as unknown as BookerProps & WrappedBookerProps)} />,
+      {
+        mockStore: { state: "loading" },
+      }
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -194,7 +215,7 @@ describe("Booker", () => {
       },
     };
 
-    render(<Booker {...propsWithDryRun as unknown as BookerProps & WrappedBookerProps} />, {
+    render(<Booker {...(propsWithDryRun as unknown as BookerProps & WrappedBookerProps)} />, {
       mockStore: {
         state: "selecting_time",
         selectedDate: "2024-01-01",
@@ -218,7 +239,7 @@ describe("Booker", () => {
       },
     };
 
-    render(<Booker {...propsWithInvalidate as unknown as BookerProps & WrappedBookerProps} />, {
+    render(<Booker {...(propsWithInvalidate as unknown as BookerProps & WrappedBookerProps)} />, {
       mockStore: { state: "booking" },
     });
     screen.logTestingPlaygroundURL();
@@ -240,7 +261,7 @@ describe("Booker", () => {
         },
       };
 
-      render(<Booker {...propsWithQuickChecks as unknown as BookerProps & WrappedBookerProps} />, {
+      render(<Booker {...(propsWithQuickChecks as unknown as BookerProps & WrappedBookerProps)} />, {
         mockStore: { state: "booking" },
       });
       const bookEventForm = screen.getByTestId("book-event-form");

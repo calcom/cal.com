@@ -176,7 +176,7 @@ export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulou
 
 export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
   process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
-  0
+  10
 );
 
 export const CLOUDFLARE_SITE_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_SITEKEY;
@@ -222,6 +222,10 @@ export const GOOGLE_CALENDAR_SCOPES = [
 ];
 export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",") || [];
 export const SCANNING_WORKFLOW_STEPS = !!(!IS_SELF_HOSTED && process.env.IFFY_API_KEY);
+
+// Cloudflare URL Scanner - checks URLs for malicious content in workflows and event types
+export const URL_SCANNING_ENABLED =
+  !!process.env.CLOUDFLARE_URL_SCANNER_API_TOKEN && !!process.env.CLOUDFLARE_ACCOUNT_ID;
 
 export const IS_DUB_REFERRALS_ENABLED =
   !!process.env.NEXT_PUBLIC_DUB_PROGRAM_ID && process.env.NEXT_PUBLIC_DUB_PROGRAM_ID !== "";

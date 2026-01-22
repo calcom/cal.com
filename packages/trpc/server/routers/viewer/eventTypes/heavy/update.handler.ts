@@ -9,11 +9,13 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { isUrlScanningEnabled } from "@calcom/features/ee/workflows/lib/urlScanner";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
+import { submitUrlForUrlScanning } from "@calcom/features/tasker/tasks/scanWorkflowUrls";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -601,7 +603,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
     // Make sure the secondary email id belongs to the current user and its a verified one
-    if (secondaryEmail && secondaryEmail.emailVerified) {
+    if (secondaryEmail?.emailVerified) {
       data.secondaryEmail = {
         connect: {
           id: secondaryEmailId,
@@ -750,6 +752,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       },
     });
+  }
+
+  // Scan redirect URL for malicious content if URL scanning is enabled
+  if (isUrlScanningEnabled() && rest.successRedirectUrl) {
+    await submitUrlForUrlScanning(rest.successRedirectUrl, ctx.user.id, id);
   }
 
   const res = ctx.res as NextApiResponse;

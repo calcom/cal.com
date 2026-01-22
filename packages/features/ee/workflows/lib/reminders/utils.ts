@@ -126,6 +126,15 @@ const escapeHtml = (str: string): string =>
     .replace(/"/g, "&quot;");
 
 /**
+ * Escapes HTML attribute values to prevent attribute injection.
+ */
+const escapeHtmlAttribute = (str: string): string =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+/**
  * Replaces cloaked links in HTML content with visible URLs.
  * This ensures recipients can see the actual destination of links,
  * helping them identify potentially malicious URLs.
@@ -134,6 +143,7 @@ const escapeHtml = (str: string): string =>
  * Into: <a href="https://example.com">https://example.com</a>
  *
  * Also handles nested HTML tags like: <a href="https://example.com"><b>Click here</b></a>
+ * Handles incomplete hrefs: <a href="https://">https://example.com</a>
  */
 export const replaceCloakedLinksInHtml = (html: string): string => {
   // Match anchor tags with href attribute
@@ -142,18 +152,34 @@ export const replaceCloakedLinksInHtml = (html: string): string => {
 
   return html.replace(anchorRegex, (match, attributes, href, innerContent) => {
     // Strip HTML tags from inner content to get plain text for comparison
-    const linkText = innerContent.replace(/<[^>]*>/g, "");
+    const linkText = innerContent.replace(/<[^>]*>/g, "").trim();
+
+    // Check if href is incomplete (just protocol like "https://" or "http://")
+    const isIncompleteHref = /^https?:\/\/?$/.test(href);
+
+    // If href is incomplete and link text contains a valid URL, use the link text URL
+    let actualUrl = href;
+    let hrefWasUpdated = false;
+    if (isIncompleteHref && linkText) {
+      const urlPattern = /^https?:\/\/[^\s]+/i;
+      const urlMatch = linkText.match(urlPattern);
+      if (urlMatch) {
+        actualUrl = urlMatch[0];
+        attributes = attributes.replace(/href=["'][^"']+["']/, `href="${escapeHtmlAttribute(actualUrl)}"`);
+        hrefWasUpdated = true;
+      }
+    }
 
     // If the link text is already the URL (or very similar), keep it as is
-    const normalizedHref = href.toLowerCase().replace(/\/$/, "");
+    const normalizedHref = actualUrl.toLowerCase().replace(/\/$/, "");
     const normalizedText = linkText.toLowerCase().trim().replace(/\/$/, "");
 
-    if (normalizedText === normalizedHref || normalizedText === normalizedHref.replace(/^https?:\/\//, "")) {
+    if (!hrefWasUpdated && (normalizedText === normalizedHref || normalizedText === normalizedHref.replace(/^https?:\/\//, ""))) {
       return match;
     }
 
     // Replace the link text with the actual URL, escaping HTML to prevent XSS
-    return `<a ${attributes}>${escapeHtml(href)}</a>`;
+    return `<a ${attributes}>${escapeHtml(actualUrl)}</a>`;
   });
 };
 

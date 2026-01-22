@@ -228,7 +228,9 @@ const ChooseEmbedTypesDialogContent = ({
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
-        <h3 className="font-cal text-emphasis mb-2 text-2xl font-semibold leading-none" id="modal-title">
+        <h3
+          className="font-cal text-emphasis mb-2 text-2xl font-semibold leading-none"
+          id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
@@ -864,6 +866,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     useState(true);
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
+    useSlotsViewOnSmallScreen: "true" as const,
   };
 
   const paletteDefaultValue = (paletteName: string) => {

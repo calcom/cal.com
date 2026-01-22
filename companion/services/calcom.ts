@@ -862,36 +862,10 @@ async function getTranscripts(bookingUid: string): Promise<BookingTranscript[]> 
 }
 
 async function getEventTypes(): Promise<EventType[]> {
-  // Get cached user profile to extract username and org slug (uses in-flight deduplication)
-  let username: string | undefined;
-  let orgSlug: string | undefined;
-  try {
-    const userProfile = await getUserProfile();
-    // Extract username from response
-    if (userProfile?.username) {
-      username = userProfile.username;
-    }
-    // For org users, include org slug to avoid username collisions across orgs
-    if (userProfile?.organization?.slug) {
-      orgSlug = userProfile.organization.slug;
-    }
-  } catch (_error) {}
-
-  // Build query string with username, orgSlug, and sorting
-  const params = new URLSearchParams();
-  if (username) {
-    params.append("username", username);
-  }
-  if (orgSlug) {
-    params.append("orgSlug", orgSlug);
-  }
+  // For authenticated users, no username/orgSlug params needed - API uses auth token
+  // This also ensures hidden event types are returned (they're filtered out when username is provided)
   // Sort by creation date descending (newer first) to match main codebase behavior
-  // Main codebase uses position: "desc", id: "desc" - since API doesn't expose position,
-  // we use sortCreatedAt: "desc" for similar behavior (newer event types first)
-  params.append("sortCreatedAt", "desc");
-
-  const queryString = params.toString();
-  const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
+  const endpoint = `/event-types?sortCreatedAt=desc`;
 
   const response = await makeRequest<unknown>(endpoint, {}, "2024-06-14");
 

@@ -214,9 +214,11 @@ export function FeatureOptInConfirmDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
-      <DialogPopup className="sm:max-w-lg">
+      <DialogPopup className="sm:max-w-lg" data-testid="feature-opt-in-confirm-dialog">
         <DialogHeader>
-          <DialogTitle>{t(featureConfig.i18n.name)}</DialogTitle>
+          <DialogTitle data-testid="feature-opt-in-confirm-dialog-title">
+            {t(featureConfig.i18n.name)}
+          </DialogTitle>
           <DialogDescription>{t(featureConfig.i18n.description)}</DialogDescription>
         </DialogHeader>
         <DialogPanel>
@@ -290,7 +292,10 @@ export function FeatureOptInConfirmDialog({
           <DialogClose render={<Button variant="outline" />} onClick={resetAndClose} disabled={isSubmitting}>
             {t("cancel")}
           </DialogClose>
-          <Button onClick={handleConfirm} disabled={isSubmitting || !hasAnySelection}>
+          <Button
+            data-testid="feature-opt-in-confirm-dialog-enable"
+            onClick={handleConfirm}
+            disabled={isSubmitting || !hasAnySelection}>
             {t("enable")}
           </Button>
         </DialogFooter>

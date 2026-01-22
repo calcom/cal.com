@@ -134,14 +134,12 @@ export const OnboardingBrowserView = ({
             {/* Profile Header */}
             <div className="border-subtle flex flex-col gap-4 border-b p-4">
               <div className="flex flex-col items-start gap-4">
-                {avatar && (
-                  <Avatar
-                    size="lg"
-                    imageSrc={avatar}
-                    alt={name || ""}
-                    className="border-2 border-white"
-                  />
-                )}
+                <Avatar
+                  size="lg"
+                  imageSrc={avatar || undefined}
+                  alt={name || ""}
+                  className="border-2 border-white"
+                />
                 <div className="flex w-full flex-col gap-2">
                   <h2 className="text-emphasis w-full truncate text-xl font-semibold leading-tight">
                     {name || t("your_name")}

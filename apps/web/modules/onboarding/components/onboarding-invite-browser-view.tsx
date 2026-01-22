@@ -8,7 +8,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 
 import { useOnboardingStore, type Invite } from "../store/onboarding-store";
-import classNames from "@calcom/ui/classNames";
 
 type OnboardingInviteBrowserViewProps = {
   teamName?: string;
@@ -36,14 +35,8 @@ export const OnboardingInviteBrowserView = ({
 }: OnboardingInviteBrowserViewProps) => {
   const pathname = usePathname();
   const { data: user } = trpc.viewer.me.get.useQuery();
-  const {
-    teamBrand,
-    teamInvites,
-    invites,
-    teamDetails,
-    organizationBrand,
-    organizationDetails,
-  } = useOnboardingStore();
+  const { teamBrand, teamInvites, invites, teamDetails, organizationBrand, organizationDetails } =
+    useOnboardingStore();
   const { t } = useLocale();
 
   // Animation variants for entry and exit
@@ -64,19 +57,14 @@ export const OnboardingInviteBrowserView = ({
 
   // Use default values if not provided
   const rawInviterName = user?.name || user?.username || "Alex";
-  const displayInviterName =
-    rawInviterName.charAt(0).toUpperCase() + rawInviterName.slice(1);
+  const displayInviterName = rawInviterName.charAt(0).toUpperCase() + rawInviterName.slice(1);
 
   // Use organization or team data based on context
   const displayName = useOrganizationInvites
     ? organizationDetails.name || teamName || "Deel"
     : teamName || teamDetails.name || "Deel";
-  const displayBio = useOrganizationInvites
-    ? organizationDetails.bio || ""
-    : teamDetails.bio || "";
-  const avatar = useOrganizationInvites
-    ? organizationBrand.logo || null
-    : teamBrand.logo || null;
+  const displayBio = useOrganizationInvites ? organizationDetails.bio || "" : teamDetails.bio || "";
+  const avatar = useOrganizationInvites ? organizationBrand.logo || null : teamBrand.logo || null;
 
   // Get invites based on context - use watched invites if provided, otherwise fall back to store
   let actualInvites: Invite[] = [];
@@ -93,9 +81,7 @@ export const OnboardingInviteBrowserView = ({
   }
 
   // Filter out empty invites (where email is empty or just whitespace)
-  const validInvites = actualInvites.filter(
-    (invite) => invite.email && invite.email.trim().length > 0
-  );
+  const validInvites = actualInvites.filter((invite) => invite.email && invite.email.trim().length > 0);
 
   // Create empty state items
   const emptyStateItem = {
@@ -146,44 +132,31 @@ export const OnboardingInviteBrowserView = ({
             transition={{
               duration: 0.5,
               ease: "backOut",
-            }}
-          >
+            }}>
             <div className="bg-default border-subtle flex flex-col rounded-2xl border">
-              {organizationBrand.banner || avatar ? (
-                <div className="relative p-1">
-                  {/* Banner Image */}
-                  {organizationBrand.banner && (
-                    <div className="border-subtle relative h-36 w-full overflow-hidden rounded-xl border">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={organizationBrand.banner}
-                        alt={displayName}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  )}
+              <div className="relative p-1">
+                {/* Banner Image */}
+                {organizationBrand.banner && (
+                  <div className="border-subtle relative h-36 w-full overflow-hidden rounded-xl border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={organizationBrand.banner}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
 
-                  {/* Organization Avatar - Overlaying the banner */}
-                  {organizationBrand.banner && avatar && (
-                    <div className="absolute -bottom-6 left-4">
-                      <Avatar
-                        size="lg"
-                        imageSrc={avatar}
-                        alt={displayName}
-                        className="h-12 w-12 border"
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : null}
+                {/* Organization Avatar - Overlaying the banner */}
+                {organizationBrand.banner && avatar && (
+                  <div className="absolute -bottom-6 left-4">
+                    <Avatar size="lg" imageSrc={avatar} alt={displayName} className="h-12 w-12 border" />
+                  </div>
+                )}
+              </div>
 
               {/* Organization Info */}
-              <div
-                className={classNames(
-                  `flex flex-col items-start gap-1 px-4 pb-4 pt-8`,
-                  !organizationBrand.banner && !avatar ? "pt-4" : "pt-8"
-                )}
-              >
+              <div className={`flex flex-col items-start gap-1 px-4 pb-4 pt-8`}>
                 {!organizationBrand.banner && avatar && (
                   <Avatar
                     size="lg"
@@ -208,14 +181,8 @@ export const OnboardingInviteBrowserView = ({
                   key={`${item.email}-${index}`}
                   className={`bg-default border-subtle flex aspect-square w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-4 ${
                     !item.isReal ? "opacity-60" : ""
-                  }`}
-                >
-                  <Avatar
-                    size="mdLg"
-                    imageSrc={undefined}
-                    alt={item.name}
-                    className="mt-4"
-                  />
+                  }`}>
+                  <Avatar size="mdLg" imageSrc={undefined} alt={item.name} className="mt-4" />
                   <div className="flex w-full min-w-0 flex-col items-center gap-4">
                     <div className="flex w-full min-w-0 flex-col items-center">
                       <p className="text-default w-full truncate text-center text-sm font-semibold leading-tight">
