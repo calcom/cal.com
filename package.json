@@ -153,7 +153,8 @@
     "serialize-javascript": "6.0.2",
     "@adobe/css-tools": "4.3.2",
     "jsondiffpatch": "0.7.2",
-    "min-document": "2.19.1"
+    "min-document": "2.19.1",
+    "tar": "7.5.4"
   },
   "packageExtensions": {
     "ink@3.2.0": {
