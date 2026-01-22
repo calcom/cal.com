@@ -18,6 +18,7 @@ export type UseBookerLayoutType = {
   layout: BookerLayout;
   defaultLayout: BookerLayouts;
   hideEventTypeDetails: boolean;
+  slotsViewOnSmallScreen: boolean;
   bookerLayouts: {
     enabledLayouts: BookerLayouts[];
     defaultLayout: BookerLayouts;
