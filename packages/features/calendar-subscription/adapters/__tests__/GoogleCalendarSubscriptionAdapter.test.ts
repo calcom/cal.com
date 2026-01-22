@@ -52,6 +52,8 @@ const mockSelectedCalendar: SelectedCalendar = {
   channelResourceUri: "test-resource-uri",
   channelExpiration: channelExpirationDate,
   syncSubscribedAt: today.toDate(),
+  syncSubscribedErrorAt: null,
+  syncSubscribedErrorCount: 0,
   syncToken: "test-sync-token",
   syncedAt: today.toDate(),
   syncErrorAt: null,
