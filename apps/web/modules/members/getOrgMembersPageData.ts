@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import type { Session } from "next-auth";
@@ -33,6 +34,11 @@ const getCachedRoles = unstable_cache(
 export async function getOrgMembersPageData(session: Session) {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
+
+  if (!org) {
+    redirect("/settings/my-account/profile");
+  }
+
   const [attributes, roles] = await Promise.all([getCachedAttributes(org.id), getCachedRoles(org.id)]);
 
   const fallbackRolesThatCanSeeMembers: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
