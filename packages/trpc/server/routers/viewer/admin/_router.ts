@@ -1,12 +1,14 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
+import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZImpersonationAuditLogSchema } from "./impersonationAuditLog.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
+import { ZResendPurchaseCompleteEmailSchema } from "./resendPurchaseCompleteEmail.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
@@ -61,6 +63,16 @@ export const adminRouter = router({
       const { default: handler } = await import("./createSelfHostedLicenseKey.handler");
       return handler(opts);
     }),
+  resendPurchaseCompleteEmail: authedAdminProcedure
+    .input(ZResendPurchaseCompleteEmailSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./resendPurchaseCompleteEmail.handler");
+      return handler(opts);
+    }),
+  billingPortalLink: authedAdminProcedure.input(ZBillingPortalLinkSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./billingPortalLink.handler");
+    return handler(opts);
+  }),
   verifyWorkflows: authedAdminProcedure.input(ZAdminVerifyWorkflowsSchema).mutation(async (opts) => {
     const { default: handler } = await import("./verifyWorkflows.handler");
     return handler(opts);

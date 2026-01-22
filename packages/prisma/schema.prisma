@@ -335,6 +335,7 @@ model DestinationCalendar {
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
+  customCalendarReminder           Int?
 
   @@index([userId])
   @@index([eventTypeId])
@@ -483,6 +484,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  oAuthClients                   OAuthClient[]
   holidaySettings                UserHolidaySettings?
 
   autoOptInFeatures Boolean @default(false)
@@ -990,11 +992,13 @@ model SelectedCalendar {
   channelExpiration  DateTime? @db.Timestamp(3)
 
   // Used to calendar cache and sync
-  syncSubscribedAt DateTime? @db.Timestamp(3)
-  syncToken        String?
-  syncedAt         DateTime?
-  syncErrorAt      DateTime?
-  syncErrorCount   Int?      @default(0)
+  syncSubscribedAt         DateTime? @db.Timestamp(3)
+  syncSubscribedErrorAt    DateTime? @db.Timestamp(3)
+  syncSubscribedErrorCount Int       @default(0)
+  syncToken                String?
+  syncedAt                 DateTime?
+  syncErrorAt              DateTime?
+  syncErrorCount           Int?      @default(0)
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
@@ -1771,15 +1775,30 @@ enum OAuthClientType {
   PUBLIC       @map("public")
 }
 
+enum OAuthClientStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+}
+
 model OAuthClient {
-  clientId     String          @id @unique
-  redirectUri  String
-  clientSecret String?
-  clientType   OAuthClientType @default(CONFIDENTIAL)
-  name         String
-  logo         String?
-  isTrusted    Boolean         @default(false)
-  accessCodes  AccessCode[]
+  clientId        String            @id @unique
+  redirectUri     String
+  clientSecret    String?
+  clientType      OAuthClientType   @default(CONFIDENTIAL)
+  name            String
+  purpose         String?
+  logo            String?
+  websiteUrl      String?
+  rejectionReason String?
+  isTrusted       Boolean           @default(false)
+  accessCodes     AccessCode[]
+  status          OAuthClientStatus @default(APPROVED)
+  userId          Int?
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now())
+
+  @@index([userId])
 }
 
 model AccessCode {
@@ -2988,6 +3007,9 @@ model SeatChangeLog {
   changeDate DateTime @default(now())
   monthKey   String
 
+  // Idempotency key to prevent duplicate seat change logs from race conditions
+  operationId String?
+
   processedInProrationId String?
   proration              MonthlyProration? @relation(fields: [processedInProrationId], references: [id])
 
@@ -2999,6 +3021,7 @@ model SeatChangeLog {
   organizationBillingId String?
   organizationBilling   OrganizationBilling? @relation(fields: [organizationBillingId], references: [id])
 
+  @@unique([teamId, operationId])
   @@index([teamId, monthKey])
   @@index([teamId, processedInProrationId])
   @@index([monthKey])
