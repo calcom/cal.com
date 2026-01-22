@@ -171,6 +171,35 @@ export class SmtpConfigurationService {
     };
   }
 
+  async sendTestEmail(
+    id: number,
+    organizationId: number,
+    toEmail: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const config = await this.repository.findById(id);
+    if (!config) {
+      throw new ErrorWithCode(ErrorCode.NotFound, "SMTP configuration not found");
+    }
+    if (config.organizationId !== organizationId) {
+      throw new ErrorWithCode(ErrorCode.Forbidden, "Not authorized to test this SMTP configuration");
+    }
+
+    const { user, password } = this.decryptCredentials(config.smtpUser, config.smtpPassword);
+
+    return this.smtpService.sendTestEmail({
+      config: {
+        host: config.smtpHost,
+        port: config.smtpPort,
+        user,
+        password,
+        secure: config.smtpSecure,
+      },
+      fromEmail: config.fromEmail,
+      fromName: config.fromName,
+      toEmail,
+    });
+  }
+
   private toPublic(config: SmtpConfigurationWithCredentials): SmtpConfigurationPublic {
     const { smtpPassword: _p, ...publicFields } = config;
     return publicFields;

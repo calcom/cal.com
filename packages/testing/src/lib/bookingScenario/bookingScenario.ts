@@ -1127,7 +1127,7 @@ export async function createSmtpConfiguration(data: SmtpConfigurationTestData) {
       smtpUser: data.smtpUser ?? "testuser",
       smtpPassword: data.smtpPassword ?? "test-encrypted-password",
       smtpSecure: data.smtpSecure ?? true,
-      isEnabled: data.isEnabled ?? true,
+      isEnabled: data.isEnabled ?? false,
     },
   });
 }

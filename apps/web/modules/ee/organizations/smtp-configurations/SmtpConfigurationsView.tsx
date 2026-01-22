@@ -56,11 +56,15 @@ const SmtpConfigurationItem = ({
   canEdit,
   onDelete,
   onToggleEnabled,
+  onSendTestEmail,
+  isSendingTestEmail,
 }: {
   config: SmtpConfiguration;
   canEdit: boolean;
   onDelete: (config: SmtpConfiguration) => void;
   onToggleEnabled: (id: number, isEnabled: boolean) => void;
+  onSendTestEmail: (id: number) => void;
+  isSendingTestEmail: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -93,7 +97,19 @@ const SmtpConfigurationItem = ({
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  <DropdownItem
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSendTestEmail(config.id);
+                    }}
+                    StartIcon="mail"
+                    disabled={isSendingTestEmail}>
+                    {t("send_test_email")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
                   <DropdownItem
                     type="button"
                     onClick={(e) => {
@@ -104,7 +120,7 @@ const SmtpConfigurationItem = ({
                     {config.isEnabled ? t("disable") : t("enable")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
                   <DropdownItem
                     type="button"
                     color="destructive"
@@ -166,11 +182,15 @@ const SmtpConfigurationList = ({
   canEdit,
   onDelete,
   onToggleEnabled,
+  onSendTestEmail,
+  isSendingTestEmail,
 }: {
   configs: SmtpConfiguration[];
   canEdit: boolean;
   onDelete: (config: SmtpConfiguration) => void;
   onToggleEnabled: (id: number, isEnabled: boolean) => void;
+  onSendTestEmail: (id: number) => void;
+  isSendingTestEmail: boolean;
 }) => {
   return (
     <div className="bg-default border-subtle overflow-hidden rounded-xl border shadow-sm">
@@ -181,6 +201,8 @@ const SmtpConfigurationList = ({
           canEdit={canEdit}
           onDelete={onDelete}
           onToggleEnabled={onToggleEnabled}
+          onSendTestEmail={onSendTestEmail}
+          isSendingTestEmail={isSendingTestEmail}
         />
       ))}
     </div>
@@ -219,12 +241,29 @@ const SmtpConfigurationsView = ({ permissions }: { permissions: { canRead: boole
     },
   });
 
+  const sendTestEmailMutation = trpc.viewer.organizations.sendSmtpTestEmail.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        showToast(t("smtp_test_email_sent"), "success");
+      } else {
+        showToast(data.error || t("smtp_test_email_failed"), "error");
+      }
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const handleDelete = (config: SmtpConfiguration) => {
     setDeleteConfig(config);
   };
 
   const handleToggleEnabled = (id: number, isEnabled: boolean) => {
     toggleMutation.mutate({ id, isEnabled });
+  };
+
+  const handleSendTestEmail = (id: number) => {
+    sendTestEmailMutation.mutate({ id });
   };
 
   if (isPending) return <SkeletonLoader />;
@@ -246,6 +285,8 @@ const SmtpConfigurationsView = ({ permissions }: { permissions: { canRead: boole
               canEdit={permissions.canEdit}
               onDelete={handleDelete}
               onToggleEnabled={handleToggleEnabled}
+              onSendTestEmail={handleSendTestEmail}
+              isSendingTestEmail={sendTestEmailMutation.isPending}
             />
           </>
         ) : (

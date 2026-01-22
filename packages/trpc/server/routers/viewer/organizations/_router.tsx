@@ -40,6 +40,7 @@ import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZTestSmtpConnectionInputSchema } from "./testSmtpConnection.schema";
 import { ZToggleSmtpConfigurationInputSchema } from "./toggleSmtpConfiguration.schema";
+import { ZSendSmtpTestEmailInputSchema } from "./sendSmtpTestEmail.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
 
@@ -249,6 +250,10 @@ export const viewerOrganizationsRouter = router({
     }),
   testSmtpConnection: authedOrgAdminProcedure.input(ZTestSmtpConnectionInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./testSmtpConnection.handler");
+    return handler(opts);
+  }),
+  sendSmtpTestEmail: authedOrgAdminProcedure.input(ZSendSmtpTestEmailInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./sendSmtpTestEmail.handler");
     return handler(opts);
   }),
 });
