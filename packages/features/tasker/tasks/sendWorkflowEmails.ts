@@ -52,7 +52,14 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
       throw new Error("Booking not found");
     }
 
-    const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, {})).build();
+    const calendarEvent = (
+      await CalendarEventBuilder.fromBooking(booking, {
+        platformClientId: mailData.platformClientId,
+        platformRescheduleUrl: mailData.platformRescheduleUrl,
+        platformCancelUrl: mailData.platformCancelUrl,
+        platformBookingUrl: mailData.platformBookingUrl,
+      })
+    ).build();
 
     if (!calendarEvent) {
       throw new Error("Calendar event could not be built");
