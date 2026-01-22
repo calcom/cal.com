@@ -266,8 +266,7 @@ export class Cal {
       error(`Instruction ${method} not FOUND`);
     }
     try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore There can be any method which can have any number of arguments.
+      // @ts-expect-error There can be any method which can have any number of arguments.
       this.api[method](...args);
     } catch (e) {
       // Instead of throwing error, log and move forward in the queue
@@ -283,8 +282,7 @@ export class Cal {
 
     queue.splice(0);
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    /** @ts-ignore */ // We changed the definition of push here.
+    // @ts-expect-error We changed the definition of push here.
     queue.push = (instruction) => {
       this.processInstruction(instruction);
     };
@@ -363,8 +361,7 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    // @ts-ignore TS2802: URLSearchParams iteration requires downlevelIteration
     for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }
@@ -486,7 +483,9 @@ export class Cal {
         // linkReady event isn't received anyway by parent as it isn't whitelisted to be sent to parent but it is a safe guard
         return;
       }
-      this.iframe!.style.visibility = "";
+      if (this.iframe) {
+        this.iframe.style.visibility = "";
+      }
 
       // Removes the loader
       // TODO: We should be using consistent approach of "state" attribute for modalBox and inlineEl.
@@ -1018,11 +1017,11 @@ class CalApi {
       el = existingEl as FloatingButton;
     }
     const dataset = el.dataset;
-    dataset["buttonText"] = buttonText;
-    dataset["hideButtonIcon"] = `${hideButtonIcon}`;
-    dataset["buttonPosition"] = `${buttonPosition}`;
-    dataset["buttonColor"] = `${buttonColor}`;
-    dataset["buttonTextColor"] = `${buttonTextColor}`;
+    dataset.buttonText = buttonText;
+    dataset.hideButtonIcon = `${hideButtonIcon}`;
+    dataset.buttonPosition = `${buttonPosition}`;
+    dataset.buttonColor = `${buttonColor}`;
+    dataset.buttonTextColor = `${buttonTextColor}`;
   }
 
   async modal({
@@ -1055,7 +1054,7 @@ class CalApi {
     const { embedConfig: previousEmbedConfig, embedRenderStartTime: previousEmbedRenderStartTime } =
       this.cal.getPreviousModalRenderStartVariables();
 
-    let enrichedConfig;
+    let enrichedConfig: PrefillAndIframeAttrsConfig;
     const configWithGuestKeyAndColorScheme = withColorScheme(
       Cal.ensureGuestKey({
         ...config,
@@ -1064,7 +1063,7 @@ class CalApi {
       containerEl
     );
 
-    let enrichedPrerenderOptions;
+    let enrichedPrerenderOptions: ModalPrerenderOptions | undefined;
     if (isPrerendering) {
       const preparationResult = this.cal.prepareForPrerender({
         calLink,
@@ -1565,8 +1564,7 @@ window.addEventListener("message", (e) => {
   if (!actionManager) {
     throw new Error(`Unhandled Action ${parsedAction}`);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   actionManager.fire(parsedAction.type, detail.data);
 });
 
@@ -1582,7 +1580,7 @@ document.addEventListener("click", (e) => {
   const namespace = calLinkEl.dataset.calNamespace;
   const configString = calLinkEl.dataset.calConfig || "";
   const calOrigin = calLinkEl.dataset.calOrigin || "";
-  let config;
+  let config: PrefillAndIframeAttrsConfig;
   try {
     config = JSON.parse(configString);
   } catch {
@@ -1606,7 +1604,7 @@ document.addEventListener("click", (e) => {
   });
 
   function getCalLinkEl(target: EventTarget | null) {
-    let calLinkEl;
+    let calLinkEl: HTMLElement | Element | undefined;
     if (!(target instanceof HTMLElement)) {
       return null;
     }
@@ -1645,7 +1643,7 @@ let currentColorScheme: string | null = null;
 })();
 
 function getEmbedApiFn(ns: string) {
-  let api;
+  let api: GlobalCalWithoutNs | GlobalCal;
   if (ns === DEFAULT_NAMESPACE) {
     api = globalCal;
   } else {

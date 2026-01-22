@@ -4,10 +4,10 @@ import { Alert, Platform, ScrollView, Switch, Text, TouchableOpacity, View } fro
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
+import { useUpdateSchedule } from "@/hooks/useSchedules";
 import type { Schedule } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { shadows } from "@/utils/shadows";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -170,9 +170,11 @@ export const EditAvailabilityDayScreen = forwardRef<
 >(function EditAvailabilityDayScreen({ schedule, dayIndex, onSuccess, onSavingChange }, ref) {
   const insets = useSafeAreaInsets();
 
+  // Use mutation hook for cache-synchronized updates
+  const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();
+
   const [isEnabled, setIsEnabled] = useState(false);
   const [slots, setSlots] = useState<{ startTime: string; endTime: string }[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState<{
     slotIndex: number;
     type: "start" | "end";
@@ -252,8 +254,8 @@ export const EditAvailabilityDayScreen = forwardRef<
 
   // Notify parent of saving state
   useEffect(() => {
-    onSavingChange?.(isSaving);
-  }, [isSaving, onSavingChange]);
+    onSavingChange?.(isMutating);
+  }, [isMutating, onSavingChange]);
 
   const handleToggle = useCallback(
     (value: boolean) => {
@@ -297,8 +299,8 @@ export const EditAvailabilityDayScreen = forwardRef<
     [showTimePicker]
   );
 
-  const handleSubmit = useCallback(async () => {
-    if (!schedule || isSaving) return;
+  const handleSubmit = useCallback(() => {
+    if (!schedule || isMutating) return;
 
     // Validate all slots have end time after start time
     if (isEnabled) {
@@ -320,20 +322,19 @@ export const EditAvailabilityDayScreen = forwardRef<
 
     const fullAvailability = buildFullAvailability(schedule, dayIndex, daySlots);
 
-    setIsSaving(true);
-    try {
-      await CalComAPIService.updateSchedule(schedule.id, {
-        availability: fullAvailability,
-      });
-      Alert.alert("Success", `${dayName} updated successfully`, [
-        { text: "OK", onPress: onSuccess },
-      ]);
-      setIsSaving(false);
-    } catch {
-      showErrorAlert("Error", "Failed to update schedule. Please try again.");
-      setIsSaving(false);
-    }
-  }, [schedule, dayIndex, dayName, isEnabled, slots, onSuccess, isSaving]);
+    updateSchedule(
+      { id: schedule.id, updates: { availability: fullAvailability } },
+      {
+        onSuccess: () => {
+          showSuccessAlert("Success", `${dayName} updated successfully`);
+          onSuccess();
+        },
+        onError: () => {
+          showErrorAlert("Error", "Failed to update schedule. Please try again.");
+        },
+      }
+    );
+  }, [schedule, dayIndex, dayName, isEnabled, slots, onSuccess, isMutating, updateSchedule]);
 
   useImperativeHandle(
     ref,
@@ -365,7 +366,7 @@ export const EditAvailabilityDayScreen = forwardRef<
         <Switch
           value={isEnabled}
           onValueChange={handleToggle}
-          trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+          trackColor={{ false: "#E5E5EA", true: "#000000" }}
           thumbColor="#fff"
         />
       </View>

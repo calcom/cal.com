@@ -13,9 +13,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
+import { useUpdateSchedule } from "@/hooks/useSchedules";
 import type { Schedule } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { shadows } from "@/utils/shadows";
 
 // Generate time options (15-minute intervals)
@@ -77,13 +77,15 @@ export const EditAvailabilityOverrideScreen = forwardRef<
 ) {
   const insets = useSafeAreaInsets();
 
+  // Use mutation hook for cache-synchronized updates
+  const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();
+
   const isEditing = overrideIndex !== undefined;
 
   const [selectedDate, setSelectedDate] = useState("");
   const [isUnavailable, setIsUnavailable] = useState(false);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
-  const [isSaving, setIsSaving] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState<{
     type: "start" | "end";
   } | null>(null);
@@ -152,8 +154,8 @@ export const EditAvailabilityOverrideScreen = forwardRef<
 
   // Notify parent of saving state
   useEffect(() => {
-    onSavingChange?.(isSaving);
-  }, [isSaving, onSavingChange]);
+    onSavingChange?.(isMutating);
+  }, [isMutating, onSavingChange]);
 
   const handleTimeSelect = useCallback(
     (time: string) => {
@@ -170,25 +172,30 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   );
 
   const saveOverrides = useCallback(
-    async (
+    (
       newOverrides: { date: string; startTime: string; endTime: string }[],
       successMessage: string
     ) => {
       if (!schedule) return;
 
-      setIsSaving(true);
-      try {
-        await CalComAPIService.updateSchedule(schedule.id, {
-          overrides: newOverrides,
-        });
-        Alert.alert("Success", successMessage, [{ text: "OK", onPress: onSuccess }]);
-        setIsSaving(false);
-      } catch {
-        showErrorAlert("Error", "Failed to save override. Please try again.");
-        setIsSaving(false);
-      }
+      updateSchedule(
+        { id: schedule.id, updates: { overrides: newOverrides } },
+        {
+          onSuccess: () => {
+            if (Platform.OS === "web") {
+              showSuccessAlert("Success", successMessage);
+              onSuccess();
+            } else {
+              Alert.alert("Success", successMessage, [{ text: "OK", onPress: onSuccess }]);
+            }
+          },
+          onError: () => {
+            showErrorAlert("Error", "Failed to save override. Please try again.");
+          },
+        }
+      );
     },
-    [schedule, onSuccess]
+    [schedule, onSuccess, updateSchedule]
   );
 
   const handleDeleteOverride = useCallback(
@@ -225,24 +232,24 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     [schedule, saveOverrides]
   );
 
-  const handleSubmit = useCallback(async () => {
-    if (!schedule || isSaving) return;
+  const handleSubmit = useCallback(() => {
+    if (!schedule || isMutating) return;
 
     if (!selectedDate) {
-      Alert.alert("Error", "Please enter a date (YYYY-MM-DD format)");
+      showErrorAlert("Error", "Please enter a date (YYYY-MM-DD format)");
       return;
     }
 
     // Validate date format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(selectedDate)) {
-      Alert.alert("Error", "Please enter date in YYYY-MM-DD format");
+      showErrorAlert("Error", "Please enter date in YYYY-MM-DD format");
       return;
     }
 
     // Validate end time is after start time (only when not marking as unavailable)
     if (!isUnavailable && endTime <= startTime) {
-      Alert.alert("Error", "End time must be after start time");
+      showErrorAlert("Error", "End time must be after start time");
       return;
     }
 
@@ -278,9 +285,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             { text: "Cancel", style: "cancel" },
             {
               text: "Replace",
-              onPress: async () => {
+              onPress: () => {
                 newOverrides[existingIndex] = newOverride;
-                await saveOverrides(newOverrides, "Override replaced successfully");
+                saveOverrides(newOverrides, "Override replaced successfully");
               },
             },
           ]
@@ -290,7 +297,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       newOverrides.push(newOverride);
     }
 
-    await saveOverrides(newOverrides, successMessage);
+    saveOverrides(newOverrides, successMessage);
   }, [
     schedule,
     selectedDate,
@@ -300,7 +307,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     isEditing,
     overrideIndex,
     saveOverrides,
-    isSaving,
+    isMutating,
   ]);
 
   useImperativeHandle(
@@ -376,7 +383,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         <Switch
           value={isUnavailable}
           onValueChange={setIsUnavailable}
-          trackColor={{ false: "#E5E5EA", true: "#FF3B30" }}
+          trackColor={{ false: "#E5E5EA", true: "#000000" }}
           thumbColor="#fff"
         />
       </View>
