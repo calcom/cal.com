@@ -148,6 +148,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "developer", page: "api_keys" },
         },
         {
+          name: "oAuth",
+          href: "/settings/developer/oauth",
+          trackingMetadata: { section: "developer", page: "oauth_clients" }
+        },
+        {
           name: "admin_api",
           href: "/settings/organizations/admin-api",
           trackingMetadata: { section: "developer", page: "admin_api" },
@@ -281,7 +286,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
         {
           name: "oAuth",
-          href: "/settings/admin/oAuth",
+          href: "/settings/admin/oauth",
           trackingMetadata: { section: "admin", page: "oauth" },
         },
         {
@@ -298,7 +303,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     },
   ];
 
-  tabs.find((tab) => {
+  for (const tab of tabs) {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
       tab.children?.push({
         name: "sso_configuration",
@@ -308,21 +313,21 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
+
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({
         name: "create_org",
         href: "/settings/organizations/new",
         trackingMetadata: { section: "admin", page: "create_org" },
       });
-    }
-    if (tab.name === "admin" && IS_CALCOM) {
+
       tab.children?.push({
         name: "create_license_key",
         href: "/settings/license-key/new",
         trackingMetadata: { section: "admin", page: "create_license_key" },
       });
     }
-  });
+  }
 
   return tabs;
 };
@@ -338,7 +343,7 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-export interface SettingsPermissions {
+interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
@@ -554,7 +559,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
           if (!teamMenuState[index]) {
             return null;
           }
-          if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+          if (teamMenuState.some((teamState) => teamState.teamId === team.id)) {
             return (
               <Collapsible
                 className="cursor-pointer"
@@ -697,6 +702,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                 </CollapsibleContent>
               </Collapsible>
             );
+          }
+
+          return null;
         })}
     </>
   );
@@ -1037,14 +1045,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export type SettingsLayoutProps = {
+type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
   teamFeatures?: Record<number, TeamFeatures>;
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({
+function SettingsLayoutAppDirClient({
   children,
   teamFeatures,
   permissions,
@@ -1133,3 +1141,6 @@ const SidebarContainerElement = ({
     </>
   );
 };
+
+export type { SettingsLayoutProps, SettingsPermissions };
+export default SettingsLayoutAppDirClient;
