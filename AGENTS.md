@@ -36,9 +36,11 @@ Large PRs are difficult to review, prone to errors, and slow down the developmen
 
 ### Size Limits
 
-- **Lines changed**: Keep PRs under 500 lines (additions + deletions)
-- **Files changed**: Keep PRs under 10 files
+- **Lines changed**: Keep PRs under 500 lines of code (additions + deletions)
+- **Files changed**: Keep PRs under 10 code files
 - **Single responsibility**: Each PR should do one thing well
+
+**Note**: These limits apply to code files only. Non-code files like documentation (README.md, CHANGELOG.md), lock files (yarn.lock, package-lock.json), and auto-generated files are excluded from the count.
 
 ### How to Split Large Changes
 

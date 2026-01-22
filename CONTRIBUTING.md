@@ -194,7 +194,7 @@ If you get errors, be sure to fix them before committing.
 
 Large PRs are difficult to review and more prone to errors. We strongly encourage smaller, self-contained PRs:
 
-- **Size limits**: Keep PRs under 500 lines changed and under 10 files modified
+- **Size limits**: Keep PRs under 500 lines of code changed and under 10 code files modified (excludes documentation, lock files, and auto-generated files)
 - **Single responsibility**: Each PR should address one concern (one feature, one bug fix, or one refactor)
 - **Split large changes**: If your task requires extensive changes, break it into multiple PRs that can be reviewed and merged independently
 
