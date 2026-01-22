@@ -153,9 +153,11 @@ export default class BaseEmail {
       const orgConfig = await this.getOrgSmtpConfig();
       if (orgConfig) {
         transport = this.buildOrgTransport(orgConfig);
-        finalFrom = orgConfig.fromName
-          ? `${orgConfig.fromName} <${orgConfig.fromEmail}>`
-          : orgConfig.fromEmail;
+        finalFrom = sanitizeDisplayName(
+          orgConfig.fromName
+            ? `${orgConfig.fromName} <${orgConfig.fromEmail}>`
+            : orgConfig.fromEmail
+        );
         usingOrgSmtp = true;
         log.info("Using custom SMTP config", {
           organizationId: this.organizationId,
