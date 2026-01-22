@@ -5,10 +5,10 @@ import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories
 import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/UserFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import type { TeamFeaturesDto, UserFeaturesDto } from "@calcom/lib/dto";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
-import type { TeamFeatures, UserFeatures } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import {
   getOptInFeatureConfig,
@@ -27,13 +27,13 @@ import type {
   UserRoleContext,
 } from "./IFeatureOptInService";
 
-function teamFeatureToState(teamFeature: TeamFeatures | undefined): FeatureState {
+function teamFeatureToState(teamFeature: TeamFeaturesDto | undefined): FeatureState {
   if (!teamFeature) return "inherit";
   if (teamFeature.enabled) return "enabled";
   return "disabled";
 }
 
-function userFeatureToState(userFeature: UserFeatures | undefined): FeatureState {
+function userFeatureToState(userFeature: UserFeaturesDto | undefined): FeatureState {
   if (!userFeature) return "inherit";
   if (userFeature.enabled) return "enabled";
   return "disabled";
@@ -72,7 +72,7 @@ type FeatureOptInEligibilityStatus =
   | "blocked"
   | "can_opt_in";
 
-function getOrgState(orgId: number | null, teamStatesById: Record<number, TeamFeatures>): FeatureState {
+function getOrgState(orgId: number | null, teamStatesById: Record<number, TeamFeaturesDto>): FeatureState {
   if (orgId !== null) {
     return teamFeatureToState(teamStatesById[orgId]);
   }
@@ -95,7 +95,7 @@ function getTeamIdsToQuery(teamId: number, parentOrgId: number | null | undefine
 
 function getOrgStateForTeam(
   parentOrgId: number | null | undefined,
-  teamStates: Partial<Record<FeatureId, Record<number, TeamFeatures>>>,
+  teamStates: Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>>,
   slug: FeatureId
 ): FeatureState {
   if (parentOrgId) {
@@ -177,8 +177,8 @@ export class FeatureOptInService implements IFeatureOptInService {
     orgId: number | null,
     teamIds: number[],
     globalEnabledMap: Map<string, boolean>,
-    allTeamStates: Partial<Record<FeatureId, Record<number, TeamFeatures>>>,
-    userStates: Partial<Record<FeatureId, UserFeatures>>,
+    allTeamStates: Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>>,
+    userStates: Partial<Record<FeatureId, UserFeaturesDto>>,
     teamsAutoOptIn: Record<number, boolean>,
     userAutoOptIn: boolean
   ): ResolvedFeatureState {

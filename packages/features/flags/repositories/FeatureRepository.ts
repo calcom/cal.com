@@ -1,6 +1,7 @@
 import { Memoize } from "@calcom/features/cache";
-import type { Feature, PrismaClient } from "@calcom/prisma/client";
-import { featureArraySchema } from "./schemas";
+import type { FeatureDto } from "@calcom/lib/dto";
+import { FeatureDtoArraySchema } from "@calcom/lib/dto";
+import type { PrismaClient } from "@calcom/prisma/client";
 
 const CACHE_PREFIX = "features:global";
 const KEY = {
@@ -8,7 +9,7 @@ const KEY = {
 };
 
 export interface IFeatureRepository {
-  findAll(): Promise<Feature[]>;
+  findAll(): Promise<FeatureDto[]>;
 }
 
 export class FeatureRepository implements IFeatureRepository {
@@ -20,11 +21,22 @@ export class FeatureRepository implements IFeatureRepository {
 
   @Memoize({
     key: () => KEY.all(),
-    schema: featureArraySchema,
+    schema: FeatureDtoArraySchema,
   })
-  async findAll(): Promise<Feature[]> {
-    return this.prisma.feature.findMany({
+  async findAll(): Promise<FeatureDto[]> {
+    const features = await this.prisma.feature.findMany({
       orderBy: { slug: "asc" },
     });
+    return features.map((f) => ({
+      slug: f.slug,
+      enabled: f.enabled,
+      description: f.description,
+      type: f.type,
+      stale: f.stale,
+      lastUsedAt: f.lastUsedAt,
+      createdAt: f.createdAt,
+      updatedAt: f.updatedAt,
+      updatedBy: f.updatedBy,
+    }));
   }
 }
