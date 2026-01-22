@@ -2,12 +2,12 @@ import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type {
   IBookingWebhookService,
   IFormWebhookService,
+  IOOOWebhookService,
   IRecordingWebhookService,
   IWebhookService,
 } from "../interface/services";
 import type { IWebhookProducerService } from "../interface/WebhookProducerService";
 import type { IWebhookNotifier } from "../interface/webhook";
-import type { OOOWebhookService } from "../service/OOOWebhookService";
 import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
 
 /**
@@ -110,7 +110,7 @@ export interface WebhookFeature {
    * Handle OOO-related webhook events:
    * - OOO_CREATED
    */
-  ooo: OOOWebhookService;
+  ooo: IOOOWebhookService;
 
   /**
    * Webhook Notifier
@@ -123,8 +123,10 @@ export interface WebhookFeature {
   /**
    * Webhook Repository
    *
+   * @internal
    * Direct data access for webhooks.
    * Use sparingly - prefer services for business logic.
+   * Only exposed for advanced use cases and testing.
    */
   repository: IWebhookRepository;
 }

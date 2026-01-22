@@ -1,15 +1,14 @@
 import type { WebhookFeature } from "@calcom/features/webhooks/lib/facade/WebhookFeature";
-import type { IWebhookDataFetcher } from "@calcom/features/webhooks/lib/interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import type {
   IBookingWebhookService,
   IFormWebhookService,
+  IOOOWebhookService,
   IRecordingWebhookService,
   IWebhookService,
 } from "@calcom/features/webhooks/lib/interface/services";
 import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import type { IWebhookNotifier } from "@calcom/features/webhooks/lib/interface/webhook";
-import type { OOOWebhookService } from "@calcom/features/webhooks/lib/service/OOOWebhookService";
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
 import { type Container, createContainer } from "@evyweb/ioctopus";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
@@ -94,8 +93,37 @@ export function getWebhookFeature(): WebhookFeature {
     booking: webhookContainer.get<IBookingWebhookService>(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE),
     form: webhookContainer.get<IFormWebhookService>(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE),
     recording: webhookContainer.get<IRecordingWebhookService>(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE),
-    ooo: webhookContainer.get<OOOWebhookService>(WEBHOOK_TOKENS.OOO_WEBHOOK_SERVICE),
+    ooo: webhookContainer.get<IOOOWebhookService>(WEBHOOK_TOKENS.OOO_WEBHOOK_SERVICE),
     notifier: webhookContainer.get<IWebhookNotifier>(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER),
     repository: webhookContainer.get<IWebhookRepository>(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY),
   };
+}
+
+/**
+ * Get only the webhook producer service
+ *
+ * Use this when you only need to queue webhooks, not consume or manage them.
+ * Lighter import footprint for better tree-shaking and faster module loading.
+ *
+ * Benefits:
+ * - Interface Segregation Principle: Import only what you need
+ * - Smaller bundle size: Avoid loading entire facade
+ * - Clearer intent: "I'm only queueing webhooks"
+ *
+ * Usage:
+ * ```typescript
+ * import { getWebhookProducer } from "@calcom/features/di/webhooks";
+ *
+ * const producer = getWebhookProducer();
+ * await producer.queueBookingCreatedWebhook({
+ *   bookingUid: booking.uid,
+ *   eventTypeId: eventType.id,
+ *   userId: user.id,
+ * });
+ * ```
+ *
+ * @returns Lightweight webhook producer service (no heavy dependencies)
+ */
+export function getWebhookProducer(): IWebhookProducerService {
+  return webhookContainer.get<IWebhookProducerService>(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE);
 }
