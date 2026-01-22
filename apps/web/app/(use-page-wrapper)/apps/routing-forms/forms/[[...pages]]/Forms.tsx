@@ -234,9 +234,9 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                             heading={form.name}
                             readOnly={readOnly}
                             subHeading={description}
-                            className="space-x-2 rtl:space-x-reverse"
+                            className="flex-col items-stretch space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2 rtl:space-x-reverse"
                             actions={
-                              <>
+                              <div className="flex flex-wrap items-center gap-2">
                                 {form.team?.name && (
                                   <div className="border-subtle border-r-2">
                                     <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
@@ -311,7 +311,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                     </FormAction>
                                   </FormActionsDropdown>
                                 </ButtonGroup>
-                              </>
+                              </div>
                             }>
                             <div className="flex flex-wrap gap-1">
                               <Badge variant="gray" startIcon="menu">
