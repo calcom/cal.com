@@ -105,7 +105,6 @@ export default function App({ Component, pageProps }: AppProps) {
         setAccessToken(data.accessToken);
         setUserEmail(data.email);
         setUsername(data.username);
-        console.log("asap data", data);
       });
     }
   }, [router.isReady, oAuth2Mode, authorizationCode]);

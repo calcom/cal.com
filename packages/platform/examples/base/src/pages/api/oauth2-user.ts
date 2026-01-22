@@ -44,9 +44,6 @@ async function createOAuthUser(authorizationCode:string, email: string, name: st
     },
   });
 
-  console.log("asap authorizationCode", authorizationCode);
-
-
   const exchangeResponse = await fetch(
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/auth/oauth2/clients/${process.env.NEXT_PUBLIC_OAUTH2_CLIENT_ID}/exchange`,
@@ -66,7 +63,6 @@ async function createOAuthUser(authorizationCode:string, email: string, name: st
   );
 
   const exchangeResponseBody = await exchangeResponse.json();
-  console.log("oauth2-user exchangeResponseBody", JSON.stringify(exchangeResponseBody, null, 2));
 
   const acccessToken = exchangeResponseBody.data.access_token;
   const refreshToken = exchangeResponseBody.data.refresh_token;
@@ -82,9 +78,7 @@ async function createOAuthUser(authorizationCode:string, email: string, name: st
     }
   );
 
-  
   const meResponseBody = await me.json();
-  console.log("oauth2-user me responseBody", JSON.stringify(meResponseBody, null, 2));
 
   await prisma.user.update({
     data: {

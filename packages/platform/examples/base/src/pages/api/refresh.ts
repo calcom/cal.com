@@ -39,7 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       );
       if (oAuth2Request.status === 200) {
         const oAuth2Response = await oAuth2Request.json();
-        console.log("refresh oAuth2Response", JSON.stringify(oAuth2Response, null, 2));
         const { access_token: newAccessToken, refresh_token: newRefreshToken } = oAuth2Response.data;
 
         await prisma.user.update({
