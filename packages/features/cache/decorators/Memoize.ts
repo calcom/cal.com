@@ -1,6 +1,9 @@
 import { getRedisService } from "@calcom/features/di/containers/Redis";
+import logger from "@calcom/lib/logger";
 import type { ZodSchema } from "zod";
 import { DEFAULT_TTL_MS } from "./types";
+
+const log = logger.getSubLogger({ prefix: ["@Memoize"] });
 
 interface MemoizeOptions {
   // biome-ignore lint/complexity/noBannedTypes: Decorator key function needs to accept any argument types
@@ -39,8 +42,8 @@ export function Memoize(config: MemoizeOptions) {
             return cached;
           }
         }
-      } catch {
-        // Silently ignore cache read errors and proceed to fetch from source
+      } catch (error) {
+        log.warn("Cache read failed, proceeding to fetch from source", { cacheKey, error });
       }
 
       const result = await originalMethod.apply(this, args);
@@ -50,8 +53,8 @@ export function Memoize(config: MemoizeOptions) {
         try {
           const redis = getRedisService();
           await redis.set(cacheKey, result, { ttl: config.ttl ?? DEFAULT_TTL_MS });
-        } catch {
-          // Silently ignore cache write errors
+        } catch (error) {
+          log.warn("Cache write failed", { cacheKey, error });
         }
       }
 

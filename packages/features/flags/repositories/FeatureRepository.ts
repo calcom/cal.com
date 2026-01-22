@@ -1,6 +1,6 @@
 import { Memoize } from "@calcom/features/cache";
-import type { FeatureDto } from "@calcom/lib/dto";
-import { FeatureDtoArraySchema } from "@calcom/lib/dto";
+import type { FeatureDto } from "@calcom/lib/dto/FeatureDto";
+import { FeatureDtoArraySchema } from "@calcom/lib/dto/FeatureDto";
 import type { PrismaClient } from "@calcom/prisma/client";
 
 const CACHE_PREFIX = "features:global";

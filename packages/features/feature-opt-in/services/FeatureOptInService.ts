@@ -5,7 +5,8 @@ import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories
 import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/UserFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import type { TeamFeaturesDto, UserFeaturesDto } from "@calcom/lib/dto";
+import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
+import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
