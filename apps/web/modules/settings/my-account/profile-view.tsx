@@ -270,11 +270,13 @@ const ProfileView = ({ user }: Props) => {
   };
 
   const userEmail = user.email || "";
+  // If no firstName and lastName, show the name field in lastName as fallback
+  const hasNoFirstOrLastName = !user.firstName && !user.lastName;
   const defaultValues = {
     username: user.username || "",
     avatarUrl: user.avatarUrl,
     firstName: user.firstName || "",
-    lastName: user.lastName || "",
+    lastName: hasNoFirstOrLastName ? (user.name || "") : (user.lastName || ""),
     email: userEmail,
     bio: user.bio || "",
     // We add the primary email as the first item in the list
