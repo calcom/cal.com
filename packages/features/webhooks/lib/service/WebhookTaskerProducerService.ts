@@ -1,5 +1,6 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 as uuidv4 } from "uuid";
+import type { BookingTriggerEvents, PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
 import type { ILogger, ITasker } from "../interface/infrastructure";
 import type {
   IWebhookProducerService,
@@ -143,7 +144,10 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
    * Internal helper to queue booking-related webhooks
    */
   private async queueBookingWebhook(
-    triggerEvent: WebhookTriggerEvents,
+    triggerEvent: Exclude<
+      BookingTriggerEvents,
+      typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED | typeof WebhookTriggerEvents.BOOKING_PAID
+    >,
     params: QueueBookingWebhookParams
   ): Promise<void> {
     const operationId = params.operationId || uuidv4();
@@ -175,7 +179,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
    * Internal helper to queue payment-related webhooks
    */
   private async queuePaymentWebhook(
-    triggerEvent: WebhookTriggerEvents,
+    triggerEvent: PaymentTriggerEvents,
     params: QueuePaymentWebhookParams
   ): Promise<void> {
     const operationId = params.operationId || uuidv4();

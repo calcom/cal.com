@@ -1,5 +1,6 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { IWebhookDataFetcher } from "../../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
 import { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
@@ -15,6 +16,7 @@ import { WebhookTaskConsumer } from "../WebhookTaskConsumer";
 describe("WebhookTaskConsumer", () => {
   let consumer: WebhookTaskConsumer;
   let mockWebhookRepository: IWebhookRepository;
+  let mockDataFetchers: IWebhookDataFetcher[];
   let mockLogger: ILogger;
 
   beforeEach(() => {
@@ -27,6 +29,38 @@ describe("WebhookTaskConsumer", () => {
       getFilteredWebhooksForUser: vi.fn(),
     } as unknown as IWebhookRepository;
 
+    // Mock Data Fetchers (Strategy Pattern implementations)
+    const createMockFetcher = (triggerEvents: string[]): IWebhookDataFetcher => ({
+      canHandle: vi.fn((event) => triggerEvents.includes(event)),
+      fetchEventData: vi.fn().mockResolvedValue({ _scaffold: true }),
+      getSubscriberContext: vi.fn((payload: WebhookTaskPayload) => ({
+        triggerEvent: payload.triggerEvent,
+        userId: "userId" in payload ? payload.userId : undefined,
+        eventTypeId: "eventTypeId" in payload ? payload.eventTypeId : undefined,
+        teamId: "teamId" in payload ? payload.teamId : undefined,
+        orgId: "orgId" in payload ? payload.orgId : undefined,
+        oAuthClientId: "oAuthClientId" in payload ? payload.oAuthClientId : undefined,
+      })),
+    });
+
+    mockDataFetchers = [
+      createMockFetcher([
+        WebhookTriggerEvents.BOOKING_CREATED,
+        WebhookTriggerEvents.BOOKING_CANCELLED,
+        WebhookTriggerEvents.BOOKING_RESCHEDULED,
+        WebhookTriggerEvents.BOOKING_REQUESTED,
+        WebhookTriggerEvents.BOOKING_REJECTED,
+        WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+      ]),
+      createMockFetcher([WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, WebhookTriggerEvents.BOOKING_PAID]),
+      createMockFetcher([WebhookTriggerEvents.FORM_SUBMITTED]),
+      createMockFetcher([
+        WebhookTriggerEvents.RECORDING_READY,
+        WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+      ]),
+      createMockFetcher([WebhookTriggerEvents.OOO_CREATED]),
+    ];
+
     // Mock Logger
     mockLogger = {
       debug: vi.fn(),
@@ -36,11 +70,11 @@ describe("WebhookTaskConsumer", () => {
       getSubLogger: vi.fn().mockReturnThis(),
     } as unknown as ILogger;
 
-    consumer = new WebhookTaskConsumer(mockWebhookRepository, mockLogger);
+    consumer = new WebhookTaskConsumer(mockWebhookRepository, mockDataFetchers, mockLogger);
   });
 
   describe("Constructor & Dependencies", () => {
-    it("should be instantiable with Repository and Logger", () => {
+    it("should be instantiable with Repository, Data Fetchers, and Logger", () => {
       expect(consumer).toBeInstanceOf(WebhookTaskConsumer);
     });
 
@@ -234,6 +268,10 @@ describe("WebhookTaskConsumer", () => {
           version: WebhookVersion.V_2021_10_20,
         },
       ]);
+
+      // Mock the data fetcher to return null (simulating event not found)
+      const bookingFetcher = mockDataFetchers[0];
+      (bookingFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
       await consumer.processWebhookTask(payload, "task-missing");
 
