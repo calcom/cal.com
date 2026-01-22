@@ -132,7 +132,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
@@ -156,7 +155,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
@@ -195,7 +193,6 @@ const _getBusyTimesFromDurationLimits = async (
         limitManager.addBusyTime({
           start: periodStart,
           unit,
-          timeZone: undefined,
           title,
           source,
         });
@@ -215,7 +212,6 @@ const _getBusyTimesFromDurationLimits = async (
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
@@ -239,7 +235,6 @@ const _getBusyTimesFromDurationLimits = async (
           limitManager.addBusyTime({
             start: periodStart,
             unit,
-            timeZone: undefined,
             title,
             source,
           });
