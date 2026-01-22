@@ -306,11 +306,16 @@ const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
   }
 
   if (expected.attendeesNoShow) {
-    expect(Object.keys(call.auditData.attendeesNoShow)).toHaveLength(
-      Object.keys(expected.attendeesNoShow).length
-    );
-    for (const [id, expectedValue] of Object.entries(expected.attendeesNoShow)) {
-      const actualValue = call.auditData.attendeesNoShow[id];
+    const actualKeys = Object.keys(call.auditData.attendeesNoShow);
+    const expectedKeys = Object.keys(expected.attendeesNoShow);
+    expect(actualKeys).toHaveLength(expectedKeys.length);
+
+    // Validate each attendee's data using numeric key comparison
+    for (const [expectedId, expectedValue] of Object.entries(expected.attendeesNoShow)) {
+      const numericId = Number(expectedId);
+      // Verify the key exists (JavaScript object keys are strings, so we check string representation)
+      const actualValue = call.auditData.attendeesNoShow[numericId];
+      expect(actualValue).toBeDefined();
       expect(actualValue).toEqual(expectedValue);
     }
   }

@@ -14,9 +14,11 @@ import type {
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
+// Note: z.record keys are always strings at runtime (JavaScript objects have string keys).
+// Using z.coerce.number() ensures string keys like "123" are coerced to numbers during validation.
 const fieldsSchemaV1 = z.object({
   hostNoShow: BooleanChangeSchema.optional(),
-  attendeesNoShow: z.record(z.number(), BooleanChangeSchema).optional(),
+  attendeesNoShow: z.record(z.coerce.number(), BooleanChangeSchema).optional(),
 });
 
 export class NoShowUpdatedAuditActionService implements IAuditActionService {
