@@ -16,25 +16,39 @@ import { Controller, useForm } from "react-hook-form";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+interface BookingData {
+  uid: string;
+  id: number;
+  title: string;
+  startTime: Date | string;
+  endTime: Date | string;
+  status: string;
+  eventType?: {
+    id: number;
+    title: string;
+    slug: string;
+    team?: {
+      id: number;
+    } | null;
+  } | null;
+  user?: {
+    id: number;
+    email: string;
+    name: string | null;
+  } | null;
+  assignmentReason: Array<{
+    reasonString: string | null;
+    reasonEnum: AssignmentReasonEnum | null;
+  }>;
+  attendees: Array<{
+    email: string;
+  }>;
+}
+
 interface IWrongAssignmentDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingUid: string;
-  bookingId: number;
-  bookingTitle: string;
-  bookingStartTime: Date;
-  bookingEndTime: Date;
-  bookingStatus: string;
-  eventTypeId: number | null;
-  eventTypeTitle: string | null;
-  eventTypeSlug: string | null;
-  teamId: number | null;
-  userId: number | null;
-  routingReason: string | null;
-  routingReasonEnum: AssignmentReasonEnum | null;
-  guestEmail: string;
-  hostEmail: string;
-  hostName: string | null;
+  booking: BookingData;
 }
 
 interface FormValues {
@@ -234,26 +248,24 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { copyToClipboard, isCopied } = useCopy();
-  const {
-    isOpenDialog,
-    setIsOpenDialog,
-    bookingUid,
-    bookingId,
-    bookingTitle,
-    bookingStartTime,
-    bookingEndTime,
-    bookingStatus,
-    eventTypeId,
-    eventTypeTitle,
-    eventTypeSlug,
-    teamId,
-    userId,
-    routingReason,
-    routingReasonEnum,
-    guestEmail,
-    hostEmail,
-    hostName,
-  } = props;
+  const { isOpenDialog, setIsOpenDialog, booking } = props;
+
+  const bookingUid = booking.uid;
+  const bookingId = booking.id;
+  const bookingTitle = booking.title;
+  const bookingStartTime = typeof booking.startTime === "string" ? new Date(booking.startTime) : booking.startTime;
+  const bookingEndTime = typeof booking.endTime === "string" ? new Date(booking.endTime) : booking.endTime;
+  const bookingStatus = booking.status;
+  const eventTypeId = booking.eventType?.id ?? null;
+  const eventTypeTitle = booking.eventType?.title ?? null;
+  const eventTypeSlug = booking.eventType?.slug ?? null;
+  const teamId = booking.eventType?.team?.id ?? null;
+  const userId = booking.user?.id ?? null;
+  const routingReason = booking.assignmentReason[0]?.reasonString ?? null;
+  const routingReasonEnum = booking.assignmentReason[0]?.reasonEnum ?? null;
+  const guestEmail = booking.attendees[0]?.email ?? "";
+  const hostEmail = booking.user?.email ?? "";
+  const hostName = booking.user?.name ?? null;
 
   const {
     control,
