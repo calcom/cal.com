@@ -987,6 +987,7 @@
   "url": "URL",
   "hidden": "Hidden",
   "readonly": "Read only",
+  "assigned": "Assigned",
   "one_time_link": "One-time link",
   "plan_description": "You're currently on the {{plan}} plan.",
   "plan_upgrade_invitation": "Upgrade your account to the PRO plan to unlock all of the features we have to offer.",
