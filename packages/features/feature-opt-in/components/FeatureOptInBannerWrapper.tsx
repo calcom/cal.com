@@ -42,6 +42,7 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
   return (
     <>
       {state.shouldShow &&
+        typeof document !== "undefined" &&
         createPortal(
           <FeatureOptInBanner
             featureConfig={state.featureConfig}
