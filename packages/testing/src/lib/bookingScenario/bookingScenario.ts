@@ -1078,6 +1078,7 @@ export async function createOrganization(orgData: {
       organizationId: org.id,
       fromEmail: orgData.withSmtpConfig.fromEmail,
       fromName: orgData.withSmtpConfig.fromName,
+      isEnabled: true,
     });
   }
   assertNonNullableSlug(org);
