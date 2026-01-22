@@ -154,11 +154,16 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
     }),
   },
 }));
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function() { return {
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: vi.fn(() => ({
     checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  })),
+}));
+
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn(() => ({
     checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-  }; }),
+  })),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({

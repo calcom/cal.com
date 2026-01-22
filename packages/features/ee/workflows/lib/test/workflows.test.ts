@@ -18,7 +18,7 @@ import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/scheduleBookingReminders";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import * as FeatureRepositoryContainer from "@calcom/features/di/containers/FeatureRepository";
 import tasker from "@calcom/features/tasker";
 import * as rateLimitModule from "@calcom/lib/checkRateLimitAndThrowError";
 import type { Prisma } from "@calcom/prisma/client";
@@ -1240,10 +1240,12 @@ describe("Routing Form Variables", () => {
   });
 
   test("should pass routing form responses to AI phone call workflows", async () => {
-    // Mock the feature flag
+    // Mock the feature flag via DI container
     const mockCheckFeature = vi
-      .spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally")
-      .mockResolvedValue(true);
+      .spyOn(FeatureRepositoryContainer, "getFeatureRepository")
+      .mockReturnValue({
+        checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+      } as unknown as ReturnType<typeof FeatureRepositoryContainer.getFeatureRepository>);
 
     // Mock rate limiting
     const mockRateLimit = vi

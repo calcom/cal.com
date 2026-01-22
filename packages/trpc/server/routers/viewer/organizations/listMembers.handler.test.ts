@@ -12,12 +12,12 @@ vi.mock("@calcom/prisma", () => ({
   default: prisma, // Add default export for db
 }));
 
-// Mock FeaturesRepository
+// Mock TeamFeatureRepository DI container
 const mockCheckIfTeamHasFeature = vi.fn();
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function() { return {
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn().mockReturnValue({
     checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
-  }; }),
+  }),
 }));
 
 // Mock PBAC permissions

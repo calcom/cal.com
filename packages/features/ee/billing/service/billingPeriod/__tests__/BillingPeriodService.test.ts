@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import * as FeatureRepositoryContainer from "@calcom/features/di/containers/FeatureRepository";
 import { prisma } from "@calcom/prisma";
 
 import { BillingPeriodService } from "../BillingPeriodService";
@@ -34,7 +34,9 @@ describe("BillingPeriodService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
+    vi.spyOn(FeatureRepositoryContainer, "getFeatureRepository").mockReturnValue({
+      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+    } as unknown as ReturnType<typeof FeatureRepositoryContainer.getFeatureRepository>);
     service = new BillingPeriodService();
   });
 

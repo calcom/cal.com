@@ -18,12 +18,10 @@ vi.mock("@calcom/features/redis/RedisService", () => {
   };
 });
 
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn(function () {
-    return {
-      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-    };
-  }),
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: vi.fn(() => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  })),
 }));
 
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");

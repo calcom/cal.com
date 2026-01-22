@@ -2,14 +2,14 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import * as TeamFeatureRepositoryContainer from "@calcom/features/di/containers/TeamFeatureRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { Resource } from "../../domain/types/permission-registry";
 import { PermissionCheckService } from "../../services/permission-check.service";
 import { getEventTypePermissions } from "../event-type-permissions";
 
-vi.mock("@calcom/features/flags/features.repository");
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository");
 vi.mock("../../services/permission-check.service");
 
 vi.mock("@calcom/prisma", () => ({
@@ -17,7 +17,7 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 describe("getEventTypePermissions", () => {
-  let mockFeaturesRepository: {
+  let mockTeamFeatureRepository: {
     checkIfTeamHasFeature: Mock;
   };
   let mockPermissionCheckService: {
@@ -27,7 +27,7 @@ describe("getEventTypePermissions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockFeaturesRepository = {
+    mockTeamFeatureRepository = {
       checkIfTeamHasFeature: vi.fn(),
     };
 
@@ -35,7 +35,7 @@ describe("getEventTypePermissions", () => {
       getResourcePermissions: vi.fn(),
     };
 
-    vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
+    vi.mocked(TeamFeatureRepositoryContainer.getTeamFeatureRepository).mockReturnValue(mockTeamFeatureRepository as any);
     vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
 
     prisma.membership.findFirst = vi.fn();
@@ -61,7 +61,7 @@ describe("getEventTypePermissions", () => {
         },
       });
 
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).not.toHaveBeenCalled();
+      expect(mockTeamFeatureRepository.checkIfTeamHasFeature).not.toHaveBeenCalled();
       expect(mockPermissionCheckService.getResourcePermissions).not.toHaveBeenCalled();
       expect(prisma.membership.findFirst).not.toHaveBeenCalled();
     });
@@ -69,7 +69,7 @@ describe("getEventTypePermissions", () => {
 
   describe("team event types with PBAC enabled", () => {
     beforeEach(() => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(true);
     });
 
     it("should use PBAC permissions when enabled", async () => {
@@ -79,7 +79,7 @@ describe("getEventTypePermissions", () => {
 
       const result = await getEventTypePermissions(1, 2);
 
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(2, "pbac");
+      expect(mockTeamFeatureRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(2, "pbac");
       expect(mockPermissionCheckService.getResourcePermissions).toHaveBeenCalledTimes(2);
       expect(mockPermissionCheckService.getResourcePermissions).toHaveBeenNthCalledWith(1, {
         userId: 1,
@@ -175,7 +175,7 @@ describe("getEventTypePermissions", () => {
 
   describe("team event types with PBAC disabled (role-based fallback)", () => {
     beforeEach(() => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(false);
     });
 
     describe("team without parent org", () => {
@@ -192,7 +192,7 @@ describe("getEventTypePermissions", () => {
 
         const result = await getEventTypePermissions(1, 2);
 
-        expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(2, "pbac");
+        expect(mockTeamFeatureRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(2, "pbac");
         expect(prisma.team.findUnique).toHaveBeenCalledWith({
           where: {
             id: 2,
@@ -457,13 +457,13 @@ describe("getEventTypePermissions", () => {
 
   describe("error handling", () => {
     it("should propagate errors from FeaturesRepository", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockRejectedValue(new Error("Database connection failed"));
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockRejectedValue(new Error("Database connection failed"));
 
       await expect(getEventTypePermissions(1, 2)).rejects.toThrow("Database connection failed");
     });
 
     it("should propagate errors from PermissionCheckService", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(true);
       mockPermissionCheckService.getResourcePermissions.mockRejectedValue(
         new Error("Permission service error")
       );
@@ -472,7 +472,7 @@ describe("getEventTypePermissions", () => {
     });
 
     it("should propagate errors from Prisma membership query", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(false);
       (prisma.membership.findFirst as Mock).mockRejectedValue(new Error("Database query failed"));
 
       await expect(getEventTypePermissions(1, 2)).rejects.toThrow("Database query failed");
@@ -481,7 +481,7 @@ describe("getEventTypePermissions", () => {
 
   describe("integration scenarios", () => {
     it("should handle switching from PBAC to role-based when PBAC check returns false", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(false);
       (prisma.team.findUnique as Mock).mockResolvedValue({ parentId: null });
       (prisma.membership.findFirst as Mock).mockResolvedValue({
         role: MembershipRole.ADMIN,
@@ -494,7 +494,7 @@ describe("getEventTypePermissions", () => {
     });
 
     it("should handle different user and team combinations", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(false);
       (prisma.team.findUnique as Mock).mockResolvedValue({ parentId: null });
       (prisma.membership.findFirst as Mock).mockResolvedValue({
         role: MembershipRole.MEMBER,
@@ -519,7 +519,7 @@ describe("getEventTypePermissions", () => {
 
   describe("permission mapping consistency", () => {
     it("should ensure both eventTypes and workflows use same permission structure", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+      mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(true);
       mockPermissionCheckService.getResourcePermissions.mockResolvedValue([
         "eventType.read",
         "eventType.update",
@@ -533,7 +533,7 @@ describe("getEventTypePermissions", () => {
 
     it("should maintain consistent permission types across PBAC and role-based modes", async () => {
       const pbacResult = await (async () => {
-        mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+        mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(true);
         mockPermissionCheckService.getResourcePermissions.mockResolvedValue([
           "eventType.read",
           "eventType.create",
@@ -546,13 +546,13 @@ describe("getEventTypePermissions", () => {
       vi.clearAllMocks();
 
       // Re-initialize mocks after clearing
-      vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
+      vi.mocked(TeamFeatureRepositoryContainer.getTeamFeatureRepository).mockReturnValue(mockTeamFeatureRepository as any);
       vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
       prisma.membership.findFirst = vi.fn();
       prisma.team.findUnique = vi.fn();
 
       const roleResult = await (async () => {
-        mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+        mockTeamFeatureRepository.checkIfTeamHasFeature.mockResolvedValue(false);
         (prisma.team.findUnique as Mock).mockResolvedValue({ parentId: null });
         (prisma.membership.findFirst as Mock).mockResolvedValue({
           role: MembershipRole.OWNER,

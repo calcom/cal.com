@@ -3,7 +3,7 @@ import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import { describe, expect, it, beforeEach } from "vitest";
 
 import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { TeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -39,8 +39,8 @@ describe("SelectedCalendarRepository", () => {
         },
       });
 
-      const featuresRepository = new FeaturesRepository(prismock);
-      await featuresRepository.setTeamFeatureState({
+      const teamFeatureRepository = new TeamFeatureRepository(prismock);
+      await teamFeatureRepository.setState({
         teamId: team.id,
         featureId: "calendar-cache" as FeatureId,
         state: "disabled",

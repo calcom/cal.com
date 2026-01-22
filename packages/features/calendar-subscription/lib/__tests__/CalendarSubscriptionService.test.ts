@@ -12,7 +12,7 @@ vi.mock("@sentry/nextjs", () => ({
 import type { AdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
@@ -98,7 +98,7 @@ describe("CalendarSubscriptionService", () => {
   let service: CalendarSubscriptionService;
   let mockAdapterFactory: AdapterFactory;
   let mockSelectedCalendarRepository: ISelectedCalendarRepository;
-  let mockFeaturesRepository: FeaturesRepository;
+  let mockFeaturesRepository: IFeaturesRepository;
   let mockCalendarCacheEventService: CalendarCacheEventService;
   let mockCalendarSyncService: CalendarSyncService;
   let mockAdapter: {

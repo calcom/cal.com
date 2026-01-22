@@ -9,7 +9,7 @@ import type {
 } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import logger from "@calcom/lib/logger";
 import { metrics } from "@sentry/nextjs";
@@ -27,7 +27,7 @@ export class CalendarSubscriptionService {
     private deps: {
       adapterFactory: AdapterFactory;
       selectedCalendarRepository: ISelectedCalendarRepository;
-      featuresRepository: FeaturesRepository;
+      featuresRepository: IFeaturesRepository;
       calendarCacheEventService: CalendarCacheEventService;
       calendarSyncService: CalendarSyncService;
     }
