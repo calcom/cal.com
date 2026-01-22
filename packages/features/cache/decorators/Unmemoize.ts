@@ -1,4 +1,7 @@
 import { getRedisService } from "@calcom/features/di/containers/Redis";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["@Unmemoize"] });
 
 interface UnmemoizeOptions {
   // biome-ignore lint/complexity/noBannedTypes: Decorator keys function needs to accept any argument types
@@ -24,8 +27,8 @@ export function Unmemoize(config: UnmemoizeOptions) {
         const redis = getRedisService();
         const keysToInvalidate = config.keys(...args) as string[];
         await Promise.allSettled(keysToInvalidate.map((key) => redis.del(key)));
-      } catch {
-        // Silently ignore cache invalidation errors
+      } catch (error) {
+        log.warn("Cache invalidation failed", { error });
       }
 
       return result;

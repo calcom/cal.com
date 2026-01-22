@@ -1,6 +1,6 @@
 import { Memoize, Unmemoize } from "@calcom/features/cache";
-import type { UserFeaturesDto } from "@calcom/lib/dto";
-import { UserFeaturesDtoSchema } from "@calcom/lib/dto";
+import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
+import { UserFeaturesDtoSchema } from "@calcom/lib/dto/UserFeaturesDto";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { FeatureId } from "../config";
 import { booleanSchema } from "./schemas";
