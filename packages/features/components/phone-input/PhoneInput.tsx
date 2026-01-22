@@ -184,7 +184,7 @@ const useDefaultCountry = () => {
         }
       }
     },
-    [query.data, defaultPhoneCountryFromStore]
+    [query.data, query.isLoading, defaultPhoneCountryFromStore]
   );
 
   return defaultCountry;
