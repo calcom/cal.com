@@ -39,7 +39,7 @@ import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interva
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
-import LimitManager from "@calcom/lib/intervalLimits/limitManager";
+import LimitManager, { LimitSources } from "@calcom/lib/intervalLimits/limitManager";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   BookingDateInPastError,
@@ -450,7 +450,7 @@ export class AvailableSlotsService {
       durationLimits,
     });
 
-    const globalLimitManager = new LimitManager("Booking Limit");
+    const globalLimitManager = new LimitManager();
 
     if (bookingLimits) {
       for (const key of descendingLimitKeys) {
@@ -471,8 +471,7 @@ export class AvailableSlotsService {
           const periodEnd = periodStart.endOf(unit);
           let totalBookings = 0;
 
-          // Include the limit value and unit for display in Troubleshooter
-          const source = `Booking Limit: ${limit} per ${unit}`;
+          const { title, source } = LimitSources.eventBookingLimit({ limit, unit });
 
           for (const booking of busyTimesFromLimitsBookings) {
             if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
@@ -481,7 +480,13 @@ export class AvailableSlotsService {
 
             totalBookings++;
             if (totalBookings >= limit) {
-              globalLimitManager.addBusyTime(periodStart, unit, timeZone, source);
+              globalLimitManager.addBusyTime({
+                start: periodStart,
+                unit,
+                timeZone,
+                title,
+                source,
+              });
               break;
             }
           }
@@ -491,7 +496,7 @@ export class AvailableSlotsService {
 
     for (const user of users) {
       const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
-      const limitManager = new LimitManager("Booking Limit");
+      const limitManager = new LimitManager();
 
       limitManager.mergeBusyTimes(globalLimitManager);
 
@@ -511,8 +516,7 @@ export class AvailableSlotsService {
           for (const periodStart of periodStartDates) {
             if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
-            // Include the limit value and unit for display in Troubleshooter
-            const bookingSource = `Booking Limit: ${limit} per ${unit}`;
+            const { title, source } = LimitSources.eventBookingLimit({ limit, unit });
 
             if (unit === "year") {
               try {
@@ -526,7 +530,13 @@ export class AvailableSlotsService {
                   timeZone,
                 });
               } catch {
-                limitManager.addBusyTime(periodStart, unit, timeZone, bookingSource);
+                limitManager.addBusyTime({
+                  start: periodStart,
+                  unit,
+                  timeZone,
+                  title,
+                  source,
+                });
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
                 ) {
@@ -546,7 +556,13 @@ export class AvailableSlotsService {
 
               totalBookings++;
               if (totalBookings >= limit) {
-                limitManager.addBusyTime(periodStart, unit, timeZone, bookingSource);
+                limitManager.addBusyTime({
+                  start: periodStart,
+                  unit,
+                  timeZone,
+                  title,
+                  source,
+                });
                 break;
               }
             }
@@ -572,11 +588,16 @@ export class AvailableSlotsService {
 
             const selectedDuration = (duration || eventType.length) ?? 0;
 
-            // Include the limit value and unit for display in Troubleshooter
-            const durationSource = `Duration Limit: ${limit} min per ${unit}`;
+            const { title, source } = LimitSources.eventDurationLimit({ limit, unit });
 
             if (selectedDuration > limit) {
-              limitManager.addBusyTime(periodStart, unit, timeZone, durationSource);
+              limitManager.addBusyTime({
+                start: periodStart,
+                unit,
+                timeZone,
+                title,
+                source,
+              });
               continue;
             }
 
@@ -588,7 +609,13 @@ export class AvailableSlotsService {
                 rescheduleUid,
               });
               if (totalYearlyDuration + selectedDuration > limit) {
-                limitManager.addBusyTime(periodStart, unit, timeZone, durationSource);
+                limitManager.addBusyTime({
+                  start: periodStart,
+                  unit,
+                  timeZone,
+                  title,
+                  source,
+                });
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
                 ) {
@@ -607,7 +634,13 @@ export class AvailableSlotsService {
               }
               totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
               if (totalDuration > limit) {
-                limitManager.addBusyTime(periodStart, unit, timeZone, durationSource);
+                limitManager.addBusyTime({
+                  start: periodStart,
+                  unit,
+                  timeZone,
+                  title,
+                  source,
+                });
                 break;
               }
             }
@@ -660,7 +693,7 @@ export class AvailableSlotsService {
       userId,
     }));
 
-    const globalLimitManager = new LimitManager("Team Booking Limit");
+    const globalLimitManager = new LimitManager();
 
     for (const key of descendingLimitKeys) {
       const limit = bookingLimits?.[key];
@@ -680,8 +713,7 @@ export class AvailableSlotsService {
         const periodEnd = periodStart.endOf(unit);
         let totalBookings = 0;
 
-        // Include the limit value and unit for display in Troubleshooter
-        const teamSource = `Team Booking Limit: ${limit} per ${unit}`;
+        const { title, source } = LimitSources.teamBookingLimit({ limit, unit });
 
         for (const booking of busyTimes) {
           if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
@@ -690,7 +722,13 @@ export class AvailableSlotsService {
 
           totalBookings++;
           if (totalBookings >= limit) {
-            globalLimitManager.addBusyTime(periodStart, unit, timeZone, teamSource);
+            globalLimitManager.addBusyTime({
+              start: periodStart,
+              unit,
+              timeZone,
+              title,
+              source,
+            });
             break;
           }
         }
@@ -701,7 +739,7 @@ export class AvailableSlotsService {
 
     for (const user of users) {
       const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
-      const limitManager = new LimitManager("Team Booking Limit");
+      const limitManager = new LimitManager();
 
       limitManager.mergeBusyTimes(globalLimitManager);
 
@@ -720,8 +758,7 @@ export class AvailableSlotsService {
         for (const periodStart of periodStartDates) {
           if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
-          // Include the limit value and unit for display in Troubleshooter
-          const userTeamSource = `Team Booking Limit: ${limit} per ${unit}`;
+          const { title, source } = LimitSources.teamBookingLimit({ limit, unit });
 
           if (unit === "year") {
             try {
@@ -736,7 +773,13 @@ export class AvailableSlotsService {
                 timeZone,
               });
             } catch {
-              limitManager.addBusyTime(periodStart, unit, timeZone, userTeamSource);
+              limitManager.addBusyTime({
+                start: periodStart,
+                unit,
+                timeZone,
+                title,
+                source,
+              });
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
               ) {
@@ -756,7 +799,13 @@ export class AvailableSlotsService {
 
             totalBookings++;
             if (totalBookings >= limit) {
-              limitManager.addBusyTime(periodStart, unit, timeZone, userTeamSource);
+              limitManager.addBusyTime({
+                start: periodStart,
+                unit,
+                timeZone,
+                title,
+                source,
+              });
               break;
             }
           }

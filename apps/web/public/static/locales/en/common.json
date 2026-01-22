@@ -4358,5 +4358,10 @@
   "error_enabling_feature": "Error enabling feature. Please try again.",
   "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
   "overwrite_existing_contact_owner": "Overwrite existing contact owner",
+  "busy_time": {
+    "event_booking_limit": "Event Booking Limit",
+    "event_duration_limit": "Event Duration Limit",
+    "team_booking_limit": "Team Booking Limit"
+  },
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
