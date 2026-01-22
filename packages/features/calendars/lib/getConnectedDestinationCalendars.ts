@@ -1,5 +1,6 @@
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import {
+  cleanIntegrationKeys,
   getCalendarCredentials,
   getConnectedCalendars,
 } from "@calcom/features/calendars/lib/CalendarManager";
@@ -240,7 +241,10 @@ function getSelectedCalendars({
 }: {
   user: UserWithCalendars;
   eventTypeId: number | null;
-}): Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId">[] {
+}): Pick<
+  SelectedCalendar,
+  "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId" | "id"
+>[] {
   if (eventTypeId) {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
@@ -250,11 +254,11 @@ function getSelectedCalendars({
 export type UserWithCalendars = Pick<User, "id" | "email"> & {
   allSelectedCalendars: Pick<
     SelectedCalendar,
-    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId" | "id"
   >[];
   userLevelSelectedCalendars: Pick<
     SelectedCalendar,
-    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId" | "id"
   >[];
   destinationCalendar: DestinationCalendar | null;
 };
@@ -298,15 +302,13 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   let connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"] = [];
   let destinationCalendar: IntegrationCalendar | undefined;
 
-  if (!skipSync) {
-    const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey(
-      {
-        user: { id: user.id, email: user.email, credentials: userCredentials },
-      }
-    );
-    // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(allCredentials);
+  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user: { id: user.id, email: user.email, credentials: userCredentials },
+  });
+  // get user's credentials + their connected integrations
+  const calendarCredentials = getCalendarCredentials(allCredentials);
 
+  if (!skipSync) {
     // get all the connected integrations' calendars (from third party)
     const getConnectedCalendarsResult = await getConnectedCalendars(
       calendarCredentials,
@@ -376,6 +378,30 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
         eventTypeId: eventTypeId ?? null,
       });
     }
+  }
+  // very explicit about skipping sync.
+  if (skipSync) {
+    calendarCredentials.map(async (item) => {
+      const { integration, credential } = item;
+      const safeToSendIntegration = cleanIntegrationKeys(integration);
+      connectedCalendars.push({
+        integration: safeToSendIntegration,
+        credentialId: credential.id,
+        delegationCredentialId: credential.delegationCredentialId,
+        calendars: selectedCalendars
+          .filter((cal) =>
+            credential.selectedCalendars.some((appSelectedCal) => appSelectedCal.id === cal.id)
+          )
+          .map((cal) => ({
+            ...cal,
+            isSelected: true,
+            readOnly: false,
+            primary: null,
+            credentialId: credential.id,
+            delegationCredentialId: credential.delegationCredentialId,
+          })),
+      });
+    });
   }
 
   const noConflictingNonDelegatedConnectedCalendars = _ensureNoConflictingNonDelegatedConnectedCalendar({

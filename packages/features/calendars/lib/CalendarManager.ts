@@ -72,7 +72,7 @@ type CleanIntegration = Omit<IntegrationWithCredentials, "credentials" | "creden
  * @param appIntegration
  * @returns App
  */
-const cleanIntegrationKeys = (appIntegration: IntegrationWithCredentials): CleanIntegration => {
+export const cleanIntegrationKeys = (appIntegration: IntegrationWithCredentials): CleanIntegration => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { credentials, credential, ...rest } = appIntegration;
   return rest;
