@@ -1461,6 +1461,51 @@ Select a version and trigger event to view the example payload:
         }
         ```
       </Accordion>
+      <Accordion title="WRONG_ASSIGNMENT_REPORT">
+        This webhook is triggered when a team member reports that a booking from a routing form was assigned to the wrong person. This is useful for tracking routing accuracy and improving CRM data quality.
+
+        <Note>
+          This webhook only fires for bookings that came through a routing form and have an assignment reason.
+        </Note>
+
+        ```json
+        {
+          "triggerEvent": "WRONG_ASSIGNMENT_REPORT",
+          "createdAt": "2025-01-15T10:30:00.000Z",
+          "payload": {
+            "booking": {
+              "uid": "abc123def456",
+              "id": 12345,
+              "title": "Sales Call between Team and Lead",
+              "startTime": "2025-01-15T14:00:00.000Z",
+              "endTime": "2025-01-15T14:30:00.000Z",
+              "status": "ACCEPTED",
+              "eventType": {
+                "id": 100,
+                "title": "Sales Call",
+                "slug": "sales-call",
+                "teamId": 50
+              }
+            },
+            "report": {
+              "reportedBy": {
+                "id": 1,
+                "email": "reporter@example.com",
+                "name": "Reporter Name"
+              },
+              "routingReason": "Routed based on company size: Enterprise",
+              "guest": "lead@company.com",
+              "host": {
+                "email": "assigned-rep@example.com",
+                "name": "Assigned Rep"
+              },
+              "correctAssignee": "correct-rep@example.com",
+              "additionalNotes": "This lead should have been routed to the Enterprise team based on their company size."
+            }
+          }
+        }
+        ```
+      </Accordion>
     </AccordionGroup>
   </Tab>
 </Tabs>
@@ -1613,72 +1658,6 @@ These webhooks are triggered **automatically** when hosts or guests don't join a
   }
 }
 ```
-
-### Wrong Assignment Report webhook payload
-
-This webhook is triggered when a team member reports that a booking from a routing form was assigned to the wrong person. This is useful for tracking routing accuracy and improving CRM data quality.
-
-<Note>
-  This webhook only fires for bookings that came through a routing form and have an assignment reason.
-</Note>
-
-**Example payload:**
-
-```json
-{
-  "triggerEvent": "WRONG_ASSIGNMENT_REPORT",
-  "createdAt": "2025-01-15T10:30:00.000Z",
-  "payload": {
-    "booking": {
-      "uid": "abc123def456",
-      "id": 12345,
-      "title": "Sales Call between Team and Lead",
-      "startTime": "2025-01-15T14:00:00.000Z",
-      "endTime": "2025-01-15T14:30:00.000Z",
-      "status": "ACCEPTED",
-      "eventType": {
-        "id": 100,
-        "title": "Sales Call",
-        "slug": "sales-call",
-        "teamId": 50
-      }
-    },
-    "report": {
-      "reportedBy": {
-        "id": 1,
-        "email": "reporter@example.com",
-        "name": "Reporter Name"
-      },
-      "routingReason": "Routed based on company size: Enterprise",
-      "guest": "lead@company.com",
-      "host": {
-        "email": "assigned-rep@example.com",
-        "name": "Assigned Rep"
-      },
-      "correctAssignee": "correct-rep@example.com",
-      "additionalNotes": "This lead should have been routed to the Enterprise team based on their company size."
-    }
-  }
-}
-```
-
-**Payload fields:**
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| booking.uid | String | Unique identifier of the booking |
-| booking.id | Number | Internal booking ID |
-| booking.title | String | Title of the booking |
-| booking.startTime | Datetime | Start time of the booking |
-| booking.endTime | Datetime | End time of the booking |
-| booking.status | String | Status of the booking (e.g., ACCEPTED, PENDING) |
-| booking.eventType | Object | Event type details including id, title, slug, and teamId |
-| report.reportedBy | Object | User who reported the wrong assignment (id, email, name) |
-| report.routingReason | String | The routing reason that was used to assign this booking |
-| report.guest | String | Email of the guest who booked |
-| report.host | Object | Current host details (email, name) |
-| report.correctAssignee | String | Email of who should have received the booking (optional) |
-| report.additionalNotes | String | Additional context provided by the reporter |
 
 ### Verifying the authenticity of the received payload
 
