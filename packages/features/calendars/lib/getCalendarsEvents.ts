@@ -5,12 +5,15 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+
+import { normalizeTimezone } from "./timezone-conversion";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+
 // only for Google Calendar for now
 export const getCalendarsEventsWithTimezones = async (
   withCredentials: CredentialForCalendarService[],
@@ -25,7 +28,7 @@ export const getCalendarsEventsWithTimezones = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential);
+      const calendar = await getCalendar(credential, "slots");
       return [calendar, credential] as const;
     })
   );
@@ -67,14 +70,18 @@ export const getCalendarsEventsWithTimezones = async (
     }
     /** We extract external Ids so we don't cache too much */
     const eventBusyDates =
-      (await c.getAvailabilityWithTimeZones?.(
+      (await c.getAvailabilityWithTimeZones?.({
         dateFrom,
         dateTo,
-        passedSelectedCalendars,
-        allowFallbackToPrimary
-      )) || [];
+        selectedCalendars: passedSelectedCalendars,
+        mode: "slots",
+        fallbackToPrimary: allowFallbackToPrimary,
+      })) || [];
 
-    return eventBusyDates;
+    return eventBusyDates.map((event) => ({
+      ...event,
+      timeZone: normalizeTimezone(event.timeZone),
+    }));
   });
   const awaitedResults = await Promise.all(results);
   return awaitedResults;
@@ -85,7 +92,7 @@ const getCalendarsEvents = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean
+  mode: CalendarFetchMode
 ): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
@@ -94,7 +101,7 @@ const getCalendarsEvents = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential, shouldServeCache);
+      const calendar = await getCalendar(credential, mode);
       return [calendar, credential] as const;
     })
   );
@@ -147,13 +154,13 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await calendarService.getAvailability(
+    const eventBusyDates = await calendarService.getAvailability({
       dateFrom,
       dateTo,
-      passedSelectedCalendars,
-      shouldServeCache,
-      allowFallbackToPrimary
-    );
+      selectedCalendars: passedSelectedCalendars,
+      mode,
+      fallbackToPrimary: allowFallbackToPrimary,
+    });
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,

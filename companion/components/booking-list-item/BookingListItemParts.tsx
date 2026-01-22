@@ -80,7 +80,7 @@ export function HostAndAttendees({
       <Text className="text-sm text-cal-text">{hostAndAttendeesDisplay}</Text>
       {hasNoShowAttendee && (
         <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-1.5 py-0.5">
-          <Ionicons name="eye-off" size={10} color="#DC2626" />
+          <Ionicons name="eye-off" size={10} color="#800020" />
           <Text className="ml-0.5 text-[10px] font-medium text-cal-accent-destructive">
             No-show
           </Text>

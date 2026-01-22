@@ -14,7 +14,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-export default function Authorize() {
+export function Authorize() {
   const { t } = useLocale();
   const { status } = useSession();
 
@@ -22,6 +22,7 @@ export default function Authorize() {
   const searchParams = useCompatSearchParams();
 
   const client_id = (searchParams?.get("client_id") as string) || "";
+  const redirect_uri = searchParams?.get("redirect_uri") as string;
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
   const code_challenge = searchParams?.get("code_challenge") as string;
@@ -32,12 +33,17 @@ export default function Authorize() {
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
-  const { data: client, isPending: isPendingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
+  const {
+    data: client,
+    error: getClientError,
+    isPending: isPendingGetClient,
+  } = trpc.viewer.oAuth.getClientForAuthorization.useQuery(
     {
       clientId: client_id as string,
+      redirectUri: redirect_uri,
     },
     {
-      enabled: status !== "loading",
+      enabled: status === "authenticated" && !!redirect_uri,
     }
   );
 
@@ -46,32 +52,16 @@ export default function Authorize() {
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
-      window.location.href = `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+      window.location.href =
+        data.redirectUrl ?? `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
     },
     onError: (error) => {
-      let oauthError = "server_error";
-      if (error.data?.code === "BAD_REQUEST") {
-        oauthError = "invalid_request";
-      } else if (error.data?.code === "UNAUTHORIZED") {
-        oauthError = "unauthorized_client";
-      }
-
-      const errorParams = new URLSearchParams({
-        error: oauthError,
-      });
-
-      if (error.message) {
-        errorParams.append("error_description", error.message);
-      }
-
-      if (state) {
-        errorParams.append("state", state);
-      }
-
       if (client?.redirectUri) {
-        window.location.href = `${client.redirectUri}${
-          client.redirectUri.includes("?") ? "&" : "?"
-        }${errorParams.toString()}`;
+        redirectToOAuthError({
+          redirectUri: client.redirectUri,
+          trpcError: error,
+          state,
+        });
       }
     },
   });
@@ -96,9 +86,11 @@ export default function Authorize() {
     if (client?.isTrusted && selectedAccount) {
       generateAuthCodeMutation.mutate({
         clientId: client_id as string,
+        redirectUri: client.redirectUri,
         scopes,
         codeChallenge: code_challenge || undefined,
         codeChallengeMethod: (code_challenge_method as "S256") || undefined,
+        state,
       });
     }
   }, [client?.isTrusted, selectedAccount]);
@@ -108,13 +100,20 @@ export default function Authorize() {
       const urlSearchParams = new URLSearchParams({
         callbackUrl: `auth/oauth2/authorize?${queryString}`,
       });
+      // Pass register param directly so login page can hide "Don't have an account" link
+      const registerParam = searchParams?.get("register");
+      if (registerParam) {
+        urlSearchParams.set("register", registerParam);
+      }
       router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
   }, [status]);
 
-  const isPending = isPendingGetClient || isPendingProfiles || status !== "authenticated";
+  if (getClientError) {
+    return <div>{getClientError.message}</div>;
+  }
 
-  if (isPending) {
+  if (isPendingGetClient || isPendingProfiles || status !== "authenticated") {
     return <></>;
   }
 
@@ -223,11 +222,13 @@ export default function Authorize() {
               generateAuthCodeMutation.mutate({
                 clientId: client_id as string,
                 scopes,
+                redirectUri: client.redirectUri,
                 teamSlug: selectedAccount?.value.startsWith("team/")
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>
                 codeChallenge: code_challenge || undefined,
                 codeChallengeMethod: (code_challenge_method as "S256") || undefined,
+                state,
               });
             }}
             data-testid="allow-button">
@@ -238,3 +239,56 @@ export default function Authorize() {
     </div>
   );
 }
+
+function mapTrpcCodeToOAuthError(code: string | undefined) {
+  if (code === "BAD_REQUEST") return "invalid_request";
+  if (code === "UNAUTHORIZED") return "unauthorized_client";
+  return "server_error";
+}
+
+function buildOAuthErrorRedirectUrl({
+  redirectUri,
+  error,
+  errorDescription,
+  state,
+}: {
+  redirectUri: string;
+  error: string;
+  errorDescription?: string;
+  state?: string;
+}) {
+  const errorParams = new URLSearchParams({
+    error,
+  });
+
+  if (errorDescription) {
+    errorParams.append("error_description", errorDescription);
+  }
+
+  if (state) {
+    errorParams.append("state", state);
+  }
+
+  return `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}${errorParams.toString()}`;
+}
+
+function redirectToOAuthError({
+  redirectUri,
+  trpcError,
+  state,
+}: {
+  redirectUri: string;
+  trpcError: { data?: { code?: string } | null; message: string };
+  state?: string;
+}) {
+  const redirectUrl = buildOAuthErrorRedirectUrl({
+    redirectUri,
+    error: mapTrpcCodeToOAuthError(trpcError.data?.code),
+    errorDescription: trpcError.message,
+    state,
+  });
+
+  window.location.href = redirectUrl;
+}
+
+export default Authorize;

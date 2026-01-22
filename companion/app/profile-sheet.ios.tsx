@@ -4,9 +4,10 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { Stack, useRouter } from "expo-router";
-import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserProfile } from "@/hooks";
+import { showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
 
@@ -65,15 +66,7 @@ export default function ProfileSheet() {
         ),
       external: true,
     },
-    {
-      id: "publicPage",
-      label: "View public page",
-      icon: "globe-outline",
-      onPress: () => {
-        if (publicPageUrl) openInAppBrowser(publicPageUrl, "Public page");
-      },
-      external: true,
-    },
+
     {
       id: "copyPublicPage",
       label: "Copy public page link",
@@ -82,7 +75,7 @@ export default function ProfileSheet() {
         if (publicPageUrl) {
           await Clipboard.setStringAsync(publicPageUrl);
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Alert.alert("Copied!", "Public page link copied to clipboard");
+          showSuccessAlert("Copied!", "Public page link copied to clipboard");
         }
       },
       external: false,
@@ -146,7 +139,7 @@ export default function ProfileSheet() {
         }}
       >
         {/* Profile Header */}
-        <View className="mt-20 border-b border-gray-200 px-6">
+        <View className="mt-20 px-6">
           {isLoading ? (
             <View className="items-center py-8">
               <ActivityIndicator size="large" color="#000" />

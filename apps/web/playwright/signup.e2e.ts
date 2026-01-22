@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { hashSync } from "bcryptjs";
 import { randomBytes } from "node:crypto";
 
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
@@ -115,41 +116,84 @@ test.describe("Email Signup Flow Test", async () => {
       expect(alertMessageInner).toContain(alertMessageInner);
     });
   });
-  test("Premium Username Flow - creates stripe checkout", async ({ page, users, prisma }) => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
-    const userToCreate = users.buildForSignup({
-      username: "rock",
-      password: "Password99!",
+
+  test("Signup with org invite token for existing user redirects to login without overwriting password", async ({
+    page,
+    prisma,
+  }) => {
+    const originalPassword = "OriginalPass99!";
+    const attackerPassword = "AttackerPass99!";
+    const testEmail = `existing-user-${Date.now()}@example.com`;
+
+    // Create existing user without emailVerified to bypass server-side check
+    const hashedPassword = hashSync(originalPassword, 12);
+    const existingUser = await prisma.user.create({
+      data: {
+        email: testEmail,
+        username: `existing-user-${Date.now()}`,
+        password: { create: { hash: hashedPassword } },
+        emailVerified: null,
+      },
     });
-    // Ensure the premium username is available
-    await prisma.user.deleteMany({ where: { username: "rock" } });
 
-    // Signup with premium username name
-    await page.goto("/signup");
-    await preventFlakyTest(page);
-    const continueWithEmailButton = page.getByTestId("continue-with-email-button");
-    await expect(continueWithEmailButton).toBeVisible();
-    await continueWithEmailButton.click();
+    // Create org invite token for the existing user's email
+    const token = randomBytes(32).toString("hex");
+    const org = await prisma.team.create({
+      data: {
+        name: "Test Org",
+        slug: `test-org-${Date.now()}`,
+        isOrganization: true,
+      },
+    });
 
-    // Fill form
-    await page.locator('input[name="username"]').fill("rock");
-    await page.locator('input[name="email"]').fill(userToCreate.email);
-    await page.locator('input[name="password"]').fill(userToCreate.password);
+    await prisma.verificationToken.create({
+      data: {
+        identifier: existingUser.email,
+        token,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        teamId: org.id,
+      },
+    });
 
-    // Submit form
+    // Clear any existing session before attempting signup
+    await page.context().clearCookies();
+
+    // Try to signup with the invite token using a different password
+    await page.goto(`/signup?token=${token}`);
+    await expect(page.getByTestId("signup-submit-button")).toBeVisible();
+
+    await page.locator('input[name="password"]').fill(attackerPassword);
+
+    // Intercept the signup API request to verify 409 response
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes("/api/auth/signup") && response.request().method() === "POST"
+    );
+
     const submitButton = page.getByTestId("signup-submit-button");
     await submitButton.click();
 
-    // Check that stripe checkout is present
-    const expectedUrl = "https://checkout.stripe.com";
+    // Verify API returns 409 (user already exists)
+    const response = await responsePromise;
+    expect(response.status()).toBe(409);
 
-    await page.waitForURL((url) => url.href.startsWith(expectedUrl));
-    const url = page.url();
+    const responseBody = await response.json();
+    expect(responseBody.message).toBe("user_already_exists");
 
-    // Check that the URL matches the expected URL
-    expect(url).toContain(expectedUrl);
-    // TODO: complete the stripe checkout flow
+    // Should redirect to login (toast shows and redirects after 3s)
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 8000 });
+
+    // Verify original password still works by logging in
+    await page.locator('input[name="email"]').fill(existingUser.email);
+    await page.locator('input[name="password"]').fill(originalPassword);
+    await page.locator('button[type="submit"]').click();
+
+    // Should successfully login with original password
+    await expect(page).toHaveURL(/\/(getting-started|event-types|teams)/, { timeout: 8000 });
+
+    // Cleanup
+    await prisma.verificationToken.deleteMany({ where: { token } });
+    await prisma.user.delete({ where: { id: existingUser.id } });
+    await prisma.team.delete({ where: { id: org.id } });
   });
   test("Signup with valid (non premium) username", async ({ page, users }) => {
     const userToCreate = users.buildForSignup({
@@ -182,7 +226,8 @@ test.describe("Email Signup Flow Test", async () => {
     // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
     expect(dbUser?.username).toBe(userToCreate.username);
   });
-  test("Signup fields prefilled with query params", async ({ page, users }) => {
+  
+  test("Signup fields prefilled with query params", async ({ page, users: _users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
     await preventFlakyTest(page);
@@ -354,7 +399,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
   });
 
-  test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
+  test("Checkbox for cookie consent does not need to be checked", async ({ page, users: _users }) => {
     await page.goto("/signup");
     await preventFlakyTest(page);
 
