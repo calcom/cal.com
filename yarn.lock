@@ -1991,7 +1991,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-date-mock: "npm:1.0.10"
     jest-junit: "npm:^16.0.0"
-    lodash: "npm:4.17.21"
+    lodash: "npm:4.17.23"
     luxon: "npm:3.4.4"
     nest-winston: "npm:1.9.4"
     node-mocks-http: "npm:1.16.2"
@@ -2080,7 +2080,7 @@ __metadata:
     "@calcom/types": "workspace:*"
     "@calcom/ui": "workspace:*"
     "@calcom/zoomvideo": "workspace:*"
-    lodash: "npm:4.17.21"
+    lodash: "npm:4.17.23"
     qs-stringify: "npm:1.2.1"
     react-i18next: "npm:12.3.1"
   peerDependencies:
@@ -3598,7 +3598,7 @@ __metadata:
     jsdom: "npm:22.0.0"
     kbar: "npm:0.1.0-beta.36"
     libphonenumber-js: "npm:^1.11.18"
-    lodash: "npm:4.17.21"
+    lodash: "npm:4.17.23"
     markdown-it: "npm:13.0.1"
     md5: "npm:2.3.0"
     memory-cache: "npm:0.2.0"
@@ -27809,10 +27809,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.17.21":
-  version: 4.17.21
-  resolution: "lodash-es@npm:4.17.21"
-  checksum: 10/03f39878ea1e42b3199bd3f478150ab723f93cc8730ad86fec1f2804f4a07c6e30deaac73cad53a88e9c3db33348bb8ceeb274552390e7a75d7849021c02df43
+"lodash-es@npm:4.17.23":
+  version: 4.17.23
+  resolution: "lodash-es@npm:4.17.23"
+  checksum: 10/1feae200df22eb0bd93ca86d485e77784b8a9fb1d13e91b66e9baa7a7e5e04be088c12a7e20c2250fc0bd3db1bc0ef0affc7d9e3810b6af2455a3c6bf6dde59e
   languageName: node
   linkType: hard
 
@@ -27949,10 +27949,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:~4.17.0, lodash@npm:~4.17.15":
-  version: 4.17.21
-  resolution: "lodash@npm:4.17.21"
-  checksum: 10/c08619c038846ea6ac754abd6dd29d2568aa705feb69339e836dfa8d8b09abbb2f859371e86863eda41848221f9af43714491467b5b0299122431e202bb0c532
+"lodash@npm:4.17.23":
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
   languageName: node
   linkType: hard
 
