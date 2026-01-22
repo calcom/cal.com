@@ -66,10 +66,11 @@ jobs:
         id: deploy-trigger
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          TRIGGER_DEV_PROJECT_REF: ${{ secrets.TRIGGER_DEV_PROJECT_REF }}
         run: |
           # The CLI outputs the version; id allows us to access outputs.deploymentVersion
           cd packages/features
-          npx trigger.dev@latest deploy --config ./trigger.config.ts --skip-promotion
+          yarn deploy:trigger:ci
 
       - name: Bump version
         env:

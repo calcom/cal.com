@@ -1,638 +1,6 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/v2/oauth-clients/{clientId}/users": {
-      "get": {
-        "operationId": "OAuthClientUsersController_getManagedUsers",
-        "summary": "Get all managed users",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to skip",
-            "example": 0,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "emails",
-            "required": false,
-            "in": "query",
-            "description": "Filter managed users by email. If you want to filter by multiple emails, separate them with a comma.",
-            "example": "?emails=email1@example.com,email2@example.com",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Managed Users"
-        ]
-      },
-      "post": {
-        "operationId": "OAuthClientUsersController_createUser",
-        "summary": "Create a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateManagedUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Managed Users"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/users/{userId}": {
-      "get": {
-        "operationId": "OAuthClientUsersController_getUserById",
-        "summary": "Get a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Managed Users"
-        ]
-      },
-      "patch": {
-        "operationId": "OAuthClientUsersController_updateUser",
-        "summary": "Update a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateManagedUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Managed Users"
-        ]
-      },
-      "delete": {
-        "operationId": "OAuthClientUsersController_deleteUser",
-        "summary": "Delete a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Managed Users"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
-      "post": {
-        "operationId": "OAuthClientUsersController_forceRefresh",
-        "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Managed Users"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/refresh": {
-      "post": {
-        "operationId": "OAuthFlowController_refreshTokens",
-        "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-secret-key",
-            "required": true,
-            "in": "header",
-            "description": "OAuth client secret key.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Managed Users"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/webhooks": {
-      "post": {
-        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
-        "summary": "Create a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateWebhookInputDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Webhooks"
-        ]
-      },
-      "get": {
-        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
-        "summary": "Get all webhooks",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of items to return",
-            "example": 25,
-            "schema": {
-              "minimum": 1,
-              "maximum": 250,
-              "default": 250,
-              "type": "number"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Number of items to skip",
-            "example": 0,
-            "schema": {
-              "minimum": 0,
-              "default": 0,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Webhooks"
-        ]
-      },
-      "delete": {
-        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
-        "summary": "Delete all webhooks",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Webhooks"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
-      "patch": {
-        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
-        "summary": "Update a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "webhookId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateWebhookInputDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Webhooks"
-        ]
-      },
-      "get": {
-        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
-        "summary": "Get a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Webhooks"
-        ]
-      },
-      "delete": {
-        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
-        "summary": "Delete a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Webhooks"
-        ]
-      }
-    },
     "/v2/organizations/{orgId}/attributes": {
       "get": {
         "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
@@ -7310,6 +6678,16 @@
               "default": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID",
+            "example": 1,
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7522,6 +6900,16 @@
             "name": "userId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID",
+            "example": 1,
             "schema": {
               "type": "number"
             }
@@ -11445,13 +10833,24 @@
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "summary": "Get busy times",
-        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
+        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?timeZone=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`. Note: loggedInUsersTz is deprecated, use timeZone instead.",
         "parameters": [
           {
             "name": "loggedInUsersTz",
-            "required": true,
+            "required": false,
             "in": "query",
-            "description": "The timezone of the logged in user represented as a string",
+            "deprecated": true,
+            "description": "Deprecated: Use timeZone instead. The timezone of the user represented as a string",
+            "example": "America/New_York",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "The timezone for the busy times query represented as a string",
             "example": "America/New_York",
             "schema": {
               "type": "string"
@@ -12107,6 +11506,852 @@
         },
         "tags": [
           "Conferencing"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users": {
+      "get": {
+        "operationId": "OAuthClientUsersController_getManagedUsers",
+        "summary": "Get all managed users",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "emails",
+            "required": false,
+            "in": "query",
+            "description": "Filter managed users by email. If you want to filter by multiple emails, separate them with a comma.",
+            "example": "?emails=email1@example.com,email2@example.com",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUsersOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Managed Users"
+        ]
+      },
+      "post": {
+        "operationId": "OAuthClientUsersController_createUser",
+        "summary": "Create a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateManagedUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Managed Users"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users/{userId}": {
+      "get": {
+        "operationId": "OAuthClientUsersController_getUserById",
+        "summary": "Get a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Managed Users"
+        ]
+      },
+      "patch": {
+        "operationId": "OAuthClientUsersController_updateUser",
+        "summary": "Update a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateManagedUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Managed Users"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientUsersController_deleteUser",
+        "summary": "Delete a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Managed Users"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
+      "post": {
+        "operationId": "OAuthClientUsersController_forceRefresh",
+        "summary": "Force refresh tokens",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Managed Users"
+        ]
+      }
+    },
+    "/v2/oauth/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuthFlowController_refreshTokens",
+        "summary": "Refresh managed user tokens",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "required": true,
+            "in": "header",
+            "description": "OAuth client secret key.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Managed Users"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks": {
+      "post": {
+        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
+        "summary": "Create a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
+        "summary": "Get all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
+        "summary": "Delete all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Webhooks"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
+        "summary": "Update a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
+        "summary": "Get a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
+        "summary": "Delete a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform / Webhooks"
+        ]
+      }
+    },
+    "/v2/oauth-clients": {
+      "post": {
+        "operationId": "OAuthClientsController_createOAuthClient",
+        "summary": "Create an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create an OAuth client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClients",
+        "summary": "Get all OAuth clients",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}": {
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClientById",
+        "summary": "Get an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      },
+      "patch": {
+        "operationId": "OAuthClientsController_updateOAuthClient",
+        "summary": "Update an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientsController_deleteOAuthClient",
+        "summary": "Delete an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deprecated: Platform OAuth Clients"
         ]
       }
     },
@@ -13331,204 +13576,6 @@
         },
         "tags": [
           "Me"
-        ]
-      }
-    },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "Create an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth Clients"
-        ]
-      },
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "Get all OAuth clients",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth Clients"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "Get an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth Clients"
-        ]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "Update an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth Clients"
-        ]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "Delete an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth Clients"
         ]
       }
     },
@@ -15154,6 +15201,201 @@
         ]
       }
     },
+    "/v2/teams/{teamId}/bookings": {
+      "get": {
+        "operationId": "TeamsBookingsController_getAllTeamBookings",
+        "summary": "Get team bookings",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "example": "?status=upcoming,past",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "upcoming",
+                  "recurring",
+                  "past",
+                  "cancelled",
+                  "unconfirmed"
+                ]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
+            "example": "?eventTypeIds=100,200",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type id belonging to the team.",
+            "example": "?eventTypeId=100",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with start after this date string.",
+            "example": "?afterStart=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with end before this date string.",
+            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Bookings"
+        ]
+      }
+    },
     "/v2/teams/{teamId}/event-types": {
       "post": {
         "operationId": "TeamsEventTypesController_createTeamEventType",
@@ -15731,6 +15973,46 @@
         },
         "tags": [
           "Teams / Event Types / Webhooks"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/invite": {
+      "post": {
+        "operationId": "TeamsInviteController_createInvite",
+        "summary": "Create team invite link",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateInviteOutputDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Invite"
         ]
       }
     },
@@ -19317,11 +19599,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -21634,11 +21916,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -23617,11 +23899,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -24210,11 +24492,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -24722,7 +25004,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success"
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/InviteDataDto"
@@ -33804,6 +34090,114 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "UpdateInputAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "address",
+            "description": "only allowed value for type is `address` - it refers to address defined by the organizer."
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": [
+          "type",
+          "address"
+        ]
+      },
+      "UpdateBookingInputAttendeeAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": [
+          "type",
+          "address"
+        ]
+      },
+      "UpdateBookingInputAttendeeDefinedLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          },
+          "location": {
+            "type": "string",
+            "example": "321 Example St, City, Country"
+          }
+        },
+        "required": [
+          "type",
+          "location"
+        ]
+      },
+      "UpdateBookingInputAttendeePhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": [
+          "type",
+          "phone"
+        ]
+      },
+      "UpdateBookingInputLinkLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "link",
+            "description": "only allowed value for type is `link` - it refers to link defined by the organizer."
+          },
+          "link": {
+            "type": "string",
+            "example": "https://meet.google.com/txi-fein-xyz"
+          }
+        },
+        "required": [
+          "type",
+          "link"
+        ]
+      },
+      "UpdateBookingInputPhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "phone",
+            "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": [
+          "type",
+          "phone"
         ]
       },
       "UpdateBookingLocationInput_2024_08_13": {

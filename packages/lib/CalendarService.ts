@@ -393,6 +393,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
+        // biome-ignore lint/complexity/useLiteralKeys: accessing dynamic property from ICAL.js object
         const timezone = dtstart ? dtstart["timezone"] : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
         const isUTC = timezone === "Z";
@@ -457,9 +458,9 @@ export default abstract class BaseCalendarService implements Calendar {
           startDate.second = event.startDate.second;
           const iterator = event.iterator(startDate);
           let current: ICAL.Time;
-          let currentEvent;
-          let currentStart = null;
-          let currentError;
+          let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
+          let currentStart: ReturnType<typeof dayjs> | null = null;
+          let currentError: string | undefined;
 
           while (
             maxIterations > 0 &&

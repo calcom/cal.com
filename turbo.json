@@ -221,9 +221,6 @@
     "ZOHOCRM_CLIENT_SECRET",
     "ZOOM_CLIENT_ID",
     "ZOOM_CLIENT_SECRET",
-    "REVERT_API_KEY",
-    "REVERT_API_URL",
-    "REVERT_PUBLIC_TOKEN",
     "RESEND_API_KEY",
     "LOCAL_TESTING_DOMAIN_VERCEL",
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
@@ -352,6 +349,9 @@
     "@calcom/prisma#dx": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-up"]
+    },
+    "@calcom/app-store#build:types": {
+      "outputs": ["types/**"]
     },
     "@calcom/trpc#build": {
       "dependsOn": ["@calcom/prisma#post-install"],
@@ -495,7 +495,7 @@
       "outputs": ["dist/**", "build/**"]
     },
     "@calcom/web#dev": {
-      "dependsOn": ["@calcom/trpc#build", "//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
     "dev": {
