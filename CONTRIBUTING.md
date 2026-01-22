@@ -190,6 +190,22 @@ If you get errors, be sure to fix them before committing.
 
 ## Making a Pull Request
 
+### Keep PRs Small and Focused
+
+Large PRs are difficult to review and more prone to errors. We strongly encourage smaller, self-contained PRs:
+
+- **Size limits**: Keep PRs under 500 lines of code changed and under 10 code files modified (excludes documentation, lock files, and auto-generated files)
+- **Single responsibility**: Each PR should address one concern (one feature, one bug fix, or one refactor)
+- **Split large changes**: If your task requires extensive changes, break it into multiple PRs that can be reviewed and merged independently
+
+**How to split large changes:**
+- Separate database/schema changes from application logic
+- Split frontend and backend changes when possible
+- Do preparatory refactoring in a separate PR before adding new features
+- Create PRs in dependency order (infrastructure first, then features)
+
+### PR Checklist
+
 - Be sure to [check the "Allow edits from maintainers" option](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when creating your PR. (This option isn't available if you're [contributing from a fork belonging to an organization](https://github.com/orgs/community/discussions/5634))
 - If your PR refers to or fixes an issue, add `refs #XXX` or `fixes #XXX` to the PR description. Replace `XXX` with the respective issue number. See more about [linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).
 - Fill out the PR template accordingly.
