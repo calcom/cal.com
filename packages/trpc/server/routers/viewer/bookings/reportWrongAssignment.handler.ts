@@ -86,7 +86,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
         email: user.email,
         name: user.name,
       },
-      routingReason: routingReason,
+      firstAssignmentReason: routingReason,
       guest: guestEmail,
       host: {
         email: hostEmail,

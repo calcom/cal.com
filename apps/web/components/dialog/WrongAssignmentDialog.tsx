@@ -331,7 +331,7 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
                 routingReason={routingReason}
                 routingReasonEnum={routingReasonEnum}
                 noRoutingReasonText={t("no_routing_reason")}
-                routingReasonLabel={t("routing_reason")}
+                routingReasonLabel={t("first_assignment_reason")}
                 guestEmail={guestEmail}
                 whoBookedItLabel={t("who_booked_it")}
                 hostEmail={hostEmail}

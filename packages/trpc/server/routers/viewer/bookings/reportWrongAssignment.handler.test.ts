@@ -165,7 +165,7 @@ describe("reportWrongAssignmentHandler", () => {
                 id: mockUser.id,
                 email: mockUser.email,
               }),
-              routingReason: mockInput.routingReason,
+              firstAssignmentReason: mockInput.routingReason,
               guest: mockInput.guestEmail,
               host: expect.objectContaining({
                 email: mockInput.hostEmail,
@@ -227,7 +227,7 @@ describe("reportWrongAssignmentHandler", () => {
         expect.objectContaining({
           data: expect.objectContaining({
             report: expect.objectContaining({
-              routingReason: null,
+              firstAssignmentReason: null,
             }),
           }),
         })
