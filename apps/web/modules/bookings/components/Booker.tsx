@@ -470,7 +470,7 @@ const BookerComponent = ({
                     timeZones={timeZones}
                     roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
                     hideEventTypeDetails={hideEventTypeDetails}
-                    variant={isTablet && layout === BookerLayouts.MONTH_VIEW ? "header" : "full"}>
+                    variant={isTablet && layout === BookerLayouts.MONTH_VIEW && bookerState !== "booking" ? "header" : "full"}>
                     {eventMetaChildren}
                   </EventMeta>
                 )}
@@ -495,7 +495,7 @@ const BookerComponent = ({
               </BookerSection>
             </StickyOnDesktop>
 
-            {isTablet && layout === BookerLayouts.MONTH_VIEW && !hideEventTypeDetails && (
+            {isTablet && layout === BookerLayouts.MONTH_VIEW && bookerState !== "booking" && !hideEventTypeDetails && (
               <BookerSection
                 key="details"
                 area="details"

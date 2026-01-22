@@ -209,7 +209,8 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
 
   useEffect(() => {
     const tabletConfig = tabletResizeAnimationConfig[layout];
-    const useTabletLayout = isTablet && tabletConfig;
+    // Only use tablet layout when NOT in booking state (i.e., before a slot is confirmed)
+    const useTabletLayout = isTablet && tabletConfig && state !== "booking";
     const animationConfig = useTabletLayout
       ? tabletConfig[state] || tabletConfig.default
       : resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
