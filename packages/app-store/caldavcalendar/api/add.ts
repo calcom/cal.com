@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { createEncryptedKey, symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -41,12 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user: { email: user.email },
       });
       await dav?.listCalendars();
-      const encryptedKey = createEncryptedKey(data.key);
       await prisma.credential.create({
-        data: {
-          ...data,
-          ...(encryptedKey && { encryptedKey }),
-        },
+        data,
       });
     } catch (e) {
       logger.error("Could not add this caldav account", e);

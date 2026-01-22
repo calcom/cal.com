@@ -1,4 +1,3 @@
-import { createEncryptedKey } from "@calcom/lib/crypto";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -14,6 +13,7 @@ type CredentialCreateInput = {
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
+  encryptedKey?: string | null;
 };
 
 type CredentialUpdateInput = {
@@ -46,9 +46,8 @@ export class CredentialRepository {
   }
 
   static async create(data: CredentialCreateInput) {
-    const encryptedKey = createEncryptedKey(data.key);
     const credential = await prisma.credential.create({
-      data: { ...data, ...(encryptedKey && { encryptedKey }) },
+      data,
     });
     return buildNonDelegationCredential(credential);
   }
@@ -280,14 +279,15 @@ export class CredentialRepository {
     type,
     key,
     appId,
+    encryptedKey,
   }: {
     userId: number;
     delegationCredentialId: string;
     type: string;
     key: Prisma.InputJsonValue;
     appId: string;
+    encryptedKey?: string | null;
   }) {
-    const encryptedKey = createEncryptedKey(key);
     return prisma.credential.create({
       data: { userId, delegationCredentialId, type, key, appId, ...(encryptedKey && { encryptedKey }) },
     });

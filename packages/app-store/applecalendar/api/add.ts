@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { createEncryptedKey, symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -63,14 +63,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         delegationCredentialId: null,
       });
       await dav?.listCalendars();
-      const encryptedKey = createEncryptedKey(data.key);
-      const dataWithEncryptedKey = { ...data, ...(encryptedKey && { encryptedKey }) };
       await prisma.credential.upsert({
         where: {
           id: credentialExistsWithUsername?.id ?? -1,
         },
-        create: dataWithEncryptedKey,
-        update: dataWithEncryptedKey,
+        create: data,
+        update: data,
       });
     } catch (reason) {
       logger.error("Could not add this apple calendar account", reason);

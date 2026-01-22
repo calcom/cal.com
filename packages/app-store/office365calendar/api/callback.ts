@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-import { createEncryptedKey } from "@calcom/lib/crypto";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
@@ -133,14 +132,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.session?.user?.id) {
-    const encryptedKey = createEncryptedKey(responseBody);
     const credential = await prisma.credential.create({
       data: {
         type: "office365_calendar",
         key: responseBody,
         userId: req.session?.user.id,
         appId: "office365-calendar",
-        ...(encryptedKey && { encryptedKey }),
       },
     });
     const selectedCalendarWhereUnique = {

@@ -3,7 +3,6 @@ import { stringify } from "node:querystring";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { createEncryptedKey } from "@calcom/lib/crypto";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -104,14 +103,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
 
   if (primaryCalendar.uid) {
-    const encryptedKey = createEncryptedKey(key);
     const credential = await prisma.credential.create({
       data: {
         type: config.type,
         key,
         userId: req.session.user.id,
         appId: config.slug,
-        ...(encryptedKey && { encryptedKey }),
       },
     });
     const selectedCalendarWhereUnique = {

@@ -2,7 +2,7 @@ import { SoapFaultDetails } from "ews-javascript-api";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { createEncryptedKey, symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -40,8 +40,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const service = BuildCalendarService({ id: 0, user: { email: session.user.email || "" }, ...data });
     await service?.listCalendars();
-    const encryptedKey = createEncryptedKey(data.key);
-    await prisma.credential.create({ data: { ...data, ...(encryptedKey && { encryptedKey }) } });
+    await prisma.credential.create({ data });
   } catch (reason) {
     logger.info(reason);
     if (reason instanceof SoapFaultDetails && reason.message != "") {

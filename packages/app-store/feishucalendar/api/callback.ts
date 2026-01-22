@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { createEncryptedKey } from "@calcom/lib/crypto";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -68,8 +67,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    const encryptedKey = createEncryptedKey(key);
-
     if (!currentCredential) {
       await prisma.credential.create({
         data: {
@@ -77,7 +74,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           key,
           userId: req.session?.user.id,
           appId: "feishu-calendar",
-          ...(encryptedKey && { encryptedKey }),
         },
       });
     } else {
@@ -87,7 +83,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           key,
           userId: req.session?.user.id,
           appId: "feishu-calendar",
-          ...(encryptedKey && { encryptedKey }),
         },
         where: {
           id: currentCredential.id,
