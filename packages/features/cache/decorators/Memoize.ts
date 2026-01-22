@@ -22,25 +22,37 @@ export function Memoize(config: MemoizeOptions) {
     }
 
     const wrappedMethod = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
-      const redis = getRedisService();
       const cacheKey = config.key(...args) as string;
-      const cached = await redis.get<unknown>(cacheKey);
 
-      if (cached !== null) {
-        if (config.schema) {
-          const parsed = config.schema.safeParse(cached);
-          if (parsed.success) {
-            return parsed.data;
+      // Try to get from cache, but don't let Redis failures break the flow
+      try {
+        const redis = getRedisService();
+        const cached = await redis.get<unknown>(cacheKey);
+
+        if (cached !== null) {
+          if (config.schema) {
+            const parsed = config.schema.safeParse(cached);
+            if (parsed.success) {
+              return parsed.data;
+            }
+          } else {
+            return cached;
           }
-        } else {
-          return cached;
         }
+      } catch {
+        // Silently ignore cache read errors and proceed to fetch from source
       }
 
       const result = await originalMethod.apply(this, args);
 
+      // Try to cache the result, but don't let Redis failures break the flow
       if (result !== null && result !== undefined) {
-        await redis.set(cacheKey, result, { ttl: config.ttl ?? DEFAULT_TTL_MS });
+        try {
+          const redis = getRedisService();
+          await redis.set(cacheKey, result, { ttl: config.ttl ?? DEFAULT_TTL_MS });
+        } catch {
+          // Silently ignore cache write errors
+        }
       }
 
       return result;
