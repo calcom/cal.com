@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { createEncryptedKey, symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -44,8 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         throw new Error(`Listed cals and URLs mismatch: ${listedCals.length} vs. ${urls.length}`);
       }
 
+      const encryptedKey = createEncryptedKey(data.key);
       await prisma.credential.create({
-        data,
+        data: {
+          ...data,
+          ...(encryptedKey && { encryptedKey }),
+        },
       });
     } catch (e) {
       logger.error("Could not add ICS feeds", e);
