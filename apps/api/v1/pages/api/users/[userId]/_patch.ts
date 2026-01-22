@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
@@ -140,8 +140,8 @@ export async function patchHandler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 404, message: "User not found" });
   }
 
-  const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const featureRepository = getFeatureRepository();
+  const emailVerification = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const hasEmailBeenChanged = typeof body.email === "string" && currentUser.email !== body.email;
   const newEmail = typeof body.email === "string" ? body.email : undefined;

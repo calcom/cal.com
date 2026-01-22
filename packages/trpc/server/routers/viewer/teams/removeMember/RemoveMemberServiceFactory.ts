@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { prisma } from "@calcom/prisma";
 
@@ -12,8 +12,8 @@ export class RemoveMemberServiceFactory {
    * Caches the service per team/org to avoid repeated feature flag checks
    */
   static async create(teamId: number): Promise<IRemoveMemberService> {
-    const featuresRepository = new FeaturesRepository(prisma);
-    const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(teamId, "pbac");
+    const teamFeatureRepository = getTeamFeatureRepository();
+    const isPBACEnabled = await teamFeatureRepository.checkIfTeamHasFeature(teamId, "pbac");
 
     const teamRepository = new TeamRepository(prisma);
     const service = isPBACEnabled ? new PBACRemoveMemberService() : new LegacyRemoveMemberService(teamRepository);

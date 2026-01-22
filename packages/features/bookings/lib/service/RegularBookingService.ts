@@ -51,7 +51,7 @@ import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/Workf
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { TeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -476,7 +476,7 @@ export interface IBookingServiceDependencies {
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
-  featuresRepository: FeaturesRepository;
+  teamFeatureRepository: TeamFeatureRepository;
   bookingEventHandler: BookingEventHandlerService;
 }
 
@@ -2786,7 +2786,7 @@ async function handler(
     if (ENABLE_ASYNC_TASKER && !noEmail) {
       try {
         if (orgId) {
-          const hasTeamFeature = await deps.featuresRepository.checkIfTeamHasFeature(
+          const hasTeamFeature = await deps.teamFeatureRepository.checkIfTeamHasFeature(
             orgId,
             "booking-email-sms-tasker"
           );

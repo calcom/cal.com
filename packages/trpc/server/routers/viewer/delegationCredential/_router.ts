@@ -1,6 +1,5 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,11 +18,12 @@ const checkDelegationCredentialFeature = async ({
   next,
 }: {
   ctx: { user: { id: number; locale?: string; organizationId: number | null } };
-  next: () => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  next: () => any;
 }) => {
   const user = ctx.user;
   const t = await getTranslation(user.locale ?? "en", "common");
-  const featureRepo = new FeaturesRepository(prisma);
+  const teamFeatureRepository = getTeamFeatureRepository();
 
   if (!user.organizationId) {
     throw new TRPCError({
@@ -32,7 +32,7 @@ const checkDelegationCredentialFeature = async ({
     });
   }
 
-  const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
+  const hasDelegationCredential = await teamFeatureRepository.checkIfTeamHasFeature(
     user.organizationId,
     "delegation-credential"
   );

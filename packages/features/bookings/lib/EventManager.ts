@@ -12,7 +12,7 @@ import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/features/co
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import CrmManager from "@calcom/features/crmManager/crmManager";
 import CRMScheduler from "@calcom/features/crmManager/crmScheduler";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
@@ -1244,9 +1244,9 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
 
-    const featureRepo = new FeaturesRepository(prisma);
+    const teamFeatureRepository = getTeamFeatureRepository();
     const isTaskerEnabledForSalesforceCrm = event.team?.id
-      ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
+      ? await teamFeatureRepository.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
       : false;
 
     const uid = getUid(event.uid);

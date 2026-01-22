@@ -4,10 +4,9 @@ import type { PageProps, Params, SearchParams } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
@@ -30,8 +29,8 @@ async function isCachedTeamBookingEnabled(params: Params, searchParams: SearchPa
 
   if (!teamId) return false;
 
-  const featuresRepository = new FeaturesRepository(prisma);
-  const isTeamFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(
+  const teamFeatureRepository = getTeamFeatureRepository();
+  const isTeamFeatureEnabled = await teamFeatureRepository.checkIfTeamHasFeature(
     teamId,
     "team-booking-page-cache"
   );

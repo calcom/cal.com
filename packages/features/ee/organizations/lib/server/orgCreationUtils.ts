@@ -2,7 +2,7 @@ import { lookup } from "node:dns";
 import { type TFunction } from "i18next";
 
 import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   RESERVED_SUBDOMAINS,
@@ -204,8 +204,8 @@ export async function assertCanCreateOrg({
   restrictBasedOnMinimumPublishedTeams: boolean;
   errorOnUserAlreadyPartOfOrg?: boolean;
 }) {
-  const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+  const featureRepository = getFeatureRepository();
+  const emailVerificationEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally(
     "email-verification"
   );
 

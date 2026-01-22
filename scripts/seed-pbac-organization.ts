@@ -1,7 +1,7 @@
 import { uuid } from "short-uuid";
 
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
@@ -53,8 +53,8 @@ export async function createPBACOrganization() {
   });
 
   // Add the feature flag
-  const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState({
+  const teamFeatureRepository = getTeamFeatureRepository();
+  await teamFeatureRepository.setState({
     teamId: organization.id,
     featureId: "pbac" as FeatureId,
     state: "enabled",

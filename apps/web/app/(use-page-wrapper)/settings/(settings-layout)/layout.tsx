@@ -5,12 +5,11 @@ import React from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { TeamFeatures } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -19,8 +18,8 @@ import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
 const getTeamFeatures = unstable_cache(
   async (teamId: number) => {
-    const featuresRepository = new FeaturesRepository(prisma);
-    return await featuresRepository.getEnabledTeamFeatures(teamId);
+    const teamFeatureRepository = getTeamFeatureRepository();
+    return await teamFeatureRepository.getEnabledTeamFeatures(teamId);
   },
   ["team-features"],
   {

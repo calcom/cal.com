@@ -2,10 +2,10 @@ import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
 import { formatIdentifierToVariable } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
   getSubmitterEmail,
   getSubmitterName,
@@ -121,8 +121,8 @@ export async function executeAIPhoneCall(payload: string) {
     throw new Error("Invalid JSON payload");
   }
 
-  const featuresRepository = new FeaturesRepository(prisma);
-  const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
+  const featureRepository = getFeatureRepository();
+  const calAIVoiceAgents = await featureRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
 
   if (!calAIVoiceAgents) {
     log.warn("Cal.ai voice agents are disabled - skipping AI phone call");

@@ -1,22 +1,21 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { prisma } from "@calcom/prisma";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
 
 import { LegacyRoleManager } from "./legacy-role-manager.service";
 import { PBACRoleManager } from "./pbac-role-manager.service";
 import { PermissionCheckService } from "./permission-check.service";
-import { IRoleManager } from "./role-manager.interface";
+import type { IRoleManager } from "./role-manager.interface";
 import { RoleService } from "./role.service";
 
 export class RoleManagementFactory {
   private static instance: RoleManagementFactory;
-  private featuresRepository: FeaturesRepository;
+  private teamFeatureRepository: ITeamFeatureRepository;
   private roleService: RoleService;
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    // Not used but needed for DI
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
+    this.teamFeatureRepository = getTeamFeatureRepository();
+    this.roleService = new RoleService();
     this.permissionCheckService = new PermissionCheckService();
   }
 
@@ -28,7 +27,7 @@ export class RoleManagementFactory {
   }
 
   async createRoleManager(organizationId: number): Promise<IRoleManager> {
-    const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
+    const isPBACEnabled = await this.teamFeatureRepository.checkIfTeamHasFeature(organizationId, "pbac");
 
     return isPBACEnabled
       ? new PBACRoleManager(this.roleService, this.permissionCheckService)

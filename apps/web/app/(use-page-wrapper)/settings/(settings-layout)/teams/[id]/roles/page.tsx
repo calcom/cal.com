@@ -4,9 +4,9 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getTeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { AppFlags } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -33,8 +33,8 @@ const getCachedTeamRoles = (teamId: number) =>
 const getCachedTeamFeature = (teamId: number, feature: keyof AppFlags) =>
   unstable_cache(
     async () => {
-      const featureRepo = new FeaturesRepository(prisma);
-      const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
+      const teamFeatureRepo = getTeamFeatureRepository();
+      const res = await teamFeatureRepo.checkIfTeamHasFeature(teamId, feature);
       return res;
     },
     [`team-feature-for-roles-${teamId}-${feature}`],

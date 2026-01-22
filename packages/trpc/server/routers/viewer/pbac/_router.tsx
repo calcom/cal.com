@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -181,8 +181,8 @@ export const permissionsRouter = router({
         throw new Error("Unauthorized");
       }
 
-      const featureRepo = new FeaturesRepository(prisma);
-      const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
+      const teamFeatureRepository = getTeamFeatureRepository();
+      const teamHasPBACFeature = await teamFeatureRepository.checkIfTeamHasFeature(input.teamId, "pbac");
 
       // If PBAC is not enabled but caller wants system roles only (for preview), allow it
       if (!teamHasPBACFeature && input.includeSystemRolesOnly) {
@@ -241,15 +241,15 @@ export const permissionsRouter = router({
     }
 
     // Check if PBAC is already enabled for this org
-    const featureRepo = new FeaturesRepository(prisma);
-    const pbacAlreadyEnabled = await featureRepo.checkIfTeamHasFeature(orgId, "pbac");
+    const teamFeatureRepository = getTeamFeatureRepository();
+    const pbacAlreadyEnabled = await teamFeatureRepository.checkIfTeamHasFeature(orgId, "pbac");
 
     if (pbacAlreadyEnabled) {
       return { success: true, message: "PBAC is already enabled for this organization" };
     }
 
     // Enable PBAC feature for the organization
-    await featureRepo.setTeamFeatureState({
+    await teamFeatureRepository.setState({
       teamId: orgId,
       featureId: "pbac",
       state: "enabled",

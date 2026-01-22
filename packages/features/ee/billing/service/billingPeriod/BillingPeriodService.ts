@@ -1,9 +1,9 @@
 import { BillingPeriodRepository } from "@calcom/features/ee/billing/repository/billingPeriod/BillingPeriodRepository";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 import type { Logger } from "tslog";
 
@@ -40,8 +40,8 @@ export class BillingPeriodService {
 
   async shouldApplyMonthlyProration(teamId: number): Promise<boolean> {
     try {
-      const featuresRepository = new FeaturesRepository(prisma);
-      const isFeatureEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+      const featureRepository = getFeatureRepository();
+      const isFeatureEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
 
       if (!isFeatureEnabled) {
         return false;

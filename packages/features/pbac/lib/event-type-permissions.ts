@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -94,10 +94,10 @@ export async function getEventTypePermissions(
   }
 
   const permissionCheckService = new PermissionCheckService();
-  const featuresRepository = new FeaturesRepository(prisma);
+  const teamFeatureRepository = getTeamFeatureRepository();
 
   // Check if PBAC is enabled for the team
-  const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(teamId, "pbac");
+  const isPBACEnabled = await teamFeatureRepository.checkIfTeamHasFeature(teamId, "pbac");
 
   if (isPBACEnabled) {
     const [eventTypePermissions, workflowPermissions] = await Promise.all([

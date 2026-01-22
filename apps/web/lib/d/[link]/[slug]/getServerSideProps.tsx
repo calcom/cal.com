@@ -5,9 +5,9 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
   shouldHideBrandingForTeamEvent,
   shouldHideBrandingForUserEvent,
@@ -131,8 +131,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   // Check if team has API v2 feature flag enabled (same logic as team pages)
   let useApiV2 = false;
   if (isTeamEvent && hashedLink.eventType.team?.id) {
-    const featureRepo = new FeaturesRepository(prisma);
-    const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(
+    const teamFeatureRepo = getTeamFeatureRepository();
+    const teamHasApiV2Route = await teamFeatureRepo.checkIfTeamHasFeature(
       hashedLink.eventType.team.id,
       "use-api-v2-for-team-slots"
     );

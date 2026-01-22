@@ -174,7 +174,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   await moveUserToMatchingOrg({ email: user.email });
 
-  const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
+  const gettingStartedPath = await OnboardingPathService.getGettingStartedPath();
 
   return res.redirect(`${WEBAPP_URL}${hasCompletedOnboarding ? "/event-types" : gettingStartedPath}`);
 }

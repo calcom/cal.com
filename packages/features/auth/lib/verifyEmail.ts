@@ -6,7 +6,7 @@ import {
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/auth-email-service";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -36,8 +36,8 @@ export const sendEmailVerification = async ({
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const featureRepository = getFeatureRepository();
+  const emailVerification = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
@@ -129,8 +129,8 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const featureRepository = getFeatureRepository();
+  const emailVerification = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
