@@ -177,23 +177,32 @@ export const NavigationItem: React.FC<{
               }
             }}
             className={classNames(
-              "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+              "todesktop:py-[7px] text-default group relative flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               "aria-[aria-current='page']:bg-transparent!",
               "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+              "md:justify-center lg:justify-start",
               isLocaleReady
                 ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
             )}
           >
             {item.icon && (
-              <Icon
-                name={item.isLoading ? "rotate-cw" : item.icon}
-                className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
-                  item.isLoading && "animate-spin"
+              <div className="relative">
+                <Icon
+                  name={item.isLoading ? "rotate-cw" : item.icon}
+                  className={classNames(
+                    "todesktop:!text-blue-500 h-4 w-4 shrink-0 lg:ltr:mr-2 lg:rtl:ml-2",
+                    item.isLoading && "animate-spin"
+                  )}
+                  aria-hidden="true"
+                />
+                {shouldShowChevron && (
+                  <Icon
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-subtle p-0.5 lg:hidden"
+                  />
                 )}
-                aria-hidden="true"
-              />
+              </div>
             )}
             {isLocaleReady ? (
               <span
@@ -209,7 +218,7 @@ export const NavigationItem: React.FC<{
             {shouldShowChevron && (
               <Icon
                 name={isExpanded ? "chevron-up" : "chevron-down"}
-                className="ml-auto h-4 w-4"
+                className="ml-auto hidden h-4 w-4 lg:block"
               />
             )}
           </button>
@@ -233,7 +242,7 @@ export const NavigationItem: React.FC<{
                       ? "mt-0"
                       : "mt-1  hover:mt-1 [&[aria-current='page']]:mt-1"
                   }`
-                : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+                : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm md:justify-center lg:justify-start",
               isLocaleReady
                 ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
@@ -244,7 +253,7 @@ export const NavigationItem: React.FC<{
               <Icon
                 name={item.isLoading ? "rotate-cw" : item.icon}
                 className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+                  "todesktop:!text-blue-500 h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit lg:ltr:mr-2 lg:rtl:ml-2",
                   item.isLoading && "animate-spin"
                 )}
                 aria-hidden="true"
