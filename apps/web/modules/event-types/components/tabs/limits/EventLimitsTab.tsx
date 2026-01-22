@@ -420,7 +420,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     return parentTeamHasLimits && includeManaged;
   };
 
-  const TeamLimitsBadge = ({ isManagedChild, teamId }: { isManagedChild: boolean, teamId: number | null }) => {
+  const TeamLimitsBadge = ({ isManagedChild, teamId }: { isManagedChild: boolean, teamId?: number | null }) => {
     const badge = (
       <Badge variant="blue" className="text-xs cursor-pointer hover:opacity-80">
         {t("team_limits_apply")}
