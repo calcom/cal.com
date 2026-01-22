@@ -876,7 +876,7 @@ export const getOptions = ({
         const profileResult = determineProfile({ profiles: allProfiles, token });
         log.debug(
           "callbacks:jwt:accountType:oauth:existingUser",
-          safeStringify({ existingUser, upId: profileResult.upId })
+          safeStringify({ userId: existingUser.id, upId: profileResult.upId })
         );
         // Don't spread ...token here - it may contain large OAuth tokens (access_token, refresh_token, id_token)
         // that bloat the JWT cookie. Only include the specific fields we need.
