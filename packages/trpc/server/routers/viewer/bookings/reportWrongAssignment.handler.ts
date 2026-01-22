@@ -1,4 +1,3 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -22,9 +21,26 @@ const log = logger.getSubLogger({ prefix: ["reportWrongAssignmentHandler"] });
 
 export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAssignmentOptions) => {
   const { user } = ctx;
-  const { bookingUid, correctAssignee, additionalNotes } = input;
+  const {
+    bookingUid,
+    bookingId,
+    bookingTitle,
+    bookingStartTime,
+    bookingEndTime,
+    bookingStatus,
+    eventTypeId,
+    eventTypeTitle,
+    eventTypeSlug,
+    teamId,
+    userId,
+    routingReason,
+    guestEmail,
+    hostEmail,
+    hostName,
+    correctAssignee,
+    additionalNotes,
+  } = input;
 
-  const bookingRepo = new BookingRepository(prisma);
   const bookingAccessService = new BookingAccessService(prisma);
 
   const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
@@ -36,36 +52,33 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
     throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
   }
 
-  const booking = await bookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason({ bookingUid });
-
-  if (!booking) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+  // Get orgId from team if teamId exists
+  let orgId: number | null = null;
+  if (teamId) {
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { parentId: true },
+    });
+    orgId = team?.parentId ?? null;
   }
-
-  const teamId = booking.eventType?.teamId || null;
-  const bookingUserId = booking.user?.id || null;
-
-  const assignmentReason = booking.assignmentReason?.[0];
-  const guestEmail = booking.attendees[0]?.email || "";
-  const hostEmail = booking.user?.email || "";
-  const hostName = booking.user?.name || null;
 
   const webhookPayload = {
     booking: {
-      uid: booking.uid,
-      id: booking.id,
-      title: booking.title,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      status: booking.status,
-      eventType: booking.eventType
-        ? {
-            id: booking.eventType.id,
-            title: booking.eventType.title,
-            slug: booking.eventType.slug,
-            teamId: booking.eventType.teamId,
-          }
-        : null,
+      uid: bookingUid,
+      id: bookingId,
+      title: bookingTitle,
+      startTime: bookingStartTime,
+      endTime: bookingEndTime,
+      status: bookingStatus,
+      eventType:
+        eventTypeId && eventTypeTitle && eventTypeSlug
+          ? {
+              id: eventTypeId,
+              title: eventTypeTitle,
+              slug: eventTypeSlug,
+              teamId: teamId,
+            }
+          : null,
     },
     report: {
       reportedBy: {
@@ -73,7 +86,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
         email: user.email,
         name: user.name,
       },
-      routingReason: assignmentReason?.reasonString || null,
+      routingReason: routingReason,
       guest: guestEmail,
       host: {
         email: hostEmail,
@@ -86,8 +99,9 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
 
   try {
     const webhooks = await getWebhooks({
-      userId: bookingUserId,
+      userId: userId,
       teamId,
+      orgId,
       triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
     });
 
@@ -108,7 +122,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
 
     log.info(`Wrong assignment report sent for booking ${bookingUid}`, {
       teamId,
-      userId: bookingUserId,
+      userId: userId,
       webhookCount: webhooks.length,
     });
   } catch (error) {

@@ -528,11 +528,21 @@ function BookingListItem(booking: BookingItemProps) {
           isOpenDialog={isOpenWrongAssignmentDialog}
           setIsOpenDialog={setIsOpenWrongAssignmentDialog}
           bookingUid={booking.uid}
+          bookingId={booking.id}
+          bookingTitle={booking.title}
+          bookingStartTime={booking.startTime}
+          bookingEndTime={booking.endTime}
+          bookingStatus={booking.status}
+          eventTypeId={booking.eventType?.id ?? null}
+          eventTypeTitle={booking.eventType?.title ?? null}
+          eventTypeSlug={booking.eventType?.slug ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+          userId={booking.user?.id ?? null}
           routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          routingReasonEnum={booking.assignmentReason[0]?.reasonEnum ?? null}
           guestEmail={booking.attendees[0]?.email ?? ""}
           hostEmail={booking.user?.email ?? ""}
           hostName={booking.user?.name ?? null}
-          teamId={booking.eventType?.team?.id ?? null}
         />
       )}
     </div>
@@ -586,7 +596,7 @@ const BookingItemBadges = ({
       )}
       {booking?.assignmentReason.length > 0 && (
         <AssignmentReasonTooltip
-          assignmentReason={booking.assignmentReason[0]}
+          assignmentReason={booking.assignmentReason[booking.assignmentReason.length - 1]}
           onClick={onAssignmentReasonClick}
         />
       )}

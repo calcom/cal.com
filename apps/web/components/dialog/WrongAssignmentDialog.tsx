@@ -1,8 +1,10 @@
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Label, Select, TextArea } from "@calcom/ui/components/form";
@@ -12,15 +14,27 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Control, ControllerRenderProps } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 
+import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
+
 interface IWrongAssignmentDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   bookingUid: string;
+  bookingId: number;
+  bookingTitle: string;
+  bookingStartTime: Date;
+  bookingEndTime: Date;
+  bookingStatus: string;
+  eventTypeId: number | null;
+  eventTypeTitle: string | null;
+  eventTypeSlug: string | null;
+  teamId: number | null;
+  userId: number | null;
   routingReason: string | null;
+  routingReasonEnum: AssignmentReasonEnum | null;
   guestEmail: string;
   hostEmail: string;
   hostName: string | null;
-  teamId: number | null;
 }
 
 interface FormValues {
@@ -36,6 +50,7 @@ interface TeamMemberOption {
 
 interface RoutingInfoSectionProps {
   routingReason: string | null;
+  routingReasonEnum: AssignmentReasonEnum | null;
   noRoutingReasonText: string;
   routingReasonLabel: string;
   guestEmail: string;
@@ -48,8 +63,10 @@ interface RoutingInfoSectionProps {
 }
 
 function RoutingInfoSection(props: RoutingInfoSectionProps): JSX.Element {
+  const { t } = useLocale();
   const {
     routingReason,
+    routingReasonEnum,
     noRoutingReasonText,
     routingReasonLabel,
     guestEmail,
@@ -79,9 +96,14 @@ function RoutingInfoSection(props: RoutingInfoSectionProps): JSX.Element {
     <div className="-mt-2 mb-4 space-y-3">
       <div>
         <Label className="text-emphasis mb-1 block text-sm font-medium">{routingReasonLabel}</Label>
-        <p className="text-default bg-muted rounded-md px-3 py-2 text-sm">
-          {routingReason || noRoutingReasonText}
-        </p>
+        <div className="text-default bg-muted flex items-center gap-2 rounded-md px-3 py-2 text-sm">
+          {routingReasonEnum && (
+            <Badge variant="gray" className="shrink-0">
+              {t(assignmentReasonBadgeTitleMap(routingReasonEnum))}
+            </Badge>
+          )}
+          <span className="flex-1">{routingReason || noRoutingReasonText}</span>
+        </div>
       </div>
 
       <div>
@@ -216,11 +238,21 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
     isOpenDialog,
     setIsOpenDialog,
     bookingUid,
+    bookingId,
+    bookingTitle,
+    bookingStartTime,
+    bookingEndTime,
+    bookingStatus,
+    eventTypeId,
+    eventTypeTitle,
+    eventTypeSlug,
+    teamId,
+    userId,
     routingReason,
+    routingReasonEnum,
     guestEmail,
     hostEmail,
     hostName,
-    teamId,
   } = props;
 
   const {
@@ -263,6 +295,21 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
   const onSubmit = (data: FormValues): void => {
     reportWrongAssignment({
       bookingUid,
+      bookingId,
+      bookingTitle,
+      bookingStartTime,
+      bookingEndTime,
+      bookingStatus,
+      eventTypeId,
+      eventTypeTitle,
+      eventTypeSlug,
+      teamId,
+      userId,
+      routingReason,
+      routingReasonEnum,
+      guestEmail,
+      hostEmail,
+      hostName,
       correctAssignee: data.correctAssignee || undefined,
       additionalNotes: data.additionalNotes,
     });
@@ -282,6 +329,7 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
 
               <RoutingInfoSection
                 routingReason={routingReason}
+                routingReasonEnum={routingReasonEnum}
                 noRoutingReasonText={t("no_routing_reason")}
                 routingReasonLabel={t("routing_reason")}
                 guestEmail={guestEmail}
