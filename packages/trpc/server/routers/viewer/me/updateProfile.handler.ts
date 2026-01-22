@@ -54,6 +54,16 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     secondaryEmails: undefined,
   };
 
+  // If givenName or lastName is provided, compute the combined name
+  if (input.givenName !== undefined || input.lastName !== undefined) {
+    const givenName = input.givenName ?? user.givenName ?? "";
+    const lastName = input.lastName !== undefined ? input.lastName : user.lastName;
+    const combinedName = [givenName, lastName].filter(Boolean).join(" ").trim();
+    data.name = combinedName || null;
+    data.givenName = givenName;
+    data.lastName = lastName;
+  }
+
   let isPremiumUsername = false;
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
@@ -230,6 +240,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       identityProviderId: true,
       metadata: true,
       name: true,
+      givenName: true,
+      lastName: true,
       createdDate: true,
       avatarUrl: true,
       locale: true,
@@ -250,6 +262,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     identityProviderId: string | null;
     metadata: JsonValue;
     name: string | null;
+    givenName: string;
+    lastName: string | null;
     createdDate: Date;
     avatarUrl: string | null;
     locale: string | null;

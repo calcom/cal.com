@@ -1089,6 +1089,8 @@ export class UserRepository {
         uuid: true,
         username: true,
         name: true,
+        givenName: true,
+        lastName: true,
         email: true,
         emailVerified: true,
         bio: true,

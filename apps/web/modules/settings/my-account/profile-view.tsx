@@ -68,7 +68,8 @@ type Email = {
 export type FormValues = {
   username: string;
   avatarUrl: string | null;
-  name: string;
+  givenName: string;
+  lastName: string;
   email: string;
   bio: string;
   secondaryEmails: Email[];
@@ -272,7 +273,8 @@ const ProfileView = ({ user }: Props) => {
   const defaultValues = {
     username: user.username || "",
     avatarUrl: user.avatarUrl,
-    name: user.name || "",
+    givenName: user.givenName || "",
+    lastName: user.lastName || "",
     email: userEmail,
     bio: user.bio || "",
     // We add the primary email as the first item in the list
@@ -592,10 +594,18 @@ const ProfileForm = ({
   const profileFormSchema = z.object({
     username: z.string(),
     avatarUrl: z.string().nullable(),
-    name: z
+    givenName: z
       .string()
       .trim()
       .min(1, t("you_need_to_add_a_name"))
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", {
+          limit: FULL_NAME_LENGTH_MAX_LIMIT,
+        }),
+      }),
+    lastName: z
+      .string()
+      .trim()
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", {
           limit: FULL_NAME_LENGTH_MAX_LIMIT,
@@ -749,8 +759,9 @@ const ProfileForm = ({
           <Icon name="info" className="mt-0.5 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
-        <div className="mt-6">
-          <TextField label={t("full_name")} {...formMethods.register("name")} />
+        <div className="mt-6 grid grid-cols-2 gap-4">
+          <TextField label={t("given_name")} {...formMethods.register("givenName")} />
+          <TextField label={t("last_name")} {...formMethods.register("lastName")} />
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>

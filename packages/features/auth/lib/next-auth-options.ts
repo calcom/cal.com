@@ -561,6 +561,8 @@ export const getOptions = ({
           upId: session?.upId ?? token.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
+          givenName: session?.givenName !== undefined ? session.givenName : token.givenName,
+          lastName: session?.lastName !== undefined ? session.lastName : token.lastName,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
         } as JWT;
@@ -573,6 +575,8 @@ export const getOptions = ({
             username: true,
             avatarUrl: true,
             name: true,
+            givenName: true,
+            lastName: true,
             email: true,
             role: true,
             locale: true,
@@ -1159,6 +1163,21 @@ export const getOptions = ({
 
         try {
           const newUsername = orgId ? slugify(orgUsername) : usernameSlug(user.name);
+          // Extract givenName and lastName from OAuth profile
+          // Google provides given_name and family_name, SAML provides firstName and lastName
+          const oauthProfile = profile as { given_name?: string; family_name?: string; firstName?: string; lastName?: string } | undefined;
+          let givenName = oauthProfile?.given_name || oauthProfile?.firstName || "";
+          let lastName = oauthProfile?.family_name || oauthProfile?.lastName || null;
+          // Fallback: split name if givenName or lastName is missing
+          if ((!givenName || !lastName) && user.name) {
+            const nameParts = user.name.trim().split(/\s+/);
+            if (!givenName) {
+              givenName = nameParts[0] || "";
+            }
+            if (!lastName && nameParts.length > 1) {
+              lastName = nameParts.slice(1).join(" ");
+            }
+          }
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1166,6 +1185,8 @@ export const getOptions = ({
               username: newUsername,
               emailVerified: new Date(Date.now()),
               name: user.name,
+              givenName,
+              lastName,
               ...(user.image && { avatarUrl: user.image }),
               email: user.email,
               identityProvider: idP,
