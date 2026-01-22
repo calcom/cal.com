@@ -3,6 +3,7 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { Platform, StatusBar, View } from "react-native";
+import { CalComLogo } from "@/components/CalComLogo";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
 import { GlobalToast } from "@/components/ui/GlobalToast";
@@ -12,7 +13,7 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import "../global.css";
 
 function RootLayoutContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -21,6 +22,23 @@ function RootLayoutContent() {
     secondaryBackground: isDark ? "#1C1C1E" : "#F2F2F7",
     border: isDark ? "#38383A" : "#C6C6C8",
   };
+
+  // Show Cal.com logo while checking auth state to prevent login flash
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+        <CalComLogo width={120} height={26} />
+      </View>
+    );
+  }
 
   const content = isAuthenticated ? (
     <Stack>

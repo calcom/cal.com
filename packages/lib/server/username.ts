@@ -33,7 +33,8 @@ type UsernameStatus = {
 
 export type CustomNextApiHandler = (
   body: Record<string, string>,
-  usernameStatus: UsernameStatus
+  usernameStatus: UsernameStatus,
+  query?: Record<string, string>
 ) => Promise<NextResponse<any>>;
 
 export async function isBlacklisted(username: string) {
@@ -85,27 +86,28 @@ const processResult = (
   }
 };
 
-const usernameHandler = (handler: CustomNextApiHandler) => async (body: Record<string, string>) => {
-  const username = slugify(body.username);
-  const check = await usernameCheckForSignup({ username, email: body.email });
+const usernameHandler =
+  (handler: CustomNextApiHandler) => async (body: Record<string, string>, query: Record<string, string>) => {
+    const username = slugify(body.username);
+    const check = await usernameCheckForSignup({ username, email: body.email });
 
-  let result: Parameters<typeof processResult>[0] = "ok";
-  if (check.premium) result = "is_premium";
-  if (!check.available) result = "username_exists";
+    let result: Parameters<typeof processResult>[0] = "ok";
+    if (check.premium) result = "is_premium";
+    if (!check.available) result = "username_exists";
 
-  const { statusCode, message } = processResult(result);
-  const usernameStatus = {
-    statusCode,
-    requestedUserName: username,
-    json: {
-      available: result !== "username_exists",
-      premium: result === "is_premium",
-      message,
-      suggestion: check.suggestedUsername,
-    },
+    const { statusCode, message } = processResult(result);
+    const usernameStatus = {
+      statusCode,
+      requestedUserName: username,
+      json: {
+        available: result !== "username_exists",
+        premium: result === "is_premium",
+        message,
+        suggestion: check.suggestedUsername,
+      },
+    };
+    return handler(body, usernameStatus, query);
   };
-  return handler(body, usernameStatus);
-};
 
 const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | null) => {
   log.debug("usernameCheck", { usernameRaw, currentOrgDomain });
@@ -124,10 +126,7 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
     const organization = await prisma.team.findFirst({
       where: {
         isOrganization: true,
-        OR: [
-          { slug: currentOrgDomain },
-          { metadata: { path: ["requestedSlug"], equals: currentOrgDomain } },
-        ],
+        OR: [{ slug: currentOrgDomain }, { metadata: { path: ["requestedSlug"], equals: currentOrgDomain } }],
       },
       select: {
         id: true,
