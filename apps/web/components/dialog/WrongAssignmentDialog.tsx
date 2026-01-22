@@ -1,7 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-import type { Control, ControllerRenderProps } from "react-hook-form";
-import { Controller, useForm } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,10 +5,12 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Label, Select } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
+import { Label, Select, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import type { Dispatch, SetStateAction } from "react";
+import type { Control, ControllerRenderProps } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 interface IWrongAssignmentDialog {
   isOpenDialog: boolean;
@@ -79,12 +77,12 @@ function RoutingInfoSection(props: RoutingInfoSectionProps): JSX.Element {
 
   return (
     <div className="-mt-2 mb-4 space-y-3">
-      <div>
+      {/* <div>
         <Label className="text-emphasis mb-1 block text-sm font-medium">{routingReasonLabel}</Label>
         <p className="text-default bg-muted rounded-md px-3 py-2 text-sm">
           {routingReason || noRoutingReasonText}
         </p>
-      </div>
+      </div> */}
 
       <div>
         <Label className="text-emphasis mb-1 block text-sm font-medium">{whoBookedItLabel}</Label>
@@ -214,8 +212,16 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { copyToClipboard, isCopied } = useCopy();
-  const { isOpenDialog, setIsOpenDialog, bookingUid, routingReason, guestEmail, hostEmail, hostName, teamId } =
-    props;
+  const {
+    isOpenDialog,
+    setIsOpenDialog,
+    bookingUid,
+    routingReason,
+    guestEmail,
+    hostEmail,
+    hostName,
+    teamId,
+  } = props;
 
   const {
     control,
@@ -241,8 +247,8 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
       email: member.email,
     })) ?? [];
 
-  const { mutate: reportWrongAssignment, isPending } =
-    trpc.viewer.bookings.reportWrongAssignment.useMutation({
+  const { mutate: reportWrongAssignment, isPending } = trpc.viewer.bookings.reportWrongAssignment.useMutation(
+    {
       async onSuccess(): Promise<void> {
         showToast(t("wrong_assignment_reported"), "success");
         setIsOpenDialog(false);
@@ -251,7 +257,8 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
       onError(error: { message?: string }): void {
         showToast(error.message || t("unexpected_error_try_again"), "error");
       },
-    });
+    }
+  );
 
   const onSubmit = (data: FormValues): void => {
     reportWrongAssignment({
