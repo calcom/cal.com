@@ -65,6 +65,7 @@ describe("roundRobinReassignment test", () => {
     const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
     // Clear any existing mock calls from previous tests
     eventManagerSpy.mockClear();
@@ -81,7 +82,7 @@ describe("roundRobinReassignment test", () => {
 
     const bookingToReassignUid = "booking-to-reassign";
 
-    const bookingData = await createBookingScenario(
+    const _bookingData = await createBookingScenario(
       getScenarioData({
         workflows: [
           {
@@ -188,7 +189,7 @@ describe("roundRobinReassignment test", () => {
       userId: newHost.id,
     });
 
-    expectSuccessfulRoundRobinReschedulingEmails({
+    await expectSuccessfulRoundRobinReschedulingEmails({
       prevOrganizer: originalHost,
       newOrganizer: newHost,
       emails,
@@ -202,6 +203,7 @@ describe("roundRobinReassignment test", () => {
     const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
     // Clear any existing mock calls from previous tests
     eventManagerSpy.mockClear();
