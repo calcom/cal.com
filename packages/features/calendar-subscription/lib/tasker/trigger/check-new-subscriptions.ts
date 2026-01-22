@@ -1,14 +1,13 @@
-import { schemaTask } from "@trigger.dev/sdk";
+import { schedules } from "@trigger.dev/sdk";
 
 import { calendarSubscriptionTaskConfig } from "./config";
-import { calendarSubscriptionRolloutSchema } from "./schema";
 
 export const CHECK_CALENDAR_SUBSCRIPTIONS_JOB_ID = "calendar-subscription.check-new-watches";
 
-export const checkForNewCalendarSubscriptions = schemaTask({
+export const checkForNewCalendarSubscriptions = schedules.task({
   id: CHECK_CALENDAR_SUBSCRIPTIONS_JOB_ID,
   ...calendarSubscriptionTaskConfig,
-  schema: calendarSubscriptionRolloutSchema,
+  cron: "*/5 * * * *",
   run: async () => {
     const { runCalendarSubscriptionRollout } = await import(
       "@calcom/features/calendar-subscription/lib/runCalendarSubscriptionRollout"
