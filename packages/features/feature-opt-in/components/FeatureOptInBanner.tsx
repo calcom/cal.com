@@ -20,9 +20,13 @@ export function FeatureOptInBanner({
   const { t } = useLocale();
 
   return (
-    <div className="bg-default border-subtle fixed bottom-5 right-5 z-50 max-w-xs rounded-lg border shadow-lg group">
+    <div
+      data-testid="feature-opt-in-banner"
+      className="bg-default border-subtle fixed bottom-5 right-5 z-50 max-w-xs rounded-lg border shadow-lg group">
       <div className="p-4">
-        <h3 className="text-emphasis text-lg font-semibold">{t(featureConfig.i18n.title)}</h3>
+        <h3 data-testid="feature-opt-in-banner-title" className="text-emphasis text-lg font-semibold">
+          {t(featureConfig.i18n.title)}
+        </h3>
         <p className="text-subtle mt-1 text-base">{t(featureConfig.i18n.description)}</p>
 
         <Button
@@ -34,7 +38,12 @@ export function FeatureOptInBanner({
           className="absolute top-1.5 right-1.5 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto"
           aria-label={t("close")}></Button>
 
-        <Button className="mt-3" size="sm" color="secondary" onClick={onOpenDialog}>
+        <Button
+          data-testid="feature-opt-in-banner-try-it"
+          className="mt-3"
+          size="sm"
+          color="secondary"
+          onClick={onOpenDialog}>
           {t("try_it")}
         </Button>
       </div>
