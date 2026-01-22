@@ -6,17 +6,9 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Alert,
-  type Animated,
-  Platform,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { type Animated, Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
 
+import { NavigationRow, SettingRow, SettingsGroup } from "../SettingsUI";
 import { LimitsTabDatePicker } from "./LimitsTabDatePicker";
 import { LimitsTabIOSPicker } from "./LimitsTabIOSPicker";
 
@@ -71,88 +63,7 @@ const FREQUENCY_UNIT_OPTIONS = ["Per day", "Per week", "Per month", "Per year"];
 // Duration unit options
 const DURATION_UNIT_OPTIONS = ["Per day", "Per week", "Per month"];
 
-// Section header
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <Text
-      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
-      style={{ letterSpacing: 0.5 }}
-    >
-      {title}
-    </Text>
-  );
-}
-
-// Settings group container
-function SettingsGroup({
-  children,
-  header,
-  footer,
-}: {
-  children: React.ReactNode;
-  header?: string;
-  footer?: string;
-}) {
-  return (
-    <View>
-      {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-      {footer ? <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72]">{footer}</Text> : null}
-    </View>
-  );
-}
-
-// Toggle row with indented separator
-function SettingRow({
-  title,
-  description,
-  value,
-  onValueChange,
-  isLast = false,
-}: {
-  title: string;
-  description?: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  isLast?: boolean;
-}) {
-  const showDescription = () => {
-    if (!description) return;
-    Alert.alert(title, description, [{ text: "OK", style: "cancel" }]);
-  };
-
-  return (
-    <View className="bg-white pl-4">
-      <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height: 44, flexDirection: "row", alignItems: "center" }}
-      >
-        <TouchableOpacity
-          className="flex-1 flex-row items-center"
-          style={{ height: 44 }}
-          onPress={description ? showDescription : undefined}
-          activeOpacity={description ? 0.7 : 1}
-          disabled={!description}
-        >
-          <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-            {title}
-          </Text>
-          {description ? (
-            <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
-          ) : null}
-        </TouchableOpacity>
-        <View style={{ alignSelf: "center", justifyContent: "center" }}>
-          <Switch
-            value={value}
-            onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
+// Local components removed in favor of SettingsUI
 
 // Android/Web picker button (opens modal)
 function ModalPickerButton({ value, onPress }: { value: string; onPress: () => void }) {
@@ -168,55 +79,6 @@ function ModalPickerButton({ value, onPress }: { value: string; onPress: () => v
 }
 
 // Navigation row with native iOS picker or modal button
-function PickerNavigationRow({
-  title,
-  value,
-  options,
-  onSelect,
-  onPressModal,
-  isLast = false,
-}: {
-  title: string;
-  value: string;
-  options: string[];
-  onSelect: (value: string) => void;
-  onPressModal: () => void;
-  isLast?: boolean;
-}) {
-  return (
-    <View className="bg-white pl-4" style={{ height: 44 }}>
-      <View
-        className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
-        }`}
-        style={{ height: 44 }}
-      >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-          {title}
-        </Text>
-        <View className="flex-row items-center">
-          {Platform.OS === "ios" ? (
-            <>
-              <Text className="mr-2 text-[17px] text-[#8E8E93]">{value}</Text>
-              <LimitsTabIOSPicker options={options} selectedValue={value} onSelect={onSelect} />
-            </>
-          ) : (
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={onPressModal}
-              activeOpacity={0.5}
-            >
-              <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-                {value}
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
 
 interface LimitsTabProps {
   beforeEventBuffer: string;
@@ -276,19 +138,19 @@ export function LimitsTab(props: LimitsTabProps) {
     <View className="gap-6">
       {/* Buffer & Notice Settings */}
       <SettingsGroup header="Buffer & Notice">
-        <PickerNavigationRow
+        <NavigationRow
           title="Before event"
           value={props.beforeEventBuffer}
-          options={BUFFER_TIME_OPTIONS}
+          options={BUFFER_TIME_OPTIONS.map((o) => ({ label: o, value: o }))}
           onSelect={props.setBeforeEventBuffer}
-          onPressModal={() => props.setShowBeforeBufferDropdown(true)}
+          onPress={() => props.setShowBeforeBufferDropdown(true)}
         />
-        <PickerNavigationRow
+        <NavigationRow
           title="After event"
           value={props.afterEventBuffer}
-          options={BUFFER_TIME_OPTIONS}
+          options={BUFFER_TIME_OPTIONS.map((o) => ({ label: o, value: o }))}
           onSelect={props.setAfterEventBuffer}
-          onPressModal={() => props.setShowAfterBufferDropdown(true)}
+          onPress={() => props.setShowAfterBufferDropdown(true)}
         />
         <View className="bg-white pl-4">
           <View
@@ -326,12 +188,12 @@ export function LimitsTab(props: LimitsTabProps) {
             </View>
           </View>
         </View>
-        <PickerNavigationRow
+        <NavigationRow
           title="Time-slot intervals"
           value={props.slotInterval === "Default" ? "Event length" : props.slotInterval}
-          options={SLOT_INTERVAL_OPTIONS}
+          options={SLOT_INTERVAL_OPTIONS.map((o) => ({ label: o, value: o }))}
           onSelect={props.setSlotInterval}
-          onPressModal={() => props.setShowSlotIntervalDropdown(true)}
+          onPress={() => props.setShowSlotIntervalDropdown(true)}
           isLast
         />
       </SettingsGroup>
