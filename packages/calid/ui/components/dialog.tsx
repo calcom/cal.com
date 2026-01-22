@@ -71,12 +71,18 @@ interface DialogContentProps
   extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
     VariantProps<typeof dialogContentVariants> {
   showCloseButton?: boolean;
+  forceOverlayWhenNoModal?: boolean;
 }
 
 const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, DialogContentProps>(
-  ({ className, children, size, showCloseButton = false, ...props }, ref) => (
+  ({ className, children, size, showCloseButton = false, forceOverlayWhenNoModal, ...props }, ref) => (
     <DialogPortal>
-      <DialogOverlay />
+      {forceOverlayWhenNoModal ? (
+        <div className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-none fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
+      ) : (
+        <DialogOverlay />
+      )}
+
       <DialogPrimitive.Content
         ref={ref}
         className={cn(dialogContentVariants({ size }), className)}

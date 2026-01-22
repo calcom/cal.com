@@ -115,7 +115,10 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
       }
 
       setLastSelection(selection);
-    } else if (!activeElement || activeElement.className !== "link-input") {
+    } else if (
+      !activeElement ||
+      (activeElement.className !== "link-input" && !editorElem.contains(activeElement)) 
+    ) {
       positionEditorElement(editorElem, null);
       setLastSelection(null);
       setEditMode(false);
@@ -123,6 +126,34 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
     }
 
     return true;
+  }, [editor]);
+
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const editorElem = editorRef.current;
+      const target = event.target as Node;
+
+      // Close if clicking outside the link editor
+      if (editorElem && !editorElem.contains(target)) {
+        // Check if click is inside the lexical editor root
+        const rootElement = editor.getRootElement();
+        const isClickInEditor = rootElement && rootElement.contains(target);
+
+        if (!isClickInEditor) {
+          // Clicked outside both link editor and lexical editor - close it
+          positionEditorElement(editorElem, null);
+          setLastSelection(null);
+          setEditMode(false);
+          setLinkUrl("");
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [editor]);
 
   useEffect(() => {
