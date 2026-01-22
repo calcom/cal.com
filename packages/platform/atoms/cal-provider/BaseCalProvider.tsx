@@ -35,7 +35,7 @@ import type {
 } from "./languages";
 import { EN } from "./languages";
 
-export type CalProviderProps = {
+export type BaseCalProviderProps = {
   children?: ReactNode;
   clientId: string;
   accessToken?: string;
@@ -60,7 +60,7 @@ export function BaseCalProvider({
   onTimezoneChange,
   isEmbed,
   isOAuth2
-}: CalProviderProps) {
+}: BaseCalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
 

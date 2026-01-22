@@ -12,7 +12,7 @@ import type { translationKeys } from "./languages";
 
 const queryClient = new QueryClient();
 
-type CalProviderProps = Omit<BaseCalProviderProps, "isOAuth2">;
+type CalOAuthProviderProps = Omit<BaseCalProviderProps, "isOAuth2">;
 
 /**
  * Renders a CalProvider component.
@@ -28,7 +28,7 @@ type CalProviderProps = Omit<BaseCalProviderProps, "isOAuth2">;
  * @param {ReactNode} props.children - The child components. - Optional
  * @returns {JSX.Element} The rendered CalProvider component.
  */
-export function CalProvider({
+export function CalOAuthProvider({
   clientId,
   accessToken,
   options,
@@ -40,7 +40,7 @@ export function CalProvider({
   version = VERSION_2024_06_14,
   organizationId,
   isEmbed = false,
-}: CalProviderProps) {
+}: CalOAuthProviderProps) {
   useEffect(() => {
     http.setVersionHeader(version);
   }, [version]);
@@ -59,7 +59,7 @@ export function CalProvider({
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider
         isEmbed={isEmbed}
-        isOAuth2={false}
+        isOAuth2={true}
         autoUpdateTimezone={autoUpdateTimezone}
         onTimezoneChange={onTimezoneChange}
         clientId={clientId}
