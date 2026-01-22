@@ -1740,7 +1740,7 @@ type GetAvailabilityMethodMockCall = CalendarServiceMethodMockCallBase & {
     dateFrom: string;
     dateTo: string;
     selectedCalendars: IntegrationCalendar[];
-    shouldServeCache?: boolean;
+    mode: "slots" | "overlay" | "booking";
   };
 };
 
@@ -1813,9 +1813,7 @@ export async function mockCalendar(
   const calendarServicePromise = CalendarServiceMap[calendarServiceKey];
   if (calendarServicePromise) {
     const resolvedService = await calendarServicePromise;
-    vi.mocked(resolvedService.default).mockImplementation(
-      // @ts-expect-error - Mock implementation satisfies Calendar interface but TypeScript expects specific calendar service types
-      function MockCalendarService(credential) {
+    vi.mocked(resolvedService.default).mockImplementation(function MockCalendarService(credential) {
         return {
           createEvent: async function (
             ...rest: Parameters<Calendar["createEvent"]>
@@ -1941,12 +1939,14 @@ export async function mockCalendar(
               },
             });
           },
-          getAvailability: async (
-            dateFrom: string,
-            dateTo: string,
-            selectedCalendars: IntegrationCalendar[],
-            shouldServeCache?: boolean
-          ): Promise<EventBusyDate[]> => {
+          getAvailability: async (params: {
+            dateFrom: string;
+            dateTo: string;
+            selectedCalendars: IntegrationCalendar[];
+            mode: "slots" | "overlay" | "booking";
+            fallbackToPrimary?: boolean;
+          }): Promise<EventBusyDate[]> => {
+            const { dateFrom, dateTo, selectedCalendars, mode } = params;
             if (calendarData?.getAvailabilityCrash) {
               throw new Error("MockCalendarService.getAvailability fake error");
             }
@@ -1955,7 +1955,7 @@ export async function mockCalendar(
                 dateFrom,
                 dateTo,
                 selectedCalendars,
-                shouldServeCache,
+                mode,
               },
               calendarServiceConstructorArgs: {
                 credential,
@@ -1964,6 +1964,9 @@ export async function mockCalendar(
             return new Promise((resolve) => {
               resolve(calendarData?.busySlots || []);
             });
+          },
+          listCalendars: async function (): Promise<IntegrationCalendar[]> {
+            return Promise.resolve([]);
           },
         } as Calendar;
       }

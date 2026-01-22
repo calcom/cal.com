@@ -6,6 +6,24 @@ import createFetchMock from "vitest-fetch-mock";
 import type { CalendarService } from "@calcom/types/Calendar";
 
 global.ResizeObserver = ResizeObserver;
+
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
 const fetchMocker = createFetchMock(vi);
 
 // sets globalThis.fetch and globalThis.fetchMock to our mocked version
@@ -58,106 +76,140 @@ vi.mock("@calcom/exchange2016calendar/lib/CalendarService", () => ({
 
 const MOCK_PAYMENT_UID = "MOCK_PAYMENT_UID";
 
-class MockPaymentService {
-  constructor(credentials?: any) {
-    this.credentials = credentials;
-  }
+function createMockPaymentService(_credentials?: unknown) {
+  return {
+    async create(
+      payment: { amount: number; currency: string },
+      bookingId: number,
+      _userId: number,
+      _username: string | null,
+      _bookerName: string | null,
+      paymentOption: string,
+      _bookerEmail: string,
+      _bookerPhoneNumber?: string | null,
+      _selectedEventTypeTitle?: string,
+      _eventTitle?: string
+    ) {
+      const { default: prismaMock } = await import("@calcom/testing/lib/__mocks__/prisma");
+      const externalId = "mock_payment_external_id";
 
-  private credentials: any;
+      const paymentCreateData = {
+        uid: MOCK_PAYMENT_UID,
+        appId: null,
+        bookingId,
+        fee: 10,
+        success: false,
+        refunded: false,
+        data: {},
+        externalId,
+        paymentOption,
+        amount: payment.amount,
+        currency: payment.currency,
+      };
 
-  async create(
-    payment: any,
-    bookingId: number,
-    userId: number,
-    username: string | null,
-    bookerName: string | null,
-    paymentOption: any,
-    bookerEmail: string,
-    bookerPhoneNumber?: string | null,
-    selectedEventTypeTitle?: string,
-    eventTitle?: string
-  ) {
-    const { default: prismaMock } = await import("@calcom/testing/lib/__mocks__/prisma");
-    const externalId = "mock_payment_external_id";
+      const createdPayment = await prismaMock.payment.create({
+        data: paymentCreateData,
+      });
 
-    const paymentCreateData = {
-      uid: MOCK_PAYMENT_UID,
-      appId: null,
-      bookingId,
-      fee: 10,
-      success: false,
-      refunded: false,
-      data: {},
-      externalId,
-      paymentOption,
-      amount: payment.amount,
-      currency: payment.currency,
-    };
-
-    const createdPayment = await prismaMock.payment.create({
-      data: paymentCreateData,
-    });
-
-    return createdPayment;
-  }
-  async collectCard() {
-    return { success: true };
-  }
-  async chargeCard() {
-    return { success: true };
-  }
-  async refund() {
-    return { success: true };
-  }
-  async deletePayment() {
-    return { success: true };
-  }
-  async afterPayment(event: any, booking: any, paymentData: any) {
-    const { sendAwaitingPaymentEmailAndSMS } = await import("@calcom/emails/email-manager");
-    await sendAwaitingPaymentEmailAndSMS({
-      ...event,
-      paymentInfo: {
-        link: "http://mock-payment.example.com/",
-        paymentOption: paymentData.paymentOption || "ON_BOOKING",
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-      },
-    });
-    return { success: true };
-  }
+      return createdPayment;
+    },
+    async collectCard() {
+      return { success: true };
+    },
+    async chargeCard() {
+      return { success: true };
+    },
+    async refund() {
+      return { success: true };
+    },
+    async deletePayment() {
+      return { success: true };
+    },
+    async afterPayment(
+      event: Record<string, unknown>,
+      _booking: Record<string, unknown>,
+      paymentData: { paymentOption?: string; amount: number; currency: string }
+    ) {
+      const { sendAwaitingPaymentEmailAndSMS } = await import("@calcom/emails/email-manager");
+      await sendAwaitingPaymentEmailAndSMS({
+        ...event,
+        paymentInfo: {
+          link: "http://mock-payment.example.com/",
+          paymentOption: paymentData.paymentOption || "ON_BOOKING",
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+        },
+      });
+      return { success: true };
+    },
+  };
 }
 
 vi.mock("@calcom/app-store/stripepayment/index", () => ({
-  PaymentService: MockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/paypal/index", () => ({
-  PaymentService: MockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/alby/index", () => ({
-  PaymentService: MockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/hitpay/index", () => ({
-  PaymentService: MockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/btcpayserver/index", () => ({
-  PaymentService: MockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/mock-payment-app/index", () => ({
-  PaymentService: MockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
-    stripepayment: Promise.resolve({ PaymentService: MockPaymentService }),
-    paypal: Promise.resolve({ PaymentService: MockPaymentService }),
-    alby: Promise.resolve({ PaymentService: MockPaymentService }),
-    hitpay: Promise.resolve({ PaymentService: MockPaymentService }),
-    btcpayserver: Promise.resolve({ PaymentService: MockPaymentService }),
-    "mock-payment-app": Promise.resolve({ PaymentService: MockPaymentService }),
+    stripepayment: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    paypal: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    alby: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    hitpay: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    btcpayserver: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    "mock-payment-app": Promise.resolve({ BuildPaymentService: createMockPaymentService }),
   },
 }));
+
+class MockCrmService {
+  constructor() {}
+  async createEvent() {
+    return [];
+  }
+  async updateEvent() {
+    return [];
+  }
+  async deleteEvent() {}
+  async getContacts() {
+    return [];
+  }
+  async createContacts() {
+    return [];
+  }
+}
+
+vi.mock("@calcom/app-store/crm.apps.generated", () => ({
+  CrmServiceMap: {
+    closecom: Promise.resolve({ default: MockCrmService }),
+    hubspot: Promise.resolve({ default: MockCrmService }),
+    "pipedrive-crm": Promise.resolve({ default: MockCrmService }),
+    salesforce: Promise.resolve({ default: MockCrmService }),
+    "zoho-bigin": Promise.resolve({ default: MockCrmService }),
+    zohocrm: Promise.resolve({ default: MockCrmService }),
+  },
+}));
+
+if (!process.env.INTEGRATION_TESTS) {
+  vi.mock("@calcom/app-store/salesforce/lib/graphql/documents/queries", () => ({
+    GetAccountRecordsForRRSkip: {},
+  }));
+}

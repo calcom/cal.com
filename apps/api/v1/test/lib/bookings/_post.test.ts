@@ -76,6 +76,13 @@ vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.contro
   checkIfUsersAreBlocked: vi.fn().mockResolvedValue(false),
 }));
 
+vi.mock("@calcom/features/watchlist/operations/filter-blocked-users.controller", () => ({
+  filterBlockedUsers: vi.fn().mockImplementation(async (users) => ({
+    eligibleUsers: users,
+    blockedCount: 0,
+  })),
+}));
+
 vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
   getQualifiedHostsService: vi.fn().mockReturnValue({
     findQualifiedHostsWithDelegationCredentials: vi.fn().mockResolvedValue({

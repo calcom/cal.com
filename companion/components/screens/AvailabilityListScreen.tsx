@@ -9,14 +9,15 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { AvailabilityListItem } from "@/components/availability-list-item/AvailabilityListItem";
+import { AvailabilityListSkeleton } from "@/components/availability-list-item/AvailabilityListItemSkeleton";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import { Header } from "@/components/Header";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,9 +37,8 @@ import {
   useSetScheduleAsDefault,
 } from "@/hooks";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { offlineAwareRefresh } from "@/utils/network";
-import { shadows } from "@/utils/shadows";
 
 export interface AvailabilityListScreenProps {
   searchQuery: string;
@@ -59,18 +59,10 @@ export function AvailabilityListScreen({
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Use React Query hooks
-  const {
-    data: schedules = [],
-    isLoading: loading,
-    isFetching,
-    error: queryError,
-    refetch,
-  } = useSchedules();
-
-  // Show refresh indicator when fetching
-  const refreshing = isFetching && !loading;
+  const { data: schedules = [], isLoading: loading, error: queryError, refetch } = useSchedules();
 
   const { mutate: createScheduleMutation, isPending: creating } = useCreateSchedule();
   const { mutate: deleteScheduleMutation, isPending: deleting } = useDeleteSchedule();
@@ -99,7 +91,12 @@ export function AvailabilityListScreen({
   // Data only refreshes on mutations (create/update/delete) or manual pull-to-refresh.
 
   // Handle pull-to-refresh (offline-aware)
-  const onRefresh = () => offlineAwareRefresh(refetch);
+  const onRefresh = async () => {
+    setIsManualRefreshing(true);
+    await offlineAwareRefresh(refetch).finally(() => {
+      setIsManualRefreshing(false);
+    });
+  };
 
   const handleSearch = (query: string) => {
     onSearchChange(query);
@@ -107,6 +104,9 @@ export function AvailabilityListScreen({
 
   const handleSetAsDefault = (schedule: Schedule) => {
     setAsDefaultMutation(schedule.id, {
+      onSuccess: () => {
+        showSuccessAlert("Success", "Schedule set as default");
+      },
       onError: () => {
         showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
       },
@@ -115,6 +115,9 @@ export function AvailabilityListScreen({
 
   const handleDuplicate = (schedule: Schedule) => {
     duplicateScheduleMutation(schedule.id, {
+      onSuccess: () => {
+        showSuccessAlert("Success", "Schedule duplicated successfully");
+      },
       onError: () => {
         showErrorAlert("Error", "Failed to duplicate schedule. Please try again.");
       },
@@ -123,7 +126,8 @@ export function AvailabilityListScreen({
 
   const handleDelete = (schedule: Schedule) => {
     if (Platform.OS === "web") {
-      // Use custom modal for web
+      // Use custom modal for web - must set selectedSchedule first!
+      setSelectedSchedule(schedule);
       setShowDeleteModal(true);
     } else {
       // Use native Alert for iOS/Android
@@ -134,6 +138,9 @@ export function AvailabilityListScreen({
           style: "destructive",
           onPress: () => {
             deleteScheduleMutation(schedule.id, {
+              onSuccess: () => {
+                showSuccessAlert("Success", "Schedule deleted successfully");
+              },
               onError: () => {
                 showErrorAlert("Error", "Failed to delete schedule. Please try again.");
               },
@@ -151,6 +158,7 @@ export function AvailabilityListScreen({
       onSuccess: () => {
         setShowDeleteModal(false);
         setSelectedSchedule(null);
+        showSuccessAlert("Success", "Schedule deleted successfully");
       },
       onError: () => {
         showErrorAlert("Error", "Failed to delete schedule. Please try again.");
@@ -176,11 +184,11 @@ export function AvailabilityListScreen({
     setNameError("");
 
     if (!newScheduleName.trim()) {
-      // Use inline error for Android AlertDialog, Alert for others
+      // Use inline error for Android AlertDialog, showErrorAlert for others
       if (Platform.OS === "android") {
         setNameError("Please enter a schedule name");
       } else {
-        Alert.alert("Error", "Please enter a schedule name");
+        showErrorAlert("Error", "Please enter a schedule name");
       }
       return;
     }
@@ -243,8 +251,8 @@ export function AvailabilityListScreen({
     return (
       <View className="flex-1 bg-[#f8f9fa]">
         <Header />
-        <View className="flex-1 items-center justify-center p-5">
-          <LoadingSpinner size="large" />
+        <View className="flex-1 px-2 pt-4 md:px-4">
+          <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
         </View>
       </View>
     );
@@ -290,13 +298,13 @@ export function AvailabilityListScreen({
             autoCorrect={false}
             clearButtonMode="while-editing"
           />
-          <AppPressable
+          <TouchableOpacity
             className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
             onPress={handleCreateNew}
           >
             <Ionicons name="add" size={18} color="#fff" />
             <Text className="text-base font-semibold text-white">New</Text>
-          </AppPressable>
+          </TouchableOpacity>
         </View>
       </Activity>
 
@@ -311,7 +319,7 @@ export function AvailabilityListScreen({
             padding: 20,
             paddingBottom: 90,
           }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} />}
           contentInsetAdjustmentBehavior="automatic"
         >
           <EmptyScreen
@@ -337,7 +345,9 @@ export function AvailabilityListScreen({
               padding: 20,
               paddingBottom: 90,
             }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            refreshControl={
+              <RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} />
+            }
           >
             <EmptyScreen
               icon="search-outline"
@@ -349,29 +359,33 @@ export function AvailabilityListScreen({
 
         {/* Schedules list */}
         <Activity mode={showList ? "visible" : "hidden"}>
-          <FlatList
-            className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
-            contentContainerStyle={{
-              paddingBottom: 90,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-            }}
-            data={filteredSchedules}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item, index }) => (
-              <AvailabilityListItem
-                item={item}
-                index={index}
-                handleSchedulePress={handleSchedulePress}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-                onSetAsDefault={handleSetAsDefault}
-              />
-            )}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            showsVerticalScrollIndicator={false}
-            contentInsetAdjustmentBehavior="automatic"
-          />
+          {isManualRefreshing ? (
+            <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
+          ) : (
+            <FlatList
+              className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
+              contentContainerStyle={{
+                paddingBottom: 90,
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+              }}
+              data={filteredSchedules}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item, index }) => (
+                <AvailabilityListItem
+                  item={item}
+                  index={index}
+                  handleSchedulePress={handleSchedulePress}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                  onSetAsDefault={handleSetAsDefault}
+                />
+              )}
+              refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+              showsVerticalScrollIndicator={false}
+              contentInsetAdjustmentBehavior="automatic"
+            />
+          )}
         </Activity>
       </Activity>
 
@@ -439,24 +453,22 @@ export function AvailabilityListScreen({
           animationType="fade"
           onRequestClose={() => onShowCreateModalChange(false)}
         >
-          <AppPressable
-            className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-            activeOpacity={1}
-            onPress={() => onShowCreateModalChange(false)}
-          >
-            <AppPressable
-              className="w-[90%] max-w-[500px] rounded-2xl bg-white"
+          <View className="flex-1 items-center justify-center bg-black/50 p-4">
+            <TouchableOpacity
+              className="w-full max-w-md rounded-2xl bg-white shadow-2xl"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
-              style={shadows.xl()}
             >
               {/* Header */}
-              <View className="px-8 pb-4 pt-6">
-                <Text className="text-2xl font-semibold text-gray-900">Add a new schedule</Text>
+              <View className="p-6 pb-2">
+                <Text className="mb-2 text-2xl font-semibold text-gray-900">
+                  Add a new schedule
+                </Text>
+                <Text className="text-sm text-gray-500">Create a new availability schedule.</Text>
               </View>
 
               {/* Content */}
-              <View className="px-8 pb-6">
+              <View className="px-6 pb-4">
                 <View className="mb-1">
                   <Text className="mb-2 text-sm font-medium text-gray-700">Name</Text>
                   <TextInput
@@ -470,35 +482,36 @@ export function AvailabilityListScreen({
                     returnKeyType="done"
                     onSubmitEditing={handleCreateSchedule}
                   />
+                  {nameError ? (
+                    <Text className="mt-1 text-sm text-red-500">{nameError}</Text>
+                  ) : null}
                 </View>
               </View>
 
-              {/* Footer */}
-              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
-                <View className="flex-row justify-end gap-2 space-x-2">
-                  <AppPressable
-                    className="rounded-xl border border-gray-300 bg-white px-2 py-2 md:px-4"
-                    onPress={() => {
-                      onShowCreateModalChange(false);
-                      setNewScheduleName("");
-                    }}
-                    disabled={creating}
-                  >
-                    <Text className="text-base font-medium text-gray-700">Close</Text>
-                  </AppPressable>
-                  <AppPressable
-                    className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${
-                      creating ? "opacity-60" : ""
-                    }`}
-                    onPress={handleCreateSchedule}
-                    disabled={creating}
-                  >
-                    <Text className="text-base font-medium text-white">Continue</Text>
-                  </AppPressable>
-                </View>
+              {/* Buttons */}
+              <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
+                <TouchableOpacity
+                  className={`rounded-lg px-4 py-2.5 ${creating ? "opacity-50" : ""}`}
+                  style={{ backgroundColor: "#111827" }}
+                  onPress={handleCreateSchedule}
+                  disabled={creating}
+                >
+                  <Text className="text-center text-base font-medium text-white">Continue</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                  onPress={() => {
+                    onShowCreateModalChange(false);
+                    setNewScheduleName("");
+                  }}
+                  disabled={creating}
+                >
+                  <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+                </TouchableOpacity>
               </View>
-            </AppPressable>
-          </AppPressable>
+            </TouchableOpacity>
+          </View>
         </FullScreenModal>
       )}
 
@@ -604,43 +617,44 @@ export function AvailabilityListScreen({
         onRequestClose={() => !deleting && setShowDeleteModal(false)}
       >
         <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-sm rounded-2xl bg-white p-6">
-            {/* Icon */}
-            <View className="mb-4 items-center">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <Ionicons name="trash-outline" size={24} color="#800000" />
+          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <View className="p-6">
+              <View className="flex-row">
+                {/* Danger icon */}
+                <View className="mr-3 self-start rounded-full bg-red-50 p-2">
+                  <Ionicons name="alert-circle" size={20} color="#800000" />
+                </View>
+
+                {/* Title and description */}
+                <View className="flex-1">
+                  <Text className="mb-2 text-xl font-semibold text-gray-900">Delete Schedule</Text>
+                  <Text className="text-sm leading-5 text-gray-600">
+                    Are you sure you want to delete "{selectedSchedule?.name}"? This action cannot
+                    be undone.
+                  </Text>
+                </View>
               </View>
             </View>
 
-            {/* Title */}
-            <Text className="mb-2 text-center text-xl font-semibold text-gray-900">
-              Delete Schedule
-            </Text>
-
-            {/* Description */}
-            <Text className="mb-6 text-center text-base text-gray-600">
-              Are you sure you want to delete "{selectedSchedule?.name}"? This action cannot be
-              undone.
-            </Text>
-
             {/* Buttons */}
-            <View className="flex-row gap-3">
-              <AppPressable
-                className="flex-1 rounded-lg bg-gray-100 px-4 py-3"
-                onPress={() => setShowDeleteModal(false)}
-                disabled={deleting}
-              >
-                <Text className="text-center text-base font-semibold text-gray-700">Cancel</Text>
-              </AppPressable>
-              <AppPressable
-                className={`flex-1 rounded-lg bg-gray-900 px-4 py-3 ${
-                  deleting ? "opacity-50" : ""
-                }`}
+            {/* Buttons */}
+            <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
+              <TouchableOpacity
+                className={`rounded-lg px-4 py-2.5 ${deleting ? "opacity-50" : ""}`}
+                style={{ backgroundColor: deleting ? "#6B7280" : "#111827" }}
                 onPress={confirmDelete}
                 disabled={deleting}
               >
-                <Text className="text-center text-base font-semibold text-white">Delete</Text>
-              </AppPressable>
+                <Text className="text-center text-base font-medium text-white">Delete</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                onPress={() => setShowDeleteModal(false)}
+                disabled={deleting}
+              >
+                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
