@@ -309,6 +309,7 @@ model Credential {
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
+  @@index([teamId])
 }
 
 enum IdentityProvider {
