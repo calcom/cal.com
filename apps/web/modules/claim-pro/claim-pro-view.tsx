@@ -43,6 +43,9 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
   const yearClaimed = userMetadata.isProUser?.yearClaimed || 0;
   const hasAlreadyClaimed = yearClaimed >= 1 || formSubmittedForYear >= 1;
   const canAutoClaimFirstYear = experimentalFirstYearEligible && !hasAlreadyClaimed;
+
+  // Show original card if user has already claimed, otherwise show experimental card
+  const showOriginalCard = hasAlreadyClaimed;
   const firstYearClaimed = formSubmittedForYear >= 1 || (experimentalFirstYearEligible && !hasAlreadyClaimed);
 
   const mutation = trpc.viewer.me.calid_updateProfile.useMutation({
@@ -134,71 +137,122 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
         </div>
       ) : (
         <div className="grid w-full max-w-6xl grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="group relative h-80 w-full">
-            <div
-              className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
-                firstYearClaimed ? "cursor-not-allowed opacity-60" : "cursor-default"
-              }`}
-              style={{
-                boxShadow: "0 18px 40px rgba(10,10,20,0.18)",
-              }}>
+          {/* First Year Card - Show original card if already claimed, otherwise show experimental card */}
+          {showOriginalCard ? (
+            // Original card with TallyForm button
+            <div className="group relative h-80 w-full">
               <div
-                className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
-                  firstYearClaimed ? "bg-green-100" : "bg-blue-100"
-                }`}>
-                {firstYearClaimed ? (
-                  <Icon name="check" className="h-8 w-8 text-green-500" />
+                className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
+                  formSubmittedForYear >= 1
+                    ? "cursor-not-allowed opacity-60"
+                    : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
+                }`}
+                style={{
+                  boxShadow: "0 18px 40px rgba(10,10,20,0.18)",
+                }}>
+                <div
+                  className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
+                    formSubmittedForYear >= 1 ? "bg-green-100" : "bg-blue-100"
+                  }`}>
+                  {formSubmittedForYear >= 1 ? (
+                    <Icon name="check" className="h-8 w-8 text-green-500" />
+                  ) : (
+                    <svg
+                      className="h-8 w-8 text-blue-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <h3 className="text-default text-xl font-bold">
+                  {formSubmittedForYear >= 1 ? "First Year Pro" : "Unlock 1st Year"}
+                </h3>
+                <p className="text-default mb-6">
+                  {formSubmittedForYear >= 1 ? "Already Claimed" : "Unlock all premium features for one year"}
+                </p>
+                <Button
+                  onClick={() => formSubmittedForYear < 1 && setShowTallyForm(true)}
+                  className="text-center"
+                  disabled={mutation.isPending || formSubmittedForYear >= 1}>
+                  {formSubmittedForYear >= 1 ? "Already Claimed" : "Claim"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            // Experimental card with progress bar
+            <div className="group relative h-80 w-full">
+              <div
+                className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
+                  firstYearClaimed ? "cursor-not-allowed opacity-60" : "cursor-default"
+                }`}
+                style={{
+                  boxShadow: "0 18px 40px rgba(10,10,20,0.18)",
+                }}>
+                <div
+                  className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
+                    firstYearClaimed ? "bg-green-100" : "bg-blue-100"
+                  }`}>
+                  {firstYearClaimed ? (
+                    <Icon name="check" className="h-8 w-8 text-green-500" />
+                  ) : (
+                    <svg
+                      className="h-8 w-8 text-blue-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <h3 className="text-default text-xl font-bold">
+                  {firstYearClaimed ? "First Year Pro" : "Unlock 1st Year"}
+                </h3>
+                <p className="text-default mb-4 text-center">
+                  {firstYearClaimed
+                    ? "Already Claimed"
+                    : "Get 3 bookings with unique bookers to unlock your first year"}
+                </p>
+                {!isLoadingUniqueAttendees ? (
+                  <div className="flex w-full max-w-[200px] flex-col items-center justify-center gap-1">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          firstYearClaimed ? "bg-green-500" : "bg-blue-500"
+                        }`}
+                        style={{
+                          width: `${Math.min((uniqueAttendeesCount / requiredUniqueAttendees) * 100, 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="text-default flex justify-between text-xs">
+                      <span>
+                        {uniqueAttendeesCount} / {requiredUniqueAttendees} unique bookers
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  <svg
-                    className="h-8 w-8 text-blue-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
-                    />
-                  </svg>
+                  <div className="flex w-full max-w-[200px] flex-col items-center justify-center gap-1">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <SkeletonText className="block h-full w-1/3" style={{ display: "block" }} />
+                    </div>
+                    <SkeletonText className="h-4 w-24" />
+                  </div>
                 )}
               </div>
-              <h3 className="text-default text-xl font-bold">
-                {firstYearClaimed ? "First Year Pro" : "Unlock 1st Year"}
-              </h3>
-              <p className="text-default mb-4 text-center">
-                {firstYearClaimed
-                  ? "Already Claimed"
-                  : "Get 3 bookings with unique bookers to unlock your first year"}
-              </p>
-              {!isLoadingUniqueAttendees ? (
-                <div className="flex w-full max-w-[200px] flex-col items-center justify-center gap-1">
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        firstYearClaimed ? "bg-green-500" : "bg-blue-500"
-                      }`}
-                      style={{
-                        width: `${Math.min((uniqueAttendeesCount / requiredUniqueAttendees) * 100, 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="text-default flex justify-between text-xs">
-                    <span>
-                      {uniqueAttendeesCount} / {requiredUniqueAttendees} unique bookers
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex w-full max-w-[200px] flex-col items-center justify-center gap-1">
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                    <SkeletonText className="block h-full w-1/3" style={{ display: "block" }} />
-                  </div>
-                  <SkeletonText className="h-4 w-24" />
-                </div>
-              )}
             </div>
-          </div>
+          )}
 
           <div className="group relative h-80 w-full">
             <div
