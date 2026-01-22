@@ -274,6 +274,7 @@ model EventType {
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
+  @@index([parentId, teamId])
   @@index([restrictionScheduleId])
 }
 
