@@ -364,6 +364,7 @@ describe("_onFormSubmission", () => {
         form: teamForm,
         toAddresses: ["team-member1@example.com", "team-member2@example.com"],
         orderedResponses: [mockResponse["field-1"], mockResponse["field-2"]],
+        organizationId: 1,
       });
       expect(mockSendEmail).toHaveBeenCalled();
     });
@@ -380,6 +381,7 @@ describe("_onFormSubmission", () => {
         form: ownerForm,
         toAddresses: [ownerForm.user.email],
         orderedResponses: [mockResponse["field-1"], mockResponse["field-2"]],
+        organizationId: 1,
       });
       expect(mockSendEmail).toHaveBeenCalled();
     });

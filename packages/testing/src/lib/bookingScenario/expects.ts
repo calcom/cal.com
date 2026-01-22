@@ -27,6 +27,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Fixtures } from "../fixtures/fixtures";
 
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
+import { TestEmailSmtpConfig } from "@calcom/lib/testEmails";
 
 // This is too complex at the moment, I really need to simplify this.
 // Maybe we can replace the exact match with a partial match approach that would be easier to maintain but we would still need Dayjs to do the timezone conversion
@@ -1453,7 +1454,7 @@ export function expectEmailSentViaCustomSmtp({
 }: {
   emails: Fixtures["emails"];
   to: string;
-  expectedFromEmail?: string;
+  expectedFromEmail: string;
   expectedHost?: string;
 }) {
   const allEmails = emails.get();
@@ -1469,11 +1470,7 @@ export function expectEmailSentViaCustomSmtp({
   }
 
   expect(email.smtpConfig).toBeDefined();
-  expect(email.smtpConfig?.isCustomSmtp).toBe(true);
-
-  if (expectedFromEmail) {
-    expect(email.smtpConfig?.fromEmail).toBe(expectedFromEmail);
-  }
+  expect(email.smtpConfig?.fromEmail).toBe(expectedFromEmail);
 
   if (expectedHost) {
     expect(email.smtpConfig?.host).toBe(expectedHost);
