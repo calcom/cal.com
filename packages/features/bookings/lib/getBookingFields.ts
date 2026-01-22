@@ -140,7 +140,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   });
 
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
-  const dynamicPhoneField = smsNumberSources.length >= 1 ? "number_text_notifications" : "phone_number";
+  const dynamicPhoneField = "phone_number";
 
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
