@@ -358,6 +358,7 @@ export class UserAvailabilityService {
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
       mode = "none",
+      withSource = false,
     } = params;
 
     log.debug(
@@ -635,7 +636,8 @@ export class UserAvailabilityService {
       };
     }
 
-    const detailedBusyTimes: EventBusyDetails[] = [
+    // Combine all busy times and conditionally include source based on withSource parameter
+    const allBusyTimes: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
         ...a,
         start: dayjs(a.start).toISOString(),
@@ -646,6 +648,11 @@ export class UserAvailabilityService {
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
     ];
+
+    // Remove source from response if withSource is false
+    const detailedBusyTimes: EventBusyDetails[] = withSource
+      ? allBusyTimes
+      : allBusyTimes.map(({ source, ...rest }) => rest as EventBusyDetails);
 
     log.debug(
       `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({

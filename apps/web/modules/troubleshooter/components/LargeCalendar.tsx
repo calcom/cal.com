@@ -3,6 +3,7 @@ import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/componen
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
@@ -10,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
+  const { t } = useLocale();
   const { timezone } = useTimePreferences();
   const selectedDate = useTroubleshooterStore((state) => state.selectedDate);
   const event = useTroubleshooterStore((state) => state.event);
@@ -64,9 +66,11 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     //   .toDate(),
 
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
+      // Translate the title if it's a translation key (e.g., "busy_time.event_booking_limit")
+      const translatedTitle = event.title ? t(event.title) : t("busy");
       return {
         id: idx,
-        title: event.title ?? `Busy`,
+        title: translatedTitle,
         start: new Date(event.start),
         end: new Date(event.end),
         options: {
@@ -109,7 +113,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
       });
     }
     return calendarEvents;
-  }, [busyEvents, calendarToColorMap]);
+  }, [busyEvents, calendarToColorMap, t]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
