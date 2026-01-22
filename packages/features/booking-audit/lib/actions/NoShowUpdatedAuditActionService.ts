@@ -1,25 +1,29 @@
+import type { Ensure } from "@calcom/types/utils";
 import { z } from "zod";
 import { BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  GetDisplayFieldsParams,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
   IAuditActionService,
   TranslationWithParams,
 } from "./IAuditActionService";
 
-/**
- * No-Show Updated Audit Action Service
- * Handles NO_SHOW_UPDATED action with per-action versioning
- */
-
-// Module-level because it is passed to IAuditActionService type outside the class scope
-// Note: z.record keys are always strings at runtime (JavaScript objects have string keys).
-// Using z.coerce.number() ensures string keys like "123" are coerced to numbers during validation.
-const fieldsSchemaV1 = z.object({
-  hostNoShow: BooleanChangeSchema.optional(),
-  attendeesNoShow: z.record(z.coerce.number(), BooleanChangeSchema).optional(),
-});
+const fieldsSchemaV1 = z
+  // Make changes as per this new schema
+  .object({
+    host: z
+      .object({
+        userUuid: z.string(),
+        noShow: BooleanChangeSchema,
+      })
+      .optional(),
+    attendeesNoShow: z.record(z.coerce.number(), BooleanChangeSchema).optional(),
+  })
+  .refine((data) => data.hostNoShow !== undefined || data.attendeesNoShow !== undefined, {
+    message: "At least one of hostNoShow or attendeesNoShow must be provided",
+  });
 
 export class NoShowUpdatedAuditActionService implements IAuditActionService {
   readonly VERSION = 1;
@@ -65,16 +69,80 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     return { isMigrated: false, latestData: validated };
   }
 
-  async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
-    return { key: "booking_audit_action.no_show_updated" };
+  private isHostNoShowSet(
+    fields: NoShowUpdatedAuditData
+  ): fields is Ensure<NoShowUpdatedAuditData, "hostNoShow"> {
+    return fields.hostNoShow !== undefined;
+  }
+
+  private isAttendeesNoShowSet(
+    fields: NoShowUpdatedAuditData
+  ): fields is Ensure<NoShowUpdatedAuditData, "attendeesNoShow"> {
+    return fields.attendeesNoShow !== undefined;
+  }
+
+  async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+    const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
+    if (this.isHostNoShowSet(fields) && this.isAttendeesNoShowSet(fields)) {
+      return { key: "booking_audit_action.no_show_updated" };
+    }
+    if (this.isHostNoShowSet(fields)) {
+      return { key: "booking_audit_action.host_no_show_updated" };
+    }
+    if (this.isAttendeesNoShowSet(fields)) {
+      return { key: "booking_audit_action.attendee_no_show_updated" };
+    }
+    throw new Error("Audit action data is invalid");
+  }
+
+  async getDisplayFields({ storedData }: GetDisplayFieldsParams): Promise<
+    Array<{
+      labelKey: string;
+      valueKey: string;
+    }>
+  > {
+    const { fields } = this.parseStored(storedData);
+    let attendeesFieldValue: string;
+    let hostFieldValue: Array<{ labelKey: string; valueKey: string }> = [];
+    const fields: { labelKey: string; valueKey: string }[] = [];
+    if (this.isAttendeesNoShowSet(fields)) {
+      const attendeeIds = Object.keys(fields.attendeesNoShow).map(Number);
+      const dbAttendees = await this.deps.attendeeRepository.findByIds(attendeeIds);
+
+      const attendeesFieldValueParts = dbAttendees.map((dbAttendee) => {
+        const attendeeNoShow = fields.attendeesNoShow?.[dbAttendee.id];
+        let valueKey = "";
+        if (attendeeNoShow) {
+          valueKey = attendeeNoShow.new ? "Yes" : "No";
+        }
+        return `${dbAttendee.name}:${valueKey}`;
+      });
+      attendeesFieldValue = attendeesFieldValueParts.join(", ");
+      fields.push({ labelKey: "Attendees", valueKey: attendeesFieldValue });
+    }
+    if (this.isHostNoShowSet(fields)) {
+      const user = await this.deps.userRepository.findByUuid({ uuid: fields.host?.userUuid });
+      const hostName = user?.name || "Unknown";
+      hostFieldValue = `${hostName}:${fields.host?.noShow.new ? "Yes" : "No"}`;
+      fields.push({ labelKey: "Host", valueKey: hostFieldValue });
+    }
+    return fields;
   }
 
   getDisplayJson({ storedData }: GetDisplayJsonParams): NoShowUpdatedAuditDisplayData {
     const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
     return {
-      hostNoShow: fields.hostNoShow?.new ?? null,
-      previousHostNoShow: fields.hostNoShow?.old ?? null,
-      attendeesNoShow: fields.attendeesNoShow ?? null,
+      ...(this.isHostNoShowSet(fields)
+        ? {
+            hostNoShow: fields.hostNoShow.new,
+            previousHostNoShow: fields.hostNoShow.old,
+          }
+        : {}),
+      ...(this.isAttendeesNoShowSet(fields)
+        ? {
+            attendeesNoShow: fields.attendeesNoShow,
+          }
+        : {}),
     };
   }
 }
@@ -82,7 +150,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
 export type NoShowUpdatedAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type NoShowUpdatedAuditDisplayData = {
-  hostNoShow: boolean | null;
-  previousHostNoShow: boolean | null;
-  attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> | null;
+  hostNoShow?: boolean;
+  previousHostNoShow?: boolean | null;
+  attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }> | null;
 };
