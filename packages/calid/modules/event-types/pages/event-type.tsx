@@ -137,6 +137,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isFormReady, setIsFormReady] = useState(false);
+  const [startTime] = useState(Date.now());
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
 
@@ -482,6 +483,8 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       onDelete={() => deleteMutation.mutate({ id: eventType.id })}
       eventTypeId={eventType.id}
       isDeleting={deleteMutation.isPending}
+      // onDeleteClick={() => setDeleteDialogOpen(true)}
+      isFormInitialized={isFormReady && !isInitialLoad && Date.now() > startTime + 1000}
     />
   );
 
@@ -525,11 +528,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
                   throw error;
                 }
               }}>
-              <div
-                ref={animationParentRef}
-                className="transition-all duration-200 ease-in-out"
-                key={activeTab} // Force re-render for smooth transitions
-              >
+              <div ref={animationParentRef} className="transition-all duration-200 ease-in-out">
                 {renderTabContent()}
               </div>
             </Form>

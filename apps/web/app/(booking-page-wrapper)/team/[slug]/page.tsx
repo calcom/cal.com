@@ -26,7 +26,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     },
   };
   const faviconUrl = team.faviconUrl
-    ? `${getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true)}?v=${Date.now()}`
+    ? getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true)
     : "/calid_favicon.svg";
   const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(

@@ -77,11 +77,18 @@ ${organizer + attendees + teamMembers.join("")}
   `;
 };
 
-export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
+export const getAdditionalNotes = (
+  calEvent: Pick<CalendarEvent, "additionalNotes" | "bookingFields">,
+  t: TFunction
+) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `
+  return calEvent.bookingFields?.find((e) => e.name === "notes")?.label
+    ? `
+${calEvent.bookingFields?.find((e) => e.name === "notes")?.label}:
+${calEvent.additionalNotes}`
+    : `
 ${t("additional_notes")}:
 ${calEvent.additionalNotes}
   `;

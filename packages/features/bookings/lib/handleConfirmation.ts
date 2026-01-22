@@ -51,6 +51,7 @@ export async function handleConfirmation(args: {
       price: number;
       requiresConfirmation: boolean;
       metadata?: Prisma.JsonValue;
+      bookingFields?: Prisma.JsonValue;
       title: string;
       team?: {
         parentId: number | null;
@@ -147,7 +148,7 @@ export async function handleConfirmation(args: {
 
       if (emailsEnabled) {
         await sendScheduledEmailsAndSMS(
-          { ...evt, additionalInformation: metadata },
+          { ...evt, additionalInformation: metadata, bookingFields: eventType?.bookingFields || null },
           undefined,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
