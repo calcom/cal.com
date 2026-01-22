@@ -7,6 +7,7 @@ import type { AppCardApp } from "@calcom/app-store/types";
 import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
 import { AppSetDefaultLinkDialog } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
+import { CustomDailyCredentialsDialog } from "@calcom/web/modules/apps/components/CustomDailyCredentialsDialog";
 import type {
   BulkUpdatParams,
   EventTypes,
@@ -15,9 +16,10 @@ import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/c
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
-import { type RouterOutputs } from "@calcom/trpc/react";
+import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -28,6 +30,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
@@ -60,10 +63,15 @@ export const AppList = ({
   handleConnectDisconnectIntegrationMenuToggle,
   handleBulkEditDialogToggle,
 }: AppListProps) => {
+  const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+  const [customDailyCredentialsDialogOpen, setCustomDailyCredentialsDialogOpen] = useState(false);
+  const { data: user } = trpc.viewer.me.get.useQuery();
+  const hasOrganization = !!user?.organizationId;
+
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
     showToast("Default app updated successfully", "success");
@@ -117,6 +125,34 @@ export const AppList = ({
                       </DropdownItem>
                     </DropdownMenuItem>
                   )}
+                  {appSlug === "daily-video" && (
+                    <DropdownMenuItem>
+                      <Tooltip
+                        content={
+                          hasOrganization
+                            ? t("use_your_own_daily_credentials")
+                            : t("upgrade_to_enable_feature")
+                        }>
+                        <DropdownItem
+                          type="button"
+                          color="secondary"
+                          StartIcon="key"
+                          disabled={!hasOrganization}
+                          onClick={() => {
+                            if (hasOrganization) {
+                              setCustomDailyCredentialsDialogOpen(true);
+                            }
+                          }}>
+                          <span className="flex items-center gap-2">
+                            {t("use_your_own_credentials")}
+                            {!hasOrganization && (
+                              <Badge variant="gray">{t("upgrade")}</Badge>
+                            )}
+                          </span>
+                        </DropdownItem>
+                      </Tooltip>
+                    </DropdownMenuItem>
+                  )}
                   <ConnectOrDisconnectIntegrationMenuItem
                     credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
                     type={item.type}
@@ -168,7 +204,6 @@ export const AppList = ({
     return appCards;
   });
 
-  const { t } = useLocale();
   return (
     <>
       <List className={listClassName}>
@@ -200,6 +235,11 @@ export const AppList = ({
           handleBulkEditDialogToggle={handleBulkEditDialogToggle}
         />
       )}
+
+      <CustomDailyCredentialsDialog
+        open={customDailyCredentialsDialogOpen}
+        onOpenChange={setCustomDailyCredentialsDialogOpen}
+      />
     </>
   );
 };
