@@ -90,6 +90,7 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
       while (allBookings.length < totalCount) {
         const offset = allBookings.length;
         const batch = await fetchBatch(offset);
+        if (batch.bookings.length === 0) break; // Prevent infinite loop if batch returns empty
         allBookings = [...allBookings, ...batch.bookings];
 
         const currentProgress = Math.min(Math.round((allBookings.length / totalCount) * 100), 99);
