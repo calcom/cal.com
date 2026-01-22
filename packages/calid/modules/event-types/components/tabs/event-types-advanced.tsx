@@ -30,7 +30,7 @@ import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
 import { Switch } from "@calid/features/ui/components/switch";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
-import React, { useState, useCallback, useMemo, Suspense } from "react";
+import React, { useState, useCallback, useMemo, useEffect, Suspense } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import type { z } from "zod";
 
@@ -831,6 +831,13 @@ export const EventAdvanced = ({
     !!formMethods.getValues("customReplyToEmail")
   );
 
+  // Sync redirect URL visibility with form value
+  useEffect(() => {
+    const currentValue = formMethods.getValues("successRedirectUrl") || "";
+    const hasActualUrl = currentValue.trim().length > 0;
+    setRedirectUrlVisible(hasActualUrl);
+  }, [formMethods]);
+
   const customReplyToEmailValue = formMethods.watch("customReplyToEmail");
 
   // Watch form values for reactive UI updates
@@ -1204,74 +1211,84 @@ export const EventAdvanced = ({
             }),
           },
         }}
-        render={({ field, fieldState }) => (
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(redirectUrlVisible && "rounded-b-none")}
-            childrenClassName="lg:ml-0"
-            title={t("redirect_success_booking")}
-            data-testid="redirect-success-booking"
-            description={t("redirect_url_description")}
-            checked={redirectUrlVisible}
-            onCheckedChange={(e) => {
-              field.onChange(e ? field.value || "" : "");
-              setRedirectUrlVisible(e);
-            }}
-            fieldPermissions={fieldPermissions}
-            fieldName="successRedirectUrl"
-            lockedIcon={
-              <FieldPermissionIndicator
-                fieldName="successRedirectUrl"
-                fieldPermissions={fieldPermissions}
-                t={t}
-              />
-            }>
-            <TextField
-              className="w-full"
-              label={t("redirect_success_booking")}
-              labelSrOnly
-              placeholder={t("external_redirect_url")}
-              data-testid="external-redirect-url"
-              required={redirectUrlVisible}
-              type="text"
-              value={field.value || ""}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              ref={field.ref}
-              disabled={fieldPermissions.getFieldState("successRedirectUrl").isDisabled}
-              LockedIcon={
+        render={({ field, fieldState }) => {
+          const fieldValue = field.value || "";
+
+          return (
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(redirectUrlVisible && "rounded-b-none")}
+              childrenClassName="lg:ml-0"
+              title={t("redirect_success_booking")}
+              data-testid="redirect-success-booking"
+              description={t("redirect_url_description")}
+              checked={redirectUrlVisible}
+              onCheckedChange={(e) => {
+                if (e) {
+                  // When turning ON, keep current value or set empty string to show input
+                  field.onChange(field.value || "");
+                } else {
+                  // When turning OFF, clear the field
+                  field.onChange("");
+                }
+                setRedirectUrlVisible(e);
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="successRedirectUrl"
+              lockedIcon={
                 <FieldPermissionIndicator
                   fieldName="successRedirectUrl"
                   fieldPermissions={fieldPermissions}
                   t={t}
                 />
-              }
-            />
-
-            {fieldState.error && <p className="mt-2 text-sm text-red-600">{fieldState.error.message}</p>}
-
-            <div className="mt-4">
-              <Controller
-                name="forwardParamsSuccessRedirect"
-                render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
-                  <div className="flex items-center gap-2">
-                    <CheckboxField checked={forwardValue} onCheckedChange={forwardOnChange} />
-                    <Label>{t("forward_params_redirect")}</Label>
-                  </div>
-                )}
+              }>
+              <TextField
+                className="w-full"
+                label={t("redirect_success_booking")}
+                labelSrOnly
+                placeholder={t("external_redirect_url")}
+                data-testid="external-redirect-url"
+                required={redirectUrlVisible}
+                type="text"
+                value={field.value || ""}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                disabled={fieldPermissions.getFieldState("successRedirectUrl").isDisabled}
+                LockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="successRedirectUrl"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
               />
-            </div>
 
-            <div
-              className={classNames(
-                "p-1 text-sm text-orange-600",
-                formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
-              )}
-              data-testid="redirect-url-warning">
-              {t("redirect_url_warning")}
-            </div>
-          </SettingsToggle>
-        )}
+              {fieldState.error && <p className="mt-2 text-sm text-red-600">{fieldState.error.message}</p>}
+
+              <div className="mt-4">
+                <Controller
+                  name="forwardParamsSuccessRedirect"
+                  render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
+                    <div className="flex items-center gap-2">
+                      <CheckboxField checked={forwardValue} onCheckedChange={forwardOnChange} />
+                      <Label>{t("forward_params_redirect")}</Label>
+                    </div>
+                  )}
+                />
+              </div>
+
+              <div
+                className={classNames(
+                  "p-1 text-sm text-orange-600",
+                  formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
+                )}
+                data-testid="redirect-url-warning">
+                {t("redirect_url_warning")}
+              </div>
+            </SettingsToggle>
+          );
+        }}
       />
 
       {/* Private Links Management */}
@@ -1351,6 +1368,13 @@ export const EventAdvanced = ({
                   });
                 } else {
                   formMethods.setValue("seatsPerTimeSlot", null);
+                  // Reset fields back to their original values when turning OFF
+                  formMethods.setValue("requiresConfirmation", eventType.requiresConfirmation, {
+                    shouldDirty: true,
+                  });
+                  formMethods.setValue("metadata.multipleDuration", eventType.metadata?.multipleDuration, {
+                    shouldDirty: true,
+                  });
                   toggleGuests(true);
                 }
                 onChange(e);

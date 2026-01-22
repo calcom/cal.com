@@ -34,6 +34,7 @@ interface EventTypeActionsProps {
   onDelete: () => void;
   eventTypeId: number;
   isDeleting?: boolean;
+  isFormInitialized?: boolean;
 }
 
 export const EventTypeActions = ({
@@ -46,6 +47,7 @@ export const EventTypeActions = ({
   onDelete,
   eventTypeId,
   isDeleting = false,
+  isFormInitialized = true,
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
   const { copyToClipboard } = useCopy();
@@ -105,6 +107,97 @@ export const EventTypeActions = ({
       schedulingType: null,
     });
   };
+  // Enhanced dirty check to prevent false positives
+  const isFormDirty = (() => {
+    try {
+      // Don't show as dirty until initialized
+      if (!isFormInitialized) return false;
+
+      const formIsDirty = form?.formState?.isDirty || false;
+      if (!formIsDirty) return false;
+
+      // Check if current values actually differ from default values
+      const currentValues = form.getValues();
+      const defaultValues = form.formState.defaultValues;
+
+      const hasActualChanges = Object.keys(form.formState.dirtyFields || {}).some((key) => {
+        const currentValue = currentValues[key as keyof FormValues];
+        const defaultValue = defaultValues?.[key as keyof FormValues];
+
+        // Special handling for boolean toggles in Advanced tab
+        if (key === "allowReschedulingCancelledBookings" || key === "seatsPerTimeSlotEnabled") {
+          const current = Boolean(currentValue);
+          const defaultVal = Boolean(defaultValue);
+          return current !== defaultVal;
+        }
+
+        // Special handling for requiresConfirmation (affected by seats toggle)
+        if (key === "requiresConfirmation") {
+          const current = Boolean(currentValue);
+          const defaultVal = Boolean(defaultValue);
+          return current !== defaultVal;
+        }
+
+        // Special handling for successRedirectUrl (empty string vs actual URL)
+        if (key === "successRedirectUrl") {
+          const current = currentValue || "";
+          const defaultVal = defaultValue || "";
+          return current !== defaultVal;
+        }
+
+        // Special handling for interfaceLanguage and locations
+        if (key === "interfaceLanguage") {
+          const current = currentValue || "";
+          const defaultVal = defaultValue || "";
+          return current !== defaultVal;
+        }
+
+        if (key === "locations") {
+          const current = JSON.stringify(currentValue || []);
+          const defaultVal = JSON.stringify(defaultValue || []);
+          return current !== defaultVal;
+        }
+
+        // Special handling for Apps tab metadata to fix toggle reset issue
+        if (key === "metadata" && currentValue && defaultValue) {
+          const currentMetadata = currentValue as Record<string, unknown>;
+          const defaultMetadata = defaultValue as Record<string, unknown>;
+          const currentApps = (currentMetadata?.apps as Record<string, unknown>) || {};
+          const defaultApps = (defaultMetadata?.apps as Record<string, unknown>) || {};
+
+          // Check if apps have actual changes
+          const appKeys = new Set([...Object.keys(currentApps), ...Object.keys(defaultApps)]);
+          const hasAppChanges = Array.from(appKeys).some((appKey) => {
+            const currentApp = currentApps[appKey] || {};
+            const defaultApp = defaultApps[appKey] || {};
+
+            // Compare enabled state specifically
+            const currentEnabled = currentApp.enabled || false;
+            const defaultEnabled = defaultApp.enabled || false;
+
+            return currentEnabled !== defaultEnabled;
+          });
+
+          if (hasAppChanges) return true;
+
+          // For non-app metadata, use regular comparison
+          const currentNonApps = { ...(currentValue as Record<string, unknown>) };
+          const defaultNonApps = { ...(defaultValue as Record<string, unknown>) };
+          delete currentNonApps.apps;
+          delete defaultNonApps.apps;
+
+          return JSON.stringify(currentNonApps) !== JSON.stringify(defaultNonApps);
+        }
+
+        // Regular comparison for all other fields (preserves existing behavior)
+        return JSON.stringify(currentValue) !== JSON.stringify(defaultValue);
+      });
+
+      return hasActualChanges;
+    } catch (error) {
+      return false;
+    }
+  })();
 
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
@@ -230,7 +323,7 @@ export const EventTypeActions = ({
         type="button"
         loading={isUpdatePending}
         onClick={() => handleSubmit(form.getValues())}
-        disabled={!form?.formState?.isDirty || isUpdatePending}
+        disabled={!isFormDirty || isUpdatePending}
         form="event-type-form">
         {t("save")}
       </Button>

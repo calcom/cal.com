@@ -269,18 +269,20 @@ const RollingLimitRadioItem = memo(
 
     const handleExcludeUnavailableDaysChange = useCallback(
       (isChecked: boolean) => {
-        formMethods.setValue(
-          "periodDays",
-          Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
-        );
-        formMethods.setValue(
-          "periodType",
-          getPeriodTypeFromUiValue({
-            value: PeriodType.ROLLING,
-            rollingExcludeUnavailableDays: isChecked,
-          }),
-          { shouldDirty: true }
-        );
+        const newPeriodDays = Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK);
+        const defaultPeriodDays = formMethods.formState.defaultValues?.periodDays || 0;
+        formMethods.setValue("periodDays", newPeriodDays, {
+          shouldDirty: newPeriodDays !== defaultPeriodDays,
+        });
+
+        const newPeriodType = getPeriodTypeFromUiValue({
+          value: PeriodType.ROLLING,
+          rollingExcludeUnavailableDays: isChecked,
+        });
+        const defaultPeriodType = formMethods.formState.defaultValues?.periodType || PeriodType.UNLIMITED;
+        formMethods.setValue("periodType", newPeriodType, {
+          shouldDirty: newPeriodType !== defaultPeriodType,
+        });
       },
       [formMethods, periodDaysWatch]
     );
@@ -891,7 +893,7 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
       if (active) {
         formMethods.setValue("bookingLimits", { PER_DAY: 1 }, { shouldDirty: true });
       } else {
-        formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
+        formMethods.setValue("bookingLimits", undefined, { shouldDirty: true });
       }
     },
     [formMethods]
@@ -901,43 +903,48 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
     if (active) {
       onChange({ PER_DAY: 60 });
     } else {
-      onChange({});
+      onChange(undefined);
     }
   }, []);
 
   const handleOnlyFirstSlotToggle = useCallback((active: boolean, onChange: (value: any) => void) => {
-    onChange(active ?? false);
+    onChange(active || undefined);
   }, []);
 
   const handleFutureBookingsToggle = useCallback(
     (isEnabled: boolean, onChange: (value: any) => void) => {
-      if (isEnabled && !formMethods.getValues("periodDays")) {
-        formMethods.setValue("periodDays", 30, { shouldDirty: true });
+      if (isEnabled) {
+        if (!formMethods.getValues("periodDays")) {
+          formMethods.setValue("periodDays", 30, { shouldDirty: true });
+        }
+        formMethods.setValue("periodType", PeriodType.ROLLING, { shouldDirty: true });
+      } else {
+        // Reset periodDays to default when toggling OFF
+        const defaultPeriodDays = formMethods.formState.defaultValues?.periodDays;
+        formMethods.setValue("periodDays", defaultPeriodDays, { shouldDirty: true });
+        formMethods.setValue("periodType", PeriodType.UNLIMITED, { shouldDirty: true });
       }
-      return onChange(isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED);
     },
     [formMethods]
   );
 
   const handlePeriodTypeChange = useCallback(
     (val: string) => {
-      formMethods.setValue(
-        "periodType",
-        getPeriodTypeFromUiValue({
-          value: val as IPeriodType,
-          rollingExcludeUnavailableDays: formMethods.getValues("rollingExcludeUnavailableDays"),
-        }),
-        { shouldDirty: true }
-      );
+      const newPeriodType = getPeriodTypeFromUiValue({
+        value: val as IPeriodType,
+        rollingExcludeUnavailableDays: formMethods.getValues("rollingExcludeUnavailableDays"),
+      });
+      const defaultPeriodType = formMethods.formState.defaultValues?.periodType || PeriodType.UNLIMITED;
+      formMethods.setValue("periodType", newPeriodType, { shouldDirty: newPeriodType !== defaultPeriodType });
     },
     [formMethods]
   );
 
   const handleRollingDayTypeChange = useCallback(
     (opt: { value: number } | null) => {
-      formMethods.setValue("periodCountCalendarDays", opt?.value === 1, {
-        shouldDirty: true,
-      });
+      const newValue = opt?.value === 1;
+      const defaultValue = formMethods.formState.defaultValues?.periodCountCalendarDays ?? false;
+      formMethods.setValue("periodCountCalendarDays", newValue, { shouldDirty: newValue !== defaultValue });
     },
     [formMethods]
   );

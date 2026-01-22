@@ -239,9 +239,12 @@ const destinationCalendarComponents = {
                 }
                 checked={useEventTypeDestinationCalendarEmail}
                 onCheckedChange={(val) => {
+                  const defaultValue =
+                    formMethods.formState.defaultValues?.useEventTypeDestinationCalendarEmail ?? false;
+
                   setUseEventTypeDestinationCalendarEmail(val);
                   formMethods.setValue("useEventTypeDestinationCalendarEmail", val, {
-                    shouldDirty: true,
+                    shouldDirty: val !== defaultValue,
                   });
                   if (val) {
                     showToast(t("reconnect_calendar_to_use"), "warning");
@@ -345,7 +348,8 @@ const calendarComponents = {
     const showConnectedCalendarSettings =
       !!calendarsQuery.data?.connectedCalendars.length && isConnectedCalendarSettingsApplicable;
 
-    const selectedCalendarSettingsScope = formMethods.getValues("useEventLevelSelectedCalendars")
+    const useEventLevelSelectedCalendars = formMethods.watch("useEventLevelSelectedCalendars");
+    const selectedCalendarSettingsScope = useEventLevelSelectedCalendars
       ? SelectedCalendarSettingsScope.EventType
       : SelectedCalendarSettingsScope.User;
 
@@ -382,9 +386,15 @@ const calendarComponents = {
                         destinationCalendarId={destinationCalendar?.externalId}
                         setScope={(scope) => {
                           const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                            shouldDirty: true,
-                          });
+                          const currentValue = formMethods.getValues("useEventLevelSelectedCalendars");
+                          const defaultValue =
+                            formMethods.formState.defaultValues?.useEventLevelSelectedCalendars ?? false;
+
+                          if (currentValue !== chosenScopeIsEventLevel) {
+                            formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                              shouldDirty: chosenScopeIsEventLevel !== defaultValue,
+                            });
+                          }
                         }}
                       />
                     )}
@@ -951,7 +961,8 @@ export const EventAdvancedTab = ({
                   : undefined
               }
               onCheckedChange={(e) => {
-                // Enabling seats will disable guests and requiring confirmation until fully supported
+                const defaultValue = formMethods.formState.defaultValues?.seatsPerTimeSlotEnabled ?? false;
+
                 if (e) {
                   toggleGuests(false);
                   formMethods.setValue("requiresConfirmation", false, { shouldDirty: true });
@@ -964,7 +975,13 @@ export const EventAdvancedTab = ({
                   formMethods.setValue("seatsPerTimeSlot", null);
                   toggleGuests(true);
                 }
+
                 onChange(e);
+
+                // Clear errors if back to default
+                if (e === defaultValue) {
+                  formMethods.clearErrors("seatsPerTimeSlotEnabled");
+                }
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <Controller
@@ -1097,9 +1114,13 @@ export const EventAdvancedTab = ({
               description={t("description_lock_timezone_toggle_on_booking_page")}
               checked={value}
               onCheckedChange={(e) => {
-                onChange(e);
                 const lockedTimeZone = e ? eventType.lockedTimeZone ?? "Europe/London" : null;
-                formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
+                const defaultLockedTimeZone = formMethods.formState.defaultValues?.lockedTimeZone ?? null;
+
+                onChange(e);
+                formMethods.setValue("lockedTimeZone", lockedTimeZone, {
+                  shouldDirty: lockedTimeZone !== defaultLockedTimeZone,
+                });
               }}
               data-testid="lock-timezone-toggle"
               childrenClassName="lg:ml-0">

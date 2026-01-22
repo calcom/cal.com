@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useEffect, useRef, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -151,6 +151,8 @@ export const useEventTypeForm = ({
       disableCancelling: eventType.disableCancelling,
       disableRescheduling: eventType.disableRescheduling,
       captchaType: eventType.captchaType,
+      interfaceLanguage: eventType.interfaceLanguage ?? "",
+      allowReschedulingCancelledBookings: eventType.allowReschedulingCancelledBookings ?? false,
     };
   }, [eventType, periodDates]);
 
@@ -210,44 +212,19 @@ export const useEventTypeForm = ({
     ),
   });
 
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Mark as initialized after delay without resetting form
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [eventType.id]);
+
   const {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = form;
-
-  const hasInitialized = useRef(false);
-  const [isReady, setIsReady] = useState(false);
-  const [watchedValues, setWatchedValues] = useState<FormValues>(defaultValues as FormValues);
-
-  useEffect(() => {
-    const subscription = form.watch((values) => {
-      setWatchedValues(values as FormValues);
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
-  useEffect(() => {
-    // Reset initialization flag
-    hasInitialized.current = false;
-    setIsReady(false);
-
-    const timer = setTimeout(() => {
-      setIsReady(true);
-
-      // Wait longer for form to fully settle
-      setTimeout(() => {
-        // Force clear dirty state by resetting to current values
-        const currentValues = form.getValues();
-        form.reset(currentValues, { keepDefaultValues: false });
-
-        // Wait for reset to propagate
-        setTimeout(() => {
-          hasInitialized.current = true;
-        }, 100);
-      }, 100);
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, [eventType.id, form]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -466,7 +443,6 @@ export const useEventTypeForm = ({
 
   // Custom dirty check that actually verifies if there are real changes
   const hasRealChanges = useMemo(() => {
-    if (!hasInitialized.current) return false;
     if (!isFormDirty) return false;
 
     // Check if dirtyFields has any actual dirty values
@@ -488,19 +464,13 @@ export const useEventTypeForm = ({
       onFormStateChange({
         isDirty: hasRealChanges,
         dirtyFields: dirtyFields as Partial<FormValues>,
-        values: watchedValues,
+        values: form.getValues(),
       });
     }
-  }, [hasRealChanges, dirtyFields, watchedValues, onFormStateChange]);
+  }, [hasRealChanges, dirtyFields, onFormStateChange, form]);
 
   return {
-    form: {
-      ...form,
-      formState: {
-        ...form.formState,
-        isDirty: isReady && hasInitialized.current && isFormDirty,
-      },
-    } as typeof form,
+    form,
     handleSubmit,
   };
 };

@@ -256,18 +256,23 @@ function RollingLimitRadioItem({
             })}
             onChange={(e) => {
               const isChecked = e.target.checked;
-              formMethods.setValue(
-                "periodDays",
-                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
-              );
-              formMethods.setValue(
-                "periodType",
-                getPeriodTypeFromUiValue({
-                  value: PeriodType.ROLLING,
-                  rollingExcludeUnavailableDays: isChecked,
-                }),
-                { shouldDirty: true }
-              );
+              const newPeriodDays = Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK);
+              const defaultPeriodDays = formMethods.formState.defaultValues?.periodDays || 0;
+
+              formMethods.setValue("periodDays", newPeriodDays, {
+                shouldDirty: newPeriodDays !== defaultPeriodDays,
+              });
+
+              const newPeriodType = getPeriodTypeFromUiValue({
+                value: PeriodType.ROLLING,
+                rollingExcludeUnavailableDays: isChecked,
+              });
+              const defaultPeriodType =
+                formMethods.formState.defaultValues?.periodType || PeriodType.UNLIMITED;
+
+              formMethods.setValue("periodType", newPeriodType, {
+                shouldDirty: newPeriodType !== defaultPeriodType,
+              });
             }}
           />
         </div>
@@ -391,9 +396,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
   const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
 
-  const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
-  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
-    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
+  const [bookingLimitsToggle, setBookingLimitsToggle] = useState(
+    Object.keys(formMethods.getValues("bookingLimits") ?? {}).length > 0
   );
 
   // Preview how the offset will affect start times
@@ -573,8 +577,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
       </div>
       <Controller
         name="bookingLimits"
-        render={({ field: { value } }) => {
-          const isChecked = Object.keys(value ?? {}).length > 0;
+        render={({ field: { onChange, value } }) => {
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
@@ -582,23 +585,18 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               title={t("limit_booking_frequency")}
               {...bookingLimitsLocked}
               description={t("limit_booking_frequency_description")}
-              checked={isChecked}
+              checked={bookingLimitsToggle}
               onCheckedChange={(active) => {
                 if (active) {
-                  formMethods.setValue(
-                    "bookingLimits",
-                    {
-                      PER_DAY: 1,
-                    },
-                    { shouldDirty: true }
-                  );
+                  onChange({ PER_DAY: 1 });
                 } else {
-                  formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
+                  onChange(undefined);
                 }
+                setBookingLimitsToggle((state) => !state);
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none",
+                bookingLimitsToggle && "rounded-b-none",
                 customClassNames?.bookingFrequencyLimit?.container
               )}
               childrenClassName={classNames("lg:ml-0", customClassNames?.bookingFrequencyLimit?.children)}
@@ -633,7 +631,11 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               checked={isChecked}
               {...onlyFirstAvailableSlotLocked}
               onCheckedChange={(active) => {
-                onChange(active ?? false);
+                const defaultValue = formMethods.formState.defaultValues?.onlyShowFirstAvailableSlot ?? false;
+                const newValue = active ?? false;
+                const isDifferent = newValue !== defaultValue;
+
+                formMethods.setValue("onlyShowFirstAvailableSlot", newValue, { shouldDirty: isDifferent });
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -666,13 +668,11 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               {...durationLimitsLocked}
               checked={isChecked}
               onCheckedChange={(active) => {
-                if (active) {
-                  onChange({
-                    PER_DAY: 60,
-                  });
-                } else {
-                  onChange({});
-                }
+                const defaultValue = formMethods.formState.defaultValues?.durationLimits || {};
+                const newValue = active ? { PER_DAY: 60 } : {};
+                const isDifferent = JSON.stringify(newValue) !== JSON.stringify(defaultValue);
+
+                formMethods.setValue("durationLimits", newValue, { shouldDirty: isDifferent });
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <IntervalLimitsManager
@@ -716,25 +716,32 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               {...periodTypeLocked}
               checked={isChecked}
               onCheckedChange={(isEnabled) => {
+                const defaultPeriodType =
+                  formMethods.formState.defaultValues?.periodType || PeriodType.UNLIMITED;
+                const newValue = isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED;
+                const isDifferent = newValue !== defaultPeriodType;
+
                 if (isEnabled && !formMethods.getValues("periodDays")) {
-                  formMethods.setValue("periodDays", 30, { shouldDirty: true });
+                  const defaultPeriodDays = formMethods.formState.defaultValues?.periodDays || 0;
+                  formMethods.setValue("periodDays", 30, { shouldDirty: 30 !== defaultPeriodDays });
                 }
-                return onChange(isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED);
+
+                formMethods.setValue("periodType", newValue, { shouldDirty: isDifferent });
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   value={watchPeriodTypeUiValue}
                   onValueChange={(val) => {
-                    formMethods.setValue(
-                      "periodType",
-                      getPeriodTypeFromUiValue({
-                        value: val as IPeriodType,
-                        rollingExcludeUnavailableDays: formMethods.getValues("rollingExcludeUnavailableDays"),
-                      }),
-                      {
-                        shouldDirty: true,
-                      }
-                    );
+                    const newPeriodType = getPeriodTypeFromUiValue({
+                      value: val as IPeriodType,
+                      rollingExcludeUnavailableDays: formMethods.getValues("rollingExcludeUnavailableDays"),
+                    });
+                    const defaultPeriodType =
+                      formMethods.formState.defaultValues?.periodType || PeriodType.UNLIMITED;
+
+                    formMethods.setValue("periodType", newPeriodType, {
+                      shouldDirty: newPeriodType !== defaultPeriodType,
+                    });
                   }}>
                   {(periodTypeLocked.disabled ? watchPeriodTypeUiValue === PeriodType.ROLLING : true) && (
                     <RollingLimitRadioItem
@@ -744,8 +751,12 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                       formMethods={formMethods}
                       customClassNames={customClassNames?.futureBookingLimit?.rollingLimit}
                       onChange={(opt) => {
-                        formMethods.setValue("periodCountCalendarDays", opt?.value === 1, {
-                          shouldDirty: true,
+                        const newValue = opt?.value === 1;
+                        const defaultValue =
+                          formMethods.formState.defaultValues?.periodCountCalendarDays ?? false;
+
+                        formMethods.setValue("periodCountCalendarDays", newValue, {
+                          shouldDirty: newValue !== defaultValue,
                         });
                       }}
                     />
@@ -783,7 +794,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           onCheckedChange={(active) => {
             setOffsetToggle(active);
             if (!active) {
-              formMethods.setValue("offsetStart", 0, { shouldDirty: true });
+              const defaultOffsetStart = formMethods.formState.defaultValues?.offsetStart || 0;
+              formMethods.setValue("offsetStart", 0, { shouldDirty: 0 !== defaultOffsetStart });
             }
           }}>
           <div className={classNames("border-subtle rounded-b-lg border border-t-0 p-6")}>

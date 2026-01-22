@@ -73,6 +73,9 @@ function EventTypeSingleLayout({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const isDirty = formMethods.formState.isDirty;
+  const dirtyFields = formMethods.formState.dirtyFields;
+
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
     !currentUserMembership ||
@@ -142,7 +145,6 @@ function EventTypeSingleLayout({
               <VerticalDivider className="hidden lg:block" />
             </>
           )}
-
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "border-default hidden lg:flex" }}>
             {!isManagedEventType && (
@@ -204,9 +206,7 @@ function EventTypeSingleLayout({
               />
             )}
           </ButtonGroup>
-
           {(!isPlatform || (isPlatform && allowDelete)) && <VerticalDivider className="hidden lg:block" />}
-
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
@@ -270,21 +270,36 @@ function EventTypeSingleLayout({
             type="submit"
             loading={isUpdateMutationLoading}
             disabled={(() => {
-              if (!formMethods.formState.isDirty) return true;
-              const dirtyFields = formMethods.formState.dirtyFields;
-              const hasRealChanges = Object.keys(dirtyFields).some((key) => {
-                const value = dirtyFields[key as keyof typeof dirtyFields];
-                if (typeof value === "boolean") return value;
-                if (typeof value === "object" && value !== null) {
+              const currentValues = formMethods.getValues();
+              const defaultValues = formMethods.formState.defaultValues;
+              const dirtyFieldsKeys = Object.keys(dirtyFields);
+
+              if (dirtyFieldsKeys.length === 0) {
+                return true;
+              }
+
+              const hasRealChanges = dirtyFieldsKeys.some((key) => {
+                const currentValue = currentValues[key as keyof typeof currentValues];
+                const defaultValue = defaultValues?.[key as keyof typeof defaultValues];
+
+                // Special handling for bookingFields array
+                if (key === "bookingFields" && Array.isArray(currentValue) && Array.isArray(defaultValue)) {
+                  // Remove React Hook Form's internal id property before comparison
+                  const normalizeFields = (fields: any[]) => fields.map(({ id, ...rest }) => rest);
+
                   return (
-                    JSON.stringify(value) !== "{}" &&
-                    Object.values(value).some(
-                      (v) => v === true || (typeof v === "object" && v !== null && Object.keys(v).length > 0)
-                    )
+                    JSON.stringify(normalizeFields(currentValue)) !==
+                    JSON.stringify(normalizeFields(defaultValue))
                   );
                 }
-                return false;
+
+                if (typeof currentValue === "object" && currentValue !== null) {
+                  return JSON.stringify(currentValue) !== JSON.stringify(defaultValue);
+                }
+
+                return currentValue !== defaultValue;
               });
+
               return !hasRealChanges;
             })()}
             data-testid="update-eventtype"
