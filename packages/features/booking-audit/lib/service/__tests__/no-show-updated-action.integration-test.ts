@@ -87,7 +87,7 @@ describe("No-Show Updated Action Integration", () => {
   });
 
   describe("when host is marked as no-show", () => {
-    it("should create audit record with hostNoShow field", async () => {
+    it("should create audit record with host field containing userUuid and noShow", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
       await bookingAuditTaskConsumer.onBookingAction({
@@ -97,7 +97,11 @@ describe("No-Show Updated Action Integration", () => {
         source: "WEBAPP",
         operationId: `op-${Date.now()}`,
         data: {
-          hostNoShow: { old: null, new: true },
+          // New schema: host contains userUuid and noShow change
+          host: {
+            userUuid: testData.owner.uuid,
+            noShow: { old: null, new: true },
+          },
         },
         timestamp: Date.now(),
       });
@@ -127,25 +131,17 @@ describe("No-Show Updated Action Integration", () => {
 
   describe("when attendees are marked as no-show", () => {
     /**
-     * This test validates the z.coerce.number() fix for attendeesNoShow keys.
+     * This test validates that attendeesNoShow uses email keys (not attendee IDs).
      *
-     * JavaScript object keys are always strings at runtime. When we create
-     * attendeesNoShow data like { [attendeeId]: { old: null, new: true } },
-     * the key becomes a string (e.g., "123" instead of 123).
-     *
-     * Without z.coerce.number() in the schema, Zod validation would fail
-     * because z.record(z.number(), ...) expects numeric keys, but receives strings.
-     *
-     * This test would fail if we used z.record(z.number(), BooleanChangeSchema)
-     * instead of z.record(z.coerce.number(), BooleanChangeSchema).
+     * Attendee record IDs can be reused with different person's data, so using
+     * email correctly identifies the person regardless of record reuse.
      */
-    it("should create audit record with attendeesNoShow using numeric string keys (validates coerce fix)", async () => {
+    it("should create audit record with attendeesNoShow using email keys", async () => {
       const actor = makeUserActor(testData.owner.uuid);
-      const attendeeId = testData.attendeeIds[0];
 
-      // Build attendeesNoShow with numeric key - JavaScript will convert to string at runtime
-      const attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> = {
-        [attendeeId]: { old: null, new: true },
+      // Build attendeesNoShow with email key (not attendee ID)
+      const attendeesNoShow: Record<string, { old: boolean | null; new: boolean }> = {
+        [testData.attendee.email]: { old: null, new: true },
       };
 
       await bookingAuditTaskConsumer.onBookingAction({
@@ -179,22 +175,23 @@ describe("No-Show Updated Action Integration", () => {
       expect(displayData).toBeDefined();
       expect(displayData.attendeesNoShow).toBeDefined();
 
-      // Verify the attendee data is correctly stored and retrieved
+      // Verify the attendee data is correctly stored and retrieved using email key
       const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        number,
+        string,
         { old: boolean | null; new: boolean }
       >;
-      expect(storedAttendeesNoShow[attendeeId]).toBeDefined();
-      expect(storedAttendeesNoShow[attendeeId].old).toBe(null);
-      expect(storedAttendeesNoShow[attendeeId].new).toBe(true);
+      expect(storedAttendeesNoShow[testData.attendee.email]).toBeDefined();
+      expect(storedAttendeesNoShow[testData.attendee.email].old).toBe(null);
+      expect(storedAttendeesNoShow[testData.attendee.email].new).toBe(true);
     });
 
-    it("should handle multiple attendees marked as no-show with string keys coerced to numbers", async () => {
+    it("should handle multiple attendees marked as no-show with email keys", async () => {
       // Create a second attendee for this test
       const { prisma } = await import("@calcom/prisma");
+      const secondAttendeeEmail = `second-attendee-${Date.now()}@example.com`;
       const secondAttendee = await prisma.attendee.create({
         data: {
-          email: `second-attendee-${Date.now()}@example.com`,
+          email: secondAttendeeEmail,
           name: "Second Attendee",
           timeZone: "UTC",
           bookingId: (await prisma.booking.findUnique({ where: { uid: testData.booking.uid } }))!.id,
@@ -202,13 +199,11 @@ describe("No-Show Updated Action Integration", () => {
       });
 
       const actor = makeUserActor(testData.owner.uuid);
-      const firstAttendeeId = testData.attendeeIds[0];
-      const secondAttendeeId = secondAttendee.id;
 
-      // Build attendeesNoShow with multiple numeric keys
-      const attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> = {
-        [firstAttendeeId]: { old: null, new: true },
-        [secondAttendeeId]: { old: false, new: true },
+      // Build attendeesNoShow with multiple email keys
+      const attendeesNoShow: Record<string, { old: boolean | null; new: boolean }> = {
+        [testData.attendee.email]: { old: null, new: true },
+        [secondAttendeeEmail]: { old: false, new: true },
       };
 
       await bookingAuditTaskConsumer.onBookingAction({
@@ -235,14 +230,14 @@ describe("No-Show Updated Action Integration", () => {
 
       const displayData = result.auditLogs[0].displayJson as Record<string, unknown>;
       const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        number,
+        string,
         { old: boolean | null; new: boolean }
       >;
 
-      // Verify both attendees are stored correctly
+      // Verify both attendees are stored correctly using email keys
       expect(Object.keys(storedAttendeesNoShow)).toHaveLength(2);
-      expect(storedAttendeesNoShow[firstAttendeeId]).toEqual({ old: null, new: true });
-      expect(storedAttendeesNoShow[secondAttendeeId]).toEqual({ old: false, new: true });
+      expect(storedAttendeesNoShow[testData.attendee.email]).toEqual({ old: null, new: true });
+      expect(storedAttendeesNoShow[secondAttendeeEmail]).toEqual({ old: false, new: true });
 
       // Cleanup the second attendee
       await prisma.attendee.delete({ where: { id: secondAttendee.id } });
@@ -250,9 +245,8 @@ describe("No-Show Updated Action Integration", () => {
   });
 
   describe("when both host and attendees are marked as no-show", () => {
-    it("should create single audit record with both hostNoShow and attendeesNoShow fields", async () => {
+    it("should create single audit record with both host and attendeesNoShow fields", async () => {
       const actor = makeUserActor(testData.owner.uuid);
-      const attendeeId = testData.attendeeIds[0];
 
       await bookingAuditTaskConsumer.onBookingAction({
         bookingUid: testData.booking.uid,
@@ -261,9 +255,14 @@ describe("No-Show Updated Action Integration", () => {
         source: "API_V2",
         operationId: `op-${Date.now()}`,
         data: {
-          hostNoShow: { old: null, new: true },
+          // New schema: host contains userUuid and noShow change
+          host: {
+            userUuid: testData.owner.uuid,
+            noShow: { old: null, new: true },
+          },
+          // New schema: attendeesNoShow uses email keys
           attendeesNoShow: {
-            [attendeeId]: { old: null, new: true },
+            [testData.attendee.email]: { old: null, new: true },
           },
         },
         timestamp: Date.now(),
@@ -289,31 +288,29 @@ describe("No-Show Updated Action Integration", () => {
       expect(displayData.hostNoShow).toBe(true);
       expect(displayData.previousHostNoShow).toBe(null);
 
-      // Verify attendee no-show with coerced numeric key
+      // Verify attendee no-show with email key
       const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        number,
+        string,
         { old: boolean | null; new: boolean }
       >;
-      expect(storedAttendeesNoShow[attendeeId]).toEqual({ old: null, new: true });
+      expect(storedAttendeesNoShow[testData.attendee.email]).toEqual({ old: null, new: true });
     });
   });
 
-  describe("schema validation with string keys", () => {
+  describe("schema validation with email keys", () => {
     /**
-     * This test explicitly demonstrates that string keys work correctly
-     * due to z.coerce.number() in the schema.
+     * This test validates that attendeesNoShow correctly uses email keys.
      *
-     * We pass data where keys are explicitly strings (as they would be
-     * when coming from JSON parsing or JavaScript object serialization).
+     * Email keys are used because attendee record IDs can be reused with
+     * different person's data, while email correctly identifies the person.
      */
-    it("should accept attendeesNoShow data with explicit string keys", async () => {
+    it("should accept attendeesNoShow data with email keys", async () => {
       const actor = makeUserActor(testData.owner.uuid);
-      const attendeeId = testData.attendeeIds[0];
 
-      // Explicitly create data with string keys (simulating JSON.parse behavior)
-      const dataWithStringKeys = {
+      // Create data with email keys
+      const dataWithEmailKeys = {
         attendeesNoShow: {
-          [String(attendeeId)]: { old: null, new: true },
+          [testData.attendee.email]: { old: null, new: true },
         },
       };
 
@@ -323,7 +320,7 @@ describe("No-Show Updated Action Integration", () => {
         action: "NO_SHOW_UPDATED",
         source: "WEBAPP",
         operationId: `op-${Date.now()}`,
-        data: dataWithStringKeys,
+        data: dataWithEmailKeys,
         timestamp: Date.now(),
       });
 
@@ -340,12 +337,12 @@ describe("No-Show Updated Action Integration", () => {
       const displayData = result.auditLogs[0].displayJson as Record<string, unknown>;
       expect(displayData.attendeesNoShow).toBeDefined();
 
-      // The key should be accessible as a number after coercion
+      // The key should be the email address
       const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        number,
+        string,
         { old: boolean | null; new: boolean }
       >;
-      expect(storedAttendeesNoShow[attendeeId]).toBeDefined();
+      expect(storedAttendeesNoShow[testData.attendee.email]).toBeDefined();
     });
   });
 });
