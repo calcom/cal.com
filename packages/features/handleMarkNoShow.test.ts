@@ -1,8 +1,6 @@
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
-import handleMarkNoShow from "./handleMarkNoShow";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import handleMarkNoShow, { handleMarkHostNoShow } from "./handleMarkNoShow";
 
 const { mockPrismaBookingUpdate, mockPrismaAttendeeUpdate, mockPrismaAttendeeFindMany } = vi.hoisted(() => ({
   mockPrismaBookingUpdate: vi.fn(),
@@ -490,6 +488,25 @@ describe("handleMarkNoShow", () => {
       expectBookingNoShowHostState(bookingUid, true);
     });
 
+    it("should fire audit event when unmarking host as no-show", async () => {
+      const bookingUid = "test-booking-unmark-host";
+      createMockBooking({ uid: bookingUid, noShowHost: true });
+
+      const result = await handleMarkNoShow({
+        bookingUid,
+        noShowHost: false,
+        actor: makeUserActor("user-uuid-123"),
+        actionSource: "WEBAPP",
+      });
+
+      expect(result.noShowHost).toBe(false);
+      expect(mockOnNoShowUpdated).toHaveBeenCalledTimes(1);
+      const call = mockOnNoShowUpdated.mock.calls[0][0];
+      expect(call.auditData.hostNoShow).toEqual({ old: true, new: false });
+      expect(call.source).toBe("WEBAPP");
+      expect(call.actor).toEqual({ identifiedBy: "user", userUuid: "user-uuid-123" });
+    });
+
     it("should mark both host and attendees in single call", async () => {
       const bookingUid = "test-booking-5";
       createMockBooking({ uid: bookingUid });
@@ -634,6 +651,30 @@ describe("handleMarkNoShow", () => {
         organizationId: null,
         hostNoShow: { old: false, new: true },
       });
+    });
+  });
+
+  describe("Public Route (handleMarkHostNoShow)", () => {
+    it("should create guest actor when marking host as no-show via public route", async () => {
+      const bookingUid = "test-booking-public-route";
+      createMockBooking({ uid: bookingUid });
+
+      const result = await handleMarkHostNoShow({
+        bookingUid,
+        noShowHost: true,
+        actionSource: "WEBAPP",
+      });
+
+      expect(result.noShowHost).toBe(true);
+      expectBookingNoShowHostState(bookingUid, true);
+
+      expect(mockOnNoShowUpdated).toHaveBeenCalledTimes(1);
+      const call = mockOnNoShowUpdated.mock.calls[0][0];
+      expect(call.actor.identifiedBy).toBe("guest");
+      expect(call.actor.email).toMatch(/@guest\.internal$/);
+      expect(call.actor.name).toBeNull();
+      expect(call.source).toBe("WEBAPP");
+      expect(call.auditData.hostNoShow).toEqual({ old: null, new: true });
     });
   });
 
