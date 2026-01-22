@@ -140,7 +140,8 @@ export class SmtpConfigurationService {
   }
 
   async listByOrganization(organizationId: number): Promise<SmtpConfigurationPublic[]> {
-    return this.repository.findByOrgId(organizationId);
+    const configs = await this.repository.findByOrgId(organizationId);
+    return configs.map((config) => this.toPublicWithDecryptedUser(config));
   }
 
   async getById(id: number, organizationId: number): Promise<SmtpConfigurationPublic | null> {
@@ -148,7 +149,7 @@ export class SmtpConfigurationService {
     if (!config || config.organizationId !== organizationId) {
       return null;
     }
-    return config;
+    return this.toPublicWithDecryptedUser(config);
   }
 
   async getActiveConfigForOrg(organizationId: number): Promise<SmtpEmailConfig | null> {
@@ -171,7 +172,23 @@ export class SmtpConfigurationService {
   }
 
   private toPublic(config: SmtpConfigurationWithCredentials): SmtpConfigurationPublic {
-    const { smtpUser: _u, smtpPassword: _p, ...publicFields } = config;
-    return publicFields as SmtpConfigurationPublic;
+    const { smtpPassword: _p, ...publicFields } = config;
+    return publicFields;
+  }
+
+  private toPublicWithDecryptedUser(config: SmtpConfigurationPublic): SmtpConfigurationPublic {
+    const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
+    if (!encryptionKey || encryptionKey.length !== REQUIRED_KEY_LENGTH) {
+      return config;
+    }
+    try {
+      const decryptedUser = symmetricDecrypt(config.smtpUser, encryptionKey);
+      return {
+        ...config,
+        smtpUser: decryptedUser,
+      };
+    } catch {
+      return config;
+    }
   }
 }
