@@ -1,5 +1,7 @@
-import stripe from "@calcom/features/ee/payments/server/stripe";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
 import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
@@ -31,6 +33,8 @@ interface ProcessMonthlyProrationsParams {
 
 export interface MonthlyProrationServiceDeps {
   logger: ISimpleLogger;
+  featuresRepository: IFeaturesRepository;
+  billingService?: IBillingProviderService;
 }
 
 export class MonthlyProrationService {
@@ -38,6 +42,7 @@ export class MonthlyProrationService {
   private teamRepository: MonthlyProrationTeamRepository;
   private prorationRepository: MonthlyProrationRepository;
   private billingService: IBillingProviderService;
+  private featuresRepository: IFeaturesRepository;
 
   constructor(deps: MonthlyProrationServiceDeps);
   constructor(customLogger?: Logger<unknown>, billingService?: IBillingProviderService);
@@ -47,16 +52,25 @@ export class MonthlyProrationService {
   ) {
     if (depsOrLogger && typeof depsOrLogger === "object" && "logger" in depsOrLogger) {
       this.logger = depsOrLogger.logger;
+      this.featuresRepository = depsOrLogger.featuresRepository;
+      this.billingService = depsOrLogger.billingService || new StripeBillingService(stripe);
     } else {
       this.logger = (depsOrLogger as Logger<unknown>) || log;
+      this.featuresRepository = getFeaturesRepository();
+      this.billingService = billingService || new StripeBillingService(stripe);
     }
     this.teamRepository = new MonthlyProrationTeamRepository();
     this.prorationRepository = new MonthlyProrationRepository();
-    this.billingService = billingService || new StripeBillingService(stripe);
   }
 
   async processMonthlyProrations(params: ProcessMonthlyProrationsParams) {
     const { monthKey, teamIds } = params;
+
+    const isFeatureEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+    if (!isFeatureEnabled) {
+      this.logger.info("Monthly proration feature is not enabled, skipping batch processing", { monthKey });
+      return [];
+    }
 
     const teamIdsList = teamIds || (await this.teamRepository.getAnnualTeamsWithSeatChanges(monthKey));
     const teamIdsPreview = teamIds && teamIds.length <= 25 ? teamIds : undefined;
