@@ -9,6 +9,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
+import { ZGetEventTypeHostsInputSchema } from "./getEventTypeHosts.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { get } from "./procedures/get";
 import { createEventPbacProcedure } from "./util";
@@ -141,6 +142,15 @@ export const eventTypesRouter = router({
     const { getHashedLinksHandler } = await import("./getHashedLinks.handler");
 
     return getHashedLinksHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  getEventTypeHosts: authedProcedure.input(ZGetEventTypeHostsInputSchema).query(async ({ ctx, input }) => {
+    const { getEventTypeHostsHandler } = await import("./getEventTypeHosts.handler");
+
+    return getEventTypeHostsHandler({
       ctx,
       input,
     });

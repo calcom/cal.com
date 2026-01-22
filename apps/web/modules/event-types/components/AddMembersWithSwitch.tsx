@@ -18,6 +18,7 @@ import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 import CheckedTeamSelect from "./CheckedTeamSelect";
+import PaginatedHostsSelect from "./PaginatedHostsSelect";
 
 interface IUserToValue {
   id: number | null;
@@ -191,6 +192,7 @@ export type AddMembersWithSwitchProps = {
   groupId: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
+  eventTypeId?: number;
 };
 
 enum AssignmentState {
@@ -257,6 +259,7 @@ export function AddMembersWithSwitch({
   isSegmentApplicable,
   groupId,
   customClassNames,
+  eventTypeId,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -326,23 +329,36 @@ export function AddMembersWithSwitch({
             )}
           </div>
           <div className="mb-2">
-            <CheckedHostField
-              data-testid={rest["data-testid"]}
-              value={value}
-              onChange={onChange}
-              isFixed={isFixed}
-              className="mb-2"
-              options={teamMembers
-                .map((member) => ({
-                  ...member,
-                  groupId: groupId,
-                }))
-                .sort(sortByLabel)}
-              placeholder={placeholder ?? t("add_attendees")}
-              isRRWeightsEnabled={isRRWeightsEnabled}
-              groupId={groupId}
-              customClassNames={customClassNames?.teamMemberSelect}
-            />
+            {eventTypeId ? (
+              <PaginatedHostsSelect
+                eventTypeId={eventTypeId}
+                value={value}
+                onChange={onChange}
+                isFixed={isFixed}
+                isRRWeightsEnabled={isRRWeightsEnabled}
+                groupId={groupId}
+                placeholder={placeholder ?? t("add_attendees")}
+                initialTeamMembers={teamMembers}
+              />
+            ) : (
+              <CheckedHostField
+                data-testid={rest["data-testid"]}
+                value={value}
+                onChange={onChange}
+                isFixed={isFixed}
+                className="mb-2"
+                options={teamMembers
+                  .map((member) => ({
+                    ...member,
+                    groupId: groupId,
+                  }))
+                  .sort(sortByLabel)}
+                placeholder={placeholder ?? t("add_attendees")}
+                isRRWeightsEnabled={isRRWeightsEnabled}
+                groupId={groupId}
+                customClassNames={customClassNames?.teamMemberSelect}
+              />
+            )}
           </div>
         </>
       );

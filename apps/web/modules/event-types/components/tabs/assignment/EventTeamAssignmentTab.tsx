@@ -285,6 +285,7 @@ const RoundRobinHosts = ({
   customClassNames,
   teamId,
   isSegmentApplicable,
+  eventTypeId,
 }: {
   orgId: number | null;
   value: Host[];
@@ -295,6 +296,7 @@ const RoundRobinHosts = ({
   customClassNames?: RoundRobinHostsCustomClassNames;
   teamId: number;
   isSegmentApplicable: boolean;
+  eventTypeId?: number;
 }) => {
   const { t } = useLocale();
 
@@ -434,6 +436,7 @@ const RoundRobinHosts = ({
         containerClassName={containerClassName || (assignAllTeamMembers ? "-mt-4" : "")}
         onActive={() => handleMembersActivation(groupId)}
         customClassNames={customClassNames?.addMembers}
+        eventTypeId={eventTypeId}
       />
     );
   };
@@ -615,6 +618,7 @@ const Hosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   isSegmentApplicable,
+  eventTypeId,
 }: {
   orgId: number | null;
   teamId: number;
@@ -623,6 +627,7 @@ const Hosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
+  eventTypeId?: number;
 }) => {
   const {
     control,
@@ -715,6 +720,7 @@ const Hosts = ({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 customClassNames={customClassNames?.roundRobinHosts}
                 isSegmentApplicable={isSegmentApplicable}
+                eventTypeId={eventTypeId}
               />
             </>
           ),
@@ -942,6 +948,7 @@ export const EventTeamAssignmentTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
+            eventTypeId={eventType.id}
           />
         </>
       )}
