@@ -252,10 +252,7 @@ export class BusyTimesService {
           source: value.source ?? "Calendar",
         }));
 
-        const result = subtract(
-          calendarBusyTimesWithDayjs,
-          openSeatsDateRanges
-        ) as typeof calendarBusyTimesWithDayjs;
+        const result = subtract(calendarBusyTimesWithDayjs, openSeatsDateRanges);
 
         busyTimes.push(
           ...result.map((busyTime) => ({
