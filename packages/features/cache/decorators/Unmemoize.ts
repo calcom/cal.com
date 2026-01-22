@@ -28,7 +28,9 @@ export function Unmemoize(config: UnmemoizeOptions) {
         const keysToInvalidate = config.keys(...args) as string[];
         await Promise.allSettled(keysToInvalidate.map((key) => redis.del(key)));
       } catch (error) {
-        log.warn("Cache invalidation failed", { error });
+        log.warn("Cache invalidation failed", {
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
       }
 
       return result;
