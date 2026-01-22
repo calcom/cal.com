@@ -1,7 +1,9 @@
 import { Memoize, Unmemoize } from "@calcom/features/cache";
-import type { PrismaClient, UserFeatures } from "@calcom/prisma/client";
+import type { UserFeaturesDto } from "@calcom/lib/dto";
+import { UserFeaturesDtoSchema } from "@calcom/lib/dto";
+import type { PrismaClient } from "@calcom/prisma/client";
 import type { FeatureId } from "../config";
-import { booleanSchema, userFeaturesSchema } from "./schemas";
+import { booleanSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:user";
 const KEY = {
@@ -11,12 +13,17 @@ const KEY = {
 };
 
 export interface IUserFeatureRepository {
-  findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null>;
+  findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeaturesDto | null>;
   findByUserIdAndFeatureIds(
     userId: number,
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, UserFeatures>>>;
-  upsert(userId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<UserFeatures>;
+  ): Promise<Partial<Record<FeatureId, UserFeaturesDto>>>;
+  upsert(
+    userId: number,
+    featureId: FeatureId,
+    enabled: boolean,
+    assignedBy: string
+  ): Promise<UserFeaturesDto>;
   delete(userId: number, featureId: FeatureId): Promise<void>;
   findAutoOptInByUserId(userId: number): Promise<boolean>;
   setAutoOptIn(userId: number, enabled: boolean): Promise<void>;
@@ -31,10 +38,10 @@ export class UserFeatureRepository implements IUserFeatureRepository {
 
   @Memoize({
     key: (userId: number, featureId: FeatureId) => KEY.byUserIdAndFeatureId(userId, featureId),
-    schema: userFeaturesSchema,
+    schema: UserFeaturesDtoSchema,
   })
-  async findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeatures | null> {
-    return this.prisma.userFeatures.findUnique({
+  async findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeaturesDto | null> {
+    const result = await this.prisma.userFeatures.findUnique({
       where: {
         userId_featureId: {
           userId,
@@ -42,12 +49,14 @@ export class UserFeatureRepository implements IUserFeatureRepository {
         },
       },
     });
+    if (!result) return null;
+    return this.toDto(result);
   }
 
   async findByUserIdAndFeatureIds(
     userId: number,
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, UserFeatures>>> {
+  ): Promise<Partial<Record<FeatureId, UserFeaturesDto>>> {
     const results = await Promise.all(
       featureIds.map(async (featureId) => {
         const userFeature = await this.findByUserIdAndFeatureId(userId, featureId);
@@ -55,7 +64,7 @@ export class UserFeatureRepository implements IUserFeatureRepository {
       })
     );
 
-    const result: Partial<Record<FeatureId, UserFeatures>> = {};
+    const result: Partial<Record<FeatureId, UserFeaturesDto>> = {};
     for (const { featureId, userFeature } of results) {
       if (userFeature !== null) {
         result[featureId] = userFeature;
@@ -73,8 +82,8 @@ export class UserFeatureRepository implements IUserFeatureRepository {
     featureId: FeatureId,
     enabled: boolean,
     assignedBy: string
-  ): Promise<UserFeatures> {
-    return this.prisma.userFeatures.upsert({
+  ): Promise<UserFeaturesDto> {
+    const result = await this.prisma.userFeatures.upsert({
       where: {
         userId_featureId: {
           userId,
@@ -92,6 +101,23 @@ export class UserFeatureRepository implements IUserFeatureRepository {
         assignedBy,
       },
     });
+    return this.toDto(result);
+  }
+
+  private toDto(userFeature: {
+    userId: number;
+    featureId: string;
+    enabled: boolean;
+    assignedBy: string;
+    updatedAt: Date;
+  }): UserFeaturesDto {
+    return {
+      userId: userFeature.userId,
+      featureId: userFeature.featureId,
+      enabled: userFeature.enabled,
+      assignedBy: userFeature.assignedBy,
+      updatedAt: userFeature.updatedAt,
+    };
   }
 
   @Unmemoize({

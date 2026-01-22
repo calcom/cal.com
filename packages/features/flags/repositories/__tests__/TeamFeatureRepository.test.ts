@@ -62,7 +62,6 @@ describe("TeamFeatureRepository", () => {
         featureId: "feature-1",
         enabled: true,
         assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
         updatedAt: new Date("2024-01-01"),
       };
       vi.mocked(mockRedis.get).mockResolvedValue(cachedFeature);
@@ -80,7 +79,6 @@ describe("TeamFeatureRepository", () => {
         featureId: "feature-1",
         enabled: true,
         assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
         updatedAt: new Date("2024-01-01"),
       };
       vi.mocked(mockRedis.get).mockResolvedValue(null);
@@ -131,7 +129,6 @@ describe("TeamFeatureRepository", () => {
         featureId: "feature-1",
         enabled: true,
         assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
         updatedAt: new Date("2024-01-01"),
       };
       const cachedFeature2 = {
@@ -139,7 +136,6 @@ describe("TeamFeatureRepository", () => {
         featureId: "feature-1",
         enabled: false,
         assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
         updatedAt: new Date("2024-01-01"),
       };
 
@@ -163,7 +159,6 @@ describe("TeamFeatureRepository", () => {
         featureId: "feature-1",
         enabled: true,
         assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
         updatedAt: new Date("2024-01-01"),
       };
       vi.mocked(mockPrisma.teamFeatures.upsert).mockResolvedValue(upsertedFeature);
@@ -201,7 +196,6 @@ describe("TeamFeatureRepository", () => {
         featureId: "feature-1",
         enabled: true,
         assignedBy: "admin",
-        assignedAt: new Date("2024-01-01"),
         updatedAt: new Date("2024-01-01"),
       });
       vi.mocked(mockRedis.del).mockResolvedValue(1);

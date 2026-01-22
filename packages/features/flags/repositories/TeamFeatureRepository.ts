@@ -1,7 +1,9 @@
 import { Memoize, Unmemoize } from "@calcom/features/cache";
-import type { PrismaClient, TeamFeatures } from "@calcom/prisma/client";
+import type { TeamFeaturesDto } from "@calcom/lib/dto";
+import { TeamFeaturesDtoSchema } from "@calcom/lib/dto";
+import type { PrismaClient } from "@calcom/prisma/client";
 import type { FeatureId } from "../config";
-import { booleanSchema, teamFeaturesSchema } from "./schemas";
+import { booleanSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:team";
 const KEY = {
@@ -11,12 +13,17 @@ const KEY = {
 };
 
 export interface ITeamFeatureRepository {
-  findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null>;
+  findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeaturesDto | null>;
   findByTeamIdsAndFeatureIds(
     teamIds: number[],
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, TeamFeatures>>>>;
-  upsert(teamId: number, featureId: FeatureId, enabled: boolean, assignedBy: string): Promise<TeamFeatures>;
+  ): Promise<Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>>>;
+  upsert(
+    teamId: number,
+    featureId: FeatureId,
+    enabled: boolean,
+    assignedBy: string
+  ): Promise<TeamFeaturesDto>;
   delete(teamId: number, featureId: FeatureId): Promise<void>;
   findAutoOptInByTeamId(teamId: number): Promise<boolean>;
   findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean>>;
@@ -32,10 +39,10 @@ export class TeamFeatureRepository implements ITeamFeatureRepository {
 
   @Memoize({
     key: (teamId: number, featureId: FeatureId) => KEY.byTeamIdAndFeatureId(teamId, featureId),
-    schema: teamFeaturesSchema,
+    schema: TeamFeaturesDtoSchema,
   })
-  async findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeatures | null> {
-    return this.prisma.teamFeatures.findUnique({
+  async findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeaturesDto | null> {
+    const result = await this.prisma.teamFeatures.findUnique({
       where: {
         teamId_featureId: {
           teamId,
@@ -43,12 +50,14 @@ export class TeamFeatureRepository implements ITeamFeatureRepository {
         },
       },
     });
+    if (!result) return null;
+    return this.toDto(result);
   }
 
   async findByTeamIdsAndFeatureIds(
     teamIds: number[],
     featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, TeamFeatures>>>> {
+  ): Promise<Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>>> {
     if (teamIds.length === 0 || featureIds.length === 0) {
       return {};
     }
@@ -62,7 +71,7 @@ export class TeamFeatureRepository implements ITeamFeatureRepository {
       )
     );
 
-    const result: Partial<Record<FeatureId, Record<number, TeamFeatures>>> = {};
+    const result: Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>> = {};
     for (const { teamId, featureId, teamFeature } of results) {
       if (teamFeature !== null) {
         if (!result[featureId]) {
@@ -86,8 +95,8 @@ export class TeamFeatureRepository implements ITeamFeatureRepository {
     featureId: FeatureId,
     enabled: boolean,
     assignedBy: string
-  ): Promise<TeamFeatures> {
-    return this.prisma.teamFeatures.upsert({
+  ): Promise<TeamFeaturesDto> {
+    const result = await this.prisma.teamFeatures.upsert({
       where: {
         teamId_featureId: {
           teamId,
@@ -105,6 +114,23 @@ export class TeamFeatureRepository implements ITeamFeatureRepository {
         assignedBy,
       },
     });
+    return this.toDto(result);
+  }
+
+  private toDto(teamFeature: {
+    teamId: number;
+    featureId: string;
+    enabled: boolean;
+    assignedBy: string;
+    updatedAt: Date;
+  }): TeamFeaturesDto {
+    return {
+      teamId: teamFeature.teamId,
+      featureId: teamFeature.featureId,
+      enabled: teamFeature.enabled,
+      assignedBy: teamFeature.assignedBy,
+      updatedAt: teamFeature.updatedAt,
+    };
   }
 
   @Unmemoize({
