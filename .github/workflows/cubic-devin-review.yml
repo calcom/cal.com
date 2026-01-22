@@ -120,8 +120,7 @@ jobs:
           2. Follow the existing code style and conventions in the repository.
           3. Test your changes if possible before pushing.
           4. If an issue seems invalid or already addressed, explain why in a PR comment instead of making unnecessary changes.
-          5. Never ask for user confirmation. Never wait for user messages.
-          6. PR Size Check: If the PR has more than 500 lines changed or more than 10 files modified, add a comment warning the author that the PR is too large and should be split into smaller, self-contained PRs. Suggest how the changes could be split (e.g., by layer, by feature component, or by separating refactoring from new features)."
+          5. Never ask for user confirmation. Never wait for user messages."
 
           HTTP_CODE=$(curl -s -o /tmp/devin-response.json -w "%{http_code}" -X POST "https://api.devin.ai/v1/sessions" \
             -H "Authorization: Bearer ${DEVIN_API_KEY}" \
