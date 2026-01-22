@@ -114,8 +114,6 @@ export type GetUserAvailabilityInitialData = {
     id: number;
     email: string;
     bufferTime: number;
-    startTime: number;
-    endTime: number;
     timeZone: string;
     availability: Availability[];
     timeFormat: number | null;
@@ -386,6 +384,132 @@ export class UserAvailabilityService {
       user,
     });
 
+    if (
+      !(
+        schedule?.availability ||
+        (eventType?.availability.length ? eventType.availability : user.availability)
+      )
+    ) {
+      throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
+    }
+
+    const availability = (
+      schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+    ).map((a) => ({
+      ...a,
+      userId: user.id,
+    }));
+
+    let calendarTimezone: string | null = null;
+    let finalTimezone: string | null = null;
+
+    if (!isTimezoneSet) {
+      calendarTimezone = await this.getTimezoneFromDelegatedCalendars(user);
+      if (calendarTimezone) {
+        finalTimezone = calendarTimezone;
+      }
+    }
+
+    if (!finalTimezone) {
+      finalTimezone = schedule.timeZone;
+    }
+
+    const workingHours = getWorkingHours({ timeZone: finalTimezone }, availability);
+
+    const dateOverrides: TimeRange[] = [];
+    // NOTE: getSchedule is currently calling this function for every user in a team event
+    // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
+    // since other callers do using this data.
+    if (returnDateOverrides) {
+      const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
+      const availabilityWithDates = availability.filter((availability) => !!availability.date);
+
+      for (let i = 0; i < availabilityWithDates.length; i++) {
+        const override = availabilityWithDates[i];
+        const startTime = dayjs.utc(override.startTime);
+        const endTime = dayjs.utc(override.endTime);
+        const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
+        const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
+        if (
+          overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
+          overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
+        ) {
+          dateOverrides.push({
+            start: overrideStartDate.toDate(),
+            end: overrideEndDate.toDate(),
+          });
+        }
+      }
+
+      calculateDateOverridesSpan.end();
+    }
+
+    const outOfOfficeDays =
+      initialData?.outOfOfficeDays ??
+      (await this.dependencies.oooRepo.findUserOOODays({
+        userId: user.id,
+        dateFrom: dateFrom.toISOString(),
+        dateTo: dateTo.toISOString(),
+      }));
+
+    const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
+
+    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
+      user.id,
+      dateFrom.toDate(),
+      dateTo.toDate(),
+      availability
+    );
+
+    for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
+      if (!datesOutOfOffice[date]) {
+        datesOutOfOffice[date] = holidayData;
+      }
+    }
+
+    const travelSchedules: {
+      startDate: Dayjs;
+      endDate?: Dayjs;
+      timeZone: string;
+    }[] = [];
+
+    if (isDefaultSchedule) {
+      travelSchedules.push(
+        ...user.travelSchedules.map((schedule) => {
+          let endDate: Dayjs | undefined;
+          if (schedule.endDate) {
+            endDate = dayjs(schedule.endDate);
+          }
+          return {
+            startDate: dayjs(schedule.startDate),
+            endDate,
+            timeZone: schedule.timeZone,
+          };
+        })
+      );
+    }
+
+    const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
+      dateFrom,
+      dateTo,
+      availability,
+      timeZone: finalTimezone,
+      travelSchedules,
+      outOfOffice: datesOutOfOffice,
+    });
+
+    if (dateRanges.length === 0)
+      return {
+        busy: [],
+        timeZone: finalTimezone,
+        dateRanges: [],
+        oooExcludedDateRanges: [],
+        workingHours: [],
+        dateOverrides: [],
+        currentSeats: [],
+        datesOutOfOffice: undefined,
+      };
+
     const bookingLimits =
       eventType?.bookingLimits &&
       typeof eventType.bookingLimits === "object" &&
@@ -407,20 +531,6 @@ export class UserAvailabilityService {
     const selectedCalendars = eventType?.useEventLevelSelectedCalendars
       ? user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventType.id)
       : user.userLevelSelectedCalendars;
-
-    let calendarTimezone: string | null = null;
-    let finalTimezone: string | null = null;
-
-    if (!isTimezoneSet) {
-      calendarTimezone = await this.getTimezoneFromDelegatedCalendars(user);
-      if (calendarTimezone) {
-        finalTimezone = calendarTimezone;
-      }
-    }
-
-    if (!finalTimezone) {
-      finalTimezone = schedule.timeZone;
-    }
 
     let busyTimesFromLimits: EventBusyDetails[] = [];
 
@@ -514,105 +624,12 @@ export class UserAvailabilityService {
       ...busyTimesFromTeamLimits,
     ];
 
-    if (
-      !(
-        schedule?.availability ||
-        (eventType?.availability.length ? eventType.availability : user.availability)
-      )
-    ) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
-    }
-
-    const availability = (
-      schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
-    ).map((a) => ({
-      ...a,
-      userId: user.id,
-    }));
-
-    const workingHours = getWorkingHours({ timeZone: finalTimezone }, availability);
-
-    const dateOverrides: TimeRange[] = [];
-    // NOTE: getSchedule is currently calling this function for every user in a team event
-    // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
-    // since other callers do using this data.
-    if (returnDateOverrides) {
-      const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
-      const availabilityWithDates = availability.filter((availability) => !!availability.date);
-
-      for (let i = 0; i < availabilityWithDates.length; i++) {
-        const override = availabilityWithDates[i];
-        const startTime = dayjs.utc(override.startTime);
-        const endTime = dayjs.utc(override.endTime);
-        const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
-        const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
-        if (
-          overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
-          overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
-        ) {
-          dateOverrides.push({
-            start: overrideStartDate.toDate(),
-            end: overrideEndDate.toDate(),
-          });
-        }
-      }
-
-      calculateDateOverridesSpan.end();
-    }
-
-    const outOfOfficeDays =
-      initialData?.outOfOfficeDays ??
-      (await this.dependencies.oooRepo.findUserOOODays({
-        userId: user.id,
-        dateFrom: dateFrom.toISOString(),
-        dateTo: dateTo.toISOString(),
-      }));
-
-    const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
-
-    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
-      user.id,
-      dateFrom.toDate(),
-      dateTo.toDate(),
-      availability
+    log.debug(
+      `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({
+        chosenSchedule: schedule,
+        eventTypeSchedule: eventType?.schedule,
+      })}`
     );
-
-    for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
-      if (!datesOutOfOffice[date]) {
-        datesOutOfOffice[date] = holidayData;
-      }
-    }
-
-    const travelSchedules: {
-      startDate: dayjs.Dayjs;
-      endDate?: dayjs.Dayjs;
-      timeZone: string;
-    }[] = [];
-
-    if (isDefaultSchedule) {
-      travelSchedules.push(
-        ...user.travelSchedules.map((schedule) => {
-          let endDate: Dayjs | undefined;
-          if (schedule.endDate) {
-            endDate = dayjs(schedule.endDate);
-          }
-          return {
-            startDate: dayjs(schedule.startDate),
-            endDate,
-            timeZone: schedule.timeZone,
-          };
-        })
-      );
-    }
-
-    const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
-      dateFrom,
-      dateTo,
-      availability,
-      timeZone: finalTimezone,
-      travelSchedules,
-      outOfOffice: datesOutOfOffice,
-    });
 
     const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
       start: dayjs(busy.start),
