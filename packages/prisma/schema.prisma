@@ -305,10 +305,15 @@ model Credential {
   delegationCredential      DelegationCredential?      @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   integrationAttributeSyncs IntegrationAttributeSync[]
 
+  // Unreachable calendar tracking
+  isUnreachable Boolean?  @default(false)
+  lastNotified  DateTime?
+
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
+  @@index([isUnreachable])
 }
 
 enum IdentityProvider {
@@ -423,6 +428,9 @@ model User {
   receiveMonthlyDigestEmail       Boolean? @default(true)
   // require email verification when someone books using your email
   requiresBookerEmailVerification Boolean? @default(false)
+
+  // receive email notifications for unreachable calendars or not
+  notifyCalendarAlerts Boolean? @default(true)
 
   /// @zod.import(["import { userMetadata } from '../../zod-utils'"]).custom.use(userMetadata)
   metadata             Json?

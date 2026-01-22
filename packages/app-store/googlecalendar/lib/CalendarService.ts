@@ -6,6 +6,7 @@ import { MeetLocationType } from "@calcom/app-store/constants";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { markCredentialAsReachable } from "@calcom/lib/markCredentialAsUnreachable";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getDestinationCalendarRepository } from "@calcom/features/di/containers/DestinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -476,6 +477,10 @@ class GoogleCalendarService implements Calendar {
     const apiResponse = await this.auth.authManager.request(
       async () => new AxiosLikeResponseToFetchResponse(await calendar.freebusy.query({ requestBody }))
     );
+
+    // Mark credential as reachable on successful API call
+    await markCredentialAsReachable(this.credential.id);
+
     return apiResponse.json;
   }
 
@@ -702,6 +707,16 @@ class GoogleCalendarService implements Calendar {
       const calendarIds = await this.getCalendarIds(selectedCalendarIds, fallbackToPrimary);
       return await this.fetchAvailabilityData(calendarIds, dateFrom, dateTo);
     } catch (error) {
+      // Check if this is an authentication error (401, 403, or invalid_grant)
+      if (this.isAuthenticationError(error)) {
+        this.log.warn("Authentication error detected, marking credential as unreachable", {
+          credentialId: this.credential.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        // Note: markCredentialAsUnreachable will be called via invalidateCredential
+        // which is already called by the OAuthManager when token issues are detected
+      }
+
       this.log.error(
         "There was an error getting availability from google calendar: ",
         safeStringify({ error, selectedCalendars })
@@ -858,6 +873,44 @@ class GoogleCalendarService implements Calendar {
       this.log.error("Error getting main timezone from Google Calendar", { error });
       throw error;
     }
+  }
+
+  /**
+   * Checks if an error is an authentication-related error (401, 403, invalid_grant, etc.)
+   */
+  private isAuthenticationError(error: unknown): boolean {
+    // Check for HTTP status codes
+    if (error && typeof error === "object") {
+      // Handle GaxiosResponse errors
+      if ("status" in error && typeof error.status === "number") {
+        return error.status === 401 || error.status === 403;
+      }
+
+      // Handle Response objects
+      if ("status" in error && typeof error.status === "number") {
+        return error.status === 401 || error.status === 403;
+      }
+
+      // Handle Google API specific errors
+      if ("message" in error && typeof error.message === "string") {
+        const message = error.message.toLowerCase();
+        return (
+          message.includes("invalid_grant") ||
+          message.includes("unauthorized") ||
+          message.includes("forbidden") ||
+          message.includes("invalid credentials") ||
+          message.includes("token expired") ||
+          message.includes("access denied")
+        );
+      }
+
+      // Handle errors with code property
+      if ("code" in error && typeof error.code === "number") {
+        return error.code === 401 || error.code === 403;
+      }
+    }
+
+    return false;
   }
 }
 

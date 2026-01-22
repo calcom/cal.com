@@ -45,6 +45,7 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import { UnreachableCalendarEmail } from "./templates/unreachable-calendar-email";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -769,4 +770,26 @@ export const sendAddGuestsEmailsAndSMS = async (args: {
   }
 
   await Promise.all(emailsAndSMSToSend);
+};
+
+export const sendUnreachableCalendarEmail = async ({
+  recipientEmail,
+  recipientName,
+  calendarName,
+  reason,
+}: {
+  recipientEmail: string;
+  recipientName?: string;
+  calendarName: string;
+  reason: string;
+}) => {
+  await sendEmail(
+    () =>
+      new UnreachableCalendarEmail({
+        recipientEmail,
+        recipientName,
+        calendarName,
+        reason,
+      })
+  );
 };

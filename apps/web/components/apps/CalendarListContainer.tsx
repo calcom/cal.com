@@ -7,6 +7,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Switch } from "@calcom/ui/components/form";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
@@ -101,6 +102,39 @@ export function CalendarListContainer({
   const { t } = useLocale();
   const { error, setQuery: setError } = useRouterQuery("error");
 
+  const { data: user, isLoading: isUserLoading } = trpc.viewer.me.get.useQuery();
+  const utils = trpc.useUtils();
+
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+    onMutate: async (newData) => {
+      await utils.viewer.me.get.cancel();
+      const previousData = utils.viewer.me.get.getData();
+      utils.viewer.me.get.setData(undefined, (old) => {
+        if (!old) return old;
+        return { ...old, notifyCalendarAlerts: newData.notifyCalendarAlerts ?? old.notifyCalendarAlerts };
+      });
+      return { previousData };
+    },
+    onSuccess: () => {
+      showToast(t("settings_updated_successfully"), "success");
+    },
+    onError: (error, _newData, context) => {
+      showToast(error.message, "error");
+      if (context?.previousData) {
+        utils.viewer.me.get.setData(undefined, context.previousData);
+      }
+    },
+    onSettled: () => {
+      utils.viewer.me.get.invalidate();
+    },
+  });
+
+  const handleCalendarNotificationToggle = (enabled: boolean) => {
+    updateProfileMutation.mutate({
+      notifyCalendarAlerts: enabled,
+    });
+  };
+
   useEffect(() => {
     if (error === "account_already_linked" || error === "no_default_calendar") {
       showToast(t(error), "error", { id: error });
@@ -108,7 +142,7 @@ export function CalendarListContainer({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const utils = trpc.useUtils();
+
   const onChanged = (): void => {
     Promise.allSettled([
       utils.viewer.apps.integrations.invalidate(
@@ -183,6 +217,28 @@ export function CalendarListContainer({
       description={t("calendars_description")}
       CTA={<AddCalendarButton />}>
       {content}
+
+      {/* Calendar Notifications Section */}
+      <div className="border-subtle mt-8 rounded-b-xl border-x border-b px-4 pb-8 pt-6 sm:px-6">
+        <ShellSubHeading
+          title={t("calendar_notifications")}
+          subtitle={t("calendar_notifications_description")}
+        />
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex-grow">
+            <h3 className="text-emphasis text-sm font-medium leading-6">
+              {t("unreachable_calendar_alerts")}
+            </h3>
+            <p className="text-subtle mt-1 text-sm">{t("unreachable_calendar_alerts_description")}</p>
+          </div>
+          <Switch
+            checked={Boolean(user?.notifyCalendarAlerts ?? true)}
+            onCheckedChange={handleCalendarNotificationToggle}
+            disabled={isUserLoading || updateProfileMutation.isPending}
+            aria-label={t("unreachable_calendar_alerts")}
+          />
+        </div>
+      </div>
     </SettingsHeader>
   );
 }
