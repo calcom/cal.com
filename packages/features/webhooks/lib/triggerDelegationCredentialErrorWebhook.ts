@@ -61,7 +61,7 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
       },
     } satisfies DelegationCredentialErrorPayloadType;
 
-    const webhookPromises = webhooks.map((webhook) =>
+    const webhookPromises = webhooks.map((webhook: (typeof webhooks)[number]) =>
       sendPayload(
         webhook.secret,
         WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
