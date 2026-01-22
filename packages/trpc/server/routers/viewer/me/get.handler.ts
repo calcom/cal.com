@@ -1,5 +1,3 @@
-import type { Session } from "next-auth";
-
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -8,7 +6,7 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { Session } from "next-auth";
 import type { TGetInputSchema } from "./get.schema";
 
 type MeOptions = {
@@ -24,9 +22,8 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
 
   const { user: sessionUser, session } = ctx;
 
-  const allUserEnrichedProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(
-    sessionUser
-  );
+  const allUserEnrichedProfiles =
+    await ProfileRepository.findAllProfilesForUserIncludingMovedUser(sessionUser);
 
   const user = await new UserRepository(prisma).enrichUserWithTheProfile({
     user: sessionUser,
@@ -109,8 +106,6 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     email: user.email,
     emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
     emailVerified: user.emailVerified,
-    startTime: user.startTime,
-    endTime: user.endTime,
     bufferTime: user.bufferTime,
     locale: user.locale,
     timeFormat: user.timeFormat,
