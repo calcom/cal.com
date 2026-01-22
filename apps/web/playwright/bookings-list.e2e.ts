@@ -619,7 +619,7 @@ test.describe("Bookings", () => {
       const bookingListCount = await bookingListItems.count();
 
       expect(bookingListCount).toBe(1);
-      await expect(bookingListItems.first().locator(`text=${teamBooking!.title}`)).toBeVisible();
+      await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(teamBooking!.title);
     });
 
     test("Team filter shows bookings for managed event types (child events)", async ({
@@ -671,7 +671,9 @@ test.describe("Bookings", () => {
       const bookingListCount = await bookingListItems.count();
 
       expect(bookingListCount).toBe(1);
-      await expect(bookingListItems.first().locator(`text=${managedEventBooking!.title}`)).toBeVisible();
+      await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
+        managedEventBooking!.title
+      );
     });
 
     test("Team filter excludes bookings from other teams", async ({ page, users, bookings }) => {
