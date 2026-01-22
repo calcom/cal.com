@@ -158,7 +158,7 @@ export const FormBuilder = function FormBuilder({
     isOpen: false,
     fieldIndex: -1,
     onConfirm: () => {
-      // Empty function placeholder
+      // noop
     },
   });
 
@@ -452,7 +452,8 @@ export const FormBuilder = function FormBuilder({
                     {isUserField && (
                       <Button
                         data-testid="delete-field-action"
-                        color="destructive"
+                        color="secondary"
+                        className="text-error enabled:hover:text-error border-default border"
                         disabled={!isUserField}
                         variant="icon"
                         onClick={() => {
@@ -540,7 +541,7 @@ export const FormBuilder = function FormBuilder({
               isOpen,
               fieldIndex: -1,
               onConfirm: () => {
-                // Empty function placeholder
+                // noop
               },
             })
           }

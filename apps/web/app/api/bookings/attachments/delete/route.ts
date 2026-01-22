@@ -31,6 +31,8 @@ export async function DELETE(req: NextRequest) {
 
     // Security: Check if file is used in any booking - if so, don't allow deletion
     const filename = key.split("/").pop();
+
+    // Check normal bookings
     const bookings = (await prisma.$queryRaw`
       SELECT b.id FROM "Booking" b
       WHERE (b.responses::text LIKE ${`%${key}%`} OR b.responses::text LIKE ${`%${filename}%`})
@@ -38,6 +40,20 @@ export async function DELETE(req: NextRequest) {
     `) as { id: number }[];
 
     if (bookings && bookings.length > 0) {
+      return NextResponse.json(
+        { error: "File is associated with a booking and cannot be deleted" },
+        { status: 403 }
+      );
+    }
+
+    // Check seated bookings
+    const bookingSeats = (await prisma.$queryRaw`
+      SELECT bs.id FROM "BookingSeat" bs
+      WHERE (bs.data::text LIKE ${`%${key}%`} OR bs.data::text LIKE ${`%${filename}%`})
+      LIMIT 1
+    `) as { id: number }[];
+
+    if (bookingSeats && bookingSeats.length > 0) {
       return NextResponse.json(
         { error: "File is associated with a booking and cannot be deleted" },
         { status: 403 }
