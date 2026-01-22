@@ -6,19 +6,19 @@ import { httpStatusToTrpcCode } from "@calcom/trpc/server/lib/toTRPCError";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TGetClientInputSchema } from "./getClient.schema";
+import type { TGetClientForAuthorizationInputSchema } from "./getClientForAuthorization.schema";
 
-type GetClientOptions = {
-  input: TGetClientInputSchema;
+type GetClientForAuthorizationOptions = {
+  input: TGetClientForAuthorizationInputSchema;
 };
 
-export const getClientHandler = async ({ input }: GetClientOptions) => {
+export const getClientForAuthorizationHandler = async ({ input }: GetClientForAuthorizationOptions) => {
   try {
-    const { clientId } = input;
+    const { clientId, redirectUri } = input;
 
     const oAuthService = getOAuthService();
 
-    const oAuthClient = await oAuthService.getClient(clientId);
+    const oAuthClient = await oAuthService.getClientForAuthorization(clientId, redirectUri);
 
     return {
       clientId: oAuthClient.clientId,
