@@ -22,7 +22,7 @@ export class CreateWebhookInputDto {
   @IsBoolean()
   @ApiProperty()
   active!: boolean;
-  
+
   @IsString()
   @ApiProperty()
   subscriberUrl!: string;
