@@ -1,6 +1,3 @@
--- CreateEnum
-CREATE TYPE "public"."SmtpConfigurationStatus" AS ENUM ('PENDING', 'ACTIVE', 'FAILED');
-
 -- CreateTable
 CREATE TABLE "public"."SmtpConfiguration" (
     "id" SERIAL NOT NULL,
@@ -12,7 +9,6 @@ CREATE TABLE "public"."SmtpConfiguration" (
     "smtpUser" TEXT NOT NULL,
     "smtpPassword" TEXT NOT NULL,
     "smtpSecure" BOOLEAN NOT NULL DEFAULT true,
-    "status" "public"."SmtpConfigurationStatus" NOT NULL DEFAULT 'PENDING',
     "lastTestedAt" TIMESTAMP(3),
     "lastError" TEXT,
     "isEnabled" BOOLEAN NOT NULL DEFAULT true,
