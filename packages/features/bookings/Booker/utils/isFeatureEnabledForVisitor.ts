@@ -1,3 +1,4 @@
+import process from "node:process";
 import { getCookie } from "@calcom/lib/cookie";
 
 /**
@@ -5,7 +6,7 @@ import { getCookie } from "@calcom/lib/cookie";
  */
 export const isVisitorWithinPercentage = ({ percentage }: { percentage: number }) => {
   // E2E tests must test all features regardless of their rollout percentage
-  if (process.env.NEXT_PUBLIC_IS_E2E) {
+  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_IS_E2E) {
     return true;
   }
 
