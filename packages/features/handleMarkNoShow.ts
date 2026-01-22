@@ -181,37 +181,55 @@ async function fireNoShowUpdated({
   orgId: number | null;
   actionSource: ValidActionSource;
 }): Promise<void> {
-  const auditData: {
-    hostNoShow?: { old: boolean | null; new: boolean };
-    attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
-  } = {};
+  const hostNoShow =
+    updatedNoShowHost !== undefined
+      ? { old: booking.noShowHost, new: updatedNoShowHost }
+      : undefined;
 
-  if (updatedNoShowHost !== undefined) {
-    auditData.hostNoShow = { old: booking.noShowHost, new: updatedNoShowHost };
-  }
-
+  let attendeesNoShow: Record<number, { old: boolean | null; new: boolean }> | undefined;
   if (updatedAttendees) {
-    auditData.attendeesNoShow = {};
+    attendeesNoShow = {};
     for (const attendee of updatedAttendees) {
       const dbAttendee = emailToAttendeeMap[attendee.email];
       if (dbAttendee) {
-        auditData.attendeesNoShow[dbAttendee.id] = { old: dbAttendee.noShow ?? null, new: attendee.noShow };
+        attendeesNoShow[dbAttendee.id] = { old: dbAttendee.noShow ?? null, new: attendee.noShow };
       }
+    }
+    // Only set if we actually have entries
+    if (Object.keys(attendeesNoShow).length === 0) {
+      attendeesNoShow = undefined;
     }
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
 
-  const isSomethingChanged = auditData.hostNoShow || auditData.attendeesNoShow;
-  if (isSomethingChanged) {
+  // Build auditData based on which fields are present (satisfies union type)
+  if (hostNoShow && attendeesNoShow) {
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
       actor,
       organizationId: orgId ?? null,
       source: actionSource,
-      auditData,
+      auditData: { hostNoShow, attendeesNoShow },
+    });
+  } else if (hostNoShow) {
+    await bookingEventHandlerService.onNoShowUpdated({
+      bookingUid: booking.uid,
+      actor,
+      organizationId: orgId ?? null,
+      source: actionSource,
+      auditData: { hostNoShow },
+    });
+  } else if (attendeesNoShow) {
+    await bookingEventHandlerService.onNoShowUpdated({
+      bookingUid: booking.uid,
+      actor,
+      organizationId: orgId ?? null,
+      source: actionSource,
+      auditData: { attendeesNoShow },
     });
   }
+  // If neither is set, we don't fire the event (nothing changed)
 }
 
 const handleMarkNoShow = async ({

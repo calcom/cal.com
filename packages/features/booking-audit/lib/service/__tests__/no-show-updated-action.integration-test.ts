@@ -298,7 +298,28 @@ describe("No-Show Updated Action Integration", () => {
     });
   });
 
-  describe("schema validation with string keys", () => {
+  describe("schema validation", () => {
+    /**
+     * This test verifies that the Zod refine validation rejects empty data.
+     * The schema requires at least one of hostNoShow or attendeesNoShow to be provided.
+     */
+    it("should reject data with neither hostNoShow nor attendeesNoShow (validates refine)", async () => {
+      const actor = makeUserActor(testData.owner.uuid);
+
+      // Attempt to create audit with empty data - should fail validation
+      await expect(
+        bookingAuditTaskConsumer.onBookingAction({
+          bookingUid: testData.booking.uid,
+          actor,
+          action: "NO_SHOW_UPDATED",
+          source: "WEBAPP",
+          operationId: `op-${Date.now()}`,
+          data: {},
+          timestamp: Date.now(),
+        })
+      ).rejects.toThrow();
+    });
+
     /**
      * This test explicitly demonstrates that string keys work correctly
      * due to z.coerce.number() in the schema.

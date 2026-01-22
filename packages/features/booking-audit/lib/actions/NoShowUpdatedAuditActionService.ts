@@ -16,10 +16,14 @@ import type {
 // Module-level because it is passed to IAuditActionService type outside the class scope
 // Note: z.record keys are always strings at runtime (JavaScript objects have string keys).
 // Using z.coerce.number() ensures string keys like "123" are coerced to numbers during validation.
-const fieldsSchemaV1 = z.object({
-  hostNoShow: BooleanChangeSchema.optional(),
-  attendeesNoShow: z.record(z.coerce.number(), BooleanChangeSchema).optional(),
-});
+const fieldsSchemaV1 = z
+  .object({
+    hostNoShow: BooleanChangeSchema.optional(),
+    attendeesNoShow: z.record(z.coerce.number(), BooleanChangeSchema).optional(),
+  })
+  .refine((data) => data.hostNoShow !== undefined || data.attendeesNoShow !== undefined, {
+    message: "At least one of hostNoShow or attendeesNoShow must be provided",
+  });
 
 export class NoShowUpdatedAuditActionService implements IAuditActionService {
   readonly VERSION = 1;
@@ -79,7 +83,21 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
   }
 }
 
-export type NoShowUpdatedAuditData = z.infer<typeof fieldsSchemaV1>;
+type BooleanChange = z.infer<typeof BooleanChangeSchema>;
+type AttendeesNoShowRecord = Record<number, BooleanChange>;
+
+/**
+ * Type-safe union that enforces at least one of hostNoShow or attendeesNoShow is provided.
+ * This provides compile-time safety in addition to the runtime Zod refine validation.
+ *
+ * Three valid cases:
+ * 1. Host only update: { hostNoShow: BooleanChange }
+ * 2. Attendees only update: { attendeesNoShow: AttendeesNoShowRecord }
+ * 3. Both updates: { hostNoShow: BooleanChange, attendeesNoShow: AttendeesNoShowRecord }
+ */
+export type NoShowUpdatedAuditData =
+  | { hostNoShow: BooleanChange; attendeesNoShow?: AttendeesNoShowRecord }
+  | { hostNoShow?: undefined; attendeesNoShow: AttendeesNoShowRecord };
 
 export type NoShowUpdatedAuditDisplayData = {
   hostNoShow: boolean | null;

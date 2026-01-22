@@ -173,18 +173,40 @@ export const fireNoShowUpdatedEvent = async ({
     const { makeSystemActor } = await import("@calcom/features/booking-audit/lib/makeActor");
 
     const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onNoShowUpdated({
-      bookingUid: booking.uid,
-      actor: makeSystemActor(),
-      organizationId: orgId ?? null,
-      source: "SYSTEM",
-      auditData: {
-        ...(hasHostNoShow && noShowHostAudit.new !== null
-          ? { hostNoShow: { old: noShowHostAudit.old, new: noShowHostAudit.new } }
-          : {}),
-        ...(hasAttendeesNoShow ? { attendeesNoShow: Object.fromEntries(attendeesNoShowAudit) } : {}),
-      },
-    });
+
+    // Build auditData based on which fields are present (satisfies union type)
+    if (hasHostNoShow && noShowHostAudit.new !== null && hasAttendeesNoShow) {
+      await bookingEventHandlerService.onNoShowUpdated({
+        bookingUid: booking.uid,
+        actor: makeSystemActor(),
+        organizationId: orgId ?? null,
+        source: "SYSTEM",
+        auditData: {
+          hostNoShow: { old: noShowHostAudit.old, new: noShowHostAudit.new },
+          attendeesNoShow: Object.fromEntries(attendeesNoShowAudit),
+        },
+      });
+    } else if (hasHostNoShow && noShowHostAudit.new !== null) {
+      await bookingEventHandlerService.onNoShowUpdated({
+        bookingUid: booking.uid,
+        actor: makeSystemActor(),
+        organizationId: orgId ?? null,
+        source: "SYSTEM",
+        auditData: {
+          hostNoShow: { old: noShowHostAudit.old, new: noShowHostAudit.new },
+        },
+      });
+    } else if (hasAttendeesNoShow) {
+      await bookingEventHandlerService.onNoShowUpdated({
+        bookingUid: booking.uid,
+        actor: makeSystemActor(),
+        organizationId: orgId ?? null,
+        source: "SYSTEM",
+        auditData: {
+          attendeesNoShow: Object.fromEntries(attendeesNoShowAudit),
+        },
+      });
+    }
   } catch (error) {
     log.error("Error logging audit for automatic no-show", error);
   }
