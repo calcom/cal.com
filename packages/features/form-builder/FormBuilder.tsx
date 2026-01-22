@@ -126,7 +126,9 @@ export const FormBuilder = function FormBuilder({
   const [hideFieldWarning, setHideFieldWarning] = useState({
     isOpen: false,
     fieldIndex: -1,
-    onConfirm: () => {},
+    onConfirm: () => {
+      // noop
+    },
   });
 
   const addField = () => {
@@ -325,14 +327,14 @@ export const FormBuilder = function FormBuilder({
                       )}
 
                       {emailWorkflowsCount > 0 && field.name === "email" && (
-                        <Badge key={"email-workflows"}>
+                        <Badge key="email-workflows">
                           {emailWorkflowsCount}{" "}
                           {phoneWorkflowsCount === 1 ? "CalIdWorkflow" : `CalIdWorkflows`}
                         </Badge>
                       )}
 
                       {phoneWorkflowsCount > 0 && field.name === "attendeePhoneNumber" && (
-                        <Badge key={"email-workflows"}>
+                        <Badge key="email-workflows">
                           {phoneWorkflowsCount}{" "}
                           {phoneWorkflowsCount === 1 ? "CalIdWorkflow" : `CalIdWorkflows`}
                         </Badge>
@@ -382,7 +384,8 @@ export const FormBuilder = function FormBuilder({
                     {isUserField && (
                       <Button
                         data-testid="delete-field-action"
-                        color="destructive"
+                        color="secondary"
+                        className="text-error enabled:hover:text-error border-default border"
                         disabled={!isUserField}
                         variant="icon"
                         onClick={() => {
@@ -469,7 +472,9 @@ export const FormBuilder = function FormBuilder({
             setHideFieldWarning({
               isOpen,
               fieldIndex: -1,
-              onConfirm: () => {},
+              onConfirm: () => {
+                // noop
+              },
             })
           }
           workflowCount={

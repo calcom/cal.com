@@ -1,7 +1,10 @@
 "use client";
 
 import {
+  forwardRef,
   useCallback,
+  useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -22,6 +25,11 @@ export interface FileData {
   url?: string; // URL from server after upload
   id: string;
   uploading?: boolean;
+}
+
+export interface AttachmentUploaderRef {
+  cleanup: () => Promise<void>;
+  getUploadedFiles: () => FileData[];
 }
 
 interface AttachmentUploaderProps {
@@ -71,283 +79,412 @@ const defaultAcceptedFileTypes = ["images", "csv", "documents"] as TAcceptedFile
 
 const MAX_TOTAL_BYTES = 1 * 1024 * 1024;
 
-export default function AttachmentUploader({
-  id,
-  onFilesChange,
-  acceptedFileTypes = defaultAcceptedFileTypes,
-  maxFileSize = MAX_TOTAL_BYTES,
-  maxAllowedFiles = 1,
-  disabled,
-  testId,
-}: AttachmentUploaderProps) {
-  const { t } = useLocale();
-  const [files, setFiles] = useState<FileData[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const uploadingFiles = useRef<Set<string>>(new Set()); // Track files being uploaded by name+size
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const maxTotalSizeText = formatFileSize(MAX_TOTAL_BYTES);
-  const maxSizeLabel = t("file_limit", { max: maxTotalSizeText });
-
-  const fileTypes = useMemo<TAcceptedFileTypes[]>(
-    () => acceptedFileTypes ?? defaultAcceptedFileTypes,
-    [acceptedFileTypes]
-  );
-
-  const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-  const uploadFile = useCallback(
-    async (file: File): Promise<{ url: string; name: string; size: number; type: string }> => {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/bookings/attachments/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: "Upload failed" }));
-        throw new Error(error.error || "Failed to upload file");
-      }
-
-      return response.json();
+const AttachmentUploader = forwardRef<AttachmentUploaderRef, AttachmentUploaderProps>(
+  (
+    {
+      id,
+      onFilesChange,
+      acceptedFileTypes = defaultAcceptedFileTypes,
+      maxFileSize = MAX_TOTAL_BYTES,
+      maxAllowedFiles = 1,
+      disabled,
+      testId,
     },
-    []
-  );
+    ref
+  ) => {
+    const { t } = useLocale();
+    const [files, setFiles] = useState<FileData[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
+    const uploadingFiles = useRef<Set<string>>(new Set());
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const maxTotalSizeText = formatFileSize(MAX_TOTAL_BYTES);
+    const maxSizeLabel = t("file_limit", { max: maxTotalSizeText });
 
-  const deleteFileFromS3 = useCallback(async (url: string) => {
-    try {
-      const urlObj = new URL(url);
-      const key = urlObj.searchParams.get("key");
-      if (!key) {
-        console.warn("No key found in attachment URL:", url);
-        return;
-      }
+    const fileTypes = useMemo<TAcceptedFileTypes[]>(
+      () => acceptedFileTypes ?? defaultAcceptedFileTypes,
+      [acceptedFileTypes]
+    );
 
-      const response = await fetch(`/api/bookings/attachments/delete?key=${encodeURIComponent(key)}`, {
-        method: "DELETE",
-      });
+    const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      if (!response.ok) {
-        console.error("Failed to delete file from S3:", await response.text());
-      }
-    } catch (error) {
-      console.error("Error deleting file from S3:", error);
-      // Don't throw - file removal from UI should still work even if S3 delete fails
-    }
-  }, []);
+    const uploadFile = useCallback(
+      async (file: File): Promise<{ url: string; name: string; size: number; type: string }> => {
+        const formData = new FormData();
+        formData.append("file", file);
 
-  const allowedTypes = useMemo(() => fileTypes.flatMap((type) => acceptFileTypes[type].types), [fileTypes]);
-  const allowedExtensions = useMemo(
-    () => fileTypes.flatMap((type) => acceptFileTypes[type].extensions),
-    [fileTypes]
-  );
+        const response = await fetch("/api/bookings/attachments/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-  const validateFile = useCallback(
-    (file: File): string | null => {
-      if (file.size > maxFileSize) {
-        return t("file_size_limit_exceed");
-      }
-
-      if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
-        const extensionsString = allowedExtensions.join(",");
-        return t("invalid_file_type_with_extensions", { extensions: extensionsString });
-      }
-
-      return null;
-    },
-    [allowedExtensions, allowedTypes, maxFileSize, t]
-  );
-
-  const handleFileSelect = useCallback(
-    async (selectedFiles: FileList) => {
-      const errors: string[] = [];
-
-      if (files.length + selectedFiles.length > maxAllowedFiles) {
-        triggerToast(t("max_files_exceeded"), "error");
-        return;
-      }
-
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        const validationError = validateFile(file);
-
-        if (validationError) {
-          errors.push(`${file.name}: ${validationError}`);
-          continue;
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ error: "Upload failed" }));
+          throw new Error(error.error || "Failed to upload file");
         }
 
-        const fileId = generateFileId();
-        const fileKey = `${file.name}-${file.size}`;
+        return response.json();
+      },
+      []
+    );
 
-        // Prevent duplicate uploads of the same file
-        if (uploadingFiles.current.has(fileKey)) {
-          errors.push(`${file.name}: File is already being uploaded`);
-          continue;
+    const deleteFileFromS3 = useCallback(async (url: string) => {
+      try {
+        const urlObj = new URL(url);
+        const key = urlObj.searchParams.get("key");
+        if (!key) {
+          console.warn("No key found in attachment URL:", url);
+          return;
         }
 
-        uploadingFiles.current.add(fileKey);
-        const tempFileData: FileData = {
-          file,
-          id: fileId,
-          uploading: true,
-        };
+        const response = await fetch(`/api/bookings/attachments/delete?key=${encodeURIComponent(key)}`, {
+          method: "DELETE",
+        });
 
-        setFiles((prev) => [...prev, tempFileData]);
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText };
+          }
 
-        try {
-          const uploadResult = await uploadFile(file);
+          if (errorData.error?.includes("associated with a booking")) {
+            return;
+          }
 
-          const uploadedFile: FileData = {
-            ...tempFileData,
-            url: uploadResult.url,
-            uploading: false,
+          console.error("Failed to delete file from S3:", errorText);
+        }
+      } catch (error) {
+        console.error("Error deleting file from S3:", error);
+        // Don't throw - file removal from UI should still work even if S3 delete fails
+      }
+    }, []);
+
+    const allowedTypes = useMemo(() => fileTypes.flatMap((type) => acceptFileTypes[type].types), [fileTypes]);
+    const allowedExtensions = useMemo(
+      () => fileTypes.flatMap((type) => acceptFileTypes[type].extensions),
+      [fileTypes]
+    );
+
+    const validateFile = useCallback(
+      (file: File): string | null => {
+        if (file.size > maxFileSize) {
+          return t("file_size_limit_exceed");
+        }
+
+        if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+          const extensionsString = allowedExtensions.join(",");
+          return t("invalid_file_type_with_extensions", { extensions: extensionsString });
+        }
+
+        return null;
+      },
+      [allowedExtensions, allowedTypes, maxFileSize, t]
+    );
+
+    const handleFileSelect = useCallback(
+      async (selectedFiles: FileList) => {
+        const errors: string[] = [];
+
+        if (files.length + selectedFiles.length > maxAllowedFiles) {
+          triggerToast(t("max_files_exceeded"), "error");
+          return;
+        }
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          const validationError = validateFile(file);
+
+          if (validationError) {
+            errors.push(`${file.name}: ${validationError}`);
+            continue;
+          }
+
+          const fileId = generateFileId();
+          const fileKey = `${file.name}-${file.size}`;
+
+          // Prevent duplicate uploads of the same file that are currently uploading
+          // Only check uploadingFiles Set - if upload completed, key is removed
+          if (uploadingFiles.current.has(fileKey)) {
+            errors.push(`${file.name}: File is already being uploaded`);
+            continue;
+          }
+
+          uploadingFiles.current.add(fileKey);
+          hasActiveUploads.current = true;
+          const tempFileData: FileData = {
+            file,
+            id: fileId,
+            uploading: true,
           };
 
-          setFiles((prev) => {
-            const updated = prev.map((f) =>
-              f.id === fileId
-                ? {
-                    ...f,
-                    url: uploadResult.url,
-                    uploading: false,
-                  }
-                : f
-            );
-            // Notify parent with the updated files list
-            onFilesChange(updated, [uploadedFile], []);
-            return updated;
-          });
-          uploadingFiles.current.delete(fileKey);
-        } catch (error) {
-          errors.push(`${file.name}: ${error instanceof Error ? error.message : "Failed to upload file"}`);
+          setFiles((prev) => [...prev, tempFileData]);
 
-          setFiles((prev) => prev.filter((f) => f.id !== fileId));
-          uploadingFiles.current.delete(fileKey);
+          try {
+            const uploadResult = await uploadFile(file);
+
+            const uploadedFile: FileData = {
+              ...tempFileData,
+              url: uploadResult.url,
+              uploading: false,
+            };
+
+            setFiles((prev) => {
+              const updated = prev.map((f) =>
+                f.id === fileId
+                  ? {
+                      ...f,
+                      url: uploadResult.url,
+                      uploading: false,
+                    }
+                  : f
+              );
+              // Notify parent with the updated files list
+              onFilesChange(updated, [uploadedFile], []);
+              return updated;
+            });
+            uploadingFiles.current.delete(fileKey);
+            // Check if there are any more files uploading
+            hasActiveUploads.current = uploadingFiles.current.size > 0;
+          } catch (error) {
+            errors.push(`${file.name}: ${error instanceof Error ? error.message : "Failed to upload file"}`);
+
+            setFiles((prev) => prev.filter((f) => f.id !== fileId));
+            uploadingFiles.current.delete(fileKey);
+            // Check if there are any more files uploading
+            hasActiveUploads.current = uploadingFiles.current.size > 0;
+          }
         }
-      }
 
-      if (errors.length > 0) {
-        triggerToast(errors.join(", "), "error");
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [files, maxAllowedFiles, onFilesChange, t, validateFile]
-  );
+        if (errors.length > 0) {
+          triggerToast(errors.join(", "), "error");
+        }
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [files, maxAllowedFiles, onFilesChange, t, validateFile]
+    );
 
-  const handleFileRemove = useCallback(
-    async (fileId: string) => {
-      const removed = files.find((file) => file.id === fileId);
-      const updatedFiles = files.filter((file) => file.id !== fileId);
-      setFiles(updatedFiles);
-      onFilesChange(updatedFiles, [], removed ? [removed] : []);
+    const handleFileRemove = useCallback(
+      async (fileId: string) => {
+        const removed = files.find((file) => file.id === fileId);
+        const updatedFiles = files.filter((file) => file.id !== fileId);
+        setFiles(updatedFiles);
+        onFilesChange(updatedFiles, [], removed ? [removed] : []);
 
-      // Delete file from S3 if it was uploaded
-      if (removed?.url) {
-        await deleteFileFromS3(removed.url);
-      }
-    },
-    [files, onFilesChange, deleteFileFromS3]
-  );
+        // Always remove the file key from uploadingFiles to allow re-upload
+        // This ensures the key is cleared even if upload completed (key already removed)
+        if (removed?.file) {
+          const fileKey = `${removed.file.name}-${removed.file.size}`;
+          uploadingFiles.current.delete(fileKey);
+          hasActiveUploads.current = uploadingFiles.current.size > 0;
+        }
 
-  const handleChooseFiles = () => {
-    if (disabled) return;
-    inputRef.current?.click();
-  };
+        // Also clear the file input to allow selecting the same file again
+        if (inputRef.current) {
+          inputRef.current.value = "";
+        }
 
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    if (disabled) return;
-    setIsDragging(true);
-  };
+        if (removed?.url) {
+          await deleteFileFromS3(removed.url);
+        }
+      },
+      [files, onFilesChange, deleteFileFromS3]
+    );
 
-  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    if (disabled) return;
-    setIsDragging(false);
-  };
+    const handleChooseFiles = () => {
+      if (disabled) return;
+      inputRef.current?.click();
+    };
 
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    if (disabled) return;
-    const droppedFiles = event.dataTransfer.files;
-    setIsDragging(false);
-
-    if (droppedFiles && droppedFiles.length > 0) {
-      void handleFileSelect(droppedFiles);
-    }
-  };
-
-  const handleContainerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (disabled) return;
-    if (event.key === "Enter" || event.key === " ") {
+    const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
-      handleChooseFiles();
-    }
-  };
+      if (disabled) return;
+      setIsDragging(true);
+    };
 
-  return (
-    <div>
-      <div
-        role="button"
-        tabIndex={disabled ? -1 : 0}
-        onClick={handleChooseFiles}
-        onKeyDown={handleContainerKeyDown}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-4 text-center transition ${
-          disabled
-            ? "border-border bg-muted text-default cursor-not-allowed"
-            : isDragging
-            ? "border-primary bg-primary/5"
-            : "border-border/70 bg-muted/50 hover:border-primary/70"
-        }`}>
-        <Input
-          ref={inputRef}
-          id={id}
-          type="file"
-          multiple={false}
-          accept={[...allowedTypes, ...allowedExtensions].join(",")}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => e.target.files && handleFileSelect(e.target.files)}
-          disabled={disabled}
-          className="hidden"
-          data-testid={testId}
-        />
-        <div className="mb-1 flex flex-row items-center justify-center gap-2">
-          <Icon name="upload" className="text-default h-4 w-4" />
-          <p className="text-default text-sm">{t("drop_file_here_or")}</p>
+    const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      if (disabled) return;
+      setIsDragging(false);
+    };
+
+    const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      if (disabled) return;
+      const droppedFiles = event.dataTransfer.files;
+      setIsDragging(false);
+
+      if (droppedFiles && droppedFiles.length > 0) {
+        void handleFileSelect(droppedFiles);
+      }
+    };
+
+    const handleContainerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+      if (disabled) return;
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleChooseFiles();
+      }
+    };
+
+    // Store uploaded file URLs in a ref so we can access them in cleanup handlers
+    const uploadedFilesRef = useRef<Set<string>>(new Set());
+    const hasActiveUploads = useRef(false);
+
+    useEffect(() => {
+      uploadedFilesRef.current = new Set(
+        files
+          .filter((f) => f.url && !f.uploading)
+          .map((f) => f.url)
+          .filter((url): url is string => url !== undefined)
+      );
+    }, [files]);
+
+    const cleanup = useCallback(async () => {
+      const filesToDelete = files.filter((f) => f.url && !f.uploading);
+      if (filesToDelete.length === 0) return;
+
+      // Delete all uploaded files from S3
+      // The server-side delete API will prevent deletion if files are associated with bookings
+      // This is the security layer - we can safely attempt deletion and let the server decide
+      await Promise.allSettled(
+        filesToDelete.map((file) => {
+          if (file.url) {
+            return deleteFileFromS3(file.url);
+          }
+          return Promise.resolve();
+        })
+      );
+
+      setFiles([]);
+      uploadingFiles.current.clear();
+      uploadedFilesRef.current.clear();
+    }, [files, deleteFileFromS3]);
+
+    // Immediate cleanup function for page unload (synchronous, uses fetch with keepalive)
+    const cleanupOnUnload = useCallback(() => {
+      // Don't cleanup if there are active uploads in progress
+      if (hasActiveUploads.current) {
+        return;
+      }
+
+      const filesToDelete = Array.from(uploadedFilesRef.current);
+      if (filesToDelete.length === 0) return;
+
+      // Use fetch with keepalive for reliable cleanup on page unload
+      filesToDelete.forEach((url) => {
+        try {
+          const urlObj = new URL(url);
+          const key = urlObj.searchParams.get("key");
+          if (key) {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            fetch(`/api/bookings/attachments/delete?key=${encodeURIComponent(key)}`, {
+              method: "DELETE",
+              keepalive: true,
+            }).catch(() => {
+              // Silently ignore errors during page unload
+            });
+          }
+        } catch (error) {
+          // Ignore errors during page unload
+        }
+      });
+    }, []);
+
+    // Expose cleanup function via ref
+    useImperativeHandle(ref, () => ({
+      cleanup,
+      getUploadedFiles: () => files,
+    }));
+
+    useEffect(() => {
+      const handleBeforeUnload = () => {
+        if (uploadedFilesRef.current.size > 0 && !hasActiveUploads.current) {
+          cleanupOnUnload();
+        }
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }, [cleanupOnUnload]);
+
+    return (
+      <div>
+        <div
+          role="button"
+          tabIndex={disabled ? -1 : 0}
+          onClick={handleChooseFiles}
+          onKeyDown={handleContainerKeyDown}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-4 text-center transition ${
+            disabled
+              ? "border-border bg-muted text-default cursor-not-allowed"
+              : isDragging
+              ? "border-primary bg-primary/5"
+              : "border-border/70 bg-muted/50 hover:border-primary/70"
+          }`}>
+          <Input
+            ref={inputRef}
+            id={id}
+            type="file"
+            multiple={false}
+            accept={[...allowedTypes, ...allowedExtensions].join(",")}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              e.target.files && handleFileSelect(e.target.files)
+            }
+            disabled={disabled}
+            className="hidden"
+            data-testid={testId}
+          />
+          <div className="mb-1 flex flex-row items-center justify-center gap-2">
+            <Icon name="upload" className="text-default h-4 w-4" />
+            <p className="text-default text-sm">{t("drop_file_here_or")}</p>
+          </div>
+          <Button color="secondary" size="sm" type="button" disabled={disabled}>
+            {t("choose_file")}
+          </Button>
         </div>
-        <Button color="secondary" size="sm" type="button" disabled={disabled}>
-          {t("choose_file")}
-        </Button>
-      </div>
-      <p className="text-default mt-1 text-xs">{maxSizeLabel}</p>
-      {files.length > 0 && (
-        <div className="mt-2 space-y-1 transition">
-          {files.map((fileData) => (
-            <div key={fileData.id} className="flex items-center justify-between rounded-md border">
-              <div className="flex min-w-0 items-center gap-2 pl-2">
-                <Icon name="file-text" className="h-5 w-5 flex-shrink-0" />
-                <div className="min-w-0 border-l py-2 pl-3">
-                  <p className="text-emphasis truncate text-sm font-medium">{fileData.file.name}</p>
-                  <p className="text-xs">
-                    {fileData.uploading ? t("uploading") : formatFileSize(fileData.file.size)}
-                  </p>
+        <p className="text-default mt-1 text-xs">{maxSizeLabel}</p>
+        {files.length > 0 && (
+          <div className="mt-2 space-y-1 transition">
+            {files.map((fileData) => (
+              <div key={fileData.id} className="flex items-center justify-between rounded-md border">
+                <div className="flex min-w-0 items-center gap-2 pl-2">
+                  <Icon name="file-text" className="h-5 w-5 flex-shrink-0" />
+                  <div className="min-w-0 border-l py-2 pl-3">
+                    <p className="text-emphasis truncate text-sm font-medium">{fileData.file.name}</p>
+                    <p className="text-xs">
+                      {fileData.uploading ? t("uploading") : formatFileSize(fileData.file.size)}
+                    </p>
+                  </div>
                 </div>
+                <Button
+                  variant="icon"
+                  color="destructive"
+                  size="sm"
+                  StartIcon="x"
+                  onClick={() => {
+                    if (fileData.id) {
+                      handleFileRemove(fileData.id);
+                    }
+                  }}
+                  className="mx-2 h-6 w-6 flex-shrink-0"
+                />
               </div>
-              <Button
-                variant="icon"
-                color="destructive"
-                size="sm"
-                StartIcon="x"
-                onClick={() => handleFileRemove(fileData.id)}
-                className="mx-2 h-6 w-6 flex-shrink-0"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+AttachmentUploader.displayName = "AttachmentUploader";
+
+export default AttachmentUploader;
