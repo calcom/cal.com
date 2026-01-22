@@ -6,11 +6,13 @@ export const OrganizerRequestedToRescheduleEmail = (
   <OrganizerScheduledEmail
     title={props.calEvent.organizer.language.translate("request_reschedule_title_organizer", {
       attendee: props.calEvent.attendees[0].name,
+      interpolation: { escapeValue: false },
     })}
     subtitle={
       <>
         {props.calEvent.organizer.language.translate("request_reschedule_subtitle_organizer", {
           attendee: props.calEvent.attendees[0].name,
+          interpolation: { escapeValue: false },
         })}
       </>
     }

@@ -8,9 +8,12 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarFetchMode, EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import { normalizeTimezone } from "./timezone-conversion";
+
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+
 // only for Google Calendar for now
 export const getCalendarsEventsWithTimezones = async (
   withCredentials: CredentialForCalendarService[],
@@ -77,7 +80,7 @@ export const getCalendarsEventsWithTimezones = async (
 
     return eventBusyDates.map((event) => ({
       ...event,
-      timeZone: event.timeZone || "UTC",
+      timeZone: normalizeTimezone(event.timeZone),
     }));
   });
   const awaitedResults = await Promise.all(results);
