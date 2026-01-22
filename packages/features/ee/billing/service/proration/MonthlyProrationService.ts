@@ -34,6 +34,7 @@ interface ProcessMonthlyProrationsParams {
 export interface MonthlyProrationServiceDeps {
   logger: ISimpleLogger;
   featuresRepository: IFeaturesRepository;
+  billingService?: IBillingProviderService;
 }
 
 export class MonthlyProrationService {
@@ -52,13 +53,14 @@ export class MonthlyProrationService {
     if (depsOrLogger && typeof depsOrLogger === "object" && "logger" in depsOrLogger) {
       this.logger = depsOrLogger.logger;
       this.featuresRepository = depsOrLogger.featuresRepository;
+      this.billingService = depsOrLogger.billingService || new StripeBillingService(stripe);
     } else {
       this.logger = (depsOrLogger as Logger<unknown>) || log;
       this.featuresRepository = getFeaturesRepository();
+      this.billingService = billingService || new StripeBillingService(stripe);
     }
     this.teamRepository = new MonthlyProrationTeamRepository();
     this.prorationRepository = new MonthlyProrationRepository();
-    this.billingService = billingService || new StripeBillingService(stripe);
   }
 
   async processMonthlyProrations(params: ProcessMonthlyProrationsParams) {

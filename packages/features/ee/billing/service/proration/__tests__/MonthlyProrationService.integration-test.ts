@@ -1,4 +1,5 @@
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -45,6 +46,30 @@ const mockBillingService: IBillingProviderService = {
   getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
   hasDefaultPaymentMethod: vi.fn().mockResolvedValue(true),
 } as IBillingProviderService;
+
+const mockFeaturesRepository: IFeaturesRepository = {
+  checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+  checkIfUserHasFeature: vi.fn().mockResolvedValue(false),
+  getUserFeaturesStatus: vi.fn().mockResolvedValue({}),
+  checkIfUserHasFeatureNonHierarchical: vi.fn().mockResolvedValue(false),
+  checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+  getTeamsWithFeatureEnabled: vi.fn().mockResolvedValue([]),
+  setUserFeatureState: vi.fn().mockResolvedValue(undefined),
+  setTeamFeatureState: vi.fn().mockResolvedValue(undefined),
+  getUserFeatureStates: vi.fn().mockResolvedValue({}),
+  getTeamsFeatureStates: vi.fn().mockResolvedValue({}),
+  getUserAutoOptIn: vi.fn().mockResolvedValue(false),
+  getTeamsAutoOptIn: vi.fn().mockResolvedValue({}),
+  setUserAutoOptIn: vi.fn().mockResolvedValue(undefined),
+  setTeamAutoOptIn: vi.fn().mockResolvedValue(undefined),
+};
+
+const mockLogger = {
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+};
 
 describe("MonthlyProrationService Integration Tests", () => {
   let testUser: User;
@@ -271,7 +296,11 @@ describe("MonthlyProrationService Integration Tests", () => {
       seatCount: 3,
     });
 
-    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const prorationService = new MonthlyProrationService({
+      logger: mockLogger,
+      featuresRepository: mockFeaturesRepository,
+      billingService: mockBillingService,
+    });
     const results = await prorationService.processMonthlyProrations({ monthKey });
 
     const filteredResults = results.filter((r) => [testTeam.id, testTeam2.id].includes(r.teamId));
