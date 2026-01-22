@@ -9,18 +9,16 @@ import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { Alert, Platform } from "react-native";
 
+import { getAppBaseUrl, getAppHostnames } from "@/config/region";
 import { showErrorAlert } from "@/utils/alerts";
-
-// Default Cal.com web URL - can be overridden for self-hosted instances
-const DEFAULT_CAL_WEB_URL = "https://app.cal.com";
+import { getStoredRegion } from "@/utils/storage";
 
 /**
- * Get the Cal.com web URL from environment or use default
+ * Get the Cal.com web URL based on stored region
  */
-function getCalWebUrl(): string {
-  // In a real implementation, this would read from environment config
-  // For now, use the default Cal.com URL
-  return DEFAULT_CAL_WEB_URL;
+async function getCalWebUrl(): Promise<string> {
+  const region = await getStoredRegion();
+  return getAppBaseUrl(region);
 }
 
 /**
@@ -40,8 +38,9 @@ function appendStandaloneParam(url: string): string {
   try {
     const urlObj = new URL(url);
 
-    // Only apply to app.cal.com URLs
-    if (urlObj.hostname !== "app.cal.com") {
+    // Only apply to Cal.com app URLs (both US and EU regions)
+    const calHostnames = getAppHostnames();
+    if (!calHostnames.includes(urlObj.hostname)) {
       return url;
     }
 
@@ -65,7 +64,7 @@ function appendStandaloneParam(url: string): string {
  * @param bookingUid - The unique identifier of the booking
  */
 export async function openBookingInWeb(bookingUid: string): Promise<void> {
-  const webUrl = getCalWebUrl();
+  const webUrl = await getCalWebUrl();
   const url = appendStandaloneParam(`${webUrl}/booking/${bookingUid}`);
 
   try {
@@ -121,7 +120,7 @@ export async function openReschedulePage(
   bookingUid: string,
   rescheduleUid?: string
 ): Promise<void> {
-  const webUrl = getCalWebUrl();
+  const webUrl = await getCalWebUrl();
   const url = appendStandaloneParam(
     rescheduleUid ? `${webUrl}/reschedule/${rescheduleUid}` : `${webUrl}/booking/${bookingUid}`
   );
@@ -147,7 +146,7 @@ export async function openReschedulePage(
  * @param bookingUid - The unique identifier of the booking
  */
 export async function openCancelBookingInWeb(bookingUid: string): Promise<void> {
-  const webUrl = getCalWebUrl();
+  const webUrl = await getCalWebUrl();
   const url = appendStandaloneParam(`${webUrl}/booking/${bookingUid}`);
 
   try {

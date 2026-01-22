@@ -1,3 +1,4 @@
+import { type Region, DEFAULT_REGION, getApiBaseUrl } from "@/config/region";
 import { fetchWithTimeout } from "@/utils/network";
 import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
 
@@ -31,7 +32,15 @@ import type {
   Webhook,
 } from "./types";
 
-const API_BASE_URL = "https://api.cal.com/v2";
+let currentRegion: Region = DEFAULT_REGION;
+
+function getApiUrl(): string {
+  return getApiBaseUrl(currentRegion);
+}
+
+function setApiRegion(region: Region): void {
+  currentRegion = region;
+}
 
 const REQUEST_TIMEOUT_MS = 30000;
 
@@ -327,7 +336,7 @@ function clearUserProfile(): void {
 // Test function for bookings API specifically
 async function testRawBookingsAPI(): Promise<void> {
   try {
-    const url = `${API_BASE_URL}/bookings?status=upcoming&status=unconfirmed&limit=50`;
+    const url = `${getApiUrl()}/bookings?status=upcoming&status=unconfirmed&limit=50`;
 
     const response = await fetchWithTimeout(
       url,
@@ -364,7 +373,7 @@ async function makeRequest<T>(
   apiVersion: string = "2024-08-13",
   isRetry: boolean = false
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiUrl()}${endpoint}`;
 
   const response = await fetchWithTimeout(
     url,
@@ -1667,6 +1676,7 @@ async function getUsername(): Promise<string> {
 
 // Export as object to satisfy noStaticOnlyClass rule
 export const CalComAPIService = {
+  setApiRegion,
   setAccessToken,
   setRefreshTokenFunction,
   clearAuth,

@@ -1,17 +1,23 @@
+import { useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { type Region, DEFAULT_REGION, REGION_OPTIONS, getSignupUrl } from "@/config/region";
 import { useAuth } from "@/contexts/AuthContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+
 import { CalComLogo } from "./CalComLogo";
 
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();
   const insets = useSafeAreaInsets();
+  const [selectedRegion, setSelectedRegion] = useState<Region>(DEFAULT_REGION);
+  const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false);
 
   const handleOAuthLogin = async () => {
     try {
-      await loginWithOAuth();
+      await loginWithOAuth(selectedRegion);
     } catch (error) {
       console.error("OAuth login error");
       showErrorAlert(
@@ -24,8 +30,15 @@ export function LoginScreen() {
   };
 
   const handleSignUp = async () => {
-    await openInAppBrowser("https://app.cal.com/signup", "Sign up page");
+    await openInAppBrowser(getSignupUrl(selectedRegion), "Sign up page");
   };
+
+  const handleRegionSelect = (region: Region) => {
+    setSelectedRegion(region);
+    setIsRegionDropdownOpen(false);
+  };
+
+  const selectedRegionLabel = REGION_OPTIONS.find((opt) => opt.value === selectedRegion)?.label;
 
   return (
     <View className="flex-1 bg-white">
@@ -34,8 +47,62 @@ export function LoginScreen() {
         <CalComLogo width={180} height={40} color="#111827" />
       </View>
 
-      {/* Bottom section with button */}
+      {/* Bottom section with region selector and button */}
       <View className="px-6" style={{ paddingBottom: insets.bottom + 28 }}>
+        {/* Region selector dropdown */}
+        <View className="mb-4">
+          <Text className="mb-2 text-[14px] font-medium text-gray-700">Data region</Text>
+          <View className="relative">
+            <TouchableOpacity
+              onPress={() => setIsRegionDropdownOpen(!isRegionDropdownOpen)}
+              className="flex-row items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3"
+              activeOpacity={0.7}
+            >
+              <Text className="text-[15px] text-gray-900">{selectedRegionLabel}</Text>
+              <Text className="text-gray-500">{isRegionDropdownOpen ? "▲" : "▼"}</Text>
+            </TouchableOpacity>
+
+            {isRegionDropdownOpen && (
+              <View
+                className="absolute left-0 right-0 rounded-lg border border-gray-300 bg-white"
+                style={{
+                  top: 52,
+                  zIndex: 10,
+                  ...Platform.select({
+                    web: { boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" },
+                    default: {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 3,
+                    },
+                  }),
+                }}
+              >
+                {REGION_OPTIONS.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    onPress={() => handleRegionSelect(option.value)}
+                    className="border-b border-gray-100 px-4 py-3 last:border-b-0"
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      className={`text-[15px] ${
+                        selectedRegion === option.value
+                          ? "font-semibold text-gray-900"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+
         {/* Primary CTA button */}
         <TouchableOpacity
           onPress={handleOAuthLogin}

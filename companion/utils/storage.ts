@@ -16,6 +16,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { type Region, DEFAULT_REGION, REGION_STORAGE_KEY, isValidRegion } from "@/config/region";
+
 /**
  * Check if chrome.storage is available (browser extension context)
  */
@@ -181,3 +183,23 @@ export const generalStorage: StorageAdapter = {
     return AsyncStorage.removeItem(key);
   },
 };
+
+export async function getStoredRegion(): Promise<Region> {
+  try {
+    const stored = await generalStorage.getItem(REGION_STORAGE_KEY);
+    if (stored && isValidRegion(stored)) {
+      return stored;
+    }
+  } catch {
+    // Fall through to default
+  }
+  return DEFAULT_REGION;
+}
+
+export async function setStoredRegion(region: Region): Promise<void> {
+  await generalStorage.setItem(REGION_STORAGE_KEY, region);
+}
+
+export async function clearStoredRegion(): Promise<void> {
+  await generalStorage.removeItem(REGION_STORAGE_KEY);
+}

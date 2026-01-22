@@ -1,4 +1,6 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+
+import { type Region, DEFAULT_REGION, getAppBaseUrl } from "@/config/region";
 import { CalComAPIService } from "@/services/calcom";
 import {
   type CalComOAuthService,
@@ -8,7 +10,12 @@ import {
 import type { UserProfile } from "@/services/types/users.types";
 import { WebAuthService } from "@/services/webAuth";
 import { clearQueryCache } from "@/utils/queryPersister";
-import { secureStorage } from "@/utils/storage";
+import {
+  secureStorage,
+  getStoredRegion,
+  setStoredRegion,
+  clearStoredRegion,
+} from "@/utils/storage";
 
 /**
  * Simplified user info stored in auth context
@@ -27,8 +34,10 @@ interface AuthContextType {
   refreshToken: string | null;
   userInfo: AuthUserInfo | null;
   isWebSession: boolean;
+  region: Region;
+  setRegion: (region: Region) => void;
   loginFromWebSession: (userInfo: UserProfile) => Promise<void>;
-  loginWithOAuth: () => Promise<void>;
+  loginWithOAuth: (region: Region) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -61,13 +70,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userInfo, setUserInfo] = useState<AuthUserInfo | null>(null);
   const [isWebSession, setIsWebSession] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [oauthService] = useState(() => {
+  const [region, setRegionState] = useState<Region>(DEFAULT_REGION);
+
+  const setRegion = useCallback((newRegion: Region) => {
+    setRegionState(newRegion);
+  }, []);
+
+  const createOAuthServiceForRegion = useCallback((targetRegion: Region) => {
     try {
-      return createCalComOAuthService();
+      return createCalComOAuthService({ calcomBaseUrl: getAppBaseUrl(targetRegion) });
     } catch (error) {
       console.warn("Failed to initialize OAuth service:", error);
       return null;
     }
+  }, []);
+
+  const [oauthService, setOauthService] = useState<CalComOAuthService | null>(() => {
+    return createOAuthServiceForRegion(DEFAULT_REGION);
   });
 
   // Setup refresh token function for OAuth
@@ -144,6 +163,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     try {
       await clearAuth();
+      // Clear stored region so user must select again on next login
+      await clearStoredRegion();
+      setRegionState(DEFAULT_REGION);
       // Clear all cached queries to ensure fresh data on re-login
       try {
         await clearQueryCache();
@@ -211,11 +233,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuthState = useCallback(async () => {
     try {
+      // Load stored region
+      const storedRegion = await getStoredRegion();
+      setRegionState(storedRegion);
+      CalComAPIService.setApiRegion(storedRegion);
+
+      // Update OAuth service for the stored region
+      const regionOAuthService = createOAuthServiceForRegion(storedRegion);
+      setOauthService(regionOAuthService);
+
       const authType = (await storage.get(AUTH_TYPE_KEY)) as AuthType | null;
       const storedOAuthTokens = await storage.get(OAUTH_TOKENS_KEY);
       const storedTokens = storedOAuthTokens ? JSON.parse(storedOAuthTokens) : null;
 
-      if (authType === "oauth" && storedTokens && oauthService) {
+      if (authType === "oauth" && storedTokens && regionOAuthService) {
         await handleOAuthAuth(storedTokens);
       } else if (authType === "web_session") {
         handleWebSessionAuth();
@@ -232,7 +263,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
       setLoading(false);
     }
-  }, [oauthService, handleOAuthAuth, handleWebSessionAuth]);
+  }, [createOAuthServiceForRegion, handleOAuthAuth, handleWebSessionAuth]);
 
   useEffect(() => {
     checkAuthState();
@@ -308,17 +339,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const loginWithOAuth = async (): Promise<void> => {
-    if (!oauthService) {
+  const loginWithOAuth = async (targetRegion: Region): Promise<void> => {
+    // Create OAuth service for the selected region
+    const regionOAuthService = createOAuthServiceForRegion(targetRegion);
+    if (!regionOAuthService) {
       throw new Error("OAuth service not available. Please check your configuration.");
     }
 
     setLoading(true);
     try {
-      const tokens = await oauthService.startAuthorizationFlow();
+      const tokens = await regionOAuthService.startAuthorizationFlow();
 
-      // Save tokens
+      // Save tokens and region
       await saveOAuthTokens(tokens);
+      await setStoredRegion(targetRegion);
+      setRegionState(targetRegion);
+      setOauthService(regionOAuthService);
+      CalComAPIService.setApiRegion(targetRegion);
 
       // Update state
       setAccessToken(tokens.accessToken);
@@ -329,11 +366,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Setup API service and refresh function
       await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       if (tokens.refreshToken) {
-        setupRefreshTokenFunction(oauthService);
+        setupRefreshTokenFunction(regionOAuthService);
       }
 
       // Clear PKCE parameters
-      oauthService.clearPKCEParams();
+      regionOAuthService.clearPKCEParams();
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -355,6 +392,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshToken,
     userInfo,
     isWebSession,
+    region,
+    setRegion,
     loginFromWebSession,
     loginWithOAuth,
     logout,

@@ -18,8 +18,11 @@ import {
   View,
 } from "react-native";
 
+import { getAppBaseUrl } from "@/config/region";
 import { showInfoAlert, showNotAvailableAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { getStoredRegion } from "@/utils/storage";
+
 import { NavigationRow, SettingRow, SettingsGroup } from "../SettingsUI";
 
 // Interface language options matching API V2 enum
@@ -269,7 +272,11 @@ export function AdvancedTab(props: AdvancedTabProps) {
             isLast
             title="Locked Timezone"
             value={props.lockedTimezone || "Europe/London"}
-            onPress={() => openInAppBrowser("https://app.cal.com/event-types", "Select Timezone")}
+            onPress={async () => {
+              const region = await getStoredRegion();
+              const baseUrl = getAppBaseUrl(region);
+              openInAppBrowser(`${baseUrl}/event-types`, "Select Timezone");
+            }}
           />
         </SettingsGroup>
       ) : null}
