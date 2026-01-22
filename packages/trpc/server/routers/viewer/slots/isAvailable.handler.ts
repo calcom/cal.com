@@ -64,12 +64,11 @@ export const isAvailableHandler = async ({
         const isSameEventType = originalBooking.eventType?.id === eventTypeId;
 
         if (isSameEventType) {
-          // Check if user is the organizer
+          // Check if user is the organizer (assigned host)
+          // We strictly rely on originalBooking.userId to ensure only the assigned host/organizer can bypass
           const isUserOrganizer = originalBooking.userId && currentUserId === originalBooking.userId;
-          // Check if user is a host
-          const isUserHost =
-            originalBooking.eventType?.hosts?.some((host) => host.userId === currentUserId) ?? false;
-          isHostOrOrganizer = isUserOrganizer || isUserHost;
+          
+          isHostOrOrganizer = !!isUserOrganizer;
         }
       }
     } catch (error) {

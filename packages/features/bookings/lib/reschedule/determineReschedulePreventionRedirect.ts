@@ -22,7 +22,6 @@ export type ReschedulePreventionRedirectInput = {
       allowBookingFromCancelledBookingReschedule: boolean;
       minimumRescheduleNotice: number | null;
       teamId: number | null;
-      hosts?: Array<{ userId: number }>;
     };
   };
   eventUrl: string;
@@ -106,16 +105,11 @@ export function determineReschedulePreventionRedirect(
     input.currentUserId &&
     booking.userId &&
     input.currentUserId === booking.userId;
-  const isUserHost =
-    input.currentUserId !== null &&
-    input.currentUserId !== undefined &&
-    booking.eventType.hosts?.some(
-      (host) => host.userId === input.currentUserId
-    ) === true;
+  // We strictly rely on booking.userId to ensure only the assigned host/organizer can bypass
+  
   const { minimumRescheduleNotice } = booking.eventType;
   if (
     !isUserOrganizer &&
-    !isUserHost &&
     isWithinMinimumRescheduleNotice(
       booking.startTime,
       minimumRescheduleNotice ?? null

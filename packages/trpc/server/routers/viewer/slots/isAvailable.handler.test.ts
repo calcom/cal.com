@@ -165,7 +165,7 @@ describe("isAvailableHandler", () => {
       expect(result.slots[0].status).toBe("minBookNoticeViolation");
     });
 
-    it("should bypass minimum notice for host when rescheduling", async () => {
+    it("should NOT bypass minimum notice for event type host who is not the booking organizer", async () => {
       const currentUserId = 456;
       const organizerUserId = 123;
       const hostUserId = 456;
@@ -193,8 +193,8 @@ describe("isAvailableHandler", () => {
         input,
       });
 
-      // Host should bypass minimum notice
-      expect(result.slots[0].status).toBe("available");
+      // Generic host who is not the booking organizer should NOT bypass
+      expect(result.slots[0].status).toBe("minBookNoticeViolation");
     });
 
     it("should NOT bypass minimum notice for non-host/non-organizer", async () => {

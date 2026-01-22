@@ -128,7 +128,20 @@ function withSlotsCache(
   func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>
 ) {
   return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
-    const cacheKey = `${JSON.stringify(args.input)}`;
+    let cacheSuffix = "";
+    if (args.input.rescheduleUid && args.ctx?.req) {
+      try {
+        const session = await getSession({ req: args.ctx.req } as Parameters<
+          typeof getSession
+        >[0]);
+        if (session?.user?.id) {
+          cacheSuffix = `:${session.user.id}`;
+        }
+      } catch (e) {
+        console.error("Failed to fetch session for cache key", e);
+      }
+    }
+    const cacheKey = `${JSON.stringify(args.input)}${cacheSuffix}`;
     let success = false;
     let cachedResult: IGetAvailableSlots | null = null;
     const startTime = process.hrtime();
@@ -1339,15 +1352,13 @@ export class AvailableSlotsService {
             input.rescheduleUid,
             !!eventType.seatsPerTimeSlot
           );
-          // Check if user is the organizer
-          const isUserOrganizer =
-            originalBooking.userId && currentUserId === originalBooking.userId;
-          // Check if user is a host
-          const isUserHost =
-            originalBooking.eventType?.hosts?.some(
-              (host) => host.userId === currentUserId
-            ) ?? false;
-          shouldIgnoreMinimumNotice = isUserOrganizer || isUserHost;
+          // Security Check: Ensure event type matches
+          if (originalBooking.eventType?.id === eventType.id) {
+            // Check if user is the organizer (Strict: Assigned Host Only)
+            const isUserOrganizer =
+              originalBooking.userId && currentUserId === originalBooking.userId;
+            shouldIgnoreMinimumNotice = !!isUserOrganizer;
+          }
         }
       } catch (error) {
         // If we can't fetch the booking or session, fall back to normal behavior
