@@ -1643,7 +1643,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 editable={
                   !props.readOnly &&
                   !isWhatsappAction(step.action) &&
-                  (hasPaidPlan || isSMSAction(step.action))
+                  hasPaidPlan
                 }
                 excludedToolbarItems={
                   isSMSAction(step.action)
