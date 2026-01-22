@@ -156,7 +156,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
-  if (!verificationToken.team) {
+  if (!verificationToken?.team) {
     return {
       redirect: {
         permanent: false,
