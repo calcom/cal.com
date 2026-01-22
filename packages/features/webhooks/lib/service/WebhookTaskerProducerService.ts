@@ -70,7 +70,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   async queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
-    this.log.info("Queueing form webhook task", {
+    this.log.debug("Queueing form webhook task", {
       operationId,
       triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
       formId: params.formId,
@@ -93,7 +93,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   async queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
-    this.log.info("Queueing recording webhook task", {
+    this.log.debug("Queueing recording webhook task", {
       operationId,
       triggerEvent: WebhookTriggerEvents.RECORDING_READY,
       recordingId: params.recordingId,
@@ -119,7 +119,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   async queueOOOCreatedWebhook(params: QueueOOOWebhookParams): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
-    this.log.info("Queueing OOO webhook task", {
+    this.log.debug("Queueing OOO webhook task", {
       operationId,
       triggerEvent: WebhookTriggerEvents.OOO_CREATED,
       oooEntryId: params.oooEntryId,
@@ -152,7 +152,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   ): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
-    this.log.info("Queueing booking webhook task", {
+    this.log.debug("Queueing booking webhook task", {
       operationId,
       triggerEvent,
       bookingUid: params.bookingUid,
@@ -184,7 +184,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   ): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
-    this.log.info("Queueing payment webhook task", {
+    this.log.debug("Queueing payment webhook task", {
       operationId,
       triggerEvent,
       bookingUid: params.bookingUid,
@@ -212,7 +212,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {
     try {
       await this.tasker.create("webhookDelivery", taskPayload);
-      this.log.info("Webhook delivery task queued successfully", { operationId });
+      this.log.debug("Webhook delivery task queued", { operationId });
     } catch (error) {
       this.log.error("Failed to queue webhook delivery task", {
         operationId,
