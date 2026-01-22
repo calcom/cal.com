@@ -1,3 +1,5 @@
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { Ensure } from "@calcom/types/utils";
 import { z } from "zod";
 import { BooleanChangeSchema } from "../common/changeSchemas";
@@ -11,7 +13,6 @@ import type {
 } from "./IAuditActionService";
 
 const fieldsSchemaV1 = z
-  // Make changes as per this new schema
   .object({
     host: z
       .object({
@@ -19,11 +20,17 @@ const fieldsSchemaV1 = z
         noShow: BooleanChangeSchema,
       })
       .optional(),
-    attendeesNoShow: z.record(z.coerce.number(), BooleanChangeSchema).optional(),
+    // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
+    attendeesNoShow: z.record(z.string(), BooleanChangeSchema).optional(),
   })
-  .refine((data) => data.hostNoShow !== undefined || data.attendeesNoShow !== undefined, {
-    message: "At least one of hostNoShow or attendeesNoShow must be provided",
+  .refine((data) => data.host !== undefined || data.attendeesNoShow !== undefined, {
+    message: "At least one of host or attendeesNoShow must be provided",
   });
+
+type Deps = {
+  attendeeRepository: IAttendeeRepository;
+  userRepository: UserRepository;
+};
 
 export class NoShowUpdatedAuditActionService implements IAuditActionService {
   readonly VERSION = 1;
@@ -43,7 +50,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     typeof NoShowUpdatedAuditActionService.storedDataSchema
   >;
 
-  constructor() {
+  constructor(private readonly deps: Deps) {
     this.helper = new AuditActionServiceHelper({
       latestVersion: this.VERSION,
       latestFieldsSchema: NoShowUpdatedAuditActionService.latestFieldsSchema,
@@ -69,10 +76,10 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     return { isMigrated: false, latestData: validated };
   }
 
-  private isHostNoShowSet(
+  private isHostSet(
     fields: NoShowUpdatedAuditData
-  ): fields is Ensure<NoShowUpdatedAuditData, "hostNoShow"> {
-    return fields.hostNoShow !== undefined;
+  ): fields is Ensure<NoShowUpdatedAuditData, "host"> {
+    return fields.host !== undefined;
   }
 
   private isAttendeesNoShowSet(
@@ -83,13 +90,14 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
 
   async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
     const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
-    if (this.isHostNoShowSet(fields) && this.isAttendeesNoShowSet(fields)) {
+    const parsedFields = fields as NoShowUpdatedAuditData;
+    if (this.isHostSet(parsedFields) && this.isAttendeesNoShowSet(parsedFields)) {
       return { key: "booking_audit_action.no_show_updated" };
     }
-    if (this.isHostNoShowSet(fields)) {
+    if (this.isHostSet(parsedFields)) {
       return { key: "booking_audit_action.host_no_show_updated" };
     }
-    if (this.isAttendeesNoShowSet(fields)) {
+    if (this.isAttendeesNoShowSet(parsedFields)) {
       return { key: "booking_audit_action.attendee_no_show_updated" };
     }
     throw new Error("Audit action data is invalid");
@@ -102,45 +110,44 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     }>
   > {
     const { fields } = this.parseStored(storedData);
-    let attendeesFieldValue: string;
-    let hostFieldValue: Array<{ labelKey: string; valueKey: string }> = [];
-    const fields: { labelKey: string; valueKey: string }[] = [];
-    if (this.isAttendeesNoShowSet(fields)) {
-      const attendeeIds = Object.keys(fields.attendeesNoShow).map(Number);
-      const dbAttendees = await this.deps.attendeeRepository.findByIds(attendeeIds);
+    const parsedFields = fields as NoShowUpdatedAuditData;
+    const displayFields: { labelKey: string; valueKey: string }[] = [];
 
-      const attendeesFieldValueParts = dbAttendees.map((dbAttendee) => {
-        const attendeeNoShow = fields.attendeesNoShow?.[dbAttendee.id];
-        let valueKey = "";
-        if (attendeeNoShow) {
-          valueKey = attendeeNoShow.new ? "Yes" : "No";
+    if (this.isAttendeesNoShowSet(parsedFields)) {
+      // Keys are attendee emails (not IDs) because attendee records can be reused with different person's data
+      const attendeesFieldValueParts = Object.entries(parsedFields.attendeesNoShow).map(
+        ([email, noShowChange]) => {
+          const valueKey = noShowChange.new ? "Yes" : "No";
+          return `${email}:${valueKey}`;
         }
-        return `${dbAttendee.name}:${valueKey}`;
-      });
-      attendeesFieldValue = attendeesFieldValueParts.join(", ");
-      fields.push({ labelKey: "Attendees", valueKey: attendeesFieldValue });
+      );
+      const attendeesFieldValue = attendeesFieldValueParts.join(", ");
+      displayFields.push({ labelKey: "Attendees", valueKey: attendeesFieldValue });
     }
-    if (this.isHostNoShowSet(fields)) {
-      const user = await this.deps.userRepository.findByUuid({ uuid: fields.host?.userUuid });
+
+    if (this.isHostSet(parsedFields)) {
+      const user = await this.deps.userRepository.findByUuid({ uuid: parsedFields.host.userUuid });
       const hostName = user?.name || "Unknown";
-      hostFieldValue = `${hostName}:${fields.host?.noShow.new ? "Yes" : "No"}`;
-      fields.push({ labelKey: "Host", valueKey: hostFieldValue });
+      const hostFieldValue = `${hostName}:${parsedFields.host.noShow.new ? "Yes" : "No"}`;
+      displayFields.push({ labelKey: "Host", valueKey: hostFieldValue });
     }
-    return fields;
+
+    return displayFields;
   }
 
   getDisplayJson({ storedData }: GetDisplayJsonParams): NoShowUpdatedAuditDisplayData {
     const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
+    const parsedFields = fields as NoShowUpdatedAuditData;
     return {
-      ...(this.isHostNoShowSet(fields)
+      ...(this.isHostSet(parsedFields)
         ? {
-            hostNoShow: fields.hostNoShow.new,
-            previousHostNoShow: fields.hostNoShow.old,
+            hostNoShow: parsedFields.host.noShow.new,
+            previousHostNoShow: parsedFields.host.noShow.old,
           }
         : {}),
-      ...(this.isAttendeesNoShowSet(fields)
+      ...(this.isAttendeesNoShowSet(parsedFields)
         ? {
-            attendeesNoShow: fields.attendeesNoShow,
+            attendeesNoShow: parsedFields.attendeesNoShow,
           }
         : {}),
     };
@@ -152,5 +159,6 @@ export type NoShowUpdatedAuditData = z.infer<typeof fieldsSchemaV1>;
 export type NoShowUpdatedAuditDisplayData = {
   hostNoShow?: boolean;
   previousHostNoShow?: boolean | null;
-  attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }> | null;
+  // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
+  attendeesNoShow?: Record<string, { old: boolean | null; new: boolean }> | null;
 };

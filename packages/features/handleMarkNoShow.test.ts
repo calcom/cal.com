@@ -155,6 +155,7 @@ type DBBooking = {
   } | null;
   user: {
     id: number;
+    uuid: string;
     email: string;
     name: string;
     locale: string;
@@ -219,6 +220,7 @@ const createMockBooking = (overrides: {
         : null,
     user: {
       id: overrides.userId ?? 123,
+      uuid: "host-uuid-123",
       email: "host@example.com",
       name: "Test Host",
       locale: "en",
@@ -284,10 +286,12 @@ const expectBookingNoShowHostState = (bookingUid: string, expectedNoShowHost: bo
 type ExpectedAuditData = {
   bookingUid: string;
   source: string;
-  actor: { identifiedBy: string; userUuid: string };
+  actor: { identifiedBy: string; userUuid?: string; email?: string; name?: null };
   organizationId: number | null;
-  hostNoShow?: { old: boolean | null; new: boolean };
-  attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
+  // New schema: host contains userUuid and noShow change
+  host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
+  // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
+  attendeesNoShow?: Record<string, { old: boolean | null; new: boolean }>;
 };
 
 const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
@@ -296,11 +300,11 @@ const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
 
   expect(call.bookingUid).toBe(expected.bookingUid);
   expect(call.source).toBe(expected.source);
-  expect(call.actor).toEqual(expected.actor);
+  expect(call.actor).toMatchObject(expected.actor);
   expect(call.organizationId).toBe(expected.organizationId);
 
-  if (expected.hostNoShow) {
-    expect(call.auditData.hostNoShow).toEqual(expected.hostNoShow);
+  if (expected.host) {
+    expect(call.auditData.host).toEqual(expected.host);
   }
 
   if (expected.attendeesNoShow) {
@@ -308,11 +312,9 @@ const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
     const expectedKeys = Object.keys(expected.attendeesNoShow);
     expect(actualKeys).toHaveLength(expectedKeys.length);
 
-    // Validate each attendee's data using numeric key comparison
-    for (const [expectedId, expectedValue] of Object.entries(expected.attendeesNoShow)) {
-      const numericId = Number(expectedId);
-      // Verify the key exists (JavaScript object keys are strings, so we check string representation)
-      const actualValue = call.auditData.attendeesNoShow[numericId];
+    // Validate each attendee's data using email key comparison
+    for (const [expectedEmail, expectedValue] of Object.entries(expected.attendeesNoShow)) {
+      const actualValue = call.auditData.attendeesNoShow[expectedEmail];
       expect(actualValue).toBeDefined();
       expect(actualValue).toEqual(expectedValue);
     }
@@ -502,7 +504,10 @@ describe("handleMarkNoShow", () => {
       expect(result.noShowHost).toBe(false);
       expect(mockOnNoShowUpdated).toHaveBeenCalledTimes(1);
       const call = mockOnNoShowUpdated.mock.calls[0][0];
-      expect(call.auditData.hostNoShow).toEqual({ old: true, new: false });
+      expect(call.auditData.host).toEqual({
+        userUuid: "host-uuid-123",
+        noShow: { old: true, new: false },
+      });
       expect(call.source).toBe("WEBAPP");
       expect(call.actor).toEqual({ identifiedBy: "user", userUuid: "user-uuid-123" });
     });
@@ -614,7 +619,7 @@ describe("handleMarkNoShow", () => {
     it("should call BookingEventHandlerService.onNoShowUpdated with correct args", async () => {
       const bookingUid = "test-booking-audit";
       createMockBooking({ uid: bookingUid });
-      const attendee = createMockAttendee({ bookingUid, email: "attendee@example.com", noShow: false });
+      createMockAttendee({ bookingUid, email: "attendee@example.com", noShow: false });
 
       await handleMarkNoShow({
         bookingUid,
@@ -629,7 +634,8 @@ describe("handleMarkNoShow", () => {
         source: "WEBAPP",
         actor: { identifiedBy: "user", userUuid: "user-uuid-123" },
         organizationId: null,
-        attendeesNoShow: { [attendee.id]: { old: false, new: true } },
+        // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
+        attendeesNoShow: { "attendee@example.com": { old: false, new: true } },
       });
     });
 
@@ -649,7 +655,7 @@ describe("handleMarkNoShow", () => {
         source: "WEBAPP",
         actor: { identifiedBy: "user", userUuid: "user-uuid-123" },
         organizationId: null,
-        hostNoShow: { old: false, new: true },
+        host: { userUuid: "host-uuid-123", noShow: { old: false, new: true } },
       });
     });
   });
@@ -674,7 +680,10 @@ describe("handleMarkNoShow", () => {
       expect(call.actor.email).toMatch(/@guest\.internal$/);
       expect(call.actor.name).toBeNull();
       expect(call.source).toBe("WEBAPP");
-      expect(call.auditData.hostNoShow).toEqual({ old: null, new: true });
+      expect(call.auditData.host).toEqual({
+        userUuid: "host-uuid-123",
+        noShow: { old: null, new: true },
+      });
     });
   });
 

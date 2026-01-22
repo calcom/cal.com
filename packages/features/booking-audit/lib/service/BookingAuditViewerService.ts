@@ -90,6 +90,7 @@ export class BookingAuditViewerService {
       membershipRepository: this.membershipRepository,
     });
     this.actionServiceRegistry = new BookingAuditActionServiceRegistry({
+      attendeeRepository: this.attendeeRepository,
       userRepository: this.userRepository,
     });
   }

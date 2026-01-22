@@ -467,6 +467,7 @@ export class BookingRepository implements IBookingRepository {
         user: {
           select: {
             id: true,
+            uuid: true,
             email: true,
             name: true,
             destinationCalendar: true,

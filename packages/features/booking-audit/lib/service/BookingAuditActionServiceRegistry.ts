@@ -1,3 +1,4 @@
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { IAuditActionService } from "../actions/IAuditActionService";
 import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
@@ -43,6 +44,7 @@ export type AuditActionData =
  * code duplication between consumer and viewer services.
  */
 interface BookingAuditActionServiceRegistryDeps {
+    attendeeRepository: IAttendeeRepository;
     userRepository: UserRepository;
 }
 
@@ -57,7 +59,7 @@ export class BookingAuditActionServiceRegistry {
             ["ACCEPTED", new AcceptedAuditActionService()],
             ["RESCHEDULE_REQUESTED", new RescheduleRequestedAuditActionService()],
             ["ATTENDEE_ADDED", new AttendeeAddedAuditActionService()],
-            ["NO_SHOW_UPDATED", new NoShowUpdatedAuditActionService()],
+            ["NO_SHOW_UPDATED", new NoShowUpdatedAuditActionService({ attendeeRepository: deps.attendeeRepository, userRepository: deps.userRepository })],
             ["REJECTED", new RejectedAuditActionService()],
             ["ATTENDEE_REMOVED", new AttendeeRemovedAuditActionService()],
             ["REASSIGNMENT", new ReassignmentAuditActionService(deps.userRepository)],

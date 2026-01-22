@@ -21,6 +21,17 @@ export class AttendeeRepository implements IAttendeeRepository {
     return attendee;
   }
 
+  async findByIds({ ids }: { ids: number[] }): Promise<{ id: number; name: string; email: string }[]> {
+    return this.prismaClient.attendee.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+  }
+
   async findByBookingIdAndSeatReference({
     bookingId,
     seatReferenceUid,

@@ -163,6 +163,7 @@ const getBookingAttendeesFromEmails = async (
 
 async function fireNoShowUpdated({
   updatedNoShowHost,
+  hostUserUuid,
   booking,
   updatedAttendees,
   emailToAttendeeMap,
@@ -171,6 +172,7 @@ async function fireNoShowUpdated({
   actionSource,
 }: {
   updatedNoShowHost?: boolean;
+  hostUserUuid?: string;
   booking: {
     uid: string;
     noShowHost: boolean | null;
@@ -182,12 +184,16 @@ async function fireNoShowUpdated({
   actionSource: ValidActionSource;
 }): Promise<void> {
   const auditData: {
-    hostNoShow?: { old: boolean | null; new: boolean };
-    attendeesNoShow?: Record<number, { old: boolean | null; new: boolean }>;
+    host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
+    // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
+    attendeesNoShow?: Record<string, { old: boolean | null; new: boolean }>;
   } = {};
 
-  if (updatedNoShowHost !== undefined) {
-    auditData.hostNoShow = { old: booking.noShowHost, new: updatedNoShowHost };
+  if (updatedNoShowHost !== undefined && hostUserUuid) {
+    auditData.host = {
+      userUuid: hostUserUuid,
+      noShow: { old: booking.noShowHost, new: updatedNoShowHost },
+    };
   }
 
   if (updatedAttendees) {
@@ -195,14 +201,15 @@ async function fireNoShowUpdated({
     for (const attendee of updatedAttendees) {
       const dbAttendee = emailToAttendeeMap[attendee.email];
       if (dbAttendee) {
-        auditData.attendeesNoShow[dbAttendee.id] = { old: dbAttendee.noShow ?? null, new: attendee.noShow };
+        // Use email as key instead of attendee ID
+        auditData.attendeesNoShow[attendee.email] = { old: dbAttendee.noShow ?? null, new: attendee.noShow };
       }
     }
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
 
-  const isSomethingChanged = auditData.hostNoShow || auditData.attendeesNoShow;
+  const isSomethingChanged = auditData.host || auditData.attendeesNoShow;
   if (isSomethingChanged) {
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
@@ -384,6 +391,7 @@ const handleMarkNoShow = async ({
     await fireNoShowUpdated({
       booking,
       updatedNoShowHost: noShowHost,
+      hostUserUuid: booking.user?.uuid,
       updatedAttendees: attendees,
       emailToAttendeeMap,
       actor,
