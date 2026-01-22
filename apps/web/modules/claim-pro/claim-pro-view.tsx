@@ -4,6 +4,7 @@ import { TallyForm } from "@calid/features/modules/claim-pro/TallyForm";
 import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogContent } from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
+import { SkeletonText } from "@calid/features/ui/components/skeleton";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 
@@ -27,7 +28,22 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const formSubmittedForYear = userMetadata.isProUser?.formSubmittedForYear || 0;
   const { data: session } = useSession();
+  const utils = trpc.useUtils();
   const userEmail = session?.user?.email;
+
+  // Fetch unique attendees count for experimental first year feature
+  const { data: uniqueAttendeesData, isLoading: isLoadingUniqueAttendees } =
+    trpc.viewer.me.getUniqueAttendeesCount.useQuery(undefined, {
+      refetchOnWindowFocus: true,
+    });
+
+  const experimentalFirstYearEligible = uniqueAttendeesData?.isEligible || false;
+  const uniqueAttendeesCount = uniqueAttendeesData?.uniqueAttendeesCount || 0;
+  const requiredUniqueAttendees = uniqueAttendeesData?.requiredCount || 3;
+  const yearClaimed = userMetadata.isProUser?.yearClaimed || 0;
+  const hasAlreadyClaimed = yearClaimed >= 1 || formSubmittedForYear >= 1;
+  const canAutoClaimFirstYear = experimentalFirstYearEligible && !hasAlreadyClaimed;
+  const firstYearClaimed = formSubmittedForYear >= 1 || (experimentalFirstYearEligible && !hasAlreadyClaimed);
 
   const mutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: (data) => {
@@ -46,6 +62,43 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
       }
     },
   });
+
+  // Mutation to claim first year directly when eligible via unique attendees
+  const claimFirstYearMutation = trpc.viewer.me.calid_updateProfile.useMutation({
+    onSuccess: async (data) => {
+      const updatedMetadata = data.metadata?.isProUser || userMetadata.isProUser;
+      setUserMetadata((prev) => ({
+        ...prev,
+        isProUser: {
+          ...prev.isProUser,
+          ...updatedMetadata,
+        },
+      }));
+      await utils.viewer.me.invalidate();
+    },
+  });
+
+  React.useEffect(() => {
+    // Only auto-claim for new users who haven't claimed before
+    if (canAutoClaimFirstYear) {
+      const expiryDate = new Date();
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      const validTillDate = expiryDate.toISOString();
+
+      claimFirstYearMutation.mutate({
+        metadata: {
+          isProUser: {
+            ...userMetadata.isProUser,
+            formSubmittedForYear: 1,
+            yearClaimed: 1,
+            validTillDate: validTillDate,
+            verified: true,
+          },
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canAutoClaimFirstYear]);
 
   const handleTallySubmission = (formSubmittedForYear: number) => {
     mutation.mutate({
@@ -84,18 +137,16 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
           <div className="group relative h-80 w-full">
             <div
               className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
-                formSubmittedForYear >= 1
-                  ? "cursor-not-allowed opacity-60"
-                  : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
+                firstYearClaimed ? "cursor-not-allowed opacity-60" : "cursor-default"
               }`}
               style={{
                 boxShadow: "0 18px 40px rgba(10,10,20,0.18)",
               }}>
               <div
                 className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
-                  formSubmittedForYear >= 1 ? "bg-green-100" : "bg-blue-100"
+                  firstYearClaimed ? "bg-green-100" : "bg-blue-100"
                 }`}>
-                {formSubmittedForYear >= 1 ? (
+                {firstYearClaimed ? (
                   <Icon name="check" className="h-8 w-8 text-green-500" />
                 ) : (
                   <svg
@@ -113,24 +164,46 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
                 )}
               </div>
               <h3 className="text-default text-xl font-bold">
-                {formSubmittedForYear >= 1 ? "First Year Pro" : "Unlock 1st Year"}
+                {firstYearClaimed ? "First Year Pro" : "Unlock 1st Year"}
               </h3>
-              <p className="text-default mb-6">
-                {formSubmittedForYear >= 1 ? "Already Claimed" : "Unlock all premium features for one year"}
+              <p className="text-default mb-4 text-center">
+                {firstYearClaimed
+                  ? "Already Claimed"
+                  : "Get 3 bookings with unique bookers to unlock your first year"}
               </p>
-              <Button
-                onClick={() => formSubmittedForYear < 1 && setShowTallyForm(true)}
-                className="text-center"
-                disabled={mutation.isPending || formSubmittedForYear >= 1}>
-                {formSubmittedForYear >= 1 ? "Already Claimed" : "Claim"}
-              </Button>
+              {!isLoadingUniqueAttendees ? (
+                <div className="flex w-full max-w-[200px] flex-col items-center justify-center gap-1">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        firstYearClaimed ? "bg-green-500" : "bg-blue-500"
+                      }`}
+                      style={{
+                        width: `${Math.min((uniqueAttendeesCount / requiredUniqueAttendees) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="text-default flex justify-between text-xs">
+                    <span>
+                      {uniqueAttendeesCount} / {requiredUniqueAttendees} unique bookers
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex w-full max-w-[200px] flex-col items-center justify-center gap-1">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                    <SkeletonText className="block h-full w-1/3" style={{ display: "block" }} />
+                  </div>
+                  <SkeletonText className="h-4 w-24" />
+                </div>
+              )}
             </div>
           </div>
 
           <div className="group relative h-80 w-full">
             <div
               className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
-                formSubmittedForYear < 1 || formSubmittedForYear > 1
+                !firstYearClaimed || formSubmittedForYear >= 2
                   ? "cursor-not-allowed opacity-60"
                   : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
               }`}
@@ -165,14 +238,12 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
                 {formSubmittedForYear >= 2 ? "Already Claimed" : "Unlock all premium features for two years"}
               </p>
               <Button
-                onClick={() =>
-                  formSubmittedForYear >= 1 && formSubmittedForYear < 2 && setShowTallyForm(true)
-                }
+                onClick={() => firstYearClaimed && formSubmittedForYear < 2 && setShowTallyForm(true)}
                 className="text-center"
-                disabled={mutation.isPending || formSubmittedForYear < 1 || formSubmittedForYear >= 2}>
+                disabled={mutation.isPending || !firstYearClaimed || formSubmittedForYear >= 2}>
                 {formSubmittedForYear >= 2
                   ? "Already Claimed"
-                  : formSubmittedForYear < 1
+                  : !firstYearClaimed
                   ? "Complete First Year"
                   : "Claim"}
               </Button>
