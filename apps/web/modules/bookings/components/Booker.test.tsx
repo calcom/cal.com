@@ -13,11 +13,29 @@ import "@calcom/lib/__mocks__/logger";
 import React from "react";
 import { vi } from "vitest";
 
-import "@calcom/dayjs/__mocks__";
-import "@calcom/web/modules/auth/components/Turnstile";
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => "/test-path",
+    useSearchParams: () => new URLSearchParams(),
+    useParams: () => ({}),
+  };
+});
 
-import { Booker } from "./Booker";
+import "@calcom/dayjs/__mocks__";
+import Turnstile from "@calcom/web/modules/auth/components/Turnstile";
+
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
+import { Booker } from "./Booker";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
 import type { ConnectedCalendarsType, ScheduleDataType } from "@calcom/web/modules/bookings/types";
 
@@ -182,8 +200,9 @@ describe("Booker", () => {
           WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>)}
       />,
       {
-      mockStore: { state: "loading" },
-    });
+        mockStore: { state: "loading" },
+      }
+    );
     expect(container).toBeEmptyDOMElement();
   });
 

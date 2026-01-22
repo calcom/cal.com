@@ -280,7 +280,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     deleteField={
                       !permissions.readOnly
                         ? {
-                            color: "minimal",
+                            color: "destructive",
                             check: () => true,
                             disabled: !permissions.canUpdate,
                             fn: () => {

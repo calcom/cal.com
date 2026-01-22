@@ -4,7 +4,7 @@
 // NOTE: All imports except vitest are deferred to inside the skipped describe blocks
 // to prevent module loading side effects during test collection (which can cause
 // "Closing rpc while fetch was pending" errors from watchlist module imports)
-import { describe, expect, test, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   const mockTranslate = vi.fn((key: string) => key);
@@ -224,7 +224,7 @@ describe.skip("editLocation.handler", () => {
         input: {
           newLocation: "conferencing",
         },
-        currentUserId: updatedOrganizer.id,
+        actionSource: "WEBAPP",
       });
 
       const updatedBooking = await prisma.booking.findFirstOrThrow({
