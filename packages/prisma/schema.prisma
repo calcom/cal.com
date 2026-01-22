@@ -383,10 +383,6 @@ model User {
   timeZone            String               @default("Europe/London")
   travelSchedules     TravelSchedule[]
   weekStart           String               @default("Sunday")
-  // DEPRECATED - TO BE REMOVED
-  startTime           Int                  @default(0)
-  endTime             Int                  @default(1440)
-  // </DEPRECATED>
   bufferTime          Int                  @default(0)
   hideBranding        Boolean              @default(false)
   // TODO: should be renamed since it only affects the booking page
