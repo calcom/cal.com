@@ -1,5 +1,5 @@
 import type Stripe from "stripe";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StripeBillingService } from "./StripeBillingService";
 
@@ -44,6 +44,15 @@ describe("StripeBillingService", () => {
     expect(stripeMock.subscriptions.retrieve).toHaveBeenCalledWith(args.subscriptionId);
     expect(stripeMock.subscriptions.update).toHaveBeenCalledWith(args.subscriptionId, {
       items: [{ quantity: args.membershipCount, id: args.subscriptionItemId }],
+    });
+
+    await stripeBillingService.handleSubscriptionUpdate({
+      ...args,
+      prorationBehavior: "none",
+    });
+    expect(stripeMock.subscriptions.update).toHaveBeenCalledWith(args.subscriptionId, {
+      items: [{ quantity: args.membershipCount, id: args.subscriptionItemId }],
+      proration_behavior: "none",
     });
   });
 
