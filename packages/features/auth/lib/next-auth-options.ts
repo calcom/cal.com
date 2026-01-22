@@ -10,7 +10,10 @@ import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import {
+  createGoogleCalendarServiceWithGoogleType,
+  type GoogleCalendar,
+} from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
@@ -733,7 +736,7 @@ export const getOptions = ({
             appId: "google-calendar",
             type: "google_calendar",
           });
-          const gCalService = new GoogleCalendarService({
+          const gCalService = createGoogleCalendarServiceWithGoogleType({
             ...gcalCredential,
             user: null,
             delegatedTo: null,
@@ -1075,6 +1078,11 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            // Prevent account pre-hijacking: block OAuth linking for unverified accounts
+            if (!existingUserWithEmail.emailVerified) {
+              return "/auth/error?error=unverified-email";
+            }
+
             // Verify SAML IdP is authoritative before converting account
             if (idP === IdentityProvider.SAML) {
               const samlTenant = getSamlTenant();
@@ -1086,7 +1094,6 @@ export const getOptions = ({
 
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
-              // also update email to the IdP email
               data: {
                 email: user.email.toLowerCase(),
                 identityProvider: idP,
@@ -1198,6 +1205,7 @@ export const getOptions = ({
                       liFatId: tracking.linkedInAds.liFatId,
                       linkedInCampaignId: tracking.linkedInAds.campaignId,
                     }),
+                    ...(tracking.utmData && tracking.utmData),
                   },
                 });
                 await prisma.user.update({
