@@ -24,8 +24,6 @@ export const ALL_SCOPES: OptInFeatureScope[] = ["org", "team", "user"];
 /**
  * Features that appear in opt-in settings.
  * Add new features here to make them available for user/team opt-in.
- *
- * Note: bookings-v3 is only included during E2E tests to enable testing the feature opt-in banner flow.
  */
 export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   // Example - to be populated with actual features
