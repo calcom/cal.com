@@ -77,12 +77,12 @@ function RoutingInfoSection(props: RoutingInfoSectionProps): JSX.Element {
 
   return (
     <div className="-mt-2 mb-4 space-y-3">
-      {/* <div>
+      <div>
         <Label className="text-emphasis mb-1 block text-sm font-medium">{routingReasonLabel}</Label>
         <p className="text-default bg-muted rounded-md px-3 py-2 text-sm">
           {routingReason || noRoutingReasonText}
         </p>
-      </div> */}
+      </div>
 
       <div>
         <Label className="text-emphasis mb-1 block text-sm font-medium">{whoBookedItLabel}</Label>
