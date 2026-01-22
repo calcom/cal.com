@@ -148,14 +148,14 @@ export class BusyTimesService {
             aggregate.push({
               start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
               end: dayjs(startTime).toDate(), // The event starts after the buffer
-              source: "Buffer Time",
+              source: "busy_time.buffer_time",
             });
           }
           if (minutesToBlockAfterEvent) {
             aggregate.push({
               start: dayjs(endTime).toDate(), // The event ends before the buffer
               end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-              source: "Buffer Time",
+              source: "busy_time.buffer_time",
             });
           }
           return aggregate;
@@ -249,7 +249,7 @@ export class BusyTimesService {
           ...value,
           end: dayjs(value.end),
           start: dayjs(value.start),
-          source: value.source ?? "Calendar",
+          source: value.source ?? "busy_time.calendar",
         }));
 
         const result = subtract(
