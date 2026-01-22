@@ -30,9 +30,9 @@ interface SmtpConfiguration {
   fromName: string;
   smtpHost: string;
   smtpPort: number;
+  smtpUser: string;
   smtpSecure: boolean;
   isEnabled: boolean;
-  isPrimary: boolean;
   lastTestedAt: Date | null;
   lastError: string | null;
   createdAt: Date;
@@ -54,13 +54,11 @@ const SkeletonLoader = () => {
 const SmtpConfigurationItem = ({
   config,
   canEdit,
-  onSetPrimary,
   onDelete,
   onToggleEnabled,
 }: {
   config: SmtpConfiguration;
   canEdit: boolean;
-  onSetPrimary: (id: number) => void;
   onDelete: (config: SmtpConfiguration) => void;
   onToggleEnabled: (id: number, isEnabled: boolean) => void;
 }) => {
@@ -76,13 +74,10 @@ const SmtpConfigurationItem = ({
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="text-emphasis text-base font-medium">{config.fromEmail}</span>
-              {config.isPrimary && <Badge variant="blue">{t("primary")}</Badge>}
+              {config.isEnabled && <Badge variant="blue">{t("enabled")}</Badge>}
               {!config.isEnabled && <Badge variant="gray">{t("disabled")}</Badge>}
             </div>
-            <span className="text-subtle text-sm">
-              {config.fromName ? `${config.fromName} · ` : ""}
-              {config.smtpHost}:{config.smtpPort}
-            </span>
+            <span className="text-subtle text-sm">{config.fromName || t("no_name_provided")}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -98,19 +93,6 @@ const SmtpConfigurationItem = ({
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                {!config.isPrimary && config.isEnabled && (
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSetPrimary(config.id);
-                      }}
-                      StartIcon="star">
-                      {t("set_as_primary")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
@@ -143,12 +125,26 @@ const SmtpConfigurationItem = ({
       <CollapsiblePanel className="px-5">
         <div className="space-y-4 pb-5">
           <div className="bg-subtle/50 rounded-lg p-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("from_email")}</span>
+                <p className="text-emphasis mt-1 text-sm font-medium">{config.fromEmail}</p>
+              </div>
+              <div>
+                <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("from_name")}</span>
+                <p className="text-emphasis mt-1 text-sm font-medium">{config.fromName || "-"}</p>
+              </div>
               <div>
                 <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("smtp_host")}</span>
-                <p className="text-emphasis mt-1 text-sm font-medium">
-                  {config.smtpHost}:{config.smtpPort}
-                </p>
+                <p className="text-emphasis mt-1 text-sm font-medium">{config.smtpHost}</p>
+              </div>
+              <div>
+                <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("smtp_port")}</span>
+                <p className="text-emphasis mt-1 text-sm font-medium">{config.smtpPort}</p>
+              </div>
+              <div>
+                <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("smtp_username")}</span>
+                <p className="text-emphasis mt-1 text-sm font-medium">{config.smtpUser || "-"}</p>
               </div>
               <div>
                 <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("connection")}</span>
@@ -168,13 +164,11 @@ const SmtpConfigurationItem = ({
 const SmtpConfigurationList = ({
   configs,
   canEdit,
-  onSetPrimary,
   onDelete,
   onToggleEnabled,
 }: {
   configs: SmtpConfiguration[];
   canEdit: boolean;
-  onSetPrimary: (id: number) => void;
   onDelete: (config: SmtpConfiguration) => void;
   onToggleEnabled: (id: number, isEnabled: boolean) => void;
 }) => {
@@ -185,7 +179,6 @@ const SmtpConfigurationList = ({
           key={config.id}
           config={config}
           canEdit={canEdit}
-          onSetPrimary={onSetPrimary}
           onDelete={onDelete}
           onToggleEnabled={onToggleEnabled}
         />
@@ -201,16 +194,6 @@ const SmtpConfigurationsView = ({ permissions }: { permissions: { canRead: boole
   const [deleteConfig, setDeleteConfig] = useState<SmtpConfiguration | null>(null);
 
   const { data: configs, isPending } = trpc.viewer.organizations.listSmtpConfigurations.useQuery();
-
-  const setAsPrimaryMutation = trpc.viewer.organizations.setSmtpConfigurationAsPrimary.useMutation({
-    onSuccess: () => {
-      showToast(t("smtp_configuration_set_as_primary"), "success");
-      utils.viewer.organizations.listSmtpConfigurations.invalidate();
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
 
   const deleteMutation = trpc.viewer.organizations.deleteSmtpConfiguration.useMutation({
     onSuccess: () => {
@@ -235,10 +218,6 @@ const SmtpConfigurationsView = ({ permissions }: { permissions: { canRead: boole
       showToast(error.message, "error");
     },
   });
-
-  const handleSetPrimary = (id: number) => {
-    setAsPrimaryMutation.mutate({ id });
-  };
 
   const handleDelete = (config: SmtpConfiguration) => {
     setDeleteConfig(config);
@@ -265,7 +244,6 @@ const SmtpConfigurationsView = ({ permissions }: { permissions: { canRead: boole
             <SmtpConfigurationList
               configs={configs as SmtpConfiguration[]}
               canEdit={permissions.canEdit}
-              onSetPrimary={handleSetPrimary}
               onDelete={handleDelete}
               onToggleEnabled={handleToggleEnabled}
             />

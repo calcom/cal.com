@@ -38,7 +38,6 @@ import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZListWatchlistEntriesInputSchema } from "./listWatchlistEntries.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
-import { ZSetSmtpConfigurationAsPrimaryInputSchema } from "./setSmtpConfigurationAsPrimary.schema";
 import { ZTestSmtpConnectionInputSchema } from "./testSmtpConnection.schema";
 import { ZToggleSmtpConfigurationInputSchema } from "./toggleSmtpConfiguration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -234,12 +233,6 @@ export const viewerOrganizationsRouter = router({
     .input(ZCreateSmtpConfigurationInputSchema)
     .mutation(async (opts) => {
       const { default: handler } = await import("./createSmtpConfiguration.handler");
-      return handler(opts);
-    }),
-  setSmtpConfigurationAsPrimary: authedOrgAdminProcedure
-    .input(ZSetSmtpConfigurationAsPrimaryInputSchema)
-    .mutation(async (opts) => {
-      const { default: handler } = await import("./setSmtpConfigurationAsPrimary.handler");
       return handler(opts);
     }),
   deleteSmtpConfiguration: authedOrgAdminProcedure

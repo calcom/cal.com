@@ -735,8 +735,7 @@ model SmtpConfiguration {
   lastTestedAt DateTime?
   lastError    String?
 
-  isEnabled Boolean @default(true)
-  isPrimary Boolean @default(false)
+  isEnabled Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

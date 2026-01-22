@@ -92,9 +92,6 @@ export class SmtpConfigurationService {
       throw new ErrorWithCode(ErrorCode.BadRequest, "SMTP configuration already exists for this email");
     }
 
-    const existingCount = await this.repository.countByOrgId(params.organizationId);
-    const isFirstConfig = existingCount === 0;
-
     const encrypted = this.encryptCredentials(params.smtpUser, params.smtpPassword);
 
     const input: CreateSmtpConfigurationInput = {
@@ -106,24 +103,11 @@ export class SmtpConfigurationService {
       smtpUser: encrypted.user,
       smtpPassword: encrypted.password,
       smtpSecure: params.smtpSecure,
-      isPrimary: isFirstConfig,
     };
 
     const config = await this.repository.create(input);
 
     return this.toPublic(config);
-  }
-
-  async setAsPrimary(id: number, organizationId: number): Promise<void> {
-    const config = await this.repository.findById(id);
-    if (!config) {
-      throw new ErrorWithCode(ErrorCode.NotFound, "SMTP configuration not found");
-    }
-    if (config.organizationId !== organizationId) {
-      throw new ErrorWithCode(ErrorCode.Forbidden, "Not authorized to update this SMTP configuration");
-    }
-
-    await this.repository.setAsPrimary(id, organizationId);
   }
 
   async delete(id: number, organizationId: number): Promise<void> {
@@ -151,7 +135,7 @@ export class SmtpConfigurationService {
       throw new ErrorWithCode(ErrorCode.Forbidden, "Not authorized to update this SMTP configuration");
     }
 
-    const updated = await this.repository.setEnabled(id, isEnabled);
+    const updated = await this.repository.setEnabled(id, organizationId, isEnabled);
     return this.toPublic(updated);
   }
 
@@ -168,7 +152,7 @@ export class SmtpConfigurationService {
   }
 
   async getActiveConfigForOrg(organizationId: number): Promise<SmtpEmailConfig | null> {
-    const config = await this.repository.findPrimaryActiveByOrgId(organizationId);
+    const config = await this.repository.findFirstEnabledByOrgId(organizationId);
     if (!config) {
       return null;
     }

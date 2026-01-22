@@ -9,7 +9,6 @@ export interface CreateSmtpConfigurationInput {
   smtpUser: string;
   smtpPassword: string;
   smtpSecure: boolean;
-  isPrimary?: boolean;
 }
 
 const smtpConfigurationSelect = {
@@ -25,7 +24,6 @@ const smtpConfigurationSelect = {
   lastTestedAt: true,
   lastError: true,
   isEnabled: true,
-  isPrimary: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.SmtpConfigurationSelect;
@@ -41,11 +39,11 @@ const smtpConfigurationSelectPublic = {
   fromName: true,
   smtpHost: true,
   smtpPort: true,
+  smtpUser: true,
   smtpSecure: true,
   lastTestedAt: true,
   lastError: true,
   isEnabled: true,
-  isPrimary: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.SmtpConfigurationSelect;
@@ -68,7 +66,6 @@ export class SmtpConfigurationRepository {
         smtpUser: data.smtpUser,
         smtpPassword: data.smtpPassword,
         smtpSecure: data.smtpSecure,
-        isPrimary: data.isPrimary,
       },
       select: smtpConfigurationSelect,
     });
@@ -96,36 +93,28 @@ export class SmtpConfigurationRepository {
     });
   }
 
-  async findPrimaryActiveByOrgId(organizationId: number): Promise<SmtpConfigurationWithCredentials | null> {
+  async findFirstEnabledByOrgId(organizationId: number): Promise<SmtpConfigurationWithCredentials | null> {
     return this.prisma.smtpConfiguration.findFirst({
       where: {
         organizationId,
-        isPrimary: true,
         isEnabled: true,
       },
       select: smtpConfigurationSelect,
     });
   }
 
-  async setEnabled(id: number, isEnabled: boolean): Promise<SmtpConfigurationWithCredentials> {
+  async setEnabled(id: number, organizationId: number, isEnabled: boolean): Promise<SmtpConfigurationWithCredentials> {
+    if (isEnabled) {
+      await this.prisma.smtpConfiguration.updateMany({
+        where: { organizationId, isEnabled: true },
+        data: { isEnabled: false },
+      });
+    }
     return this.prisma.smtpConfiguration.update({
       where: { id },
       data: { isEnabled },
       select: smtpConfigurationSelect,
     });
-  }
-
-  async setAsPrimary(id: number, organizationId: number): Promise<void> {
-    await this.prisma.$transaction([
-      this.prisma.smtpConfiguration.updateMany({
-        where: { organizationId, isPrimary: true },
-        data: { isPrimary: false },
-      }),
-      this.prisma.smtpConfiguration.update({
-        where: { id },
-        data: { isPrimary: true },
-      }),
-    ]);
   }
 
   async delete(id: number): Promise<void> {

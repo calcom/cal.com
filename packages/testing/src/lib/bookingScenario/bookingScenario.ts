@@ -1113,7 +1113,6 @@ export interface SmtpConfigurationTestData {
   smtpUser?: string;
   smtpPassword?: string;
   smtpSecure?: boolean;
-  isPrimary?: boolean;
   isEnabled?: boolean;
 }
 
@@ -1128,7 +1127,6 @@ export async function createSmtpConfiguration(data: SmtpConfigurationTestData) {
       smtpUser: data.smtpUser ?? "testuser",
       smtpPassword: data.smtpPassword ?? "test-encrypted-password",
       smtpSecure: data.smtpSecure ?? true,
-      isPrimary: data.isPrimary ?? true,
       isEnabled: data.isEnabled ?? true,
     },
   });

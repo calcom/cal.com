@@ -11,8 +11,7 @@ CREATE TABLE "public"."SmtpConfiguration" (
     "smtpSecure" BOOLEAN NOT NULL DEFAULT true,
     "lastTestedAt" TIMESTAMP(3),
     "lastError" TEXT,
-    "isEnabled" BOOLEAN NOT NULL DEFAULT true,
-    "isPrimary" BOOLEAN NOT NULL DEFAULT false,
+    "isEnabled" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
