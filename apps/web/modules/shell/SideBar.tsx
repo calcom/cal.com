@@ -20,7 +20,7 @@ import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { KBarTrigger } from "./Kbar";
+import { KBarTrigger, useKBarImpersonation } from "./Kbar";
 import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
@@ -59,15 +59,17 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
   const flags = useFlagMap();
+  const openImpersonation = useKBarImpersonation();
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
-    isAdmin,
     user,
+    isAdmin,
+    onImpersonateClick: openImpersonation,
   });
 
   const sidebarStylingAttributes = {

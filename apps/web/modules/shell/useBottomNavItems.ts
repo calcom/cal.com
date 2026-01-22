@@ -11,14 +11,16 @@ import { type NavigationItemType } from "./navigation/NavigationItem";
 
 type BottomNavItemsProps = {
   publicPageUrl: string;
-  isAdmin: boolean;
   user: UserAuth | null | undefined;
+  isAdmin: boolean;
+  onImpersonateClick?: () => void;
 };
 
 export function useBottomNavItems({
   publicPageUrl,
-  isAdmin,
   user,
+  isAdmin,
+  onImpersonateClick,
 }: BottomNavItemsProps): NavigationItemType[] {
   const { t } = useLocale();
   const { isTrial } = useHasActiveTeamPlanAsOwner();
@@ -74,12 +76,15 @@ export function useBottomNavItems({
           },
         }
       : null,
-
-    isAdmin
+    isAdmin && onImpersonateClick
       ? {
           name: "impersonation",
-          href: "/settings/admin/impersonation",
-          icon: "lock",
+          href: "",
+          icon: "user",
+          onClick: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            onImpersonateClick();
+          },
         }
       : null,
     {

@@ -1,14 +1,11 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
-import ImpersonationView from "~/settings/admin/impersonation-view";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import ImpersonationAuditView from "~/settings/admin/impersonation-audit-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("admin"),
-    (t) => t("impersonation"),
+    (t) => t("audit_log"),
+    (t) => t("impersonation_audit_log_description"),
     undefined,
     undefined,
     "/settings/admin/impersonation"
@@ -17,8 +14,11 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("admin")} description={t("impersonation")}>
-      <ImpersonationView />
+    <SettingsHeader
+      title={t("audit_log")}
+      description={t("impersonation_audit_log_description")}
+    >
+      <ImpersonationAuditView />
     </SettingsHeader>
   );
 };
