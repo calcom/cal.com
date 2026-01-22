@@ -1,5 +1,3 @@
-import process from "node:process";
-
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -12,7 +10,6 @@ import type {
 import type { SmtpConfigurationRepository } from "../../repositories/SmtpConfigurationRepository";
 import type { SmtpService } from "./SmtpService";
 
-const ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 const REQUIRED_KEY_LENGTH = 32;
 
 export interface CreateSmtpConfigurationParams {
@@ -53,18 +50,19 @@ export class SmtpConfigurationService {
   }
 
   private encryptCredentials(user: string, password: string): { user: string; password: string } {
-    if (!ENCRYPTION_KEY) {
+    const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
+    if (!encryptionKey) {
       throw new ErrorWithCode(ErrorCode.InternalServerError, "CALENDSO_ENCRYPTION_KEY not configured");
     }
-    if (ENCRYPTION_KEY.length !== REQUIRED_KEY_LENGTH) {
+    if (encryptionKey.length !== REQUIRED_KEY_LENGTH) {
       throw new ErrorWithCode(
         ErrorCode.InternalServerError,
         `CALENDSO_ENCRYPTION_KEY must be exactly ${REQUIRED_KEY_LENGTH} characters`
       );
     }
     return {
-      user: symmetricEncrypt(user, ENCRYPTION_KEY),
-      password: symmetricEncrypt(password, ENCRYPTION_KEY),
+      user: symmetricEncrypt(user, encryptionKey),
+      password: symmetricEncrypt(password, encryptionKey),
     };
   }
 
@@ -72,18 +70,19 @@ export class SmtpConfigurationService {
     encryptedUser: string,
     encryptedPassword: string
   ): { user: string; password: string } {
-    if (!ENCRYPTION_KEY) {
+    const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
+    if (!encryptionKey) {
       throw new ErrorWithCode(ErrorCode.InternalServerError, "CALENDSO_ENCRYPTION_KEY not configured");
     }
-    if (ENCRYPTION_KEY.length !== REQUIRED_KEY_LENGTH) {
+    if (encryptionKey.length !== REQUIRED_KEY_LENGTH) {
       throw new ErrorWithCode(
         ErrorCode.InternalServerError,
         `CALENDSO_ENCRYPTION_KEY must be exactly ${REQUIRED_KEY_LENGTH} characters`
       );
     }
     return {
-      user: symmetricDecrypt(encryptedUser, ENCRYPTION_KEY),
-      password: symmetricDecrypt(encryptedPassword, ENCRYPTION_KEY),
+      user: symmetricDecrypt(encryptedUser, encryptionKey),
+      password: symmetricDecrypt(encryptedPassword, encryptionKey),
     };
   }
 
