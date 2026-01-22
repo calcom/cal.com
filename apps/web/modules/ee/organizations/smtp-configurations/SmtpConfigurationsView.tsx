@@ -10,6 +10,8 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@coss/ui/components/collapsible";
+import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
@@ -43,7 +45,7 @@ const SkeletonLoader = () => {
   );
 };
 
-const SmtpConfigurationCard = ({
+const SmtpConfigurationItem = ({
   config,
   canEdit,
   onSetPrimary,
@@ -59,40 +61,86 @@ const SmtpConfigurationCard = ({
   const { t } = useLocale();
 
   return (
-    <div className="bg-default border-subtle flex items-center justify-between rounded-lg border p-4">
-      <div className="space-y-1">
+    <Collapsible className="border-subtle border-b last:border-b-0">
+      <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-subtle/50">
         <div className="flex items-center gap-2">
           <span className="text-emphasis font-medium">{config.fromEmail}</span>
           {config.isPrimary && <Badge variant="blue">{t("primary")}</Badge>}
           {!config.isEnabled && <Badge variant="gray">{t("disabled")}</Badge>}
         </div>
-        {config.fromName && <p className="text-subtle text-sm">{config.fromName}</p>}
-        <p className="text-subtle text-xs">
-          {config.smtpHost}:{config.smtpPort} ({config.smtpSecure ? "SSL/TLS" : "STARTTLS"})
-        </p>
-        {config.lastError && <p className="text-error text-xs">{config.lastError}</p>}
-      </div>
-      {canEdit && (
-        <div className="flex items-center gap-3">
+        <ChevronDownIcon className="text-subtle h-4 w-4 shrink-0 transition-transform duration-200 [[data-panel-open]_&]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsiblePanel className="px-4">
+        <div className="space-y-3 pb-4">
+          {config.fromName && (
+            <div className="flex items-center gap-2">
+              <span className="text-subtle text-sm">{t("from_name")}:</span>
+              <span className="text-emphasis text-sm">{config.fromName}</span>
+            </div>
+          )}
           <div className="flex items-center gap-2">
-            <span className="text-subtle text-sm">{t("enabled")}</span>
-            <Switch
-              checked={config.isEnabled}
-              onCheckedChange={(checked) => onToggleEnabled(config.id, checked)}
-            />
+            <span className="text-subtle text-sm">{t("smtp_host")}:</span>
+            <span className="text-emphasis text-sm">
+              {config.smtpHost}:{config.smtpPort}
+            </span>
           </div>
-          <div className="flex gap-2">
-            {!config.isPrimary && config.isEnabled && (
-              <Button color="secondary" size="sm" onClick={() => onSetPrimary(config.id)}>
-                {t("set_as_primary")}
-              </Button>
-            )}
-            <Button color="destructive" size="sm" onClick={() => onDelete(config)}>
-              {t("delete")}
-            </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-subtle text-sm">{t("connection")}:</span>
+            <span className="text-emphasis text-sm">{config.smtpSecure ? "SSL/TLS" : "STARTTLS"}</span>
           </div>
+          {config.lastError && <p className="text-error text-sm">{config.lastError}</p>}
+          {canEdit && (
+            <div className="border-subtle flex items-center justify-between border-t pt-3">
+              <div className="flex items-center gap-2">
+                <span className="text-subtle text-sm">{t("enabled")}</span>
+                <Switch
+                  checked={config.isEnabled}
+                  onCheckedChange={(checked) => onToggleEnabled(config.id, checked)}
+                />
+              </div>
+              <div className="flex gap-2">
+                {!config.isPrimary && config.isEnabled && (
+                  <Button color="secondary" size="sm" onClick={() => onSetPrimary(config.id)}>
+                    {t("set_as_primary")}
+                  </Button>
+                )}
+                <Button color="destructive" size="sm" onClick={() => onDelete(config)}>
+                  {t("delete")}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </CollapsiblePanel>
+    </Collapsible>
+  );
+};
+
+const SmtpConfigurationList = ({
+  configs,
+  canEdit,
+  onSetPrimary,
+  onDelete,
+  onToggleEnabled,
+}: {
+  configs: SmtpConfiguration[];
+  canEdit: boolean;
+  onSetPrimary: (id: number) => void;
+  onDelete: (config: SmtpConfiguration) => void;
+  onToggleEnabled: (id: number, isEnabled: boolean) => void;
+}) => {
+  return (
+    <div className="bg-default border-subtle rounded-lg border">
+      {configs.map((config) => (
+        <SmtpConfigurationItem
+          key={config.id}
+          config={config}
+          canEdit={canEdit}
+          onSetPrimary={onSetPrimary}
+          onDelete={onDelete}
+          onToggleEnabled={onToggleEnabled}
+        />
+      ))}
     </div>
   );
 };
@@ -165,18 +213,13 @@ const SmtpConfigurationsView = ({ permissions }: { permissions: { canRead: boole
                 </Button>
               </div>
             )}
-            <div className="space-y-4">
-              {configs.map((config) => (
-                <SmtpConfigurationCard
-                  key={config.id}
-                  config={config as SmtpConfiguration}
-                  canEdit={permissions.canEdit}
-                  onSetPrimary={handleSetPrimary}
-                  onDelete={handleDelete}
-                  onToggleEnabled={handleToggleEnabled}
-                />
-              ))}
-            </div>
+            <SmtpConfigurationList
+              configs={configs as SmtpConfiguration[]}
+              canEdit={permissions.canEdit}
+              onSetPrimary={handleSetPrimary}
+              onDelete={handleDelete}
+              onToggleEnabled={handleToggleEnabled}
+            />
           </>
         ) : (
           <EmptyScreen
