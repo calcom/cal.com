@@ -9,11 +9,15 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Booking Filters", () => {
   test("Member role should see the member filter with only themselves as option", async ({ page, users }) => {
     const teamMateName = "team mate 1";
-    const owner = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      teammates: [{ name: teamMateName }],
-    });
+    const ownerName = "team owner";
+    await users.create(
+      { name: ownerName },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: [{ name: teamMateName }],
+      }
+    );
 
     const allUsers = users.get();
     const memberUser = allUsers.find((user) => user.name === teamMateName);
@@ -37,7 +41,7 @@ test.describe("Booking Filters", () => {
     // Verify only the current user (member) is shown as an option, not the owner
     const filterOptions = page.getByTestId("select-filter-options-userId");
     await expect(filterOptions.getByRole("option", { name: teamMateName })).toBeVisible();
-    await expect(filterOptions.getByRole("option", { name: owner.name ?? "" })).toBeHidden();
+    await expect(filterOptions.getByRole("option", { name: ownerName })).toBeHidden();
   });
 
   test("Admin role should see the member filter", async ({ page, users }) => {
