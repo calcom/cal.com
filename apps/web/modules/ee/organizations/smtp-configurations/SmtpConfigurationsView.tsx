@@ -11,7 +11,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@coss/ui/components/collapsible";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, MailIcon } from "lucide-react";
 import { useState } from "react";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
@@ -62,41 +62,51 @@ const SmtpConfigurationItem = ({
 
   return (
     <Collapsible className="border-subtle border-b last:border-b-0">
-      <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-subtle/50">
-        <div className="flex items-center gap-2">
-          <span className="text-emphasis font-medium">{config.fromEmail}</span>
-          {config.isPrimary && <Badge variant="blue">{t("primary")}</Badge>}
-          {!config.isEnabled && <Badge variant="gray">{t("disabled")}</Badge>}
-        </div>
-        <ChevronDownIcon className="text-subtle h-4 w-4 shrink-0 transition-transform duration-200 [[data-panel-open]_&]:rotate-180" />
-      </CollapsibleTrigger>
-      <CollapsiblePanel className="px-4">
-        <div className="space-y-3 pb-4">
-          {config.fromName && (
+      <CollapsibleTrigger className="flex w-full items-center justify-between px-5 py-5 text-left transition-colors hover:bg-subtle/50">
+        <div className="flex items-center gap-3">
+          <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-full">
+            <MailIcon className="text-default h-5 w-5" />
+          </div>
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="text-subtle text-sm">{t("from_name")}:</span>
-              <span className="text-emphasis text-sm">{config.fromName}</span>
+              <span className="text-emphasis text-base font-medium">{config.fromEmail}</span>
+              {config.isPrimary && <Badge variant="blue">{t("primary")}</Badge>}
+              {!config.isEnabled && <Badge variant="gray">{t("disabled")}</Badge>}
             </div>
+            {config.fromName && (
+              <span className="text-subtle text-sm">{config.fromName}</span>
+            )}
+          </div>
+        </div>
+        <ChevronDownIcon className="text-subtle h-5 w-5 shrink-0 transition-transform duration-200 [[data-panel-open]_&]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsiblePanel className="px-5">
+        <div className="space-y-4 pb-5">
+          <div className="bg-subtle/50 rounded-lg p-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("smtp_host")}</span>
+                <p className="text-emphasis mt-1 text-sm font-medium">
+                  {config.smtpHost}:{config.smtpPort}
+                </p>
+              </div>
+              <div>
+                <span className="text-subtle text-xs font-medium uppercase tracking-wide">{t("connection")}</span>
+                <p className="text-emphasis mt-1 text-sm font-medium">{config.smtpSecure ? "SSL/TLS" : "STARTTLS"}</p>
+              </div>
+            </div>
+          </div>
+          {config.lastError && (
+            <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{config.lastError}</div>
           )}
-          <div className="flex items-center gap-2">
-            <span className="text-subtle text-sm">{t("smtp_host")}:</span>
-            <span className="text-emphasis text-sm">
-              {config.smtpHost}:{config.smtpPort}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-subtle text-sm">{t("connection")}:</span>
-            <span className="text-emphasis text-sm">{config.smtpSecure ? "SSL/TLS" : "STARTTLS"}</span>
-          </div>
-          {config.lastError && <p className="text-error text-sm">{config.lastError}</p>}
           {canEdit && (
-            <div className="border-subtle flex items-center justify-between border-t pt-3">
-              <div className="flex items-center gap-2">
-                <span className="text-subtle text-sm">{t("enabled")}</span>
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-3">
                 <Switch
                   checked={config.isEnabled}
                   onCheckedChange={(checked) => onToggleEnabled(config.id, checked)}
                 />
+                <span className="text-subtle text-sm">{config.isEnabled ? t("enabled") : t("disabled")}</span>
               </div>
               <div className="flex gap-2">
                 {!config.isPrimary && config.isEnabled && (
@@ -130,7 +140,7 @@ const SmtpConfigurationList = ({
   onToggleEnabled: (id: number, isEnabled: boolean) => void;
 }) => {
   return (
-    <div className="bg-default border-subtle rounded-lg border">
+    <div className="bg-default border-subtle overflow-hidden rounded-xl border shadow-sm">
       {configs.map((config) => (
         <SmtpConfigurationItem
           key={config.id}
