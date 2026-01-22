@@ -1,18 +1,13 @@
 import process from "node:process";
-import { useEffect, useMemo, useRef } from "react";
-import StickyBox from "react-sticky-box";
-import { Toaster } from "sonner";
-import { shallow } from "zustand/shallow";
-import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import dayjs from "@calcom/dayjs";
-import classNames from "@calcom/ui/classNames";
-
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
+import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
+import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import {
   fadeInLeft,
   getBookerSizeClassNames,
@@ -24,7 +19,7 @@ import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookin
 import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import {
   CLOUDFLARE_SITE_ID,
@@ -33,15 +28,15 @@ import {
 } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import classNames from "@calcom/ui/classNames";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
-import useSkipConfirmStep from "@calcom/web/modules/bookings/hooks/useSkipConfirmStep";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/web/modules/bookings/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { useSlotsViewOnSmallScreen } from "@calcom/web/modules/bookings/hooks/useSlotsViewOnSmallScreen";
-import type { ConnectedCalendarsType, ScheduleDataType } from "@calcom/web/modules/bookings/types";
-
-import { VerifyCodeDialog } from "./VerifyCodeDialog";
+import { AnimatePresence, LazyMotion, m } from "framer-motion";
+import { useEffect, useMemo, useRef } from "react";
+import StickyBox from "react-sticky-box";
+import { Toaster } from "sonner";
+import { shallow } from "zustand/shallow";
 import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
 import { BookFormAsModal } from "./BookEventForm/BookFormAsModal";
@@ -57,6 +52,7 @@ import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { BookerSection } from "./Section";
 import { SlotSelectionModalHeader } from "./SlotSelectionModalHeader";
 import { NotFound } from "./Unavailable";
+import { VerifyCodeDialog } from "./VerifyCodeDialog";
 
 const BookerComponent = ({
   username,
@@ -96,10 +92,9 @@ const BookerComponent = ({
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
   showNoAvailabilityDialog,
-}: BookerProps & WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>) => {
+}: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-  const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
   const [bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
     shallow
@@ -122,6 +117,7 @@ const BookerComponent = ({
     hideEventTypeDetails,
     isEmbed,
     bookerLayouts,
+    slotsViewOnSmallScreen,
   } = bookerLayout;
 
   const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
@@ -273,8 +269,8 @@ const BookerComponent = ({
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
 
-    const onSubmit = (timeSlot?: string) =>
-      renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
+  const onSubmit = (timeSlot?: string) =>
+    renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -287,7 +283,7 @@ const BookerComponent = ({
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
           if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
             // Ensures that user has latest available slots when they want to re-choose from the slots
-            schedule.invalidate?.();
+            schedule?.invalidate();
           }
           if (seatedEventData.bookingUid) {
             setSeatedEventData({
@@ -692,9 +688,7 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (
-  props: BookerProps & WrappedBookerProps<ConnectedCalendarsType, ScheduleDataType>
-) => {
+export const Booker = (props: BookerProps & WrappedBookerProps) => {
   return (
     <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />
