@@ -6,8 +6,14 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Switch } from "@calcom/ui/components/form";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@coss/ui/components/collapsible";
@@ -61,8 +67,8 @@ const SmtpConfigurationItem = ({
   const { t } = useLocale();
 
   return (
-    <Collapsible className="border-subtle border-b last:border-b-0">
-      <CollapsibleTrigger className="flex w-full items-center justify-between px-5 py-5 text-left transition-colors hover:bg-subtle/50">
+    <Collapsible className="bg-default border-subtle border-b last:border-b-0">
+      <CollapsibleTrigger className="flex w-full items-center justify-between px-5 py-5 text-left">
         <div className="flex items-center gap-3">
           <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-full">
             <MailIcon className="text-default h-5 w-5" />
@@ -73,12 +79,66 @@ const SmtpConfigurationItem = ({
               {config.isPrimary && <Badge variant="blue">{t("primary")}</Badge>}
               {!config.isEnabled && <Badge variant="gray">{t("disabled")}</Badge>}
             </div>
-            {config.fromName && (
-              <span className="text-subtle text-sm">{config.fromName}</span>
-            )}
+            <span className="text-subtle text-sm">
+              {config.fromName ? `${config.fromName} · ` : ""}
+              {config.smtpHost}:{config.smtpPort}
+            </span>
           </div>
         </div>
-        <ChevronDownIcon className="text-subtle h-5 w-5 shrink-0 transition-transform duration-200 [[data-panel-open]_&]:rotate-180" />
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <Dropdown>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="icon"
+                  color="secondary"
+                  StartIcon="ellipsis"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {!config.isPrimary && config.isEnabled && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSetPrimary(config.id);
+                      }}
+                      StartIcon="star">
+                      {t("set_as_primary")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleEnabled(config.id, !config.isEnabled);
+                    }}
+                    StartIcon={config.isEnabled ? "x" : "check"}>
+                    {config.isEnabled ? t("disable") : t("enable")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    color="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(config);
+                    }}
+                    StartIcon="trash">
+                    {t("delete")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </Dropdown>
+          )}
+          <ChevronDownIcon className="text-subtle h-5 w-5 shrink-0 transition-transform duration-200 [[data-panel-open]_&]:rotate-180" />
+        </div>
       </CollapsibleTrigger>
       <CollapsiblePanel className="px-5">
         <div className="space-y-4 pb-5">
@@ -98,27 +158,6 @@ const SmtpConfigurationItem = ({
           </div>
           {config.lastError && (
             <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{config.lastError}</div>
-          )}
-          {canEdit && (
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-3">
-                <Switch
-                  checked={config.isEnabled}
-                  onCheckedChange={(checked) => onToggleEnabled(config.id, checked)}
-                />
-                <span className="text-subtle text-sm">{config.isEnabled ? t("enabled") : t("disabled")}</span>
-              </div>
-              <div className="flex gap-2">
-                {!config.isPrimary && config.isEnabled && (
-                  <Button color="secondary" size="sm" onClick={() => onSetPrimary(config.id)}>
-                    {t("set_as_primary")}
-                  </Button>
-                )}
-                <Button color="destructive" size="sm" onClick={() => onDelete(config)}>
-                  {t("delete")}
-                </Button>
-              </div>
-            </div>
           )}
         </div>
       </CollapsiblePanel>
