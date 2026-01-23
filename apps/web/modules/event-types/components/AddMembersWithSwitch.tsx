@@ -72,38 +72,65 @@ const CheckedHostField = ({
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
+  const { t } = useLocale();
   return (
     <div className="flex flex-col rounded-md">
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          isOptionDisabled={(option) => {
+            const userId = parseInt(option.value, 10);
+            if (Number.isNaN(userId)) {
+              // It's an email, check if it's already in value (hosts)
+              return !!value.find((host) => host.email === option.value);
+            }
+            return !!value.find((host) => host.userId.toString() === option.value);
+          }}
           onChange={(options) => {
-            onChange &&
-              onChange(
-                options.map((option) => ({
+            onChange?.(
+              options.map((option) => {
+                const userId = parseInt(option.value, 10);
+                const isEmail = Number.isNaN(userId);
+
+                return {
                   isFixed,
-                  userId: parseInt(option.value, 10),
+                  userId: isEmail ? 0 : userId, // 0 for pending invites
+                  email: isEmail ? option.value : undefined,
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
-                }))
-              );
+                };
+              })
+            );
           }}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
               const option = options.find((member) => member.value === host.userId.toString());
-              if (!option) return acc;
 
-              acc.push({
-                ...option,
-                priority: host.priority ?? 2,
-                isFixed,
-                weight: host.weight ?? 100,
-                groupId: host.groupId,
-              });
+              if (option) {
+                acc.push({
+                  ...option,
+                  priority: host.priority ?? 2,
+                  isFixed,
+                  weight: host.weight ?? 100,
+                  groupId: host.groupId,
+                });
+                return acc;
+              }
+
+              if (host.userId === 0 && host.email) {
+                acc.push({
+                  label: `${host.email} (${t("invite")})`,
+                  value: host.email,
+                  avatar: "",
+                  priority: host.priority ?? 2,
+                  isFixed,
+                  weight: host.weight ?? 100,
+                  groupId: host.groupId,
+                });
+              }
 
               return acc;
             }, [] as CheckedSelectOption[])}

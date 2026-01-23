@@ -1,9 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Options, Props } from "react-select";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
@@ -11,9 +7,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
+import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
+import type { Options, Props } from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
@@ -46,6 +46,16 @@ export type CheckedTeamSelectCustomClassNames = {
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
 };
+
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isValidInput = (input: string) => {
+  const parts = input
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  return parts.length > 0 && parts.every((part) => isValidEmail(part));
+};
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
@@ -79,9 +89,32 @@ export const CheckedTeamSelect = ({
     props.onChange(newValueAllGroups);
   };
 
+  const reactSelectProps = getReactSelectProps({
+    components: props.components || {},
+    menuPlacement: props.menuPlacement || "auto",
+  });
+
+  const handleCreateOption = (inputValue: string) => {
+    const newEmails = inputValue
+      .split(",")
+      .map((e) => e.trim())
+      .filter((e) => isValidEmail(e));
+    const newOptions: CheckedSelectOption[] = newEmails.map((email) => ({
+      label: email,
+      value: email,
+      avatar: "",
+      isFixed: false,
+      groupId: groupId,
+    }));
+
+    // Combine with current values
+    handleSelectChange([...valueFromGroup, ...newOptions]);
+  };
+
   return (
     <>
-      <Select
+      <CreatableSelect
+        {...reactSelectProps}
         {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
@@ -89,13 +122,73 @@ export const CheckedTeamSelect = ({
         options={options}
         value={valueFromGroup}
         onChange={handleSelectChange}
+        onCreateOption={handleCreateOption}
         isMulti
-        className={customClassNames?.hostsSelect?.select}
-        innerClassNames={{
-          ...customClassNames?.hostsSelect?.innerClassNames,
-          control: "rounded-md",
+        classNames={{
+          input: () => classNames("text-emphasis", customClassNames?.hostsSelect?.input),
+          option: (state) =>
+            classNames(
+              "bg-default flex cursor-pointer justify-between py-2 px-3 rounded-md text-default items-center",
+              state.isFocused && "bg-subtle",
+              state.isDisabled && "bg-cal-muted",
+              state.isSelected && "bg-emphasis text-default",
+              customClassNames?.hostsSelect?.option
+            ),
+          placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
+          dropdownIndicator: () => classNames("text-default", "w-4 h-4", "flex items-center justify-center "),
+          control: (state) =>
+            classNames(
+              inputStyles({ size: "md" }),
+              "px-3 h-fit",
+              state.isDisabled && "bg-subtle !cursor-not-allowed !pointer-events-auto hover:border-subtle",
+              "rounded-[10px]",
+              "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex! **:[input]:leading-none text-sm",
+              customClassNames?.hostsSelect?.control
+            ),
+          singleValue: () =>
+            classNames("text-default placeholder:text-muted", customClassNames?.hostsSelect?.singleValue),
+          valueContainer: () =>
+            classNames(
+              "text-default placeholder:text-muted flex gap-1",
+              customClassNames?.hostsSelect?.valueContainer
+            ),
+          multiValue: () =>
+            classNames(
+              "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs",
+              "py-1 px-1.5 leading-none rounded-lg"
+            ),
+          menu: () =>
+            classNames(
+              "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
+              customClassNames?.hostsSelect?.menu
+            ),
+          groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
+          menuList: () =>
+            classNames(
+              "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
+              customClassNames?.hostsSelect?.menuList
+            ),
+          indicatorsContainer: (state) =>
+            classNames(
+              "flex items-start! justify-center mt-1 h-full",
+              state.selectProps.menuIsOpen
+                ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"
+                : "[&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4 text-default"
+            ),
+          multiValueRemove: () => "text-default py-auto",
         }}
+        className={customClassNames?.hostsSelect?.select}
+        formatCreateLabel={(inputValue) => `${t("invite")} ${inputValue}`}
+        isValidNewOption={(inputValue) => isValidInput(inputValue)}
+        getNewOptionData={(inputValue, _optionLabel) => ({
+          label: inputValue,
+          value: inputValue,
+          avatar: "",
+          isFixed: false, // Default to false or inherit?
+          groupId: groupId,
+        })}
       />
+
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
