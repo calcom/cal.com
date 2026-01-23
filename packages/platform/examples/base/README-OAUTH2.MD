@@ -32,7 +32,8 @@ NEXT_PUBLIC_OAUTH2_MODE="true"
 Here we have OAUTH2_CLIENT_SECRET_PLAIN in plain because it will be used for api request when exchanging authorization code for tokens. NEXT_PUBLIC_OAUTH2_MODE tells that the examples app will run not with platform OAuth client but with OAuth 2.0 client, so in the packages/platform/examples/base/src/pages/_app.tsx we will use CalOAuthProvider and not CalProvider.
 
 ## Usage
-Start web app and examples app (it is important that examples app runs on localhost:4321 because that will be redirect uri)
-Login as admin@example.com into app.cal.com using password ADMINadmin2022!
-Visit this link http://app.cal.local:3000/auth/oauth2/authorize?client_id=1c70be53f35aa480a5e3146d361fd993d265e564d2d86a203df3adbd05186517&redirect_uri=http://localhost:4321&state=texas and authorize test OAuth client. You will be redirected to localhost:4321?code=abc and this route will exchange the authorization code for access and refresh tokens for the admin@example.com and store them in the examples app sql lite database.
-Examples app is ready to use. If you update, let's say an availability, then it will be reflected in the availability of admin@example.com in the web app running locally.
+1. Before running the eaxmple app `packages/platform/examples/base` run `rm -f prisma/dev.db && yarn prisma db push` to reset it's sql lite. If you don't and there are users already then an entry for the `admin@example.com` will not be created.
+2. Start web app and examples app (it is important that examples app runs on localhost:4321 because that will be redirect uri)
+3. Login as admin@example.com into cal webapp using password ADMINadmin2022!
+4. Visit this link http://app.cal.local:3000/auth/oauth2/authorize?client_id=1c70be53f35aa480a5e3146d361fd993d265e564d2d86a203df3adbd05186517&redirect_uri=http://localhost:4321&state=texas and authorize test OAuth client. You will be redirected to localhost:4321?code=abc and this route will exchange the authorization code for access and refresh tokens for the admin@example.com and store them in the examples app sql lite database.
+5. Examples app is ready to use. If you update, let's say an availability, then it will be reflected in the availability of admin@example.com in the web app running locally.
