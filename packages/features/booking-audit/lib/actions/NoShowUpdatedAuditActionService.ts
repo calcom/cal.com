@@ -80,9 +80,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     return { isMigrated: false, latestData: validated };
   }
 
-  private isHostSet(
-    fields: NoShowUpdatedAuditData
-  ): fields is Ensure<NoShowUpdatedAuditData, "host"> {
+  private isHostSet(fields: NoShowUpdatedAuditData): fields is Ensure<NoShowUpdatedAuditData, "host"> {
     return fields.host !== undefined;
   }
 
@@ -110,27 +108,29 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
   async getDisplayFields({ storedData }: GetDisplayFieldsParams): Promise<
     Array<{
       labelKey: string;
-      valueKey: string;
+      valueKey?: string;
+      value?: string;
+      values?: string[];
     }>
   > {
     const { fields } = this.parseStored(storedData);
     const parsedFields = fields as NoShowUpdatedAuditData;
-    const displayFields: { labelKey: string; valueKey: string }[] = [];
+    const displayFields: { labelKey: string; valueKey?: string; value?: string; values?: string[] }[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
-      const attendeesFieldValueParts = parsedFields.attendeesNoShow.map((attendee) => {
-        const valueKey = attendee.noShow.new ? "Yes" : "No";
-        return `${attendee.attendeeEmail}:${valueKey}`;
+      parsedFields.attendeesNoShow.push(parsedFields.attendeesNoShow[0]);
+      const attendeesFieldValues = parsedFields.attendeesNoShow.map((attendee) => {
+        const noShowStatus = attendee.noShow.new ? "Yes" : "No";
+        return `${attendee.attendeeEmail}: ${noShowStatus}`;
       });
-      const attendeesFieldValue = attendeesFieldValueParts.join(", ");
-      displayFields.push({ labelKey: "Attendees", valueKey: attendeesFieldValue });
+      displayFields.push({ labelKey: "Attendees", values: attendeesFieldValues });
     }
 
     if (this.isHostSet(parsedFields)) {
       const user = await this.deps.userRepository.findByUuid({ uuid: parsedFields.host.userUuid });
       const hostName = user?.name || "Unknown";
       const hostFieldValue = `${hostName}:${parsedFields.host.noShow.new ? "Yes" : "No"}`;
-      displayFields.push({ labelKey: "Host", valueKey: hostFieldValue });
+      displayFields.push({ labelKey: "Host", value: hostFieldValue });
     }
 
     return displayFields;

@@ -40,7 +40,7 @@ type EnrichedAuditLog = {
   operationId: string;
   displayJson?: Record<string, unknown> | null;
   actionDisplayTitle: TranslationWithParams;
-  displayFields?: Array<{ labelKey: string; valueKey: string }> | null;
+  displayFields?: Array<{ labelKey: string; valueKey?: string; value?: string; values?: string[] }> | null;
   actor: {
     id: string;
     type: AuditActorType;
