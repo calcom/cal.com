@@ -54,7 +54,7 @@ export class PrismaFeatureRepository implements IFeatureRepository {
     const { featureId, enabled, updatedBy } = input;
     const feature = await this.prisma.feature.update({
       where: { slug: featureId },
-      data: { enabled, updatedBy },
+      data: { enabled, updatedBy, updatedAt: new Date() },
     });
     return {
       slug: feature.slug,
