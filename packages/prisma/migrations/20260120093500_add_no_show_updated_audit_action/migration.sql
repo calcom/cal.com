@@ -24,6 +24,11 @@ CREATE TYPE "BookingAuditAction" AS ENUM (
     'seat_rescheduled'
 );
 
+-- Migrate existing data from old enum values to new unified value
+UPDATE "BookingAudit" 
+SET "action" = 'no_show_updated'::"BookingAuditAction_old" 
+WHERE "action" IN ('host_no_show_updated'::"BookingAuditAction_old", 'attendee_no_show_updated'::"BookingAuditAction_old");
+
 -- Update the column to use the new type
 ALTER TABLE "BookingAudit" ALTER COLUMN "action" TYPE "BookingAuditAction" USING "action"::text::"BookingAuditAction";
 
