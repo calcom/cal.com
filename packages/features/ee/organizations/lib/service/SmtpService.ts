@@ -60,7 +60,7 @@ export class SmtpService {
       const { default: SmtpTestEmail } = await import("@calcom/emails/templates/smtp-test-email");
       const emailTemplate = new SmtpTestEmail({
         language,
-        toEmail: "amit@cal.com",
+        toEmail,
         fromEmail,
         fromName,
         smtpHost: config.host,
