@@ -13,6 +13,8 @@ export const WEBHOOK_TOKENS = {
 
   // Repositories
   WEBHOOK_REPOSITORY: Symbol("IWebhookRepository"),
+  WEBHOOK_EVENT_TYPE_REPOSITORY: Symbol("IEventTypeRepository"),
+  WEBHOOK_USER_REPOSITORY: Symbol("IUserRepository"),
 
   // Producer/Consumer
   WEBHOOK_PRODUCER_SERVICE: Symbol("IWebhookProducerService"),
