@@ -1007,10 +1007,16 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
               />
             }
             onCheckedChange={(active) => {
-              const defaultValue = formMethods.formState.defaultValues?.onlyShowFirstAvailableSlot ?? false;
-              const newValue = active ?? false;
-              const isDifferent = newValue !== defaultValue;
-              formMethods.setValue("onlyShowFirstAvailableSlot", newValue, { shouldDirty: isDifferent });
+              const defaultValue = formMethods.formState.defaultValues?.onlyShowFirstAvailableSlot;
+              if (!active) {
+                if (defaultValue) {
+                  formMethods.setValue("onlyShowFirstAvailableSlot", false, { shouldDirty: true });
+                } else {
+                  formMethods.resetField("onlyShowFirstAvailableSlot");
+                }
+                return;
+              }
+              formMethods.setValue("onlyShowFirstAvailableSlot", true, { shouldDirty: true });
             }}
           />
         )}

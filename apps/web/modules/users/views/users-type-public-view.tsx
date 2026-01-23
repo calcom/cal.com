@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
+import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -40,29 +41,30 @@ function Type({
   faviconUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
+  const resolvedFaviconUrl = faviconUrl ? getBrandLogoUrl({ faviconUrl }, true) : "/calid_favicon.svg";
 
   useEffect(() => {
     const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
     defaultFavicons.forEach((link) => {
       link.rel = "icon";
       // }
-      link.href = faviconUrl;
+      link.href = resolvedFaviconUrl;
       link.type = "image/png";
     });
     if (defaultFavicons.length === 0) {
       const link: HTMLLinkElement = document.createElement("link");
       link.rel = "icon";
-      link.href = faviconUrl ?? "/favicon.ico";
+      link.href = resolvedFaviconUrl;
       link.type = "image/png";
       document.head.appendChild(link);
     }
-  }, [faviconUrl]);
+  }, [resolvedFaviconUrl]);
 
   return (
     <>
-      {faviconUrl && (
+      {resolvedFaviconUrl && (
         <Head>
-          <link rel="icon" href={faviconUrl} type="image/x-icon" />
+          <link rel="icon" href={resolvedFaviconUrl} type="image/x-icon" />
         </Head>
       )}
       <BookingPageErrorBoundary>
