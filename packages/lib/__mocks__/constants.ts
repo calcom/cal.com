@@ -21,6 +21,7 @@ const initialConstants = {
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
   SINGLE_ORG_SLUG: "",
   DEFAULT_GROUP_ID: "default_group_id",
+  NEXT_PUBLIC_IS_E2E: true
 } as Partial<typeof constants>;
 
 export const mockedConstants = { ...initialConstants };
