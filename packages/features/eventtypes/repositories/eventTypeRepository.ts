@@ -713,6 +713,16 @@ export class EventTypeRepository implements IEventTypesRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -720,6 +730,7 @@ export class EventTypeRepository implements IEventTypesRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {
@@ -1013,6 +1024,16 @@ export class EventTypeRepository implements IEventTypesRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -1020,6 +1041,7 @@ export class EventTypeRepository implements IEventTypesRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {
@@ -1584,6 +1606,16 @@ export class EventTypeRepository implements IEventTypesRepository {
         id,
       },
       select: {
+        teamId: true,
+      },
+    });
+  }
+
+  async findByIdWithTeamId({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
         teamId: true,
       },
     });
