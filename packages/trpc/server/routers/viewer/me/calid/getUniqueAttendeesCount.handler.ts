@@ -1,3 +1,5 @@
+import dns from "dns/promises";
+
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -10,50 +12,14 @@ type GetUniqueAttendeesCountOptions = {
   };
 };
 
-const emailValidationCache = new Map<string, { isDisposable: boolean; timestamp: number }>();
-
-const CACHE_TTL = 24 * 60 * 60 * 1000;
-
-async function isTemporaryEmail(email: string): Promise<boolean> {
-  const emailLower = email.toLowerCase().trim();
-
-  const cached = emailValidationCache.get(emailLower);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.isDisposable;
-  }
+async function isValidDomain(email: string): Promise<boolean> {
+  const emailDomain = email.split("@")[1].toLowerCase();
+  if (!emailDomain) return true;
 
   try {
-    const response = await fetch(`https://disify.com/api/email/${encodeURIComponent(emailLower)}`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!response.ok) {
-      emailValidationCache.set(emailLower, {
-        isDisposable: false,
-        timestamp: Date.now(),
-      });
-      return false;
-    }
-
-    const data = (await response.json()) as { disposable?: boolean; format?: boolean };
-
-    const isDisposable = data.disposable === true;
-
-    emailValidationCache.set(emailLower, {
-      isDisposable,
-      timestamp: Date.now(),
-    });
-
-    return isDisposable;
-  } catch (error) {
-    emailValidationCache.set(emailLower, {
-      isDisposable: false,
-      timestamp: Date.now(),
-    });
+    const mxRecords = await dns.resolveMx(emailDomain);
+    return mxRecords.length > 0;
+  } catch {
     return false;
   }
 }
@@ -75,8 +41,8 @@ async function isValidAttendeeEmail(
     return false;
   }
 
-  const isDisposable = await isTemporaryEmail(emailLower);
-  if (isDisposable) {
+  const isValidEmailDomain = await isValidDomain(emailLower);
+  if (!isValidEmailDomain) {
     return false;
   }
 
