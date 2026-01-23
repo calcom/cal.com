@@ -48,6 +48,7 @@ type AuditLog = {
         displayEmail: string | null;
         displayAvatar: string | null;
     } | null;
+    hasError?: boolean;
 };
 
 interface BookingLogsFiltersProps {
@@ -225,7 +226,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                         <div className="flex flex-col items-center self-stretch">
                             <div className="pt-2 shrink-0">
                                 <div className="bg-subtle rounded-[3.556px] p-1 flex items-center justify-center w-4 h-4">
-                                    <Icon name={ACTION_ICON_MAP[log.action] ?? "sparkles"} className="h-3 w-3 text-subtle" />
+                                    <Icon name={log.hasError ? "triangle-alert" : (ACTION_ICON_MAP[log.action] ?? "sparkles")} className={`h-3 w-3 ${log.hasError ? "text-attention" : "text-subtle"}`} />
                                 </div>
                             </div>
                             {!isLast && <div className="w-px bg-subtle flex-1 min-h-0" />}
@@ -235,7 +236,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                             <div className="px-3 mb-2">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-medium text-emphasis leading-4">
+                                        <h3 className="text-sm font-medium leading-4 text-emphasis">
                                             <ActionTitle actionDisplayTitle={log.actionDisplayTitle} />
                                         </h3>
                                         <div className="flex items-center gap-1 mt-1 text-xs text-subtle">
