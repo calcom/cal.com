@@ -7,8 +7,10 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Button } from "@calcom/ui/components/button";
-import { hideProgressToast, showProgressToast, showToast } from "@calcom/ui/components/toast";
+import { showToast } from "@calcom/ui/components/toast";
 import { useState } from "react";
+
+import { hideProgressToast, showProgressToast } from "@lib/progress-toast";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import type { BookingListingStatus } from "../types";
 
@@ -77,29 +79,34 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
   };
 
   const handleDownload = async () => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
     try {
       setIsDownloading(true);
-      showProgressToast(0);
+      showProgressToast(0, undefined, undefined, abortController);
 
-      // Fetch first batch to get total count
       const firstBatch = await fetchBatch(0);
+      if (signal.aborted) return;
+
       let allBookings = firstBatch.bookings;
       const totalCount = firstBatch.totalCount;
 
-      // Continue fetching remaining batches
-      while (allBookings.length < totalCount) {
+      while (allBookings.length < totalCount && !signal.aborted) {
         const offset = allBookings.length;
         const batch = await fetchBatch(offset);
-        if (batch.bookings.length === 0) break; // Prevent infinite loop if batch returns empty
+        if (signal.aborted) break;
+        if (batch.bookings.length === 0) break;
         allBookings = [...allBookings, ...batch.bookings];
 
         const currentProgress = Math.min(Math.round((allBookings.length / totalCount) * 100), 99);
         showProgressToast(currentProgress);
       }
 
+      if (signal.aborted) return;
+
       showProgressToast(100);
 
-      // Transform and download
       const csvData = allBookings.map((booking) => transformBookingToCsv(booking, t));
       const filename = `${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`;
       downloadAsCsv(csvData, filename);

@@ -1,11 +1,9 @@
-import { useState } from "react";
-import posthog from "posthog-js";
-
 import dayjs from "@calcom/dayjs";
+import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -13,10 +11,12 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
+import { showToast } from "@calcom/ui/components/toast";
+import posthog from "posthog-js";
+import { useState } from "react";
 
+import { hideProgressToast, showProgressToast } from "@lib/progress-toast";
 import { useInsightsBookingParameters } from "../../../hooks/useInsightsBookingParameters";
-import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 
 type RawData = RouterOutputs["viewer"]["insights"]["rawData"]["data"][number];
 
@@ -52,33 +52,36 @@ const Download = () => {
   };
 
   const handleDownloadClick = async () => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
     try {
       posthog.capture("insights_bookings_download_clicked", { teamId: insightsBookingParams.selectedTeamId });
       setIsDownloading(true);
-      showProgressToast(0);
+      showProgressToast(0, undefined, undefined, abortController);
       let allData: RawData[] = [];
       let offset = 0;
 
-      // Get first batch to get total count
       const firstBatch = await fetchBatch(0);
-      if (!firstBatch) return;
+      if (!firstBatch || signal.aborted) return;
 
       allData = firstBatch.data;
       const totalRecords = firstBatch.total;
 
-      // Continue fetching remaining batches
-      while (totalRecords > 0 && allData.length < totalRecords) {
+      while (totalRecords > 0 && allData.length < totalRecords && !signal.aborted) {
         offset += BATCH_SIZE;
         const result = await fetchBatch(offset);
-        if (!result) break;
+        if (!result || signal.aborted) break;
         allData = [...allData, ...result.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
         showProgressToast(currentProgress);
       }
 
+      if (signal.aborted) return;
+
       if (allData.length >= totalRecords) {
-        showProgressToast(100); // Set to 100% before actual download
+        showProgressToast(100);
         const filename = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
           "YYYY-MM-DD"
         )}.csv`;
@@ -88,7 +91,7 @@ const Download = () => {
       showToast(t("unexpected_error_try_again"), "error");
     } finally {
       setIsDownloading(false);
-      hideProgressToast(); // Reset progress
+      hideProgressToast();
     }
   };
 
