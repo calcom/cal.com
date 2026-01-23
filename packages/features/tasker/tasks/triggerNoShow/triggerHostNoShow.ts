@@ -29,13 +29,10 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
       old: booking.noShowHost,
       new: null,
     };
-    const attendeesNoShowAudit = new Map<
-      string,
-      {
-        old: boolean | null;
-        new: boolean;
-      }
-    >();
+    const attendeesNoShowAudit: Array<{
+      attendeeEmail: string;
+      noShow: { old: boolean | null; new: boolean };
+    }> = [];
     await Promise.allSettled(
       hostsThatDidntJoinTheCall.map(async (host) => {
         if (booking?.user?.id === host.id) {
@@ -47,7 +44,10 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
         const attendeeBefore = attendeesBeforeByEmail.get(host.email);
         if (attendeeBefore) {
           await attendeeRepository.updateNoShow({ attendeeId: attendeeBefore.id, noShow: true });
-          attendeesNoShowAudit.set(host.email, { old: attendeeBefore.noShow ?? null, new: true });
+          attendeesNoShowAudit.push({
+            attendeeEmail: host.email,
+            noShow: { old: attendeeBefore.noShow ?? null, new: true },
+          });
         }
         return Promise.resolve();
       })

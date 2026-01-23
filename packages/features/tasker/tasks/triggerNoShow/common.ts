@@ -1,4 +1,7 @@
 import dayjs from "@calcom/dayjs";
+import type { NoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/NoShowUpdatedAuditActionService";
+import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -152,10 +155,10 @@ export const fireNoShowUpdatedEvent = async ({
     eventType?: { teamId?: number | null } | null;
   };
   noShowHostAudit?: { old: boolean | null; new: boolean | null };
-  attendeesNoShowAudit?: Map<string, { old: boolean | null; new: boolean }>;
+  attendeesNoShowAudit?: NoShowUpdatedAuditData["attendeesNoShow"];
 }): Promise<void> => {
   const hasHostNoShow = noShowHostAudit && noShowHostAudit.new !== null;
-  const hasAttendeesNoShow = attendeesNoShowAudit && attendeesNoShowAudit.size > 0;
+  const hasAttendeesNoShow = attendeesNoShowAudit && attendeesNoShowAudit.length > 0;
 
   if (!hasHostNoShow && !hasAttendeesNoShow) {
     return;
@@ -172,18 +175,6 @@ export const fireNoShowUpdatedEvent = async ({
       teamId: booking.eventType?.teamId,
     });
 
-    const { getBookingEventHandlerService } = await import(
-      "@calcom/features/bookings/di/BookingEventHandlerService.container"
-    );
-    const { makeSystemActor } = await import("@calcom/features/booking-audit/lib/makeActor");
-
-    const attendeesNoShowArray = hasAttendeesNoShow
-      ? Array.from(attendeesNoShowAudit.entries()).map(([email, noShowChange]) => ({
-          attendeeEmail: email,
-          noShow: noShowChange,
-        }))
-      : undefined;
-
     const bookingEventHandlerService = getBookingEventHandlerService();
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
@@ -192,9 +183,14 @@ export const fireNoShowUpdatedEvent = async ({
       source: "SYSTEM",
       auditData: {
         ...(hasHostNoShow && noShowHostAudit.new !== null && hostUserUuid
-          ? { host: { userUuid: hostUserUuid, noShow: { old: noShowHostAudit.old, new: noShowHostAudit.new } } }
+          ? {
+              host: {
+                userUuid: hostUserUuid,
+                noShow: { old: noShowHostAudit.old, new: noShowHostAudit.new },
+              },
+            }
           : {}),
-        ...(attendeesNoShowArray ? { attendeesNoShow: attendeesNoShowArray } : {}),
+        ...(hasAttendeesNoShow ? { attendeesNoShow: attendeesNoShowAudit } : {}),
       },
     });
   } catch (error) {

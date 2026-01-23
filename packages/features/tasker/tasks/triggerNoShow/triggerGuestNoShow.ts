@@ -109,9 +109,10 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         guestsThatDidntJoinTheCall,
       });
 
-      const attendeesNoShowAudit = new Map(
-        attendeesMarkedNoShow.map((a) => [a.email, { old: a.previousNoShow, new: a.noShow }])
-      );
+      const attendeesNoShowAudit = attendeesMarkedNoShow.map((a) => ({
+        attendeeEmail: a.email,
+        noShow: { old: a.previousNoShow, new: a.noShow },
+      }));
       await fireNoShowUpdatedEvent({ booking, attendeesNoShowAudit });
 
       const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
@@ -135,9 +136,10 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         hostsThatJoinedTheCall,
       });
 
-      const attendeesNoShowAudit = new Map(
-        attendeesMarkedNoShow.map((a) => [a.email, { old: a.previousNoShow, new: a.noShow }])
-      );
+      const attendeesNoShowAudit = attendeesMarkedNoShow.map((a) => ({
+        attendeeEmail: a.email,
+        noShow: { old: a.previousNoShow, new: a.noShow },
+      }));
       await fireNoShowUpdatedEvent({ booking, attendeesNoShowAudit });
 
       const guests = updatedAttendees?.filter((a) => !hostEmails.has(a.email)) ?? [];
