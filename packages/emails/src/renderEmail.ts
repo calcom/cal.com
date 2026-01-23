@@ -1,3 +1,5 @@
+import { render } from "@react-email/render";
+
 import * as templates from "./templates";
 
 async function renderEmail<K extends keyof typeof templates>(
@@ -5,12 +7,12 @@ async function renderEmail<K extends keyof typeof templates>(
   props: React.ComponentProps<(typeof templates)[K]>
 ) {
   const Component = templates[template];
-  const ReactDOMServer = (await import("react-dom/server")).default;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error - Component props are dynamically typed based on template
+  const html = await render(Component(props));
   return (
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ReactDOMServer.renderToStaticMarkup(Component(props))
-      // Remove `<RawHtml />` injected scripts
+    html
+      // Remove `<RawHtml />` injected scripts (legacy compatibility)
       .replace(/<script><\/script>/g, "")
       .replace(
         "<html>",

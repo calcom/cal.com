@@ -9,6 +9,8 @@
   "dependencies": {
     "@calcom/dayjs": "workspace:*",
     "@calcom/lib": "workspace:*",
+    "@react-email/components": "^1.0.6",
+    "@react-email/render": "^2.0.4",
     "rrule": "2.7.1"
   },
   "peerDependencies": {
