@@ -1,7 +1,10 @@
+import { z } from "zod";
+
 import { Memoize, Unmemoize } from "@calcom/features/cache";
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import { TeamFeaturesDtoSchema } from "@calcom/lib/dto/TeamFeaturesDto";
-import type { FeatureId } from "../config";
+
+import type { FeatureId, TeamFeatures } from "../config";
 import type { ITeamFeatureRepository } from "./PrismaTeamFeatureRepository";
 import { booleanSchema } from "./schemas";
 
@@ -10,7 +13,10 @@ const KEY = {
   byTeamIdAndFeatureId: (teamId: number, featureId: string): string =>
     `${CACHE_PREFIX}:${teamId}:${featureId}`,
   autoOptInByTeamId: (teamId: number): string => `${CACHE_PREFIX}:autoOptIn:${teamId}`,
+  enabledFeatures: (teamId: number): string => `${CACHE_PREFIX}:enabledFeatures:${teamId}`,
 };
+
+const teamFeaturesSchema = z.record(z.string(), z.boolean()).nullable();
 
 export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   constructor(private prismaTeamFeatureRepository: ITeamFeatureRepository) {}
@@ -66,5 +72,17 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   })
   async setAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
     return this.prismaTeamFeatureRepository.setAutoOptIn(teamId, enabled);
+  }
+
+  async checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean> {
+    return this.prismaTeamFeatureRepository.checkIfTeamHasFeature(teamId, featureId);
+  }
+
+  @Memoize({
+    key: KEY.enabledFeatures,
+    schema: teamFeaturesSchema,
+  })
+  async getEnabledFeatures(teamId: number): Promise<TeamFeatures | null> {
+    return this.prismaTeamFeatureRepository.getEnabledFeatures(teamId);
   }
 }

@@ -241,7 +241,7 @@ describe("CachedFeatureRepository", () => {
       expect(result).toEqual(updatedFeature);
       expect(mockPrisma.feature.update).toHaveBeenCalledWith({
         where: { slug: "feature-1" },
-        data: { enabled: false, updatedBy: 1 },
+        data: { enabled: false, updatedBy: 1, updatedAt: expect.any(Date) },
       });
       expect(mockRedis.del).toHaveBeenCalledWith("features:global:slug:feature-1");
     });

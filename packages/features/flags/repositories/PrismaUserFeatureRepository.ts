@@ -1,5 +1,9 @@
+import { captureException } from "@sentry/nextjs";
+
 import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
 import type { PrismaClient } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
+
 import type { FeatureId } from "../config";
 
 export interface IUserFeatureRepository {
@@ -17,6 +21,8 @@ export interface IUserFeatureRepository {
   delete(userId: number, featureId: FeatureId): Promise<void>;
   findAutoOptInByUserId(userId: number): Promise<boolean>;
   setAutoOptIn(userId: number, enabled: boolean): Promise<void>;
+  checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
+  checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
 }
 
 export class PrismaUserFeatureRepository implements IUserFeatureRepository {
@@ -127,5 +133,131 @@ export class PrismaUserFeatureRepository implements IUserFeatureRepository {
       where: { id: userId },
       data: { autoOptInFeatures: enabled },
     });
+  }
+
+  /**
+   * Checks if a specific user has access to a feature based on user and team assignments.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → feature is enabled
+   * - Row with enabled=false → feature is explicitly disabled (blocks inheritance)
+   * - No row → inherit from team/org level
+   */
+  async checkIfUserHasFeature(userId: number, slug: string): Promise<boolean> {
+    try {
+      const userFeature = await this.prisma.userFeatures.findFirst({
+        where: {
+          userId,
+          featureId: slug,
+        },
+        select: { enabled: true },
+      });
+
+      if (userFeature) {
+        return userFeature.enabled;
+      }
+
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
+      return userBelongsToTeamWithFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a specific user has access to a feature, ignoring hierarchical (parent) teams.
+   * Only checks direct user assignments and direct team memberships — does not traverse parents.
+   */
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
+    try {
+      const userFeature = await this.prisma.userFeatures.findFirst({
+        where: {
+          userId,
+          featureId: slug,
+        },
+        select: { enabled: true },
+      });
+
+      if (userFeature) {
+        return userFeature.enabled;
+      }
+
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+        userId,
+        slug
+      );
+
+      return userBelongsToTeamWithFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  private async checkIfUserBelongsToTeamWithFeature(userId: number, slug: string): Promise<boolean> {
+    try {
+      const query = Prisma.sql`
+        WITH RECURSIVE TeamHierarchy AS (
+          SELECT DISTINCT t.id, t."parentId",
+            CASE WHEN EXISTS (
+              SELECT 1 FROM "TeamFeatures" tf
+              WHERE tf."teamId" = t.id AND tf."featureId" = ${slug} AND tf."enabled" = true
+            ) THEN true ELSE false END as has_feature
+          FROM "Team" t
+          INNER JOIN "Membership" m ON m."teamId" = t.id
+          WHERE m."userId" = ${userId} AND m.accepted = true
+
+          UNION ALL
+
+          SELECT DISTINCT p.id, p."parentId",
+            CASE WHEN EXISTS (
+              SELECT 1 FROM "TeamFeatures" tf
+              WHERE tf."teamId" = p.id AND tf."featureId" = ${slug} AND tf."enabled" = true
+            ) THEN true ELSE false END as has_feature
+          FROM "Team" p
+          INNER JOIN TeamHierarchy c ON p.id = c."parentId"
+          WHERE NOT c.has_feature
+        )
+        SELECT 1
+        FROM TeamHierarchy
+        WHERE has_feature = true
+        LIMIT 1;
+      `;
+
+      const result = await this.prisma.$queryRaw<unknown[]>(query);
+      return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  private async checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+    userId: number,
+    slug: string
+  ): Promise<boolean> {
+    try {
+      const query = Prisma.sql`
+        SELECT 1
+        FROM "Team" t
+        INNER JOIN "Membership" m ON m."teamId" = t.id
+        WHERE m."userId" = ${userId}
+          AND m.accepted = true
+          AND EXISTS (
+            SELECT 1
+            FROM "TeamFeatures" tf
+            WHERE tf."teamId" = t.id
+              AND tf."featureId" = ${slug}
+              AND tf."enabled" = true
+          )
+        LIMIT 1;
+      `;
+
+      const result = await this.prisma.$queryRaw<unknown[]>(query);
+      return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
   }
 }
