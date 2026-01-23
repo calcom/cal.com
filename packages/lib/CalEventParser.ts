@@ -43,6 +43,23 @@ export const sanitizeText = (input: string | null | undefined): string => {
   return result.trim();
 };
 
+/**
+ * Sanitizes email addresses by stripping HTML tags only, without URL obfuscation.
+ * Emails are format-validated on input (Zod), so they shouldn't contain HTML.
+ * This is a defense-in-depth measure that preserves the email format (user@example.com)
+ * instead of turning it into user@example[.]com.
+ */
+export const sanitizeEmail = (input: string | null | undefined): string => {
+  const text = input || "";
+  let stripped = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+  stripped = stripped.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, "");
+  stripped = stripped.replace(/<img[^>]*>/gi, "");
+  stripped = stripped.replace(/<[^>]+>/g, "");
+  const processed = markdownToSafeHTML(stripped);
+  const finalStripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
+  return finalStripped.trim();
+};
+
 const breakUrl = (input: string): string => {
   return input.replace(/(https?:\/\/)/g, "hxxp://").replace(/(?<!\[)\./g, "[.]");
 };
@@ -63,19 +80,19 @@ export const getWho = (
       (attendee) =>
         `${sanitizeText(attendee?.name) || t("guest")}${
           attendee.phoneNumber ? ` - ${sanitizeText(attendee.phoneNumber)}` : ""
-        }\n${!isSmsCalEmail(attendee.email) ? sanitizeText(attendee.email) : ""}`
+        }\n${!isSmsCalEmail(attendee.email) ? sanitizeEmail(attendee.email) : ""}`
     )
     .join("\n");
 
   const organizer = calEvent.hideOrganizerEmail
     ? `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}`
-    : `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}\n${sanitizeText(
+    : `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}\n${sanitizeEmail(
         calEvent.organizer.email
       )}`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeText(member.email)}`)
+        .map((member) => `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeEmail(member.email)}`)
         .join("\n")
     : [];
 
@@ -89,7 +106,7 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   if (!calEvent.additionalNotes) {
     return "";
   }
-  const result = `${t("additional_notes")}:\n${breakUrl(sanitizeText(calEvent.additionalNotes))}`;
+  const result = `${t("additional_notes")}:\n${sanitizeText(calEvent.additionalNotes)}`;
   return result;
 };
 
@@ -475,12 +492,12 @@ export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => 
   sanitized.organizer = {
     ...sanitized.organizer,
     name: sanitizeText(sanitized.organizer.name),
-    email: sanitizeText(sanitized.organizer.email),
+    email: sanitizeEmail(sanitized.organizer.email),
   };
   sanitized.attendees = sanitized.attendees.map((attendee) => ({
     ...attendee,
     name: sanitizeText(attendee.name),
-    email: sanitizeText(attendee.email),
+    email: sanitizeEmail(attendee.email),
   }));
   if (sanitized.team?.members) {
     sanitized.team = {
@@ -489,7 +506,7 @@ export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => 
       members: sanitized.team.members.map((member) => ({
         ...member,
         name: sanitizeText(member.name),
-        email: sanitizeText(member.email),
+        email: sanitizeEmail(member.email),
       })),
     };
   }

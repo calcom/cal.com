@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
-import { getSanitizedCalEvent, sanitizeText } from "@calcom/lib/CalEventParser";
+import { getSanitizedCalEvent, sanitizeEmail, sanitizeText } from "@calcom/lib/CalEventParser";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -116,7 +116,7 @@ export const BaseScheduledEmail = (
             description={
               <PersonInfo
                 name={sanitizeText(props.reassigned.name) || undefined}
-                email={sanitizeText(props.reassigned.email)}
+                email={sanitizeEmail(props.reassigned.email)}
               />
             }
             withSpacer
@@ -139,7 +139,7 @@ export const BaseScheduledEmail = (
       )}
       <Info label={t("what")} description={sanitizeText(props.calEvent.title)} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
-      <WhoInfo calEvent={props.calEvent} t={t} />
+      <WhoInfo calEvent={sanitizedCalEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info
         label={t("description")}
