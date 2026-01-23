@@ -46,6 +46,7 @@ import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/Sp
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -1955,6 +1956,20 @@ async function handler(
       }
 
       evt = updatedEvtWithPassword;
+
+      // Update evt with assignment reason if available (for emails)
+      if (assignmentReason) {
+        const updatedEvtWithAssignmentReason = CalendarEventBuilder.fromEvent(evt)
+          ?.withAssignmentReason({
+            category: getAssignmentReasonCategory(assignmentReason.reasonEnum),
+            details: assignmentReason.reasonString ?? null,
+          })
+          .build();
+
+        if (updatedEvtWithAssignmentReason) {
+          evt = updatedEvtWithAssignmentReason;
+        }
+      }
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
