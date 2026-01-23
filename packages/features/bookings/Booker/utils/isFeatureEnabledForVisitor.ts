@@ -1,10 +1,9 @@
-import process from "node:process";
 import { getCookie } from "@calcom/lib/cookie";
 
 /**
  * NOTE: Feature can be easily rolled back by setting percentage to 0
  */
-export const isVisitorWithinPercentage = ({ percentage }: { percentage: number }) => {
+export const isVisitorWithinPercentage = ({ percentage }: { percentage: number }): boolean => {
   // E2E tests must test all features regardless of their rollout percentage
   if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_IS_E2E) {
     return true;
