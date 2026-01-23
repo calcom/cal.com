@@ -173,6 +173,7 @@ export default function Success(props: PageProps) {
   const calendarLinks = getCalendarLinks({
     booking: bookingWithParsedMetadata,
     eventType: eventType,
+    organizerGivenName: bookingInfo.user?.givenName || eventType.users[0]?.givenName,
     t,
   });
 

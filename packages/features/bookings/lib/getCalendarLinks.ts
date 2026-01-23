@@ -138,6 +138,7 @@ const buildMicrosoftOutlookLink = ({
 export const getCalendarLinks = ({
   booking,
   eventType,
+  organizerGivenName,
   t,
 }: {
   booking: {
@@ -163,6 +164,7 @@ export const getCalendarLinks = ({
     }[];
     title: string;
   };
+  organizerGivenName?: string | null;
   t: TFunction;
 }) => {
   let evtName = eventType.eventName;
@@ -176,7 +178,7 @@ export const getCalendarLinks = ({
     eventType: eventType.title,
     eventName: evtName,
     host: eventType.team?.name || eventType.users[0]?.name || "Nameless",
-    hostGivenName: eventType.users[0]?.givenName,
+    hostGivenName: organizerGivenName || eventType.users[0]?.givenName,
     location: booking.location,
     bookingFields: booking.responses,
     eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
