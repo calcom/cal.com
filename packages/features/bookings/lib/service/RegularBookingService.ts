@@ -1563,7 +1563,7 @@ async function handler(
   // Compute recurringEvent with adjusted count if needed
   const computedRecurringEvent =
     reqBody.recurringEventId && eventType.recurringEvent
-      ? { ...eventType.recurringEvent, count: recurringCount }
+      ? { ...eventType.recurringEvent, count: recurringCount ?? eventType.recurringEvent.count }
       : eventType.recurringEvent;
 
   const { teamMembers, teamDestinationCalendars } = await computeTeamData({
