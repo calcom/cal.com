@@ -27,7 +27,7 @@ export interface PageProps {
       yearClaimed?: number;
       formSubmittedForYear?: number;
       validTillDate?: string;
-      verifield?: boolean;
+      verified?: boolean;
       firstYearClaimDate?: string;
     };
   };
@@ -80,11 +80,16 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
       yearClaimed < 1 &&
       !mutation.isPending
     ) {
+      const validTillDate = new Date();
+      validTillDate.setFullYear(validTillDate.getFullYear() + 1);
+
       mutation.mutate({
         metadata: {
           isProUser: {
             ...userMetadata.isProUser,
             yearClaimed: 1,
+            validTillDate: validTillDate.toISOString(),
+            verified: true,
           },
         },
       });
@@ -97,6 +102,8 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
       const newFormSubmittedForYear = data.metadata?.isProUser?.formSubmittedForYear || 0;
       const newFirstYearClaimDate = data.metadata?.isProUser?.firstYearClaimDate;
       const newYearClaimed = data.metadata?.isProUser?.yearClaimed || 0;
+      const newValidTillDate = data.metadata?.isProUser?.validTillDate;
+      const newVerified = data.metadata?.isProUser?.verified;
       setUserMetadata((prev) => ({
         ...prev,
         isProUser: {
@@ -104,6 +111,8 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
           formSubmittedForYear: newFormSubmittedForYear,
           firstYearClaimDate: newFirstYearClaimDate,
           yearClaimed: newYearClaimed,
+          validTillDate: newValidTillDate,
+          verified: newVerified,
         },
       }));
 
