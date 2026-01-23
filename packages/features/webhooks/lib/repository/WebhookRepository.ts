@@ -14,6 +14,10 @@ import type {
   WebhookVersion,
 } from "../interface/IWebhookRepository";
 import { parseWebhookVersion } from "../interface/IWebhookRepository";
+import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
+import type { IUsersRepository } from "@calcom/features/users/users.repository.interface";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscribersOptions } from "./types";
 
 // Type for raw query results from the database
@@ -40,18 +44,52 @@ const filterWebhooks = (webhook: { appId: string | null }) => {
   return !appIds.some((appId: string) => webhook.appId == appId);
 };
 
+/**
+ * Repository for webhook operations.
+ * 
+ * Now follows strict Repository Pattern (CODE_STANDARDS.md Rule #7):
+ * - Only accesses webhook table directly
+ * - Cross-table queries delegated to EventTypeRepository and UserRepository
+ * - All dependencies injected via constructor (DI-compliant)
+ * - Singleton pattern kept temporarily for backward compatibility during migration
+ */
 export class WebhookRepository implements IWebhookRepository {
-  private static _instance: WebhookRepository;
+  private static _instance: WebhookRepository | undefined;
 
-  constructor(private readonly prisma: typeof defaultPrisma = defaultPrisma) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly eventTypeRepository: IEventTypesRepository,
+    private readonly userRepository: IUsersRepository
+  ) {}
 
   /**
-   * Singleton accessor for backward compatibility.
-   * @deprecated Use DI container (getWebhookFeature().repository) instead
+   * Singleton accessor for backward compatibility with legacy code.
+   * 
+   * @deprecated Use DI container instead:
+   * ```typescript
+   * import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
+   * const { repository } = getWebhookFeature();
+   * ```
+   * 
+   * This singleton will be REMOVED in Phase 6 after all webhook triggers are migrated to DI.
+   * 
+   * **Current Status (Phase 1):**
+   * - ✅ TRPC handlers migrated (list, get, getByViewer)
+   * - ✅ triggerDelegationCredentialErrorWebhook migrated
+   * - ⏳ Booking webhook triggers (in progress)
+   * - ⏳ Form/Recording/OOO triggers (pending)
+   * 
+   * New code should ALWAYS use the DI container.
    */
   static getInstance(): WebhookRepository {
     if (!WebhookRepository._instance) {
-      WebhookRepository._instance = new WebhookRepository(defaultPrisma);
+      // Create with concrete implementations for backward compatibility
+      // This ensures legacy code continues working during incremental migration
+      WebhookRepository._instance = new WebhookRepository(
+        defaultPrisma,
+        new EventTypeRepository(defaultPrisma),
+        new UsersRepository()
+      );
     }
     return WebhookRepository._instance;
   }
@@ -66,18 +104,8 @@ export class WebhookRepository implements IWebhookRepository {
 
     let managedParentEventTypeId: number | undefined;
     if (eventTypeId) {
-      const managedChildEventType = await this.prisma.eventType.findFirst({
-        where: {
-          id: eventTypeId,
-          parentId: {
-            not: null,
-          },
-        },
-        select: {
-          parentId: true,
-        },
-      });
-      managedParentEventTypeId = managedChildEventType?.parentId ?? undefined;
+      managedParentEventTypeId =
+        (await this.eventTypeRepository.findParentEventTypeId(eventTypeId)) ?? undefined;
     }
 
     const webhooks = await this.getSubscribersRaw({
@@ -508,26 +536,17 @@ export class WebhookRepository implements IWebhookRepository {
       { appId: appId ?? null },
     ];
 
-    // Get user's teams
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { teams: true },
-    });
+    // Get user's teams via UserRepository
+    const user = await this.userRepository.findUserTeams(userId);
 
     if (eventTypeId) {
-      // Check for managed event type parent
-      const managedParentEvt = await this.prisma.eventType.findFirst({
-        where: {
-          id: eventTypeId,
-          parentId: { not: null },
-        },
-        select: { parentId: true },
-      });
+      // Check for managed event type parent via EventTypeRepository
+      const managedParentId = await this.eventTypeRepository.findParentEventTypeId(eventTypeId);
 
-      if (managedParentEvt?.parentId) {
+      if (managedParentId) {
         // Include webhooks from both the event type and its parent (if active)
         whereConditions.push({
-          OR: [{ eventTypeId }, { eventTypeId: managedParentEvt.parentId, active: true }],
+          OR: [{ eventTypeId }, { eventTypeId: managedParentId, active: true }],
         });
       } else {
         whereConditions.push({ eventTypeId });

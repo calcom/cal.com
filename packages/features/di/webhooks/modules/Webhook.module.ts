@@ -1,5 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { UsersRepository } from "@calcom/features/users/users.repository";
 import { createPayloadBuilderFactory } from "@calcom/features/webhooks/lib/factory/versioned/registry";
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
@@ -14,12 +16,23 @@ import { DI_TOKENS } from "../../tokens";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
-export const webhookModule = createModule();
+const webhookModule = createModule();
 
-// Bind repository with Prisma dependency
+// Bind cross-table repositories (used by WebhookRepository)
+webhookModule
+  .bind(WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY)
+  .toClass(EventTypeRepository, [DI_TOKENS.PRISMA_CLIENT]);
+
+webhookModule.bind(WEBHOOK_TOKENS.WEBHOOK_USER_REPOSITORY).toClass(UsersRepository, []);
+
+// Bind webhook repository with dependencies (Repository Pattern compliance)
 webhookModule
   .bind(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY)
-  .toClass(WebhookRepository, [DI_TOKENS.PRISMA_CLIENT]);
+  .toClass(WebhookRepository, [
+    DI_TOKENS.PRISMA_CLIENT,
+    WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY,
+    WEBHOOK_TOKENS.WEBHOOK_USER_REPOSITORY,
+  ]);
 
 // Bind services
 webhookModule
@@ -68,3 +81,5 @@ webhookModule
 webhookModule
   .bind(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER)
   .toClass(WebhookNotifier, [WEBHOOK_TOKENS.WEBHOOK_NOTIFICATION_HANDLER, SHARED_TOKENS.LOGGER]);
+
+export { webhookModule };

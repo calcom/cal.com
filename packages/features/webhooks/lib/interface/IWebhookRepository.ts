@@ -71,6 +71,10 @@ export interface IWebhookRepository {
     timeUnit: string | null;
     version: WebhookVersion;
   }>;
+  findByOrgIdAndTrigger(options: {
+    orgId: number;
+    triggerEvent: WebhookTriggerEvents;
+  }): Promise<WebhookSubscriber[]>;
   getFilteredWebhooksForUser(options: { userId: number; userRole?: UserPermissionRole }): Promise<{
     webhookGroups: WebhookGroup[];
     profiles: {
