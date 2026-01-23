@@ -1,7 +1,7 @@
 import { ShellMainAppDirBackButton } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDirBackButton";
 import classNames from "classnames";
 
-import type { LayoutProps } from "@calcom/features/shell/Shell";
+import type { LayoutProps } from "~/shell/Shell";
 
 // Copied from `ShellMain` but with a different `ShellMainAppDirBackButton` import
 // for client/server component separation
@@ -17,11 +17,14 @@ export function ShellMainAppDir(props: LayoutProps) {
           {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}
           {props.heading && (
             <header
-              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
+              className={classNames(
+                props.large && "py-8",
+                "flex w-full max-w-full items-center flex-wrap md:flex-nowrap gap-2 md:gap-0"
+              )}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
                 className={classNames(
-                  "hidden w-full truncate ltr:mr-4 rtl:ml-4 md:block",
+                  "hidden min-w-0 flex-1 ltr:mr-4 rtl:ml-4 md:block",
                   props.headerClassName
                 )}>
                 {props.heading && (
@@ -45,8 +48,8 @@ export function ShellMainAppDir(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-32 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
+                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                    "shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {props.CTA}
                 </div>

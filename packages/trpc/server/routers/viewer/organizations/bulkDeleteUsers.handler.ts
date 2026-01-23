@@ -1,4 +1,5 @@
-import { TeamBilling } from "@calcom/ee/billing/teams";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -56,19 +57,22 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  // Loop over all users in input.userIds and remove all memberships for the organization including child teams
-  const deleteMany = prisma.membership.deleteMany({
+  const deleteOrganizationMemberships = prisma.membership.deleteMany({
+    where: {
+      teamId: currentUserOrgId,
+      userId: {
+        in: input.userIds,
+      },
+    },
+  });
+
+  const deleteSubteamMemberships = prisma.membership.deleteMany({
     where: {
       userId: {
         in: input.userIds,
       },
       team: {
-        OR: [
-          {
-            parentId: currentUserOrgId,
-          },
-          { id: currentUserOrgId },
-        ],
+        parentId: currentUserOrgId,
       },
     },
   });
@@ -130,16 +134,27 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
 
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
-  await prisma.$transaction([
+  const [, { count: orgMembershipRemovalCount }] = await prisma.$transaction([
     removeProfiles,
-    deleteMany,
+    deleteOrganizationMemberships,
+    deleteSubteamMemberships,
     removeOrgrelation,
     removeManagedEventTypes,
     removeHostAssignment,
   ]);
 
-  const teamBilling = await TeamBilling.findAndInit(currentUserOrgId);
-  await teamBilling.updateQuantity();
+  if (orgMembershipRemovalCount > 0) {
+    const seatTracker = new SeatChangeTrackingService();
+    await seatTracker.logSeatRemoval({
+      teamId: currentUserOrgId,
+      seatCount: orgMembershipRemovalCount,
+      triggeredBy: currentUser.id,
+    });
+  }
+
+  const teamBillingServiceFactory = getTeamBillingServiceFactory();
+  const teamBillingService = await teamBillingServiceFactory.findAndInit(currentUserOrgId);
+  await teamBillingService.updateQuantity();
 
   return {
     success: true,

@@ -20,7 +20,9 @@ export type ConfirmationDialogContentProps = {
   variety?: "danger" | "warning" | "success";
 } & ConfirmBtnType;
 
-export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
+export function ConfirmationDialogContent(
+  props: PropsWithChildren<ConfirmationDialogContentProps>
+) {
   return (
     <DialogContent type="creation">
       <ConfirmationContent {...props} />
@@ -28,7 +30,9 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
   );
 }
 
-export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogContentProps>) => {
+export const ConfirmationContent = (
+  props: PropsWithChildren<ConfirmationDialogContentProps>
+) => {
   const { t } = useLocale();
   const {
     title,
@@ -49,7 +53,10 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="bg-error mx-auto rounded-full p-2 text-center">
-                <Icon name="circle-alert" className="h-5 w-5 text-red-600 dark:text-red-100" />
+                <Icon
+                  name="circle-alert"
+                  className="h-5 w-5 text-red-600 dark:text-red-100"
+                />
               </div>
             )}
             {variety === "warning" && (
@@ -58,18 +65,18 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
               </div>
             )}
             {variety === "success" && (
-              <div className="bg-success mx-auto rounded-full p-2 text-center">
+              <div className="bg-cal-success mx-auto rounded-full p-2 text-center">
                 <Icon name="check" className="h-5 w-5 text-green-600" />
               </div>
             )}
           </div>
         )}
         <div className="w-full">
-          <DialogPrimitive.Title className="font-cal text-emphasis mt-2 text-xl">
+          <DialogPrimitive.Title className="font-cal text-emphasis mt-1 text-xl">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Description className="text-subtle text-sm">
-            {children}
+          <DialogPrimitive.Description asChild>
+            <div className="text-subtle text-sm">{children}</div>
           </DialogPrimitive.Description>
         </div>
       </div>
@@ -81,7 +88,8 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
             color="primary"
             loading={isPending}
             onClick={(e) => onConfirm && onConfirm(e)}
-            data-testid="dialog-confirmation">
+            data-testid="dialog-confirmation"
+          >
             {isPending ? loadingText : confirmBtnText}
           </DialogClose>
         )}

@@ -38,8 +38,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   bufferTime: 0,
   availability: [],
   id: 0,
-  startTime: 0,
-  endTime: 0,
+  uuid: "00000000-0000-0000-0000-000000000000",
   allSelectedCalendars: [],
   userLevelSelectedCalendars: [],
   schedules: [],
@@ -90,6 +89,7 @@ const commons = {
   seatsShowAvailabilityCount: null,
   disableCancelling: false,
   disableRescheduling: false,
+  minimumRescheduleNotice: null,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
   allowReschedulingCancelledBookings: false,
@@ -141,9 +141,11 @@ const commons = {
   restrictionScheduleId: null,
   useBookerTimezone: false,
   profileId: null,
+  profile: null,
   requiresConfirmationWillBlockSlot: false,
   canSendCalVideoTranscriptionEmails: false,
   instantMeetingExpiryTimeOffsetInSeconds: 0,
+  autoTranslateInstantMeetingTitleEnabled: true,
   instantMeetingScheduleId: null,
   instantMeetingParameters: [],
   eventTypeColor: null,
@@ -151,6 +153,8 @@ const commons = {
   bookingRequiresAuthentication: false,
   createdAt: null,
   updatedAt: null,
+  rrHostSubsetEnabled: false,
+  enablePerHostLocations: false,
 };
 
 export const dynamicEvent = {

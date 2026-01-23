@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { PrismaTeamBillingDataRepository } from "@calcom/features/ee/billing/repository/teamBillingData/PrismaTeamBillingRepository";
 import { BillingMigrationService } from "@calcom/features/ee/billing/services/BillingMigrationService";
-import { TeamBillingRepository } from "@calcom/features/ee/billing/teams/team-billing.repository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -44,10 +44,10 @@ async function postHandler(request: NextRequest) {
 
   try {
     const bookingRepository = new BookingRepository(prisma);
-    const teamBillingRepository = new TeamBillingRepository();
+    const teamBillingDataRepository = new PrismaTeamBillingDataRepository(prisma);
     const billingMigrationService = new BillingMigrationService({
       bookingRepository,
-      teamBillingRepository,
+      teamBillingDataRepository,
     });
     const result = await billingMigrationService.migrateTeamBillingFromBookings({ lookbackHours });
 

@@ -7,8 +7,12 @@ import {
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
   FORM_ALLOWED_STEP_ACTIONS,
+  SMS_NUMBER,
   WorkflowEmailAddressStepDto,
   WorkflowEmailAttendeeStepDto,
+  WorkflowPhoneNumberStepDto,
+  WorkflowPhoneAttendeeStepDto,
+  SMS_ATTENDEE,
 } from "./workflow-step.input";
 import {
   RoutingFormWorkflowTriggerDto,
@@ -85,6 +89,8 @@ export class CreateFormWorkflowDto {
     oneOf: [
       { $ref: getSchemaPath(WorkflowEmailAddressStepDto) },
       { $ref: getSchemaPath(WorkflowEmailAttendeeStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneAttendeeStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneNumberStepDto) },
     ],
     type: "array",
   })
@@ -99,8 +105,15 @@ export class CreateFormWorkflowDto {
       subTypes: [
         { value: WorkflowEmailAddressStepDto, name: EMAIL_ADDRESS },
         { value: WorkflowEmailAttendeeStepDto, name: EMAIL_ATTENDEE },
+        { value: WorkflowPhoneAttendeeStepDto, name: SMS_ATTENDEE },
+        { value: WorkflowPhoneNumberStepDto, name: SMS_NUMBER },
       ],
     },
   })
-  steps!: (WorkflowEmailAddressStepDto | WorkflowEmailAttendeeStepDto)[];
+  steps!: (
+    | WorkflowEmailAddressStepDto
+    | WorkflowEmailAttendeeStepDto
+    | WorkflowPhoneAttendeeStepDto
+    | WorkflowPhoneNumberStepDto
+  )[];
 }

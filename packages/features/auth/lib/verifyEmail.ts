@@ -1,11 +1,11 @@
-import { randomBytes, createHash } from "crypto";
+import { randomBytes, createHash } from "node:crypto";
 import { totp } from "otplib";
 
 import {
   sendEmailVerificationCode,
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
-} from "@calcom/emails/email-manager";
+} from "@calcom/emails/auth-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
@@ -56,7 +56,7 @@ export const sendEmailVerification = async ({
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: hashEmail(email),
+    identifier: `sendEmailVerification:${hashEmail(email)}`,
   });
 
   await prisma.verificationToken.create({

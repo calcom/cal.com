@@ -9,7 +9,7 @@ export default function AppSettings() {
   const [input, setInput] = useState("");
 
   return (
-    <div className="space-y-4 px-4 pb-4 pt-4 text-sm">
+    <div className="stack-y-4 px-4 pb-4 pt-4 text-sm">
       <TextField
         placeholder="Some Input"
         value={input}

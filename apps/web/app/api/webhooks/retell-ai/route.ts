@@ -4,12 +4,12 @@ import { NextResponse } from "next/server";
 import { Retell } from "retell-sdk";
 import { z } from "zod";
 
+import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
+import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
@@ -62,6 +62,8 @@ const RetellWebhookSchema = z.object({
     })
     .passthrough(),
 });
+
+type RetellCallData = z.infer<typeof RetellWebhookSchema>["call"];
 
 async function chargeCreditsForCall({
   userId,
@@ -120,7 +122,7 @@ async function chargeCreditsForCall({
   }
 }
 
-async function handleCallAnalyzed(callData: any) {
+async function handleCallAnalyzed(callData: RetellCallData) {
   const { from_number, call_id, call_cost, call_type, agent_id } = callData;
 
   if (
@@ -165,7 +167,7 @@ async function handleCallAnalyzed(callData: any) {
     }
 
     userId = agent.userId ?? undefined;
-    teamId = agent.teamId ?? undefined;
+    teamId = agent.team?.parentId ?? agent.teamId ?? undefined;
 
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
@@ -181,7 +183,7 @@ async function handleCallAnalyzed(callData: any) {
     }
 
     userId = phoneNumber.userId ?? undefined;
-    teamId = phoneNumber.teamId ?? undefined;
+    teamId = phoneNumber.team?.parentId ?? phoneNumber.teamId ?? undefined;
 
     log.info(`Processing phone call ${call_id} from ${from_number}, user ${userId}, team ${teamId}`);
   }

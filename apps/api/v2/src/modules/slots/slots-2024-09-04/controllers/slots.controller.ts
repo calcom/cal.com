@@ -1,3 +1,33 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  ApiResponse,
+  GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
+  GetSlotsInput_2024_09_04,
+  GetSlotsInputPipe,
+  ReserveSlotInput_2024_09_04,
+  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputType_2024_09_04,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiHeader,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse as DocsResponse,
+  ApiTags as DocsTags,
+} from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
 import { OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
 import {
@@ -9,37 +39,6 @@ import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
 import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import {
-  Query,
-  Body,
-  Controller,
-  Get,
-  Delete,
-  Post,
-  Param,
-  HttpCode,
-  HttpStatus,
-  Patch,
-  UseGuards,
-} from "@nestjs/common";
-import {
-  ApiOperation,
-  ApiTags as DocsTags,
-  ApiHeader,
-  ApiResponse as DocsResponse,
-  ApiQuery,
-} from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  GetSlotsInput_2024_09_04,
-  GetSlotsInputPipe,
-  ReserveSlotInput_2024_09_04,
-  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputType_2024_09_04,
-  GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
-} from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/slots",
@@ -64,7 +63,7 @@ export class SlotsController_2024_09_04 {
     description: `
       There are 4 ways to get available slots for event type of an individual user:
 
-      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+      1. By event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
       2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
 
@@ -74,7 +73,10 @@ export class SlotsController_2024_09_04 {
 
       And 3 ways to get available slots for team event type:
 
-      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'.
+         **Note for managed event types**: Managed event types are templates that create individual child event types for each team member. You cannot fetch slots for the parent managed event type directly. Instead, you must:
+         - Find the child event type IDs (the ones assigned to specific users)
+         - Use those child event type IDs to fetch slots as individual user event types using as described in the individual user section above.
 
       2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'
 
@@ -92,12 +94,14 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "timeZone",
+    type: String,
     required: false,
     description: "Time zone in which the available slots should be returned. Defaults to UTC.",
     example: "Europe/Rome",
   })
   @ApiQuery({
     name: "duration",
+    type: Number,
     required: false,
     description:
       "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
@@ -105,6 +109,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "format",
+    type: String,
     required: false,
     description:
       "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
@@ -112,6 +117,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "usernames",
+    type: String,
     required: false,
     description: `The usernames for which available slots should be checked separated by a comma.
 
@@ -122,12 +128,14 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "eventTypeId",
+    type: Number,
     required: false,
     description: "The ID of the event type for which available slots should be checked.",
     example: "100",
   })
   @ApiQuery({
     name: "eventTypeSlug",
+    type: String,
     required: false,
     description:
       "The slug of the event type for which available slots should be checked. If slug is provided then username or teamSlug must be provided too and if relevant organizationSlug too.",
@@ -135,6 +143,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "username",
+    type: String,
     required: false,
     description:
       "The username of the user who owns event type with eventTypeSlug - used when slots are checked for individual user event type.",
@@ -142,6 +151,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "teamSlug",
+    type: String,
     required: false,
     description:
       "The slug of the team who owns event type with eventTypeSlug - used when slots are checked for team event type.",
@@ -149,6 +159,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "organizationSlug",
+    type: String,
     required: false,
     description:
       "The slug of the organization to which user with username belongs or team with teamSlug belongs.",
@@ -156,6 +167,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "end",
+    type: String,
     required: true,
     description: `
     Time until which available slots should be checked.
@@ -168,6 +180,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "start",
+    type: String,
     required: true,
     description: `
       Time starting from which available slots should be checked.
@@ -180,6 +193,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "bookingUidToReschedule",
+    type: String,
     required: false,
     description:
       "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
@@ -188,7 +202,8 @@ export class SlotsController_2024_09_04 {
   @DocsResponse({
     status: 200,
     description: `A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.
-      For seated slots each object will have attendeesCount and bookingUid properties.`,
+      For seated slots each object will have attendeesCount and bookingUid properties.
+      If no slots are available, the data field will be an empty object {}.`,
     schema: {
       oneOf: [
         {

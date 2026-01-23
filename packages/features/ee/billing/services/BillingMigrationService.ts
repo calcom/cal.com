@@ -3,8 +3,8 @@ import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { Plan, SubscriptionStatus } from "../repository/IBillingRepository";
 import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
-import type { TeamBillingRepository } from "../teams/team-billing.repository";
-import type { TeamWithBillingRecords } from "../teams/team-billing.repository.interface";
+import type { PrismaTeamBillingDataRepository } from "../repository/teamBillingData/PrismaTeamBillingRepository";
+import type { TeamWithBillingRecords } from "../repository/teamBillingData/ITeamBillingDataRepository";
 
 export interface BillingMigrationResult {
   ok: boolean;
@@ -23,7 +23,7 @@ export interface BillingMigrationInput {
 
 export interface IBillingMigrationServiceDeps {
   bookingRepository: BookingRepository;
-  teamBillingRepository: TeamBillingRepository;
+  teamBillingDataRepository: PrismaTeamBillingDataRepository;
 }
 
 export class BillingMigrationService {
@@ -70,7 +70,7 @@ export class BillingMigrationService {
   }
 
   private async migrateTeamBilling(teamId: number): Promise<{ migrated: boolean; reason?: string }> {
-    const team = await this.deps.teamBillingRepository.findByIdIncludeBillingRecords(teamId);
+    const team = await this.deps.teamBillingDataRepository.findByIdIncludeBillingRecords(teamId);
 
     if (!team) {
       return { migrated: false, reason: "Team not found" };

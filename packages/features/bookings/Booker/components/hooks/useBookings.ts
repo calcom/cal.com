@@ -18,15 +18,15 @@ import { createRecurringBooking } from "@calcom/features/bookings/lib/create-rec
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
@@ -399,11 +399,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       }
 
       const error = err as Error & {
-        data: { rescheduleUid: string; startTime: string; attendees: string[] };
+        data: { rescheduleUid: string; startTime: string; attendees: string[]; seatUid?: string };
+        traceId?: string;
       };
 
       if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
-        setRescheduleUid(error.data?.rescheduleUid);
+        setRescheduleUid(error.data?.seatUid ?? error.data?.rescheduleUid);
         setBookingData({
           uid: error.data?.rescheduleUid,
           startTime: error.data?.startTime,
@@ -521,6 +522,11 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
             : event?.data?.forwardParamsSuccessRedirect,
       });
     },
+    onError: (err, _, ctx) => {
+      console.error("Error creating recurring booking", err);
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
+      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+    },
   });
 
   const handleBookEvent = useHandleBookEvent({
@@ -531,7 +537,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(t("please_try_again_later_or_book_another_slot"), "error");
+        showToast(
+          t("please_try_again_later_or_book_another_slot", { remaining: Math.ceil(remaining / 60000) }),
+          "error"
+        );
         return;
       }
       createInstantBookingMutation.mutate(variables);

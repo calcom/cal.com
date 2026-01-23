@@ -1,9 +1,9 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
+import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import {
