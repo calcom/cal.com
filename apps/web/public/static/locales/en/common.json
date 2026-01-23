@@ -4393,7 +4393,8 @@
     "assignment_type_manual": "Manual",
     "assignment_type_round_robin": "Round robin",
     "actor_impersonated_by": "Impersonator",
-    "source": "Source"
+    "source": "Source",
+    "error_processing": "Unable to load details - {{actionType}}"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",
