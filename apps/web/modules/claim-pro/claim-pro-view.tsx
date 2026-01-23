@@ -180,7 +180,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
           <div className="group relative h-80 w-full">
             <div
               className={`bg-default border-default relative flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
-                formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible
+                (formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible) || yearClaimed >= 1
                   ? "cursor-not-allowed opacity-60"
                   : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
               }`}
@@ -196,11 +196,11 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
               )}
               <div
                 className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
-                  formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible
+                  (formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible) || yearClaimed >= 1
                     ? "bg-green-100"
                     : "bg-blue-100"
                 }`}>
-                {formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible ? (
+                {(formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible) || yearClaimed >= 1 ? (
                   <Icon name="check" className="h-8 w-8 text-green-500" />
                 ) : (
                   <svg
@@ -218,11 +218,11 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
                 )}
               </div>
               <h3 className="text-default text-xl font-bold">
-                {formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible
+                {(formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible) || yearClaimed >= 1
                   ? "First Year Pro"
                   : "Unlock 1st Year"}
               </h3>
-              {formSubmittedForYear >= 1 && !uniqueAttendeesData?.isEligible ? (
+              {formSubmittedForYear >= 1 && !uniqueAttendeesData?.isEligible && yearClaimed < 1 ? (
                 <div className="mb-6 flex w-full flex-col items-center justify-center space-y-4">
                   <p className="text-default text-sm">Get bookings with 3 unique users to unlock</p>
                   <div className="w-full max-w-[200px] space-y-2">
@@ -264,7 +264,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
               ) : (
                 <p className="text-default mb-6">Unlock all premium features for one year</p>
               )}
-              {formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible ? (
+              {(formSubmittedForYear >= 1 && uniqueAttendeesData?.isEligible) || yearClaimed >= 1 ? (
                 <Button className="text-center" disabled>
                   Already Claimed
                 </Button>
