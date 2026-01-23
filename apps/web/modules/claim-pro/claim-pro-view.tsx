@@ -288,7 +288,9 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
           <div className="group relative h-80 w-full">
             <div
               className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
-                formSubmittedForYear < 1 || !uniqueAttendeesData?.isEligible || formSubmittedForYear >= 2
+                formSubmittedForYear < 1 ||
+                (!uniqueAttendeesData?.isEligible && yearClaimed < 1) ||
+                formSubmittedForYear >= 2
                   ? "cursor-not-allowed opacity-60"
                   : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
               }`}
@@ -325,7 +327,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
               <Button
                 onClick={() =>
                   formSubmittedForYear >= 1 &&
-                  uniqueAttendeesData?.isEligible &&
+                  (uniqueAttendeesData?.isEligible || yearClaimed >= 1) &&
                   formSubmittedForYear < 2 &&
                   setShowTallyForm(true)
                 }
@@ -333,12 +335,12 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
                 disabled={
                   mutation.isPending ||
                   formSubmittedForYear < 1 ||
-                  !uniqueAttendeesData?.isEligible ||
+                  (!uniqueAttendeesData?.isEligible && yearClaimed < 1) ||
                   formSubmittedForYear >= 2
                 }>
                 {formSubmittedForYear >= 2
                   ? "Already Claimed"
-                  : formSubmittedForYear < 1 || !uniqueAttendeesData?.isEligible
+                  : formSubmittedForYear < 1 || (!uniqueAttendeesData?.isEligible && yearClaimed < 1)
                   ? "Complete First Year"
                   : "Claim"}
               </Button>
