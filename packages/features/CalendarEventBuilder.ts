@@ -1,5 +1,3 @@
-import type { TFunction } from "i18next";
-
 import { ALL_APPS } from "@calcom/app-store/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -8,10 +6,11 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
+import type { AppsStatus, CalEventResponses, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { TFunction } from "i18next";
 
 const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
 
@@ -528,6 +527,17 @@ export class CalendarEventBuilder {
       ...this.event,
       hashedLink,
     };
+    return this;
+  }
+
+  withConditional<T>(
+    condition: boolean,
+    data: T,
+    apply: (builder: this, data: NonNullable<T>) => this
+  ): this {
+    if (condition && data !== null) {
+      return apply(this, data as NonNullable<T>);
+    }
     return this;
   }
 
