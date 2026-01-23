@@ -44,15 +44,6 @@ const filterWebhooks = (webhook: { appId: string | null }): boolean => {
   return !appIds.some((appId: string) => webhook.appId == appId);
 };
 
-/**
- * Repository for webhook operations.
- *
- * Now follows strict Repository Pattern (CODE_STANDARDS.md Rule #7):
- * - Only accesses webhook table directly
- * - Cross-table queries delegated to EventTypeRepository and UserRepository
- * - All dependencies injected via constructor (DI-compliant)
- * - Singleton pattern kept temporarily for backward compatibility during migration
- */
 export class WebhookRepository implements IWebhookRepository {
   private static _instance: WebhookRepository | undefined;
 
