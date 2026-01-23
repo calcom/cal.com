@@ -141,7 +141,10 @@ export default function TeamList(props: Props) {
                         href: `/settings/teams/${team.id}/members`,
                         child: t("invite"),
                         onClick: () =>
-                          posthog.capture("teams_invite_team_member_clicked", { teamId: team.id }),
+                          posthog.capture("teams_invite_team_member_clicked", {
+                            teamId: team.id,
+                            featureType: "teams",
+                          }),
                       }}
                     />
                     <Card
@@ -153,7 +156,10 @@ export default function TeamList(props: Props) {
                         href: `/event-types?dialog=new&eventPage=team%2F${team.slug}&teamId=${team.id}`,
                         child: t("create"),
                         onClick: () =>
-                          posthog.capture("teams_collective_or_roundrobin_clicked", { teamId: team.id }),
+                          posthog.capture("teams_collective_or_roundrobin_clicked", {
+                            teamId: team.id,
+                            featureType: "teams",
+                          }),
                       }}
                     />
                     <Card
@@ -164,7 +170,11 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href: `/settings/teams/${team.id}/appearance`,
                         child: t("edit"),
-                        onClick: () => posthog.capture("teams_appearance_clicked", { teamId: team.id }),
+                        onClick: () =>
+                          posthog.capture("teams_appearance_clicked", {
+                            teamId: team.id,
+                            featureType: "teams",
+                          }),
                       }}
                     />
                   </div>
