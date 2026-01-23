@@ -45,6 +45,7 @@ type SlotSelectionModalHeaderProps = {
     | "locations"
     | "requiresConfirmation"
     | "recurringEvent"
+    | "enablePerHostLocations"
   > | null;
   isPlatform?: boolean;
   timeZones?: Timezone[];
