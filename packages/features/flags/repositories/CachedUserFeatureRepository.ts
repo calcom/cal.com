@@ -16,7 +16,7 @@ export class CachedUserFeatureRepository implements IUserFeatureRepository {
   constructor(private prismaUserFeatureRepository: IUserFeatureRepository) {}
 
   @Memoize({
-    key: (userId: number, featureId: FeatureId) => KEY.byUserIdAndFeatureId(userId, featureId),
+    key: KEY.byUserIdAndFeatureId,
     schema: UserFeaturesDtoSchema,
   })
   async findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeaturesDto | null> {
@@ -27,21 +27,7 @@ export class CachedUserFeatureRepository implements IUserFeatureRepository {
     userId: number,
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, UserFeaturesDto>>> {
-    const results = await Promise.all(
-      featureIds.map(async (featureId) => {
-        const userFeature = await this.findByUserIdAndFeatureId(userId, featureId);
-        return { featureId, userFeature };
-      })
-    );
-
-    const result: Partial<Record<FeatureId, UserFeaturesDto>> = {};
-    for (const { featureId, userFeature } of results) {
-      if (userFeature !== null) {
-        result[featureId] = userFeature;
-      }
-    }
-
-    return result;
+    return this.prismaUserFeatureRepository.findByUserIdAndFeatureIds(userId, featureIds);
   }
 
   @Unmemoize({
@@ -64,7 +50,7 @@ export class CachedUserFeatureRepository implements IUserFeatureRepository {
   }
 
   @Memoize({
-    key: (userId: number) => KEY.autoOptInByUserId(userId),
+    key: KEY.autoOptInByUserId,
     schema: booleanSchema,
   })
   async findAutoOptInByUserId(userId: number): Promise<boolean> {

@@ -16,7 +16,7 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   constructor(private prismaTeamFeatureRepository: ITeamFeatureRepository) {}
 
   @Memoize({
-    key: (teamId: number, featureId: FeatureId) => KEY.byTeamIdAndFeatureId(teamId, featureId),
+    key: KEY.byTeamIdAndFeatureId,
     schema: TeamFeaturesDtoSchema,
   })
   async findByTeamIdAndFeatureId(teamId: number, featureId: FeatureId): Promise<TeamFeaturesDto | null> {
@@ -27,33 +27,7 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
     teamIds: number[],
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>>> {
-    if (teamIds.length === 0 || featureIds.length === 0) {
-      return {};
-    }
-
-    const results = await Promise.all(
-      teamIds.flatMap((teamId) =>
-        featureIds.map(async (featureId) => {
-          const teamFeature = await this.findByTeamIdAndFeatureId(teamId, featureId);
-          return { teamId, featureId, teamFeature };
-        })
-      )
-    );
-
-    const result: Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>> = {};
-    for (const { teamId, featureId, teamFeature } of results) {
-      if (teamFeature !== null) {
-        if (!result[featureId]) {
-          result[featureId] = {};
-        }
-        const featureRecord = result[featureId];
-        if (featureRecord) {
-          featureRecord[teamId] = teamFeature;
-        }
-      }
-    }
-
-    return result;
+    return this.prismaTeamFeatureRepository.findByTeamIdsAndFeatureIds(teamIds, featureIds);
   }
 
   @Unmemoize({
@@ -76,7 +50,7 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   }
 
   @Memoize({
-    key: (teamId: number) => KEY.autoOptInByTeamId(teamId),
+    key: KEY.autoOptInByTeamId,
     schema: booleanSchema,
   })
   async findAutoOptInByTeamId(teamId: number): Promise<boolean> {
@@ -84,22 +58,7 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   }
 
   async findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean>> {
-    if (teamIds.length === 0) {
-      return {};
-    }
-
-    const results = await Promise.all(
-      teamIds.map(async (teamId) => {
-        const autoOptIn = await this.findAutoOptInByTeamId(teamId);
-        return { teamId, autoOptIn };
-      })
-    );
-
-    const result: Record<number, boolean> = {};
-    for (const { teamId, autoOptIn } of results) {
-      result[teamId] = autoOptIn;
-    }
-    return result;
+    return this.prismaTeamFeatureRepository.findAutoOptInByTeamIds(teamIds);
   }
 
   @Unmemoize({

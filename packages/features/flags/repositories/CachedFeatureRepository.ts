@@ -12,7 +12,7 @@ export class CachedFeatureRepository implements IFeatureRepository {
   constructor(private prismaFeatureRepository: IFeatureRepository) {}
 
   @Memoize({
-    key: () => KEY.all(),
+    key: KEY.all,
     schema: FeatureDtoArraySchema,
   })
   async findAll(): Promise<FeatureDto[]> {

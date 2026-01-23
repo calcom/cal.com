@@ -7,11 +7,13 @@ import { PrismaTeamFeatureRepository } from "../PrismaTeamFeatureRepository";
 interface MockPrisma {
   teamFeatures: {
     findUnique: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
     upsert: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
   team: {
     findUnique: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -30,11 +32,13 @@ function createMockPrisma(): MockPrisma {
   return {
     teamFeatures: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       upsert: vi.fn(),
       delete: vi.fn(),
     },
     team: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
   };
 }
@@ -127,14 +131,14 @@ describe("CachedTeamFeatureRepository", () => {
     });
 
     it("should return features grouped by featureId and teamId", async () => {
-      const cachedFeature1 = {
+      const dbFeature1 = {
         teamId: 1,
         featureId: "feature-1",
         enabled: true,
         assignedBy: "admin",
         updatedAt: new Date("2024-01-01"),
       };
-      const cachedFeature2 = {
+      const dbFeature2 = {
         teamId: 2,
         featureId: "feature-1",
         enabled: false,
@@ -142,14 +146,16 @@ describe("CachedTeamFeatureRepository", () => {
         updatedAt: new Date("2024-01-01"),
       };
 
-      vi.mocked(mockRedis.get).mockResolvedValueOnce(cachedFeature1).mockResolvedValueOnce(cachedFeature2);
+      vi.mocked(mockPrisma.teamFeatures.findUnique)
+        .mockResolvedValueOnce(dbFeature1)
+        .mockResolvedValueOnce(dbFeature2);
 
       const result = await repository.findByTeamIdsAndFeatureIds([1, 2], ["feature-1"]);
 
       expect(result).toEqual({
         "feature-1": {
-          1: cachedFeature1,
-          2: cachedFeature2,
+          1: dbFeature1,
+          2: dbFeature2,
         },
       });
     });
@@ -261,7 +267,9 @@ describe("CachedTeamFeatureRepository", () => {
     });
 
     it("should return auto opt-in values for multiple teams", async () => {
-      vi.mocked(mockRedis.get).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      vi.mocked(mockPrisma.team.findUnique)
+        .mockResolvedValueOnce({ id: 1, autoOptInFeatures: true })
+        .mockResolvedValueOnce({ id: 2, autoOptInFeatures: false });
 
       const result = await repository.findAutoOptInByTeamIds([1, 2]);
 
