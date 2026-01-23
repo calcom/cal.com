@@ -1,3 +1,4 @@
+import { moduleLoader as bookingDataPreparationServiceModuleLoader } from "@calcom/features/bookings/di/BookingDataPreparationService.module";
 import { moduleLoader as bookingEventHandlerModuleLoader } from "@calcom/features/bookings/di/BookingEventHandlerService.module";
 import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
@@ -31,6 +32,7 @@ const loadModule = bindModuleToClassOnToken({
     bookingEmailAndSmsTasker: bookingEmailAndSmsTaskerModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
     bookingEventHandler: bookingEventHandlerModuleLoader,
+    bookingDataPreparationService: bookingDataPreparationServiceModuleLoader,
   },
 });
 

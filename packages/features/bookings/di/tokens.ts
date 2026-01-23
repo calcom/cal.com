@@ -1,4 +1,6 @@
 export const BOOKING_DI_TOKENS = {
+  BOOKING_DATA_PREPARATION_SERVICE: Symbol("BookingDataPreparationService"),
+  BOOKING_DATA_PREPARATION_SERVICE_MODULE: Symbol("BookingDataPreparationServiceModule"),
   REGULAR_BOOKING_SERVICE: Symbol("RegularBookingService"),
   REGULAR_BOOKING_SERVICE_MODULE: Symbol("RegularBookingServiceModule"),
   RECURRING_BOOKING_SERVICE: Symbol("RecurringBookingService"),
