@@ -222,6 +222,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         source: ActionSource;
         operationId?: string | null;
         data: z.infer<typeof NoShowUpdatedAuditActionService.latestFieldsSchema>;
+        context?: BookingAuditContext;
     }): Promise<void> {
         await this.queueTask({
             ...params,
