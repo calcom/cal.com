@@ -295,14 +295,14 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-destinationCalendars      DestinationCalendar[]
+  destinationCalendars      DestinationCalendar[]
   selectedCalendars         SelectedCalendar[]
   invalid                   Boolean?                   @default(false)
   CalendarCache             CalendarCache[]
   references                BookingReference[]
   delegationCredentialId    String?
   delegationCredential      DelegationCredential?      @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  oooReasons                OutOfOfficeReason[]
+  oooReferences             OutOfOfficeReference[]
   integrationAttributeSyncs IntegrationAttributeSync[]
 
   metadata Json?
@@ -1966,7 +1966,6 @@ model OutOfOfficeEntry {
   start            DateTime
   end              DateTime
   notes            String?
-  externalId       String?
   showNotePublicly Boolean            @default(false)
   userId           Int
   user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1974,6 +1973,8 @@ model OutOfOfficeEntry {
   toUser           User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
   reasonId         Int?
   reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+
+  externalReferences OutOfOfficeReference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1984,21 +1985,37 @@ model OutOfOfficeEntry {
   @@index([start, end])
 }
 
-model OutOfOfficeReason {
-  id         Int     @id @default(autoincrement())
-  emoji      String?
-  reason     String
-  enabled    Boolean @default(true)
-  userId     Int?
-  externalId String? @unique
-  user       User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+model OutOfOfficeReference {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  oooEntryId Int
+  oooEntry   OutOfOfficeEntry @relation(fields: [oooEntryId], references: [id], onDelete: Cascade)
+
+  source             String // App slug: "deel", "bamboohr"
+  externalId         String // Time-off entry ID in HRMS
+  externalReasonName String? // Display: "Parental Leave", "PTO"
+  externalReasonId   String? // HRMS reason ID for API calls
 
   credentialId Int?
-  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+
+  syncedAt DateTime @default(now())
+
+  @@unique([source, externalId])
+  @@index([oooEntryId])
+  @@index([credentialId])
+}
+
+model OutOfOfficeReason {
+  id      Int     @id @default(autoincrement())
+  emoji   String?
+  reason  String  @unique
+  enabled Boolean @default(true)
+  userId  Int?
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]
-
-  @@unique([credentialId, externalId])
 }
 
 model UserHolidaySettings {

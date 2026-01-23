@@ -2,10 +2,13 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { OutOfOfficeReason } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-const log = logger.getSubLogger({ prefix: [`[outOfOfficeReasons.handler]`] });
+const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({
+  prefix: [`[outOfOfficeReasons.handler]`],
+});
 
 interface OutOfOfficeReasonsHandlerOptions {
   ctx?: {
@@ -13,16 +16,49 @@ interface OutOfOfficeReasonsHandlerOptions {
   };
 }
 
-export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerOptions) => {
+interface HrmsReason {
+  id: string;
+  name: string;
+  source: string;
+}
+
+interface HrmsReasonListResult {
+  hasHrmsIntegration: boolean;
+  reasons: HrmsReason[];
+}
+
+/**
+ * Returns the list of Cal.com OOO reasons (static reasons from the database)
+ */
+export async function outOfOfficeReasonList(
+  _options?: OutOfOfficeReasonsHandlerOptions
+): Promise<OutOfOfficeReason[]> {
   const outOfOfficeReasons = await prisma.outOfOfficeReason.findMany({
     where: {
       enabled: true,
     },
   });
 
+  return outOfOfficeReasons;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+/**
+ * Returns the list of HRMS OOO reasons from connected HRMS integrations
+ * These are fetched dynamically from the HRMS provider (e.g., Deel)
+ */
+export async function hrmsReasonList(
+  options?: OutOfOfficeReasonsHandlerOptions
+): Promise<HrmsReasonListResult> {
   if (!options?.ctx?.user?.email) {
-    log.debug("No user context provided, returning static reasons only");
-    return outOfOfficeReasons;
+    log.debug("No user context provided, returning empty HRMS reasons");
+    return { hasHrmsIntegration: false, reasons: [] };
   }
 
   try {
@@ -33,20 +69,21 @@ export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerO
       category: [AppCategories.hrms],
     });
 
-    const hrmsReasons = [];
+    if (hrmsCredentials.length === 0) {
+      return { hasHrmsIntegration: false, reasons: [] };
+    }
+
+    const hrmsReasons: HrmsReason[] = [];
+
     for (const credential of hrmsCredentials) {
       try {
         const hrmsManager = new HrmsManager(credential);
         const reasons = await hrmsManager.listOOOReasons(user.email);
 
         const mappedReasons = reasons.map((reason) => ({
-          id: reason.id,
+          id: reason.externalId,
           name: reason.name,
-          reason: reason.name,
-          userId: null,
-          enabled: true,
-          externalId: reason.externalId,
-          emoji: null,
+          source: credential.appId || "unknown",
         }));
 
         hrmsReasons.push(...mappedReasons);
@@ -57,22 +94,19 @@ export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerO
       } catch (error) {
         log.error("Failed to fetch HRMS OOO reasons", {
           appId: credential.appId,
-          error: error instanceof Error ? error.message : String(error),
+          error: getErrorMessage(error),
         });
       }
     }
 
-    if (hrmsReasons.length > 0) {
-      log.info("Returning policies from HRMS", { count: hrmsReasons.length });
-      return hrmsReasons;
-    }
-
-    log.debug("No HRMS reasons found, falling back to static reasons");
-    return outOfOfficeReasons;
+    return {
+      hasHrmsIntegration: true,
+      reasons: hrmsReasons,
+    };
   } catch (error) {
-    log.error("Error fetching HRMS OOO reasons, falling back to static reasons", {
-      error: error instanceof Error ? error.message : String(error),
+    log.error("Error fetching HRMS OOO reasons", {
+      error: getErrorMessage(error),
     });
-    return outOfOfficeReasons;
+    return { hasHrmsIntegration: false, reasons: [] };
   }
-};
+}

@@ -104,12 +104,22 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
 
+  const { data: hrmsReasonData, isPending: isHrmsReasonListPending } =
+    trpc.viewer.ooo.hrmsReasonList.useQuery();
+
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason?.emoji ? reason.emoji : ""} ${
       reason.userId === null ? t(reason.reason || "") : reason.reason || ""
     }`,
     value: reason.id,
   }));
+
+  const hrmsReasonList = (hrmsReasonData?.reasons || []).map((reason) => ({
+    label: reason.name,
+    value: reason.id,
+  }));
+
+  const hasHrmsIntegration = hrmsReasonData?.hasHrmsIntegration ?? false;
 
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
 
@@ -137,6 +147,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           reasonId: 1,
           forUserId: null,
           showNotePublicly: false,
+          hrmsReasonId: null,
+          hrmsReasonName: null,
         },
   });
 
@@ -328,6 +340,36 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 />
               </div>
             </div>
+
+            {/* HRMS Reason Select - Only shown when HRMS integration is installed */}
+            {hasHrmsIntegration && (
+              <div className="mt-4 w-full">
+                <div className="">
+                  <p className="text-emphasis block text-sm font-medium">{t("hrms_reason")}</p>
+                  <p className="text-subtle mb-1 text-sm">{t("hrms_reason_description")}</p>
+                  <Controller
+                    control={control}
+                    name="hrmsReasonId"
+                    render={({ field: { onChange, value } }) => (
+                      <Select<{ value: string; label: string }>
+                        className="mb-0 mt-1 text-white"
+                        name="hrmsReason"
+                        data-testid="hrms_reason_select"
+                        isClearable
+                        isLoading={isHrmsReasonListPending}
+                        value={hrmsReasonList.find((reason) => reason.value === value) || null}
+                        placeholder={t("ooo_select_hrms_reason")}
+                        options={hrmsReasonList}
+                        onChange={(selectedOption) => {
+                          onChange(selectedOption?.value || null);
+                          setValue("hrmsReasonName", selectedOption?.label || null);
+                        }}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Notes input */}
             <div className="mt-4">

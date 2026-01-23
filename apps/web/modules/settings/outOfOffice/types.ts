@@ -11,4 +11,6 @@ export type BookingRedirectForm = {
   forUserName?: string;
   forUserAvatar?: string;
   toUserName?: string;
+  hrmsReasonId?: string | null;
+  hrmsReasonName?: string | null;
 };

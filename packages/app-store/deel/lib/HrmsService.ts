@@ -1,6 +1,5 @@
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { HrmsService } from "@calcom/types/HrmsService";
 
@@ -255,7 +254,7 @@ class DeelHrmsService implements HrmsService {
   async listOOOReasons(
     userEmail: string | null,
     profileId?: string
-  ): Promise<{ id: number; name: string; externalId: string }[]> {
+  ): Promise<{ name: string; externalId: string }[]> {
     try {
       if (!userEmail && !profileId) {
         this.log.warn("listOOOReasons: Missing both userEmail and hrisProfileId parameters");
@@ -304,36 +303,14 @@ class DeelHrmsService implements HrmsService {
         return [];
       }
 
-      const reasonsPromises = data.policies.flatMap((policy) =>
-        (policy.time_off_types || []).map((timeOffType) =>
-          prisma.outOfOfficeReason
-            .upsert({
-              where: {
-                credentialId_externalId: {
-                  credentialId: this.credential.id,
-                  externalId: timeOffType.id,
-                },
-              },
-              create: {
-                reason: timeOffType.name,
-                credentialId: this.credential.id,
-                externalId: timeOffType.id,
-              },
-              update: {
-                reason: timeOffType.name,
-              },
-            })
-            .then((reason) => ({
-              externalId: timeOffType.id,
-              name: timeOffType.name,
-              id: reason.id,
-            }))
-        )
+      const reasons = data.policies.flatMap((policy) =>
+        (policy.time_off_types || []).map((timeOffType) => ({
+          externalId: timeOffType.id,
+          name: timeOffType.name,
+        }))
       );
 
-      const reasons = await Promise.all(reasonsPromises);
-
-      this.log.info("Successfully fetched and upserted Deel OOO reasons", {
+      this.log.info("Successfully fetched Deel OOO reasons", {
         count: reasons.length,
         profileId,
       });

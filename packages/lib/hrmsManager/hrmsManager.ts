@@ -51,7 +51,7 @@ export default class HrmsManager {
     return hrmsService.deleteOOO(externalId);
   }
 
-  async listOOOReasons(userEmail: string): Promise<{ id: number; name: string; externalId: string }[]> {
+  async listOOOReasons(userEmail: string): Promise<{ name: string; externalId: string }[]> {
     const hrmsService = await this.getHrmsService();
     return hrmsService.listOOOReasons(userEmail);
   }

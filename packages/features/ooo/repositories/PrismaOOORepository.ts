@@ -187,7 +187,6 @@ export class PrismaOOORepository {
     notes,
     userId,
     reasonId,
-    externalId,
   }: {
     uuid: string;
     start: Date;
@@ -195,7 +194,6 @@ export class PrismaOOORepository {
     notes: string;
     userId: number;
     reasonId: number;
-    externalId: string;
   }) {
     return this.prismaClient.outOfOfficeEntry.create({
       data: {
@@ -205,70 +203,108 @@ export class PrismaOOORepository {
         notes,
         userId,
         reasonId,
-        externalId,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     });
   }
 
-  async upsertOOOReason({
-    credentialId,
+  async findOOOEntryByExternalReference({
+    source,
     externalId,
-    reason,
-    enabled = true,
   }: {
-    credentialId: number;
+    source: string;
     externalId: string;
-    reason: string;
-    enabled?: boolean;
   }) {
-    return this.prismaClient.outOfOfficeReason.upsert({
+    const reference = await this.prismaClient.outOfOfficeReference.findUnique({
       where: {
-        credentialId_externalId: {
-          credentialId,
+        source_externalId: {
+          source,
           externalId,
         },
       },
-      create: {
-        reason,
-        credentialId,
-        externalId,
-        enabled,
-      },
-      update: {
-        reason,
-      },
-    });
-  }
-
-  async findOOOEntryByExternalId(externalId: string) {
-    return this.prismaClient.outOfOfficeEntry.findFirst({
-      where: {
-        externalId,
-      },
       include: {
-        reason: {
+        oooEntry: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
+        credential: {
           select: {
-            credential: {
-              include: {
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
+            id: true,
+            type: true,
+            key: true,
+            appId: true,
+            userId: true,
+            teamId: true,
+            invalid: true,
+            user: {
+              select: {
+                email: true,
               },
             },
           },
         },
       },
     });
+    return reference;
   }
 
-  async deleteOOOEntryByExternalId({ externalId }: { externalId: string }) {
-    return this.prismaClient.outOfOfficeEntry.deleteMany({
+  async deleteOOOEntryByExternalReference({
+    source,
+    externalId,
+  }: {
+    source: string;
+    externalId: string;
+  }) {
+    const reference = await this.prismaClient.outOfOfficeReference.findUnique({
       where: {
-        externalId: externalId,
+        source_externalId: {
+          source,
+          externalId,
+        },
+      },
+    });
+
+    if (!reference) {
+      return null;
+    }
+
+    return this.prismaClient.outOfOfficeEntry.delete({
+      where: {
+        id: reference.oooEntryId,
+      },
+    });
+  }
+
+  async createOOOReference({
+    oooEntryId,
+    source,
+    externalId,
+    externalReasonId,
+    externalReasonName,
+    credentialId,
+  }: {
+    oooEntryId: number;
+    source: string;
+    externalId: string;
+    externalReasonId?: string | null;
+    externalReasonName?: string | null;
+    credentialId?: number | null;
+  }) {
+    return this.prismaClient.outOfOfficeReference.create({
+      data: {
+        oooEntryId,
+        source,
+        externalId,
+        externalReasonId,
+        externalReasonName,
+        credentialId,
       },
     });
   }
@@ -280,7 +316,6 @@ export class PrismaOOORepository {
     notes,
     userId,
     reasonId,
-    externalId,
   }: {
     uuid: string;
     start: Date;
@@ -288,7 +323,6 @@ export class PrismaOOORepository {
     notes: string;
     userId: number;
     reasonId: number;
-    externalId: string;
   }) {
     return this.prismaClient.outOfOfficeEntry.update({
       where: {
@@ -301,7 +335,6 @@ export class PrismaOOORepository {
         notes,
         userId,
         reasonId,
-        externalId,
       },
     });
   }

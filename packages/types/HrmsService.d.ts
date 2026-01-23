@@ -17,7 +17,7 @@ export interface HrmsService {
     }
   ): Promise<void>;
   deleteOOO(externalId: string): Promise<void>;
-  listOOOReasons(userEmail: string): Promise<{ id: number; name: string; externalId: string }[]>;
+  listOOOReasons(userEmail: string): Promise<{ name: string; externalId: string }[]>;
 }
 
 export type HrmsServiceClass = Class<HrmsService>;

@@ -13,6 +13,9 @@ export const ZOutOfOfficeInputSchema = z.object({
   reasonId: z.number().optional(),
   notes: z.string().nullable().optional(),
   showNotePublicly: z.boolean().optional(),
+  // HRMS integration fields - optional, only used when HRMS is installed
+  hrmsReasonId: z.string().nullable().optional(),
+  hrmsReasonName: z.string().nullable().optional(),
 });
 
 export type TOutOfOfficeInputSchema = z.infer<typeof ZOutOfOfficeInputSchema>;
