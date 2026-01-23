@@ -11,6 +11,7 @@ import { RefreshTokenInput } from "@/modules/oauth-clients/inputs/refresh-token.
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import {
   BadRequestException,
   Body,
@@ -24,14 +25,12 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
-  ApiTags as DocsTags,
+  ApiOperation,
   ApiExcludeEndpoint as DocsExcludeEndpoint,
   ApiHeader as DocsHeader,
-  ApiOperation,
+  ApiTags as DocsTags,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
-
-import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 export const TOKENS_DOCS = `Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model \`calAccessToken\` and \`calRefreshToken\` fields.
 Response also contains \`accessTokenExpiresAt\` and \`refreshTokenExpiresAt\` fields, but if you decode the jwt token the payload will contain \`clientId\` (OAuth client ID), \`ownerId\` (user to whom token belongs ID), \`iat\` (issued at time) and \`expiresAt\` (when does the token expire) fields.`;
@@ -110,7 +109,7 @@ export class OAuthFlowController {
   @Post("/refresh")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @DocsTags("Platform / Managed Users")
+  @DocsTags("Deprecated: Platform / Managed Users")
   @DocsHeader({
     name: X_CAL_SECRET_KEY,
     description: "OAuth client secret key.",
@@ -118,7 +117,7 @@ export class OAuthFlowController {
   })
   @ApiOperation({
     summary: "Refresh managed user tokens",
-    description: `If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use
     "refresh token rotation" mechanism. ${TOKENS_DOCS}`,
   })
   async refreshTokens(

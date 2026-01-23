@@ -1,4 +1,4 @@
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import type { Session } from "next-auth";
 
 import "./next-auth";

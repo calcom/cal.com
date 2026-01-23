@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";

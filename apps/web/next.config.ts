@@ -245,8 +245,8 @@ const nextConfig = (phase: string): NextConfig => {
       "@coss/ui",
     ],
     modularizeImports: {
-      "@calcom/features/insights/components": {
-        transform: "@calcom/features/insights/components/{{member}}",
+      "@calcom/web/modules/insights/components": {
+        transform: "@calcom/web/modules/insights/components/{{member}}",
         skipDefaultConversion: true,
         preventFullImport: true,
       },
@@ -617,6 +617,11 @@ const nextConfig = (phase: string): NextConfig => {
         {
           source: "/settings/organizations/platform/:path*",
           destination: "/settings/platform",
+          permanent: true,
+        },
+        {
+          source: "/settings/organizations/members",
+          destination: "/members",
           permanent: true,
         },
         {
