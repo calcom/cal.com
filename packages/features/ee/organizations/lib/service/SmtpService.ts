@@ -61,7 +61,7 @@ export class SmtpService {
     try {
       const emailTemplate = new SmtpTestEmail({
         language,
-        toEmail: "amit@cal.com",
+        toEmail,
         fromEmail,
         fromName,
         smtpHost: config.host,
