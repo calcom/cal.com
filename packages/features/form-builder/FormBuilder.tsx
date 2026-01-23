@@ -234,16 +234,6 @@ export const FormBuilder = function FormBuilder({
                 const emailFieldIndex = fields.findIndex((field) => field.name === "email");
                 const emailField = fields[emailFieldIndex];
                 const phoneField = fields[phoneFieldIndex];
-                const defaultFields = fieldsForm.formState.defaultValues?.[formProp as any] as
-                  | RhfFormFields
-                  | undefined;
-                const defaultEmailField = defaultFields?.find((field) => field.name === "email");
-                const defaultPhoneField = defaultFields?.find(
-                  (field) => field.name === "attendeePhoneNumber"
-                );
-
-                const hasEmailWorkflow = emailWorkflowsCount > 0;
-                const hasPhoneWorkflows = phoneWorkflowsCount > 0;
                 const emailRequiredByWorkflow =
                   emailField?.sources?.some(
                     (source: { type?: string; fieldRequired?: boolean }) =>
