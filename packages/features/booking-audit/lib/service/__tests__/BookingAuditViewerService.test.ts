@@ -1,23 +1,21 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
-
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-
-import { BookingAuditViewerService } from "../BookingAuditViewerService";
-import { BookingAuditPermissionError, BookingAuditErrorCode } from "../BookingAuditAccessService";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import type { BookingAuditContext } from "../../dto/types";
+import type { AuditActorType } from "../../repository/IAuditActorRepository";
 import type {
-  IBookingAuditRepository,
-  BookingAuditWithActor,
   BookingAuditAction,
   BookingAuditType,
+  BookingAuditWithActor,
+  IBookingAuditRepository,
 } from "../../repository/IBookingAuditRepository";
-import type { AuditActorType } from "../../repository/IAuditActorRepository";
-import type { BookingAuditContext } from "../../dto/types";
+import { BookingAuditErrorCode, BookingAuditPermissionError } from "../BookingAuditAccessService";
+import { BookingAuditViewerService } from "../BookingAuditViewerService";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/users/repositories/UserRepository");

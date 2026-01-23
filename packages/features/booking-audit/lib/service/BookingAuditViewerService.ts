@@ -152,7 +152,10 @@ export class BookingAuditViewerService {
     const actionService = this.actionServiceRegistry.getActionService(log.action);
     const parsedData = actionService.parseStored(log.data);
 
-    const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone });
+    const actionDisplayTitle = await actionService.getDisplayTitle({
+      storedData: parsedData,
+      userTimeZone,
+    });
 
     const displayJson = actionService.getDisplayJson
       ? actionService.getDisplayJson({ storedData: parsedData, userTimeZone })
@@ -190,6 +193,7 @@ export class BookingAuditViewerService {
       impersonatedBy,
     };
   }
+
   /**
    * Builds a "rescheduled from" log entry for bookings created from a reschedule.
    * Fetches the RESCHEDULED log from the previous booking and transforms it

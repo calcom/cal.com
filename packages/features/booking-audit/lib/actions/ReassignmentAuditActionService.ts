@@ -123,7 +123,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     };
   }
 
-  async getDisplayFields(storedData: BaseStoredAuditData): Promise<
+  async getDisplayFields({ storedData }: { storedData: BaseStoredAuditData }): Promise<
     Array<{
       labelKey: string;
       valueKey: string;
