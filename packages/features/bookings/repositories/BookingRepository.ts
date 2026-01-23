@@ -344,6 +344,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
   },
   assignmentReason: {
     select: {
+      reasonEnum: true,
       reasonString: true,
     },
     orderBy: {

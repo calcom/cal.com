@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { ALL_APPS } from "@calcom/app-store/utils";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -190,7 +191,14 @@ export class CalendarEventBuilder {
             .withUid(uid)
             .withOneTimePassword(oneTimePassword)
             .withOrganization(organizationId)
-            .withAssignmentReason(assignmentReason?.[0]?.reasonString ?? null);
+            .withAssignmentReason(
+              assignmentReason?.[0]?.reasonEnum
+                ? {
+                    category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
+                    details: assignmentReason[0].reasonString ?? null,
+                  }
+                : null
+            );
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -533,7 +541,7 @@ export class CalendarEventBuilder {
       return this;
     }
 
-    withAssignmentReason(assignmentReason?: string | null) {
+    withAssignmentReason(assignmentReason?: { category: string; details?: string | null } | null) {
       this.event = {
         ...this.event,
         assignmentReason,

@@ -97,7 +97,11 @@ export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
     cancelledBy?: string;
     paymentData?: PaymentData;
     requestReschedule?: boolean;
-    assignmentReason?: string | { reasonEnum: string; reasonString: string }[] | null;
+    assignmentReason?:
+      | string
+      | { reasonEnum: string; reasonString: string }[]
+      | { category: string; details?: string | null }
+      | null;
   };
 
 export type WebhookPayloadType =
