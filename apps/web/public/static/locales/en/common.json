@@ -1448,7 +1448,7 @@
   "test_failed": "Test failed",
   "provide_api_key": "Provide API key",
   "api_key_modal_subtitle": "API keys allow you to make API calls for your own account.",
-  "api_key_modal_subtitle_platform": "Create a marketplace or platform instead.",
+  "api_key_modal_subtitle_platform": "Create an OAuth app and allow user to schedule.",
   "api_keys_subtitle": "Generate API keys to use for accessing your own account.",
   "create_api_key": "Create an API key",
   "personal_note": "Name this key",
