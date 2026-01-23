@@ -2,7 +2,6 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { OutOfOfficeReason } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -11,35 +10,24 @@ const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({
 });
 
 interface OutOfOfficeReasonsHandlerOptions {
-  ctx?: {
+  ctx: {
     user: TrpcSessionUser;
   };
 }
 
-interface HrmsReason {
-  id: string;
-  name: string;
-  source: string;
+interface OOOReason {
+  id: number;
+  emoji: string | null;
+  reason: string;
+  userId: number | null;
+  enabled: boolean;
+  hrmsSource?: string | null;
+  hrmsReasonId?: string | null;
 }
 
-interface HrmsReasonListResult {
+export interface OutOfOfficeReasonListResult {
   hasHrmsIntegration: boolean;
-  reasons: HrmsReason[];
-}
-
-/**
- * Returns the list of Cal.com OOO reasons (static reasons from the database)
- */
-export async function outOfOfficeReasonList(
-  _options?: OutOfOfficeReasonsHandlerOptions
-): Promise<OutOfOfficeReason[]> {
-  const outOfOfficeReasons = await prisma.outOfOfficeReason.findMany({
-    where: {
-      enabled: true,
-    },
-  });
-
-  return outOfOfficeReasons;
+  reasons: OOOReason[];
 }
 
 function getErrorMessage(error: unknown): string {
@@ -50,40 +38,56 @@ function getErrorMessage(error: unknown): string {
 }
 
 /**
- * Returns the list of HRMS OOO reasons from connected HRMS integrations
- * These are fetched dynamically from the HRMS provider (e.g., Deel)
+ * Returns the list of OOO reasons.
+ * If HRMS integration is installed, returns HRMS reasons.
+ * Otherwise, returns Cal.com static reasons from the database.
  */
-export async function hrmsReasonList(
-  options?: OutOfOfficeReasonsHandlerOptions
-): Promise<HrmsReasonListResult> {
-  if (!options?.ctx?.user?.email) {
-    log.debug("No user context provided, returning empty HRMS reasons");
-    return { hasHrmsIntegration: false, reasons: [] };
-  }
+export async function outOfOfficeReasonList(
+  options: OutOfOfficeReasonsHandlerOptions
+): Promise<OutOfOfficeReasonListResult> {
+  const { user } = options.ctx;
 
-  try {
-    const { user } = options.ctx;
-
-    const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
-      userId: user.id,
-      category: [AppCategories.hrms],
+  if (!user) {
+    const outOfOfficeReasons = await prisma.outOfOfficeReason.findMany({
+      where: { enabled: true },
     });
 
-    if (hrmsCredentials.length === 0) {
-      return { hasHrmsIntegration: false, reasons: [] };
-    }
+    return {
+      hasHrmsIntegration: false,
+      reasons: outOfOfficeReasons.map((reason) => ({
+        id: reason.id,
+        emoji: reason.emoji,
+        reason: reason.reason,
+        userId: reason.userId,
+        enabled: reason.enabled,
+        hrmsSource: null,
+        hrmsReasonId: null,
+      })),
+    };
+  }
 
-    const hrmsReasons: HrmsReason[] = [];
+  const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
+    userId: user.id,
+    category: [AppCategories.hrms],
+  });
+
+  if (hrmsCredentials.length > 0 && user.email) {
+    const hrmsReasons: OOOReason[] = [];
+    let reasonId = -1;
 
     for (const credential of hrmsCredentials) {
       try {
         const hrmsManager = new HrmsManager(credential);
         const reasons = await hrmsManager.listOOOReasons(user.email);
 
-        const mappedReasons = reasons.map((reason) => ({
-          id: reason.externalId,
-          name: reason.name,
-          source: credential.appId || "unknown",
+        const mappedReasons: OOOReason[] = reasons.map((reason) => ({
+          id: reasonId--,
+          emoji: null,
+          reason: reason.name,
+          userId: null,
+          enabled: true,
+          hrmsSource: credential.appId || "unknown",
+          hrmsReasonId: reason.externalId,
         }));
 
         hrmsReasons.push(...mappedReasons);
@@ -99,14 +103,32 @@ export async function hrmsReasonList(
       }
     }
 
-    return {
-      hasHrmsIntegration: true,
-      reasons: hrmsReasons,
-    };
-  } catch (error) {
-    log.error("Error fetching HRMS OOO reasons", {
-      error: getErrorMessage(error),
-    });
-    return { hasHrmsIntegration: false, reasons: [] };
+    if (hrmsReasons.length > 0) {
+      return {
+        hasHrmsIntegration: true,
+        reasons: hrmsReasons,
+      };
+    }
   }
+
+  const outOfOfficeReasons = await prisma.outOfOfficeReason.findMany({
+    where: {
+      enabled: true,
+    },
+  });
+
+  const calComReasons: OOOReason[] = outOfOfficeReasons.map((reason) => ({
+    id: reason.id,
+    emoji: reason.emoji,
+    reason: reason.reason,
+    userId: reason.userId,
+    enabled: reason.enabled,
+    hrmsSource: null,
+    hrmsReasonId: null,
+  }));
+
+  return {
+    hasHrmsIntegration: false,
+    reasons: calComReasons,
+  };
 }

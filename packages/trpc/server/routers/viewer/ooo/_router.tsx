@@ -23,8 +23,4 @@ export const oooRouter = router({
     const handler = (await import("./outOfOfficeReasons.handler")).outOfOfficeReasonList;
     return handler({ ctx });
   }),
-  hrmsReasonList: authedProcedure.query(async ({ ctx }) => {
-    const handler = (await import("./outOfOfficeReasons.handler")).hrmsReasonList;
-    return handler({ ctx });
-  }),
 });
