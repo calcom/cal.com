@@ -136,6 +136,7 @@ import type { IBookingService } from "../interfaces/IBookingService";
 import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 import { makeGuestActor } from "../types/actor";
+import type { BookingDataPreparationService } from "../utils/BookingDataPreparationService";
 
 const translator = short();
 
@@ -480,7 +481,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
-  // TODO: Add bookingDataPreparationService in follow-up PR when integrating with handler
+  bookingDataPreparationService: BookingDataPreparationService;
 }
 
 async function validateRescheduleRestrictions({
