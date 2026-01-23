@@ -1,6 +1,5 @@
 import dayjs from "@calcom/dayjs";
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
-import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -11,11 +10,9 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { showToast } from "@calcom/ui/components/toast";
 import posthog from "posthog-js";
-import { useState } from "react";
 
-import { hideProgressToast, showProgressToast } from "@lib/progress-toast";
+import { useCsvDownload } from "@lib/use-csv-download";
 import { useInsightsBookingParameters } from "../../../hooks/useInsightsBookingParameters";
 
 type RawData = RouterOutputs["viewer"]["insights"]["rawData"]["data"][number];
@@ -26,74 +23,32 @@ const Download = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
   const { startDate, endDate } = extractDateRangeFromColumnFilters(insightsBookingParams.columnFilters);
-  const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useUtils();
 
-  type PaginatedResponse = {
-    data: RawData[];
-    total: number;
-  };
+  const { isDownloading, handleDownload } = useCsvDownload({
+    fetchBatch: async (offset) => {
+      try {
+        const result = await utils.viewer.insights.rawData.fetch({
+          ...insightsBookingParams,
+          limit: BATCH_SIZE,
+          offset,
+        });
 
-  const fetchBatch = async (offset: number): Promise<PaginatedResponse | null> => {
-    try {
-      const result = await utils.viewer.insights.rawData.fetch({
-        ...insightsBookingParams,
-        limit: BATCH_SIZE,
-        offset,
-      });
-
-      if (result && "data" in result && "total" in result) {
-        return result as PaginatedResponse;
+        if (result && "data" in result && "total" in result) {
+          return { data: result.data as RawData[], total: result.total };
+        }
+        return null;
+      } catch {
+        return null;
       }
-      return null;
-    } catch {
-      return null;
-    }
-  };
-
-  const handleDownloadClick = async () => {
-    const abortController = new AbortController();
-    const { signal } = abortController;
-
-    try {
+    },
+    getFilename: () =>
+      `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format("YYYY-MM-DD")}.csv`,
+    errorMessage: t("unexpected_error_try_again"),
+    onDownloadStart: () => {
       posthog.capture("insights_bookings_download_clicked", { teamId: insightsBookingParams.selectedTeamId });
-      setIsDownloading(true);
-      showProgressToast(0, undefined, undefined, abortController);
-      let allData: RawData[] = [];
-      let offset = 0;
-
-      const firstBatch = await fetchBatch(0);
-      if (!firstBatch || signal.aborted) return;
-
-      allData = firstBatch.data;
-      const totalRecords = firstBatch.total;
-
-      while (totalRecords > 0 && allData.length < totalRecords && !signal.aborted) {
-        offset += BATCH_SIZE;
-        const result = await fetchBatch(offset);
-        if (!result || signal.aborted) break;
-        allData = [...allData, ...result.data];
-
-        const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
-        showProgressToast(currentProgress);
-      }
-
-      if (signal.aborted) return;
-
-      if (allData.length >= totalRecords) {
-        showProgressToast(100);
-        const filename = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
-          "YYYY-MM-DD"
-        )}.csv`;
-        downloadAsCsv(allData as Record<string, unknown>[], filename);
-      }
-    } catch {
-      showToast(t("unexpected_error_try_again"), "error");
-    } finally {
-      setIsDownloading(false);
-      hideProgressToast();
-    }
-  };
+    },
+  });
 
   return (
     <Dropdown modal={false}>
@@ -107,7 +62,7 @@ const Download = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownItem onClick={handleDownloadClick}>{t("as_csv")}</DropdownItem>
+        <DropdownItem onClick={handleDownload}>{t("as_csv")}</DropdownItem>
       </DropdownMenuContent>
     </Dropdown>
   );
