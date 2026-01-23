@@ -12,14 +12,23 @@ type GetUniqueAttendeesCountOptions = {
   };
 };
 
+const mxCache = new Map<string, boolean>();
+
 async function isValidDomain(email: string): Promise<boolean> {
   const emailDomain = email.split("@")[1].toLowerCase();
-  if (!emailDomain) return true;
+  if (!emailDomain) return false;
+
+  if (mxCache.has(emailDomain)) {
+    return mxCache.get(emailDomain)!;
+  }
 
   try {
-    const mxRecords = await dns.resolveMx(emailDomain);
-    return mxRecords.length > 0;
+    const mx = await dns.resolveMx(emailDomain);
+    const valid = mx.length > 0;
+    mxCache.set(emailDomain, valid);
+    return valid;
   } catch {
+    mxCache.set(emailDomain, false);
     return false;
   }
 }
@@ -28,7 +37,7 @@ async function isValidAttendeeEmail(
   email: string | null | undefined,
   userEmail: string | null | undefined
 ): Promise<boolean> {
-  if (!email || typeof email !== "string" || email.trim().length === 0) {
+  if (!email || typeof email !== "string") {
     return false;
   }
 
