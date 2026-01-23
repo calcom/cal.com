@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
+import sendEmailWithNodeMailer from "@calcom/lib/sendEmailWithNodeMailer";
 import prisma from "@calcom/prisma";
 import { WorkflowStatus } from "@calcom/prisma/client";
 
@@ -12,6 +14,83 @@ const statusMap = {
   FAILED: WorkflowStatus.FAILED,
   SENT: WorkflowStatus.DELIVERED,
 };
+
+async function notifySmsDeliveryFailure({
+  bookingUid,
+  recipientNumber,
+  smsText,
+  sendAt,
+}: {
+  bookingUid: string | null;
+  recipientNumber: string;
+  smsText: string;
+  sendAt: Date;
+}): Promise<void> {
+  const subject = `🚨Cal ID SMS Delivery Failed | Booking ${bookingUid}`;
+
+  const body = `<div style="font-family: Arial, sans-serif; color: #333;">
+      <h3 style="margin-bottom: 12px;">Cal ID SMS Delivery Failure Alert</h3>
+
+      <p>An SMS delivery attempt has failed with the following details:</p>
+
+      <table
+        cellpadding="0"
+        cellspacing="0"
+        style="
+          border-collapse: collapse;
+          margin-top: 12px;
+          width: 100%;
+          max-width: 600px;
+          border: 1px solid #d0d7de;
+        "
+      >
+        <tr>
+          <td style="padding: 8px 12px; font-weight: bold; border: 1px solid #d0d7de;">
+            Booking UID
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #d0d7de;">
+            ${bookingUid}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; font-weight: bold; border: 1px solid #d0d7de;">
+            Recipient Number
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #d0d7de;">
+            ${recipientNumber}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; font-weight: bold; border: 1px solid #d0d7de;">
+            Scheduled Send Time (UTC)
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #d0d7de;">
+            ${sendAt}
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin-top: 16px; font-weight: bold;">SMS Content:</p>
+      <pre style="
+        background: #f6f8fa;
+        padding: 12px;
+        border-radius: 4px;
+        border: 1px solid #d0d7de;
+        white-space: pre-wrap;
+        font-size: 13px;
+      ">${smsText}</pre>
+
+      <p style="margin-top: 16px; font-size: 12px; color: #666;">
+        This is an automated system notification triggered from Cal ID under ICSMobile SMS status delivery webhook handler
+      </p>
+    </div>`;
+
+  await sendEmailWithNodeMailer({
+    to: "ics@cal.id",
+    subject,
+    body,
+  });
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -93,6 +172,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       status: statusString,
       normalizedStatus: status,
     });
+
+    //in case of failure notify via mail
+    if (status === WorkflowStatus.FAILED) {
+      const meta = isPrismaObjOrUndefined(existingInsight.metadata);
+
+      if (!meta) return;
+
+      const { recipientNumber, smsText, sendAt } = meta as {
+        recipientNumber?: string;
+        smsText?: string;
+        sendAt?: Date;
+      };
+
+      await notifySmsDeliveryFailure({
+        bookingUid: existingInsight.bookingUid,
+        recipientNumber: recipientNumber!,
+        smsText: smsText!,
+        sendAt: sendAt!,
+      });
+    }
 
     res.status(200).json({ success: true });
   } catch (err) {

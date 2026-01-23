@@ -24,11 +24,12 @@ const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
  * Uses numbered placeholders: {{1}}, {{2}}, {{3}}, {{4}}, {{5}}
  * {{1}} - Recipient's Name
  * {{2}} - Meeting Title
- * {{3}} - Date
- * {{4}} - Time
- * {{5}} - Timezone
+ * {{3}} - Sender's Name
+ * {{4}} - Date
+ * {{5}} - Time
+ * {{6}} - Timezone
  */
-const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
+export const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
   [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}} with {{3}}" is coming up on {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
   [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" scheduled for {{4}} at {{5}} {{6}} has been cancelled.\n\n- Cal ID`,
   [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" has a new time: {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
@@ -196,7 +197,7 @@ const generateMessageContent = (
 
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
-    const formattedDate = eventMoment.format("DD MMM YYYY");
+    const formattedDate = eventMoment.format("Do MMM YYYY");
     const formattedTimeWithLocalizedTimeZone = eventMoment.format("h:mma [GMT]Z");
     const [formattedTime, localizedRecipientTimezone] = formattedTimeWithLocalizedTimeZone.split(" ");
 
@@ -223,7 +224,8 @@ const createWorkflowInsight = async (
   bookingUid?: string | null,
   seatReferenceUid?: string | null,
   workflowId?: number | null,
-  workflowStepId?: number | null
+  workflowStepId?: number | null,
+  metadata?: Record<string, string | Date | boolean>
 ) => {
   await prisma.calIdWorkflowInsights.create({
     data: {
@@ -235,6 +237,7 @@ const createWorkflowInsight = async (
       ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
       workflowId: workflowId,
       workflowStepId: workflowStepId,
+      ...(metadata && metadata),
     },
   });
 };
@@ -265,7 +268,12 @@ const executeImmediateNotification = async (
     );
     const msgId = msgRes.response.sid;
     if (msgId && eventTypeRef) {
-      await createWorkflowInsight(msgId, eventTypeRef, bookingRef, seatRef, workflowId, workflowStepId);
+      await createWorkflowInsight(msgId, eventTypeRef, bookingRef, seatRef, workflowId, workflowStepId, {
+        recipientNumber: phoneDestination,
+        smsText: textContent,
+        sendAt: new Date(),
+        isScheduled: false,
+      });
     }
   } catch (exception) {
     moduleLogger.error(`Immediate SMS delivery failed: ${exception}`);
@@ -319,7 +327,13 @@ const scheduleDelayedNotification = async (
           bookingReference,
           seatReference ?? undefined,
           workflowId ?? undefined,
-          stepReference
+          stepReference,
+          {
+            recipientNumber: phoneDestination,
+            smsText: textContent,
+            sendAt: new Date(),
+            isScheduled: true,
+          }
         );
       }
     }
