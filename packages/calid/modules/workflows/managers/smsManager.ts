@@ -29,11 +29,11 @@ const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
  * {{5}} - Timezone
  */
 const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
-  [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}}" is coming up on {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
-  [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}}" scheduled for {{3}} at {{4}} {{5}} has been cancelled.\n\n- Cal ID`,
-  [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}}" has a new time: {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
-  [WorkflowTemplates.COMPLETED]: `Hi {{1}} - Your meeting "{{2}}" on {{3}} at {{4}} {{5}} is all wrapped up. Thanks for joining!\n\n- Cal ID`,
-  [WorkflowTemplates.CONFIRMATION]: `Hi {{1}} - You are all set! Your meeting "{{2}}" is confirmed for {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
+  [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}} with {{3}}" is coming up on {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
+  [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" scheduled for {{4}} at {{5}} {{6}} has been cancelled.\n\n- Cal ID`,
+  [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" has a new time: {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
+  [WorkflowTemplates.COMPLETED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" on {{4}} at {{5}} {{6}} is all wrapped up. Thanks for joining!\n\n- Cal ID`,
+  [WorkflowTemplates.CONFIRMATION]: `Hi {{1}} - You are all set! Your meeting "{{2}} with {{3}}" is confirmed for {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
   // CUSTOM workflow uses user-provided messageTemplate, so no default needed
   [WorkflowTemplates.CUSTOM]: "",
   // RATING and THANKYOU currently have no default templates - will throw error if used
@@ -47,6 +47,7 @@ const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = 
 const interpolateDefaultTemplate = (
   template: string,
   recipientName: string,
+  senderName: string,
   eventTitle: string,
   eventDate: string,
   eventTime: string,
@@ -55,9 +56,10 @@ const interpolateDefaultTemplate = (
   return template
     .replace(/\{\{1\}\}/g, recipientName)
     .replace(/\{\{2\}\}/g, eventTitle)
-    .replace(/\{\{3\}\}/g, eventDate)
-    .replace(/\{\{4\}\}/g, eventTime)
-    .replace(/\{\{5\}\}/g, timezone);
+    .replace(/\{\{3\}\}/g, senderName)
+    .replace(/\{\{4\}\}/g, eventDate)
+    .replace(/\{\{5\}\}/g, eventTime)
+    .replace(/\{\{6\}\}/g, timezone);
 };
 
 const validateNumberVerification = async (
@@ -183,15 +185,14 @@ const generateMessageContent = (
       );
     }
 
-    // Determine recipient name and event details for interpolation
+    // Determine recipient name, sender name and event details for interpolation
     const recipientName =
       actionType === WorkflowActions.SMS_ATTENDEE ? targetParticipant.name : eventDetails.organizer.name;
+
+    const senderName =
+      actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name;
     // const eventTitle = eventDetails.title;
-    const eventTitle = `${
-      eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title)
-    } with ${
-      actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name
-    }`;
+    const eventTitle = `${eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title)}`;
 
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
@@ -203,7 +204,8 @@ const generateMessageContent = (
     return interpolateDefaultTemplate(
       defaultTemplate,
       recipientName.split(" ")[0],
-      eventTitle,
+      senderName.split(" ")[0],
+      eventTitle.trim().replace(/"/g, ""),
       formattedDate,
       formattedTime,
       localizedRecipientTimezone
