@@ -25,19 +25,19 @@ import {
  * Variables are replaced based on action type (attendee vs organizer/number)
  */
 const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
-  [WorkflowTemplates.REMINDER]: `Hi {RECIPIENT_NAME} - Just a heads-up, your meeting "{EVENT_NAME}" is coming up on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+  [WorkflowTemplates.REMINDER]: `Hi {RECIPIENT_NAME} - Just a heads-up, your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} is coming up on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
 
 - Cal ID`,
-  [WorkflowTemplates.CANCELLED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" scheduled for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} has been cancelled.
+  [WorkflowTemplates.CANCELLED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} scheduled for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} has been cancelled.
 
 - Cal ID`,
-  [WorkflowTemplates.RESCHEDULED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" has a new time: {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+  [WorkflowTemplates.RESCHEDULED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} has a new time: {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
 
 - Cal ID`,
-  [WorkflowTemplates.COMPLETED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} is all wrapped up. Thanks for joining!
+  [WorkflowTemplates.COMPLETED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} is all wrapped up. Thanks for joining!
 
 - Cal ID`,
-  [WorkflowTemplates.CONFIRMATION]: `Hi {RECIPIENT_NAME} - You are all set! Your meeting "{EVENT_NAME}" is confirmed for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+  [WorkflowTemplates.CONFIRMATION]: `Hi {RECIPIENT_NAME} - You are all set! Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} is confirmed for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
 
 - Cal ID`,
   // CUSTOM workflow uses user-provided messageTemplate, so no default needed
@@ -63,8 +63,13 @@ function getSMSDefaultTemplateBody(template: WorkflowTemplates, action: Workflow
   const recipientNameVariable =
     action === WorkflowActions.SMS_ATTENDEE ? "{ATTENDEE_NAME}" : "{ORGANIZER_NAME}";
 
+  const senderNameVariable = action === WorkflowActions.SMS_ATTENDEE ? "{ORGANIZER_NAME}" : "{ATTENDEE_NAME}";
+
   // Replace {RECIPIENT_NAME} with the appropriate variable and convert \n to <br>
-  return defaultTemplate.replace(/{RECIPIENT_NAME}/g, recipientNameVariable).replace(/\n/g, "<br>");
+  return defaultTemplate
+    .replace(/{RECIPIENT_NAME}/g, recipientNameVariable)
+    .replace(/{SENDER_NAME}/g, senderNameVariable)
+    .replace(/\n/g, "<br>");
 }
 
 function validateSenderIdFormat(str: string): boolean {

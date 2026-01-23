@@ -14,6 +14,7 @@ import type {
   CalIdScheduleEmailReminderAction,
   CalIdWorkflow,
   CalIdWorkflowStep,
+  CalIdScheduleWhatsAppReminderAction,
 } from "../config/types";
 import { scheduleEmailReminder } from "../managers/emailManager";
 import { scheduleSMSReminder } from "../managers/smsManager";
@@ -201,7 +202,7 @@ const executeStepLogic = async (
         workflow: workflowConfig,
         reminderPhone: whatsappRecipient,
         triggerEvent: workflowConfig.trigger,
-        action: stepConfig.action as CalIdScheduleTextReminderAction,
+        action: stepConfig.action as CalIdScheduleWhatsAppReminderAction,
         timeSpan: {
           time: workflowConfig.time,
           timeUnit: workflowConfig.timeUnit,
