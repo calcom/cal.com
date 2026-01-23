@@ -256,6 +256,7 @@ export default function Success(props: PageProps) {
     eventType: eventType.title,
     eventName: evtName,
     host: props.profile.name || "Nameless",
+    hostFirstName: eventType.users[0]?.firstName,
     location: location,
     bookingFields: bookingInfo.responses,
     eventDuration: dayjs(bookingInfo.endTime).diff(bookingInfo.startTime, "minutes"),
