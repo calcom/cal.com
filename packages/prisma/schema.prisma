@@ -898,6 +898,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
 
@@ -1320,6 +1321,8 @@ model App_RoutingForms_FormResponse {
   routingFormResponseFields RoutingFormResponseField[]
   routingFormResponses      RoutingFormResponseDenormalized[]
   queuedFormResponse        App_RoutingForms_QueuedFormResponse?
+  pendingRoutingTraces      PendingRoutingTraces[]
+  routingTrace              RoutingTrace?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1328,15 +1331,16 @@ model App_RoutingForms_FormResponse {
 }
 
 model App_RoutingForms_QueuedFormResponse {
-  id               String                         @id @default(cuid())
-  form             App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId           String
-  response         Json
-  chosenRouteId    String?
-  createdAt        DateTime                       @default(now())
-  updatedAt        DateTime?                      @updatedAt
-  actualResponseId Int?                           @unique
-  actualResponse   App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  id                   String                         @id @default(cuid())
+  form                 App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId               String
+  response             Json
+  chosenRouteId        String?
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime?                      @updatedAt
+  actualResponseId     Int?                           @unique
+  actualResponse       App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  pendingRoutingTraces PendingRoutingTraces[]
 }
 
 model RoutingFormResponseField {
@@ -2290,6 +2294,7 @@ model AssignmentReason {
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String
+  routingTrace RoutingTrace?
 
   @@index([bookingId])
 }
@@ -3157,4 +3162,31 @@ model AttributeSyncFieldMapping {
 
   @@unique([integrationAttributeSyncId, attributeId])
   @@index([integrationAttributeSyncId])
+}
+
+model PendingRoutingTraces {
+  id        String   @id @default(uuid())
+  createdAt DateTime
+  trace     Json
+
+  formResponseId Int?                           @unique
+  formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+
+  queuedFormResponseId String?                              @unique
+  queuedFormResponse   App_RoutingForms_QueuedFormResponse? @relation(fields: [queuedFormResponseId], references: [id], onDelete: Cascade)
+}
+
+model RoutingTrace {
+  id        String   @id @default(uuid())
+  createdAt DateTime
+  trace     Json
+
+  formResponseId Int?                           @unique
+  formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+
+  bookingUid String?  @unique
+  booking    Booking? @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+
+  assignmentReasonId Int?              @unique
+  assignmentReason   AssignmentReason? @relation(fields: [assignmentReasonId], references: [id], onDelete: Cascade)
 }
