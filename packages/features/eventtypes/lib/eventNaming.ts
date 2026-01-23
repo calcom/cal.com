@@ -64,6 +64,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{Scheduler}", attendeeName)
     .replaceAll("{Organiser}", eventNameObj.host)
     .replaceAll("{Organiser first name}", hostFirstName)
+    .replaceAll("{Organiser given name}", hostFirstName)
     .replaceAll("{USER}", attendeeName)
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
@@ -186,6 +187,7 @@ export const validateCustomEventName = (value: string, bookingFields?: Prisma.Js
     "{Scheduler}",
     "{Location}",
     "{Organiser first name}",
+    "{Organiser given name}",
     "{Scheduler first name}",
     "{Scheduler last name}",
     "{Event duration}",
