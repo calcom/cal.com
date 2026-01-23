@@ -10,7 +10,6 @@ import http from "../lib/http";
 interface OAuthClientData {
   clientId: string;
   organizationId: number | null;
-  name: string;
 }
 
 export interface useOAuthClientProps {

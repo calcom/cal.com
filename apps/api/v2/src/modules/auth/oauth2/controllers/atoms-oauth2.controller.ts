@@ -41,7 +41,6 @@ export class AtomsOAuth2Controller {
         status: SUCCESS_STATUS,
         data: {
           clientId: client.clientId,
-          name: client.name,
           organizationId: null,
         },
       };
