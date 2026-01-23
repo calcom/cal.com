@@ -20,14 +20,13 @@ import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/W
 import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { webhookContainer } from "@calcom/features/di/webhooks/containers/webhook";
+import { WEBHOOK_TOKENS } from "@calcom/features/di/webhooks/Webhooks.tokens";
+import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import {
   deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -276,26 +275,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUserId,
-    eventTypeId: bookingToDelete.eventTypeId as number,
-    triggerEvent: eventTrigger,
-    teamId,
-    orgId,
-    oAuthClientId: platformClientId,
-  };
-
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: bookingToDelete?.eventType?.title || null,
-    eventDescription: bookingToDelete?.eventType?.description || null,
-    requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
-    price: bookingToDelete?.eventType?.price || null,
-    currency: bookingToDelete?.eventType?.currency || null,
-    length: bookingToDelete?.eventType?.length || null,
-  };
-
-  const webhooks = await getWebhooks(subscriberOptions);
-
   const organizer = await userRepository.findByIdOrThrow({
     id: bookingToDelete.userId,
   });
@@ -405,7 +384,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     schedulingType: bookingToDelete.eventType?.schedulingType,
   };
 
-  const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+  const dataForWebhooks = { evt, webhooks: [], eventTypeInfo: {} };
 
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
@@ -425,22 +404,26 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
 
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      ...eventTypeInfo,
-      status: "CANCELLED",
-      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-      cancelledBy: cancelledBy,
-      requestReschedule: false,
-    }).catch((e) => {
-      logger.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  // Queue BOOKING_CANCELLED webhook via Producer
+  try {
+    const webhookProducer = webhookContainer.get(
+      WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
+    ) as IWebhookProducerService;
+
+    await webhookProducer.queueBookingCancelledWebhook({
+      bookingUid: bookingToDelete.uid,
+      userId: organizerUserId ?? undefined,
+      eventTypeId: bookingToDelete.eventTypeId ?? undefined,
+      teamId,
+      orgId,
+      oAuthClientId: platformClientId,
+    });
+  } catch (webhookError) {
+    logger.error(
+      `Error queueing ${eventTrigger} webhook: bookingId: ${bookingToDelete.id}, bookingUid: ${bookingToDelete.uid}`,
+      safeStringify(webhookError)
+    );
+  }
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});

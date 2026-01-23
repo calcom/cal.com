@@ -6,6 +6,9 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { webhookContainer } from "@calcom/features/di/webhooks/containers/webhook";
+import { WEBHOOK_TOKENS } from "@calcom/features/di/webhooks/Webhooks.tokens";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
@@ -15,10 +18,8 @@ import {
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { IBookingWebhookService } from "@calcom/features/webhooks/lib/interface/services";
+import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -33,10 +34,8 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
-
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 async function fireBookingAcceptedEvent({
   actor,
@@ -471,65 +470,34 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const subscribersBookingCreated = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
-    const subscribersMeetingStarted = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamId: eventType?.teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
-    const subscribersMeetingEnded = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: eventType?.teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
+    // Schedule MEETING_STARTED and MEETING_ENDED webhooks via BookingWebhookService
+    const bookingWebhookService = webhookContainer.get(
+      WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE
+    ) as IBookingWebhookService;
 
-    const scheduleTriggerPromises: Promise<unknown>[] = [];
-
-    const updatedBookingsWithCalEventResponses = updatedBookings.map((booking) => {
-      return {
-        ...booking,
+    // Schedule meeting webhooks for each updated booking
+    const scheduleTriggerPromises = updatedBookings.map((updatedBooking) => {
+      const bookingWithResponses = {
+        ...updatedBooking,
         ...getCalEventResponses({
-          bookingFields: booking.eventType?.bookingFields ?? null,
-          booking,
+          bookingFields: updatedBooking.eventType?.bookingFields ?? null,
+          booking: updatedBooking,
         }),
       };
-    });
 
-    subscribersMeetingStarted.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-          })
-        );
-      });
-    });
-    subscribersMeetingEnded.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-          })
-        );
+      return bookingWebhookService.scheduleMeetingWebhooks({
+        booking: {
+          id: bookingWithResponses.id,
+          uid: bookingWithResponses.uid,
+          startTime: bookingWithResponses.startTime,
+          endTime: bookingWithResponses.endTime,
+          userId: booking.userId,
+          eventTypeId: booking.eventTypeId,
+        },
+        evt,
+        teamId: eventType?.teamId,
+        orgId,
+        oAuthClientId: platformClientParams?.platformClientId,
       });
     });
 
@@ -550,42 +518,26 @@ export async function handleConfirmation(args: {
       oAuthClientId: platformClientParams?.platformClientId,
     });
 
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType?.title,
-      eventDescription: eventType?.description,
-      requiresConfirmation: eventType?.requiresConfirmation || null,
-      price: eventType?.price,
-      currency: eventType?.currency,
-      length: eventType?.length,
-    };
+    // Queue BOOKING_CREATED webhook via Producer
+    try {
+      const webhookProducer = webhookContainer.get(
+        WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
+      ) as IWebhookProducerService;
 
-    const payload: EventPayloadType = {
-      ...evt,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: eventType?.id,
-      status: "ACCEPTED",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
-      ...(platformClientParams ? platformClientParams : {}),
-    };
-
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        tracingLogger.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
-      })
-    );
-
-    await Promise.all(promises);
+      await webhookProducer.queueBookingCreatedWebhook({
+        bookingUid: booking.uid,
+        userId: userId ?? undefined,
+        eventTypeId: booking.eventTypeId ?? undefined,
+        teamId,
+        orgId,
+        oAuthClientId: platformClientParams?.platformClientId,
+      });
+    } catch (webhookError) {
+      tracingLogger.error(
+        `Error queueing BOOKING_CREATED webhook: bookingId: ${bookingId}, bookingUid: ${booking.uid}`,
+        safeStringify(webhookError)
+      );
+    }
   } catch (error) {
     // Silently fail
     console.error(error);

@@ -58,14 +58,17 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
+import { webhookContainer } from "@calcom/features/di/webhooks/containers/webhook";
+import { WEBHOOK_TOKENS } from "@calcom/features/di/webhooks/Webhooks.tokens";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import {
   deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
@@ -2430,26 +2433,6 @@ async function handler(
     tracingLogger,
   });
 
-  const webhookData: EventPayloadType = {
-    ...evt,
-    ...eventTypeInfo,
-    bookingId: booking?.id,
-    rescheduleId: originalRescheduledBooking?.id || undefined,
-    rescheduleUid,
-    rescheduleStartTime: originalRescheduledBooking?.startTime
-      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-      : undefined,
-    rescheduleEndTime: originalRescheduledBooking?.endTime
-      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-      : undefined,
-    metadata: { ...metadata, ...reqBody.metadata },
-    eventTypeId,
-    status: "ACCEPTED",
-    smsReminderNumber: booking?.smsReminderNumber || undefined,
-    rescheduledBy: reqBody.rescheduledBy,
-    ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
-  };
-
   if (bookingRequiresPayment) {
     tracingLogger.debug(`Booking ${organizerUser.username} requires payment`);
     // Load credentials.app.categories
@@ -2506,24 +2489,28 @@ async function handler(
       bookingFields: eventType.bookingFields,
       locale: language,
     });
-    const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
-      userId: triggerForUser ? organizerUser.id : null,
-      eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientId,
-    };
-    await handleWebhookTrigger({
-      subscriberOptions: subscriberOptionsPaymentInitiated,
-      eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      webhookData: {
-        ...webhookData,
-        paymentId: payment?.id,
-      },
-      isDryRun,
-      traceContext,
-    });
+    // Queue BOOKING_PAYMENT_INITIATED webhook via Producer
+    if (!isDryRun && booking) {
+      try {
+        const webhookProducer = webhookContainer.get(
+          WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
+        ) as IWebhookProducerService;
+
+        await webhookProducer.queueBookingPaymentInitiatedWebhook({
+          bookingUid: booking.uid,
+          userId: triggerForUser ? organizerUser.id : undefined,
+          eventTypeId,
+          teamId,
+          orgId,
+          oAuthClientId: platformClientId,
+        });
+      } catch (webhookError) {
+        tracingLogger.error(
+          `Error queueing BOOKING_PAYMENT_INITIATED webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+          safeStringify(webhookError)
+        );
+      }
+    }
 
     try {
       const calendarEventForWorkflow = {
@@ -2662,26 +2649,57 @@ async function handler(
       );
     }
 
-    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-      traceContext,
-    });
+    // Queue BOOKING_CREATED/BOOKING_RESCHEDULED webhook via Producer
+    if (!isDryRun && booking) {
+      try {
+        const webhookProducer = webhookContainer.get(
+          WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
+        ) as IWebhookProducerService;
+
+        const queueParams = {
+          bookingUid: booking.uid,
+          userId: subscriberOptions.userId ?? undefined,
+          eventTypeId: subscriberOptions.eventTypeId ?? undefined,
+          teamId: Array.isArray(subscriberOptions.teamId) ? subscriberOptions.teamId[0] : subscriberOptions.teamId,
+          orgId: subscriberOptions.orgId ?? undefined,
+          oAuthClientId: subscriberOptions.oAuthClientId,
+        };
+
+        if (eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED) {
+          await webhookProducer.queueBookingRescheduledWebhook(queueParams);
+        } else {
+          await webhookProducer.queueBookingCreatedWebhook(queueParams);
+        }
+      } catch (webhookError) {
+        tracingLogger.error(
+          `Error queueing ${eventTrigger} webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+          safeStringify(webhookError)
+        );
+      }
+    }
   } else {
-    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
-    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
-    subscriberOptions.triggerEvent = eventTrigger;
-    webhookData.status = "PENDING";
-    await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-      traceContext,
-    });
+    // if eventType requires confirmation, queue BOOKING_REQUESTED webhook via Producer
+    if (!isDryRun && booking) {
+      try {
+        const webhookProducer = webhookContainer.get(
+          WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
+        ) as IWebhookProducerService;
+
+        await webhookProducer.queueBookingRequestedWebhook({
+          bookingUid: booking.uid,
+          userId: subscriberOptions.userId ?? undefined,
+          eventTypeId: subscriberOptions.eventTypeId ?? undefined,
+          teamId: Array.isArray(subscriberOptions.teamId) ? subscriberOptions.teamId[0] : subscriberOptions.teamId,
+          orgId: subscriberOptions.orgId ?? undefined,
+          oAuthClientId: subscriberOptions.oAuthClientId,
+        });
+      } catch (webhookError) {
+        tracingLogger.error(
+          `Error queueing BOOKING_REQUESTED webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+          safeStringify(webhookError)
+        );
+      }
+    }
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
