@@ -28,6 +28,7 @@ import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/sc
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
@@ -1993,7 +1994,7 @@ async function handler(
 
       evt = updatedEvtWithPassword;
 
-      // Update evt with assignment reason if available (for emails)
+      // Add assignment reason to evt for emails
       if (assignmentReason) {
         const updatedEvtWithAssignmentReason = CalendarEventBuilder.fromEvent(evt)
           ?.withAssignmentReason({
