@@ -9,6 +9,7 @@ export interface IBillingProviderService {
     subscriptionId: string;
     subscriptionItemId: string;
     membershipCount: number;
+    prorationBehavior?: "none" | "create_prorations" | "always_invoice";
   }): Promise<void>;
   handleEndTrial(subscriptionId: string): Promise<void>;
 
@@ -71,16 +72,30 @@ export interface IBillingProviderService {
     amount: number;
     currency: string;
     description: string;
+    subscriptionId?: string;
+    invoiceId?: string;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceItemId: string }>;
+
+  deleteInvoiceItem(invoiceItemId: string): Promise<void>;
 
   createInvoice(args: {
     customerId: string;
     autoAdvance: boolean;
+    collectionMethod?: "charge_automatically" | "send_invoice";
+    daysUntilDue?: number;
+    pendingInvoiceItemsBehavior?: "exclude" | "include";
+    subscriptionId?: string;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceId: string }>;
 
   finalizeInvoice(invoiceId: string): Promise<void>;
+
+  voidInvoice(invoiceId: string): Promise<void>;
+
+  getPaymentIntentFailureReason(paymentIntentId: string): Promise<string | null>;
+
+  hasDefaultPaymentMethod(args: { customerId: string; subscriptionId?: string }): Promise<boolean>;
 
   // Usage-based billing
   createSubscriptionUsageRecord(args: {
