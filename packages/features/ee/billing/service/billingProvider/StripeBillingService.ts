@@ -403,4 +403,23 @@ export class StripeBillingService implements IBillingProviderService {
       trial_end: subscription.trial_end,
     };
   }
+
+  async getInvoice(invoiceId: string) {
+    try {
+      const invoice = await this.stripe.invoices.retrieve(invoiceId);
+      if (!invoice) return null;
+
+      return {
+        id: invoice.id,
+        hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+        invoicePdf: invoice.invoice_pdf ?? null,
+        status: invoice.status ?? null,
+        amountDue: invoice.amount_due,
+        currency: invoice.currency,
+      };
+    } catch (error) {
+      log.warn("Failed to retrieve invoice", { invoiceId, error });
+      return null;
+    }
+  }
 }

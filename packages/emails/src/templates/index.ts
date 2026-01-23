@@ -46,3 +46,4 @@ export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
 export { OrganizerAddGuestsEmail } from "./OrganizerAddGuestsEmail";
 export { AttendeeAddGuestsEmail } from "./AttendeeAddGuestsEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
+export { ProrationInvoiceEmail } from "./ProrationInvoiceEmail";

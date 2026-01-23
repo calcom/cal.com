@@ -4,6 +4,8 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
+
+import { getProrationInvoiceNotificationTasker } from "../../di/tasker/ProrationInvoiceNotificationTasker.container";
 import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
 import { extractBillingDataFromStripeSubscription } from "../../lib/stripe-subscription-utils";
 import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
@@ -325,10 +327,12 @@ export class MonthlyProrationService {
     let invoiceFinalized = false;
 
     try {
+      const collectionMethod = hasDefaultPaymentMethod ? "charge_automatically" : "send_invoice";
+
       const invoice = await this.billingService.createInvoice({
         customerId: proration.customerId,
         autoAdvance: true,
-        collectionMethod: hasDefaultPaymentMethod ? "charge_automatically" : "send_invoice",
+        collectionMethod,
         subscriptionId: proration.subscriptionId,
         metadata: buildMonthlyProrationMetadata({ prorationId: proration.id }),
       });
@@ -338,7 +342,7 @@ export class MonthlyProrationService {
       await this.billingService.finalizeInvoice(invoiceId);
       invoiceFinalized = true;
 
-      return await this.prorationRepository.updateProrationStatus(
+      const updatedProration = await this.prorationRepository.updateProrationStatus(
         proration.id,
         hasDefaultPaymentMethod ? "INVOICE_CREATED" : "PENDING",
         {
@@ -346,6 +350,22 @@ export class MonthlyProrationService {
           invoiceId,
         }
       );
+
+      // Dispatch invoice notifications asynchronously (don't block the main flow)
+      this.dispatchInvoiceNotifications({
+        prorationId: proration.id,
+        invoiceId,
+        teamId: proration.teamId,
+        collectionMethod,
+      }).catch((notificationError) => {
+        this.logger.error("Failed to dispatch invoice notifications", {
+          prorationId: proration.id,
+          invoiceId,
+          error: notificationError,
+        });
+      });
+
+      return updatedProration;
     } catch (error) {
       await this.handleInvoiceCreationFailure({
         error,
@@ -355,6 +375,39 @@ export class MonthlyProrationService {
         invoiceFinalized,
       });
       throw error;
+    }
+  }
+
+  private async dispatchInvoiceNotifications(params: {
+    prorationId: string;
+    invoiceId: string;
+    teamId: number;
+    collectionMethod: "charge_automatically" | "send_invoice";
+  }): Promise<void> {
+    const { prorationId, invoiceId, teamId, collectionMethod } = params;
+
+    const notificationTasker = getProrationInvoiceNotificationTasker();
+    const notificationPayload = { prorationId, invoiceId, teamId };
+
+    // Always send immediate notification
+    await notificationTasker.sendInvoiceCreatedNotification(notificationPayload);
+
+    this.logger.info("Dispatched invoice created notification", {
+      prorationId,
+      invoiceId,
+      teamId,
+    });
+
+    // Schedule reminder only for send_invoice (not for charge_automatically which pays immediately)
+    if (collectionMethod === "send_invoice") {
+      await notificationTasker.sendInvoiceReminderNotification(notificationPayload, { delay: "7d" });
+
+      this.logger.info("Scheduled invoice reminder notification", {
+        prorationId,
+        invoiceId,
+        teamId,
+        delay: "7d",
+      });
     }
   }
 

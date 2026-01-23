@@ -4449,5 +4449,13 @@
   "error_enabling_feature": "Error enabling feature. Please try again.",
   "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
   "overwrite_existing_contact_owner": "Overwrite existing contact owner",
+  "proration_invoice_email_subject": "Invoice for additional seats - {{teamName}}",
+  "proration_invoice_email_heading": "You have a new invoice",
+  "proration_invoice_email_body": "An invoice has been created for {{seatCount}} additional seat(s) on your {{teamName}} subscription.",
+  "proration_invoice_email_amount": "Amount due: {{amount}}",
+  "proration_invoice_email_view_invoice": "View and Pay Invoice",
+  "proration_invoice_reminder_subject": "Reminder: Invoice pending payment - {{teamName}}",
+  "proration_invoice_reminder_heading": "Invoice reminder",
+  "proration_invoice_reminder_body": "This is a reminder that you have an unpaid invoice for your {{teamName}} subscription.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

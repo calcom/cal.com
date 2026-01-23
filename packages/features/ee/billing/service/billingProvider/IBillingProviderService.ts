@@ -123,4 +123,14 @@ export interface IBillingProviderService {
     current_period_end: number;
     trial_end: number | null;
   } | null>;
+
+  // Invoice queries
+  getInvoice(invoiceId: string): Promise<{
+    id: string;
+    hostedInvoiceUrl: string | null;
+    invoicePdf: string | null;
+    status: string | null;
+    amountDue: number;
+    currency: string;
+  } | null>;
 }
