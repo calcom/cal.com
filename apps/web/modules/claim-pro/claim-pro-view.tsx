@@ -65,6 +65,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
     conferencingApps?.items?.some((app) => app.userCredentialIds.length > 0 && app.slug !== "jitsi") || false;
 
   const [publicLink, setPublicLink] = useState("");
+  const yearClaimed = userMetadata.isProUser?.yearClaimed || 0;
 
   useEffect(() => {
     if (username && typeof window !== "undefined") {
@@ -72,15 +73,37 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
     }
   }, [username]);
 
+  useEffect(() => {
+    if (
+      formSubmittedForYear >= 1 &&
+      uniqueAttendeesData?.isEligible === true &&
+      yearClaimed < 1 &&
+      !mutation.isPending
+    ) {
+      mutation.mutate({
+        metadata: {
+          isProUser: {
+            ...userMetadata.isProUser,
+            yearClaimed: 1,
+          },
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uniqueAttendeesData?.isEligible, formSubmittedForYear, yearClaimed]);
+
   const mutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: (data) => {
       const newFormSubmittedForYear = data.metadata?.isProUser?.formSubmittedForYear || 0;
       const newFirstYearClaimDate = data.metadata?.isProUser?.firstYearClaimDate;
+      const newYearClaimed = data.metadata?.isProUser?.yearClaimed || 0;
       setUserMetadata((prev) => ({
         ...prev,
         isProUser: {
+          ...prev.isProUser,
           formSubmittedForYear: newFormSubmittedForYear,
           firstYearClaimDate: newFirstYearClaimDate,
+          yearClaimed: newYearClaimed,
         },
       }));
 
