@@ -53,6 +53,7 @@ export default function App({ Component, pageProps }: AppProps) {
         setAccessToken(data.users[0].accessToken);
         setUserEmail(data.users[0].email);
         setUsername(data.users[0].username);
+        return;
       }
       setOptions(
         data.users.map((item: Data["users"][0]) => ({
