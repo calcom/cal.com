@@ -97,7 +97,7 @@ export function Authorize() {
         state,
       });
     }
-  }, [client?.isTrusted, selectedAccount]);
+  }, [client?.isTrusted]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -239,8 +239,8 @@ export function Authorize() {
               }
               window.location.href = `${client.redirectUri}${separator}${params.toString()}`;
             }}>
-            {t("cancel")}
-          </Button>
+          {t("go_back")}
+        </Button>
           <Button
             onClick={() => {
               generateAuthCodeMutation.mutate({
@@ -316,3 +316,4 @@ function redirectToOAuthError({
 }
 
 export default Authorize;
+
