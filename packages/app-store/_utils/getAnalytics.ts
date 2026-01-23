@@ -23,11 +23,13 @@ export const getAnalyticsService = async ({
     return null;
   }
 
-  const analyticsApp = await (typeof analyticsAppGetter === "function"
-    ? analyticsAppGetter()
-    : analyticsAppGetter);
+  const analyticsApp = await (typeof (analyticsAppGetter as any).fetch === "function"
+    ? (analyticsAppGetter as any).fetch()
+    : typeof analyticsAppGetter === "function"
+      ? (analyticsAppGetter as any)()
+      : analyticsAppGetter);
 
-  const createAnalyticsService = analyticsApp.default;
+  const createAnalyticsService = analyticsApp.default || analyticsApp;
 
   if (!createAnalyticsService || typeof createAnalyticsService !== "function") {
     log.warn(`analytics of type ${analyticsType} is not implemented`);

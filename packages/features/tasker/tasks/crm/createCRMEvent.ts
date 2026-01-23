@@ -125,8 +125,15 @@ export async function createCRMEvent(payload: string): Promise<void> {
          throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
       }
 
-      const module = typeof appDataSchemaFn === "function" ? await appDataSchemaFn() : appDataSchemaFn;
-      const appDataSchema = (module as any).default || (module as any).appDataSchema || module;
+      const module = typeof appDataSchemaFn === "function" ? await (appDataSchemaFn as any)() : appDataSchemaFn;
+      // Robust extraction of the Zod schema, prioritizing objects that actually have .safeParse
+      const appDataSchema =
+        ((module as any)?.safeParse ? module : null) ||
+        ((module as any)?.appDataSchema?.safeParse ? (module as any).appDataSchema : null) ||
+        ((module as any)?.default?.safeParse ? (module as any).default : null) ||
+        (module as any)?.appDataSchema ||
+        (module as any)?.default ||
+        module;
       const appParse = appDataSchema.safeParse(appData);
 
       if (!appParse.success) {

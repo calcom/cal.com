@@ -17,11 +17,13 @@ export const getCrm = async (credential: CredentialPayload, appOptions?: Record<
     return null;
   }
 
-  const crmServiceImportFn = await (typeof crmServiceGetter === "function"
-    ? crmServiceGetter()
-    : crmServiceGetter);
+  const crmServiceImportFn = await (typeof (crmServiceGetter as any).fetch === "function"
+    ? (crmServiceGetter as any).fetch()
+    : typeof crmServiceGetter === "function"
+      ? (crmServiceGetter as any)()
+      : crmServiceGetter);
 
-  const createCrmService = crmServiceImportFn.default;
+  const createCrmService = crmServiceImportFn.default || crmServiceImportFn;
 
   if (!createCrmService) {
     log.warn(`crm of type ${crmType} is not implemented`);

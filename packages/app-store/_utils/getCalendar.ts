@@ -36,11 +36,13 @@ export const getCalendar = async (
     return null;
   }
 
-  const calendarApp = await (typeof calendarAppGetter === "function"
-    ? calendarAppGetter()
-    : calendarAppGetter);
+  const calendarApp = await (typeof (calendarAppGetter as any).fetch === "function"
+    ? (calendarAppGetter as any).fetch()
+    : typeof calendarAppGetter === "function"
+      ? (calendarAppGetter as any)()
+      : calendarAppGetter);
 
-  const createCalendarService = calendarApp.default;
+  const createCalendarService = calendarApp.default || calendarApp;
 
   if (!createCalendarService || typeof createCalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);
