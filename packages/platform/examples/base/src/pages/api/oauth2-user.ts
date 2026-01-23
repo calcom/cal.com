@@ -14,9 +14,18 @@ type Data = {
 
 // example endpoint to create a managed cal.com user
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  const { email, authorizationCode } = JSON.parse(req.body);
+  const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  const { email, authorizationCode } = body;
 
-  const existingUser = await prisma.user.findFirst({ orderBy: { createdAt: "desc" } });
+  const existingUser = await prisma.user.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: {
+      calcomUserId: true,
+      email: true,
+      calcomUsername: true,
+      accessToken: true,
+    },
+  });
   if (existingUser && existingUser.calcomUserId) {
     return res.status(200).json({
       id: existingUser.calcomUserId,

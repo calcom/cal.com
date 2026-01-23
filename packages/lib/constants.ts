@@ -275,3 +275,5 @@ export const IS_API_V2_E2E = process.env.IS_E2E === "true";
 
 export const ENABLE_ASYNC_TASKER =
   process.env.ENABLE_ASYNC_TASKER === "true" && !process.env.NEXT_PUBLIC_IS_E2E && !IS_API_V2_E2E;
+
+export const NEXT_PUBLIC_IS_E2E = process.env.NEXT_PUBLIC_IS_E2E;

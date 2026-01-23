@@ -200,8 +200,11 @@ type OAuthClientInput = {
 
 export async function createOAuthClientForUser(userId: number, oAuthClient: OAuthClientInput) {
   await prisma.oAuthClient.create({
-      data: oAuthClient
-    });
+    data: {
+      userId,
+      ...oAuthClient,
+    },
+  });
   console.log(`\t👤 Created OAuth2 client '${oAuthClient.name}' for user with id '${userId}'`);
 }
 

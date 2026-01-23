@@ -25,6 +25,7 @@ import {
   CLOUDFLARE_SITE_ID,
   CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
   PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM,
+  NEXT_PUBLIC_IS_E2E,
 } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -218,7 +219,7 @@ const BookerComponent = ({
 
   // Cloudflare Turnstile Captcha
   const shouldRenderCaptcha = !!(
-    !process.env?.NEXT_PUBLIC_IS_E2E &&
+    !NEXT_PUBLIC_IS_E2E &&
     renderCaptcha &&
     CLOUDFLARE_SITE_ID &&
     CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
