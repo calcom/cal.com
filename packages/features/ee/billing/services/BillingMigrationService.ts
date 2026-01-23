@@ -1,10 +1,9 @@
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
-import { Plan, SubscriptionStatus } from "../repository/IBillingRepository";
-import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
-import type { PrismaTeamBillingDataRepository } from "../repository/teamBillingData/PrismaTeamBillingRepository";
-import type { TeamWithBillingRecords } from "../repository/teamBillingData/ITeamBillingDataRepository";
+import type { IBillingRepository } from "../repository/billing/IBillingRepository";
+import { Plan, SubscriptionStatus } from "../repository/billing/IBillingRepository";
+import type { ITeamBillingDataRepository, TeamWithBillingRecords } from "../repository/teamBillingData/ITeamBillingDataRepository";
 
 export interface BillingMigrationResult {
   ok: boolean;
@@ -21,9 +20,12 @@ export interface BillingMigrationInput {
   lookbackHours: number;
 }
 
+export type BillingRepositoryFactory = (isOrganization: boolean) => IBillingRepository;
+
 export interface IBillingMigrationServiceDeps {
   bookingRepository: BookingRepository;
-  teamBillingDataRepository: PrismaTeamBillingDataRepository;
+  teamBillingDataRepository: ITeamBillingDataRepository;
+  billingRepositoryFactory: BillingRepositoryFactory;
 }
 
 export class BillingMigrationService {
@@ -86,7 +88,7 @@ export class BillingMigrationService {
       return { migrated: false, reason: "No subscription data in metadata" };
     }
 
-    const billingRepository = BillingRepositoryFactory.getRepository(team.isOrganization);
+    const billingRepository = this.deps.billingRepositoryFactory(team.isOrganization);
 
     await billingRepository.create({
       teamId: team.id,
