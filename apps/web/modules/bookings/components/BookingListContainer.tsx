@@ -123,7 +123,9 @@ function BookingListInner({
     userTimeZone: user?.timeZone,
   });
 
-  const getFacetedUniqueValues = useFacetedUniqueValues();
+  const getFacetedUniqueValues = useFacetedUniqueValues({
+    canReadOthersBookings: permissions.canReadOthersBookings,
+  });
 
   const displayedFilterCount = useDisplayedFilterCount();
   const { currentTab, tabOptions } = useBookingStatusTab();
