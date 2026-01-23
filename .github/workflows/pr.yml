@@ -469,6 +469,7 @@ jobs:
         type-check,
         unit-test,
         api-v2-unit-test,
+        security-audit,
         check-api-v2-breaking-changes,
         check-prisma-migrations,
         integration-test,
@@ -511,6 +512,7 @@ jobs:
             needs.type-check.result != 'success' ||
             needs.unit-test.result != 'success' ||
             needs.api-v2-unit-test.result != 'success' ||
+            needs.security-audit.result != 'success' ||
             (needs.prepare.outputs.has-api-v2-changes == 'true' && needs.check-api-v2-breaking-changes.result != 'success') ||
             (needs.prepare.outputs.has-prisma-changes == 'true' && needs.check-prisma-migrations.result != 'success') ||
               needs.build.result != 'success' ||
