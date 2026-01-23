@@ -2,27 +2,25 @@ import { BookingSeatRepository } from "@calcom/features/bookings/repositories/Bo
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
+  isCalAIAction,
+  isEmailAction,
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
-  isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { prisma } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { type SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import type { FormSubmissionData } from "../types";
-import type { BookingInfo } from "../types";
+import type { BookingInfo, FormSubmissionData } from "../types";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
 
 export type WorkflowContextData =
@@ -78,9 +76,8 @@ const getReminderPhoneNumber = async (
 
   if (seatReferenceUid) {
     const bookingSeatRepository = new BookingSeatRepository(prisma);
-    const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
-      seatReferenceUid
-    );
+    const seatAttendeeData =
+      await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(seatReferenceUid);
     return seatAttendeeData?.attendee?.phoneNumber || smsReminderNumber;
   }
 
@@ -320,9 +317,16 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
         if (sendTo) {
           const t = await getTranslation(sendTo.locale ?? "en", "common");
           const workflow = msg.workflowStep?.workflow;
-          const organizationId = workflow?.team?.isOrganization
+          let organizationId = workflow?.team?.isOrganization
             ? workflow?.teamId
-            : workflow?.team?.parentId ?? null;
+            : (workflow?.team?.parentId ?? null);
+
+          if (!organizationId && workflow?.userId) {
+            organizationId = await ProfileRepository.findFirstOrganizationIdForUser({
+              userId: workflow.userId,
+            });
+          }
+
           await sendOrScheduleWorkflowEmails({
             to: [sendTo.email],
             subject: t("notification_about_your_booking"),

@@ -7,13 +7,16 @@ import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/W
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { MembershipRole, SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  MembershipRole,
+  SchedulingType,
+  WorkflowActions,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TActivateEventTypeInputSchema } from "./activateEventType.schema";
 import { removeSmsReminderFieldForEventTypes, upsertSmsReminderFieldForEventTypes } from "./util";
 
@@ -363,7 +366,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             let sendTo: string[] = [];
 
             switch (step.action) {
-              case WorkflowActions.EMAIL_HOST:
+              case WorkflowActions.EMAIL_HOST: {
                 sendTo = [bookingInfo.organizer?.email];
                 const schedulingType = bookingInfo.eventType?.schedulingType;
                 const hosts = bookingInfo.eventType.hosts
@@ -379,6 +382,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                   sendTo = sendTo.concat(hosts);
                 }
                 break;
+              }
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = bookingInfo.attendees
                   .map((attendee) => attendee.email)
@@ -404,6 +408,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               sender: step.sender,
               workflowStepId: step.id,
               verifiedAt: step.verifiedAt,
+              organizationId: ctx.user.organizationId,
             });
           } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
             await scheduleSMSReminder({
@@ -423,6 +428,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
               creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+              organizationId: ctx.user.organizationId,
             });
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
@@ -441,6 +447,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
               creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+              organizationId: ctx.user.organizationId,
             });
           } else if (booking.smsReminderNumber) {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -461,6 +468,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
                 creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+                organizationId: ctx.user.organizationId,
               });
             } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
               await scheduleWhatsappReminder({
@@ -480,6 +488,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
                 creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+                organizationId: ctx.user.organizationId,
               });
             }
           }

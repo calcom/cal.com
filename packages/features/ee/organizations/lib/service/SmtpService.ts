@@ -2,8 +2,6 @@ import type { TFunction } from "i18next";
 import { createTransport } from "nodemailer";
 import type { Options as SMTPTransportOptions } from "nodemailer/lib/smtp-transport";
 
-import SmtpTestEmail from "@calcom/emails/templates/smtp-test-email";
-
 export interface SmtpConfig {
   host: string;
   port: number;
@@ -59,6 +57,7 @@ export class SmtpService {
     const transport = createTransport(this.createTransportOptions(config));
 
     try {
+      const { default: SmtpTestEmail } = await import("@calcom/emails/templates/smtp-test-email");
       const emailTemplate = new SmtpTestEmail({
         language,
         toEmail: "amit@cal.com",

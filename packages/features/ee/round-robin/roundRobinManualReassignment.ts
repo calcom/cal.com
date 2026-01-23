@@ -262,9 +262,7 @@ export const roundRobinManualReassignment = async ({
     organizationId: orgId,
     source: actionSource,
     auditData: {
-      ...(hasOrganizerChanged
-        ? { organizerUuid: { old: originalOrganizer.uuid, new: newUser.uuid } }
-        : null),
+      ...(hasOrganizerChanged ? { organizerUuid: { old: originalOrganizer.uuid, new: newUser.uuid } } : null),
       ...(attendeeUpdatedId
         ? {
             hostAttendeeUpdated: {
@@ -598,6 +596,7 @@ export async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
+        organizationId: orgId,
       });
     }
 

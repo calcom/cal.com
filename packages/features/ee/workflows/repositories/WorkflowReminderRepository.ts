@@ -42,6 +42,7 @@ export class WorkflowReminderRepository {
             action: true,
             workflow: {
               select: {
+                userId: true,
                 teamId: true,
                 team: {
                   select: {

@@ -1,4 +1,11 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
+import {
+  createBookingScenario,
+  createOrganization,
+  getOrganizer,
+  getScenarioData,
+  TestData,
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import dayjs from "@calcom/dayjs";
 import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/scheduleBookingReminders";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -13,13 +20,6 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import {
-  createBookingScenario,
-  createOrganization,
-  getOrganizer,
-  getScenarioData,
-  TestData,
-} from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import {
   expectEmailSentViaCustomSmtp,
   expectEmailSentViaDefaultSmtp,
   expectSMSWorkflowToBeNotTriggered,
@@ -29,7 +29,6 @@ import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTe
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 import { v4 as uuidv4 } from "uuid";
 import { beforeAll, beforeEach, describe, expect, vi } from "vitest";
-
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { deleteRemindersOfActiveOnIds } from "../deleteRemindersOfActiveOnIds";
 import { scheduleAIPhoneCall } from "../reminders/aiPhoneCallManager";
@@ -1572,13 +1571,111 @@ describe("Custom SMTP Email Routing for Workflows", () => {
       timeSpan: {
         time: null,
         timeUnit: null,
-      }
+      },
     });
 
     expectEmailSentViaCustomSmtp({
       emails,
       to: "formuser@example.com",
       expectedFromEmail: "forms@testorg.com",
+    });
+  });
+
+  test("should route personal workflow emails via org custom SMTP when user is org member", async ({
+    emails,
+  }) => {
+    const org = await createOrganization({
+      name: "Test Org with SMTP",
+      slug: "testorg-personal-smtp",
+      withSmtpConfig: {
+        fromEmail: "personal@testorg.com",
+        fromName: "TestOrg Personal",
+      },
+    });
+
+    const organizer = getOrganizer({
+      name: "Org Member",
+      email: "member@example.com",
+      id: 103,
+      defaultScheduleId: null,
+      organizationId: org.id,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Personal Workflow of Org Member",
+            userId: 103,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_ATTENDEE",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            useEventTypeDestinationCalendarEmail: true,
+            owner: 103,
+            users: [{ id: 103 }],
+          },
+        ],
+        bookings: [
+          {
+            uid: "personal-workflow-smtp-test",
+            eventTypeId: 1,
+            userId: 103,
+            status: BookingStatus.ACCEPTED,
+            startTime: `2024-05-25T10:00:00.000Z`,
+            endTime: `2024-05-25T10:30:00.000Z`,
+            attendees: [{ email: "attendee@example.com", locale: "en" }],
+          },
+        ],
+        organizer,
+      })
+    );
+
+    const mockEvt = {
+      uid: "personal-workflow-smtp-test",
+      title: "Test Event",
+      startTime: "2024-05-25T10:00:00.000Z",
+      endTime: "2024-05-25T10:30:00.000Z",
+      bookerUrl: "https://cal.com",
+      organizationId: org.id,
+      attendees: [
+        {
+          name: "Test Attendee",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      organizer: {
+        name: "Org Member",
+        email: "member@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+      },
+    };
+
+    await scheduleEmailReminder({
+      evt: mockEvt,
+      triggerEvent: WorkflowTriggerEvents.NEW_EVENT,
+      timeSpan: { time: null, timeUnit: null },
+      sendTo: ["attendee@example.com"],
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      verifiedAt: new Date(),
+      organizationId: org.id,
+    });
+
+    expectEmailSentViaCustomSmtp({
+      emails,
+      to: "attendee@example.com",
+      expectedFromEmail: "personal@testorg.com",
     });
   });
 });
