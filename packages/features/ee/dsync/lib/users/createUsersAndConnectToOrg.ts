@@ -36,13 +36,13 @@ export const createUsersAndConnectToOrg = async ({
     data: emailsToCreate.map((email) => {
       const username = getOrgUsernameFromEmail(email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
       const name = deriveNameFromOrgUsername({ username });
-      // Derive firstName from the first word of the derived name
-      const firstName = name.split(" ")[0] || "";
+      // Derive givenName from the first word of the derived name
+      const givenName = name.split(" ")[0] || "";
       return {
         username,
         email,
         name,
-        firstName,
+        givenName,
         // Assume verified since coming from directory
         verified: true,
         emailVerified: new Date(),

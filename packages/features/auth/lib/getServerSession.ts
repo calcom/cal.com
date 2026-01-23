@@ -98,7 +98,7 @@ export async function getServerSession(options: {
       id: user.id,
       uuid: user.uuid,
       name: user.name,
-      firstName: user.firstName,
+      givenName: user.givenName,
       lastName: user.lastName,
       username: user.username,
       email: user.email,

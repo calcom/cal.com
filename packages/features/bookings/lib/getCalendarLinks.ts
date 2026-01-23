@@ -159,7 +159,7 @@ export const getCalendarLinks = ({
     } | null;
     users: {
       name: string | null;
-      firstName?: string | null;
+      givenName?: string | null;
     }[];
     title: string;
   };
@@ -176,7 +176,7 @@ export const getCalendarLinks = ({
     eventType: eventType.title,
     eventName: evtName,
     host: eventType.team?.name || eventType.users[0]?.name || "Nameless",
-    hostFirstName: eventType.users[0]?.firstName,
+    hostGivenName: eventType.users[0]?.givenName,
     location: booking.location,
     bookingFields: booking.responses,
     eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),

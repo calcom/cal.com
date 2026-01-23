@@ -17,7 +17,7 @@ export const bookingSelect = {
     select: {
       id: true,
       name: true,
-      firstName: true,
+      givenName: true,
       username: true,
       email: true,
       locale: true,

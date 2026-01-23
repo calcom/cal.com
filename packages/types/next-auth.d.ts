@@ -44,7 +44,7 @@ declare module "next-auth" {
     locale?: string | null;
     profile?: UserProfile;
     samlTenant?: string;
-    firstName?: PrismaUser["firstName"];
+    givenName?: PrismaUser["givenName"];
     lastName?: PrismaUser["lastName"];
   }
 }
@@ -53,7 +53,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string | number;
     name?: string | null;
-    firstName?: string;
+    givenName?: string;
     lastName?: string | null;
     username?: string | null;
     avatarUrl?: string | null;

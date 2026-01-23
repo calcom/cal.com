@@ -22,8 +22,8 @@ export type EventNameObjectType = {
   eventName?: string | null;
   teamName?: string | null;
   host: string;
-  /** Optional first name for the host/organizer. If provided, used for {Organiser first name} instead of splitting host name */
-  hostFirstName?: string | null;
+  /** Optional given name for the host/organizer. If provided, used for {Organiser first name} instead of splitting host name */
+  hostGivenName?: string | null;
   location?: string | null;
   eventDuration: number;
   bookingFields?: Prisma.JsonObject | null;
@@ -55,8 +55,8 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     eventName = eventName.replace("{LOCATION}", locationString);
   }
 
-  // Use hostFirstName if provided, otherwise fall back to splitting the host name
-  const hostFirstName = eventNameObj.hostFirstName || eventNameObj.host.split(" ")[0];
+  // Use hostGivenName if provided, otherwise fall back to splitting the host name
+  const hostFirstName = eventNameObj.hostGivenName || eventNameObj.host.split(" ")[0];
 
   let dynamicEventName = eventName
     // Need this for compatibility with older event names

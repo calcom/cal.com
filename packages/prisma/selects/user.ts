@@ -32,7 +32,7 @@ export const availabilityUserSelect = {
 
 export const baseUserSelect = {
   name: true,
-  firstName: true,
+  givenName: true,
   destinationCalendar: true,
   locale: true,
   hideBranding: true,
@@ -44,7 +44,7 @@ export const baseUserSelect = {
 
 export const userSelect = {
   name: true,
-  firstName: true,
+  givenName: true,
   allowDynamicBooking: true,
   destinationCalendar: true,
   locale: true,

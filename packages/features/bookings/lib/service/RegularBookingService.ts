@@ -1420,7 +1420,7 @@ async function handler(
     teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.team?.name : null,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
-    hostFirstName: organizerUser.firstName,
+    hostGivenName: organizerUser.givenName,
     location: bookingLocation,
     eventDuration: dayjs(reqBody.end).diff(reqBody.start, "minutes"),
     bookingFields: { ...responses },
