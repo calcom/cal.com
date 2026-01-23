@@ -77,6 +77,7 @@ type BaseHost<User extends BaseUser> = {
   weightAdjustment?: number | null;
   user: User;
   groupId: string | null;
+  minimumBookingNotice?: number | null;
 };
 
 export type EventType = {
@@ -109,6 +110,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
         weight: host.weight,
         createdAt: host.createdAt,
         groupId: host.groupId,
+        minimumBookingNotice: host.minimumBookingNotice,
       })),
       fallbackHosts: null,
     };
@@ -149,6 +151,7 @@ export async function getNormalizedHostsWithDelegationCredentials<
       weight: host.weight,
       createdAt: host.createdAt,
       groupId: host.groupId,
+      minimumBookingNotice: host.minimumBookingNotice,
     }));
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({

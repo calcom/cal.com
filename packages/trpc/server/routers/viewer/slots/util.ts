@@ -1113,11 +1113,6 @@ export class AvailableSlotsService {
       prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
     });
 
-    const startTime = this.getStartTime(
-      startTimeAdjustedForRollingWindowComputation,
-      input.timeZone,
-      eventType.minimumBookingNotice
-    );
     const endTime =
       input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
     // when an empty array is given we should prefer to have it handled as if this wasn't given at all
@@ -1181,6 +1176,29 @@ export class AvailableSlotsService {
       };
     }
 
+    // For per-host minimum notice: use the minimum notice across all hosts (most permissive)
+    // This shows all possible slots; actual host filtering happens at booking time
+    console.log("[DEBUG] allHosts minimumBookingNotice values:", allHosts.map((host) => ({
+      userId: host.user?.id,
+      minimumBookingNotice: host.minimumBookingNotice,
+      hasProperty: 'minimumBookingNotice' in host
+    })));
+    console.log("[DEBUG] eventType.minimumBookingNotice:", eventType.minimumBookingNotice);
+    const effectiveMinimumBookingNotice =
+      allHosts.length > 0
+        ? Math.min(
+            ...allHosts.map((host) => host.minimumBookingNotice ?? eventType.minimumBookingNotice)
+          )
+        : eventType.minimumBookingNotice;
+    console.log("[DEBUG] effectiveMinimumBookingNotice:", effectiveMinimumBookingNotice);
+
+    // Recompute startTime with effective minimum notice
+    const effectiveStartTime = this.getStartTime(
+      startTimeAdjustedForRollingWindowComputation,
+      input.timeZone,
+      effectiveMinimumBookingNotice
+    );
+
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts =
@@ -1194,13 +1212,13 @@ export class AvailableSlotsService {
         loggerWithEventDetails,
         // adjust start time so we can check for available slots in the first two weeks
         startTime:
-          hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
-            ? this.getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
-            : startTime,
+          hasFallbackRRHosts && effectiveStartTime.isBefore(twoWeeksFromNow)
+            ? this.getStartTime(dayjs().format(), input.timeZone, effectiveMinimumBookingNotice)
+            : effectiveStartTime,
         // adjust end time so we can check for available slots in the first two weeks
         endTime:
           hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
-            ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+            ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, effectiveMinimumBookingNotice)
             : endTime,
         bypassBusyCalendarTimes,
         silentCalendarFailures,
@@ -1212,7 +1230,7 @@ export class AvailableSlotsService {
     // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
     if (hasFallbackRRHosts) {
       let diff = 0;
-      if (startTime.isBefore(twoWeeksFromNow)) {
+      if (effectiveStartTime.isBefore(twoWeeksFromNow)) {
         //check if first two week have availability
         diff =
           aggregatedAvailability.length > 0
@@ -1263,7 +1281,7 @@ export class AvailableSlotsService {
             eventType,
             hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
-            startTime,
+            startTime: effectiveStartTime,
             endTime,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
@@ -1278,12 +1296,17 @@ export class AvailableSlotsService {
       eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
       allUsersAvailability.length > 1;
 
+    console.log("[DEBUG] effectiveStartTime:", effectiveStartTime.format());
+    console.log("[DEBUG] aggregatedAvailability first 3:", aggregatedAvailability.slice(0, 3).map(r => ({
+      start: r.start.format(),
+      end: r.end.format()
+    })));
     const timeSlots = getSlots({
-      inviteeDate: startTime,
+      inviteeDate: effectiveStartTime,
       eventLength: input.duration || eventType.length,
       offsetStart: eventType.offsetStart,
       dateRanges: aggregatedAvailability,
-      minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNotice: effectiveMinimumBookingNotice,
       frequency: eventType.slotInterval || input.duration || eventType.length,
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
       showOptimizedSlots: eventType.showOptimizedSlots,
@@ -1331,7 +1354,7 @@ export class AvailableSlotsService {
         const { dateRanges: restrictionRanges } = buildDateRanges({
           availability: restrictionAvailability,
           timeZone: restrictionTimezone || "UTC",
-          dateFrom: startTime,
+          dateFrom: effectiveStartTime,
           dateTo: endTime,
           travelSchedules,
         });
@@ -1532,7 +1555,7 @@ export class AvailableSlotsService {
           try {
             isOutOfBounds = isTimeOutOfBounds({
               time: slot.time,
-              minimumBookingNotice: eventType.minimumBookingNotice,
+              minimumBookingNotice: effectiveMinimumBookingNotice,
             });
           } catch (error) {
             if (error instanceof BookingDateInPastError) {
@@ -1581,7 +1604,7 @@ export class AvailableSlotsService {
         await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
           eventDetails: {
             username: input.usernameList?.[0],
-            startTime: startTime,
+            startTime: effectiveStartTime,
             endTime: endTime,
             eventSlug: eventType.slug,
           },

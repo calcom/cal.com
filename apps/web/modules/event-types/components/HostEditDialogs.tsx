@@ -1,8 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-import type { Options } from "react-select";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
   FormValues,
@@ -10,15 +5,18 @@ import type {
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { groupHostsByGroupId, getHostsFromOtherGroups, sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
+import { getHostsFromOtherGroups, groupHostsByGroupId, sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Label, Select, TextField } from "@calcom/ui/components/form";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
+import type { Options } from "react-select";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 import WeightDescription from "./WeightDescription";
@@ -54,7 +52,7 @@ export const PriorityDialog = (
 
   const [newPriority, setNewPriority] = useState<{ label: string; value: number }>();
   const setPriority = () => {
-    if (!!newPriority) {
+    if (newPriority) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");
@@ -141,7 +139,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
-    if (!!newWeight) {
+    if (newWeight) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");
@@ -186,6 +184,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
         weight: host.weight,
         isFixed: host.isFixed,
         groupId: host.groupId,
+        minimumBookingNotice: host.minimumBookingNotice,
       }));
 
       // Preserve hosts from other groups
@@ -201,6 +200,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
           weight: host.weight,
           isFixed: host.isFixed,
           groupId: host.groupId,
+          minimumBookingNotice: host.minimumBookingNotice,
         };
       });
       const newFullValue = [...otherGroupsOptions, ...updatedOptions];
@@ -235,6 +235,123 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
         <DialogFooter>
           <DialogClose onClick={() => setNewWeight(undefined)} />
           <Button onClick={setWeight} className={customClassNames?.confirmButton}>
+            {t("confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export type MinimumNoticeDialogCustomClassNames = {
+  container?: string;
+  label?: string;
+  confirmButton?: string;
+  noticeInput?: InputClassNames;
+};
+
+export const MinimumNoticeDialog = (
+  props: IDialog & { customClassNames?: MinimumNoticeDialogCustomClassNames }
+) => {
+  const { t } = useLocale();
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
+  const { getValues } = useFormContext<FormValues>();
+  const [newMinimumNotice, setNewMinimumNotice] = useState<number | undefined>();
+
+  const setMinimumNotice = () => {
+    const hosts: Host[] = getValues("hosts");
+    const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
+    const hostGroups = getValues("hostGroups");
+    const rrHosts = hosts.filter((host) => !host.isFixed);
+
+    const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
+
+    const updateHostNotice = (host: Host) => {
+      if (host.userId === parseInt(option.value, 10)) {
+        return { ...host, minimumBookingNotice: newMinimumNotice ?? null };
+      }
+      return host;
+    };
+
+    let sortedHostGroup: (Host & {
+      avatar: string;
+      label: string;
+    })[] = [];
+
+    const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
+
+    if (hostGroupToSort) {
+      sortedHostGroup = hostGroupToSort
+        .map((host) => {
+          const userOption = options.find((opt) => opt.value === host.userId.toString());
+          const updatedHost = updateHostNotice(host);
+          return {
+            ...updatedHost,
+            avatar: userOption?.avatar ?? "",
+            label: userOption?.label ?? host.userId.toString(),
+          };
+        })
+        .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+    }
+
+    const updatedOptions = sortedHostGroup.map((host) => ({
+      avatar: host.avatar,
+      label: host.label,
+      value: host.userId.toString(),
+      priority: host.priority,
+      weight: host.weight,
+      isFixed: host.isFixed,
+      groupId: host.groupId,
+      minimumBookingNotice: host.minimumBookingNotice,
+    }));
+
+    const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+
+    const otherGroupsOptions = otherGroupsHosts.map((host) => {
+      const userOption = options.find((opt) => opt.value === host.userId.toString());
+      return {
+        avatar: userOption?.avatar ?? "",
+        label: userOption?.label ?? host.userId.toString(),
+        value: host.userId.toString(),
+        priority: host.priority,
+        weight: host.weight,
+        isFixed: host.isFixed,
+        groupId: host.groupId,
+        minimumBookingNotice: host.minimumBookingNotice,
+      };
+    });
+    const newFullValue = [...otherGroupsOptions, ...updatedOptions];
+    onChange(newFullValue);
+    setIsOpenDialog(false);
+  };
+
+  return (
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <DialogContent enableOverflow title={t("set_minimum_notice")}>
+        <Alert severity="neutral" message={t("minimum_notice_default_info")} className="mb-4" />
+        <div className={classNames("mb-4", customClassNames?.container)}>
+          <Label className={customClassNames?.label}>
+            {t("minimum_notice_for_user", { userName: option.label })}
+          </Label>
+          <div className={classNames(customClassNames?.noticeInput?.container)}>
+            <TextField
+              min={0}
+              className={customClassNames?.noticeInput?.input}
+              labelClassName={customClassNames?.noticeInput?.label}
+              addOnClassname={customClassNames?.noticeInput?.addOn}
+              label={t("minutes")}
+              value={newMinimumNotice}
+              defaultValue={option.minimumBookingNotice ?? ""}
+              placeholder={t("use_event_default")}
+              type="number"
+              onChange={(e) => setNewMinimumNotice(e.target.value ? parseInt(e.target.value) : undefined)}
+              addOnSuffix={<>{t("minutes_short")}</>}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose onClick={() => setNewMinimumNotice(undefined)} />
+          <Button onClick={setMinimumNotice} className={customClassNames?.confirmButton}>
             {t("confirm")}
           </Button>
         </DialogFooter>

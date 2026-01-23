@@ -713,6 +713,7 @@ export class EventTypeRepository implements IEventTypesRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          minimumBookingNotice: true,
           user: {
             select: {
               timeZone: true,
@@ -1013,6 +1014,7 @@ export class EventTypeRepository implements IEventTypesRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          minimumBookingNotice: true,
           user: {
             select: {
               timeZone: true,
@@ -1378,6 +1380,7 @@ export class EventTypeRepository implements IEventTypesRepository {
             weight: true,
             priority: true,
             groupId: true,
+            minimumBookingNotice: true,
             user: {
               select: {
                 locked: true,

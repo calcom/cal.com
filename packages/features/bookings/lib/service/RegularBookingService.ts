@@ -1138,9 +1138,17 @@ async function handler(
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
         let luckUserFound = false;
         while (luckyUserPool.length > 0 && !luckUserFound) {
-          const freeUsers = luckyUserPool.filter(
-            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
-          );
+          const bookingStartTime = new Date(reqBody.start);
+          const now = new Date();
+          const freeUsers = luckyUserPool
+            .filter(
+              (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
+            )
+            .filter((user) => {
+              const notice = user.minimumBookingNotice ?? eventType.minimumBookingNotice;
+              const earliestBookableTime = new Date(now.getTime() + notice * 60 * 1000);
+              return bookingStartTime >= earliestBookableTime;
+            });
           // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
           if (freeUsers.length === 0) break;
           assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.

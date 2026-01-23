@@ -88,6 +88,7 @@ const CheckedHostField = ({
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
+                  minimumBookingNotice: option.minimumBookingNotice ?? null,
                 }))
               );
           }}
@@ -103,6 +104,7 @@ const CheckedHostField = ({
                 isFixed,
                 weight: host.weight ?? 100,
                 groupId: host.groupId,
+                minimumBookingNotice: host.minimumBookingNotice,
               });
 
               return acc;

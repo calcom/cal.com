@@ -15,8 +15,12 @@ import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
+import type {
+  MinimumNoticeDialogCustomClassNames,
+  PriorityDialogCustomClassNames,
+  WeightDialogCustomClassNames,
+} from "./HostEditDialogs";
+import { MinimumNoticeDialog, PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -28,6 +32,7 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+  minimumBookingNotice?: number | null;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -40,11 +45,13 @@ export type CheckedTeamSelectCustomClassNames = {
       name?: string;
       changePriorityButton?: string;
       changeWeightButton?: string;
+      changeMinimumNoticeButton?: string;
       removeButton?: string;
     };
   };
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
+  minimumNoticeDialog?: MinimumNoticeDialogCustomClassNames;
 };
 export const CheckedTeamSelect = ({
   options = [],
@@ -64,6 +71,7 @@ export const CheckedTeamSelect = ({
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const [minimumNoticeDialogOpen, setMinimumNoticeDialogOpen] = useState(false);
 
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
 
@@ -164,6 +172,22 @@ export const CheckedTeamSelect = ({
                     ) : (
                       <></>
                     )}
+                    <Tooltip content={t("set_minimum_notice")}>
+                      <Button
+                        color="minimal"
+                        className={classNames(
+                          "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                          customClassNames?.selectedHostList?.listItem?.changeMinimumNoticeButton
+                        )}
+                        onClick={() => {
+                          setMinimumNoticeDialogOpen(true);
+                          setCurrentOption(option);
+                        }}>
+                        {option.minimumBookingNotice != null
+                          ? `${option.minimumBookingNotice}${t("minutes_short")}`
+                          : t("set_notice")}
+                      </Button>
+                    </Tooltip>
                   </>
                 ) : (
                   <></>
@@ -199,6 +223,14 @@ export const CheckedTeamSelect = ({
             options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.weightDialog}
+          />
+          <MinimumNoticeDialog
+            isOpenDialog={minimumNoticeDialogOpen}
+            setIsOpenDialog={setMinimumNoticeDialogOpen}
+            option={currentOption}
+            options={options}
+            onChange={props.onChange}
+            customClassNames={customClassNames?.minimumNoticeDialog}
           />
         </>
       ) : (
