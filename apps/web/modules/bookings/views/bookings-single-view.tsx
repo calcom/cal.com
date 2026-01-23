@@ -448,8 +448,6 @@ export default function Success(props: PageProps) {
       event_start_time: bookingInfo.startTime,
     };
 
-    console.log("Gtm event: ", gtmEvent);
-
     window.dataLayer.push(gtmEvent);
   } catch (e) {
     console.error("Error pushing to dataLayer: ", e);
@@ -1436,7 +1434,6 @@ function RecurringBookings({
       // If we have a recurring event, compute the actual first occurrence
       if (recurringEvent) {
         const actualStart = getActualRecurringStartTime(recurringEvent, new Date(recurringBookingsSorted[0]));
-        console.log("actualStart", actualStart);
         return actualStart;
       }
       return recurringBookingsSorted[0];
