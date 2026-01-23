@@ -14,7 +14,7 @@ import {
   buildPlatformRescheduleLink,
   buildStandardCancelLink,
   buildStandardRescheduleLink,
-} from "@calcom/lib/platformLinkBuilder";
+} from "@calcom/lib/LinkBuilder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";

@@ -22,7 +22,7 @@ import {
   buildPlatformRescheduleLink,
   buildStandardCancelLink,
   buildStandardRescheduleLink,
-} from "./platformLinkBuilder";
+} from "./LinkBuilder";
 
 const translator = short();
 
