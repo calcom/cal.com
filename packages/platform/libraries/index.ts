@@ -10,7 +10,7 @@ import {
   verifyPhoneNumber,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
-import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
+import handleMarkNoShow, { handleMarkAttendeeNoShow } from "@calcom/features/handleMarkNoShow";
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -42,7 +42,7 @@ export {
 } from "@calcom/prisma/enums";
 export type { EventBusyDate } from "@calcom/types/Calendar";
 
-export { handleMarkNoShow };
+export { handleMarkNoShow, handleMarkAttendeeNoShow };
 export { handleCreatePhoneCall };
 
 export type {
