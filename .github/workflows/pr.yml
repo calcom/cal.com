@@ -326,6 +326,13 @@ jobs:
     uses: ./.github/workflows/api-v2-unit-tests.yml
     secrets: inherit
 
+  security-audit:
+    name: Security Audit
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/security-audit.yml
+    secrets: inherit
+
   check-prisma-migrations:
     name: Check Prisma Migrations
     needs: [prepare]

@@ -1,0 +1,18 @@
+name: Security Audit
+on:
+  workflow_call:
+permissions:
+  actions: write
+  contents: read
+jobs:
+  audit:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - name: Run security audit
+        run: yarn npm audit --all --recursive
