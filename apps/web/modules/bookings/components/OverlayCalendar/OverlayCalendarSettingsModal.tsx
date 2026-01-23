@@ -118,7 +118,7 @@ export function OverlayCalendarSettingsModal({
       <DialogContent
         enableOverflow
         type="creation"
-        title="Calendar Settings"
+        title={t("calendar_settings")}
         className="pb-4"
         description={t("view_overlay_calendar_events")}>
         <div className="no-scrollbar max-h-full overflow-y-scroll">{content}</div>
