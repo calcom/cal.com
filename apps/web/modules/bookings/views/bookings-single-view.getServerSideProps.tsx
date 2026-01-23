@@ -126,6 +126,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       if (bookingInfoRaw.user) {
         eventTypeRaw.users.push({
           ...bookingInfoRaw.user,
+          firstName: bookingInfoRaw.user.name?.split(" ")[0] ?? "",
           hideBranding: false,
           theme: null,
           brandColor: null,
