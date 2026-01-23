@@ -8,9 +8,9 @@ import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-bu
 import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
-import type { z } from "zod";
 
-import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { buildEmptyQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils.client";
+import { raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
 import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
@@ -39,7 +39,6 @@ import type {
   EditFormRoute,
   AttributeRoutingConfig,
 } from "@calcom/app-store/routing-forms/types/types";
-import type { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
@@ -83,32 +82,36 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   eventOptions: { label: string; value: string; eventTypeId: number }[];
   setRoute: SetRoute;
 }) {
+  const routeActionValue = isRouter(route) ? undefined : route.action.value;
+  const routeActionType = isRouter(route) ? undefined : route.action.type;
+  const routeActionEventTypeId = isRouter(route) ? undefined : route.action.eventTypeId;
+
   useEffect(() => {
     if (isRouter(route)) {
       return;
     }
 
     if (
-      route.action.type !== RouteActionType.EventTypeRedirectUrl ||
+      routeActionType !== RouteActionType.EventTypeRedirectUrl ||
       // Must not be set already. Could be zero as well for custom
-      route.action.eventTypeId !== undefined
+      routeActionEventTypeId !== undefined
     ) {
       return;
     }
 
-    const matchingOption = eventOptions.find((eventOption) => eventOption.value === route.action.value);
+    const matchingOption = eventOptions.find((eventOption) => eventOption.value === routeActionValue);
     if (!matchingOption) {
       return;
     }
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+  }, [eventOptions, setRoute, route, routeActionValue, routeActionType, routeActionEventTypeId]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
 function getEmptyQueryValue() {
@@ -147,14 +150,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: Record<string, unknown>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -392,13 +395,11 @@ const Route = ({
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
 
-  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>("");
-
-  useEffect(() => {
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
-  }, []);
+    return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
+  });
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -1146,67 +1147,6 @@ const Routes = ({
     attributesQueryBuilderConfig,
     hookForm,
   });
-
-  const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
-
-  const notHaveAttributesQuery = ({ form }: { form: { routes: z.infer<typeof zodRoutes> } }) => {
-    return form.routes?.every((route) => {
-      if (isRouter(route)) {
-        return true;
-      }
-      return !route.attributesQueryValue;
-    });
-  };
-
-  const availableRouters =
-    allForms?.filtered
-      .filter(({ form: router }) => {
-        const routerValidInContext = areTheySiblingEntities({
-          entity1: {
-            teamId: router.teamId ?? null,
-            // group doesn't have userId. The query ensures that it belongs to the user only, if teamId isn't set. So, I am manually setting it to the form userId
-            userId: router.userId,
-          },
-          entity2: {
-            teamId: hookForm.getValues().teamId ?? null,
-            userId: hookForm.getValues().userId,
-          },
-        });
-        return router.id !== hookForm.getValues().id && routerValidInContext;
-      })
-      // We don't want to support picking forms that have attributes query. We can consider it later.
-      // This is mainly because the Router picker feature is pretty much not used and we don't want to complicate things
-      .filter(({ form }) => {
-        return notHaveAttributesQuery({ form: form });
-      })
-      .map(({ form: router }) => {
-        return {
-          value: router.id,
-          label: router.name,
-          name: router.name,
-          description: router.description,
-          isDisabled: false,
-        };
-      }) || [];
-
-  // const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
-
-  // const routers: any[] = [];
-  /* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */
-  // const routers = availableRouters.map((r) => {
-  //   // Reset disabled state
-  //   r.isDisabled = false;
-
-  //   // Can't select a form as router that is already a connected form. It avoids cyclic dependency
-  //   if (isConnectedForm(r.value)) {
-  //     r.isDisabled = true;
-  //   }
-  //   // A route that's already used, can't be reselected
-  //   if (routes.find((route) => route.id === r.value)) {
-  //     r.isDisabled = true;
-  //   }
-  //   return r;
-  // });
 
   const createRoute = useCreateRoute({
     routes,

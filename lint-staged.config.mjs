@@ -1,8 +1,5 @@
 export default {
-  "(apps|packages)/**/*.{js,ts,jsx,tsx}": (files) =>
-    process.env.SKIP_WARNINGS === "1"
-      ? `eslint --fix --flag v10_config_lookup_from_file ${files.join(" ")}`
-      : `eslint --fix --flag v10_config_lookup_from_file --max-warnings=0 ${files.join(" ")}`,
-  "*.json": ["prettier --write"],
+  "(apps|packages|companion)/**/*.{js,ts,jsx,tsx}": (files) =>
+    `biome lint --reporter summary --config-path=biome-staged.json ${files.join(" ")}`,
   "packages/prisma/schema.prisma": ["prisma format"],
 };

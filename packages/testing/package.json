@@ -1,0 +1,27 @@
+{
+  "name": "@calcom/testing",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./setupVitest": "./src/setupVitest.ts",
+    "./lib/*": "./src/lib/*",
+    "./lib/__mocks__/*": "./src/lib/__mocks__/*",
+    "./lib/bookingScenario/*": "./src/lib/bookingScenario/*",
+    "./lib/fixtures/*": "./src/lib/fixtures/*"
+  },
+  "scripts": {
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "lint:report": "biome lint --reporter json . > ../../lint-results/testing.json"
+  },
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.10",
+    "@calcom/tsconfig": "workspace:*",
+    "prismock": "1.35.3",
+    "vitest": "4.0.16"
+  }
+}

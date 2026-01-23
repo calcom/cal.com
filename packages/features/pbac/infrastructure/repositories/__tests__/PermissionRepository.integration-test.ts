@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, beforeAll } from "vitest";
 
+import type { FeatureId } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -8,20 +10,24 @@ import { PermissionRepository } from "../PermissionRepository";
 
 describe("PermissionRepository - Integration Tests", () => {
   let repository: PermissionRepository;
+  let featuresRepository: FeaturesRepository;
   let testRoleId: string;
   let testUserId: number;
   let testTeamId: number;
 
   beforeAll(async () => {
     repository = new PermissionRepository(prisma);
+    featuresRepository = new FeaturesRepository(prisma);
   });
 
   beforeEach(async () => {
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
     // Create test user
     const testUser = await prisma.user.create({
       data: {
-        email: `test-${Date.now()}@example.com`,
-        username: `testuser-${Date.now()}`,
+        email: `test-${uniqueId}@example.com`,
+        username: `testuser-${uniqueId}`,
       },
     });
     testUserId = testUser.id;
@@ -29,8 +35,8 @@ describe("PermissionRepository - Integration Tests", () => {
     // Create test team
     const testTeam = await prisma.team.create({
       data: {
-        name: `Test Team ${Date.now()}`,
-        slug: `test-team-${Date.now()}`,
+        name: `Test Team ${uniqueId}`,
+        slug: `test-team-${uniqueId}`,
       },
     });
     testTeamId = testTeam.id;
@@ -56,8 +62,10 @@ describe("PermissionRepository - Integration Tests", () => {
     await prisma.role.deleteMany({
       where: { id: testRoleId },
     });
-    await prisma.teamFeatures.deleteMany({
-      where: { teamId: testTeamId },
+    await featuresRepository.setTeamFeatureState({
+      teamId: testTeamId,
+      featureId: "pbac" as FeatureId,
+      state: "inherit",
     });
     await prisma.team.deleteMany({
       where: { id: testTeamId },
@@ -338,12 +346,11 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should return team IDs for PBAC-enabled team with matching permissions", async () => {
       // Enable PBAC for the team
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
       });
 
       // Create membership with custom role
@@ -383,12 +390,11 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should not return team IDs when permissions do not match", async () => {
       // Enable PBAC for the team
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
       });
 
       // Create membership with custom role
@@ -469,28 +475,28 @@ describe("PermissionRepository - Integration Tests", () => {
     });
 
     it("should return child team IDs when user has PBAC permissions via org", async () => {
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       // Create organization
       const org = await prisma.team.create({
         data: {
-          name: `Test Org ${Date.now()}`,
-          slug: `test-org-${Date.now()}`,
+          name: `Test Org ${uniqueId}`,
+          slug: `test-org-${uniqueId}`,
           isOrganization: true,
         },
       });
 
       // Enable PBAC for org
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: org.id,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
+      await featuresRepository.setTeamFeatureState({
+        teamId: org.id,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
       });
 
       // Create org role
       const orgRole = await prisma.role.create({
         data: {
-          name: `Org Role ${Date.now()}`,
+          name: `Org Role ${uniqueId}`,
           teamId: org.id,
         },
       });
@@ -523,8 +529,8 @@ describe("PermissionRepository - Integration Tests", () => {
       // Create child team
       const childTeam = await prisma.team.create({
         data: {
-          name: `Child Team ${Date.now()}`,
-          slug: `child-team-${Date.now()}`,
+          name: `Child Team ${uniqueId}`,
+          slug: `child-team-${uniqueId}`,
           parentId: org.id,
         },
       });
@@ -541,16 +547,21 @@ describe("PermissionRepository - Integration Tests", () => {
       await prisma.rolePermission.deleteMany({ where: { roleId: orgRole.id } });
       await prisma.membership.deleteMany({ where: { userId: testUserId } });
       await prisma.role.deleteMany({ where: { id: orgRole.id } });
-      await prisma.teamFeatures.deleteMany({ where: { teamId: org.id } });
+      await featuresRepository.setTeamFeatureState({
+        teamId: org.id,
+        featureId: "pbac" as FeatureId,
+        state: "inherit",
+      });
       await prisma.team.deleteMany({ where: { id: { in: [org.id, childTeam.id] } } });
     });
 
     it("should return child team IDs when user has fallback roles via org", async () => {
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       // Create organization
       const org = await prisma.team.create({
         data: {
-          name: `Test Org ${Date.now()}`,
-          slug: `test-org-${Date.now()}`,
+          name: `Test Org ${uniqueId}`,
+          slug: `test-org-${uniqueId}`,
           isOrganization: true,
         },
       });
@@ -571,8 +582,8 @@ describe("PermissionRepository - Integration Tests", () => {
       // Create child team
       const childTeam = await prisma.team.create({
         data: {
-          name: `Child Team ${Date.now()}`,
-          slug: `child-team-${Date.now()}`,
+          name: `Child Team ${uniqueId}`,
+          slug: `child-team-${uniqueId}`,
           parentId: org.id,
         },
       });
@@ -592,12 +603,11 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should handle wildcard permissions for PBAC teams", async () => {
       // Enable PBAC for the team
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
       });
 
       // Create membership with custom role
@@ -637,12 +647,11 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should require all permissions to match (not just some)", async () => {
       // Enable PBAC for the team
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
       });
 
       // Create membership with custom role
@@ -676,12 +685,11 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should not return teams for non-accepted memberships", async () => {
       // Enable PBAC for the team
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
       });
 
       // Create membership with accepted: false
@@ -713,17 +721,18 @@ describe("PermissionRepository - Integration Tests", () => {
     });
 
     it("should return multiple teams when user has permissions on multiple teams", async () => {
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       // Create first team with its own role
       const team1 = await prisma.team.create({
         data: {
-          name: `Test Team 1 ${Date.now()}`,
-          slug: `test-team-1-${Date.now()}`,
+          name: `Test Team 1 ${uniqueId}`,
+          slug: `test-team-1-${uniqueId}`,
         },
       });
 
       const role1 = await prisma.role.create({
         data: {
-          name: `Test Role 1 ${Date.now()}`,
+          name: `Test Role 1 ${uniqueId}`,
           teamId: team1.id,
         },
       });
@@ -731,25 +740,33 @@ describe("PermissionRepository - Integration Tests", () => {
       // Create second team with its own role
       const team2 = await prisma.team.create({
         data: {
-          name: `Test Team 2 ${Date.now()}`,
-          slug: `test-team-2-${Date.now()}`,
+          name: `Test Team 2 ${uniqueId}`,
+          slug: `test-team-2-${uniqueId}`,
         },
       });
 
       const role2 = await prisma.role.create({
         data: {
-          name: `Test Role 2 ${Date.now()}`,
+          name: `Test Role 2 ${uniqueId}`,
           teamId: team2.id,
         },
       });
 
       // Enable PBAC for both teams
-      await prisma.teamFeatures.createMany({
-        data: [
-          { teamId: team1.id, featureId: "pbac", assignedBy: "test" },
-          { teamId: team2.id, featureId: "pbac", assignedBy: "test" },
-        ],
-      });
+      await Promise.all([
+        featuresRepository.setTeamFeatureState({
+          teamId: team1.id,
+          featureId: "pbac" as FeatureId,
+          state: "enabled",
+          assignedBy: "test",
+        }),
+        featuresRepository.setTeamFeatureState({
+          teamId: team2.id,
+          featureId: "pbac" as FeatureId,
+          state: "enabled",
+          assignedBy: "test",
+        }),
+      ]);
 
       // Create memberships for both teams
       const membership1 = await prisma.membership.create({
@@ -814,22 +831,34 @@ describe("PermissionRepository - Integration Tests", () => {
       await prisma.rolePermission.deleteMany({ where: { roleId: { in: [role1.id, role2.id] } } });
       await prisma.membership.deleteMany({ where: { userId: testUserId } });
       await prisma.role.deleteMany({ where: { id: { in: [role1.id, role2.id] } } });
-      await prisma.teamFeatures.deleteMany({ where: { teamId: { in: [team1.id, team2.id] } } });
+      await Promise.all([
+        featuresRepository.setTeamFeatureState({
+          teamId: team1.id,
+          featureId: "pbac" as FeatureId,
+          state: "inherit",
+        }),
+        featuresRepository.setTeamFeatureState({
+          teamId: team2.id,
+          featureId: "pbac" as FeatureId,
+          state: "inherit",
+        }),
+      ]);
       await prisma.team.deleteMany({ where: { id: { in: [team1.id, team2.id] } } });
     });
 
     it("should combine PBAC and fallback teams in results", async () => {
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       // Create first team for PBAC
       const team1 = await prisma.team.create({
         data: {
-          name: `Test Team 1 ${Date.now()}`,
-          slug: `test-team-1-${Date.now()}`,
+          name: `Test Team 1 ${uniqueId}`,
+          slug: `test-team-1-${uniqueId}`,
         },
       });
 
       const role1 = await prisma.role.create({
         data: {
-          name: `Test Role 1 ${Date.now()}`,
+          name: `Test Role 1 ${uniqueId}`,
           teamId: team1.id,
         },
       });
@@ -837,18 +866,17 @@ describe("PermissionRepository - Integration Tests", () => {
       // Create second team for fallback
       const team2 = await prisma.team.create({
         data: {
-          name: `Test Team 2 ${Date.now()}`,
-          slug: `test-team-2-${Date.now()}`,
+          name: `Test Team 2 ${uniqueId}`,
+          slug: `test-team-2-${uniqueId}`,
         },
       });
 
       // Enable PBAC for first team only
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: team1.id,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
+      await featuresRepository.setTeamFeatureState({
+        teamId: team1.id,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
       });
 
       // Create PBAC membership
@@ -901,7 +929,11 @@ describe("PermissionRepository - Integration Tests", () => {
       await prisma.rolePermission.deleteMany({ where: { roleId: role1.id } });
       await prisma.membership.deleteMany({ where: { userId: testUserId } });
       await prisma.role.deleteMany({ where: { id: role1.id } });
-      await prisma.teamFeatures.deleteMany({ where: { teamId: team1.id } });
+      await featuresRepository.setTeamFeatureState({
+        teamId: team1.id,
+        featureId: "pbac" as FeatureId,
+        state: "inherit",
+      });
       await prisma.team.deleteMany({ where: { id: { in: [team1.id, team2.id] } } });
     });
 
@@ -936,6 +968,133 @@ describe("PermissionRepository - Integration Tests", () => {
       });
 
       expect(result).toContain(testTeamId);
+    });
+
+    it("should filter teams by orgId when provided", async () => {
+      // Create two organizations
+      const org1 = await prisma.team.create({
+        data: {
+          name: `Org 1 ${Date.now()}`,
+          slug: `org1-${Date.now()}`,
+          isOrganization: true,
+        },
+      });
+
+      const org2 = await prisma.team.create({
+        data: {
+          name: `Org 2 ${Date.now()}`,
+          slug: `org2-${Date.now()}`,
+          isOrganization: true,
+        },
+      });
+
+      // Create teams within each organization
+      const team1 = await prisma.team.create({
+        data: {
+          name: `Team 1 ${Date.now()}`,
+          slug: `team1-${Date.now()}`,
+          parentId: org1.id,
+        },
+      });
+
+      const team2 = await prisma.team.create({
+        data: {
+          name: `Team 2 ${Date.now()}`,
+          slug: `team2-${Date.now()}`,
+          parentId: org2.id,
+        },
+      });
+
+      // Create memberships with ADMIN role in both organizations
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org1.id,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org2.id,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+        },
+      });
+
+      // Without orgId, should return both organizations
+      const resultWithoutScope = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(resultWithoutScope).toContain(org1.id);
+      expect(resultWithoutScope).toContain(org2.id);
+
+      // With orgId = org1, should only return org1 and its child teams
+      const resultWithScope = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+        orgId: org1.id,
+      });
+
+      expect(resultWithScope).toContain(org1.id);
+      expect(resultWithScope).toContain(team1.id);
+      expect(resultWithScope).not.toContain(org2.id);
+      expect(resultWithScope).not.toContain(team2.id);
+
+      // Cleanup
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.team.deleteMany({ where: { id: { in: [org1.id, org2.id, team1.id, team2.id] } } });
+    });
+
+    it("should include child teams when orgId is provided", async () => {
+      // Create organization
+      const org = await prisma.team.create({
+        data: {
+          name: `Org ${Date.now()}`,
+          slug: `org-${Date.now()}`,
+          isOrganization: true,
+        },
+      });
+
+      // Create child team
+      const childTeam = await prisma.team.create({
+        data: {
+          name: `Child Team ${Date.now()}`,
+          slug: `child-team-${Date.now()}`,
+          parentId: org.id,
+        },
+      });
+
+      // Create membership with ADMIN role in organization
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org.id,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+        },
+      });
+
+      // With orgId, should return both org and child team
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+        orgId: org.id,
+      });
+
+      expect(result).toContain(org.id);
+      expect(result).toContain(childTeam.id);
+
+      // Cleanup
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.team.deleteMany({ where: { id: { in: [org.id, childTeam.id] } } });
     });
   });
 });

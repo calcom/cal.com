@@ -243,6 +243,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         select: {
           id: true,
           username: true,
+          name: true,
           profiles: {
             select: {
               organizationId: true,
@@ -282,7 +283,17 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
       const user = await new UserRepository(prisma).enrichUserWithItsProfile({ user: membership.user });
-      let attributes;
+      let attributes:
+        | Array<{
+            id: string;
+            value: string;
+            slug: string;
+            attributeId: string;
+            weight: number;
+            isGroup: boolean;
+            contains: string[];
+          }>
+        | undefined;
 
       if (expand?.includes("attributes")) {
         attributes = await prisma.attributeToUser
@@ -313,6 +324,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       return {
         id: user.id,
         username: user.profiles[0]?.username || user.username,
+        name: user.name,
         email: user.email,
         timeZone: user.timeZone,
         role: membership.role,
