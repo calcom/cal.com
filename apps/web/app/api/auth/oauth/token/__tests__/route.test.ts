@@ -149,6 +149,7 @@ describe("POST /api/auth/oauth/token", () => {
       redirectUri: "https://app.example.com/callback",
       clientSecret: null,
       clientType: "PUBLIC" as const,
+      status: "APPROVED" as const,
     } as const;
 
     const mockAccessCode = {
@@ -279,6 +280,7 @@ describe("POST /api/auth/oauth/token", () => {
       redirectUri: "https://app.example.com/callback",
       clientSecret: "hashed_secret",
       clientType: "CONFIDENTIAL" as const,
+      status: "APPROVED" as const,
     } as const;
 
     const mockAccessCode = {
@@ -494,6 +496,7 @@ describe("POST /api/auth/oauth/token", () => {
         redirectUri: "https://app.example.com/callback",
         clientSecret: null,
         clientType: "PUBLIC" as const,
+        status: "APPROVED" as const,
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>);
 
       const tokenRequest = createTokenRequest({
@@ -517,6 +520,7 @@ describe("POST /api/auth/oauth/token", () => {
         redirectUri: "https://app.example.com/callback",
         clientSecret: null,
         clientType: "PUBLIC" as const,
+        status: "APPROVED" as const,
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>);
       prismaMock.accessCode.findFirst.mockResolvedValue(null);
 
