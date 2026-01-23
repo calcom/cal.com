@@ -49,11 +49,20 @@ type ExpectNoShowAuditParams = {
   };
   organizationId: number | null;
   auditData: {
-    hostNoShow?: {
-      old: boolean;
-      new: boolean;
+    host?: {
+      userUuid: string;
+      noShow: {
+        old: boolean | null;
+        new: boolean;
+      };
     };
-    attendeesNoShow?: Record<string, never>;
+    attendeesNoShow?: Array<{
+      attendeeEmail: string;
+      noShow: {
+        new: boolean;
+        old: boolean | null;
+      };
+    }>;
   };
 };
 
@@ -213,7 +222,7 @@ describe("Trigger Host No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          hostNoShow: { old: false, new: true },
+          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
       });
     },
@@ -390,7 +399,7 @@ describe("Trigger Host No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          hostNoShow: { old: false, new: true },
+          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
       });
     },
@@ -607,7 +616,7 @@ describe("Trigger Host No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          hostNoShow: { old: false, new: true },
+          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
       });
     },
@@ -771,7 +780,7 @@ describe("Trigger Host No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          hostNoShow: { old: false, new: true },
+          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
       });
     },

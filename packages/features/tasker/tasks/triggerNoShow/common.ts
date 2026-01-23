@@ -177,6 +177,13 @@ export const fireNoShowUpdatedEvent = async ({
     );
     const { makeSystemActor } = await import("@calcom/features/booking-audit/lib/makeActor");
 
+    const attendeesNoShowArray = hasAttendeesNoShow
+      ? Array.from(attendeesNoShowAudit.entries()).map(([email, noShowChange]) => ({
+          attendeeEmail: email,
+          noShow: noShowChange,
+        }))
+      : undefined;
+
     const bookingEventHandlerService = getBookingEventHandlerService();
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
@@ -187,7 +194,7 @@ export const fireNoShowUpdatedEvent = async ({
         ...(hasHostNoShow && noShowHostAudit.new !== null && hostUserUuid
           ? { host: { userUuid: hostUserUuid, noShow: { old: noShowHostAudit.old, new: noShowHostAudit.new } } }
           : {}),
-        ...(hasAttendeesNoShow ? { attendeesNoShow: Object.fromEntries(attendeesNoShowAudit) } : {}),
+        ...(attendeesNoShowArray ? { attendeesNoShow: attendeesNoShowArray } : {}),
       },
     });
   } catch (error) {

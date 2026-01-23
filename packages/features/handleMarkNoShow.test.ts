@@ -288,10 +288,8 @@ type ExpectedAuditData = {
   source: string;
   actor: { identifiedBy: string; userUuid?: string; email?: string; name?: null };
   organizationId: number | null;
-  // New schema: host contains userUuid and noShow change
   host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
-  // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
-  attendeesNoShow?: Record<string, { old: boolean | null; new: boolean }>;
+  attendeesNoShow?: Array<{ attendeeEmail: string; noShow: { old: boolean | null; new: boolean } }>;
 };
 
 const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
@@ -308,15 +306,14 @@ const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
   }
 
   if (expected.attendeesNoShow) {
-    const actualKeys = Object.keys(call.auditData.attendeesNoShow);
-    const expectedKeys = Object.keys(expected.attendeesNoShow);
-    expect(actualKeys).toHaveLength(expectedKeys.length);
+    expect(call.auditData.attendeesNoShow).toHaveLength(expected.attendeesNoShow.length);
 
-    // Validate each attendee's data using email key comparison
-    for (const [expectedEmail, expectedValue] of Object.entries(expected.attendeesNoShow)) {
-      const actualValue = call.auditData.attendeesNoShow[expectedEmail];
-      expect(actualValue).toBeDefined();
-      expect(actualValue).toEqual(expectedValue);
+    for (const expectedAttendee of expected.attendeesNoShow) {
+      const actualAttendee = call.auditData.attendeesNoShow.find(
+        (a: { attendeeEmail: string }) => a.attendeeEmail === expectedAttendee.attendeeEmail
+      );
+      expect(actualAttendee).toBeDefined();
+      expect(actualAttendee.noShow).toEqual(expectedAttendee.noShow);
     }
   }
 };
@@ -634,8 +631,7 @@ describe("handleMarkNoShow", () => {
         source: "WEBAPP",
         actor: { identifiedBy: "user", userUuid: "user-uuid-123" },
         organizationId: null,
-        // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
-        attendeesNoShow: { "attendee@example.com": { old: false, new: true } },
+        attendeesNoShow: [{ attendeeEmail: "attendee@example.com", noShow: { old: false, new: true } }],
       });
     });
 

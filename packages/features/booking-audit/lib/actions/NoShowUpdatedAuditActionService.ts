@@ -12,6 +12,11 @@ import type {
   TranslationWithParams,
 } from "./IAuditActionService";
 
+const AttendeeNoShowSchema = z.object({
+  attendeeEmail: z.string(),
+  noShow: BooleanChangeSchema,
+});
+
 const fieldsSchemaV1 = z
   .object({
     host: z
@@ -20,8 +25,7 @@ const fieldsSchemaV1 = z
         noShow: BooleanChangeSchema,
       })
       .optional(),
-    // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
-    attendeesNoShow: z.record(z.string(), BooleanChangeSchema).optional(),
+    attendeesNoShow: z.array(AttendeeNoShowSchema).optional(),
   })
   .refine((data) => data.host !== undefined || data.attendeesNoShow !== undefined, {
     message: "At least one of host or attendeesNoShow must be provided",
@@ -114,13 +118,10 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     const displayFields: { labelKey: string; valueKey: string }[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
-      // Keys are attendee emails (not IDs) because attendee records can be reused with different person's data
-      const attendeesFieldValueParts = Object.entries(parsedFields.attendeesNoShow).map(
-        ([email, noShowChange]) => {
-          const valueKey = noShowChange.new ? "Yes" : "No";
-          return `${email}:${valueKey}`;
-        }
-      );
+      const attendeesFieldValueParts = parsedFields.attendeesNoShow.map((attendee) => {
+        const valueKey = attendee.noShow.new ? "Yes" : "No";
+        return `${attendee.attendeeEmail}:${valueKey}`;
+      });
       const attendeesFieldValue = attendeesFieldValueParts.join(", ");
       displayFields.push({ labelKey: "Attendees", valueKey: attendeesFieldValue });
     }
@@ -159,6 +160,5 @@ export type NoShowUpdatedAuditData = z.infer<typeof fieldsSchemaV1>;
 export type NoShowUpdatedAuditDisplayData = {
   hostNoShow?: boolean;
   previousHostNoShow?: boolean | null;
-  // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
-  attendeesNoShow?: Record<string, { old: boolean | null; new: boolean }> | null;
+  attendeesNoShow?: Array<{ attendeeEmail: string; noShow: { old: boolean | null; new: boolean } }> | null;
 };

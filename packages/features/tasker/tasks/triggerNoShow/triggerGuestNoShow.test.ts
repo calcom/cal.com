@@ -49,13 +49,13 @@ type ExpectNoShowAuditParams = {
   };
   organizationId: number | null;
   auditData: {
-    attendeesNoShow: Record<
-      number,
-      {
+    attendeesNoShow: Array<{
+      attendeeEmail: string;
+      noShow: {
         new: boolean;
-        old: boolean;
-      }
-    >;
+        old: boolean | null;
+      };
+    }>;
   };
 };
 
@@ -236,9 +236,9 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: {
-            [GUEST_ATTENDEE_ID]: { new: true, old: false },
-          },
+          attendeesNoShow: [
+            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
+          ],
         },
       });
     },
@@ -438,9 +438,9 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: {
-            [GUEST_ATTENDEE_ID]: { new: true, old: false },
-          },
+          attendeesNoShow: [
+            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
+          ],
         },
       });
     },
@@ -679,9 +679,9 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: {
-            [GUEST_ATTENDEE_ID]: { new: true, old: false },
-          },
+          attendeesNoShow: [
+            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
+          ],
         },
       });
     },

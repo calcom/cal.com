@@ -185,8 +185,7 @@ async function fireNoShowUpdated({
 }): Promise<void> {
   const auditData: {
     host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
-    // Key is attendee email (not attendee ID) because attendee records can be reused with different person's data
-    attendeesNoShow?: Record<string, { old: boolean | null; new: boolean }>;
+    attendeesNoShow?: Array<{ attendeeEmail: string; noShow: { old: boolean | null; new: boolean } }>;
   } = {};
 
   if (updatedNoShowHost !== undefined && hostUserUuid) {
@@ -197,12 +196,14 @@ async function fireNoShowUpdated({
   }
 
   if (updatedAttendees) {
-    auditData.attendeesNoShow = {};
+    auditData.attendeesNoShow = [];
     for (const attendee of updatedAttendees) {
       const dbAttendee = emailToAttendeeMap[attendee.email];
       if (dbAttendee) {
-        // Use email as key instead of attendee ID
-        auditData.attendeesNoShow[attendee.email] = { old: dbAttendee.noShow ?? null, new: attendee.noShow };
+        auditData.attendeesNoShow.push({
+          attendeeEmail: attendee.email,
+          noShow: { old: dbAttendee.noShow ?? null, new: attendee.noShow },
+        });
       }
     }
   }

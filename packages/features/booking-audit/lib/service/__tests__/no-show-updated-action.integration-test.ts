@@ -130,19 +130,12 @@ describe("No-Show Updated Action Integration", () => {
   });
 
   describe("when attendees are marked as no-show", () => {
-    /**
-     * This test validates that attendeesNoShow uses email keys (not attendee IDs).
-     *
-     * Attendee record IDs can be reused with different person's data, so using
-     * email correctly identifies the person regardless of record reuse.
-     */
-    it("should create audit record with attendeesNoShow using email keys", async () => {
+    it("should create audit record with attendeesNoShow array", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      // Build attendeesNoShow with email key (not attendee ID)
-      const attendeesNoShow: Record<string, { old: boolean | null; new: boolean }> = {
-        [testData.attendee.email]: { old: null, new: true },
-      };
+      const attendeesNoShow = [
+        { attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } },
+      ];
 
       await bookingAuditTaskConsumer.onBookingAction({
         bookingUid: testData.booking.uid,
@@ -175,17 +168,17 @@ describe("No-Show Updated Action Integration", () => {
       expect(displayData).toBeDefined();
       expect(displayData.attendeesNoShow).toBeDefined();
 
-      // Verify the attendee data is correctly stored and retrieved using email key
-      const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        string,
-        { old: boolean | null; new: boolean }
-      >;
-      expect(storedAttendeesNoShow[testData.attendee.email]).toBeDefined();
-      expect(storedAttendeesNoShow[testData.attendee.email].old).toBe(null);
-      expect(storedAttendeesNoShow[testData.attendee.email].new).toBe(true);
+      const storedAttendeesNoShow = displayData.attendeesNoShow as Array<{
+        attendeeEmail: string;
+        noShow: { old: boolean | null; new: boolean };
+      }>;
+      expect(storedAttendeesNoShow).toHaveLength(1);
+      expect(storedAttendeesNoShow[0].attendeeEmail).toBe(testData.attendee.email);
+      expect(storedAttendeesNoShow[0].noShow.old).toBe(null);
+      expect(storedAttendeesNoShow[0].noShow.new).toBe(true);
     });
 
-    it("should handle multiple attendees marked as no-show with email keys", async () => {
+    it("should handle multiple attendees marked as no-show", async () => {
       // Create a second attendee for this test
       const { prisma } = await import("@calcom/prisma");
       const secondAttendeeEmail = `second-attendee-${Date.now()}@example.com`;
@@ -200,11 +193,10 @@ describe("No-Show Updated Action Integration", () => {
 
       const actor = makeUserActor(testData.owner.uuid);
 
-      // Build attendeesNoShow with multiple email keys
-      const attendeesNoShow: Record<string, { old: boolean | null; new: boolean }> = {
-        [testData.attendee.email]: { old: null, new: true },
-        [secondAttendeeEmail]: { old: false, new: true },
-      };
+      const attendeesNoShow = [
+        { attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } },
+        { attendeeEmail: secondAttendeeEmail, noShow: { old: false, new: true } },
+      ];
 
       await bookingAuditTaskConsumer.onBookingAction({
         bookingUid: testData.booking.uid,
@@ -229,15 +221,16 @@ describe("No-Show Updated Action Integration", () => {
       expect(result.auditLogs).toHaveLength(1);
 
       const displayData = result.auditLogs[0].displayJson as Record<string, unknown>;
-      const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        string,
-        { old: boolean | null; new: boolean }
-      >;
+      const storedAttendeesNoShow = displayData.attendeesNoShow as Array<{
+        attendeeEmail: string;
+        noShow: { old: boolean | null; new: boolean };
+      }>;
 
-      // Verify both attendees are stored correctly using email keys
-      expect(Object.keys(storedAttendeesNoShow)).toHaveLength(2);
-      expect(storedAttendeesNoShow[testData.attendee.email]).toEqual({ old: null, new: true });
-      expect(storedAttendeesNoShow[secondAttendeeEmail]).toEqual({ old: false, new: true });
+      expect(storedAttendeesNoShow).toHaveLength(2);
+      const firstAttendee = storedAttendeesNoShow.find((a) => a.attendeeEmail === testData.attendee.email);
+      const secondAttendeeData = storedAttendeesNoShow.find((a) => a.attendeeEmail === secondAttendeeEmail);
+      expect(firstAttendee?.noShow).toEqual({ old: null, new: true });
+      expect(secondAttendeeData?.noShow).toEqual({ old: false, new: true });
 
       // Cleanup the second attendee
       await prisma.attendee.delete({ where: { id: secondAttendee.id } });
@@ -255,15 +248,13 @@ describe("No-Show Updated Action Integration", () => {
         source: "API_V2",
         operationId: `op-${Date.now()}`,
         data: {
-          // New schema: host contains userUuid and noShow change
           host: {
             userUuid: testData.owner.uuid,
             noShow: { old: null, new: true },
           },
-          // New schema: attendeesNoShow uses email keys
-          attendeesNoShow: {
-            [testData.attendee.email]: { old: null, new: true },
-          },
+          attendeesNoShow: [
+            { attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } },
+          ],
         },
         timestamp: Date.now(),
       });
@@ -284,34 +275,27 @@ describe("No-Show Updated Action Integration", () => {
 
       const displayData = auditLog.displayJson as Record<string, unknown>;
 
-      // Verify host no-show
       expect(displayData.hostNoShow).toBe(true);
       expect(displayData.previousHostNoShow).toBe(null);
 
-      // Verify attendee no-show with email key
-      const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        string,
-        { old: boolean | null; new: boolean }
-      >;
-      expect(storedAttendeesNoShow[testData.attendee.email]).toEqual({ old: null, new: true });
+      const storedAttendeesNoShow = displayData.attendeesNoShow as Array<{
+        attendeeEmail: string;
+        noShow: { old: boolean | null; new: boolean };
+      }>;
+      expect(storedAttendeesNoShow).toHaveLength(1);
+      expect(storedAttendeesNoShow[0].attendeeEmail).toBe(testData.attendee.email);
+      expect(storedAttendeesNoShow[0].noShow).toEqual({ old: null, new: true });
     });
   });
 
-  describe("schema validation with email keys", () => {
-    /**
-     * This test validates that attendeesNoShow correctly uses email keys.
-     *
-     * Email keys are used because attendee record IDs can be reused with
-     * different person's data, while email correctly identifies the person.
-     */
-    it("should accept attendeesNoShow data with email keys", async () => {
+  describe("schema validation with array format", () => {
+    it("should accept attendeesNoShow data with array format", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      // Create data with email keys
-      const dataWithEmailKeys = {
-        attendeesNoShow: {
-          [testData.attendee.email]: { old: null, new: true },
-        },
+      const dataWithArrayFormat = {
+        attendeesNoShow: [
+          { attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } },
+        ],
       };
 
       await bookingAuditTaskConsumer.onBookingAction({
@@ -320,7 +304,7 @@ describe("No-Show Updated Action Integration", () => {
         action: "NO_SHOW_UPDATED",
         source: "WEBAPP",
         operationId: `op-${Date.now()}`,
-        data: dataWithEmailKeys,
+        data: dataWithArrayFormat,
         timestamp: Date.now(),
       });
 
@@ -337,12 +321,12 @@ describe("No-Show Updated Action Integration", () => {
       const displayData = result.auditLogs[0].displayJson as Record<string, unknown>;
       expect(displayData.attendeesNoShow).toBeDefined();
 
-      // The key should be the email address
-      const storedAttendeesNoShow = displayData.attendeesNoShow as Record<
-        string,
-        { old: boolean | null; new: boolean }
-      >;
-      expect(storedAttendeesNoShow[testData.attendee.email]).toBeDefined();
+      const storedAttendeesNoShow = displayData.attendeesNoShow as Array<{
+        attendeeEmail: string;
+        noShow: { old: boolean | null; new: boolean };
+      }>;
+      expect(storedAttendeesNoShow).toHaveLength(1);
+      expect(storedAttendeesNoShow[0].attendeeEmail).toBe(testData.attendee.email);
     });
   });
 });
