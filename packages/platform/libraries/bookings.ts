@@ -5,6 +5,7 @@ export { RegularBookingService } from "@calcom/features/bookings/lib/service/Reg
 export { RecurringBookingService } from "@calcom/features/bookings/lib/service/RecurringBookingService";
 export { InstantBookingCreateService } from "@calcom/features/bookings/lib/service/InstantBookingCreateService";
 export { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+export { BookingDataPreparationService } from "@calcom/features/bookings/lib/utils/BookingDataPreparationService";
 export { BookingCancelService } from "@calcom/features/bookings/lib/handleCancelBooking";
 export type {
   InstantBookingCreateResult,
