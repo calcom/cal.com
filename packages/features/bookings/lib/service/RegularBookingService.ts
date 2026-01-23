@@ -46,6 +46,7 @@ import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/Sp
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -1299,9 +1300,40 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
+  // Track credential ID for per-host locations
+  let perHostCredentialId: number | undefined = undefined;
+
+  // Handle per-host custom locations for round-robin events
+  if (
+    eventType.enablePerHostLocations &&
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    organizerUser
+  ) {
+    const organizerHost = eventType.hosts.find((host) => host.user.id === organizerUser.id);
+    if (organizerHost?.location) {
+      const result = await BookingLocationService.getPerHostLocation({
+        hostLocation: organizerHost.location,
+        allCredentials,
+        eventTypeId: eventType.id,
+        userId: organizerUser.id,
+        prismaClient: deps.prismaClient,
+      });
+
+      locationBodyString = result.locationBodyString;
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl = result.organizerDefaultLocationUrl;
+      perHostCredentialId = result.perHostCredentialId;
+
+      tracingLogger.info("Using per-host location", {
+        userId: organizerUser.id,
+        locationType: result.locationBodyString,
+        credentialId: result.perHostCredentialId,
+      });
+    }
+  }
+
   // If location passed is empty , use default location of event
   // If location of event is not set , use host default
-  if (locationBodyString.trim().length == 0) {
+  if (locationBodyString.trim().length === 0) {
     if (eventType.locations.length > 0) {
       locationBodyString = eventType.locations[0].type;
     } else {
@@ -1396,12 +1428,16 @@ async function handler(
 
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
-  const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
-    ? {
-        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-        conferenceCredentialId: undefined,
-      }
-    : getLocationValueForDB(locationBodyString, eventType.locations);
+  const { bookingLocation, conferenceCredentialId: eventTypeCredentialId } =
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+      ? {
+          bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+          conferenceCredentialId: undefined,
+        }
+      : getLocationValueForDB(locationBodyString, eventType.locations);
+
+  // Use per-host credential if available, otherwise fall back to event type credential
+  const conferenceCredentialId = perHostCredentialId ?? eventTypeCredentialId;
 
   tracingLogger.info("locationBodyString", locationBodyString);
   tracingLogger.info("event type locations", eventType.locations);
