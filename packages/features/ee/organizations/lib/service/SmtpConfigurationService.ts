@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -174,7 +176,8 @@ export class SmtpConfigurationService {
   async sendTestEmail(
     id: number,
     organizationId: number,
-    toEmail: string
+    toEmail: string,
+    language: TFunction
   ): Promise<{ success: boolean; error?: string }> {
     const config = await this.repository.findById(id);
     if (!config) {
@@ -197,6 +200,7 @@ export class SmtpConfigurationService {
       fromEmail: config.fromEmail,
       fromName: config.fromName,
       toEmail,
+      language,
     });
   }
 

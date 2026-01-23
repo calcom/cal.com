@@ -1,4 +1,5 @@
 import { getSmtpConfigurationService } from "@calcom/features/di/smtpConfiguration/containers/smtpConfiguration";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,5 +36,7 @@ export default async function handler({ ctx, input }: SendSmtpTestEmailOptions) 
     });
   }
 
-  return service.sendTestEmail(input.id, organizationId, userEmail);
+  const language = await getTranslation(ctx.user.locale ?? "en", "common");
+
+  return service.sendTestEmail(input.id, organizationId, userEmail, language);
 }
