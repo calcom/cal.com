@@ -28,14 +28,7 @@ export class UsersService {
     const users = await Promise.all(
       usernames.map((username) => this.usersRepository.findByUsername(username, orgSlug, orgId))
     );
-    const usersFiltered: User[] = [];
-
-    for (const user of users) {
-      if (user) {
-        usersFiltered.push(user);
-      }
-    }
-
+    
     return users;
   }
 
