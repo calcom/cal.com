@@ -1642,11 +1642,11 @@ async function handler(
       input.bookingData.thirdPartyRecurringEventId,
       (b, eventId) => b.withRecurringEventId(eventId)
     )
-    .withConditional(isTeamEventType && !!teamInfo, teamInfo, (b, team: { name: string; id: number }) =>
+    .withConditional(isTeamEventType, true, (b) =>
       b.withTeam({
         members: teamMembers,
-        name: team.name || "Nameless",
-        id: team.id,
+        name: teamInfo?.name || "Nameless",
+        id: teamInfo?.id ?? 0,
       })
     )
     .build();
