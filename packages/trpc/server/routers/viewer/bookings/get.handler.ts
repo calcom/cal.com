@@ -9,7 +9,8 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
+import type { Booking, Prisma as PrismaClientType } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
@@ -848,38 +849,40 @@ async function enrichAttendeesWithUserData<
   }));
 }
 
+/**
+ * Gets event type IDs for the given team IDs using an optimized raw SQL query.
+ *
+ * This query uses a UNION to combine:
+ * 1. Child event types whose parent belongs to the specified teams (managed event types)
+ * 2. Direct team event types that belong to the specified teams
+ *
+ * The subquery structure `WHERE "parent"."id" IN (SELECT "id" FROM "EventType" WHERE "teamId" IN (...)))`
+ * is intentional - it allows PostgreSQL to use the composite index on EventType(parentId, teamId)
+ * efficiently via Nested Loop joins, resulting in ~66x faster execution compared to a direct
+ * WHERE clause on parent.teamId (2.46ms vs 164ms in production benchmarks).
+ *
+ * @param prisma The Prisma client
+ * @param teamIds Array of team IDs to filter by
+ * @returns Array of event type IDs or undefined if no teamIds provided
+ */
 async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {
   if (!teamIds || teamIds.length === 0) {
     return undefined;
   }
 
-  const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
-    prisma.eventType
-      .findMany({
-        where: {
-          teamId: { in: teamIds },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+  const result = await prisma.$queryRaw<{ id: number }[]>`
+    SELECT "child"."id"
+    FROM "public"."EventType" AS "parent"
+    LEFT JOIN "public"."EventType" "child" ON ("parent"."id") = ("child"."parentId")
+    WHERE "parent"."id" IN (SELECT "id" FROM "public"."EventType" WHERE "teamId" IN (${Prisma.join(teamIds)}))
+      AND "child"."id" IS NOT NULL
+    UNION
+    SELECT "parent"."id"
+    FROM "public"."EventType" AS "parent"
+    WHERE "parent"."teamId" IN (${Prisma.join(teamIds)})
+  `;
 
-    prisma.eventType
-      .findMany({
-        where: {
-          parent: {
-            teamId: { in: teamIds },
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-  ]);
-
-  return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
+  return result.map((row) => row.id);
 }
 
 async function getAttendeeEmailsFromUserIdsFilter(

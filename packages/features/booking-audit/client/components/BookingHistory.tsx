@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import dayjs from "@calcom/dayjs";
+import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
+import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { FilterSearchField, Select } from "@calcom/ui/components/form";
-import { Avatar } from "@calcom/ui/components/avatar";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
-import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
+import Link from "next/link";
+import { useState } from "react";
 
 interface BookingHistoryProps {
     bookingUid: string;
@@ -108,7 +108,11 @@ function BookingLogsFilters({
             <div className="min-w-[140px]">
                 <Select
                     size="sm"
-                    value={actorFilter ? { label: `${t("actor")}: ${actorFilter}`, value: actorFilter } : { label: `${t("actor")}: ${t("all")}`, value: "" }}
+                    value={
+                        actorFilter
+                            ? { label: `${t("actor")}: ${actorFilter}`, value: actorFilter }
+                            : { label: `${t("actor")}: ${t("all")}`, value: "" }
+                    }
                     onChange={(option) => {
                         if (!option) return;
                         onActorFilterChange(option.value || null);
@@ -135,11 +139,7 @@ function ActionTitle({ actionDisplayTitle }: { actionDisplayTitle: TranslationWi
                 values={actionDisplayTitle.params}
                 components={actionDisplayTitle.components.map((comp) =>
                     comp.type === "link" ? (
-                        <Link
-                            key={comp.href}
-                            href={comp.href}
-                            className="text-emphasis underline hover:no-underline"
-                        />
+                        <Link key={comp.href} href={comp.href} className="text-emphasis underline hover:no-underline" />
                     ) : (
                         <span key={comp.href} />
                     )
@@ -171,11 +171,10 @@ function JsonViewer({ data }: JsonViewerProps) {
                 <div key={idx} className="flex gap-2">
                     <span
                         className="text-subtle select-none text-right shrink-0"
-                        style={{ minWidth: `${lineNumberWidth}ch` }}
-                    >
+                        style={{ minWidth: `${lineNumberWidth}ch` }}>
                         {idx + 1}
                     </span>
-                    <span className="text-default whitespace-pre">{line || " "}</span>
+                    <span className="text-default whitespace-pre-wrap break-all">{line || " "}</span>
                 </div>
             ))}
         </div>
@@ -229,9 +228,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                     <Icon name={ACTION_ICON_MAP[log.action] ?? "sparkles"} className="h-3 w-3 text-subtle" />
                                 </div>
                             </div>
-                            {!isLast && (
-                                <div className="w-px bg-subtle flex-1 min-h-0" />
-                            )}
+                            {!isLast && <div className="w-px bg-subtle flex-1 min-h-0" />}
                         </div>
 
                         <div className="flex-1 rounded-lg py-2">
@@ -276,32 +273,40 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                     {isExpanded && (
                                         <div className="bg-default rounded-lg m-0.5 text-xs">
                                             {/* Render displayFields if available, otherwise show type */}
-                                            {log.displayFields && log.displayFields.length > 0 ? (
-                                                log.displayFields.map((field, idx) => (
-                                                    <div key={idx} className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                                                        <span className="font-medium text-emphasis min-w-[80px]">{t(field.labelKey)}</span>
+                                            {log.displayFields && log.displayFields.length > 0
+                                                ? log.displayFields.map((field, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                                                        <span className="font-medium text-emphasis w-[140px]">
+                                                            {t(field.labelKey)}
+                                                        </span>
                                                         <span className="text-[#096638] font-medium">{t(field.valueKey)}</span>
                                                     </div>
                                                 ))
-                                            ) : null}
+                                                : null}
                                             <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                                                <span className="font-medium text-emphasis min-w-[80px]">{t("actor")}</span>
+                                                <span className="font-medium text-emphasis w-[140px]">{t("actor")}</span>
                                                 <span className="text-default">{log.actor.displayName || log.actor.type}</span>
                                             </div>
                                             {log.impersonatedBy && (
                                                 <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                                                    <span className="font-medium text-emphasis min-w-[80px]">{t("booking_audit_action.actor_impersonated_by", { actor: log.actor.displayName })}</span>
+                                                    <span className="font-medium text-emphasis w-[140px]">
+                                                        {t("booking_audit_action.actor_impersonated_by", {
+                                                            actor: log.actor.displayName,
+                                                        })}
+                                                    </span>
                                                     <span className="text-default">{log.impersonatedBy.displayName}</span>
                                                 </div>
                                             )}
                                             <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                                                <span className="font-medium text-emphasis min-w-[80px]">{t("booking_audit_action.source")}</span>
+                                                <span className="font-medium text-emphasis w-[140px]">
+                                                    {t("booking_audit_action.source")}
+                                                </span>
                                                 <span className="text-default">{log.source}</span>
                                             </div>
                                             <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">
-                                                <span className="font-medium text-emphasis min-w-[80px]">
-                                                    {t("timestamp")}
-                                                </span>
+                                                <span className="font-medium text-emphasis w-[140px]">{t("timestamp")}</span>
                                                 <span className="text-default">
                                                     {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
                                                 </span>
@@ -318,9 +323,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                             {t("json")}
                                                         </Button>
                                                     </div>
-                                                    <div>
-                                                        {showJson && <JsonViewer data={log.displayJson} />}
-                                                    </div>
+                                                    <div>{showJson && <JsonViewer data={log.displayJson} />}</div>
                                                 </div>
                                             )}
                                         </div>
@@ -335,16 +338,26 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
     );
 }
 
-function useBookingLogsFilters(
-    auditLogs: AuditLog[],
-    searchTerm: string,
-    actorFilter: string | null
-) {
+function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorFilter: string | null) {
     const filteredLogs = auditLogs.filter((log) => {
+        const doesMatchDisplayFields = (): boolean => {
+            return log.displayFields?.some((field) => {
+                return field.valueKey?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    field.labelKey?.toLowerCase().includes(searchTerm.toLowerCase());
+            }) ?? false;
+        };
+
+        const doesMatchActionDisplayTitle = (): boolean => {
+            return log.actionDisplayTitle.key?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                Object.values(log.actionDisplayTitle.params ?? {}).some((param) => param?.toString().toLowerCase().includes(searchTerm.toLowerCase()));
+        };
+
         const matchesSearch =
             !searchTerm ||
             log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
+            log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doesMatchDisplayFields() ||
+            doesMatchActionDisplayTitle();
 
         const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
 
@@ -352,11 +365,7 @@ function useBookingLogsFilters(
     });
 
     const uniqueActorNames = Array.from(
-        new Set(
-            auditLogs
-                .map((log) => log.actor.displayName)
-                .filter((name): name is string => Boolean(name))
-        )
+        new Set(auditLogs.map((log) => log.actor.displayName).filter((name): name is string => Boolean(name)))
     );
 
     const actorOptions = uniqueActorNames.map((actorName) => ({
@@ -377,11 +386,7 @@ export function BookingHistory({ bookingUid }: BookingHistoryProps) {
 
     const auditLogs = data?.auditLogs || [];
 
-    const { filteredLogs, actorOptions } = useBookingLogsFilters(
-        auditLogs,
-        searchTerm,
-        actorFilter
-    );
+    const { filteredLogs, actorOptions } = useBookingLogsFilters(auditLogs, searchTerm, actorFilter);
 
     if (error) {
         return (

@@ -699,6 +699,7 @@ export class InputBookingsService_2024_08_13 {
       },
       rescheduleUid: bookingUid,
       verificationCode: inputBooking.emailVerificationCode,
+      rrHostSubsetIds: inputBooking.rrHostSubsetIds,
     };
   }
 
