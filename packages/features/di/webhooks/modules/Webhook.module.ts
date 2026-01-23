@@ -1,5 +1,3 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import { createPayloadBuilderFactory } from "@calcom/features/webhooks/lib/factory/versioned/registry";
@@ -11,9 +9,9 @@ import { RecordingWebhookService } from "@calcom/features/webhooks/lib/service/R
 import { WebhookNotificationHandler } from "@calcom/features/webhooks/lib/service/WebhookNotificationHandler";
 import { WebhookNotifier } from "@calcom/features/webhooks/lib/service/WebhookNotifier";
 import { WebhookService } from "@calcom/features/webhooks/lib/service/WebhookService";
-
-import { DI_TOKENS } from "../../tokens";
+import { createModule } from "@evyweb/ioctopus";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
+import { DI_TOKENS } from "../../tokens";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 const webhookModule = createModule();

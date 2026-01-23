@@ -1,4 +1,8 @@
+import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UsersRepository } from "@calcom/features/users/users.repository";
+import type { IUsersRepository } from "@calcom/features/users/users.repository.interface";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
@@ -14,10 +18,6 @@ import type {
   WebhookVersion,
 } from "../interface/IWebhookRepository";
 import { parseWebhookVersion } from "../interface/IWebhookRepository";
-import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
-import type { IUsersRepository } from "@calcom/features/users/users.repository.interface";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscribersOptions } from "./types";
 
 // Type for raw query results from the database
@@ -34,7 +34,7 @@ interface WebhookQueryResult {
   priority: number; // This field is added by the query and removed before returning
 }
 
-const filterWebhooks = (webhook: { appId: string | null }) => {
+const filterWebhooks = (webhook: { appId: string | null }): boolean => {
   const appIds = [
     "zapier",
     "make",
@@ -46,7 +46,7 @@ const filterWebhooks = (webhook: { appId: string | null }) => {
 
 /**
  * Repository for webhook operations.
- * 
+ *
  * Now follows strict Repository Pattern (CODE_STANDARDS.md Rule #7):
  * - Only accesses webhook table directly
  * - Cross-table queries delegated to EventTypeRepository and UserRepository
@@ -63,28 +63,16 @@ export class WebhookRepository implements IWebhookRepository {
   ) {}
 
   /**
-   * Singleton accessor for backward compatibility with legacy code.
-   * 
+   *
    * @deprecated Use DI container instead:
    * ```typescript
    * import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
    * const { repository } = getWebhookFeature();
    * ```
-   * 
-   * This singleton will be REMOVED in Phase 6 after all webhook triggers are migrated to DI.
-   * 
-   * **Current Status (Phase 1):**
-   * - ✅ TRPC handlers migrated (list, get, getByViewer)
-   * - ✅ triggerDelegationCredentialErrorWebhook migrated
-   * - ⏳ Booking webhook triggers (in progress)
-   * - ⏳ Form/Recording/OOO triggers (pending)
-   * 
-   * New code should ALWAYS use the DI container.
+   *
    */
   static getInstance(): WebhookRepository {
     if (!WebhookRepository._instance) {
-      // Create with concrete implementations for backward compatibility
-      // This ensures legacy code continues working during incremental migration
       WebhookRepository._instance = new WebhookRepository(
         defaultPrisma,
         new EventTypeRepository(defaultPrisma),
@@ -536,11 +524,9 @@ export class WebhookRepository implements IWebhookRepository {
       { appId: appId ?? null },
     ];
 
-    // Get user's teams via UserRepository
     const user = await this.userRepository.findUserTeams(userId);
 
     if (eventTypeId) {
-      // Check for managed event type parent via EventTypeRepository
       const managedParentId = await this.eventTypeRepository.findParentEventTypeId(eventTypeId);
 
       if (managedParentId) {

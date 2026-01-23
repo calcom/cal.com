@@ -1,4 +1,4 @@
-import db from "@calcom/prisma";
+import db, { prisma } from "@calcom/prisma";
 import { captureException } from "@sentry/nextjs";
 import type { IUsersRepository } from "./users.repository.interface";
 
@@ -18,7 +18,7 @@ export class UsersRepository implements IUsersRepository {
 
   async findUserTeams(userId: number): Promise<{ teams: { teamId: number }[] } | null> {
     try {
-      const user = await db.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           teams: {
