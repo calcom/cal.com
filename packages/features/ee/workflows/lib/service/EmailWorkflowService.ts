@@ -402,7 +402,7 @@ export class EmailWorkflowService {
           videoCallData: evt.videoCallData,
           uid: evt.uid,
           location: evt.location,
-        }) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+        }) || bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl;
       emailContent = emailReminderTemplate({
         isEditingMode: false,
         locale,
@@ -446,7 +446,7 @@ export class EmailWorkflowService {
           videoCallData: evt.videoCallData,
           uid: evt.uid,
           location: evt.location,
-        }) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+        }) || bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl;
 
       const variables: VariablesType = {
         eventName: evt.title || "",
@@ -524,7 +524,7 @@ export class EmailWorkflowService {
         language: { ...evt.organizer.language, translate: organizerT },
       },
       attendees: processedAttendees,
-      location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
+      location: bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl || evt.location,
     };
 
     const shouldIncludeCalendarEvent =
