@@ -35,6 +35,7 @@ const createTeamWithBillingRecords = (
 ): TeamWithBillingRecords => ({
   id: 1,
   isOrganization: false,
+  parentId: null,
   metadata: {
     subscriptionId: "sub_123",
     subscriptionItemId: "si_456",
@@ -162,6 +163,31 @@ describe("BillingMigrationService", () => {
 
       vi.mocked(mockBookingRepository.findDistinctTeamIdsByCreatedDateRange).mockResolvedValue([teamId]);
       vi.mocked(mockTeamBillingDataRepository.findByIdIncludeBillingRecords).mockResolvedValue(null);
+
+      const service = new BillingMigrationService({
+        bookingRepository: mockBookingRepository as BookingRepository,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepositoryFactory: mockBillingRepositoryFactory,
+      });
+
+      const result = await service.migrateTeamBillingFromBookings({ lookbackHours: 24 });
+
+      expect(result.teamsFound).toBe(1);
+      expect(result.migrated).toBe(0);
+      expect(result.skipped).toBe(1);
+      expect(mockBillingRepository.create).not.toHaveBeenCalled();
+    });
+
+    it("should skip sub-team within organization (parentId is set)", async () => {
+      const teamId = 1;
+      const subTeam = createTeamWithBillingRecords({
+        id: teamId,
+        parentId: 100,
+        isOrganization: false,
+      });
+
+      vi.mocked(mockBookingRepository.findDistinctTeamIdsByCreatedDateRange).mockResolvedValue([teamId]);
+      vi.mocked(mockTeamBillingDataRepository.findByIdIncludeBillingRecords).mockResolvedValue(subTeam);
 
       const service = new BillingMigrationService({
         bookingRepository: mockBookingRepository as BookingRepository,

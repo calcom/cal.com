@@ -15,6 +15,7 @@ export type TeamBillingType = Prisma.TeamGetPayload<{
 export type TeamWithBillingRecords = {
   id: number;
   isOrganization: boolean;
+  parentId: number | null;
   metadata: Prisma.JsonValue;
   teamBilling: { id: string } | null;
   organizationBilling: { id: string } | null;

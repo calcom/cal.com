@@ -78,6 +78,10 @@ export class BillingMigrationService {
       return { migrated: false, reason: "Team not found" };
     }
 
+    if (team.parentId !== null) {
+      return { migrated: false, reason: "Sub-team within organization - billing handled at org level" };
+    }
+
     if (this.isAlreadyMigrated(team)) {
       return { migrated: false, reason: "Already migrated" };
     }

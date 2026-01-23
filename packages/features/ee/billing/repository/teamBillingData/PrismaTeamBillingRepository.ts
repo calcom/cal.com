@@ -33,6 +33,7 @@ export class PrismaTeamBillingDataRepository implements ITeamBillingDataReposito
       select: {
         id: true,
         isOrganization: true,
+        parentId: true,
         metadata: true,
         teamBilling: {
           select: {
