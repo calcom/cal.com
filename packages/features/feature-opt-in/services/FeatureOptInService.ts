@@ -228,22 +228,35 @@ export class FeatureOptInService implements IFeatureOptInService {
   }
 
   /**
-   * List all opt-in features with their states for a user across teams.
-   * Only returns features that are in the allowlist, globally enabled, and scoped to "user".
+   * Simplified method to resolve feature states for a user.
+   * Internally fetches the user's org and team IDs, then delegates to resolveFeatureStatesAcrossTeams.
    */
-  async listFeaturesForUser(input: {
+  async resolveFeatureStates(input: {
     userId: number;
-    orgId: number | null;
-    teamIds: number[];
-  }): Promise<ListFeaturesForUserResult[]> {
-    const { userId, orgId, teamIds } = input;
-    const userScopedFeatures = getOptInFeaturesForScope("user");
-    const featureIds = userScopedFeatures.map((config) => config.slug);
+    featureIds: FeatureId[];
+  }): Promise<Record<string, ResolvedFeatureState>> {
+    const { userId, featureIds } = input;
+    const { orgId, teamIds } = await this.getUserOrgAndTeamIds(userId);
 
-    const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
+    return this.resolveFeatureStatesAcrossTeams({
       userId,
       orgId,
       teamIds,
+      featureIds,
+    });
+  }
+
+  /**
+   * List all opt-in features with their states for a user across teams.
+   * Only returns features that are in the allowlist, globally enabled, and scoped to "user".
+   */
+  async listFeaturesForUser(input: { userId: number }): Promise<ListFeaturesForUserResult[]> {
+    const { userId } = input;
+    const userScopedFeatures = getOptInFeaturesForScope("user");
+    const featureIds = userScopedFeatures.map((config) => config.slug);
+
+    const resolvedStates = await this.resolveFeatureStates({
+      userId,
       featureIds,
     });
 

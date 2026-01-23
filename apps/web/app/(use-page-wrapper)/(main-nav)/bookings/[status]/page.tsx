@@ -52,19 +52,19 @@ const Page = async ({ params }: PageProps) => {
   }
 
   const featuresRepository = getFeaturesRepository();
-  const featureFlags = session?.user?.id
-    ? await featuresRepository.getUserFeaturesStatus(session.user.id, ["booking-audit"])
-    : { "booking-audit": false };
-
   const featureOptInService = getFeatureOptInService();
-  const state = await featureOptInService.resolveFeatureStatesAcrossTeams({
-    userId,
-    orgId,
-    teamIds,
-    featureIds,
-  });
 
-  const bookingsV3Enabled = ;
+  const [featureFlags, featureStates] = session?.user?.id
+    ? await Promise.all([
+        featuresRepository.getUserFeaturesStatus(session.user.id, ["booking-audit"]),
+        featureOptInService.resolveFeatureStates({
+          userId: session.user.id,
+          featureIds: ["bookings-v3"],
+        }),
+      ])
+    : [{ "booking-audit": false }, {}];
+
+  const bookingsV3Enabled = featureStates["bookings-v3"]?.effectiveEnabled ?? false;
   const bookingAuditEnabled = featureFlags["booking-audit"] ?? false;
 
   return (
