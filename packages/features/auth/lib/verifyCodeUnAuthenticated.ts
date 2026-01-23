@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
-
+import process from "node:process";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { totpRawCheck } from "@calcom/lib/totp";
 
@@ -21,7 +23,7 @@ export const verifyCodeUnAuthenticated = async (email: string, code: string) => 
   const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
   if (!isValidToken) {
-    throw new Error("Invalid verification code");
+    throw new ErrorWithCode(ErrorCode.InvalidVerificationCode, "invalid_verification_code");
   }
 
   return true;
