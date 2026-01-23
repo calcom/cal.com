@@ -31,10 +31,10 @@ const handleSendingSMS = async ({
     // If neither is provided(Just in case), we check the rate limit for the reminderPhone.
     await checkSMSRateLimit({
       identifier: teamId
-        ? `handleSendingSMS:team:${teamId}`
+        ? `handleSendingSMS:team-${teamId}`
         : organizerUserId
-        ? `handleSendingSMS:user:${organizerUserId}`
-        : `handleSendingSMS:user:${piiHasher.hash(reminderPhone)}`,
+        ? `handleSendingSMS:org-user-${organizerUserId}`
+        : `handleSendingSMS:user-${piiHasher.hash(reminderPhone)}`,
       rateLimitingType: "sms",
     });
 

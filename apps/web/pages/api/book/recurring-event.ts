@@ -1,5 +1,4 @@
 import type { NextApiRequest } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import type { BookingResponse } from "@calcom/features/bookings/types";
@@ -38,7 +37,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: piiHasher.hash(userIp),
+    identifier: `createRecurringBooking:${piiHasher.hash(userIp)}`,
   });
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
@@ -55,6 +54,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
       platformBookingLocation: req.platformBookingLocation,
       noEmail: req.noEmail,
     },
+    creationSource: "WEBAPP",
   });
 
   return createdBookings;

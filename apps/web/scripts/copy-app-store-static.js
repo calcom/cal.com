@@ -1,7 +1,7 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const glob = require("glob");
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 
 const copyAppStoreStatic = () => {
   // Get all static files from app-store packages
@@ -11,8 +11,10 @@ const copyAppStoreStatic = () => {
   const SVG_HASHES = {};
 
   staticFiles.forEach((file) => {
+    // Normalize path separators for cross-platform compatibility (Windows uses backslashes)
+    const normalizedFile = file.replace(/\\/g, "/");
     // Extract app name from path
-    const appNameMatch = file.match(/app-store\/(.*?)\/static/);
+    const appNameMatch = normalizedFile.match(/app-store\/(.*?)\/static/);
     if (!appNameMatch) return;
 
     const appDirName = appNameMatch[1];

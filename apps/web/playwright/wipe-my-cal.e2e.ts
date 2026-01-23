@@ -48,8 +48,11 @@ test.describe("Wipe my Cal App Test", () => {
 
     await page.locator("data-testid=wipe-today-button").click();
 
-    // Don't await send_request click, otherwise mutation can possibly occur before observer is attached
-    page.locator("data-testid=send_request").click();
+    // Setup response listener before clicking to ensure we capture the API response
+    const wipeResponsePromise = page.waitForResponse("**/api/integrations/wipemycalother/wipe");
+    await page.locator("data-testid=send_request").click();
+    await wipeResponsePromise;
+
     // There will not be any today-bookings
     await expect(page.locator('[data-testid="today-bookings"]')).toBeHidden();
   });

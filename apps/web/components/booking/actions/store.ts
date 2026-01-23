@@ -16,6 +16,8 @@ export type BookingActionsStore = {
   isOpenAddGuestsDialog: boolean;
   isOpenReportDialog: boolean;
   rerouteDialogIsOpen: boolean;
+  isCancelDialogOpen: boolean;
+  isOpenWrongAssignmentDialog: boolean;
 
   // Dialog setters
   setRejectionDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,10 +31,8 @@ export type BookingActionsStore = {
   setIsOpenAddGuestsDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setIsOpenReportDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setRerouteDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-
-  // Rejection reason state
-  rejectionReason: string;
-  setRejectionReason: (reason: string) => void;
+  setIsCancelDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpenWrongAssignmentDialog: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const createBookingActionsStore = () => {
@@ -49,6 +49,8 @@ export const createBookingActionsStore = () => {
     isOpenAddGuestsDialog: false,
     isOpenReportDialog: false,
     rerouteDialogIsOpen: false,
+    isCancelDialogOpen: false,
+    isOpenWrongAssignmentDialog: false,
 
     // Dialog setters
     setRejectionDialogIsOpen: (isOpen) =>
@@ -98,9 +100,14 @@ export const createBookingActionsStore = () => {
       set((state) => ({
         rerouteDialogIsOpen: typeof isOpen === "function" ? isOpen(state.rerouteDialogIsOpen) : isOpen,
       })),
-
-    // Rejection reason state
-    rejectionReason: "",
-    setRejectionReason: (reason: string) => set({ rejectionReason: reason }),
+    setIsCancelDialogOpen: (isOpen) =>
+      set((state) => ({
+        isCancelDialogOpen: typeof isOpen === "function" ? isOpen(state.isCancelDialogOpen) : isOpen,
+      })),
+    setIsOpenWrongAssignmentDialog: (isOpen) =>
+      set((state) => ({
+        isOpenWrongAssignmentDialog:
+          typeof isOpen === "function" ? isOpen(state.isOpenWrongAssignmentDialog) : isOpen,
+      })),
   }));
 };

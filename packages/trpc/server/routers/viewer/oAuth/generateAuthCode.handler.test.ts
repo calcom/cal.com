@@ -1,18 +1,18 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
+
+import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
+
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
 import { generateAuthCodeHandler } from "./generateAuthCode.handler";
 
-const mockUser = {
-  id: 1,
-  email: "test@example.com",
-  name: "Test User",
-};
+const mockUser = { id: 1 } as unknown as NonNullable<TrpcSessionUser>;
 
-const mockCtx = {
+const mockCtx: { user: NonNullable<TrpcSessionUser> } = {
   user: mockUser,
 };
 
@@ -27,10 +27,11 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Public Client",
       clientType: "PUBLIC" as const,
+      status: "APPROVED" as const,
     };
 
     it("should generate authorization code for PUBLIC client with valid PKCE", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -50,6 +51,7 @@ describe("generateAuthCodeHandler", () => {
         codeChallenge: "test_challenge",
         codeChallengeMethod: "S256" as const,
         scopes: [],
+        redirectUri: "https://app.example.com/callback",
       };
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
@@ -69,7 +71,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject PUBLIC client without code_challenge", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       const input = {
         clientId: "public_client_123",
@@ -77,12 +79,13 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: undefined,
         codeChallengeMethod: "S256" as const,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge required for public clients",
+          message: OAUTH_ERROR_REASONS.pkce_required,
         })
       );
 
@@ -90,7 +93,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject PUBLIC client without code_challenge_method", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       const input = {
         clientId: "public_client_123",
@@ -98,12 +101,13 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -111,7 +115,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject PUBLIC client with invalid code_challenge_method", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       // Test with MD5 (invalid method)
       const inputMD5 = {
@@ -120,12 +124,13 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "MD5",
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputMD5 })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -136,12 +141,13 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "plain",
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -155,10 +161,13 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Confidential Client",
       clientType: "CONFIDENTIAL" as const,
+      isTrusted: undefined,
+      logo: undefined,
+      status: "APPROVED" as const,
     };
 
     it("should generate authorization code for CONFIDENTIAL client without PKCE", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockConfidentialClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -179,6 +188,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: undefined,
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
@@ -198,7 +208,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should accept CONFIDENTIAL client with valid PKCE for enhanced security", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockConfidentialClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -217,11 +227,16 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "S256" as const,
+        redirectUri: "https://app.example.com/callback",
+        state: "1234",
       };
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
 
       expect(result.authorizationCode).toBeDefined();
+      expect(result.redirectUrl).toEqual(
+        `https://app.example.com/callback?code=${result.authorizationCode}&state=1234`
+      );
       expect(prismaMock.accessCode.create).toHaveBeenCalledWith({
         data: {
           code: expect.any(String),
@@ -237,7 +252,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject CONFIDENTIAL client with code_challenge but missing method", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockConfidentialClient);
 
       const input = {
         clientId: "confidential_client_456",
@@ -245,12 +260,13 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 when PKCE is used",
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -260,7 +276,7 @@ describe("generateAuthCodeHandler", () => {
 
   describe("Client validation", () => {
     it("should reject invalid client ID", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(null);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(null);
 
       const input = {
         clientId: "invalid_client",
@@ -268,12 +284,13 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: undefined,
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "UNAUTHORIZED",
-          message: "Client ID not valid",
+          message: OAUTH_ERROR_REASONS.client_not_found,
         })
       );
 
@@ -286,9 +303,10 @@ describe("generateAuthCodeHandler", () => {
         redirectUri: "https://app.example.com/callback",
         name: "Test Public Client",
         clientType: "PUBLIC" as const,
+        status: "APPROVED" as const,
       };
 
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -306,6 +324,7 @@ describe("generateAuthCodeHandler", () => {
       // Test S256
       const inputS256 = {
         clientId: "public_client_123",
+        redirectUri: "https://app.example.com/callback",
         scopes: [],
         teamSlug: undefined,
         codeChallenge: "test_challenge",
@@ -316,11 +335,12 @@ describe("generateAuthCodeHandler", () => {
 
       // Reset mocks for next test
       vi.clearAllMocks();
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       // Test invalid method
       const inputInvalid = {
         clientId: "public_client_123",
+        redirectUri: "https://app.example.com/callback",
         scopes: [],
         teamSlug: undefined,
         codeChallenge: "test_challenge",
@@ -330,7 +350,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputInvalid })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -341,14 +361,75 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "plain",
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
+    });
+
+    it("should reject PENDING client", async () => {
+      const mockPendingClient = {
+        clientId: "pending_client_123",
+        redirectUri: "https://app.example.com/callback",
+        name: "Test Pending Client",
+        clientType: "CONFIDENTIAL" as const,
+        status: "PENDING" as const,
+      };
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPendingClient);
+
+      const input = {
+        clientId: "pending_client_123",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: OAUTH_ERROR_REASONS.client_not_approved,
+        })
+      );
+
+      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
+    });
+
+    it("should reject REJECTED client", async () => {
+      const mockRejectedClient = {
+        clientId: "rejected_client_123",
+        redirectUri: "https://app.example.com/callback",
+        name: "Test Rejected Client",
+        clientType: "CONFIDENTIAL" as const,
+        status: "REJECTED" as const,
+      };
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockRejectedClient);
+
+      const input = {
+        clientId: "rejected_client_123",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: OAUTH_ERROR_REASONS.client_not_approved,
+        })
+      );
+
+      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
     });
   });
 });

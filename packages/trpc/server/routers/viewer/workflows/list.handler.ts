@@ -1,5 +1,5 @@
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
+import type { WorkflowListType } from "@calcom/features/ee/workflows/lib/types";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -19,7 +19,7 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx, input }: ListOptions) => {
-  const workflows: WorkflowType[] = [];
+  const workflows: WorkflowListType[] = [];
   const teamRepository = new TeamRepository(ctx.prisma);
 
   const org = await teamRepository.findOrganization({
@@ -42,7 +42,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   }
 
   if (input && input.teamId) {
-    const teamWorkflows: WorkflowType[] = await WorkflowRepository.findTeamWorkflows({
+    const teamWorkflows: WorkflowListType[] = await WorkflowRepository.findTeamWorkflows({
       teamId: input.teamId,
       userId: ctx.user.id,
       excludeFormTriggers: input.includeOnlyEventTypeWorkflows,
@@ -66,7 +66,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   }
 
   if (input && input.userId) {
-    const userWorkflows: WorkflowType[] = await WorkflowRepository.findUserWorkflows({
+    const userWorkflows: WorkflowListType[] = await WorkflowRepository.findUserWorkflows({
       userId: ctx.user.id,
       excludeFormTriggers: input.includeOnlyEventTypeWorkflows,
     });
@@ -87,7 +87,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     excludeFormTriggers: input.includeOnlyEventTypeWorkflows,
   });
 
-  const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
+  const workflowsWithReadOnly: WorkflowListType[] = allWorkflows.map((workflow) => {
     const readOnly = !!workflow.team?.members?.find(
       (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
     );

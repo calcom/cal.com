@@ -4,8 +4,9 @@ import { HttpError } from "@calcom/lib/http-error";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
-import { setupDefaultSchedule } from "@calcom/trpc/server/routers/viewer/availability/util";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { ScheduleRepository } from "../repositories/ScheduleRepository";
 
 interface IUpdateScheduleOptions {
   input: TUpdateInputSchema;
@@ -64,7 +65,9 @@ export class ScheduleService {
 
     let updatedUser;
     if (input.isDefault) {
-      const setupDefault = await setupDefaultSchedule(user.id, input.scheduleId, this.prisma);
+      const scheduleRepo = new ScheduleRepository(this.prisma);
+
+      const setupDefault = await scheduleRepo.setupDefaultSchedule(user.id, input.scheduleId);
       updatedUser = setupDefault;
     }
 
