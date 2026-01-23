@@ -2,14 +2,12 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
 import { useBookerStore } from "../../store";
 import type { ToggledConnectedCalendars } from "../../types";
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
-import { useLocalSet } from "./useLocalSet";
 
-export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
 type UseCalendarsProps = {
   hasSession: boolean;
 };
@@ -21,8 +19,11 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const switchEnabled =
     searchParams?.get("overlayCalendar") === "true" ||
     localStorage?.getItem("overlayCalendarSwitchDefault") === "true";
-  const { set, clearSet } = useLocalSet<ToggledConnectedCalendars>("toggledConnectedCalendars", []);
-  const utils = trpc.useUtils();
+
+  const [set, setSet] = useState<Set<ToggledConnectedCalendars>>(() => {
+    const storedValue = localStorage.getItem("toggledConnectedCalendars");
+    return storedValue ? new Set(JSON.parse(storedValue)) : new Set([]);
+  });
 
   const [calendarSettingsOverlay] = useOverlayCalendarStore(
     (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
@@ -47,7 +48,7 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (!isError) return;
-      clearSet();
+      setSet(new Set([]));
     },
     [isError]
   );
@@ -66,8 +67,6 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
     isOverlayCalendarEnabled: switchEnabled,
     connectedCalendars: data?.connectedCalendars || [],
     loadingConnectedCalendar: isPending,
-    onToggleCalendar: (data?: Set<ToggledConnectedCalendars>): void => {
-      utils.viewer.availability.calendarOverlay.reset();
-    },
+    onToggleCalendar: setSet,
   };
 };

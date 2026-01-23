@@ -179,13 +179,7 @@ const BookerComponent = ({
     isVerificationCodeSending,
   } = verifyEmail;
 
-  const {
-    overlayBusyDates,
-    isOverlayCalendarEnabled,
-    connectedCalendars,
-    loadingConnectedCalendar,
-    onToggleCalendar,
-  } = calendars;
+  const { overlayBusyDates, isOverlayCalendarEnabled, connectedCalendars, onToggleCalendar } = calendars;
 
   const scrolledToTimeslotsOnce = useRef(false);
   const embedUiConfig = useEmbedUiConfig();
@@ -421,7 +415,6 @@ const BookerComponent = ({
                         <OverlayCalendar
                           isOverlayCalendarEnabled={isOverlayCalendarEnabled}
                           connectedCalendars={connectedCalendars}
-                          loadingConnectedCalendar={loadingConnectedCalendar}
                           overlayBusyDates={overlayBusyDates}
                           onToggleCalendar={onToggleCalendar}
                           hasSession={hasSession}

@@ -1,7 +1,7 @@
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { WrappedBookerPropsMain } from "@calcom/features/bookings/Booker/types";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { DialogClose, DialogContent } from "@calcom/ui/components/dialog";
@@ -13,11 +13,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 
-type IOverlayCalendarSettingsModalProps = Pick<WrappedBookerPropsMain["calendars"], "connectedCalendars"> & {
+type IOverlayCalendarSettingsModalProps = {
   open?: boolean;
   onClose?: (state: boolean) => void;
   onClickNoCalendar?: () => void;
-  isLoading: boolean;
   onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
   checkIsCalendarToggled: (externalCalendarId: string, credentialId: number) => boolean;
 };
@@ -25,7 +24,7 @@ type IOverlayCalendarSettingsModalProps = Pick<WrappedBookerPropsMain["calendars
 const SkeletonLoader = (): JSX.Element => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle mt-3 stack-y-4 rounded-xl border px-4 py-4 ">
+      <div className="stack-y-4 mt-3 rounded-xl border border-subtle px-4 py-4">
         <SkeletonText className="h-4 w-full" />
         <SkeletonText className="h-4 w-full" />
         <SkeletonText className="h-4 w-full" />
@@ -36,8 +35,6 @@ const SkeletonLoader = (): JSX.Element => {
 };
 
 export function OverlayCalendarSettingsModal({
-  connectedCalendars,
-  isLoading,
   open,
   onClose,
   onClickNoCalendar,
@@ -46,11 +43,14 @@ export function OverlayCalendarSettingsModal({
 }: IOverlayCalendarSettingsModalProps): JSX.Element {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
+  const { data, isPending: isLoading } = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
+    enabled: !!open,
+  });
 
   let content: React.ReactNode;
   if (isLoading) {
     content = <SkeletonLoader />;
-  } else if (connectedCalendars.length === 0) {
+  } else if (data?.connectedCalendars.length === 0) {
     content = (
       <EmptyScreen
         Icon="calendar"
@@ -61,7 +61,7 @@ export function OverlayCalendarSettingsModal({
       />
     );
   } else {
-    content = connectedCalendars.map((item) => (
+    content = data?.connectedCalendars.map((item) => (
       <Fragment key={item.credentialId}>
         {item.error && !item.calendars && <Alert severity="error" title={item.error.message} />}
         {item?.error === undefined && item.calendars && (
@@ -73,6 +73,8 @@ export function OverlayCalendarSettingsModal({
                     "h-10 w-10",
                     item.integration.logo.includes("-dark") && "dark:invert"
                   )}
+                  width={40}
+                  height={40}
                   src={isPlatform ? `https://app.cal.com${item.integration.logo}` : item.integration.logo}
                   alt={`${item.integration.title} logo`}
                 />
@@ -94,14 +96,12 @@ export function OverlayCalendarSettingsModal({
                     <li className="flex gap-3" key={id}>
                       <Switch
                         id={id}
+                        label={cal.name}
                         checked={checkIsCalendarToggled(cal.externalId, item.credentialId)}
                         onCheckedChange={() => {
                           onToggleConnectedCalendar(cal.externalId, item.credentialId);
                         }}
                       />
-                      <label htmlFor={id} className="grow truncate">
-                        {cal.name}
-                      </label>
                     </li>
                   );
                 })}
@@ -121,7 +121,7 @@ export function OverlayCalendarSettingsModal({
         title="Calendar Settings"
         className="pb-4"
         description={t("view_overlay_calendar_events")}>
-        <div className="no-scrollbar max-h-full overflow-y-scroll ">{content}</div>
+        <div className="no-scrollbar max-h-full overflow-y-scroll">{content}</div>
         <div className="mt-4 flex gap-2 self-end">
           <DialogClose>{t("done")}</DialogClose>
         </div>

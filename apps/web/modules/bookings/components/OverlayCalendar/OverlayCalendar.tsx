@@ -8,11 +8,7 @@ import { OverlayCalendarSwitch } from "./OverlayCalendarSwitch";
 
 type OverlayCalendarProps = Pick<
   WrappedBookerPropsMain["calendars"],
-  | "connectedCalendars"
-  | "overlayBusyDates"
-  | "onToggleCalendar"
-  | "loadingConnectedCalendar"
-  | "isOverlayCalendarEnabled"
+  "connectedCalendars" | "overlayBusyDates" | "onToggleCalendar" | "isOverlayCalendarEnabled"
 > & {
   handleClickNoCalendar: () => void;
   hasSession: boolean;
@@ -25,7 +21,6 @@ export const OverlayCalendar = ({
   overlayBusyDates,
   onToggleCalendar,
   isOverlayCalendarEnabled,
-  loadingConnectedCalendar,
   handleClickNoCalendar,
   handleSwitchStateChange,
   handleClickContinue,
@@ -68,10 +63,8 @@ export const OverlayCalendar = ({
         />
       )}
       <OverlayCalendarSettingsModal
-        connectedCalendars={connectedCalendars}
         open={isOpenOverlaySettingsModal}
         onClose={handleCloseSettingsModal}
-        isLoading={loadingConnectedCalendar}
         onToggleConnectedCalendar={handleToggleConnectedCalendar}
         onClickNoCalendar={() => {
           handleClickNoCalendar();

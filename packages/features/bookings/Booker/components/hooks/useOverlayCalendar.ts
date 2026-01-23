@@ -6,8 +6,6 @@ import type { ToggledConnectedCalendars, WrappedBookerPropsMain } from "../../ty
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import { useLocalSet } from "./useLocalSet";
 
-export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
-
 export const useOverlayCalendar = ({
   connectedCalendars,
   overlayBusyDates,
@@ -15,7 +13,14 @@ export const useOverlayCalendar = ({
 }: Pick<
   WrappedBookerPropsMain["calendars"],
   "overlayBusyDates" | "onToggleCalendar" | "connectedCalendars"
->) => {
+>): {
+  isOpenOverlayContinueModal: boolean;
+  isOpenOverlaySettingsModal: boolean;
+  handleCloseContinueModal: (val: boolean) => void;
+  handleCloseSettingsModal: (val: boolean) => void;
+  handleToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
+  checkIsCalendarToggled: (externalId: string, credentialId: number) => boolean;
+} => {
   const { set, toggleValue, hasItem } = useLocalSet<ToggledConnectedCalendars>(
     "toggledConnectedCalendars",
     []
