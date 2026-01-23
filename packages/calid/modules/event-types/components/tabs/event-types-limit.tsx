@@ -880,6 +880,9 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [bookingLimitsToggle, setBookingLimitsToggle] = useState(
+    Object.keys(formMethods.getValues("bookingLimits") ?? {}).length > 0
+  );
 
   // Field permissions management
   const fieldPermissions = useFieldPermissions({ eventType, translate: t, formMethods });
@@ -955,13 +958,12 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
 
       <Controller
         name="bookingLimits"
-        render={({ field: { value } }) => {
-          const isChecked = Object.keys(value ?? {}).length > 0;
+        render={({ field: { onChange, value } }) => {
           return (
             <SettingsToggle
               title={t("limit_booking_frequency")}
               description={t("limit_booking_frequency_description")}
-              checked={isChecked}
+              checked={bookingLimitsToggle}
               disabled={fieldPermissions.getFieldState("bookingLimits").isDisabled}
               LockedIcon={
                 <FieldPermissionIndicator
@@ -970,7 +972,14 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
                   t={t}
                 />
               }
-              onCheckedChange={handleBookingLimitsToggle}>
+              onCheckedChange={(active) => {
+                if (active) {
+                  onChange({ PER_DAY: 1 });
+                } else {
+                  onChange({});
+                }
+                setBookingLimitsToggle((state) => !state);
+              }}>
               <IntervalLimitsManager
                 propertyName="bookingLimits"
                 defaultLimit={1}
@@ -997,7 +1006,12 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
                 t={t}
               />
             }
-            onCheckedChange={(active) => handleOnlyFirstSlotToggle(active, onChange)}
+            onCheckedChange={(active) => {
+              const defaultValue = formMethods.formState.defaultValues?.onlyShowFirstAvailableSlot ?? false;
+              const newValue = active ?? false;
+              const isDifferent = newValue !== defaultValue;
+              formMethods.setValue("onlyShowFirstAvailableSlot", newValue, { shouldDirty: isDifferent });
+            }}
           />
         )}
       />
@@ -1019,7 +1033,12 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
                   t={t}
                 />
               }
-              onCheckedChange={(active) => handleDurationLimitsToggle(active, onChange)}>
+              onCheckedChange={(active) => {
+                const defaultValue = formMethods.formState.defaultValues?.durationLimits || {};
+                const newValue = active ? { PER_DAY: 60 } : {};
+                const isDifferent = JSON.stringify(newValue) !== JSON.stringify(defaultValue);
+                formMethods.setValue("durationLimits", newValue, { shouldDirty: isDifferent });
+              }}>
               <IntervalLimitsManager
                 propertyName="durationLimits"
                 defaultLimit={60}
