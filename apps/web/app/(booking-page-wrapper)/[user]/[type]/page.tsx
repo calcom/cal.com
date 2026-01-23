@@ -5,6 +5,7 @@ import { generateMeetingMetadata } from "app/_utils";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
@@ -42,9 +43,17 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     getOrgFullOrigin(eventData?.entity.orgSlug ?? null),
     `/${decodedParams.user}/${decodedParams.type}`
   );
+  const faviconUrl = props.faviconUrl
+    ? getBrandLogoUrl({ faviconUrl: props.faviconUrl }, true)
+    : "/calid_favicon.svg";
 
   return {
     ...metadata,
+    icons: {
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
+    },
     robots: {
       follow: !(eventData?.hidden || !isSEOIndexable),
       index: !(eventData?.hidden || !isSEOIndexable),
