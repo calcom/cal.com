@@ -105,6 +105,7 @@ const _handleResponse = async ({
     let crmAppSlug: string | null = null;
     let crmRecordId: string | null = null;
     let timeTaken: Record<string, number | null> = {};
+    let checkedFallback = false;
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
         throw new HttpError({
@@ -128,27 +129,6 @@ const _handleResponse = async ({
             crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
             crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
             crmRecordId = contactOwnerQuery?.recordId ?? null;
-
-            // Add Salesforce trace step if CRM contact owner was found
-            if (crmContactOwnerEmail && crmAppSlug === "salesforce") {
-              try {
-                RoutingTraceService.current().addStep({
-                  domain: "salesforce",
-                  step: "contact-owner-found",
-                  data: {
-                    email: crmContactOwnerEmail,
-                    recordType: crmContactOwnerRecordType,
-                    recordId: crmRecordId,
-                    rrSkipToAccountLookupField:
-                      chosenRoute.attributeRoutingConfig?.salesforce?.rrSkipToAccountLookupField ?? false,
-                    rrSKipToAccountLookupFieldName:
-                      chosenRoute.attributeRoutingConfig?.salesforce?.rrSKipToAccountLookupFieldName ?? null,
-                  },
-                });
-              } catch {
-                // Not in trace context - ignore
-              }
-            }
           })(),
           (async () => {
             const teamMembersMatchingAttributeLogicWithResult =
@@ -183,43 +163,48 @@ const _handleResponse = async ({
                 : null;
 
             timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
-
-            // Add routing form trace step if team members were matched
-            if (teamMemberIdsMatchingAttributeLogic) {
-              try {
-                RoutingTraceService.current().addStep({
-                  domain: "routing_form",
-                  step: "team-members-matched",
-                  data: {
-                    teamMemberIds: teamMemberIdsMatchingAttributeLogic,
-                    chosenRouteId,
-                    attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
-                    fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue ?? null,
-                    fallbackUsed: teamMembersMatchingAttributeLogicWithResult?.checkedFallback ?? false,
-                  },
-                });
-              } catch {
-                // Not in trace context - ignore
-              }
-            }
+            checkedFallback = teamMembersMatchingAttributeLogicWithResult?.checkedFallback ?? false;
           })(),
         ]);
 
       await withReporting(getRoutedMembers, "getRoutedMembers")();
 
-      // Add config-applied trace step if skipContactOwner is set
-      if (chosenRoute.attributeRoutingConfig?.skipContactOwner) {
-        try {
-          RoutingTraceService.current().addStep({
-            domain: "routing_form",
-            step: "config-applied",
+      // Add routing trace steps at high level after all data is collected
+      try {
+        const traceService = RoutingTraceService.current();
+
+        // Record CRM contact owner if found (for Salesforce assignment reason)
+        if (crmContactOwnerEmail && crmAppSlug) {
+          traceService.addStep({
+            domain: "salesforce",
+            step: "contact-owner-found",
             data: {
-              skipContactOwner: true,
+              email: crmContactOwnerEmail,
+              recordType: crmContactOwnerRecordType,
+              recordId: crmRecordId,
+              crmAppSlug,
+              rrSkipToAccountLookupField:
+                chosenRoute.attributeRoutingConfig?.salesforce?.rrSkipToAccountLookupField ?? false,
+              rrSKipToAccountLookupFieldName:
+                chosenRoute.attributeRoutingConfig?.salesforce?.rrSKipToAccountLookupFieldName ?? null,
             },
           });
-        } catch {
-          // Not in trace context - ignore
         }
+
+        // Record routing form route match (for routing form assignment reason)
+        traceService.addStep({
+          domain: "routing_form",
+          step: "route-matched",
+          data: {
+            chosenRouteId,
+            routeName: "name" in chosenRoute ? chosenRoute.name : null,
+            teamMemberIds: teamMemberIdsMatchingAttributeLogic,
+            fallbackUsed: checkedFallback,
+            skipContactOwner: chosenRoute.attributeRoutingConfig?.skipContactOwner ?? false,
+          },
+        });
+      } catch {
+        // Not in trace context - ignore
       }
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes

@@ -146,9 +146,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     let teamMembersMatchingAttributeLogic = null;
     let formResponseId = null;
     let attributeRoutingConfig = null;
-    let crmContactOwnerEmail: string | null = null;
-    let crmContactOwnerRecordType: string | null = null;
-    let crmAppSlug: string | null = null;
     let queuedFormResponseId;
     try {
       const result = await handleResponse({
@@ -169,9 +166,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         ...timeTaken,
         ...result.timeTaken,
       };
-      crmContactOwnerEmail = result.crmContactOwnerEmail;
-      crmContactOwnerRecordType = result.crmContactOwnerRecordType;
-      crmAppSlug = result.crmAppSlug;
 
       // Save pending routing trace
       if (!isBookingDryRun) {
@@ -238,9 +232,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
               attributeRoutingConfig: attributeRoutingConfig ?? null,
               teamId: form?.teamId,
               orgId: form.team?.parentId,
-              crmContactOwnerEmail,
-              crmContactOwnerRecordType,
-              crmAppSlug,
             }),
             isEmbed: pageProps.isEmbed,
           }),
