@@ -1,12 +1,11 @@
 // @TODO: turn this into a more generic component that has the same Props API as MUI https://mui.com/material-ui/react-card/
+
+import classNames from "@calcom/ui/classNames";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
+import type React from "react";
 import type { ReactNode } from "react";
-import React from "react";
-
-import classNames from "@calcom/ui/classNames";
-
 import { Button } from "../button";
 
 const cvaCardTypeByVariant = cva("", {
@@ -243,7 +242,8 @@ export function Card({
             href={actionButton?.href}
             className="mt-10"
             EndIcon="arrow-right"
-            data-testid={actionButton["data-testid"]}>
+            data-testid={actionButton["data-testid"]}
+            onClick={actionButton?.onClick}>
             {actionButton?.child}
           </Button>
         </div>
@@ -263,7 +263,8 @@ export function Card({
                   {learnMore.text}
                 </LinkComponent>
               ) : learnMore.onClick ? (
-                <button type="button"
+                <button
+                  type="button"
                   color="minimal"
                   onClick={learnMore.onClick}
                   className={classNames("cursor-pointer text-default text-xs font-medium", buttonClassName)}>
