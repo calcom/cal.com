@@ -13,4 +13,17 @@ export const WEBHOOK_TOKENS = {
 
   // Repositories
   WEBHOOK_REPOSITORY: Symbol("IWebhookRepository"),
+
+  // Producer/Consumer
+  WEBHOOK_PRODUCER_SERVICE: Symbol("IWebhookProducerService"),
+  WEBHOOK_PRODUCER_SERVICE_MODULE: Symbol("WebhookProducerService.module"),
+  WEBHOOK_TASK_CONSUMER: Symbol("WebhookTaskConsumer"),
+  WEBHOOK_TASK_CONSUMER_MODULE: Symbol("WebhookTaskConsumer.module"),
+
+  // Data Fetchers (Strategy Pattern implementations for WebhookTaskConsumer)
+  BOOKING_DATA_FETCHER: Symbol("BookingWebhookDataFetcher"),
+  PAYMENT_DATA_FETCHER: Symbol("PaymentWebhookDataFetcher"),
+  FORM_DATA_FETCHER: Symbol("FormWebhookDataFetcher"),
+  RECORDING_DATA_FETCHER: Symbol("RecordingWebhookDataFetcher"),
+  OOO_DATA_FETCHER: Symbol("OOOWebhookDataFetcher"),
 } as const;

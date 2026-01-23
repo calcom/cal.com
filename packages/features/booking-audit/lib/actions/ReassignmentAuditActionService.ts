@@ -1,9 +1,9 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { z } from "zod";
-import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
+import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
-  GetDisplayFieldsParams,
+  BaseStoredAuditData,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
   IAuditActionService,
@@ -17,12 +17,15 @@ import type {
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-  assignedToId: NumberChangeSchema,
-  assignedById: NumberChangeSchema,
-  reassignmentReason: StringChangeSchema,
+  organizerUuid: StringChangeSchema.optional(),
+  hostAttendeeUpdated: z
+    .object({
+      id: z.number().optional(),
+      withUserUuid: StringChangeSchema.optional(),
+    })
+    .optional(),
+  reassignmentReason: z.string().nullable(),
   reassignmentType: z.enum(["manual", "roundRobin"]),
-  userPrimaryEmail: StringChangeSchema.optional(),
-  title: StringChangeSchema.optional(),
 });
 
 export class ReassignmentAuditActionService implements IAuditActionService {
@@ -71,8 +74,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
   async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
     const { fields } = this.parseStored(storedData);
-    const user = await this.userRepository.findById({ id: fields.assignedToId.new });
-    const reassignedToName = user?.name || "Unknown";
+    const { newUser } = await this.getPreviousAndNewAssigneeUser(fields);
+    const reassignedToName = newUser?.name || "Unknown";
     return {
       key: "booking_audit_action.booking_reassigned_to_host",
       params: { host: reassignedToName },
@@ -82,12 +85,45 @@ export class ReassignmentAuditActionService implements IAuditActionService {
   getDisplayJson({ storedData }: GetDisplayJsonParams): ReassignmentAuditDisplayData {
     const { fields } = this.parseStored(storedData);
     return {
-      newAssignedToId: fields.assignedToId.new,
-      reassignmentReason: fields.reassignmentReason.new ?? null,
+      ...(fields.organizerUuid
+        ? {
+            previousOrganizerUuid: fields.organizerUuid.old,
+            newOrganizerUuid: fields.organizerUuid.new,
+          }
+        : {}),
+
+      ...(fields.hostAttendeeUpdated
+        ? {
+            hostAttendeeIdUpdated: fields.hostAttendeeUpdated.id,
+            hostAttendeeUserUuidNew: fields.hostAttendeeUpdated.withUserUuid?.new,
+            hostAttendeeUserUuidOld: fields.hostAttendeeUpdated.withUserUuid?.old,
+          }
+        : {}),
+      reassignmentReason: fields.reassignmentReason ?? null,
     };
   }
 
-  async getDisplayFields({ storedData }: GetDisplayFieldsParams): Promise<
+  private async getPreviousAndNewAssigneeUser(fields: ReassignmentAuditData) {
+    const hasAttendeeUpdated = fields.hostAttendeeUpdated != null;
+    const newHostUuid = hasAttendeeUpdated
+      ? fields.hostAttendeeUpdated?.withUserUuid?.new
+      : fields.organizerUuid?.new;
+    const previousHostUuid = hasAttendeeUpdated
+      ? fields.hostAttendeeUpdated?.withUserUuid?.old
+      : fields.organizerUuid?.old;
+
+    const newUser = newHostUuid ? await this.userRepository.findByUuid({ uuid: newHostUuid }) : null;
+    const previousUser = previousHostUuid
+      ? await this.userRepository.findByUuid({ uuid: previousHostUuid })
+      : null;
+
+    return {
+      previousUser: previousUser,
+      newUser: newUser,
+    };
+  }
+
+  async getDisplayFields(storedData: BaseStoredAuditData): Promise<
     Array<{
       labelKey: string;
       valueKey: string;
@@ -99,11 +135,15 @@ export class ReassignmentAuditActionService implements IAuditActionService {
       roundRobin: "round_robin",
     };
     const typeTranslationKey = `booking_audit_action.assignment_type_${map[fields.reassignmentType]}`;
-
+    const { previousUser } = await this.getPreviousAndNewAssigneeUser(fields);
     return [
       {
         labelKey: "booking_audit_action.assignment_type",
         valueKey: typeTranslationKey,
+      },
+      {
+        labelKey: "booking_audit_action.previous_assignee",
+        valueKey: previousUser?.name ?? "Unknown",
       },
     ];
   }
@@ -112,6 +152,10 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 export type ReassignmentAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type ReassignmentAuditDisplayData = {
-  newAssignedToId: number;
+  previousOrganizerUuid?: string | null;
+  newOrganizerUuid?: string | null;
+  hostAttendeeIdUpdated?: number | null;
+  hostAttendeeUserUuidNew?: string | null;
+  hostAttendeeUserUuidOld?: string | null;
   reassignmentReason: string | null;
 };

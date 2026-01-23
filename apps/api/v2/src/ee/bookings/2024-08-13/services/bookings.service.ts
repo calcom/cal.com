@@ -1,4 +1,33 @@
 import {
+  confirmBookingHandler,
+  getAllUserBookings,
+  getCalendarLinks,
+  getTranslation,
+  handleCancelBooking,
+  handleMarkNoShow,
+  roundRobinManualReassignment,
+  roundRobinReassignment,
+} from "@calcom/platform-libraries";
+import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
+import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
+import {
+  BookingOutput_2024_08_13,
+  CancelBookingInput,
+  CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  GetBookingsInput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput,
+} from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { EventType, Team, User } from "@calcom/prisma/client";
+import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
@@ -39,36 +68,6 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 
 export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
-
-import {
-  confirmBookingHandler,
-  getAllUserBookings,
-  getCalendarLinks,
-  getTranslation,
-  handleCancelBooking,
-  handleMarkNoShow,
-  roundRobinManualReassignment,
-  roundRobinReassignment,
-} from "@calcom/platform-libraries";
-import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
-import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
-import {
-  BookingOutput_2024_08_13,
-  CancelBookingInput,
-  CreateBookingInput,
-  CreateBookingInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-  GetBookingsInput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  MarkAbsentBookingInput_2024_08_13,
-  ReassignToUserBookingInput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  RescheduleBookingInput,
-} from "@calcom/platform-types";
-import type { PrismaClient } from "@calcom/prisma";
-import type { EventType, Team, User } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -927,7 +926,7 @@ export class BookingsService_2024_08_13 {
     bookingUid: string,
     bookingOwnerId: number,
     body: MarkAbsentBookingInput_2024_08_13,
-    userUuid: string
+    userUuid?: string
   ) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
@@ -954,9 +953,8 @@ export class BookingsService_2024_08_13 {
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
+      userUuid,
       platformClientParams,
-      actionSource: "API_V2",
-      actor: makeUserActor(userUuid),
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
@@ -1041,6 +1039,8 @@ export class BookingsService_2024_08_13 {
         emailsEnabled,
         platformClientParams,
         reassignedById: reassignedByUser.id,
+        actionSource: "API_V2",
+        reassignedByUuid: reassignedByUser.uuid,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -1108,6 +1108,8 @@ export class BookingsService_2024_08_13 {
         reassignedById: reassignedByUser.id,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        reassignedByUuid: reassignedByUser.uuid,
       });
 
       return this.outputService.getOutputReassignedBooking(reassigned);

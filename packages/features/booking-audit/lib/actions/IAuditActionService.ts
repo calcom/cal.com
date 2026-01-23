@@ -99,11 +99,12 @@ export interface IAuditActionService {
    */
   getDisplayTitle(params: GetDisplayTitleParams): Promise<TranslationWithParams>;
 
-  /**
+/**
    * Returns additional display fields with translation keys for frontend rendering
    * Optional - implement only if custom display fields are needed
-   * @param storedData - Parsed stored data { version, fields }
-   * @returns Array of field objects with label and value translation keys
+   * @param params - Object containing storedData
+   * @param params.storedData - Parsed stored data { version, fields }
+   * @returns Promise of array of field objects with label and value translation keys
    */
   getDisplayFields?(params: GetDisplayFieldsParams): Promise<
     Array<{
