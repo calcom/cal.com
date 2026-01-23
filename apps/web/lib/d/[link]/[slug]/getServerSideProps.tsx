@@ -1,25 +1,23 @@
-import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import {
   shouldHideBrandingForTeamEvent,
   shouldHideBrandingForUserEvent,
 } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
-
 import { getRedirectWithOriginAndSearchString } from "@lib/handleOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "app/WithEmbedSSR";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -82,8 +80,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         redirect: {
           permanent: false,
           // App Router doesn't have access to the current path directly, so we build it manually
-          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${redirectWithOriginAndSearchString.searchString
-            }`,
+          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${
+            redirectWithOriginAndSearchString.searchString
+          }`,
         },
       };
     }
@@ -131,8 +130,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   // Check if team has API v2 feature flag enabled (same logic as team pages)
   let useApiV2 = false;
   if (isTeamEvent && hashedLink.eventType.team?.id) {
-    const featureRepo = new FeaturesRepository(prisma);
-    const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(
+    const teamFeatureRepository = getTeamFeatureRepository();
+    const teamHasApiV2Route = await teamFeatureRepository.checkIfTeamHasFeature(
       hashedLink.eventType.team.id,
       "use-api-v2-for-team-slots"
     );

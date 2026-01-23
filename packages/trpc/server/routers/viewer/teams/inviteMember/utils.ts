@@ -541,7 +541,7 @@ export async function sendSignupToOrganizationEmail({
 }) {
   try {
     const verificationToken = await createVerificationToken(usernameOrEmail, teamId);
-    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited();
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
@@ -758,7 +758,7 @@ export const sendExistingUserTeamInviteEmails = async ({
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
         const verificationToken = await createVerificationToken(user.email, teamId);
 
-        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited();
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`;
         inviteTeamOptions.isCalcomMember = false;
       } else if (!isAutoJoin) {

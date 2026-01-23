@@ -1,6 +1,6 @@
+import { FLAGS_DI_TOKENS } from "@calcom/features/flags/di/tokens";
 import type { IAvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
-
 import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
@@ -18,7 +18,7 @@ availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSl
   checkBookingLimitsService: DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE,
   userAvailabilityService: DI_TOKENS.GET_USER_AVAILABILITY_SERVICE,
   busyTimesService: DI_TOKENS.BUSY_TIMES_SERVICE,
-  featuresRepo: DI_TOKENS.FEATURES_REPOSITORY,
+  teamFeatureRepository: FLAGS_DI_TOKENS.CACHED_TEAM_FEATURE_REPOSITORY,
   qualifiedHostsService: DI_TOKENS.QUALIFIED_HOSTS_SERVICE,
   noSlotsNotificationService: DI_TOKENS.NO_SLOTS_NOTIFICATION_SERVICE,
   orgMembershipLookup: DI_TOKENS.ORG_MEMBERSHIP_LOOKUP,

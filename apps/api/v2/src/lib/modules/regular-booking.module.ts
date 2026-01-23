@@ -1,7 +1,8 @@
+import { Module, Scope } from "@nestjs/common";
 import { Logger } from "@/lib/logger.bridge";
 import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
-import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
+import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
@@ -19,14 +20,13 @@ import { BookingEmailAndSmsTasker } from "@/lib/services/tasker/booking-emails-s
 import { BookingEmailAndSmsTriggerTaskerService } from "@/lib/services/tasker/booking-emails-sms-trigger-tasker.service";
 import { TaskerService } from "@/lib/services/tasker.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { Module, Scope } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule],
   providers: [
     PrismaAttributeRepository,
     PrismaBookingRepository,
-    PrismaFeaturesRepository,
+    PrismaTeamFeatureRepository,
     PrismaHostRepository,
     PrismaOOORepository,
     PrismaUserRepository,

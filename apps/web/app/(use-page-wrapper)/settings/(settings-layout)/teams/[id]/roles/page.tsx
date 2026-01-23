@@ -1,21 +1,18 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { unstable_cache } from "next/cache";
-import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getTeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { AppFlags } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import { Resource, CrudAction, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CrudAction, Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { CreateRoleCTA } from "../../../organizations/roles/_components/CreateRoleCta";
 import { RolesList } from "../../../organizations/roles/_components/RolesList";
 import { roleSearchParamsCache } from "../../../organizations/roles/_components/searchParams";
@@ -33,8 +30,8 @@ const getCachedTeamRoles = (teamId: number) =>
 const getCachedTeamFeature = (teamId: number, feature: keyof AppFlags) =>
   unstable_cache(
     async () => {
-      const featureRepo = new FeaturesRepository(prisma);
-      const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
+      const teamFeatureRepository = getTeamFeatureRepository();
+      const res = await teamFeatureRepository.checkIfTeamHasFeature(teamId, feature);
       return res;
     },
     [`team-feature-for-roles-${teamId}-${feature}`],

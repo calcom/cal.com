@@ -1,12 +1,10 @@
 import type { IncomingHttpHeaders } from "node:http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BotDetectionService } from "./BotDetectionService";
 
 // Mock the botid/server module
@@ -27,16 +25,16 @@ vi.mock("@calcom/lib/logger", () => ({
 
 describe("BotDetectionService", () => {
   let botDetectionService: BotDetectionService;
-  let mockFeaturesRepository: FeaturesRepository;
+  let mockTeamFeatureRepository: ITeamFeatureRepository;
   let mockEventTypeRepository: EventTypeRepository;
   let mockHeaders: IncomingHttpHeaders;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockFeaturesRepository = {
+    mockTeamFeatureRepository = {
       checkIfTeamHasFeature: vi.fn(),
-    } as unknown as FeaturesRepository;
+    } as unknown as ITeamFeatureRepository;
 
     mockEventTypeRepository = {
       getTeamIdByEventTypeId: vi.fn(),
@@ -47,7 +45,7 @@ describe("BotDetectionService", () => {
       "x-forwarded-for": "192.168.1.1",
     };
 
-    botDetectionService = new BotDetectionService(mockFeaturesRepository, mockEventTypeRepository);
+    botDetectionService = new BotDetectionService(mockTeamFeatureRepository, mockEventTypeRepository);
   });
 
   afterEach(() => {
@@ -122,7 +120,7 @@ describe("BotDetectionService", () => {
         headers: mockHeaders,
       });
 
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).not.toHaveBeenCalled();
+      expect(mockTeamFeatureRepository.checkIfTeamHasFeature).not.toHaveBeenCalled();
     });
 
     it("should return early if BotID feature is not enabled for the team", async () => {
@@ -130,7 +128,7 @@ describe("BotDetectionService", () => {
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: 456,
       });
-      vi.mocked(mockFeaturesRepository.checkIfTeamHasFeature).mockResolvedValue(false);
+      vi.mocked(mockTeamFeatureRepository.checkIfTeamHasFeature).mockResolvedValue(false);
 
       const { checkBotId } = await import("botid/server");
 
@@ -147,7 +145,7 @@ describe("BotDetectionService", () => {
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: 456,
       });
-      vi.mocked(mockFeaturesRepository.checkIfTeamHasFeature).mockResolvedValue(true);
+      vi.mocked(mockTeamFeatureRepository.checkIfTeamHasFeature).mockResolvedValue(true);
 
       const { checkBotId } = await import("botid/server");
       vi.mocked(checkBotId).mockResolvedValue({
@@ -180,7 +178,7 @@ describe("BotDetectionService", () => {
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: 456,
       });
-      vi.mocked(mockFeaturesRepository.checkIfTeamHasFeature).mockResolvedValue(true);
+      vi.mocked(mockTeamFeatureRepository.checkIfTeamHasFeature).mockResolvedValue(true);
 
       const { checkBotId } = await import("botid/server");
       vi.mocked(checkBotId).mockResolvedValue({
@@ -207,14 +205,14 @@ describe("BotDetectionService", () => {
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId,
       });
-      vi.mocked(mockFeaturesRepository.checkIfTeamHasFeature).mockResolvedValue(false);
+      vi.mocked(mockTeamFeatureRepository.checkIfTeamHasFeature).mockResolvedValue(false);
 
       await botDetectionService.checkBotDetection({
         eventTypeId: 123,
         headers: mockHeaders,
       });
 
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(teamId, "booker-botid");
+      expect(mockTeamFeatureRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(teamId, "booker-botid");
     });
   });
 });

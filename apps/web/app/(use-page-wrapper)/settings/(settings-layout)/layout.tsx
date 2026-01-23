@@ -6,7 +6,7 @@ import React from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { TeamFeatures } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -16,17 +16,6 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
 import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
-
-const getTeamFeatures = unstable_cache(
-  async (teamId: number) => {
-    const featuresRepository = new FeaturesRepository(prisma);
-    return await featuresRepository.getEnabledTeamFeatures(teamId);
-  },
-  ["team-features"],
-  {
-    revalidate: 120,
-  }
-);
 
 const getCachedResourcePermissions = unstable_cache(
   async (userId: number, teamId: number, resource: Resource) => {
@@ -54,7 +43,8 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
   if (orgId) {
     const isOrgAdminOrOwner = checkAdminOrOwner(session.user.org?.role);
-    const features = await getTeamFeatures(orgId);
+    const teamFeatureRepository = getTeamFeatureRepository();
+    const features = await teamFeatureRepository.getEnabledFeatures(orgId);
 
     if (features) {
       teamFeatures = {

@@ -3,13 +3,16 @@
  * This script is used to prepare local environment for delegation credentials testing.
  * It prepares Acme organization and its owner user with email owner1-acme@example.com to test Delegation Credentials with Calendar Cache
  */
+import process from "node:process";
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
   // Dynamic import for ES module
-  const { FeaturesRepository } = await import("@calcom/features/flags/features.repository");
-  const featuresRepository = new FeaturesRepository(prisma);
+  const { PrismaTeamFeatureRepository } = await import(
+    "@calcom/features/flags/repositories/PrismaTeamFeatureRepository"
+  );
+  const teamFeatureRepository = new PrismaTeamFeatureRepository(prisma);
   // Parse newEmail from args
   const newEmail = process.argv[2] || "hariom@cal.com";
   console.log(`Using newEmail: ${newEmail}`);
@@ -62,12 +65,7 @@ async function main() {
     },
   });
   if (!delegationFeature) {
-    await featuresRepository.setTeamFeatureState({
-      teamId: org.id,
-      featureId: "delegation-credential",
-      state: "enabled",
-      assignedBy: "prepare-local-script",
-    });
+    await teamFeatureRepository.upsert(org.id, "delegation-credential", true, "prepare-local-script");
     console.log("Created TeamFeatures: delegation-credential");
   } else {
     console.log("TeamFeatures: delegation-credential already exists, skipping.");
@@ -84,12 +82,7 @@ async function main() {
     },
   });
   if (!calendarCacheFeature) {
-    await featuresRepository.setTeamFeatureState({
-      teamId: org.id,
-      featureId: "calendar-cache",
-      state: "enabled",
-      assignedBy: "prepare-local-script",
-    });
+    await teamFeatureRepository.upsert(org.id, "calendar-cache", true, "prepare-local-script");
     console.log("Created TeamFeatures: calendar-cache");
   } else {
     console.log("TeamFeatures: calendar-cache already exists, skipping.");

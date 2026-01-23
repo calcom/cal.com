@@ -1,9 +1,7 @@
-import { captureException } from "@sentry/nextjs";
-
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-
+import { captureException } from "@sentry/nextjs";
 import type { FeatureId, TeamFeatures } from "../config";
 
 export interface ITeamFeatureRepository {
@@ -23,6 +21,7 @@ export interface ITeamFeatureRepository {
   findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean>>;
   setAutoOptIn(teamId: number, enabled: boolean): Promise<void>;
   checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean>;
+  getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]>;
   getEnabledFeatures(teamId: number): Promise<TeamFeatures | null>;
 }
 
@@ -222,6 +221,20 @@ export class PrismaTeamFeatureRepository implements ITeamFeatureRepository {
       );
       throw err;
     }
+  }
+
+  async getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]> {
+    const teams = await this.prisma.teamFeatures.findMany({
+      where: {
+        featureId,
+        enabled: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    return teams.map((team) => team.teamId);
   }
 
   /**

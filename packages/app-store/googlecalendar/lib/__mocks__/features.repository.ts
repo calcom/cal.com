@@ -1,11 +1,18 @@
 import { vi } from "vitest";
 
-const featuresRepositoryModuleMock = {
-  FeaturesRepository: vi.fn().mockImplementation(() => ({
-    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
-    checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
-    checkIfUserHasFeatureNonHierarchical: vi.fn().mockResolvedValue(true),
-  })),
+const mockFeatureRepository = {
+  checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
 };
 
-vi.mock("@calcom/features/flags/features.repository", () => featuresRepositoryModuleMock);
+const mockUserFeatureRepository = {
+  checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
+  checkIfUserHasFeatureNonHierarchical: vi.fn().mockResolvedValue(true),
+};
+
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: () => mockFeatureRepository,
+}));
+
+vi.mock("@calcom/features/di/containers/UserFeatureRepository", () => ({
+  getUserFeatureRepository: () => mockUserFeatureRepository,
+}));

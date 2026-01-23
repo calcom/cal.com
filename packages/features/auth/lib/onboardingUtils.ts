@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -49,7 +49,7 @@ export async function checkOnboardingRedirect(
   }
 
   // Check email verification if needed
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featuresRepository = getFeatureRepository();
 
   if (options?.checkEmailVerification) {
     const emailVerificationEnabled =

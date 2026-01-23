@@ -1,19 +1,18 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseRequestData } from "app/api/parseRequestData";
-import { NextResponse, type NextRequest } from "next/server";
-
-import calcomSignupHandler from "./handlers/calcomSignupHandler";
-import selfHostedSignupHandler from "./handlers/selfHostedHandler";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import process from "node:process";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
-import { prisma } from "@calcom/prisma";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
+import { type NextRequest, NextResponse } from "next/server";
+import calcomSignupHandler from "./handlers/calcomSignupHandler";
+import selfHostedSignupHandler from "./handlers/selfHostedHandler";
 
 async function ensureSignupIsEnabled(body: Record<string, string>) {
   const { token } = signupSchema
@@ -25,7 +24,7 @@ async function ensureSignupIsEnabled(body: Record<string, string>) {
   // Still allow signups if there is a team invite
   if (token) return;
 
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featuresRepository = getFeatureRepository();
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || signupDisabled) {

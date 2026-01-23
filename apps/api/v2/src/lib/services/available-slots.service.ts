@@ -1,6 +1,9 @@
+import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
+import { Injectable } from "@nestjs/common";
+import { UserAvailabilityService } from "./user-availability.service";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
-import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
+import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
 import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
@@ -13,11 +16,6 @@ import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification
 import { OrgMembershipLookupService } from "@/lib/services/org-membership-lookup.service";
 import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable } from "@nestjs/common";
-
-import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
-
-import { UserAvailabilityService } from "./user-availability.service";
 
 @Injectable()
 export class AvailableSlotsService extends BaseAvailableSlotsService {
@@ -31,7 +29,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     eventTypeRepository: PrismaEventTypeRepository,
     userRepository: PrismaUserRepository,
     redisService: RedisService,
-    featuresRepository: PrismaFeaturesRepository,
+    teamFeatureRepository: PrismaTeamFeatureRepository,
     qualifiedHostsService: QualifiedHostsService,
     checkBookingLimitsService: CheckBookingLimitsService,
     userAvailabilityService: UserAvailabilityService,
@@ -53,7 +51,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       userAvailabilityService,
       busyTimesService,
       qualifiedHostsService,
-      featuresRepo: featuresRepository,
+      teamFeatureRepository,
       noSlotsNotificationService,
       orgMembershipLookup: orgMembershipLookupService,
     });

@@ -21,7 +21,7 @@ import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTim
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
@@ -111,7 +111,7 @@ export interface IAvailableSlotsService {
   userAvailabilityService: UserAvailabilityService;
   busyTimesService: BusyTimesService;
   redisClient: IRedisService;
-  featuresRepo: FeaturesRepository;
+  teamFeatureRepository: ITeamFeatureRepository;
   qualifiedHostsService: QualifiedHostsService;
   noSlotsNotificationService: NoSlotsNotificationService;
   orgMembershipLookup: OrgMembershipLookup;
@@ -993,7 +993,10 @@ export class AvailableSlotsService {
       return false;
     }
 
-    return await this.dependencies.featuresRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
+    return await this.dependencies.teamFeatureRepository.checkIfTeamHasFeature(
+      teamId,
+      "restriction-schedule"
+    );
   }
 
   /**
@@ -1307,7 +1310,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone ?? "UTC";
+          : (restrictionSchedule.timeZone ?? "UTC");
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
