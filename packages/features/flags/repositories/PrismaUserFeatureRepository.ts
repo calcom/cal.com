@@ -1,16 +1,6 @@
-import { Memoize, Unmemoize } from "@calcom/features/cache";
 import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
-import { UserFeaturesDtoSchema } from "@calcom/lib/dto/UserFeaturesDto";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { FeatureId } from "../config";
-import { booleanSchema } from "./schemas";
-
-const CACHE_PREFIX = "features:user";
-const KEY = {
-  byUserIdAndFeatureId: (userId: number, featureId: string): string =>
-    `${CACHE_PREFIX}:${userId}:${featureId}`,
-  autoOptInByUserId: (userId: number): string => `${CACHE_PREFIX}:autoOptIn:${userId}`,
-};
 
 export interface IUserFeatureRepository {
   findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeaturesDto | null>;
@@ -29,17 +19,13 @@ export interface IUserFeatureRepository {
   setAutoOptIn(userId: number, enabled: boolean): Promise<void>;
 }
 
-export class UserFeatureRepository implements IUserFeatureRepository {
+export class PrismaUserFeatureRepository implements IUserFeatureRepository {
   private prisma: PrismaClient;
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
   }
 
-  @Memoize({
-    key: (userId: number, featureId: FeatureId) => KEY.byUserIdAndFeatureId(userId, featureId),
-    schema: UserFeaturesDtoSchema,
-  })
   async findByUserIdAndFeatureId(userId: number, featureId: FeatureId): Promise<UserFeaturesDto | null> {
     const result = await this.prisma.userFeatures.findUnique({
       where: {
@@ -74,9 +60,6 @@ export class UserFeatureRepository implements IUserFeatureRepository {
     return result;
   }
 
-  @Unmemoize({
-    keys: (userId: number, featureId: FeatureId) => [KEY.byUserIdAndFeatureId(userId, featureId)],
-  })
   async upsert(
     userId: number,
     featureId: FeatureId,
@@ -120,9 +103,6 @@ export class UserFeatureRepository implements IUserFeatureRepository {
     };
   }
 
-  @Unmemoize({
-    keys: (userId: number, featureId: FeatureId) => [KEY.byUserIdAndFeatureId(userId, featureId)],
-  })
   async delete(userId: number, featureId: FeatureId): Promise<void> {
     await this.prisma.userFeatures.delete({
       where: {
@@ -134,10 +114,6 @@ export class UserFeatureRepository implements IUserFeatureRepository {
     });
   }
 
-  @Memoize({
-    key: (userId: number) => KEY.autoOptInByUserId(userId),
-    schema: booleanSchema,
-  })
   async findAutoOptInByUserId(userId: number): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -146,9 +122,6 @@ export class UserFeatureRepository implements IUserFeatureRepository {
     return user?.autoOptInFeatures ?? false;
   }
 
-  @Unmemoize({
-    keys: (userId: number) => [KEY.autoOptInByUserId(userId)],
-  })
   async setAutoOptIn(userId: number, enabled: boolean): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
