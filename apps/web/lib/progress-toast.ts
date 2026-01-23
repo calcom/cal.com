@@ -1,6 +1,7 @@
 import { toastManager } from "@coss/ui/components/toast";
 
 const abortControllers = new Map<string, AbortController>();
+const activeToasts = new Set<string>();
 
 export function showProgressToast(
   progress: number,
@@ -12,15 +13,15 @@ export function showProgressToast(
     abortControllers.set(toastId, abortController);
   }
 
-  const existingToast = toastManager.toasts.find((t) => t.id === toastId);
-
-  if (existingToast) {
+  if (activeToasts.has(toastId)) {
     toastManager.update(toastId, {
       title: message ?? "Downloading...",
       description: `${Math.floor(progress)}%`,
     });
     return toastId;
   }
+
+  activeToasts.add(toastId);
 
   return toastManager.add({
     id: toastId,
@@ -36,6 +37,7 @@ export function showProgressToast(
           controller.abort();
           abortControllers.delete(toastId);
         }
+        activeToasts.delete(toastId);
         toastManager.close(toastId);
       },
     },
@@ -44,5 +46,6 @@ export function showProgressToast(
 
 export function hideProgressToast(toastId = "download-progress"): void {
   abortControllers.delete(toastId);
+  activeToasts.delete(toastId);
   toastManager.close(toastId);
 }
