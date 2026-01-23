@@ -1095,5 +1095,203 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs[0].impersonatedBy).toBeNull();
       });
     });
+
+    describe("when enrichment fails for a single audit log", () => {
+      beforeEach(() => {
+        createMockTeamBooking("booking-uid-123", { teamId: 100 });
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
+      });
+
+      it("should return fallback log with hasError when enrichActorInformation throws for USER actor without userUuid", async () => {
+        createMockAuditLog("booking-uid-123", {
+          id: "failing-log",
+          actorType: "USER",
+          actorUserUuid: null,
+          actorName: "Test Actor",
+        });
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs).toHaveLength(1);
+        expect(result.auditLogs[0].hasError).toBe(true);
+        expect(result.auditLogs[0].actionDisplayTitle).toEqual({
+          key: "booking_audit_action.error_processing",
+          params: { actionType: "CREATED" },
+        });
+        expect(result.auditLogs[0].displayJson).toBeNull();
+        expect(result.auditLogs[0].displayFields).toBeNull();
+        expect(result.auditLogs[0].actor.displayName).toBe("Test Actor");
+        expect(mockLog.error).toHaveBeenCalledWith(
+          expect.stringContaining("Failed to enrich audit log failing-log")
+        );
+      });
+
+      it("should return fallback log with hasError when enrichActorInformation throws for ATTENDEE actor without attendeeId", async () => {
+        createMockAuditLog("booking-uid-123", {
+          id: "failing-attendee-log",
+          actorType: "ATTENDEE",
+          actorUserUuid: null,
+          actorAttendeeId: null,
+          actorName: null,
+        });
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs).toHaveLength(1);
+        expect(result.auditLogs[0].hasError).toBe(true);
+        expect(result.auditLogs[0].actionDisplayTitle).toEqual({
+          key: "booking_audit_action.error_processing",
+          params: { actionType: "CREATED" },
+        });
+        expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
+        expect(mockLog.error).toHaveBeenCalledWith(
+          expect.stringContaining("Failed to enrich audit log failing-attendee-log")
+        );
+      });
+
+      it("should still return other logs when one log fails to enrich", async () => {
+        createMockAuditLog("booking-uid-123", {
+          id: "successful-log",
+          action: "CREATED",
+          actorType: "USER",
+          actorUserUuid: "user-uuid-123",
+        });
+        createMockAuditLog("booking-uid-123", {
+          id: "failing-log",
+          action: "ACCEPTED",
+          actorType: "USER",
+          actorUserUuid: null,
+          actorName: "Failing Actor",
+        });
+        createMockAuditLog("booking-uid-123", {
+          id: "another-successful-log",
+          action: "CANCELLED",
+          actorType: "SYSTEM",
+          actorUserUuid: null,
+          data: {
+            version: 1,
+            fields: {
+              status: { old: "ACCEPTED", new: "CANCELLED" },
+              cancellationReason: "Test",
+              cancelledBy: "user-123",
+            },
+          },
+        });
+
+        createMockUser("user-uuid-123");
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs).toHaveLength(3);
+
+        expect(result.auditLogs[0].id).toBe("successful-log");
+        expect(result.auditLogs[0].hasError).toBeUndefined();
+
+        expect(result.auditLogs[1].id).toBe("failing-log");
+        expect(result.auditLogs[1].hasError).toBe(true);
+        expect(result.auditLogs[1].actor.displayName).toBe("Failing Actor");
+
+        expect(result.auditLogs[2].id).toBe("another-successful-log");
+        expect(result.auditLogs[2].hasError).toBeUndefined();
+        expect(result.auditLogs[2].actor.displayName).toBe("Cal.com");
+      });
+
+      it("should log error message when enrichment fails", async () => {
+        createMockAuditLog("booking-uid-123", {
+          id: "error-log-id",
+          actorType: "USER",
+          actorUserUuid: null,
+        });
+
+        await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(mockLog.error).toHaveBeenCalledWith(
+          expect.stringMatching(/Failed to enrich audit log error-log-id: .+/)
+        );
+      });
+
+      it("should preserve basic log information in fallback", async () => {
+        const timestamp = new Date("2024-01-15T10:00:00Z");
+        const createdAt = new Date("2024-01-15T09:00:00Z");
+
+        createMockAuditLog("booking-uid-123", {
+          id: "fallback-test-log",
+          action: "CREATED",
+          type: "RECORD_CREATED",
+          timestamp,
+          createdAt,
+          actorType: "USER",
+          actorUserUuid: null,
+          actorName: "Test Name",
+        });
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs[0]).toMatchObject({
+          id: "fallback-test-log",
+          bookingUid: "booking-uid-123",
+          action: "CREATED",
+          type: "RECORD_CREATED",
+          timestamp: timestamp.toISOString(),
+          createdAt: createdAt.toISOString(),
+          source: "WEBAPP",
+          hasError: true,
+          actor: expect.objectContaining({
+            type: "USER",
+            displayName: "Test Name",
+          }),
+        });
+      });
+
+      it("should use 'Unknown' as displayName when actor name is null in fallback", async () => {
+        createMockAuditLog("booking-uid-123", {
+          id: "null-name-log",
+          actorType: "USER",
+          actorUserUuid: null,
+          actorName: null,
+        });
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs[0].hasError).toBe(true);
+        expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
+      });
+    });
   });
 });
