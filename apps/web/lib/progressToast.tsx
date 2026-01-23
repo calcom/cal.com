@@ -1,22 +1,34 @@
+import { Progress } from "@coss/ui/components/progress";
 import { toastManager } from "@coss/ui/components/toast";
 
 const abortControllers = new Map<string, AbortController>();
 const activeToasts = new Set<string>();
 
-export function showProgressToast(
-  progress: number,
-  message?: string,
-  toastId = "download-progress",
-  abortController?: AbortController
-): string {
+interface ShowProgressToastOptions {
+  progress: number;
+  toastId: string;
+  title: string;
+  cancelLabel: string;
+  abortController?: AbortController;
+}
+
+export function showProgressToast({
+  progress,
+  toastId,
+  title,
+  cancelLabel,
+  abortController,
+}: ShowProgressToastOptions): string {
   if (abortController) {
     abortControllers.set(toastId, abortController);
   }
 
+  const progressValue = Math.floor(progress);
+
   if (activeToasts.has(toastId)) {
     toastManager.update(toastId, {
-      title: message ?? "Downloading...",
-      description: `${Math.floor(progress)}%`,
+      title,
+      description: <Progress value={progressValue} />,
     });
     return toastId;
   }
@@ -26,11 +38,11 @@ export function showProgressToast(
   return toastManager.add({
     id: toastId,
     type: "loading",
-    title: message ?? "Downloading...",
-    description: `${Math.floor(progress)}%`,
+    title,
+    description: <Progress value={progressValue} />,
     timeout: Infinity,
     actionProps: {
-      children: "Cancel",
+      children: cancelLabel,
       onClick: () => {
         const controller = abortControllers.get(toastId);
         if (controller) {
@@ -44,7 +56,7 @@ export function showProgressToast(
   });
 }
 
-export function hideProgressToast(toastId = "download-progress"): void {
+export function hideProgressToast(toastId: string): void {
   abortControllers.delete(toastId);
   activeToasts.delete(toastId);
   toastManager.close(toastId);

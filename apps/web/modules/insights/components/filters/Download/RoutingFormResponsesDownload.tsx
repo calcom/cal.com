@@ -11,7 +11,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 
-import { useCsvDownload } from "@lib/use-csv-download";
+import { useCsvDownload } from "@lib/hooks/useCsvDownload";
 
 type Props = {
   sorting: SortingState;
@@ -26,6 +26,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const utils = trpc.useUtils();
 
   const { isDownloading, handleDownload } = useCsvDownload({
+    toastId: "routing-form-responses-csv-download",
     fetchBatch: async (offset) => {
       const result = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
         ...insightsRoutingParameters,
@@ -38,6 +39,8 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
     getFilename: () =>
       `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format("YYYY-MM-DD")}.csv`,
     errorMessage: t("error_downloading_data"),
+    toastTitle: t("downloading"),
+    cancelLabel: t("cancel"),
   });
 
   return (

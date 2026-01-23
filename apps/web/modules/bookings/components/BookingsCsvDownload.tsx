@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Button } from "@calcom/ui/components/button";
 
-import { useCsvDownload } from "@lib/use-csv-download";
+import { useCsvDownload } from "@lib/hooks/useCsvDownload";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import type { BookingListingStatus } from "../types";
 
@@ -43,6 +43,7 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
     useBookingFilters();
 
   const { isDownloading, handleDownload } = useCsvDownload({
+    toastId: "bookings-csv-download",
     fetchBatch: async (offset) => {
       const result = await utils.viewer.bookings.get.fetch({
         limit: BATCH_SIZE,
@@ -66,6 +67,8 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
     transform: (booking) => transformBookingToCsv(booking, t),
     getFilename: () => `${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`,
     errorMessage: t("unexpected_error_try_again"),
+    toastTitle: t("downloading"),
+    cancelLabel: t("cancel"),
   });
 
   // Only show for users who are part of an organization

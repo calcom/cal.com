@@ -12,7 +12,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import posthog from "posthog-js";
 
-import { useCsvDownload } from "@lib/use-csv-download";
+import { useCsvDownload } from "@lib/hooks/useCsvDownload";
 import { useInsightsBookingParameters } from "../../../hooks/useInsightsBookingParameters";
 
 type RawData = RouterOutputs["viewer"]["insights"]["rawData"]["data"][number];
@@ -26,6 +26,7 @@ const Download = () => {
   const utils = trpc.useUtils();
 
   const { isDownloading, handleDownload } = useCsvDownload({
+    toastId: "insights-csv-download",
     fetchBatch: async (offset) => {
       try {
         const result = await utils.viewer.insights.rawData.fetch({
@@ -45,6 +46,8 @@ const Download = () => {
     getFilename: () =>
       `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format("YYYY-MM-DD")}.csv`,
     errorMessage: t("unexpected_error_try_again"),
+    toastTitle: t("downloading"),
+    cancelLabel: t("cancel"),
     onDownloadStart: () => {
       posthog.capture("insights_bookings_download_clicked", { teamId: insightsBookingParams.selectedTeamId });
     },
