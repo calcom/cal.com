@@ -49,7 +49,9 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   };
 
   const handleSkip = async () => {
-    posthog.capture("onboarding_organization_invite_skip_clicked");
+    posthog.capture("onboarding_organization_invite_skip_clicked", {
+      featureType: "organization",
+    });
     setInvites([]);
     await submitOnboarding(store, userEmail, []);
   };
@@ -70,7 +72,9 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                 color="minimal"
                 className="rounded-[10px]"
                 onClick={() => {
-                  posthog.capture("onboarding_organization_invite_back_clicked");
+                  posthog.capture("onboarding_organization_invite_back_clicked", {
+                  featureType: "organization",
+                });
                   router.push("/onboarding/organization/teams");
                 }}
                 disabled={isSubmitting}>

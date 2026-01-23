@@ -53,7 +53,10 @@ const Download = () => {
 
   const handleDownloadClick = async () => {
     try {
-      posthog.capture("insights_bookings_download_clicked", { teamId: insightsBookingParams.selectedTeamId });
+      posthog.capture("insights_bookings_download_clicked", {
+        teamId: insightsBookingParams.selectedTeamId,
+        featureType: "organization",
+      });
       setIsDownloading(true);
       showProgressToast(0);
       let allData: RawData[] = [];

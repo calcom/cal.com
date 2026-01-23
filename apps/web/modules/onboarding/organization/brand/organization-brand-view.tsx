@@ -73,11 +73,12 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleContinue = () => {
-    posthog.capture("onboarding_organization_brand_continue_clicked", {
-      has_logo: !!logoPreview,
-      has_banner: !!bannerPreview,
-      has_custom_color: brandColor !== "#000000",
-    });
+        posthog.capture("onboarding_organization_brand_continue_clicked", {
+          has_logo: !!logoPreview,
+          has_banner: !!bannerPreview,
+          has_custom_color: brandColor !== "#000000",
+          featureType: "organization",
+        });
     // Save to store (already saved on change, but ensure it's persisted)
     setOrganizationBrand({
       logo: logoPreview,
@@ -88,7 +89,9 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleSkip = () => {
-    posthog.capture("onboarding_organization_brand_skip_clicked");
+    posthog.capture("onboarding_organization_brand_skip_clicked", {
+      featureType: "organization",
+    });
     // Skip brand customization and go to teams
     router.push("/onboarding/organization/teams");
   };
@@ -105,7 +108,9 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               color="minimal"
               className="rounded-[10px]"
               onClick={() => {
-                posthog.capture("onboarding_organization_brand_back_clicked");
+                posthog.capture("onboarding_organization_brand_back_clicked", {
+                  featureType: "organization",
+                });
                 router.push("/onboarding/organization/details");
               }}>
               {t("back")}

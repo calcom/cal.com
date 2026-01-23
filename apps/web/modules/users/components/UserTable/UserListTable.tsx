@@ -773,7 +773,9 @@ function UserListTableContent({
                       showModal: true,
                     },
                   });
-                  posthog.capture("add_organization_member_clicked");
+                  posthog.capture("add_organization_member_clicked", {
+                    featureType: "organization",
+                  });
                 }}
                 data-testid="new-organization-member-button"
               >
