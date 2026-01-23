@@ -34,6 +34,7 @@ import {
   Redirect,
   Req,
   HttpException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
@@ -104,6 +105,10 @@ export class ConferencingController {
   ): Promise<GetConferencingAppsOauthUrlResponseDto> {
     const origin = req.headers.origin;
     const accessToken = extractBearerToken(authorization);
+
+    if (!accessToken) {
+      throw new UnauthorizedException("Valid Bearer token is required");
+    }
 
     const state: OAuthCallbackState = {
       returnTo: returnTo ?? origin,

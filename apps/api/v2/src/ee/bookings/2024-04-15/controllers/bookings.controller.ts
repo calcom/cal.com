@@ -410,17 +410,29 @@ export class BookingsController_2024_04_15 {
   private async getOwner(req: Request): Promise<{ id: number; uuid: string } | null> {
     try {
       const bearerToken = extractBearerToken(req.get("Authorization"));
-      if (bearerToken) {
-        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
-          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-          const apiKeyHash = sha256Hash(strippedApiKey);
-          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
-          return keyData?.userId;
-        } else {
-          // Access Token
-          const ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
-          return ownerId;
-        }
+      if (!bearerToken) {
+        return null;
+      }
+
+      let ownerId: number | null = null;
+
+      if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+        const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+        const apiKeyHash = sha256Hash(strippedApiKey);
+        const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+        ownerId = keyData?.userId ?? null;
+      } else {
+        // Access Token
+        ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
+      }
+
+      if (!ownerId) {
+        return null;
+      }
+
+      const user = await this.usersRepository.findById(ownerId);
+      if (!user) {
+        return null;
       }
 
       return { id: user.id, uuid: user.uuid };
