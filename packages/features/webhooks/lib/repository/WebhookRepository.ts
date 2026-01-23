@@ -286,6 +286,7 @@ export class WebhookRepository implements IWebhookRepository {
         teamId: orgId,
         platform: false,
         eventTriggers: { has: triggerEvent },
+        active: true,
       },
       select: {
         id: true,
