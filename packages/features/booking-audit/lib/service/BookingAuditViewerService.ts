@@ -151,7 +151,7 @@ export class BookingAuditViewerService {
             : null;
 
         const displayFields = actionService.getDisplayFields
-            ? actionService.getDisplayFields(parsedData)
+            ? await actionService.getDisplayFields(parsedData)
             : null;
 
         const impersonatedBy = await this.enrichImpersonator(log.context);
