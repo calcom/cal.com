@@ -13,10 +13,11 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export function Authorize() {
   const { t } = useLocale();
-  const { status } = useSession();
+  const { status, data: session } = useSession();
 
   const router = useRouter();
   const searchParams = useCompatSearchParams();
@@ -27,6 +28,7 @@ export function Authorize() {
   const scope = searchParams?.get("scope") as string;
   const code_challenge = searchParams?.get("code_challenge") as string;
   const code_challenge_method = searchParams?.get("code_challenge_method") as string;
+  const show_account_selector = searchParams?.get("show_account_selector") === "true";
 
   const queryString = searchParams?.toString();
 
@@ -48,7 +50,9 @@ export function Authorize() {
   );
 
   const { data, isPending: isPendingProfiles } =
-    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery();
+    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery(undefined, {
+      enabled: show_account_selector,
+    });
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
@@ -76,14 +80,14 @@ export function Authorize() {
     : [];
 
   useEffect(() => {
-    if (mappedProfiles.length > 0) {
+    if (show_account_selector && mappedProfiles.length > 0) {
       setSelectedAccount(mappedProfiles[0]);
     }
-  }, [isPendingProfiles]);
+  }, [isPendingProfiles, show_account_selector]);
 
   // Auto-authorize trusted clients
   useEffect(() => {
-    if (client?.isTrusted && selectedAccount) {
+    if (client?.isTrusted) {
       generateAuthCodeMutation.mutate({
         clientId: client_id as string,
         redirectUri: client.redirectUri,
@@ -113,7 +117,7 @@ export function Authorize() {
     return <div>{getClientError.message}</div>;
   }
 
-  if (isPendingGetClient || isPendingProfiles || status !== "authenticated") {
+  if (isPendingGetClient || (show_account_selector && isPendingProfiles) || status !== "authenticated") {
     return <></>;
   }
 
@@ -122,7 +126,7 @@ export function Authorize() {
   }
 
   // Don't show UI for trusted clients, they'll auto-authorize
-  if (client.isTrusted && selectedAccount) {
+  if (client.isTrusted) {
     return (
       <div className="flex justify-center pt-32">
         <div className="flex items-center space-x-3">
@@ -133,40 +137,60 @@ export function Authorize() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="bg-default border-subtle mt-2 max-w-xl rounded-md border px-9 pt-2 pb-3">
-        <div className="flex items-center justify-center">
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="px-9 pt-2 pb-3 mt-2 max-w-xl rounded-md border bg-default border-subtle">
+        <div className="flex justify-center items-center">
           <Avatar
             alt=""
-            fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+            fallback={<Icon name="plus" className="w-6 h-6 text-subtle" />}
             className="items-center"
             imageSrc={client.logo}
             size="lg"
           />
-          <div className="relative -ml-6 h-24 w-24">
-            <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative -ml-6 w-24 h-24">
+            <div className="flex absolute inset-0 justify-center items-center">
               <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
-                <img src="/cal-com-icon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
+                <img src="/cal-com-icon.svg" alt="Logo" className="w-16 h-16 rounded-full" />
               </div>
             </div>
           </div>
         </div>
-        <h1 className="px-5 pt-3 pb-5 text-center text-2xl font-bold tracking-tight">
+        <h1 className="px-5 pt-3 pb-3 text-2xl font-semibold tracking-tight text-center">
           {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
         </h1>
-        <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
-        <Select
-          isSearchable={true}
-          id="account-select"
-          onChange={(value) => {
-            setSelectedAccount(value);
-          }}
-          className="w-52"
-          defaultValue={selectedAccount || mappedProfiles[0]}
-          options={mappedProfiles}
-        />
-        <div className="mt-5 mb-4 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
-        <ul className="stack-y-4 text-sm">
+        {!show_account_selector && (
+          <div className="flex flex-col justify-center items-center mb-6 text-sm text-gray-600">
+            <div className="flex gap-2 items-center">
+              <Avatar
+                size="sm"
+                alt={session?.user?.name || session?.user?.email || ""}
+                imageSrc={session?.user?.image || undefined}
+              />
+              <Tooltip content={session?.user?.email} side="bottom">
+                <span className="cursor-default">
+                  Signed in as {session?.user?.name || session?.user?.email}
+                </span>
+              </Tooltip>
+            </div>
+          </div>
+        )}
+        {show_account_selector && (
+          <>
+            <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
+            <Select
+              isSearchable={true}
+              id="account-select"
+              onChange={(value) => {
+                setSelectedAccount(value);
+              }}
+              className="w-52"
+              defaultValue={selectedAccount || mappedProfiles[0]}
+              options={mappedProfiles}
+            />
+          </>
+        )}
+        <div className="mt-5 mb-4 text-base font-medium">{t("allow_client_to", { clientName: client.name })}</div>
+        <ul className="text-sm stack-y-4">
           <li className="relative pl-5">
             <span className="absolute left-0">&#10003;</span>{" "}
             {t("associate_with_cal_account", { clientName: client.name })}
@@ -190,7 +214,7 @@ export function Authorize() {
             <span className="absolute left-0">&#10003;</span> {t("access_bookings")}
           </li>
         </ul>
-        <div className="bg-subtle mt-8 mb-8 flex rounded-md p-3">
+        <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
           <div>
             <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
@@ -201,7 +225,7 @@ export function Authorize() {
             <div className="text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
           </div>
         </div>
-        <div className="border-subtle border- -mx-9 mb-4 border-b" />
+        <div className="-mx-9 mb-4 border-b border-subtle border-" />
         <div className="flex justify-end">
           <Button
             className="mr-2"
@@ -215,7 +239,7 @@ export function Authorize() {
               }
               window.location.href = `${client.redirectUri}${separator}${params.toString()}`;
             }}>
-            {t("go_back")}
+            {t("cancel")}
           </Button>
           <Button
             onClick={() => {
