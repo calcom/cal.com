@@ -52,6 +52,7 @@ type EnrichedAuditLog = {
         displayEmail: string | null;
         displayAvatar: string | null;
     } | null;
+    hasError?: boolean;
 };
 
 export type DisplayBookingAuditLog = EnrichedAuditLog;
@@ -112,7 +113,14 @@ export class BookingAuditViewerService {
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map((log) => this.enrichAuditLog(log, userTimeZone))
+            auditLogs.map(async (log) => {
+                try {
+                    return await this.enrichAuditLog(log, userTimeZone);
+                } catch (error) {
+                    this.log.error(`Failed to enrich audit log ${log.id}: ${error instanceof Error ? error.message : String(error)}`);
+                    return this.buildFallbackAuditLog(log);
+                }
+            })
         );
 
         const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
@@ -182,6 +190,40 @@ export class BookingAuditViewerService {
             impersonatedBy,
         };
     }
+
+    /**
+     * Builds a minimal fallback audit log when enrichment fails.
+     * Returns a log entry with hasError: true and basic information from the raw log.
+     */
+    private buildFallbackAuditLog(log: BookingAuditWithActor): EnrichedAuditLog {
+        return {
+            id: log.id,
+            bookingUid: log.bookingUid,
+            type: log.type,
+            action: log.action,
+            timestamp: log.timestamp.toISOString(),
+            createdAt: log.createdAt.toISOString(),
+            source: log.source,
+            operationId: log.operationId,
+            displayJson: null,
+            actionDisplayTitle: { key: "booking_audit_action.error_processing", params: { actionType: log.action } },
+            displayFields: null,
+            actor: {
+                id: log.actor.id,
+                type: log.actor.type,
+                userUuid: log.actor.userUuid,
+                attendeeId: log.actor.attendeeId,
+                name: log.actor.name,
+                createdAt: log.actor.createdAt,
+                displayName: log.actor.name || "Unknown",
+                displayEmail: null,
+                displayAvatar: null,
+            },
+            impersonatedBy: null,
+            hasError: true,
+        };
+    }
+
     /**
      * Builds a "rescheduled from" log entry for bookings created from a reschedule.
      * Fetches the RESCHEDULED log from the previous booking and transforms it
