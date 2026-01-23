@@ -1,9 +1,11 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PayloadBuilderFactory } from "../../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookDataFetcher } from "../../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
 import { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
+import type { IWebhookService } from "../../interface/services";
 import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { WebhookTaskConsumer } from "../WebhookTaskConsumer";
 
@@ -17,6 +19,8 @@ describe("WebhookTaskConsumer", () => {
   let consumer: WebhookTaskConsumer;
   let mockWebhookRepository: IWebhookRepository;
   let mockDataFetchers: IWebhookDataFetcher[];
+  let mockPayloadBuilderFactory: PayloadBuilderFactory;
+  let mockWebhookService: IWebhookService;
   let mockLogger: ILogger;
 
   beforeEach(() => {
@@ -61,6 +65,21 @@ describe("WebhookTaskConsumer", () => {
       createMockFetcher([WebhookTriggerEvents.OOO_CREATED]),
     ];
 
+    // Mock PayloadBuilderFactory
+    mockPayloadBuilderFactory = {
+      getBuilder: vi.fn().mockReturnValue({
+        build: vi.fn().mockReturnValue({ triggerEvent: "BOOKING_CREATED", payload: {} }),
+      }),
+    } as unknown as PayloadBuilderFactory;
+
+    // Mock WebhookService
+    mockWebhookService = {
+      processWebhooks: vi.fn().mockResolvedValue(undefined),
+      getSubscribers: vi.fn(),
+      scheduleTimeBasedWebhook: vi.fn(),
+      cancelScheduledWebhooks: vi.fn(),
+    } as unknown as IWebhookService;
+
     // Mock Logger
     mockLogger = {
       debug: vi.fn(),
@@ -70,7 +89,13 @@ describe("WebhookTaskConsumer", () => {
       getSubLogger: vi.fn().mockReturnThis(),
     } as unknown as ILogger;
 
-    consumer = new WebhookTaskConsumer(mockWebhookRepository, mockDataFetchers, mockLogger);
+    consumer = new WebhookTaskConsumer(
+      mockWebhookRepository,
+      mockDataFetchers,
+      mockPayloadBuilderFactory,
+      mockWebhookService,
+      mockLogger
+    );
   });
 
   describe("Constructor & Dependencies", () => {
