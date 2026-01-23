@@ -1172,4 +1172,35 @@ export class BookingRepository {
       },
     });
   }
+
+  async findDistinctTeamIdsByCreatedDateRange({ startDate }: { startDate: Date }): Promise<number[]> {
+    const recentBookings = await this.prismaClient.booking.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+        eventType: {
+          teamId: {
+            not: null,
+          },
+        },
+      },
+      select: {
+        eventType: {
+          select: {
+            teamId: true,
+          },
+        },
+      },
+      distinct: ["eventTypeId"],
+    });
+
+    return Array.from(
+      new Set(
+        recentBookings
+          .map((booking) => booking.eventType?.teamId)
+          .filter((teamId): teamId is number => teamId !== null && teamId !== undefined)
+      )
+    );
+  }
 }

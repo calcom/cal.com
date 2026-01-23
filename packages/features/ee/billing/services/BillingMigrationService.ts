@@ -1,8 +1,10 @@
-import type { PrismaClient } from "@calcom/prisma";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { Plan, SubscriptionStatus } from "../repository/IBillingRepository";
 import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
+import type { TeamBillingRepository } from "../teams/team-billing.repository";
+import type { TeamWithBillingRecords } from "../teams/team-billing.repository.interface";
 
 export interface BillingMigrationResult {
   ok: boolean;
@@ -19,22 +21,21 @@ export interface BillingMigrationInput {
   lookbackHours: number;
 }
 
-interface TeamForMigration {
-  id: number;
-  isOrganization: boolean;
-  metadata: unknown;
-  teamBilling: { id: string } | null;
-  organizationBilling: { id: string } | null;
+export interface IBillingMigrationServiceDeps {
+  bookingRepository: BookingRepository;
+  teamBillingRepository: TeamBillingRepository;
 }
 
 export class BillingMigrationService {
-  constructor(private readonly prismaClient: PrismaClient) {}
+  constructor(private readonly deps: IBillingMigrationServiceDeps) {}
 
   async migrateTeamBillingFromBookings(input: BillingMigrationInput): Promise<BillingMigrationResult> {
     const { lookbackHours } = input;
     const lookbackDate = new Date(Date.now() - lookbackHours * 60 * 60 * 1000);
 
-    const uniqueTeamIds = await this.findTeamIdsFromRecentBookings(lookbackDate);
+    const uniqueTeamIds = await this.deps.bookingRepository.findDistinctTeamIdsByCreatedDateRange({
+      startDate: lookbackDate,
+    });
 
     let migratedCount = 0;
     let skippedCount = 0;
@@ -68,39 +69,8 @@ export class BillingMigrationService {
     };
   }
 
-  private async findTeamIdsFromRecentBookings(lookbackDate: Date): Promise<number[]> {
-    const recentBookings = await this.prismaClient.booking.findMany({
-      where: {
-        createdAt: {
-          gte: lookbackDate,
-        },
-        eventType: {
-          teamId: {
-            not: null,
-          },
-        },
-      },
-      select: {
-        eventType: {
-          select: {
-            teamId: true,
-          },
-        },
-      },
-      distinct: ["eventTypeId"],
-    });
-
-    return Array.from(
-      new Set(
-        recentBookings
-          .map((booking) => booking.eventType?.teamId)
-          .filter((teamId): teamId is number => teamId !== null && teamId !== undefined)
-      )
-    );
-  }
-
   private async migrateTeamBilling(teamId: number): Promise<{ migrated: boolean; reason?: string }> {
-    const team = await this.findTeamForMigration(teamId);
+    const team = await this.deps.teamBillingRepository.findByIdIncludeBillingRecords(teamId);
 
     if (!team) {
       return { migrated: false, reason: "Team not found" };
@@ -130,28 +100,7 @@ export class BillingMigrationService {
     return { migrated: true };
   }
 
-  private async findTeamForMigration(teamId: number): Promise<TeamForMigration | null> {
-    return this.prismaClient.team.findUnique({
-      where: { id: teamId },
-      select: {
-        id: true,
-        isOrganization: true,
-        metadata: true,
-        teamBilling: {
-          select: {
-            id: true,
-          },
-        },
-        organizationBilling: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-  }
-
-  private isAlreadyMigrated(team: TeamForMigration): boolean {
+  private isAlreadyMigrated(team: TeamWithBillingRecords): boolean {
     return team.isOrganization ? team.organizationBilling !== null : team.teamBilling !== null;
   }
 }

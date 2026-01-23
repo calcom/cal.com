@@ -1,7 +1,7 @@
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import type { ITeamBillingRepository } from "./team-billing.repository.interface";
+import type { ITeamBillingRepository, TeamWithBillingRecords } from "./team-billing.repository.interface";
 import { teamBillingSelect } from "./team-billing.repository.interface";
 
 const stubTeam = { id: -1, metadata: {}, isOrganization: true, parentId: -1 };
@@ -30,5 +30,26 @@ export class TeamBillingRepository implements ITeamBillingRepository {
   async findMany(teamIds: number[]) {
     if (!IS_TEAM_BILLING_ENABLED) return [];
     return prisma.team.findMany({ where: { id: { in: teamIds } }, select: teamBillingSelect });
+  }
+
+  async findByIdIncludeBillingRecords(teamId: number): Promise<TeamWithBillingRecords | null> {
+    return prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        isOrganization: true,
+        metadata: true,
+        teamBilling: {
+          select: {
+            id: true,
+          },
+        },
+        organizationBilling: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   }
 }
