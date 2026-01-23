@@ -1,10 +1,11 @@
+import type { Logger } from "tslog";
+
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { HttpError } from "@calcom/lib/http-error";
-import type logger from "@calcom/lib/logger";
 import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
@@ -163,13 +164,13 @@ async function getEventOrganizationId({
 }
 
 export interface IBookingDataPreparationServiceDependencies {
-  log: typeof logger;
+  log: Logger<unknown>;
   bookingRepository: BookingRepository;
   userRepository: UserRepository;
 }
 
 export class BookingDataPreparationService {
-  private readonly log: typeof logger;
+  private readonly log: Logger<unknown>;
   private readonly bookingRepository: BookingRepository;
   private readonly userRepository: UserRepository;
 
