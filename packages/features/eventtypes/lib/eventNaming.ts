@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
+import { getFirstName } from "@calcom/lib/getFirstName";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
@@ -55,8 +56,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     eventName = eventName.replace("{LOCATION}", locationString);
   }
 
-  // Use hostGivenName if provided, otherwise fall back to splitting the host name
-  const hostFirstName = eventNameObj.hostGivenName || eventNameObj.host.split(" ")[0];
+  const hostFirstName = getFirstName(eventNameObj.host, eventNameObj.hostGivenName);
 
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
@@ -71,7 +71,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`)
     .replaceAll(
       "{Scheduler first name}",
-      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeName.split(" ")[0]
+      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : getFirstName(attendeeName)
     );
 
   const { bookingFields } = eventNameObj || {};
