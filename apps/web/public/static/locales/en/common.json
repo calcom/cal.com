@@ -4389,6 +4389,7 @@
     "seat_booked": "Seat booked",
     "seat_rescheduled": "Seat rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
     "assignment_type": "Assignment",
+    "previous_assignee": "Previous assignee",
     "assignment_type_manual": "Manual",
     "assignment_type_round_robin": "Round robin",
     "actor_impersonated_by": "Impersonator",
