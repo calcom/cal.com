@@ -217,8 +217,10 @@ const BookerComponent = ({
   );
 
   // Cloudflare Turnstile Captcha
+  // Note: process.env may be undefined in embed contexts, so we safely check it
+  const isE2E = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_IS_E2E;
   const shouldRenderCaptcha = !!(
-    !process.env.NEXT_PUBLIC_IS_E2E &&
+    !isE2E &&
     renderCaptcha &&
     CLOUDFLARE_SITE_ID &&
     CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
