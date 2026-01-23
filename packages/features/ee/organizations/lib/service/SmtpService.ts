@@ -2,8 +2,7 @@ import type { TFunction } from "i18next";
 import { createTransport } from "nodemailer";
 import type { Options as SMTPTransportOptions } from "nodemailer/lib/smtp-transport";
 
-import { APP_NAME } from "@calcom/lib/constants";
-import renderEmail from "@calcom/emails/src/renderEmail";
+import SmtpTestEmail from "@calcom/emails/templates/smtp-test-email";
 
 export interface SmtpConfig {
   host: string;
@@ -60,33 +59,17 @@ export class SmtpService {
     const transport = createTransport(this.createTransportOptions(config));
 
     try {
-      const html = await renderEmail("SmtpTestEmail", {
+      const emailTemplate = new SmtpTestEmail({
         language,
+        toEmail: "amit@cal.com",
         fromEmail,
+        fromName,
         smtpHost: config.host,
         smtpPort: config.port,
       });
 
-      const textBody = `
-${language("smtp_test_email_subject", { appName: APP_NAME })}
-
-${language("smtp_test_email_body", { appName: APP_NAME })}
-
-${language("smtp_test_email_config_details")}
-${language("from_email")}: ${fromEmail}
-${language("smtp_host")}: ${config.host}
-${language("smtp_port")}: ${config.port}
-
-${language("happy_scheduling")}
-`.trim();
-
-      await transport.sendMail({
-        from: fromName ? `"${fromName}" <${fromEmail}>` : fromEmail,
-        to: toEmail,
-        subject: language("smtp_test_email_subject", { appName: APP_NAME }),
-        text: textBody,
-        html,
-      });
+      const payload = await emailTemplate.getNodeMailerPayload();
+      await transport.sendMail(payload);
 
       return { success: true };
     } catch (err) {

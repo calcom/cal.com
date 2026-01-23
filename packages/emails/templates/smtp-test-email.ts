@@ -23,7 +23,7 @@ export default class SmtpTestEmail extends BaseEmail {
     this.input = input;
   }
 
-  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+  public async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: this.input.toEmail,
       from: this.input.fromName
