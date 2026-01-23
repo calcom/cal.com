@@ -81,7 +81,6 @@ function usersWithSelectedCalendars<
 export class EventTypeRepository implements IEventTypesRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  // TODO: Confirm if we can improve performance of this query by indexing/compound indexing
   async findParentEventTypeId(eventTypeId: number): Promise<number | null> {
     const managedChildEventType = await this.prismaClient.eventType.findFirst({
       where: {
