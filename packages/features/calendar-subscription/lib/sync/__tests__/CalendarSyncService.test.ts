@@ -21,6 +21,12 @@ vi.mock("@calcom/features/bookings/di/RegularBookingService.container", () => ({
   }),
 }));
 
+vi.mock("@calcom/lib/idempotencyKey/idempotencyKeyService", () => ({
+  IdempotencyKeyService: {
+    generate: vi.fn(() => "test-idempotency-key"),
+  },
+}));
+
 const mockSelectedCalendar: SelectedCalendar = {
   id: "test-calendar-id",
   userId: 1,
@@ -61,6 +67,20 @@ const mockBooking = {
   userPrimaryEmail: "user@example.com",
   startTime: new Date("2023-12-01T10:00:00Z"),
   endTime: new Date("2023-12-01T11:00:00Z"),
+  title: "Test Booking",
+  description: "Initial notes",
+  location: "Test Location",
+  smsReminderNumber: "+123456789",
+  responses: {
+    name: "John Doe",
+    email: "john@example.com",
+    notes: "Initial notes",
+    location: {
+      value: "Test Location",
+      label: "Test Location",
+      optionValue: "Test Location",
+    },
+  },
   eventTypeId: 1,
   eventType: {
     id: 1,
@@ -266,6 +286,9 @@ describe("CalendarSyncService", () => {
         ...mockCalComEvent,
         start: new Date("2023-12-01T14:00:00Z"),
         end: new Date("2023-12-01T15:00:00Z"),
+        summary: "Updated summary",
+        description: "Updated description",
+        location: "Updated location",
       };
 
       mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
@@ -283,13 +306,38 @@ describe("CalendarSyncService", () => {
           end: "2023-12-01T15:00:00.000Z",
           timeZone: "UTC",
           language: "en",
-          metadata: {},
+          metadata: expect.objectContaining({
+            calendarSubscriptionEvent: expect.any(String),
+          }),
           rescheduleUid: mockBooking.uid,
+          idempotencyKey: expect.any(String),
+          responses: expect.objectContaining({
+            title: "Updated summary",
+            notes: "Updated description",
+            location: {
+              label: "Updated location",
+              optionValue: "Updated location",
+              value: "Updated location",
+            },
+          }),
         },
         bookingMeta: {
           skipCalendarSyncTaskCreation: true,
+          skipAvailabilityCheck: true,
+          skipEventLimitsCheck: true,
         },
       });
+      const lastCall = mockCreateBooking.mock.calls.at(-1)!;
+      const parsedMetadataUpdated = JSON.parse(
+        lastCall[0].bookingData.metadata.calendarSubscriptionEvent as string
+      );
+      expect(parsedMetadataUpdated).toEqual(
+        expect.objectContaining({
+          summary: "Updated summary",
+          description: "Updated description",
+          location: "Updated location",
+        })
+      );
     });
 
     test("should use original times when event times are null", async () => {
@@ -310,13 +358,76 @@ describe("CalendarSyncService", () => {
           end: "2023-12-01T11:00:00.000Z",
           timeZone: "UTC",
           language: "en",
-          metadata: {},
+          metadata: expect.objectContaining({
+            calendarSubscriptionEvent: expect.any(String),
+          }),
           rescheduleUid: mockBooking.uid,
+          idempotencyKey: expect.any(String),
+          responses: expect.objectContaining({
+            title: mockCalComEvent.summary,
+            notes: mockCalComEvent.description,
+            location: {
+              label: mockCalComEvent.location,
+              value: mockCalComEvent.location,
+              optionValue: mockCalComEvent.location,
+            },
+          }),
         },
         bookingMeta: {
           skipCalendarSyncTaskCreation: true,
+          skipAvailabilityCheck: true,
+          skipEventLimitsCheck: true,
         },
       });
+      const fallbackCall = mockCreateBooking.mock.calls.at(-1)!;
+      const parsedMetadataFallback = JSON.parse(
+        fallbackCall[0].bookingData.metadata.calendarSubscriptionEvent as string
+      );
+      expect(parsedMetadataFallback.summary).toEqual(mockCalComEvent.summary);
+    });
+
+    test("should build fallback responses when booking responses are missing", async () => {
+      const bookingWithoutResponses = {
+        ...mockBooking,
+        responses: null,
+      };
+      mockBookingRepository.findBookingByUidWithEventType = vi
+        .fn()
+        .mockResolvedValue(bookingWithoutResponses);
+
+      await service.rescheduleBooking(mockCalComEvent);
+
+      expect(mockCreateBooking).toHaveBeenCalledWith({
+        bookingData: expect.objectContaining({
+          responses: expect.objectContaining({
+            name: bookingWithoutResponses.title,
+            email: bookingWithoutResponses.userPrimaryEmail,
+            guests: [],
+            notes: mockCalComEvent.description,
+            smsReminderNumber: bookingWithoutResponses.smsReminderNumber,
+            location: {
+              label: mockCalComEvent.location,
+              value: mockCalComEvent.location,
+              optionValue: mockCalComEvent.location,
+            },
+            title: mockCalComEvent.summary,
+          }),
+          metadata: expect.objectContaining({
+            calendarSubscriptionEvent: expect.any(String),
+          }),
+          idempotencyKey: expect.any(String),
+        }),
+        bookingMeta: {
+          skipCalendarSyncTaskCreation: true,
+          skipAvailabilityCheck: true,
+          skipEventLimitsCheck: true,
+        },
+      });
+      const baseCall = mockCreateBooking.mock.calls.at(-1)!;
+      const parsedMetadataBase = JSON.parse(
+        baseCall[0].bookingData.metadata.calendarSubscriptionEvent as string
+      );
+      expect(parsedMetadataBase.summary).toEqual(mockCalComEvent.summary);
     });
 
     test("should return early when booking UID is missing", async () => {

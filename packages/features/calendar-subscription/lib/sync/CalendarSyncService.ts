@@ -1,3 +1,5 @@
+import type { CreateRegularBookingData } from "@calcom/features/bookings/lib/dto/types";
+import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
@@ -153,6 +155,7 @@ export class CalendarSyncService {
       return;
     }
 
+
     if (!booking.eventTypeId) {
       log.warn("Unable to sync reschedule, booking missing eventTypeId", { bookingUid });
       metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
@@ -169,19 +172,13 @@ export class CalendarSyncService {
       );
       const regularBookingService = getRegularBookingService();
       await regularBookingService.createBooking({
-        bookingData: {
-          eventTypeId: booking.eventTypeId,
-          start: event.start?.toISOString() ?? booking.startTime.toISOString(),
-          end: event.end?.toISOString() ?? booking.endTime.toISOString(),
-          timeZone: event.timeZone ?? "UTC",
-          language: "en",
-          metadata: {},
-          rescheduleUid: booking.uid,
-        },
+        bookingData: buildRescheduleBookingData(booking, event),
         bookingMeta: {
           // Skip calendar event creation to avoid infinite loops
           // (Google/Office365 → Cal.com → Google/Office365 → ...)
           skipCalendarSyncTaskCreation: true,
+          skipAvailabilityCheck: true,
+          skipEventLimitsCheck: true,
         },
       });
       log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
@@ -208,3 +205,118 @@ export class CalendarSyncService {
     }
   }
 }
+
+type BookingWithEventType = NonNullable<
+  Awaited<ReturnType<BookingRepository["findBookingByUidWithEventType"]>>
+>;
+
+type RescheduleBookingData = CreateRegularBookingData & { responses: Record<string, unknown> };
+
+const buildRescheduleBookingData = (
+  booking: BookingWithEventType,
+  event: CalendarSubscriptionEventItem
+): RescheduleBookingData => {
+  const fallbackStart = booking.startTime.toISOString();
+  const start = event.start?.toISOString() ?? fallbackStart;
+
+  const fallbackEnd = booking.endTime.toISOString();
+  const candidateEnd = event.end?.toISOString() ?? fallbackEnd;
+  const durationMs = new Date(candidateEnd).getTime() - new Date(start).getTime();
+
+  const normalizedEnd =
+    durationMs <= 0
+      ? new Date(new Date(start).getTime() + (booking.eventType.length ?? 15) * 60_000).toISOString()
+      : candidateEnd;
+
+  return {
+    eventTypeId: booking.eventTypeId,
+    start,
+    end: normalizedEnd,
+    timeZone: event.timeZone ?? "UTC",
+    language: "en",
+    metadata: buildMetadataFromCalendarEvent(event),
+    rescheduleUid: booking.uid,
+    idempotencyKey: IdempotencyKeyService.generate({
+      startTime: new Date(start),
+      endTime: new Date(normalizedEnd),
+      userId: booking.userId ?? undefined,
+      reassignedById: null,
+    }),
+    responses: mergeBookingResponsesWithEventData(booking, event),
+  };
+};
+
+const extractBookingResponses = (booking: BookingWithEventType): Record<string, unknown> => {
+  const rawResponses = booking.responses;
+  if (rawResponses && typeof rawResponses === "object" && !Array.isArray(rawResponses)) {
+    return rawResponses as Record<string, unknown>;
+  }
+
+  const fallbackLocation = booking.location ?? "";
+
+  return {
+    name: booking.title,
+    email: booking.userPrimaryEmail ?? "",
+    guests: [],
+    notes: booking.description ?? "",
+    smsReminderNumber: booking.smsReminderNumber ?? undefined,
+    location: fallbackLocation
+      ? {
+          label: fallbackLocation,
+          value: fallbackLocation,
+          optionValue: fallbackLocation,
+        }
+      : undefined,
+  };
+};
+
+const mergeBookingResponsesWithEventData = (
+  booking: BookingWithEventType,
+  event: CalendarSubscriptionEventItem
+): Record<string, unknown> => {
+  const baseResponses = extractBookingResponses(booking);
+  const overrides: Record<string, unknown> = {};
+
+  if (event.summary) {
+    overrides.title = event.summary;
+  }
+
+  if (event.description) {
+    overrides.notes = event.description;
+  }
+
+  if (event.location) {
+    overrides.location = {
+      value: event.location,
+      label: event.location,
+      optionValue: event.location,
+    };
+  }
+
+  return {
+    ...baseResponses,
+    ...overrides,
+  };
+};
+
+const buildMetadataFromCalendarEvent = (event: CalendarSubscriptionEventItem) => {
+  const payload = {
+    summary: event.summary ?? null,
+    description: event.description ?? null,
+    location: event.location ?? null,
+    busy: event.busy ?? null,
+    status: event.status ?? null,
+    isAllDay: event.isAllDay ?? null,
+    timeZone: event.timeZone ?? null,
+    recurringEventId: event.recurringEventId ?? null,
+    originalStartDate: event.originalStartDate?.toISOString() ?? null,
+    createdAt: event.createdAt?.toISOString() ?? null,
+    updatedAt: event.updatedAt?.toISOString() ?? null,
+    etag: event.etag ?? null,
+    kind: event.kind ?? null,
+  };
+
+  return {
+    calendarSubscriptionEvent: JSON.stringify(payload),
+  };
+};
