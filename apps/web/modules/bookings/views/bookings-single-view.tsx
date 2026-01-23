@@ -764,8 +764,7 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {session &&
-                          isHost &&
+                        {canViewHiddenData &&
                           bookingInfo.assignmentReason &&
                           bookingInfo.assignmentReason.length > 0 &&
                           bookingInfo.assignmentReason[0].reasonString && (
