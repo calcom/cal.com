@@ -1,5 +1,3 @@
-import type { EventStatus } from "ics";
-
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
@@ -12,31 +10,39 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { SchedulingType, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  SchedulingType,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { CalendarEvent } from "@calcom/types/Calendar";
-
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { EventStatus } from "ics";
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import { isEmailAction, getTemplateBodyForAction, getTemplateSubjectForAction } from "../actionHelperFunctions";
+import {
+  getTemplateBodyForAction,
+  getTemplateSubjectForAction,
+  isEmailAction,
+} from "../actionHelperFunctions";
 import { detectMatchedTemplate } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
 } from "../reminders/templates/customTemplate";
-import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
+import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import type {
-  FormSubmissionData,
-  WorkflowContextData,
   AttendeeInBookingInfo,
   BookingInfo,
+  FormSubmissionData,
   ScheduleEmailReminderAction,
+  WorkflowContextData,
 } from "../types";
 import { WorkflowService } from "./WorkflowService";
 
@@ -438,7 +444,8 @@ export class EmailWorkflowService {
         sendToEmail: sendTo[0],
       });
       const meetingUrl =
-        getVideoCallUrlFromCalEvent({ videoCallData: evt.videoCallData }) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+        getVideoCallUrlFromCalEvent({ videoCallData: evt.videoCallData }) ||
+        bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -507,6 +514,19 @@ export class EmailWorkflowService {
       })
     );
 
+    // For seated events with seatsShowAttendees = false, filter attendees in the calendar attachment
+    // to only include the specific attendee receiving the email
+    const isSeatedEvent = evt.seatsPerTimeSlot && evt.seatsPerTimeSlot > 0;
+    const shouldHideOtherAttendees = isSeatedEvent && evt.seatsShowAttendees === false;
+
+    let attendeesForCalendarEvent = processedAttendees;
+    if (shouldHideOtherAttendees && attendeeToBeUsedInMail) {
+      // Only include the attendee who is receiving this email in the calendar attachment
+      attendeesForCalendarEvent = processedAttendees.filter(
+        (attendee) => attendee.email === attendeeToBeUsedInMail.email
+      );
+    }
+
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
@@ -514,15 +534,14 @@ export class EmailWorkflowService {
         ...evt.organizer,
         language: { ...evt.organizer.language, translate: organizerT },
       },
-      attendees: processedAttendees,
+      attendees: attendeesForCalendarEvent,
       location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
     const shouldIncludeCalendarEvent =
-    includeCalendarEvent &&
-    triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
+      includeCalendarEvent && triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
 
-  const attachments = shouldIncludeCalendarEvent
+    const attachments = shouldIncludeCalendarEvent
       ? [
           {
             content:
