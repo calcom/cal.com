@@ -17,12 +17,14 @@ export function useWidgetSync() {
       return;
     }
 
-    try {
-      const cachedBookings = queryClient.getQueryData<Booking[]>(
-        queryKeys.bookings.list({ status: ["upcoming", "unconfirmed"] })
-      );
+    // Get cached bookings outside of try/catch to avoid React Compiler limitation
+    const cachedBookings = queryClient.getQueryData<Booking[]>(
+      queryKeys.bookings.list({ status: ["upcoming", "unconfirmed"] })
+    );
+    const hasCachedBookings = cachedBookings !== undefined && cachedBookings.length > 0;
 
-      if (cachedBookings && cachedBookings.length > 0) {
+    if (hasCachedBookings) {
+      try {
         const upcomingBookings = cachedBookings
           .filter((booking) => {
             const startTime = new Date(booking.startTime);
@@ -31,7 +33,11 @@ export function useWidgetSync() {
           .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
         await updateWidgetBookings(upcomingBookings);
-      } else {
+      } catch (error) {
+        console.warn("Failed to sync cached bookings to widget:", error);
+      }
+    } else {
+      try {
         const bookings = await CalComAPIService.getBookings({
           status: ["upcoming", "unconfirmed"],
           limit: 5,
@@ -45,9 +51,9 @@ export function useWidgetSync() {
           .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
         await updateWidgetBookings(upcomingBookings);
+      } catch (error) {
+        console.warn("Failed to fetch and sync bookings to widget:", error);
       }
-    } catch (error) {
-      console.warn("Failed to sync bookings to widget:", error);
     }
   }, [queryClient]);
 
