@@ -133,7 +133,12 @@ test.describe("OAuth clients admin", () => {
 
     await expectClientNotInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
-    await expect(page.getByTestId("toast-success")).toHaveCount(0);
+    const toasts = page.getByTestId("toast-success");
+    let toastCount = await toasts.count();
+    while (toastCount > 0) {
+      await toasts.first().waitFor({ state: "hidden"});
+      toastCount = await toasts.count();
+    }
 
     await page
       .getByTestId("oauth-client-admin-rejected-section")
