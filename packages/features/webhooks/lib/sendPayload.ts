@@ -238,6 +238,15 @@ const sendPayload = async (
     if (appId === "zapier") {
       body = getZapierPayload({ ...data, createdAt });
     }
+  } else if (appId === "zapier" && isNoShowPayload(data)) {
+    body = JSON.stringify({
+      bookingUid: data.bookingUid,
+      bookingId: data.bookingId,
+      attendees: data.attendees,
+      message: data.message,
+      triggerEvent,
+      createdAt,
+    });
   }
 
   if (body === undefined) {
