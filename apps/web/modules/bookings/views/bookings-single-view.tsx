@@ -764,6 +764,18 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {session &&
+                          isHost &&
+                          bookingInfo.assignmentReason &&
+                          bookingInfo.assignmentReason.length > 0 &&
+                          bookingInfo.assignmentReason[0].reasonString && (
+                            <>
+                              <div className="mt-9 font-medium">{t("assignment_reason")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
+                                <p className="wrap-break-word">{bookingInfo.assignmentReason[0].reasonString}</p>
+                              </div>
+                            </>
+                          )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                         {eventType.bookingFields.map((field) => {

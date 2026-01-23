@@ -226,6 +226,7 @@ export interface CalendarEvent {
   rescheduledBy?: string;
   organizationId?: number | null;
   hasOrganizerChanged?: boolean;
+  assignmentReason?: string | null;
 }
 
 export interface EntryPoint {
