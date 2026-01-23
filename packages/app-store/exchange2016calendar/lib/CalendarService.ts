@@ -167,7 +167,7 @@ class ExchangeCalendarService implements Calendar {
       const finaleRet = [];
       for (let i = 0; i < calendarsToGetAppointmentsFrom.length; i++) {
         const calendarFolderId = new FolderId(calendarsToGetAppointmentsFrom[i].externalId);
-        const localReturn = await this.getExchangeService()
+        const localReturn = await (await this.getExchangeService())
           .FindAppointments(
             calendarFolderId,
             new CalendarView(DateTime.Parse(dateFrom), DateTime.Parse(dateTo))
@@ -212,7 +212,7 @@ class ExchangeCalendarService implements Calendar {
                 primary: true, //The first one is prime
                 integration: this.integrationName,
               });
-              return await this.getExchangeService()
+              return (await this.getExchangeService())
                 .FindFolders(f.Id, new FolderView(1000))
                 .then((res) => {
                   //Find all calendars inside calendar folder
