@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-head-element */
+import { Html } from "@react-email/components";
+
 import BaseTable from "./BaseTable";
 import EmailBodyLogo from "./EmailBodyLogo";
 import EmailHead from "./EmailHead";
@@ -7,13 +9,6 @@ import EmailSchedulingBodyDivider from "./EmailSchedulingBodyDivider";
 import EmailSchedulingBodyHeader, { BodyHeadType } from "./EmailSchedulingBodyHeader";
 import RawHtml from "./RawHtml";
 import Row from "./Row";
-
-const Html = (props: { children: React.ReactNode }) => (
-  <>
-    <RawHtml html="<!doctype html>" />
-    <html>{props.children}</html>
-  </>
-);
 
 export const V2BaseEmailHtml = (props: {
   children: React.ReactNode;

@@ -37,7 +37,7 @@ export const OAuthClientRejectedNotificationEmail = ({
         }}>
         {language("oauth_client_rejected_email_title", { clientName })}
       </p>
-      <p style={{ fontWeight: 400 }}>{language("hi_user", { name: userName || language("there") })}!</p>
+      <p style={{ fontWeight: 400 }}>{`${language("hi_user", { name: userName || language("there") })}!`}</p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>{language("oauth_client_rejected_email_body")}</p>
       <table
         role="presentation"

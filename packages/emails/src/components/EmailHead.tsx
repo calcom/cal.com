@@ -1,9 +1,11 @@
 /* eslint-disable @next/next/no-head-element */
+import { Head } from "@react-email/components";
+
 import RawHtml from "./RawHtml";
 
 const EmailHead = ({ title = "" }) => {
   return (
-    <head>
+    <Head>
       <title>{title}</title>
       <RawHtml
         html={`<!--[if !mso]><!--><meta http-equiv="X-UA-Compatible" content="IE=edge"><!--<![endif]-->`}
@@ -84,7 +86,7 @@ const EmailHead = ({ title = "" }) => {
           }
         `}
       </style>
-    </head>
+    </Head>
   );
 };
 

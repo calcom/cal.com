@@ -1,6 +1,8 @@
+import { Text } from "@react-email/components";
+
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 
-const Spacer = () => <p style={{ height: 6 }} />;
+const Spacer = () => <Text style={{ height: 6, margin: 0 }} />;
 
 export const Info = (props: {
   label: string;
