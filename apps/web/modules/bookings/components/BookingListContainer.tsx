@@ -21,7 +21,6 @@ import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues"
 import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
 import { useListNavigationCapabilities } from "~/bookings/hooks/useListNavigationCapabilities";
 import { DataTableFilters, DataTableSegment } from "~/data-table/components";
-
 import {
   BookingDetailsSheetStoreProvider,
   useBookingDetailsSheetStore,
@@ -29,6 +28,7 @@ import {
 import type { BookingListingStatus, BookingsGetOutput, RowData } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingList } from "./BookingList";
+import { BookingsCsvDownload } from "./BookingsCsvDownload";
 import { ViewToggleButton } from "./ViewToggleButton";
 
 interface FilterButtonProps {
@@ -189,6 +189,7 @@ function BookingListInner({
         <div className="hidden grow md:block" />
 
         <DataTableSegment.Select />
+        <BookingsCsvDownload status={status} />
         {bookingsV3Enabled && <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />}
       </div>
       {displayedFilterCount > 0 && showFilters && (
