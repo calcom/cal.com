@@ -4,6 +4,8 @@ import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 
+const nameSchema = z.string().trim().min(1).max(FULL_NAME_LENGTH_MAX_LIMIT);
+
 export type TUpdateUserMetadataAllowedKeys = {
   sessionTimeout?: number;
   defaultBookerLayouts?: z.infer<typeof bookerLayouts>;
@@ -91,8 +93,8 @@ export type TUpdateProfileInputSchema = {
 export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema, z.ZodTypeDef, TUpdateProfileInputSchemaInput> = z.object({
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
-  givenName: z.string().trim().min(1).max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
-  lastName: z.string().trim().max(FULL_NAME_LENGTH_MAX_LIMIT).nullable().optional(),
+  givenName: nameSchema.optional(),
+  lastName: nameSchema.nullable().optional(),
   email: z.string().optional(),
   bio: z.string().optional(),
   avatarUrl: z.string().nullable().optional(),

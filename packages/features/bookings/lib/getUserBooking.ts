@@ -30,6 +30,7 @@ const getUserBooking = async (uid: string) => {
         select: {
           id: true,
           name: true,
+          givenName: true,
           email: true,
           username: true,
           timeZone: true,

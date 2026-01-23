@@ -35,9 +35,7 @@ export const createUsersAndConnectToOrg = async ({
   await prisma.user.createMany({
     data: emailsToCreate.map((email) => {
       const username = getOrgUsernameFromEmail(email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
-      const name = deriveNameFromOrgUsername({ username });
-      // Derive givenName from the first word of the derived name
-      const givenName = name.split(" ")[0] || "";
+      const { name, givenName } = deriveNameFromOrgUsername({ username });
       return {
         username,
         email,

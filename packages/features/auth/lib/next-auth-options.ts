@@ -51,6 +51,7 @@ import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
+import { getNameFromOAuthProfile } from "./getNameFromOAuthProfile";
 import { dub } from "./dub";
 import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
@@ -1163,21 +1164,10 @@ export const getOptions = ({
 
         try {
           const newUsername = orgId ? slugify(orgUsername) : usernameSlug(user.name);
-          // Extract givenName and lastName from OAuth profile
-          // Google provides given_name and family_name, SAML provides firstName and lastName
-          const oauthProfile = profile as { given_name?: string; family_name?: string; firstName?: string; lastName?: string } | undefined;
-          let givenName = oauthProfile?.given_name || oauthProfile?.firstName || "";
-          let lastName = oauthProfile?.family_name || oauthProfile?.lastName || null;
-          // Fallback: split name if givenName or lastName is missing
-          if ((!givenName || !lastName) && user.name) {
-            const nameParts = user.name.trim().split(/\s+/);
-            if (!givenName) {
-              givenName = nameParts[0] || "";
-            }
-            if (!lastName && nameParts.length > 1) {
-              lastName = nameParts.slice(1).join(" ");
-            }
-          }
+          const { givenName, lastName } = getNameFromOAuthProfile(
+            profile as { given_name?: string; family_name?: string; firstName?: string; lastName?: string } | undefined,
+            user.name
+          );
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
