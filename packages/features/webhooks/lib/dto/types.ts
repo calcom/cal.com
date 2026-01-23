@@ -50,9 +50,11 @@ export interface BookingCancelledDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    iCalSequence?: number | null;
   };
   cancelledBy?: string;
   cancellationReason?: string;
+  requestReschedule?: boolean;
 }
 
 export interface BookingRejectedDTO extends BaseEventDTO {
@@ -582,6 +584,7 @@ export type EventPayloadType = CalendarEvent &
     rescheduledBy?: string;
     cancelledBy?: string;
     paymentData?: Record<string, unknown>;
+    requestReschedule?: boolean;
   };
 
 // dto/types.ts
