@@ -33,7 +33,7 @@ export default class BaseEmail {
   }
 
   private async getOrgSmtpConfig(): Promise<SmtpEmailConfig | null> {
-    if (!this.organizationId) return null;
+    if (!this.organizationId || !this.canUseCustomSmtp()) return null;
 
     try {
       const service = getSmtpConfigurationService();
@@ -131,7 +131,7 @@ export default class BaseEmail {
       return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
     }
 
-    const from = "from" in payload ? (payload.from as string) : "";
+    let from = "from" in payload ? (payload.from as string) : "";
     const to = "to" in payload ? (payload.to as string) : "";
 
     if (isSmsCalEmail(to)) {
@@ -139,33 +139,30 @@ export default class BaseEmail {
       return new Promise((r) => r(`Skipped Sending Email to faux email: ${to}`));
     }
 
-    const sanitizedFrom = sanitizeDisplayName(from);
-    const sanitizedTo = sanitizeDisplayName(to);
 
     const parseSubject = z.string().safeParse(payload?.subject);
 
     const defaultOptions = this.getMailerOptions();
     let transport = defaultOptions.transport;
-    let finalFrom = sanitizedFrom;
     let usingOrgSmtp = false;
 
-    if (this.canUseCustomSmtp()) {
-      const orgConfig = await this.getOrgSmtpConfig();
-      if (orgConfig) {
-        transport = this.buildOrgTransport(orgConfig);
-        finalFrom = sanitizeDisplayName(
-          orgConfig.fromName
-            ? `${orgConfig.fromName} <${orgConfig.fromEmail}>`
-            : orgConfig.fromEmail
-        );
-        usingOrgSmtp = true;
-        log.info("Using custom SMTP config", {
-          organizationId: this.organizationId,
-          fromEmail: orgConfig.fromEmail,
-          emailClass: this.constructor.name,
-        });
-      }
+    const orgConfig = await this.getOrgSmtpConfig();
+    if (orgConfig) {
+      transport = this.buildOrgTransport(orgConfig);
+      from =
+        orgConfig.fromName
+          ? `${orgConfig.fromName} <${orgConfig.fromEmail}>`
+          : orgConfig.fromEmail
+      usingOrgSmtp = true;
+      log.info("Using custom SMTP config", {
+        organizationId: this.organizationId,
+        fromEmail: orgConfig.fromEmail,
+        emailClass: this.constructor.name,
+      });
     }
+
+    const sanitizedFrom = sanitizeDisplayName(from);
+    const sanitizedTo = sanitizeDisplayName(to);
 
     const { createTransport } = await import("nodemailer");
 
@@ -192,7 +189,7 @@ export default class BaseEmail {
     };
 
     try {
-      await sendWithTransport(transport, finalFrom);
+      await sendWithTransport(transport, sanitizedFrom);
     } catch (orgSmtpError) {
       if (usingOrgSmtp) {
         log.warn("Org SMTP failed, retrying with default SMTP", {
