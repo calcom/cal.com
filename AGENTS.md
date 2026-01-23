@@ -16,6 +16,8 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Use `date-fns` or native `Date` instead of Day.js when timezone awareness isn't needed
 - Put permission checks in `page.tsx`, never in `layout.tsx`
 - Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
+- Use Biome for formatting and linting
+
 
 ## Don't
 
@@ -28,6 +30,49 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Never skip running type checks before pushing
 - Never create large PRs (>500 lines or >10 files) - split them instead
 
+## PR Size Guidelines
+
+Large PRs are difficult to review, prone to errors, and slow down the development process. Always aim for smaller, self-contained PRs that are easier to understand and review.
+
+### Size Limits
+
+- **Lines changed**: Keep PRs under 500 lines of code (additions + deletions)
+- **Files changed**: Keep PRs under 10 code files
+- **Single responsibility**: Each PR should do one thing well
+
+**Note**: These limits apply to code files only. Non-code files like documentation (README.md, CHANGELOG.md), lock files (yarn.lock, package-lock.json), and auto-generated files are excluded from the count.
+
+### How to Split Large Changes
+
+When a task requires extensive changes, break it into multiple PRs:
+
+1. **By layer**: Separate database/schema changes, backend logic, and frontend UI into different PRs
+2. **By feature component**: Split a feature into its constituent parts (e.g., API endpoint PR, then UI PR, then integration PR)
+3. **By refactor vs feature**: Do preparatory refactoring in a separate PR before adding new functionality
+4. **By dependency order**: Create PRs in the order they can be merged (base infrastructure first, then features that depend on it)
+
+### Examples of Good PR Splits
+
+**Instead of one large "Add booking notifications" PR:**
+- PR 1: Add notification preferences schema and migration
+- PR 2: Add notification service and API endpoints
+- PR 3: Add notification UI components
+- PR 4: Integrate notifications into booking flow
+
+**Instead of one large "Refactor calendar sync" PR:**
+- PR 1: Extract calendar sync logic into dedicated service
+- PR 2: Add new calendar provider abstraction
+- PR 3: Migrate existing providers to new abstraction
+- PR 4: Add new calendar provider support
+
+### Benefits of Smaller PRs
+
+- Faster review cycles and quicker feedback
+- Easier to identify and fix issues
+- Lower risk of merge conflicts
+- Simpler to revert if problems arise
+- Better git history and easier debugging
+
 ## Commands
 
 ### File-scoped (preferred for speed)
@@ -36,11 +81,8 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 # Type check - always run on changed files
 yarn type-check:ci --force
 
-# Lint single file
-yarn eslint --fix path/to/file.tsx
-
-# Format single file  
-yarn prettier --write path/to/file.tsx
+# Lint and format single file
+yarn biome check --write path/to/file.tsx
 
 # Unit test specific file
 yarn vitest run path/to/file.test.ts
@@ -49,10 +91,10 @@ yarn vitest run path/to/file.test.ts
 yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
 
 # Integration test specific file
-yarn test path/to/file.integration-test.ts -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts
 
 # Integration test specific file + specific test
-yarn test path/to/file.integration-test.ts --testNamePattern="specific test name" -- --integrationTestsOnly
+VITEST_MODE=integration yarn test path/to/file.integration-test.ts --testNamePattern="specific test name"
 
 # E2E test specific file
 PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts
@@ -69,9 +111,9 @@ yarn dev              # Start dev server
 yarn dx               # Dev with database setup
 
 # Build & check
-yarn build            # Build all packages
-yarn lint:fix         # Lint and fix all
-yarn type-check       # Type check all
+yarn build                   # Build all packages
+yarn biome check --write .   # Lint and format all
+yarn type-check              # Type check all
 
 # Tests (use TZ=UTC for consistency)
 TZ=UTC yarn test      # All unit tests
@@ -82,6 +124,14 @@ yarn prisma generate  # Regenerate types after schema changes
 yarn workspace @calcom/prisma db-migrate  # Run migrations
 ```
 
+### Biome focused workflow
++
+```bash
+yarn biome check --write .
+yarn type-check:ci --force
+```
+
+
 ## Boundaries
 
 ### Always do
@@ -89,6 +139,7 @@ yarn workspace @calcom/prisma db-migrate  # Run migrations
 - Run relevant tests before pushing
 - Use `select` in Prisma queries
 - Follow conventional commits for PR titles
+- Run Biome before pushing
 
 ### Ask first
 - Adding new dependencies
@@ -184,6 +235,23 @@ import { User } from "@prisma/client";
 import { Button } from "@calcom/ui";
 ```
 
+### API v2 Imports (apps/api/v2)
+
+When importing from `@calcom/features` or `@calcom/trpc` into `apps/api/v2`, **do not import directly** because the API v2 app's `tsconfig.json` doesn't have path mappings for these modules, which causes "module not found" errors.
+
+Instead, re-export from `packages/platform/libraries/index.ts` and import from `@calcom/platform-libraries`:
+
+```typescript
+// Step 1: In packages/platform/libraries/index.ts, add the export
+export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+
+// Step 2: In apps/api/v2, import from platform-libraries
+import { ProfileRepository } from "@calcom/platform-libraries";
+
+// Bad - Direct import causes module not found error in apps/api/v2
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+```
+
 ## PR Checklist
 
 - [ ] Title follows conventional commits: `feat(scope): description`
@@ -208,6 +276,7 @@ import { Button } from "@calcom/ui";
 For detailed information, see the `agents/` directory:
 
 - **[agents/README.md](agents/README.md)** - Architecture overview and patterns
+- **[agents/rules/](agents/rules/)** - Modular engineering rules (performance, architecture, data layer, etc.)
 - **[agents/commands.md](agents/commands.md)** - Complete command reference
 - **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and best practices
 - **[agents/coding-standards.md](agents/coding-standards.md)** - Coding standards with examples

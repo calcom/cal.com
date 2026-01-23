@@ -83,6 +83,7 @@ const checkActiveBookingsLimitAndOfferReschedule = async ({
   });
 
   const lastBooking = bookingsCount[bookingsCount.length - 1];
+  const seatUid = lastBooking?.attendees[0]?.bookingSeat?.referenceUid;
 
   if (bookingsCount.length >= maxActiveBookingsPerBooker) {
     log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
@@ -93,6 +94,7 @@ const checkActiveBookingsLimitAndOfferReschedule = async ({
         rescheduleUid: lastBooking.uid,
         startTime: lastBooking.startTime,
         attendees: lastBooking.attendees,
+        seatUid,
       }
     );
   }

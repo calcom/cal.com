@@ -18,18 +18,23 @@ export interface ISelectedCalendarRepository {
   /**
    *  Find next batch of selected calendars
    *  Will check if syncSubscribedAt is null or channelExpiration is greater than current date
+   *  Calendars with recent subscription errors (last 24h) are skipped
+   *  Calendars with 3+ subscription errors are skipped entirely
    *
    * @param take the number of calendars to take
    * @param integrations the list of integrations
+   * @param genericCalendarSuffixes the list of generic calendar suffixes to exclude
    */
   findNextSubscriptionBatch({
     take,
     teamIds,
     integrations,
+    genericCalendarSuffixes,
   }: {
     take: number;
     teamIds: number[];
-    integrations?: string[];
+    integrations: string[];
+    genericCalendarSuffixes?: string[];
   }): Promise<SelectedCalendar[]>;
 
   /**
@@ -59,6 +64,8 @@ export interface ISelectedCalendarRepository {
       | "channelKind"
       | "channelExpiration"
       | "syncSubscribedAt"
+      | "syncSubscribedErrorAt"
+      | "syncSubscribedErrorCount"
     >
   ): Promise<SelectedCalendar>;
 }

@@ -28,6 +28,21 @@ export const WEBHOOK_VERSION_OPTIONS = Object.values(WebhookVersion).map((versio
 export const getWebhookVersionLabel = (version: WebhookVersion): string =>
   WEBHOOK_VERSION_LABELS[version] ?? version;
 
+/**
+ * Documentation URLs for each webhook version.
+ * Links to the specific version's payload documentation.
+ */
+export const WEBHOOK_VERSION_DOCS: Record<WebhookVersion, string> = {
+  [WebhookVersion.V_2021_10_20]: "https://cal.com/docs/developing/guides/automation/webhooks#2021-10-20",
+  // Add new versions here: [WebhookVersion.V_YYYY_MM_DD]: "https://cal.com/docs/webhooks/v-yyyy-mm-dd",
+};
+
+/**
+ * Get documentation URL for a specific webhook version
+ */
+export const getWebhookVersionDocsUrl = (version: WebhookVersion): string =>
+  WEBHOOK_VERSION_DOCS[version] ?? "https://cal.com/docs/developing/guides/automation/webhooks";
+
 export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
   core: [
     WebhookTriggerEvents.BOOKING_CANCELLED,
@@ -47,6 +62,7 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
     WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
+    WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
   ] as const,
   "routing-forms": [
     WebhookTriggerEvents.FORM_SUBMITTED,

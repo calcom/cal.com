@@ -12,6 +12,7 @@ import type { TranslationWithParams } from "../actions/IAuditActionService";
 import type { ActionSource } from "../types/actionSource";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import { getAppNameFromSlug } from "../getAppNameFromSlug";
+import type { BookingAuditContext } from "../dto/types";
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
@@ -46,7 +47,15 @@ type EnrichedAuditLog = {
         displayEmail: string | null;
         displayAvatar: string | null;
     };
+    impersonatedBy?: {
+        displayName: string;
+        displayEmail: string | null;
+        displayAvatar: string | null;
+    } | null;
+    hasError?: boolean;
 };
+
+export type DisplayBookingAuditLog = EnrichedAuditLog;
 
 /**
  * BookingAuditViewerService - Service for viewing and formatting booking audit logs
@@ -93,7 +102,7 @@ export class BookingAuditViewerService {
         userEmail: string;
         userTimeZone: string;
         organizationId: number | null;
-    }): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
+    }): Promise<{ bookingUid: string; auditLogs: DisplayBookingAuditLog[] }> {
         const { bookingUid, userId, userTimeZone, organizationId } = params;
         await this.accessService.assertPermissions({
             bookingUid,
@@ -104,7 +113,14 @@ export class BookingAuditViewerService {
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map((log) => this.enrichAuditLog(log, userTimeZone))
+            auditLogs.map(async (log) => {
+                try {
+                    return await this.enrichAuditLog(log, userTimeZone);
+                } catch (error) {
+                    this.log.error(`Failed to enrich audit log ${log.id}: ${error instanceof Error ? error.message : String(error)}`);
+                    return this.buildFallbackAuditLog(log);
+                }
+            })
         );
 
         const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
@@ -117,9 +133,7 @@ export class BookingAuditViewerService {
                 userTimeZone,
             });
             if (rescheduledFromLog) {
-                // Add the rescheduled log from the previous booking as the first entry
-                // (appears last chronologically since logs are ordered by timestamp DESC)
-                enrichedAuditLogs.unshift(rescheduledFromLog);
+                enrichedAuditLogs.push(rescheduledFromLog);
             }
         }
 
@@ -145,8 +159,10 @@ export class BookingAuditViewerService {
             : null;
 
         const displayFields = actionService.getDisplayFields
-            ? actionService.getDisplayFields(parsedData)
+            ? await actionService.getDisplayFields(parsedData)
             : null;
+
+        const impersonatedBy = await this.enrichImpersonator(log.context);
 
         return {
             id: log.id,
@@ -171,8 +187,43 @@ export class BookingAuditViewerService {
                 displayEmail: enrichedActor.displayEmail,
                 displayAvatar: enrichedActor.displayAvatar,
             },
+            impersonatedBy,
         };
     }
+
+    /**
+     * Builds a minimal fallback audit log when enrichment fails.
+     * Returns a log entry with hasError: true and basic information from the raw log.
+     */
+    private buildFallbackAuditLog(log: BookingAuditWithActor): EnrichedAuditLog {
+        return {
+            id: log.id,
+            bookingUid: log.bookingUid,
+            type: log.type,
+            action: log.action,
+            timestamp: log.timestamp.toISOString(),
+            createdAt: log.createdAt.toISOString(),
+            source: log.source,
+            operationId: log.operationId,
+            displayJson: null,
+            actionDisplayTitle: { key: "booking_audit_action.error_processing", params: { actionType: log.action } },
+            displayFields: null,
+            actor: {
+                id: log.actor.id,
+                type: log.actor.type,
+                userUuid: log.actor.userUuid,
+                attendeeId: log.actor.attendeeId,
+                name: log.actor.name,
+                createdAt: log.actor.createdAt,
+                displayName: log.actor.name || "Unknown",
+                displayEmail: null,
+                displayAvatar: null,
+            },
+            impersonatedBy: null,
+            hasError: true,
+        };
+    }
+
     /**
      * Builds a "rescheduled from" log entry for bookings created from a reschedule.
      * Fetches the RESCHEDULED log from the previous booking and transforms it
@@ -226,6 +277,31 @@ export class BookingAuditViewerService {
                 userTimeZone,
                 storedData: parsedData,
             }),
+        };
+    }
+
+    private async enrichImpersonator(context: BookingAuditContext | null): Promise<{
+        displayName: string;
+        displayEmail: string | null;
+        displayAvatar: string | null;
+    } | null> {
+        if (!context?.impersonatedBy) {
+            return null;
+        }
+
+        const impersonatorUser = await this.userRepository.findByUuid({ uuid: context.impersonatedBy });
+        if (!impersonatorUser) {
+            return {
+                displayName: "Deleted User",
+                displayEmail: null,
+                displayAvatar: null,
+            };
+        }
+
+        return {
+            displayName: impersonatorUser.name || impersonatorUser.email,
+            displayEmail: impersonatorUser.email,
+            displayAvatar: impersonatorUser.avatarUrl || null,
         };
     }
 
