@@ -309,6 +309,7 @@ model Credential {
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
+  @@index([teamId])
 }
 
 enum IdentityProvider {
@@ -1119,6 +1120,7 @@ enum WebhookTriggerEvents {
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   FORM_SUBMITTED_NO_EVENT
   DELEGATION_CREDENTIAL_ERROR
+  WRONG_ASSIGNMENT_REPORT
 }
 
 model Webhook {
