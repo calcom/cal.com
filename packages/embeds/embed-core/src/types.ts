@@ -33,6 +33,7 @@ export type UiConfig = {
   layout?: BookerLayouts;
   colorScheme?: string | null;
   disableAutoScroll?: boolean;
+  useSlotsViewOnSmallScreen?: boolean;
 };
 
 declare global {
@@ -71,6 +72,8 @@ export type KnownConfig = {
   "cal.embed.pageType"?: EmbedPageType;
   // If true, then when doing a "connect" with pre-rendered iframe, we won't fetch slots. This is useful when we are reusing the iframe fully as is.
   "cal.embed.noSlotsFetchOnConnect"?: "true" | "false";
+  // If true, enables slots view on small screen in the booker
+  useSlotsViewOnSmallScreen?: "true" | "false";
 };
 
 export type EmbedBookerState =

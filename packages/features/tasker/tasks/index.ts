@@ -34,6 +34,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   sendAwaitingPaymentEmail: () =>
     import("./sendAwaitingPaymentEmail").then((module) => module.sendAwaitingPaymentEmail),
   bookingAudit: () => import("./bookingAudit").then((module) => module.bookingAudit),
+  webhookDelivery: () => import("./webhookDelivery").then((module) => module.webhookDelivery),
 };
 
 export const tasksConfig = {
@@ -43,6 +44,10 @@ export const tasksConfig = {
   },
   executeAIPhoneCall: {
     maxAttempts: 1,
+  },
+  webhookDelivery: {
+    minRetryIntervalMins: IS_PRODUCTION ? 5 : 1,
+    maxAttempts: 3,
   },
 };
 export default tasks;
