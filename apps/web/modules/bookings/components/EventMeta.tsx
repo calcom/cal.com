@@ -81,6 +81,7 @@ export const EventMeta = ({
     | "fieldTranslations"
     | "autoTranslateDescriptionEnabled"
     | "bookingFields"
+    | "enablePerHostLocations"
   > | null;
   isPending: boolean;
   isPrivateLink: boolean;

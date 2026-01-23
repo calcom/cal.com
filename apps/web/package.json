@@ -102,7 +102,7 @@
     "jsdom": "22.0.0",
     "kbar": "0.1.0-beta.36",
     "libphonenumber-js": "^1.11.18",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "markdown-it": "13.0.1",
     "md5": "2.3.0",
     "memory-cache": "0.2.0",
