@@ -4,13 +4,12 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { monthlyProrationTaskConfig } from "./config";
 import { invoiceNotificationSchema } from "./invoiceNotificationSchema";
-import { sendInvoiceEmail } from "./sendInvoiceEmail";
 
 export const sendInvoiceCreatedNotification = schemaTask({
   id: "billing.proration-invoice.created-notification",
   ...monthlyProrationTaskConfig,
   schema: invoiceNotificationSchema,
-  run: async (payload, { ctx }) => {
+  run: async (payload) => {
     const { TeamRepository } = await import("@calcom/features/ee/teams/repositories/TeamRepository");
     const { MonthlyProrationRepository } = await import(
       "@calcom/features/ee/billing/repository/proration/MonthlyProrationRepository"
@@ -20,6 +19,7 @@ export const sendInvoiceCreatedNotification = schemaTask({
     );
     const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
     const { prisma } = await import("@calcom/prisma");
+    const { sendInvoiceEmail } = await import("./sendInvoiceEmail");
 
     const prorationRepository = new MonthlyProrationRepository(prisma);
     const teamRepository = new TeamRepository(prisma);
