@@ -27,6 +27,7 @@ Second, we need to setup environment for the examples app. Go to packages/platfo
 NEXT_PUBLIC_OAUTH2_CLIENT_ID="1c70be53f35aa480a5e3146d361fd993d265e564d2d86a203df3adbd05186517"
 OAUTH2_CLIENT_SECRET_PLAIN="2df0d9b1450ea95f2376fce5bc1d352e2d7a253d7e1c68a96a44745413b7dc4c"
 OAUTH2_REDIRECT_URI="http://localhost:4321"
+NEXT_PUBLIC_CALCOM_API_URL="http://localhost:5555/api/v2"
 
 NEXT_PUBLIC_OAUTH2_MODE="true"
 Here we have OAUTH2_CLIENT_SECRET_PLAIN in plain because it will be used for api request when exchanging authorization code for tokens. NEXT_PUBLIC_OAUTH2_MODE tells that the examples app will run not with platform OAuth client but with OAuth 2.0 client, so in the packages/platform/examples/base/src/pages/_app.tsx we will use CalOAuthProvider and not CalProvider.
