@@ -13,8 +13,9 @@ import type {
   BookingRejectedDTO,
   WebhookSubscriber,
 } from "../dto/types";
-import type { IWebhookNotifier, IWebhookService, ITasker, IBookingWebhookService } from "../interface";
-import type { ILogger } from "../interface/infrastructure";
+import type { IWebhookService, IBookingWebhookService } from "../interface/services";
+import type { ITasker, ILogger } from "../interface/infrastructure";
+import type { IWebhookNotifier } from "../interface/webhook";
 import type {
   BookingCreatedParams,
   BookingCancelledParams,
@@ -27,7 +28,7 @@ import type {
   ScheduleMeetingWebhooksParams,
   CancelScheduledMeetingWebhooksParams,
   ScheduleNoShowWebhooksParams,
-} from "../types";
+} from "../types/params";
 
 export class BookingWebhookService implements IBookingWebhookService {
   private readonly log: ILogger;
@@ -361,11 +362,11 @@ export class BookingWebhookService implements IBookingWebhookService {
 
             return tasker.create(
               "triggerHostNoShowWebhook",
-              JSON.stringify({
+              {
                 triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
                 bookingId: params.booking.id,
                 webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
-              }),
+              },
               { scheduledAt }
             );
           }
@@ -392,11 +393,11 @@ export class BookingWebhookService implements IBookingWebhookService {
 
             return tasker.create(
               "triggerGuestNoShowWebhook",
-              JSON.stringify({
+              {
                 triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
                 bookingId: params.booking.id,
                 webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
-              }),
+              },
               { scheduledAt }
             );
           }

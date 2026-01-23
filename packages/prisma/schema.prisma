@@ -274,6 +274,7 @@ model EventType {
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
+  @@index([parentId, teamId])
   @@index([restrictionScheduleId])
 }
 
@@ -308,6 +309,7 @@ model Credential {
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
+  @@index([teamId])
 }
 
 enum IdentityProvider {
@@ -382,10 +384,6 @@ model User {
   timeZone            String               @default("Europe/London")
   travelSchedules     TravelSchedule[]
   weekStart           String               @default("Sunday")
-  // DEPRECATED - TO BE REMOVED
-  startTime           Int                  @default(0)
-  endTime             Int                  @default(1440)
-  // </DEPRECATED>
   bufferTime          Int                  @default(0)
   hideBranding        Boolean              @default(false)
   // TODO: should be renamed since it only affects the booking page
@@ -484,6 +482,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  oAuthClients                   OAuthClient[]
   holidaySettings                UserHolidaySettings?
 
   autoOptInFeatures Boolean @default(false)
@@ -1121,6 +1120,7 @@ enum WebhookTriggerEvents {
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   FORM_SUBMITTED_NO_EVENT
   DELEGATION_CREDENTIAL_ERROR
+  WRONG_ASSIGNMENT_REPORT
 }
 
 model Webhook {
@@ -1774,15 +1774,30 @@ enum OAuthClientType {
   PUBLIC       @map("public")
 }
 
+enum OAuthClientStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+}
+
 model OAuthClient {
-  clientId     String          @id @unique
-  redirectUri  String
-  clientSecret String?
-  clientType   OAuthClientType @default(CONFIDENTIAL)
-  name         String
-  logo         String?
-  isTrusted    Boolean         @default(false)
-  accessCodes  AccessCode[]
+  clientId        String            @id @unique
+  redirectUri     String
+  clientSecret    String?
+  clientType      OAuthClientType   @default(CONFIDENTIAL)
+  name            String
+  purpose         String?
+  logo            String?
+  websiteUrl      String?
+  rejectionReason String?
+  isTrusted       Boolean           @default(false)
+  accessCodes     AccessCode[]
+  status          OAuthClientStatus @default(APPROVED)
+  userId          Int?
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now())
+
+  @@index([userId])
 }
 
 model AccessCode {
