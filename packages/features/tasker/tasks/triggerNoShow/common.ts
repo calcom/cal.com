@@ -148,17 +148,22 @@ export const fireNoShowUpdatedEvent = async ({
   booking: {
     id: number;
     uid: string;
-    user?: { id: number } | null;
+    user?: { id: number; uuid: string } | null;
     eventType?: { teamId?: number | null } | null;
   };
   noShowHostAudit?: { old: boolean | null; new: boolean | null };
-  attendeesNoShowAudit?: Map<number, { old: boolean | null; new: boolean }>;
+  attendeesNoShowAudit?: Map<string, { old: boolean | null; new: boolean }>;
 }): Promise<void> => {
   const hasHostNoShow = noShowHostAudit && noShowHostAudit.new !== null;
   const hasAttendeesNoShow = attendeesNoShowAudit && attendeesNoShowAudit.size > 0;
 
   if (!hasHostNoShow && !hasAttendeesNoShow) {
     return;
+  }
+
+  const hostUserUuid = booking.user?.uuid;
+  if (hasHostNoShow && !hostUserUuid) {
+    log.warn("Host no-show audit skipped: booking.user.uuid is undefined", { bookingUid: booking.uid });
   }
 
   try {
@@ -179,8 +184,8 @@ export const fireNoShowUpdatedEvent = async ({
       organizationId: orgId ?? null,
       source: "SYSTEM",
       auditData: {
-        ...(hasHostNoShow && noShowHostAudit.new !== null
-          ? { hostNoShow: { old: noShowHostAudit.old, new: noShowHostAudit.new } }
+        ...(hasHostNoShow && noShowHostAudit.new !== null && hostUserUuid
+          ? { host: { userUuid: hostUserUuid, noShow: { old: noShowHostAudit.old, new: noShowHostAudit.new } } }
           : {}),
         ...(hasAttendeesNoShow ? { attendeesNoShow: Object.fromEntries(attendeesNoShowAudit) } : {}),
       },

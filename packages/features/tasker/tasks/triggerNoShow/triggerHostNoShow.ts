@@ -1,7 +1,6 @@
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { Booking } from "./common";
@@ -22,13 +21,16 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
       return null;
     }
 
+    const attendeesBefore = await attendeeRepository.findByBookingId(booking.id);
+    const attendeesBeforeByEmail = new Map(attendeesBefore.map((a) => [a.email, a]));
+
     let noShowHost = booking.noShowHost;
     const noShowHostAudit: { old: boolean | null; new: boolean | null } = {
       old: booking.noShowHost,
       new: null,
     };
     const attendeesNoShowAudit = new Map<
-      number,
+      string,
       {
         old: boolean | null;
         new: boolean;
@@ -42,16 +44,10 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
           return bookingRepository.updateNoShowHost({ bookingUid: booking.uid, noShowHost: true });
         }
         // If there are more than one host then it is stored in attendees table
-        else if (booking.attendees?.some((attendee) => attendee.email === host.email)) {
-          const attendee = await attendeeRepository.findByIdWithNoShow(host.id);
-          if (!attendee) {
-            log.error("Attendee not found for host", safeStringify(host));
-            throw new Error("Attendee not found for host");
-          }
-          const currentAttendeeNoShow = attendee.noShow;
-
-          await attendeeRepository.updateNoShow({ attendeeId: attendee.id, noShow: true });
-          attendeesNoShowAudit.set(attendee.id, { old: currentAttendeeNoShow ?? null, new: true });
+        const attendeeBefore = attendeesBeforeByEmail.get(host.email);
+        if (attendeeBefore) {
+          await attendeeRepository.updateNoShow({ attendeeId: attendeeBefore.id, noShow: true });
+          attendeesNoShowAudit.set(host.email, { old: attendeeBefore.noShow ?? null, new: true });
         }
         return Promise.resolve();
       })
