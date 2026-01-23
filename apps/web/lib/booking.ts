@@ -10,6 +10,7 @@ export const getEventTypesFromDB = async (id: number) => {
   const userSelect = {
     id: true,
     name: true,
+    firstName: true,
     username: true,
     hideBranding: true,
     theme: true,
