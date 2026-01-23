@@ -1,10 +1,10 @@
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
-import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { credentialForCalendarServiceSelect, safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
 const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
@@ -149,6 +149,12 @@ export class CredentialRepository {
     return credentials.map((credential) => buildNonDelegationCredential(credential));
   }
 
+  /**
+   * Fetches credentials for a user by category, including credentials from:
+   * 1. User's own credentials
+   * 2. Team credentials (from teams the user is a member of)
+   * 3. Organization credentials (using Profile model, not deprecated user.organizationId)
+   */
   static async findCredentialsByUserIdAndCategory({
     userId,
     category,
@@ -158,7 +164,8 @@ export class CredentialRepository {
   }) {
     const credentials = [];
 
-    const userCredentials = await this.findManyByUserIdOrTeamIdAndCategory({
+    // 1. Get user's own credentials
+    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
       userId,
       category,
     });
@@ -167,29 +174,26 @@ export class CredentialRepository {
       credentials.push(...userCredentials);
     }
 
-    const userWithTeams = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        organizationId: true,
-        teams: {
-          select: { teamId: true },
-        },
-      },
+    // 2. Get team credentials
+    const userTeams = await prisma.membership.findMany({
+      where: { userId },
+      select: { teamId: true },
     });
 
-    if (userWithTeams?.teams) {
-      for (const team of userWithTeams.teams) {
-        const teamCredentials = await this.findManyByUserIdOrTeamIdAndCategory({
-          teamId: team.teamId,
-          category,
-        });
-        if (teamCredentials) credentials.push(...teamCredentials);
-      }
+    for (const membership of userTeams) {
+      const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: membership.teamId,
+        category,
+      });
+      if (teamCredentials) credentials.push(...teamCredentials);
     }
 
-    if (userWithTeams?.organizationId) {
-      const orgCredentials = await this.findManyByUserIdOrTeamIdAndCategory({
-        teamId: userWithTeams.organizationId,
+    // 3. Get organization credentials using Profile (not deprecated user.organizationId)
+    const organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId });
+
+    if (organizationId) {
+      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: organizationId,
         category,
       });
       if (orgCredentials) credentials.push(...orgCredentials);
