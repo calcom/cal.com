@@ -49,19 +49,26 @@ export const PersonalSettingsView = ({
   }, [personalDetails.avatar, user]);
 
   const formSchema = z.object({
-    name: z
+    givenName: z
       .string()
       .min(1, t("name_required"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
+    lastName: z
+      .string()
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+      })
+      .optional(),
     bio: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: personalDetails.name || userName || "",
+      givenName: personalDetails.givenName || user?.givenName || "",
+      lastName: personalDetails.lastName || user?.lastName || "",
       bio: personalDetails.bio || "",
     },
   });
@@ -96,13 +103,15 @@ export const PersonalSettingsView = ({
   const handleContinue = form.handleSubmit(async (data) => {
     // Save to store
     setPersonalDetails({
-      name: data.name,
+      givenName: data.givenName,
+      lastName: data.lastName || "",
       bio: data.bio || "",
     });
 
     // Save to backend
     await mutation.mutateAsync({
-      name: data.name,
+      givenName: data.givenName,
+      lastName: data.lastName || null,
       bio: data.bio || "",
     });
 
@@ -181,10 +190,20 @@ export const PersonalSettingsView = ({
 
               {/* Name */}
               <div className="flex w-full flex-col gap-1.5">
-                <TextField label={t("your_name")} {...form.register("name")} placeholder="John Doe" />
-                {form.formState.errors.name && (
-                  <p className="text-error text-sm">{form.formState.errors.name.message}</p>
-                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <TextField label={t("given_name")} {...form.register("givenName")} placeholder={t("given_name_placeholder")} />
+                    {form.formState.errors.givenName && (
+                      <p className="text-error text-sm">{form.formState.errors.givenName.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <TextField label={t("last_name")} {...form.register("lastName")} placeholder={t("last_name_placeholder")} />
+                    {form.formState.errors.lastName && (
+                      <p className="text-error text-sm">{form.formState.errors.lastName.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Username */}
@@ -216,7 +235,7 @@ export const PersonalSettingsView = ({
         {/* Right column - Browser view */}
         <OnboardingBrowserView
           avatar={imageSrc || personalDetails.avatar || user.avatar}
-          name={form.watch("name") || personalDetails.name || user.name || undefined}
+          name={[form.watch("givenName"), form.watch("lastName")].filter(Boolean).join(" ") || [personalDetails.givenName, personalDetails.lastName].filter(Boolean).join(" ") || user.name || undefined}
           bio={form.watch("bio") || personalDetails.bio || undefined}
           username={personalDetails.username || user.username || undefined}
         />

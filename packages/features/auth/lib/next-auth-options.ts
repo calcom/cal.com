@@ -51,6 +51,7 @@ import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
+import { getNameFromOAuthProfile } from "./getNameFromOAuthProfile";
 import { dub } from "./dub";
 import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
@@ -561,6 +562,8 @@ export const getOptions = ({
           upId: session?.upId ?? token.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
+          givenName: session?.givenName !== undefined ? session.givenName : token.givenName,
+          lastName: session?.lastName !== undefined ? session.lastName : token.lastName,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
         } as JWT;
@@ -573,6 +576,8 @@ export const getOptions = ({
             username: true,
             avatarUrl: true,
             name: true,
+            givenName: true,
+            lastName: true,
             email: true,
             role: true,
             locale: true,
@@ -1159,6 +1164,10 @@ export const getOptions = ({
 
         try {
           const newUsername = orgId ? slugify(orgUsername) : usernameSlug(user.name);
+          const { givenName, lastName } = getNameFromOAuthProfile(
+            profile as { given_name?: string; family_name?: string; firstName?: string; lastName?: string } | undefined,
+            user.name
+          );
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1166,6 +1175,8 @@ export const getOptions = ({
               username: newUsername,
               emailVerified: new Date(Date.now()),
               name: user.name,
+              givenName,
+              lastName,
               ...(user.image && { avatarUrl: user.image }),
               email: user.email,
               identityProvider: idP,

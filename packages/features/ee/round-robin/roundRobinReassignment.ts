@@ -246,6 +246,7 @@ export const roundRobinReassignment = async ({
       teamName: teamMembers.length > 1 ? eventType.team?.name : null,
       // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
       host: organizer.name || "Nameless",
+      hostGivenName: organizer.givenName,
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
       eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),

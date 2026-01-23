@@ -204,6 +204,26 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
                   "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
+                {`{Organiser given name}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis min-w-0 flex-1",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("organizer_first_name")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex items-start font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
                 {`{Scheduler}`}
               </p>
               <p

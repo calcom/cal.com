@@ -18,6 +18,8 @@ import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
+import { getFirstName } from "@calcom/lib/getFirstName";
+
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 const stringToBoolean = z
@@ -126,6 +128,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       if (bookingInfoRaw.user) {
         eventTypeRaw.users.push({
           ...bookingInfoRaw.user,
+          givenName: getFirstName(bookingInfoRaw.user.name, bookingInfoRaw.user.givenName),
           hideBranding: false,
           theme: null,
           brandColor: null,

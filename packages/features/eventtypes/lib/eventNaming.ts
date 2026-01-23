@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
+import { getFirstName } from "@calcom/lib/getFirstName";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
@@ -22,6 +23,8 @@ export type EventNameObjectType = {
   eventName?: string | null;
   teamName?: string | null;
   host: string;
+  /** Optional given name for the host/organizer. If provided, used for {Organiser first name} instead of splitting host name */
+  hostGivenName?: string | null;
   location?: string | null;
   eventDuration: number;
   bookingFields?: Prisma.JsonObject | null;
@@ -53,12 +56,15 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     eventName = eventName.replace("{LOCATION}", locationString);
   }
 
+  const hostFirstName = getFirstName(eventNameObj.host, eventNameObj.hostGivenName);
+
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
     .replaceAll("{Event type title}", eventNameObj.eventType)
     .replaceAll("{Scheduler}", attendeeName)
     .replaceAll("{Organiser}", eventNameObj.host)
-    .replaceAll("{Organiser first name}", eventNameObj.host.split(" ")[0])
+    .replaceAll("{Organiser first name}", hostFirstName)
+    .replaceAll("{Organiser given name}", hostFirstName)
     .replaceAll("{USER}", attendeeName)
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
@@ -66,7 +72,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`)
     .replaceAll(
       "{Scheduler first name}",
-      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeName.split(" ")[0]
+      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : getFirstName(attendeeName)
     );
 
   const { bookingFields } = eventNameObj || {};
@@ -181,6 +187,7 @@ export const validateCustomEventName = (value: string, bookingFields?: Prisma.Js
     "{Scheduler}",
     "{Location}",
     "{Organiser first name}",
+    "{Organiser given name}",
     "{Scheduler first name}",
     "{Scheduler last name}",
     "{Event duration}",

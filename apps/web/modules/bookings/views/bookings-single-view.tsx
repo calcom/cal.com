@@ -170,9 +170,30 @@ export default function Success(props: PageProps) {
   const utmParams = bookingInfo.tracking;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
+
+  let evtName = eventType.eventName;
+  if (eventType.isDynamic && bookingInfo.responses?.title) {
+    evtName = bookingInfo.responses.title as string;
+  }
+
+  const eventNameObject = {
+    attendeeName: bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string,
+    eventType: eventType.title,
+    eventName: evtName,
+    host: props.profile.name || "Nameless",
+    hostGivenName: bookingInfo.user?.givenName || eventType.users[0]?.givenName,
+    location: location,
+    bookingFields: bookingInfo.responses,
+    eventDuration: dayjs(bookingInfo.endTime).diff(bookingInfo.startTime, "minutes"),
+    t,
+  };
+
+  const eventName = getEventName(eventNameObject, true);
+
   const calendarLinks = getCalendarLinks({
     booking: bookingWithParsedMetadata,
     eventType: eventType,
+    eventName,
     t,
   });
 
@@ -246,22 +267,6 @@ export default function Success(props: PageProps) {
     router.replace(`${pathname}?${_searchParams.toString()}`);
   }
 
-  let evtName = eventType.eventName;
-  if (eventType.isDynamic && bookingInfo.responses?.title) {
-    evtName = bookingInfo.responses.title as string;
-  }
-
-  const eventNameObject = {
-    attendeeName: bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string,
-    eventType: eventType.title,
-    eventName: evtName,
-    host: props.profile.name || "Nameless",
-    location: location,
-    bookingFields: bookingInfo.responses,
-    eventDuration: dayjs(bookingInfo.endTime).diff(bookingInfo.startTime, "minutes"),
-    t,
-  };
-
   const giphyAppData = getEventTypeAppData(
     {
       ...eventType,
@@ -272,7 +277,6 @@ export default function Success(props: PageProps) {
   const giphyImage = giphyAppData?.thankYouPage;
   const isRoundRobin = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  const eventName = getEventName(eventNameObject, true);
   // Confirmation can be needed in two cases as of now
   // - Event Type has require confirmation option enabled always
   // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.

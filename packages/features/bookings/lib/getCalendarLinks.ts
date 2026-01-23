@@ -138,6 +138,7 @@ const buildMicrosoftOutlookLink = ({
 export const getCalendarLinks = ({
   booking,
   eventType,
+  eventName: providedEventName,
   t,
 }: {
   booking: {
@@ -159,30 +160,37 @@ export const getCalendarLinks = ({
     } | null;
     users: {
       name: string | null;
+      givenName?: string | null;
     }[];
     title: string;
   };
+  eventName?: string;
   t: TFunction;
 }) => {
-  let evtName = eventType.eventName;
   const videoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl ?? null;
 
-  if (eventType.isDynamic && booking.responses.title) {
-    evtName = booking.responses.title as string;
+  let eventName: string;
+  if (providedEventName) {
+    eventName = providedEventName;
+  } else {
+    let evtName = eventType.eventName;
+    if (eventType.isDynamic && booking.responses.title) {
+      evtName = booking.responses.title as string;
+    }
+    const eventNameObject = {
+      attendeeName: booking.responses.name as z.infer<typeof nameObjectSchema> | string,
+      eventType: eventType.title,
+      eventName: evtName,
+      host: eventType.team?.name || eventType.users[0]?.name || "Nameless",
+      hostGivenName: eventType.users[0]?.givenName,
+      location: booking.location,
+      bookingFields: booking.responses,
+      eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
+      t,
+    };
+    eventName = getEventName(eventNameObject, true);
   }
-  const eventNameObject = {
-    attendeeName: booking.responses.name as z.infer<typeof nameObjectSchema> | string,
-    eventType: eventType.title,
-    eventName: evtName,
-    host: eventType.team?.name || eventType.users[0]?.name || "Nameless",
-    location: booking.location,
-    bookingFields: booking.responses,
-    eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
-    t,
-  };
 
-  // Create event name and description
-  const eventName = getEventName(eventNameObject, true);
   const eventDescription = eventType.description || "";
 
   // Calculate start and end times

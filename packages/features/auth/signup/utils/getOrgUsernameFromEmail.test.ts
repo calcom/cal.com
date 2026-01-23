@@ -43,9 +43,17 @@ describe("getOrgUsernameFromEmail", () => {
 });
 
 describe("deriveNameFromOrgUsername", () => {
-  it("should convert hyphenated username to capitalized words", () => {
+  it("should convert hyphenated username to capitalized words and extract givenName", () => {
     const username = "john-doe-example";
     const result = deriveNameFromOrgUsername({ username });
-    expect(result).toBe("John Doe Example");
+    expect(result.name).toBe("John Doe Example");
+    expect(result.givenName).toBe("John");
+  });
+
+  it("should handle single word username", () => {
+    const username = "john";
+    const result = deriveNameFromOrgUsername({ username });
+    expect(result.name).toBe("John");
+    expect(result.givenName).toBe("John");
   });
 });
