@@ -130,6 +130,35 @@ describe("getBusyTimes", () => {
       expect.objectContaining({
         start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 9).set("minute", 50).toDate(),
         end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 10).toDate(),
+        source: "busy_time.buffer_time",
+      }),
+    ]);
+  });
+
+  it("should have buffer time source for before and after buffers on seated events with remaining seats", async () => {
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
+      credentials: [],
+      userId: 1,
+      eventTypeId: 1,
+      userEmail: "exampleuser1@example.com",
+      username: "exampleuser1",
+      bypassBusyCalendarTimes: false,
+      selectedCalendars: [],
+      startTime: startOfTomorrow.format(),
+      endTime: startOfTomorrow.endOf("day").format(),
+      currentBookings: [mockBookings({ beforeEventBuffer: 10, afterEventBuffer: 15, seatsPerTimeSlot: 10 })[0]],
+    });
+    expect(busyTimes).toEqual([
+      expect.objectContaining({
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 9).set("minute", 50).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 10).toDate(),
+        source: "busy_time.buffer_time",
+      }),
+      expect.objectContaining({
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).set("minute", 15).toDate(),
+        source: "busy_time.buffer_time",
       }),
     ]);
   });
