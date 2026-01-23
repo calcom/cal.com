@@ -156,7 +156,6 @@ export default class BaseEmail {
       usingOrgSmtp = true;
       log.info("Using custom SMTP config", {
         organizationId: this.organizationId,
-        fromEmail: orgConfig.fromEmail,
         emailClass: this.constructor.name,
       });
     }
