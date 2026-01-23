@@ -1,3 +1,4 @@
+import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
@@ -9,8 +10,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
-import type { EventType as PrismaEventType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, EventType as PrismaEventType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -78,8 +78,24 @@ function usersWithSelectedCalendars<
   return users.map((user) => withSelectedCalendars(user));
 }
 
-export class EventTypeRepository {
+export class EventTypeRepository implements IEventTypesRepository {
   constructor(private prismaClient: PrismaClient) {}
+
+  async findParentEventTypeId(eventTypeId: number): Promise<number | null> {
+    const managedChildEventType = await this.prismaClient.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        parentId: {
+          not: null,
+        },
+      },
+      select: {
+        parentId: true,
+      },
+    });
+
+    return managedChildEventType?.parentId ?? null;
+  }
 
   private generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
     const {
