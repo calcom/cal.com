@@ -1,3 +1,4 @@
+import process from "node:process";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
@@ -22,11 +23,17 @@ export type LinkedInAdsTrackingData = {
   campaignId?: string;
 };
 
+export type XAdsTrackingData = {
+  twclid: string;
+  campaignId?: string;
+};
+
 export type UtmTrackingData = z.infer<typeof utmTrackingDataSchema>;
 
 export type TrackingData = {
   googleAds?: GoogleAdsTrackingData;
   linkedInAds?: LinkedInAdsTrackingData;
+  xAds?: XAdsTrackingData;
   utmData?: UtmTrackingData;
 };
 
@@ -47,6 +54,13 @@ export function getTrackingFromCookies(
     tracking.linkedInAds = {
       liFatId: cookies.li_fat_id,
       ...(cookies.li_campaignId && { campaignId: cookies.li_campaignId }),
+    };
+  }
+
+  if (process.env.X_ADS_ENABLED === "1" && cookies?.twclid) {
+    tracking.xAds = {
+      twclid: cookies.twclid,
+      ...(cookies.x_campaignId && { campaignId: cookies.x_campaignId }),
     };
   }
 
