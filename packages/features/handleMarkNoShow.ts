@@ -420,7 +420,10 @@ const updateAttendees = async ({
   const updatePromises = attendees.map((attendee) => {
     const attendeeToUpdate = emailToAttendeeMap[attendee.email];
     if (!attendeeToUpdate) return null;
-    return attendeeRepository.updateNoShow({ attendeeId: attendeeToUpdate.id, noShow: attendee.noShow });
+    return attendeeRepository.updateNoShow({
+      where: { attendeeId: attendeeToUpdate.id },
+      data: { noShow: attendee.noShow },
+    });
   });
 
   const results = await Promise.allSettled(updatePromises);

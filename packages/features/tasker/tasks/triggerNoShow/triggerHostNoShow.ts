@@ -43,7 +43,10 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
         // If there are more than one host then it is stored in attendees table
         const attendeeBefore = attendeesBeforeByEmail.get(host.email);
         if (attendeeBefore) {
-          await attendeeRepository.updateNoShow({ attendeeId: attendeeBefore.id, noShow: true });
+          await attendeeRepository.updateNoShow({
+            where: { attendeeId: attendeeBefore.id },
+            data: { noShow: true },
+          });
           attendeesNoShowAudit.push({
             attendeeEmail: host.email,
             noShow: { old: attendeeBefore.noShow ?? null, new: true },
@@ -52,7 +55,7 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
         return Promise.resolve();
       })
     );
-    const updatedAttendees = await attendeeRepository.findByBookingIdWithDetails(booking.id);
+    const updatedAttendees = await attendeeRepository.findByBookingId(booking.id);
 
     await fireNoShowUpdatedEvent({
       booking,

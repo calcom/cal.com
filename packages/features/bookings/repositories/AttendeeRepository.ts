@@ -1,6 +1,17 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { IAttendeeRepository } from "./IAttendeeRepository";
 
+const safeSelect = {
+  id: true,
+  email: true,
+  name: true,
+  locale: true,
+  timeZone: true,
+  phoneNumber: true,
+  bookingId: true,
+  noShow: true,
+};
+
 /**
  * Prisma-based implementation of IAttendeeRepository
  *
@@ -67,11 +78,11 @@ export class AttendeeRepository implements IAttendeeRepository {
   }
 
   async updateNoShow({
-    attendeeId,
-    noShow,
+    where: { attendeeId },
+    data: { noShow },
   }: {
-    attendeeId: number;
-    noShow: boolean;
+    where: { attendeeId: number };
+    data: { noShow: boolean };
   }): Promise<{ noShow: boolean | null; email: string }> {
     return this.prismaClient.attendee.update({
       where: { id: attendeeId },
@@ -80,21 +91,7 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
-  async findByIdWithNoShow(id: number): Promise<{ id: number; noShow: boolean | null } | null> {
-    return this.prismaClient.attendee.findUnique({
-      where: { id },
-      select: { id: true, noShow: true },
-    });
-  }
-
-  async findByBookingId(bookingId: number): Promise<{ id: number; email: string; noShow: boolean | null }[]> {
-    return this.prismaClient.attendee.findMany({
-      where: { bookingId },
-      select: { id: true, email: true, noShow: true },
-    });
-  }
-
-  async findByBookingIdWithDetails(bookingId: number): Promise<
+  async findByBookingId(bookingId: number): Promise<
     {
       id: number;
       email: string;
@@ -108,27 +105,16 @@ export class AttendeeRepository implements IAttendeeRepository {
   > {
     return this.prismaClient.attendee.findMany({
       where: { bookingId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        locale: true,
-        timeZone: true,
-        phoneNumber: true,
-        bookingId: true,
-        noShow: true,
-      },
+      select: safeSelect,
     });
   }
 
   async updateManyNoShowByBookingIdAndEmails({
-    bookingId,
-    emails,
-    noShow,
+    where: { bookingId, emails },
+    data: { noShow },
   }: {
-    bookingId: number;
-    emails: string[];
-    noShow: boolean;
+    where: { bookingId: number; emails: string[] };
+    data: { noShow: boolean };
   }): Promise<{ count: number }> {
     return this.prismaClient.attendee.updateMany({
       where: {
@@ -140,13 +126,11 @@ export class AttendeeRepository implements IAttendeeRepository {
   }
 
   async updateManyNoShowByBookingIdExcludingEmails({
-    bookingId,
-    excludeEmails,
-    noShow,
+    where: { bookingId, excludeEmails },
+    data: { noShow },
   }: {
-    bookingId: number;
-    excludeEmails: string[];
-    noShow: boolean;
+    where: { bookingId: number; excludeEmails: string[] };
+    data: { noShow: boolean };
   }): Promise<{ count: number }> {
     return this.prismaClient.attendee.updateMany({
       where: {
