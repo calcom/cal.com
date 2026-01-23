@@ -41,13 +41,13 @@ export class PrismaTeamBillingRepository implements IBillingRepository {
     };
   }
 
-  async update(args: IBillingRepositoryUpdateArgs): Promise<void> {
+  update(args: IBillingRepositoryUpdateArgs): Promise<void> {
     const { id, ...data } = args;
-    await this.prismaClient.teamBilling.update({
+    return this.prismaClient.teamBilling.update({
       where: {
         id,
       },
       data,
-    });
+    }) as unknown as Promise<void>;
   }
 }

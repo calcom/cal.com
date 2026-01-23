@@ -474,8 +474,8 @@ export class TeamRepository {
     return !conflictingTeam;
   }
 
-  async findBySubscriptionId(subscriptionId: string) {
-    return await this.prismaClient.team.findFirst({
+  findBySubscriptionId(subscriptionId: string) {
+    return this.prismaClient.team.findFirst({
       where: {
         metadata: {
           path: ["subscriptionId"],
