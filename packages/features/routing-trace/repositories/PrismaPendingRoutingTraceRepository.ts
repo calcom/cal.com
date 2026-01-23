@@ -1,9 +1,11 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
+import type { RoutingTrace } from "./RoutingTraceRepository.interface";
 import type {
   IPendingRoutingTraceRepository,
   IPendingRoutingTraceRepositoryCreateArgs,
+  PendingRoutingTraceRecord,
 } from "./PendingRoutingTraceRepository.interface";
 
 export class PrismaPendingRoutingTraceRepository
@@ -24,5 +26,29 @@ export class PrismaPendingRoutingTraceRepository
             : undefined,
       },
     });
+  }
+
+  async findByFormResponseId(formResponseId: number): Promise<PendingRoutingTraceRecord | null> {
+    const result = await this.prisma.pendingRoutingTraces.findUnique({
+      where: { formResponseId },
+    });
+    if (!result) return null;
+    return {
+      ...result,
+      trace: result.trace as RoutingTrace,
+    };
+  }
+
+  async findByQueuedFormResponseId(
+    queuedFormResponseId: string
+  ): Promise<PendingRoutingTraceRecord | null> {
+    const result = await this.prisma.pendingRoutingTraces.findUnique({
+      where: { queuedFormResponseId },
+    });
+    if (!result) return null;
+    return {
+      ...result,
+      trace: result.trace as RoutingTrace,
+    };
   }
 }
