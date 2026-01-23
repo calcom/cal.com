@@ -153,7 +153,7 @@ export type WrappedBookerPropsMain = {
       };
     }[];
     loadingConnectedCalendar: boolean;
-    onToggleCalendar: (calendarsToLoad?: Set<ToggledConnectedCalendars>) => void;
+    onToggleCalendar: (calendarsToLoad: Set<ToggledConnectedCalendars>) => void;
   };
   bookerForm: UseBookingFormReturnType;
   event: BookerEventQuery;
