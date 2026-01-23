@@ -11,6 +11,7 @@ const loadModule = bindModuleToClassOnToken({
   moduleToken,
   token,
   classs: ProrationInvoiceNotificationSyncTasker,
+  depsMap: {},
 });
 
 export const moduleLoader = {
