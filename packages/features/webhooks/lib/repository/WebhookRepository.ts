@@ -1,18 +1,23 @@
+import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UsersRepository } from "@calcom/features/users/users.repository";
+import type { IUsersRepository } from "@calcom/features/users/users.repository.interface";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { withReporting } from "@calcom/lib/sentryWrapper";
-import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
-
-import { parseWebhookVersion } from "../interface/IWebhookRepository";
-
-import type { Webhook, WebhookSubscriber, WebhookGroup } from "../dto/types";
-import type { IWebhookRepository, WebhookVersion, ListWebhooksOptions } from "../interface/IWebhookRepository";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import type { Webhook, WebhookGroup, WebhookSubscriber } from "../dto/types";
 import { WebhookOutputMapper } from "../infrastructure/mappers/WebhookOutputMapper";
+import type {
+  IWebhookRepository,
+  ListWebhooksOptions,
+  WebhookVersion,
+} from "../interface/IWebhookRepository";
+import { parseWebhookVersion } from "../interface/IWebhookRepository";
 import type { GetSubscribersOptions } from "./types";
 
 // Type for raw query results from the database
@@ -29,9 +34,7 @@ interface WebhookQueryResult {
   priority: number; // This field is added by the query and removed before returning
 }
 
-
-
-const filterWebhooks = (webhook: { appId: string | null }) => {
+const filterWebhooks = (webhook: { appId: string | null }): boolean => {
   const appIds = [
     "zapier",
     "make",
@@ -42,13 +45,30 @@ const filterWebhooks = (webhook: { appId: string | null }) => {
 };
 
 export class WebhookRepository implements IWebhookRepository {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
+  private static _instance: WebhookRepository | undefined;
 
-  private static _instance: WebhookRepository;
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly eventTypeRepository: IEventTypesRepository,
+    private readonly userRepository: IUsersRepository
+  ) {}
 
+  /**
+   *
+   * @deprecated Use DI container instead:
+   * ```typescript
+   * import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
+   * const { repository } = getWebhookFeature();
+   * ```
+   *
+   */
   static getInstance(): WebhookRepository {
     if (!WebhookRepository._instance) {
-      WebhookRepository._instance = new WebhookRepository();
+      WebhookRepository._instance = new WebhookRepository(
+        defaultPrisma,
+        new EventTypeRepository(defaultPrisma),
+        new UsersRepository()
+      );
     }
     return WebhookRepository._instance;
   }
@@ -63,18 +83,8 @@ export class WebhookRepository implements IWebhookRepository {
 
     let managedParentEventTypeId: number | undefined;
     if (eventTypeId) {
-      const managedChildEventType = await this.prisma.eventType.findFirst({
-        where: {
-          id: eventTypeId,
-          parentId: {
-            not: null,
-          },
-        },
-        select: {
-          parentId: true,
-        },
-      });
-      managedParentEventTypeId = managedChildEventType?.parentId ?? undefined;
+      managedParentEventTypeId =
+        (await this.eventTypeRepository.findParentEventTypeId(eventTypeId)) ?? undefined;
     }
 
     const webhooks = await this.getSubscribersRaw({
@@ -274,6 +284,7 @@ export class WebhookRepository implements IWebhookRepository {
         teamId: orgId,
         platform: false,
         eventTriggers: { has: triggerEvent },
+        active: true,
       },
       select: {
         id: true,
@@ -505,26 +516,15 @@ export class WebhookRepository implements IWebhookRepository {
       { appId: appId ?? null },
     ];
 
-    // Get user's teams
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { teams: true },
-    });
+    const user = await this.userRepository.findUserTeams(userId);
 
     if (eventTypeId) {
-      // Check for managed event type parent
-      const managedParentEvt = await this.prisma.eventType.findFirst({
-        where: {
-          id: eventTypeId,
-          parentId: { not: null },
-        },
-        select: { parentId: true },
-      });
+      const managedParentId = await this.eventTypeRepository.findParentEventTypeId(eventTypeId);
 
-      if (managedParentEvt?.parentId) {
+      if (managedParentId) {
         // Include webhooks from both the event type and its parent (if active)
         whereConditions.push({
-          OR: [{ eventTypeId }, { eventTypeId: managedParentEvt.parentId, active: true }],
+          OR: [{ eventTypeId }, { eventTypeId: managedParentId, active: true }],
         });
       } else {
         whereConditions.push({ eventTypeId });
@@ -583,8 +583,3 @@ export class WebhookRepository implements IWebhookRepository {
     return WebhookOutputMapper.toWebhookList(webhooks);
   }
 }
-
-export const webhookRepository = withReporting(
-  (options: GetSubscribersOptions) => WebhookRepository.getInstance().getSubscribers(options),
-  "WebhookRepository.getSubscribers"
-);
