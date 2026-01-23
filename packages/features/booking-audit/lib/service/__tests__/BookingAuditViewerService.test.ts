@@ -1122,6 +1122,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs[0].hasError).toBe(true);
         expect(result.auditLogs[0].actionDisplayTitle).toEqual({
           key: "booking_audit_action.error_processing",
+          params: { actionType: "CREATED" },
         });
         expect(result.auditLogs[0].displayJson).toBeNull();
         expect(result.auditLogs[0].displayFields).toBeNull();
@@ -1152,6 +1153,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs[0].hasError).toBe(true);
         expect(result.auditLogs[0].actionDisplayTitle).toEqual({
           key: "booking_audit_action.error_processing",
+          params: { actionType: "CREATED" },
         });
         expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
         expect(mockLog.error).toHaveBeenCalledWith(

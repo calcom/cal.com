@@ -206,7 +206,7 @@ export class BookingAuditViewerService {
             source: log.source,
             operationId: log.operationId,
             displayJson: null,
-            actionDisplayTitle: { key: "booking_audit_action.error_processing" },
+            actionDisplayTitle: { key: "booking_audit_action.error_processing", params: { actionType: log.action } },
             displayFields: null,
             actor: {
                 id: log.actor.id,

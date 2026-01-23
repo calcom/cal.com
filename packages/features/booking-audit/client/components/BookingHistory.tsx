@@ -232,11 +232,11 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                             {!isLast && <div className="w-px bg-subtle flex-1 min-h-0" />}
                         </div>
 
-                        <div className={`flex-1 rounded-lg py-2 ${log.hasError ? "opacity-70" : ""}`}>
+                        <div className="flex-1 rounded-lg py-2">
                             <div className="px-3 mb-2">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex-1 min-w-0">
-                                        <h3 className={`text-sm font-medium leading-4 ${log.hasError ? "text-muted" : "text-emphasis"}`}>
+                                        <h3 className="text-sm font-medium leading-4 text-emphasis">
                                             <ActionTitle actionDisplayTitle={log.actionDisplayTitle} />
                                         </h3>
                                         <div className="flex items-center gap-1 mt-1 text-xs text-subtle">
@@ -260,20 +260,18 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 
                             <div className="px-3">
                                 <div className="bg-muted rounded-lg border border-muted">
-                                    {!log.hasError && (
-                                        <div className="py-1">
-                                            <Button
-                                                color="minimal"
-                                                size="sm"
-                                                onClick={() => toggleExpand(log.id)}
-                                                StartIcon={isExpanded ? "chevron-down" : "chevron-right"}
-                                                className="justify-start text-xs font-medium text-subtle h-6">
-                                                {isExpanded ? t("hide_details") : t("show_details")}
-                                            </Button>
-                                        </div>
-                                    )}
+                                    <div className="py-1">
+                                        <Button
+                                            color="minimal"
+                                            size="sm"
+                                            onClick={() => toggleExpand(log.id)}
+                                            StartIcon={isExpanded ? "chevron-down" : "chevron-right"}
+                                            className="justify-start text-xs font-medium text-subtle h-6">
+                                            {isExpanded ? t("hide_details") : t("show_details")}
+                                        </Button>
+                                    </div>
 
-                                    {isExpanded && !log.hasError && (
+                                    {isExpanded && (
                                         <div className="bg-default rounded-lg m-0.5 text-xs">
                                             {/* Render displayFields if available, otherwise show type */}
                                             {log.displayFields && log.displayFields.length > 0
