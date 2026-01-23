@@ -603,7 +603,11 @@ export default function Success(props: PageProps) {
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
-                              {isCancelled ? t("reason") : t("reschedule_reason")}
+                              {isCancelled
+                                ? t("reason")
+                                : eventType.bookingFields.find((e) => e.name === "rescheduleReason")?.label
+                                ? eventType.bookingFields.find((e) => e.name === "rescheduleReason")?.label
+                                : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                           </>
@@ -761,7 +765,11 @@ export default function Success(props: PageProps) {
 
                         {bookingInfo?.description && (
                           <>
-                            <div className="mt-9 font-medium">{t("additional_notes")}</div>
+                            <div className="mt-9 font-medium">
+                              {eventType.bookingFields.find((e) => e.name === "notes")?.label
+                                ? eventType.bookingFields.find((e) => e.name === "notes")?.label
+                                : t("additional_notes")}
+                            </div>
                             <div className="col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.description}</p>
                             </div>

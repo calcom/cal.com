@@ -1,4 +1,13 @@
 import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
@@ -11,7 +20,6 @@ import { useMemo, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { BookingSeatData } from "@calcom/features/bookings/lib/handleSeats/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog";
 
 // Add timezone support
 dayjs.extend(utc);
@@ -157,7 +165,15 @@ export const BookingSeatsDialog = ({
     return (
       <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
         <DialogContent>
-          <DialogHeader title="Booking Seats" subtitle="No booking seats found" />
+          <DialogHeader>
+            <DialogTitle>{t("booking_seats")}</DialogTitle>
+            <DialogDescription>
+              {t("booking_seats_count", {
+                count: 0,
+              })}
+            </DialogDescription>
+          </DialogHeader>
+
           <DialogFooter>
             <DialogClose className="border">Close</DialogClose>
           </DialogFooter>
@@ -214,7 +230,7 @@ export const BookingSeatsDialog = ({
                     if (val.length === 0) return null;
                     if (typeof val[0] === "object" && val[0] !== null && "url" in val[0]) {
                       return (
-                        <ul >
+                        <ul>
                           {val.map((item: any, i: number) => (
                             <li key={i}>
                               <a
@@ -351,10 +367,14 @@ export const BookingSeatsDialog = ({
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow>
-        <DialogHeader
-          title="Booking Seats"
-          subtitle={`${bookingSeats.length} seat${bookingSeats.length !== 1 ? "s" : ""} for this booking`}
-        />
+        <DialogHeader>
+          <DialogTitle>{t("booking_seats")}</DialogTitle>
+          <DialogDescription>
+            {t("booking_seats_count", {
+              count: bookingSeats.length,
+            })}
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="p-0">
           {/* Search field */}

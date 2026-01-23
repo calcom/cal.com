@@ -1,3 +1,11 @@
+import {
+  DialogContent,
+  DialogTitle,
+  DialogHeader,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -5,7 +13,6 @@ import { z } from "zod";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 
@@ -46,11 +53,12 @@ export function BulkEditDefaultForEventsModal({
 
   return (
     <Dialog name="Bulk Default Location Update" open={props.open} onOpenChange={props.setOpen}>
-      <DialogContent
-        type="creation"
-        title={t("default_conferencing_bulk_title")}
-        description={props.description}
-        enableOverflow>
+      <DialogContent type="creation" enableOverflow>
+        <DialogHeader>
+          <DialogTitle>{t("default_conferencing_bulk_title")}</DialogTitle>
+          <DialogDescription>{props.description}</DialogDescription>
+        </DialogHeader>
+
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -61,7 +69,7 @@ export function BulkEditDefaultForEventsModal({
           }}>
           <div className="flex flex-col space-y-2">
             {eventTypes.length > 0 && (
-              <div className="flex items-center space-x-2 rounded-md px-3 pb-2.5 pt-1">
+              <div className="flex items-center space-x-2 rounded-md px-3 pb-0.5 pt-3.5">
                 <CheckboxField
                   description={t("select_all")}
                   descriptionAsLabel

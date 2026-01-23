@@ -60,9 +60,36 @@ export async function GET(req: Request) {
     LIMIT 1
   `) as { id: number }[];
 
+  // If not found in normal bookings, check seated bookings
   if (!bookings || bookings.length === 0) {
-    console.warn(`[Attachments] Access denied: User ${session.user.id} tried to access ${key}`);
-    return new NextResponse("Forbidden", { status: 403 });
+    const bookingSeats = (await prisma.$queryRaw`
+      SELECT bs."bookingId" as id FROM "BookingSeat" bs
+      INNER JOIN "Booking" b ON bs."bookingId" = b.id
+      LEFT JOIN "EventType" et ON b."eventTypeId" = et.id
+      INNER JOIN "Attendee" a ON bs."attendeeId" = a.id
+      WHERE (
+        -- Is the Host
+        b."userId" = ${session.user.id}
+        OR
+        -- Is an Attendee
+        a.email = ${session.user.email}
+        OR
+        -- Is a CalIdTeam Admin/Owner
+        EXISTS (
+          SELECT 1 FROM "CalIdMembership" cm
+          WHERE cm."calIdTeamId" = et."calIdTeamId"
+          AND cm."userId" = ${session.user.id}
+          AND cm.role IN ('ADMIN', 'OWNER')
+        )
+      )
+      AND (bs.data::text LIKE ${`%${key}%`} OR bs.data::text LIKE ${`%${filename}%`})
+      LIMIT 1
+    `) as { id: number }[];
+
+    if (!bookingSeats || bookingSeats.length === 0) {
+      console.warn(`[Attachments] Access denied: User ${session.user.id} tried to access ${key}`);
+      return new NextResponse("Forbidden", { status: 403 });
+    }
   }
 
   const bucket = process.env.AWS_S3_BUCKET;

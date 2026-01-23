@@ -1,3 +1,11 @@
+import {
+  DialogTitle,
+  DialogHeader,
+  DialogDescription,
+  DialogContent,
+  DialogFooter,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
@@ -8,7 +16,6 @@ import { getEventLocationType } from "@calcom/app-store/locations";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -47,11 +54,12 @@ export function AppSetDefaultLinkDialog({
 
   return (
     <Dialog open={!!locationType} onOpenChange={() => setLocationType(undefined)}>
-      <DialogContent
-        title={t("default_app_link_title")}
-        description={t("default_app_link_description")}
-        type="creation"
-        Icon="circle-alert">
+      <DialogContent type="creation" Icon="circle-alert">
+        <DialogHeader>
+          <DialogTitle>{t("default_app_link_title")}</DialogTitle>
+          <DialogDescription>{t("default_app_link_description")}</DialogDescription>
+        </DialogHeader>
+
         <Form
           form={form}
           handleSubmit={(values) => {

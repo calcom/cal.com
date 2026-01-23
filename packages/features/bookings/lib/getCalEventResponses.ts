@@ -48,20 +48,20 @@ export const getCalEventResponses = ({
   }
 
   const PHONE_FIELD_LABELS: Record<string, string> = {
-    number_text_notifications: "Phone Number (text notification)",
-    phone: "Phone Number",
-    phone_number: "Phone Number",
-    attendeePhoneNumber: "Phone Number",
+    number_text_notifications: "number_text_notifications",
+    phone: "phone_number",
+    phone_number: "phone_number",
+    attendeePhoneNumber: "phone_number",
   };
 
-  const PHONE_KEYS = ["attendeePhoneNumber", "number_text_notifications", "phone_number", "phone"] as const;
+  const PHONE_KEYS = ["attendeePhoneNumber", "smsReminderNumber", "phone_number", "phone"] as const;
 
   const parsedBookingFields = bookingFields ? eventTypeBookingFields.parse(bookingFields) : null;
 
   if (parsedBookingFields) {
     for (const field of parsedBookingFields) {
       const dynamicLabel = field.defaultLabel ? PHONE_FIELD_LABELS[field.defaultLabel] : undefined;
-      const label = dynamicLabel || field.label || field.defaultLabel;
+      const label = field.label || dynamicLabel || field.defaultLabel;
       if (!label) throw new Error(`Missing label for booking field "${field.name}"`);
 
       if (field.name === "guests" && field.hidden) {

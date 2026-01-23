@@ -221,22 +221,29 @@ export const AddTeamMemberModal = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Import Type Selection */}
           <div className="">
-            <label className="text-sm font-medium text-gray-700">{t("import_type")}</label>
+            <label className="text-sm font-medium">{t("import_type")}</label>
             <div className="grid grid-cols-2 gap-3">
               <label
-                className={`flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
+                className={`
+                flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
                   selectedImportType === "individual"
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-blue-500 bg-blue-50 "
                     : "border-gray-200 hover:border-gray-300"
-                }`}>
+                }
+              `}>
                 <input
                   type="radio"
                   value="individual"
                   {...register("importType")}
-                  className="h-4 w-4 border-gray-300 text-blue-600"
+                  className="h-4 w-4 border-gray-300"
                 />
                 <div className="flex-1">
-                  <span className="text-sm font-medium text-gray-900">Individual Import</span>
+                  <span
+                    className={`text-sm font-medium ${
+                      selectedImportType === "individual" ? "text-gray-900" : "bg-default"
+                    }`}>
+                    Individual Import
+                  </span>
                 </div>
               </label>
 
@@ -253,7 +260,12 @@ export const AddTeamMemberModal = ({
                   className="h-4 w-4 border-gray-300 text-blue-600"
                 />
                 <div className="flex-1">
-                  <span className="text-sm font-medium text-gray-900">Bulk Import</span>
+                  <span
+                    className={`text-sm font-medium ${
+                      selectedImportType === "bulk" ? "text-gray-900" : "bg-default"
+                    }`}>
+                    Bulk Import
+                  </span>
                 </div>
               </label>
             </div>
@@ -277,7 +289,7 @@ export const AddTeamMemberModal = ({
           {/* Email Input - Bulk */}
           {selectedImportType === "bulk" && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Email Addresses</label>
+              <label className="text-sm font-medium">Email Addresses</label>
               <TextArea
                 {...register("emails")}
                 name="emails"
@@ -299,16 +311,18 @@ export const AddTeamMemberModal = ({
 
           {/* Role Selection */}
           <div className="">
-            <label className="text-sm font-medium text-gray-700">{t("team_role")}</label>
+            <label className="text-sm font-medium">{t("team_role")}</label>
             <div className="space-y-2">
               {roleOptions.map((role) => (
                 <label
                   key={role.value}
-                  className={`flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
-                    selectedRole === role.value
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  } ${role.disabled ? "cursor-not-allowed opacity-50" : ""}`}>
+                  className={`
+                    flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
+                      selectedRole === role.value
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    } ${role.disabled ? "cursor-not-allowed opacity-50" : ""}
+                  `}>
                   <input
                     type="radio"
                     value={role.value}
@@ -318,10 +332,13 @@ export const AddTeamMemberModal = ({
                   />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">{role.label}</span>
-                      {role.disabled && (
-                        <span className="text-xs text-gray-500">Requires higher permissions</span>
-                      )}
+                      <span
+                        className={`text-sm font-medium ${
+                          selectedRole === role.value ? "text-gray-900" : "bg-default"
+                        }`}>
+                        {role.label}
+                      </span>
+                      {role.disabled && <span className="text-xs">Requires higher permissions</span>}
                     </div>
                   </div>
                 </label>

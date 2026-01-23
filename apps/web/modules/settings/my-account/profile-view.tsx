@@ -1,4 +1,7 @@
 "use client";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
+
 
 import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
@@ -55,7 +58,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
 import { Editor } from "@calcom/ui/components/editor";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
@@ -716,8 +718,9 @@ const ProfileForm = ({
                     />
                     <div className="ms-4">
                       <div className="flex gap-2">
-                        <ImageUploader
+                        <CustomImageUploader
                           target="avatar"
+                          fieldName="Avatar"
                           startIcon="upload"
                           id="avatar-upload"
                           buttonMsg={t("upload_avatar")}

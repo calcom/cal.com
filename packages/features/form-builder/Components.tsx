@@ -1,6 +1,6 @@
 import { Icon } from "@calid/features/ui/components/icon";
-import { AttachmentUploader } from "@calid/features/ui/components/uploader";
-import { useEffect } from "react";
+import { AttachmentUploader, type AttachmentUploaderRef } from "@calid/features/ui/components/uploader";
+import { useEffect, useRef } from "react";
 import type { z } from "zod";
 
 import type {
@@ -287,7 +287,7 @@ export const Components: Record<FieldType, Component> = {
                       id={`${props.name}.${index}`}
                       disabled={readOnly}
                       value={value[index]}
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         value[index] = e.target.value.toLowerCase();
                         setValue(value);
                       }}
@@ -576,10 +576,32 @@ export const Components: Record<FieldType, Component> = {
   },
   attachment: {
     propsType: propsTypes.attachment,
-    factory: function Attachment({ value, setValue, readOnly, name, label }) {
+    factory: function Attachment({ setValue, readOnly, name }) {
+      const uploaderRef = useRef<AttachmentUploaderRef>(null);
+      const isSubmittingRef = useRef(false);
+
+      // Cleanup uploaded files when component unmounts (user navigates away without confirming)
+      useEffect(() => {
+        const ref = uploaderRef.current;
+        const isSubmitting = isSubmittingRef.current;
+
+        // Add a small delay to allow booking creation to complete
+        // The delete API will prevent deletion if file is already in a booking
+        const timeoutId = setTimeout(async () => {
+          if (!isSubmitting && ref) {
+            await ref.cleanup();
+          }
+        }, 2000);
+
+        return () => {
+          clearTimeout(timeoutId);
+        };
+      }, []);
+
       return (
         <div className="space-y-3">
           <AttachmentUploader
+            ref={uploaderRef}
             id={`${name}-uploader`}
             disabled={readOnly}
             onFilesChange={(allFiles) => {

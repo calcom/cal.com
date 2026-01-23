@@ -15,7 +15,7 @@ import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -97,11 +97,42 @@ export const FormBuilder = function FormBuilder({
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const { t } = useLocale();
 
-  const { fields, swap, remove, update, append } = useFieldArray({
+  const { fields, swap, remove, update, append, replace } = useFieldArray({
     control: fieldsForm.control,
     // HACK: It allows any property name to be used for instead of `fields` property name
     name: formProp as unknown as "fields",
   });
+  // ADD THIS NEW FUNCTION HERE ↓
+  const checkAndResetIfMatchesDefaults = (skipFieldName?: string) => {
+    setTimeout(() => {
+      const currentFields = fieldsForm.getValues(formProp as any);
+      const defaultFields = fieldsForm.formState.defaultValues?.[formProp as any];
+
+      if (currentFields && defaultFields) {
+        const normalize = (fields: any[]) =>
+          fields.map(({ id, ...rest }) => {
+            const sorted: any = {};
+            Object.keys(rest)
+              .sort()
+              .forEach((key) => {
+                // Only include properties that have defined values
+                if (rest[key] !== undefined) {
+                  sorted[key] = rest[key];
+                }
+              });
+            return sorted;
+          });
+
+        const currentNormalized = JSON.stringify(normalize(currentFields));
+        const defaultNormalized = JSON.stringify(normalize(defaultFields));
+
+        if (currentNormalized === defaultNormalized) {
+          const allValues = fieldsForm.getValues();
+          fieldsForm.reset(allValues);
+        }
+      }
+    }, 100);
+  };
 
   const emailWorkflowsCount = workflows.filter(
     (workflow: any) =>
@@ -126,7 +157,9 @@ export const FormBuilder = function FormBuilder({
   const [hideFieldWarning, setHideFieldWarning] = useState({
     isOpen: false,
     fieldIndex: -1,
-    onConfirm: () => {},
+    onConfirm: () => {
+      // noop
+    },
   });
 
   const addField = () => {
@@ -150,6 +183,27 @@ export const FormBuilder = function FormBuilder({
   };
 
   const [toggleField, setToggleField] = useState<"email" | "phone">("email");
+  const didInitToggleField = useRef(false);
+
+  useEffect(() => {
+    if (didInitToggleField.current) return;
+
+    const emailField = fields.find((field) => field.name === "email");
+    const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
+
+    const emailVisible = emailField ? !emailField.hidden : false;
+    const phoneVisible = phoneField ? !phoneField.hidden : false;
+    const emailRequired = emailField?.required ?? false;
+    const phoneRequired = phoneField?.required ?? false;
+
+    if (phoneVisible && phoneRequired && (!emailVisible || !emailRequired)) {
+      setToggleField("phone");
+    } else if (emailVisible && emailRequired && (!phoneVisible || !phoneRequired)) {
+      setToggleField("email");
+    }
+
+    didInitToggleField.current = true;
+  }, [fields]);
 
   return (
     <div>
@@ -176,40 +230,75 @@ export const FormBuilder = function FormBuilder({
                 },
               ]}
               onValueChange={(value) => {
-                setToggleField(value as "email" | "phone");
                 const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
                 const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+                const emailField = fields[emailFieldIndex];
+                const phoneField = fields[phoneFieldIndex];
+                const emailRequiredByWorkflow =
+                  emailField?.sources?.some(
+                    (source: { type?: string; fieldRequired?: boolean }) =>
+                      source.type === "workflow" && source.fieldRequired
+                  ) ?? false;
+                const phoneRequiredByWorkflow =
+                  phoneField?.sources?.some(
+                    (source: { type?: string; fieldRequired?: boolean }) =>
+                      source.type === "workflow" && source.fieldRequired
+                  ) ?? false;
 
-                const hasEmailWorkflow = emailWorkflowsCount > 0;
-                const hasPhoneWorkflows = phoneWorkflowsCount > 0;
+                const applyToggle = () => {
+                  setToggleField(value as "email" | "phone");
 
-                if (value === "email") {
-                  update(emailFieldIndex, {
-                    ...fields[emailFieldIndex],
-                    hidden: false,
-                    required: true,
-                  });
-                  if (!hasPhoneWorkflows) {
-                    update(phoneFieldIndex, {
-                      ...fields[phoneFieldIndex],
-                      hidden: true,
-                      required: false,
-                    });
+                  if (value === "email") {
+                    const newEmailField = {
+                      ...emailField,
+                      required: true,
+                      hidden: false,
+                    };
+                    update(emailFieldIndex, newEmailField);
+
+                    const nextPhoneField = {
+                      ...phoneField,
+                      hidden: !phoneRequiredByWorkflow,
+                      required: phoneRequiredByWorkflow ? true : false,
+                    };
+                    update(phoneFieldIndex, nextPhoneField);
+                  } else if (value === "phone") {
+                    const nextEmailField = {
+                      ...emailField,
+                      hidden: !emailRequiredByWorkflow,
+                      required: emailRequiredByWorkflow ? true : false,
+                    };
+                    update(emailFieldIndex, nextEmailField);
+
+                    const newPhoneField = {
+                      ...phoneField,
+                      required: true,
+                      hidden: false,
+                    };
+                    update(phoneFieldIndex, newPhoneField);
                   }
-                } else if (value === "phone") {
-                  if (!hasEmailWorkflow) {
-                    update(emailFieldIndex, {
-                      ...fields[emailFieldIndex],
-                      hidden: true,
-                      required: false,
-                    });
-                  }
-                  update(phoneFieldIndex, {
-                    ...fields[phoneFieldIndex],
-                    hidden: false,
-                    required: true,
+                };
+
+                const shouldConfirmHide =
+                  (value === "email" && phoneWorkflowsCount > 0 && !phoneRequiredByWorkflow) ||
+                  (value === "phone" && emailWorkflowsCount > 0 && !emailRequiredByWorkflow);
+
+                if (shouldConfirmHide) {
+                  setHideFieldWarning({
+                    isOpen: true,
+                    fieldIndex: value === "email" ? phoneFieldIndex : emailFieldIndex,
+                    onConfirm: () => {
+                      applyToggle();
+                      checkAndResetIfMatchesDefaults();
+                    },
                   });
+                  return;
                 }
+
+                applyToggle();
+
+                // After updates, check if we match defaults and use setValue to clear dirty state
+                checkAndResetIfMatchesDefaults();
               }}
             />
           )}
@@ -325,16 +414,14 @@ export const FormBuilder = function FormBuilder({
                       )}
 
                       {emailWorkflowsCount > 0 && field.name === "email" && (
-                        <Badge key={"email-workflows"}>
-                          {emailWorkflowsCount}{" "}
-                          {phoneWorkflowsCount === 1 ? "CalIdWorkflow" : `CalIdWorkflows`}
+                        <Badge key="email-workflows">
+                          {emailWorkflowsCount} {emailWorkflowsCount === 1 ? "Workflow" : `Workflows`}
                         </Badge>
                       )}
 
                       {phoneWorkflowsCount > 0 && field.name === "attendeePhoneNumber" && (
-                        <Badge key={"email-workflows"}>
-                          {phoneWorkflowsCount}{" "}
-                          {phoneWorkflowsCount === 1 ? "CalIdWorkflow" : `CalIdWorkflows`}
+                        <Badge key="email-workflows">
+                          {phoneWorkflowsCount} {phoneWorkflowsCount === 1 ? "Workflow" : `Workflows`}
                         </Badge>
                       )}
                     </div>
@@ -357,13 +444,12 @@ export const FormBuilder = function FormBuilder({
                               (field.name === "attendeePhoneNumber" && phoneWorkflowsCount > 0);
 
                             if (hasWorkflows) {
-                              const workflowCount =
-                                field.name === "email" ? emailWorkflowsCount : phoneWorkflowsCount;
                               setHideFieldWarning({
                                 isOpen: true,
                                 fieldIndex: index,
                                 onConfirm: () => {
                                   update(index, { ...field, hidden: true, required: false });
+                                  checkAndResetIfMatchesDefaults();
                                 },
                               });
                               return;
@@ -371,9 +457,45 @@ export const FormBuilder = function FormBuilder({
                           }
 
                           if (!checked) {
-                            update(index, { ...field, hidden: !checked, required: false });
+                            const defaultFields = fieldsForm.formState.defaultValues?.[formProp as any];
+                            const defaultField = defaultFields?.find((f: any) => f.name === field.name);
+                            const defaultHasHiddenProperty = defaultField && "hidden" in defaultField;
+
+                            // For fields like 'title' that have hidden in defaults, preserve the default required state
+                            const requiredValue =
+                              defaultHasHiddenProperty && (field.name === "guests" || field.name === "title")
+                                ? defaultField?.required ?? false
+                                : false;
+
+                            update(index, { ...field, hidden: true, required: requiredValue });
+                            checkAndResetIfMatchesDefaults();
                           } else {
-                            update(index, { ...field, hidden: !checked });
+                            const defaultFields = fieldsForm.formState.defaultValues?.[formProp as any];
+                            const defaultField = defaultFields?.find((f: any) => f.name === field.name);
+                            const updatedField = { ...field };
+                            const requiredByWorkflow =
+                              field.sources?.some(
+                                (source: { type?: string; fieldRequired?: boolean }) =>
+                                  source.type === "workflow" && source.fieldRequired
+                              ) ?? false;
+
+                            const defaultHasHiddenProperty = defaultField && "hidden" in defaultField;
+
+                            if (
+                              defaultHasHiddenProperty &&
+                              (field.name === "guests" || field.name === "title")
+                            ) {
+                              updatedField.hidden = false;
+                            } else {
+                              updatedField.hidden = false;
+                            }
+
+                            if (defaultField) {
+                              updatedField.required = requiredByWorkflow ? true : false;
+                            }
+                            update(index, updatedField);
+
+                            checkAndResetIfMatchesDefaults();
                           }
                         }}
                         tooltip={t("show_on_booking_page")}
@@ -382,7 +504,8 @@ export const FormBuilder = function FormBuilder({
                     {isUserField && (
                       <Button
                         data-testid="delete-field-action"
-                        color="destructive"
+                        color="secondary"
+                        className="text-error enabled:hover:text-error border-default border"
                         disabled={!isUserField}
                         variant="icon"
                         onClick={() => {
@@ -469,7 +592,9 @@ export const FormBuilder = function FormBuilder({
             setHideFieldWarning({
               isOpen,
               fieldIndex: -1,
-              onConfirm: () => {},
+              onConfirm: () => {
+                // noop
+              },
             })
           }
           workflowCount={
@@ -1056,6 +1181,7 @@ function HideFieldWarningDialog({
   onConfirm: () => void;
 }) {
   const { t } = useLocale();
+  const fieldLabel = fieldName === "email" ? "Email address" : "Phone number";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -1065,7 +1191,7 @@ function HideFieldWarningDialog({
           <DialogDescription>
             {t("hide_field_warning_description", {
               count: workflowCount,
-              fieldName: fieldName === "email" ? "email" : "phone",
+              fieldName: fieldLabel,
             })}
           </DialogDescription>
         </DialogHeader>

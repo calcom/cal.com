@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent } from "@calid/features/ui/components/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@calid/features/ui/components/dialog";
 import { useState } from "react";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -76,6 +76,8 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
       {/* Create API Key Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent size="md" type="creation" title={t("create_api_key")}>
+          <DialogTitle>{t("create_api_key")}</DialogTitle>
+          <DialogDescription>{t("api_keys_description")}</DialogDescription>
           <ApiKeyDialogForm onCancel={handleCloseCreateModal} />
         </DialogContent>
       </Dialog>
@@ -83,6 +85,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
       {/* Edit API Key Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent size="md" type="creation" title={t("edit_api_key")}>
+          <DialogTitle>{t("edit_api_key")}</DialogTitle>
           {selectedApiKey && (
             <ApiKeyDialogForm defaultValues={selectedApiKey} onCancel={handleCloseEditModal} />
           )}
