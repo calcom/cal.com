@@ -49,12 +49,12 @@ export function UpgradeTip({
           {" "}
                     <source srcSet={imageSrc} media="(prefers-color-scheme: dark)" />
           <img
- className="absolute min-h-full w-full select-none rounded-lg object-cover object-left md:object-center"            src={imageSrc}
+ className="absolute min-h-full w-full select-none rounded-lg object-cover object-left md:object-[45%_30%] lg:object-center"            src={imageSrc}
             loading="lazy"
             alt={title}
           />
         </picture>
-         <div className="relative my-4 w-full px-4 pb-4 sm:px-8 md:px-14">
+         <div className="relative my-4 w-full px-4 pb-4 sm:px-8 md:px-8 lg:px-14">
           <h1 className={classNames("font-cal mt-4 text-2xl sm:text-3xl")}>{title}</h1>
           <p className={classNames("mb-8 mt-4 max-w-sm text-sm sm:text-base")}>{description}</p>
           {buttons}
