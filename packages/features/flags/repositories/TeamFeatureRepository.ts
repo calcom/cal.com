@@ -2,9 +2,7 @@ import { Memoize, Unmemoize } from "@calcom/features/cache";
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import { TeamFeaturesDtoSchema } from "@calcom/lib/dto/TeamFeaturesDto";
 import type { PrismaClient } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
-
-import type { FeatureId, FeatureState, TeamFeatures } from "../config";
+import type { FeatureId } from "../config";
 import { booleanSchema } from "./schemas";
 
 const CACHE_PREFIX = "features:team";
@@ -30,18 +28,6 @@ export interface ITeamFeatureRepository {
   findAutoOptInByTeamId(teamId: number): Promise<boolean>;
   findAutoOptInByTeamIds(teamIds: number[]): Promise<Record<number, boolean>>;
   setAutoOptIn(teamId: number, enabled: boolean): Promise<void>;
-  checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean>;
-  getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]>;
-  getEnabledTeamFeatures(teamId: number): Promise<TeamFeatures | null>;
-  getTeamsFeatureStates(
-    teamIds: number[],
-    featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>>;
-  setState(
-    input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
-      | { teamId: number; featureId: FeatureId; state: "inherit" }
-  ): Promise<void>;
 }
 
 export class TeamFeatureRepository implements ITeamFeatureRepository {
@@ -200,151 +186,5 @@ export class TeamFeatureRepository implements ITeamFeatureRepository {
       where: { id: teamId },
       data: { autoOptInFeatures: enabled },
     });
-  }
-
-  async checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean> {
-    const teamFeature = await this.findByTeamIdAndFeatureId(teamId, featureId);
-    if (teamFeature) return teamFeature.enabled;
-
-    const query = Prisma.sql`
-      WITH RECURSIVE TeamHierarchy AS (
-        -- Start with the initial team
-        SELECT id, "parentId",
-          CASE WHEN EXISTS (
-            SELECT 1 FROM "TeamFeatures" tf
-            WHERE tf."teamId" = id AND tf."featureId" = ${featureId} AND tf."enabled" = true
-          ) THEN true ELSE false END as has_feature
-        FROM "Team"
-        WHERE id = ${teamId}
-
-        UNION ALL
-
-        -- Recursively get parent teams
-        SELECT p.id, p."parentId",
-          CASE WHEN EXISTS (
-            SELECT 1 FROM "TeamFeatures" tf
-            WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId} AND tf."enabled" = true
-          ) THEN true ELSE false END as has_feature
-        FROM "Team" p
-        INNER JOIN TeamHierarchy c ON p.id = c."parentId"
-        WHERE NOT c.has_feature -- Stop recursion if we found a team with the feature
-      )
-      SELECT 1
-      FROM TeamHierarchy
-      WHERE has_feature = true
-      LIMIT 1;
-    `;
-
-    const result = await this.prisma.$queryRaw<unknown[]>(query);
-    return result.length > 0;
-  }
-
-  async getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]> {
-    const rows = await this.prisma.teamFeatures.findMany({
-      where: {
-        featureId,
-        enabled: true,
-      },
-      select: { teamId: true },
-      orderBy: { teamId: "asc" },
-    });
-
-    return rows.map((r) => r.teamId);
-  }
-
-  async getEnabledTeamFeatures(teamId: number): Promise<TeamFeatures | null> {
-    const result = await this.prisma.teamFeatures.findMany({
-      where: {
-        teamId,
-        enabled: true,
-      },
-      select: {
-        feature: {
-          select: {
-            slug: true,
-          },
-        },
-      },
-    });
-
-    if (!result.length) return null;
-
-    const features: TeamFeatures = Object.fromEntries(
-      result.map((teamFeature) => [teamFeature.feature.slug, true])
-    ) as TeamFeatures;
-
-    return features;
-  }
-
-  async getTeamsFeatureStates(
-    teamIds: number[],
-    featureIds: FeatureId[]
-  ): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>> {
-    if (teamIds.length === 0 || featureIds.length === 0) {
-      return {};
-    }
-
-    const result: Partial<Record<FeatureId, Record<number, FeatureState>>> = {};
-    for (const featureId of featureIds) {
-      result[featureId] = {};
-    }
-
-    const teamFeatures = await this.prisma.teamFeatures.findMany({
-      where: {
-        teamId: { in: teamIds },
-        featureId: { in: featureIds },
-      },
-      select: { teamId: true, featureId: true, enabled: true },
-    });
-
-    for (const teamFeature of teamFeatures) {
-      const featureStates = result[teamFeature.featureId as FeatureId] ?? {};
-      featureStates[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
-      result[teamFeature.featureId as FeatureId] = featureStates;
-    }
-
-    return result;
-  }
-
-  @Unmemoize({
-    keys: (input: { teamId: number; featureId: FeatureId }) => [
-      KEY.byTeamIdAndFeatureId(input.teamId, input.featureId),
-    ],
-  })
-  async setState(
-    input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
-      | { teamId: number; featureId: FeatureId; state: "inherit" }
-  ): Promise<void> {
-    const { teamId, featureId, state } = input;
-
-    if (state === "enabled" || state === "disabled") {
-      const { assignedBy } = input;
-      await this.prisma.teamFeatures.upsert({
-        where: {
-          teamId_featureId: {
-            teamId,
-            featureId,
-          },
-        },
-        create: {
-          teamId,
-          featureId,
-          enabled: state === "enabled",
-          assignedBy,
-        },
-        update: {
-          enabled: state === "enabled",
-          assignedBy,
-        },
-      });
-    } else if (state === "inherit") {
-      await this.prisma.teamFeatures.deleteMany({
-        where: {
-          teamId,
-          featureId,
-        },
-      });
-    }
   }
 }
