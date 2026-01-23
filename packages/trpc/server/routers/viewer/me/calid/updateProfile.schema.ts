@@ -15,6 +15,7 @@ export const updateUserMetadataAllowedKeys = z.object({
       formSubmittedForYear: z.number().optional(),
       validTillDate: z.string().optional(),
       verified: z.boolean().optional(),
+      firstYearClaimDate: z.string().optional(),
     })
     .optional(),
   gettingStartedActions: z

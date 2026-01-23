@@ -1,3 +1,4 @@
+import type { Prisma } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -11,11 +12,21 @@ type GetUniqueAttendeesCountOptions = {
 export const getUniqueAttendeesCountHandler = async ({ ctx }: GetUniqueAttendeesCountOptions) => {
   const { user } = ctx;
 
+  const userMetadata = user.metadata as { isProUser?: { firstYearClaimDate?: string } } | null;
+  const firstYearClaimDate = userMetadata?.isProUser?.firstYearClaimDate;
+
+  const whereClause: Prisma.BookingWhereInput = {
+    userId: user.id,
+    status: BookingStatus.ACCEPTED,
+    ...(firstYearClaimDate && {
+      createdAt: {
+        gte: new Date(firstYearClaimDate),
+      },
+    }),
+  };
+
   const bookings = await prisma.booking.findMany({
-    where: {
-      userId: user.id,
-      status: BookingStatus.ACCEPTED,
-    },
+    where: whereClause,
     select: {
       id: true,
       attendees: {

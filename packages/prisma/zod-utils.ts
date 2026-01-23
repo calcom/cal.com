@@ -358,6 +358,7 @@ export const userMetadata = z
         formSubmittedForYear: z.number().optional(),
         validTillDate: z.string().optional(),
         verified: z.boolean().optional().default(false),
+        firstYearClaimDate: z.string().optional(),
       })
       .optional(),
     sessionTimeout: z.number().optional(), // Minutes
