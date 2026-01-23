@@ -1,18 +1,16 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { IProfileRepository } from "@calcom/lib/server/repository/dto/IProfileRepository";
 import prisma from "@calcom/prisma";
-import type { User as PrismaUser } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Team } from "@calcom/prisma/client";
+import type { Prisma, PrismaClient, User as PrismaUser, Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
+import { v4 as uuidv4 } from "uuid";
 
 const userSelect = {
   name: true,
@@ -22,8 +20,6 @@ const userSelect = {
   email: true,
   locale: true,
   defaultScheduleId: true,
-  startTime: true,
-  endTime: true,
   bufferTime: true,
   isPlatformManaged: true,
 } satisfies Prisma.UserSelect;
@@ -95,7 +91,13 @@ export enum LookupTarget {
   Profile,
 }
 
-export class ProfileRepository {
+export class ProfileRepository implements IProfileRepository {
+  private prismaClient: PrismaClient;
+
+  constructor(deps: { prismaClient: PrismaClient }) {
+    this.prismaClient = deps.prismaClient;
+  }
+
   static generateProfileUid() {
     return uuidv4();
   }
@@ -111,8 +113,6 @@ export class ProfileRepository {
         username: true,
         name: true,
         avatarUrl: true,
-        startTime: true,
-        endTime: true,
         bufferTime: true,
         metadata: true,
       },
@@ -130,13 +130,11 @@ export class ProfileRepository {
   private static getInheritedDataFromUser({
     user,
   }: {
-    user: Pick<PrismaUser, "name" | "avatarUrl" | "startTime" | "endTime" | "bufferTime">;
+    user: Pick<PrismaUser, "name" | "avatarUrl" | "bufferTime">;
   }) {
     return {
       name: user.name,
       avatarUrl: user.avatarUrl,
-      startTime: user.startTime,
-      endTime: user.endTime,
       bufferTime: user.bufferTime,
     };
   }
@@ -527,7 +525,7 @@ export class ProfileRepository {
         }
       }
 
-      const user = await this.findUserByid({ id: targetUserId });
+      const user = await ProfileRepository.findUserByid({ id: targetUserId });
       if (!user) {
         return null;
       }
@@ -631,7 +629,7 @@ export class ProfileRepository {
 
     if (profile.organization?.isPlatform && !user.isPlatformManaged) {
       return {
-        ...this.buildPersonalProfileFromUser({ user }),
+        ...ProfileRepository.buildPersonalProfileFromUser({ user }),
         ...ProfileRepository.getInheritedDataFromUser({ user }),
       };
     }
@@ -1022,6 +1020,15 @@ export class ProfileRepository {
       },
     };
   }
+
+  async findFirstByUserId({ userId }: { userId: number }) {
+    return this.prismaClient.profile.findFirst({
+      where: {
+        userId,
+      },
+      select: profileSelect,
+    });
+  }
 }
 
 export const normalizeProfile = <
@@ -1031,7 +1038,7 @@ export const normalizeProfile = <
     organization: Pick<Team, keyof typeof organizationSelect>;
     createdAt?: Date;
     updatedAt?: Date;
-  }
+  },
 >(
   profile: T
 ) => {

@@ -4,7 +4,6 @@ import {
   getConnectedCalendars,
 } from "@calcom/features/calendars/lib/CalendarManager";
 import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -44,7 +43,7 @@ const _ensureNoConflictingNonDelegatedConnectedCalendar = <
     integration: { slug: string };
     primary?: { email?: string | null | undefined } | undefined;
     delegationCredentialId?: string | null | undefined;
-  }
+  },
 >({
   connectedCalendars,
   loggedInUser,
@@ -216,7 +215,7 @@ function findMatchingCalendar({
   calendar: DestinationCalendar;
 }) {
   // Check if destinationCalendar exists in connectedCalendars
-  const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+  const allCals = connectedCalendars.flatMap((cal) => cal.calendars ?? []);
   const matchingCalendar = allCals.find(
     (cal) => cal.externalId === calendar.externalId && cal.integration === calendar.integration
   );
@@ -255,14 +254,10 @@ function getSelectedCalendars({
 }: {
   user: UserWithCalendars;
   eventTypeId: number | null;
-}) {
+}): Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId">[] {
   if (eventTypeId) {
-    return EventTypeRepository.getSelectedCalendarsFromUser({
-      user,
-      eventTypeId: eventTypeId ?? null,
-    });
+    return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
-
   return user.userLevelSelectedCalendars;
 }
 

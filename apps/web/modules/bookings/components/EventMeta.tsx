@@ -80,6 +80,7 @@ export const EventMeta = ({
     | "isDynamic"
     | "fieldTranslations"
     | "autoTranslateDescriptionEnabled"
+    | "enablePerHostLocations"
   > | null;
   isPending: boolean;
   isPrivateLink: boolean;
@@ -179,6 +180,7 @@ export const EventMeta = ({
               <ScrollableWithGradients
                 className="wrap-break-word scroll-bar max-h-[180px] max-w-full overflow-y-auto pr-4"
                 ariaLabel={t("description")}>
+                {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient */}
                 <div
                   dangerouslySetInnerHTML={{
                     __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),

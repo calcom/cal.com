@@ -4,17 +4,15 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
 import { TRPCError } from "@trpc/server";
 
 import { generateAuthCodeHandler } from "./generateAuthCode.handler";
 
-const mockUser = {
-  id: 1,
-  email: "test@example.com",
-  name: "Test User",
-};
+const mockUser = { id: 1 } as unknown as NonNullable<TrpcSessionUser>;
 
-const mockCtx = {
+const mockCtx: { user: NonNullable<TrpcSessionUser> } = {
   user: mockUser,
 };
 
@@ -29,6 +27,7 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Public Client",
       clientType: "PUBLIC" as const,
+      status: "APPROVED" as const,
     };
 
     it("should generate authorization code for PUBLIC client with valid PKCE", async () => {
@@ -86,7 +85,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["pkce_required"],
+          message: OAUTH_ERROR_REASONS.pkce_required,
         })
       );
 
@@ -108,7 +107,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -131,7 +130,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputMD5 })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -148,7 +147,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -164,6 +163,7 @@ describe("generateAuthCodeHandler", () => {
       clientType: "CONFIDENTIAL" as const,
       isTrusted: undefined,
       logo: undefined,
+      status: "APPROVED" as const,
     };
 
     it("should generate authorization code for CONFIDENTIAL client without PKCE", async () => {
@@ -266,7 +266,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -290,7 +290,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "UNAUTHORIZED",
-          message: OAUTH_ERROR_REASONS["client_not_found"],
+          message: OAUTH_ERROR_REASONS.client_not_found,
         })
       );
 
@@ -303,6 +303,7 @@ describe("generateAuthCodeHandler", () => {
         redirectUri: "https://app.example.com/callback",
         name: "Test Public Client",
         clientType: "PUBLIC" as const,
+        status: "APPROVED" as const,
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
@@ -349,7 +350,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputInvalid })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
 
@@ -366,9 +367,69 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: OAUTH_ERROR_REASONS["invalid_code_challenge_method"],
+          message: OAUTH_ERROR_REASONS.invalid_code_challenge_method,
         })
       );
+    });
+
+    it("should reject PENDING client", async () => {
+      const mockPendingClient = {
+        clientId: "pending_client_123",
+        redirectUri: "https://app.example.com/callback",
+        name: "Test Pending Client",
+        clientType: "CONFIDENTIAL" as const,
+        status: "PENDING" as const,
+      };
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPendingClient);
+
+      const input = {
+        clientId: "pending_client_123",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: OAUTH_ERROR_REASONS.client_not_approved,
+        })
+      );
+
+      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
+    });
+
+    it("should reject REJECTED client", async () => {
+      const mockRejectedClient = {
+        clientId: "rejected_client_123",
+        redirectUri: "https://app.example.com/callback",
+        name: "Test Rejected Client",
+        clientType: "CONFIDENTIAL" as const,
+        status: "REJECTED" as const,
+      };
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockRejectedClient);
+
+      const input = {
+        clientId: "rejected_client_123",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: OAUTH_ERROR_REASONS.client_not_approved,
+        })
+      );
+
+      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
     });
   });
 });

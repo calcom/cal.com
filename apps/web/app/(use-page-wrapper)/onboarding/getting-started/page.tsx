@@ -1,11 +1,10 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { APP_NAME } from "@calcom/lib/constants";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { APP_NAME } from "@calcom/lib/constants";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { OnboardingView } from "~/onboarding/getting-started/onboarding-view";
 
@@ -24,6 +23,13 @@ const ServerPage = async () => {
 
   if (!session?.user?.id) {
     return redirect("/auth/login");
+  }
+
+  // If user has pending team invites, redirect them directly to personal onboarding
+  // This handles the case where users sign up with an invite token and are redirected here
+  const hasPendingInvite = await MembershipRepository.hasPendingInviteByUserId({ userId: session.user.id });
+  if (hasPendingInvite) {
+    return redirect("/onboarding/personal/settings");
   }
 
   const userEmail = session.user.email || "";
