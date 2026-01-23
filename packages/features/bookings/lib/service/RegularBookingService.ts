@@ -135,7 +135,7 @@ import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
-import { makeGuestActor } from "../types/actor";
+import { makeGuestActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { BookingDataPreparationService } from "../utils/BookingDataPreparationService";
 
 const translator = short();
