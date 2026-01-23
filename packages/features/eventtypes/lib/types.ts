@@ -13,6 +13,8 @@ import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -25,6 +27,17 @@ export type AvailabilityOption = {
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
+export type HostLocation = {
+  id?: string;
+  userId: number;
+  eventTypeId: number;
+  type: EventLocationType["type"];
+  credentialId?: number | null;
+  link?: string | null;
+  address?: string | null;
+  phoneNumber?: string | null;
+};
+
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -32,6 +45,7 @@ export type Host = {
   weight: number;
   scheduleId?: number | null;
   groupId: string | null;
+  location?: HostLocation | null;
 };
 export type TeamMember = {
   value: string;
@@ -175,12 +189,39 @@ export type FormValues = {
   restrictionScheduleName: string | null;
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
+  enablePerHostLocations: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
 
-export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
-export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
+export type EventTypeAssignedUsers = {
+  owner: {
+    avatar: string;
+    email: string;
+    name: string;
+    username: string;
+    membership: MembershipRole;
+    id: number;
+    avatarUrl: string | null;
+    nonProfileUsername: string | null;
+    profile: UserProfile;
+  };
+  created: boolean;
+  hidden: boolean;
+  slug: string;
+}[];
+
+export type EventTypeHosts = {
+  user: {
+    timeZone: string;
+  };
+  userId: number;
+  scheduleId: number | null;
+  isFixed: boolean;
+  priority: number | null;
+  weight: number | null;
+  groupId: string | null;
+}[];
 export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
 export type TabMap = {
   advanced: React.ReactNode;

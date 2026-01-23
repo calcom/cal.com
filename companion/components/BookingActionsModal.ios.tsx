@@ -8,8 +8,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Booking } from "../services/calcom";
-import type { BookingActionsResult } from "../utils/booking-actions";
+import type { Booking } from "@/services/calcom";
+import type { BookingActionsResult } from "@/utils/booking-actions";
 import { FullScreenModal } from "./FullScreenModal";
 
 export interface BookingActionsModalProps {

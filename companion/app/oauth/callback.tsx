@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, Platform, Text, View } from "react-native";
-import { useAuth } from "../../contexts";
+import { useAuth } from "@/contexts";
+import { safeLogError } from "@/utils/safeLogger";
 
 export default function OAuthCallback() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function OAuthCallback() {
     // Handle OAuth error response
     if (error) {
       const errorMessage = errorDescription || error || "OAuth authorization failed";
-      console.error("OAuth error:", error, errorDescription);
+      safeLogError("OAuth error occurred", { error, errorDescription });
 
       if (typeof window !== "undefined") {
         if (window.opener) {
@@ -75,7 +76,7 @@ export default function OAuthCallback() {
         }
       }
     } else {
-      console.error("No authorization code or state in OAuth callback");
+      safeLogError("No authorization code or state in OAuth callback", { code, state });
 
       // Handle error case
       if (typeof window !== "undefined") {
@@ -93,7 +94,6 @@ export default function OAuthCallback() {
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, router, auth.userInfo]);
 
   return (

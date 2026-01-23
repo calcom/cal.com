@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs"
+import path from "node:path"
 
 import { APP_STORE_PATH, TEMPLATES_PATH, IS_WINDOWS_PLATFORM } from "./constants";
 import execSync from "./utils/execSync";

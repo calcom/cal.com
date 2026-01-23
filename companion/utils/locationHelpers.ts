@@ -9,7 +9,7 @@ import type {
   LocationItem,
   LocationOption,
   LocationOptionGroup,
-} from "../types/locations";
+} from "@/types/locations";
 import { DefaultLocationType, defaultLocations } from "./defaultLocations";
 import { formatAppIdToDisplayName } from "./formatters";
 import { getAppIconUrl } from "./getAppIconUrl";

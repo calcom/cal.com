@@ -13,8 +13,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Modal, Text, TouchableOpacity, View } from "react-native";
 
 export function NetworkStatusBanner() {
+  // eslint-disable-next-line react-compiler/react-compiler -- Animated.Value ref access in JSX is incompatible with React Compiler
+  "use no memo";
   const [showModal, setShowModal] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnimRef = useRef(new Animated.Value(0));
 
   // Simple refs to track state
   const previousOfflineRef = useRef<boolean | null>(null);
@@ -61,18 +63,18 @@ export function NetworkStatusBanner() {
 
   useEffect(() => {
     if (showModal) {
-      fadeAnim.setValue(0);
-      Animated.timing(fadeAnim, {
+      fadeAnimRef.current.setValue(0);
+      Animated.timing(fadeAnimRef.current, {
         toValue: 1,
         duration: 250,
         useNativeDriver: true,
       }).start();
     }
-  }, [showModal, fadeAnim]);
+  }, [showModal]);
 
   const handleDismiss = () => {
     userDismissedRef.current = true;
-    Animated.timing(fadeAnim, {
+    Animated.timing(fadeAnimRef.current, {
       toValue: 0,
       duration: 150,
       useNativeDriver: true,
@@ -86,7 +88,7 @@ export function NetworkStatusBanner() {
   return (
     <Modal transparent visible={showModal} animationType="none" onRequestClose={handleDismiss}>
       <Animated.View
-        style={{ opacity: fadeAnim }}
+        style={{ opacity: fadeAnimRef.current }}
         className="flex-1 items-center justify-center bg-black/40 px-8"
       >
         <View className="w-full max-w-xs items-center rounded-2xl bg-white px-6 py-8">

@@ -12,7 +12,7 @@ permissions:
 jobs:
   annotate:
     if: always()
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/yarn-install

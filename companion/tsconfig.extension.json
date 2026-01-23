@@ -11,7 +11,18 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["chrome"]
+    "types": ["chrome"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/services/*": ["./services/*"],
+      "@/contexts/*": ["./contexts/*"],
+      "@/config/*": ["./config/*"],
+      "@/types/*": ["./types/*"]
+    }
   },
   "include": ["extension/**/*.ts", "extension/**/*.tsx", "services/types/**/*.ts", "types/**/*.ts"],
   "exclude": ["node_modules", ".output"]

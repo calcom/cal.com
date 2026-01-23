@@ -1,13 +1,12 @@
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "../client";
 
 export const availabilityUserSelect = {
   id: true,
+  uuid: true,
   timeZone: true,
   email: true,
   bufferTime: true,
-  startTime: true,
   username: true,
-  endTime: true,
   timeFormat: true,
   defaultScheduleId: true,
   isPlatformManaged: true,

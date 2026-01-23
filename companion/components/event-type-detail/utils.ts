@@ -6,8 +6,8 @@
  */
 
 // Re-export formatting utilities from centralized location
-export { formatAppIdToDisplayName, formatDuration, truncateTitle } from "../../utils/formatters";
+export { formatAppIdToDisplayName, formatDuration, truncateTitle } from "@/utils/formatters";
 // Re-export location utilities from centralized location
-export { displayNameToLocationValue } from "../../utils/locationHelpers";
+export { displayNameToLocationValue } from "@/utils/locationHelpers";
 // Re-export partial update utilities
 export { buildPartialUpdatePayload, hasChanges } from "./utils/buildPartialUpdatePayload";
