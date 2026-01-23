@@ -118,7 +118,6 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     const displayFields: { labelKey: string; valueKey?: string; value?: string; values?: string[] }[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
-      parsedFields.attendeesNoShow.push(parsedFields.attendeesNoShow[0]);
       const attendeesFieldValues = parsedFields.attendeesNoShow.map((attendee) => {
         const noShowStatus = attendee.noShow.new ? "Yes" : "No";
         return `${attendee.attendeeEmail}: ${noShowStatus}`;
