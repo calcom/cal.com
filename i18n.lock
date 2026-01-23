@@ -6,7 +6,7 @@ checksums:
     view_response: a34180c5473c6b9f6e191b79f595db45
     hide_response: 5df48fac71c9161246900d0f0e9f3a73
     hide_field_warning_title: bfe0defa48fdc9f02d4eeb7bddf85131
-    hide_field_warning_description: 63fc35f209f1326b242cc74f1e77fad2
+    hide_field_warning_description: d6be073acbfcb10ea4d19d975408f166
     hide_anyway: 6a45ddaf5a7fa72988bdbf0102220094
     image_limits: 32e19c31c5de202934a1dd11cbfa8cb1
     image_limits_only_size: b3fdcfb61657f73f9dafbcc9e49b72f8
@@ -34,6 +34,7 @@ checksums:
     sync_failed: 0e23661df3d2de59bcf5d06e60776dac
     successfully_synced: f048e136fc5a4cec4b72cf536702d805
     booking_seats: f8a76ecf12b9c081fa18e4debc460e7d
+    booking_seats_count: 93a16eb64e9cb710609d609cbf493cc5
     payment_not_completed: f0872ef05bcd9cb8070f977d2d7e7ff2
     go_to_website: 4a606fcd69b644552771f4ecb9454065
     select_captcha_strength: 5118e88f78199bdef486345aa36e609f
@@ -1967,8 +1968,8 @@ checksums:
     url_taken: 441497053658bdaf76c2af6c2b23d70b
     problem_registering_domain: 68d55d949e1a21f4e43cfae74eadcf37
     team_publish: bcadf047bdf5fd9e5b08467c74407b4e
-    number_text_notifications: 88a6af945bf12881d5fabf624f2d58b6
-    number_sms_notifications: ad31276ea0a7846797a93fcc86d36d11
+    number_text_notifications: 4d0e99dfa329b8c616b9bcdcac45d824
+    number_sms_notifications: 718bec6fba9875ac94fa1c0a552ebc4b
     attendee_email_variable: 31a830ea056b94cd705c86954c3312a9
     attendee_email_info: 682f8767c3a870a20fc3b82c3f7ebdb7
     booking_uid: b15ff03d1f75a6f45f582a6aec8835c3
@@ -1976,7 +1977,6 @@ checksums:
     invalid_credential: b250515b8a75c34919a2376a07fcd4cc
     invalid_credential_action: 127776c374b77c1b3883d5cb7f9a8817
     reschedule_reason: 375399a84bfe199e31165cb63d833d3c
-    reschedule_reason_label: 5d42ce659745f0516015dbef09c6d3ac
     choose_common_schedule_team_event: 60d29b0f512b0a6482ecd6f13627b285
     choose_common_schedule_team_event_description: da662f4f9517b19744797d9bd3122361
     reason: 9b66f286b86dd0e87b1ac0604c9d1ced
