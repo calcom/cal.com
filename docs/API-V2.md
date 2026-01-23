@@ -17,6 +17,7 @@ From the repository root:
 aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 194266086878.dkr.ecr.us-east-2.amazonaws.com
 
 # Build and push directly to ECR (with --push flag)
+# placeholder database gets overwritten later by .env on the production VM
 docker buildx build -f apps/api/v2/Dockerfile \
   --platform linux/amd64 \
   --build-arg DATABASE_URL="postgresql://calcom:placeholder@postgres:5432/calcom" \
