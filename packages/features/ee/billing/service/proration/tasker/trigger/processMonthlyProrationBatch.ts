@@ -14,7 +14,7 @@ export const processMonthlyProrationBatch = schemaTask({
 
     const prorationService = getMonthlyProrationService();
 
-    await prorationService.processMonthlyProrations({
+    return await prorationService.processMonthlyProrations({
       monthKey: payload.monthKey,
       teamIds: payload.teamIds,
     });
