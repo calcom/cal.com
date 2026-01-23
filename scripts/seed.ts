@@ -17,7 +17,7 @@ import type z from "zod";
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
-import { createUserAndEventType } from "./seed-utils";
+import { createOAuthClientForUser, createUserAndEventType } from "./seed-utils";
 
 type PlatformUser = {
   email: string;
