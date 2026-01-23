@@ -85,21 +85,22 @@ export class CalendarEventBuilder {
     if (!eventType) throw new Error(`Booking ${uid} is missing eventType — it may have been deleted.`);
 
     const builder = new CalendarEventBuilder();
-    const {
-      description,
-      attendees,
-      references,
-      title,
-      startTime,
-      endTime,
-      location,
-      responses,
-      customInputs,
-      iCalUID,
-      iCalSequence,
-      oneTimePassword,
-      seatsReferences,
-    } = booking;
+        const {
+          description,
+          attendees,
+          references,
+          title,
+          startTime,
+          endTime,
+          location,
+          responses,
+          customInputs,
+          iCalUID,
+          iCalSequence,
+          oneTimePassword,
+          seatsReferences,
+          assignmentReason,
+        } = booking;
 
     const {
       conferenceCredentialId,
@@ -185,10 +186,11 @@ export class CalendarEventBuilder {
         platformCancelUrl,
         platformBookingUrl,
       })
-      .withRecurring(recurring)
-      .withUid(uid)
-      .withOneTimePassword(oneTimePassword)
-      .withOrganization(organizationId);
+            .withRecurring(recurring)
+            .withUid(uid)
+            .withOneTimePassword(oneTimePassword)
+            .withOrganization(organizationId)
+            .withAssignmentReason(assignmentReason?.[0]?.reasonString ?? null);
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -523,15 +525,23 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  withHashedLink(hashedLink?: string | null) {
-    this.event = {
-      ...this.event,
-      hashedLink,
-    };
-    return this;
-  }
+    withHashedLink(hashedLink?: string | null) {
+      this.event = {
+        ...this.event,
+        hashedLink,
+      };
+      return this;
+    }
 
-  build(): CalendarEvent | null {
+    withAssignmentReason(assignmentReason?: string | null) {
+      this.event = {
+        ...this.event,
+        assignmentReason,
+      };
+      return this;
+    }
+
+    build(): CalendarEvent | null {
     // Validate required fields
     if (
       !this.event.startTime ||
