@@ -45,6 +45,25 @@ type EnabledAppType = App & {
   locationOption: LocationOption | null;
 };
 
+/**
+ * Normalizes a period date to UTC midnight.
+ * Atoms receives JSON where dates are strings (e.g., "2024-01-20T00:00:00.000Z" or "2024-01-20"),
+ * but TypeScript types them as Date. This function handles both cases.
+ * We extract the date part (YYYY-MM-DD) to avoid timezone shifts.
+ */
+function normalizePeriodDate(date: Date | string | null | undefined): Date | null | undefined {
+  if (date === undefined) return undefined;
+  if (date === null) return null;
+
+  // Handle both string (from JSON) and Date object (if already parsed)
+  const dateStr = typeof date === "string" ? date : date.toISOString();
+
+  // Extract the date part (first 10 chars: YYYY-MM-DD) to avoid timezone shifts
+  // e.g., "2024-01-20T00:00:00.000+04:00" -> "2024-01-20" -> UTC midnight Jan 20
+  const dateOnly = dateStr.slice(0, 10);
+  return new Date(dateOnly);
+}
+
 @Injectable()
 export class EventTypesAtomService {
   constructor(
@@ -134,8 +153,21 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,
@@ -162,8 +194,21 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,

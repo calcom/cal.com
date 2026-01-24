@@ -1,4 +1,4 @@
-import { ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsOptional } from "class-validator";
@@ -109,6 +109,14 @@ export function ValidateUpdateBookingLocation_2024_08_13(validationOptions?: Val
   };
 }
 
+@ApiExtraModels(
+  UpdateInputAddressLocation_2024_08_13,
+  UpdateBookingInputAttendeeAddressLocation_2024_08_13,
+  UpdateBookingInputAttendeeDefinedLocation_2024_08_13,
+  UpdateBookingInputAttendeePhoneLocation_2024_08_13,
+  UpdateBookingInputLinkLocation_2024_08_13,
+  UpdateBookingInputPhoneLocation_2024_08_13
+)
 export class UpdateBookingLocationInput_2024_08_13 {
   @IsOptional()
   @ValidateUpdateBookingLocation_2024_08_13()
