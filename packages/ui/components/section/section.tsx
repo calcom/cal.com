@@ -17,7 +17,7 @@ const Root = ({
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div ref={animateRef} className={cn("bg-muted flex flex-col gap-4 rounded-2xl p-4", className)}>
+    <div ref={animateRef} className={cn("bg-cal-muted flex flex-col gap-4 rounded-2xl p-4", className)}>
       {children}
     </div>
   );
@@ -195,7 +195,7 @@ const SubSectionContent = ({
     <div
       ref={ref}
       className={cn(
-        "bg-muted flex flex-col rounded-lg px-[6px] py-1",
+        "bg-cal-muted flex flex-col rounded-lg px-[6px] py-1",
         invert && "bg-default border-subtle border",
         classNames?.container
       )}>

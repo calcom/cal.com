@@ -1,0 +1,361 @@
+---
+title: "Migrating from V1 to V2"
+description: "A comprehensive guide to help you migrate from Cal.com API V1 to V2"
+---
+
+<Warning>
+  **API v1 is deprecated and will be discontinued on February 15, 2026.** Please migrate to API v2 as soon as possible.
+</Warning>
+
+This guide will help you migrate your integration from Cal.com API V1 to V2. The V2 API offers improved performance, enhanced security, better response objects, and new features that make it easier to build powerful integrations.
+
+## Why migrate to V2?
+
+- **Better performance**: Optimized for speed and scalability
+- **Enhanced security**: Improved authentication methods and security measures
+- **User-friendly responses**: Cleaner, more consistent response objects
+- **New features**: Access to organization management, and more
+
+## Authentication changes
+
+### V1 authentication
+
+In V1, you authenticated using an API key in the query string:
+
+```bash
+curl https://api.cal.com/v1/event-types?apiKey=cal_test_xxxxxx
+```
+
+### V2 authentication
+
+In V2, authentication uses header-based API keys for improved security:
+
+```bash
+curl https://api.cal.com/v2/event-types \
+  -H "Authorization: Bearer cal_live_xxxxxx"
+```
+
+## Base URL changes
+
+| Version | Base URL                 |
+| ------- | ------------------------ |
+| V1      | `https://api.cal.com/v1` |
+| V2      | `https://api.cal.com/v2` |
+
+## Endpoint mapping
+
+### Bookings
+
+| V1 Endpoint             | V2 Endpoint                          | Changes                                            |
+| ----------------------- | ------------------------------------ | -------------------------------------------------- |
+| `POST /bookings`        | `POST /v2/bookings`                  | Enhanced response object with more booking details |
+| `GET /bookings/{id}`    | `GET /v2/bookings/{uid}`             | Returns richer booking information                 |
+| `DELETE /bookings/{id}` | `POST /v2/bookings/{uid}/cancel`     | Now uses POST with cancellation reason support     |
+| `PATCH /bookings/{id}`  | `POST /v2/bookings/{uid}/reschedule` | Rescheduling is now a dedicated endpoint           |
+
+**V1 example:**
+
+```bash
+DELETE /v1/bookings/123?apiKey=cal_test_xxx
+```
+
+**V2 example:**
+
+```bash
+POST /v2/bookings/cal_abc123/cancel
+Authorization: Bearer cal_live_xxx
+Content-Type: application/json
+
+{
+  "cancellationReason": "Schedule conflict"
+}
+```
+
+### Event types
+
+| V1 Endpoint                | V2 Endpoint                   | Changes                           |
+| -------------------------- | ----------------------------- | --------------------------------- |
+| `GET /event-types`         | `GET /v2/event-types`         | Improved filtering and pagination |
+| `POST /event-types`        | `POST /v2/event-types`        | Enhanced configuration options    |
+| `GET /event-types/{id}`    | `GET /v2/event-types/{id}`    | More detailed response            |
+| `DELETE /event-types/{id}` | `DELETE /v2/event-types/{id}` | Same functionality                |
+| `PATCH /event-types/{id}`  | `PATCH /v2/event-types/{id}`  | More update options available     |
+
+### Schedules
+
+| V1 Endpoint              | V2 Endpoint                 | Changes                       |
+| ------------------------ | --------------------------- | ----------------------------- |
+| `GET /schedules`         | `GET /v2/schedules`         | Better structured response    |
+| `POST /schedules`        | `POST /v2/schedules`        | Simplified schedule creation  |
+| `GET /schedules/{id}`    | `GET /v2/schedules/{id}`    | Enhanced availability details |
+| `DELETE /schedules/{id}` | `DELETE /v2/schedules/{id}` | Same functionality            |
+| `PATCH /schedules/{id}`  | `PATCH /v2/schedules/{id}`  | More flexible updates         |
+
+### Users
+
+| V1 Endpoint         | V2 Endpoint    | Changes                                |
+| ------------------- | -------------- | -------------------------------------- |
+| `GET /users`        | `GET /v2/me`   | Now returns authenticated user profile |
+| `GET /users/{id}`   | `GET /v2/me`   | User-specific endpoint for own profile |
+| `PATCH /users/{id}` | `PATCH /v2/me` | Update your own profile                |
+
+### Teams
+
+| V1 Endpoint          | V2 Endpoint             | Changes                    |
+| -------------------- | ----------------------- | -------------------------- |
+| `GET /teams`         | `GET /v2/teams`         | Enhanced team information  |
+| `POST /teams`        | `POST /v2/teams`        | More configuration options |
+| `GET /teams/{id}`    | `GET /v2/teams/{id}`    | Richer team details        |
+| `DELETE /teams/{id}` | `DELETE /v2/teams/{id}` | Same functionality         |
+| `PATCH /teams/{id}`  | `PATCH /v2/teams/{id}`  | More update options        |
+
+### Webhooks
+
+| V1 Endpoint             | V2 Endpoint                | Changes                    |
+| ----------------------- | -------------------------- | -------------------------- |
+| `GET /webhooks`         | `GET /v2/webhooks`         | Better webhook management  |
+| `POST /webhooks`        | `POST /v2/webhooks`        | More event types available |
+| `GET /webhooks/{id}`    | `GET /v2/webhooks/{id}`    | Enhanced webhook details   |
+| `DELETE /webhooks/{id}` | `DELETE /v2/webhooks/{id}` | Same functionality         |
+| `PATCH /webhooks/{id}`  | `PATCH /v2/webhooks/{id}`  | More configuration options |
+
+### Slots
+
+| V1 Endpoint            | V2 Endpoint                      | Changes                                       |
+| ---------------------- | -------------------------------- | --------------------------------------------- |
+| `GET /slots/available` | `GET /v2/slots/available`        | Improved slot calculation and response format |
+| N/A                    | `POST /v2/slots/reserve`         | New: Reserve slots before booking             |
+| N/A                    | `DELETE /v2/slots/reserve/{uid}` | New: Release reserved slots                   |
+
+## New features in V2
+
+### Organization management
+
+V2 introduces comprehensive organization endpoints for enterprise customers:
+
+- `GET /v2/orgs/teams` - Manage organization teams
+- `GET /v2/orgs/users` - Manage organization users
+- `GET /v2/orgs/bookings` - View all organization bookings
+- `GET /v2/orgs/memberships` - Manage team memberships
+- `GET /v2/orgs/roles` - Manage custom roles and permissions
+
+### Enhanced booking management
+
+- `POST /v2/bookings/{uid}/confirm` - Confirm pending bookings
+- `POST /v2/bookings/{uid}/decline` - Decline booking requests
+- `POST /v2/bookings/{uid}/mark-absent` - Mark no-shows
+- `POST /v2/bookings/{uid}/reassign` - Reassign bookings to different hosts
+- `POST /v2/bookings/{uid}/guests` - Add guests to existing bookings
+
+### Calendar integrations
+
+- `GET /v2/calendars` - List connected calendars
+- `GET /v2/calendars/busy-times` - Check availability across calendars
+- `POST /v2/calendars/connect` - Connect calendar providers
+- `POST /v2/calendars/disconnect` - Disconnect calendars
+
+### Conferencing apps
+
+- `GET /v2/conferencing` - List conferencing apps
+- `POST /v2/conferencing/connect` - Connect conferencing providers
+- `POST /v2/conferencing/set-default` - Set default conferencing app
+
+## Response format changes
+
+### V1 response structure
+
+```json
+{
+  "booking": {
+    "id": 123,
+    "title": "Meeting",
+    "startTime": "2024-01-15T10:00:00Z"
+  }
+}
+```
+
+### V2 response structure
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": 123,
+    "uid": "cal_abc123xyz",
+    "title": "Meeting",
+    "startTime": "2024-01-15T10:00:00.000Z",
+    "endTime": "2024-01-15T11:00:00.000Z",
+    "status": "accepted",
+    "attendees": [...],
+    "metadata": {...}
+  }
+}
+```
+
+Key improvements:
+
+- Consistent `status` and `data` wrapper
+- More detailed timestamps with milliseconds
+- Additional metadata and context
+- Better error messages with specific error codes
+
+## Error handling
+
+### V1 errors
+
+```json
+{
+  "message": "Event type not found"
+}
+```
+
+### V2 errors
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Event type not found",
+    "details": {
+      "eventTypeId": 123
+    }
+  }
+}
+```
+
+V2 provides:
+
+- Structured error codes for programmatic handling
+- More descriptive error messages
+- Additional context in error details
+- Consistent error format across all endpoints
+
+## Rate limits
+
+| Authentication Method | V1 Rate Limit | V2 Rate Limit |
+| --------------------- | ------------- | ------------- |
+| API Key               | 120 req/min   | 120 req/min   |
+
+## Migration checklist
+
+<Steps>
+  <Step title="Update authentication">
+    Move API keys from query parameters to Authorization headers
+  </Step>
+  <Step title="Update base URLs">
+    Change all API calls from `/v1/` to `/v2/`
+  </Step>
+  <Step title="Update endpoint paths">
+    Review the endpoint mapping table and update your API calls
+  </Step>
+  <Step title="Update request/response handling">
+    Adapt your code to handle the new response structure with `status` and `data` fields
+  </Step>
+  <Step title="Update error handling">
+    Implement handling for the new structured error format
+  </Step>
+  <Step title="Test thoroughly">
+    Test all API integrations in a development environment before deploying to production
+  </Step>
+  <Step title="Monitor and optimize">
+    Take advantage of new features to optimize your integration
+  </Step>
+</Steps>
+
+## Code examples
+
+### Creating a booking
+
+**V1:**
+
+```javascript
+const response = await fetch(
+  'https://api.cal.com/v1/bookings?apiKey=cal_test_xxx',
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      eventTypeId: 123,
+      start: '2024-01-15T10:00:00Z',
+      responses: {
+        name: 'John Doe',
+        email: 'john@example.com'
+      }
+    })
+  }
+);
+```
+
+**V2:**
+
+```javascript
+const response = await fetch(
+  'https://api.cal.com/v2/bookings',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer cal_live_xxx',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      eventTypeId: 123,
+      start: '2024-01-15T10:00:00.000Z',
+      attendee: {
+        name: 'John Doe',
+        email: 'john@example.com',
+        timeZone: 'America/New_York'
+      }
+    })
+  }
+);
+
+const data = await response.json();
+if (data.status === 'success') {
+  console.log('Booking created:', data.data);
+}
+```
+
+### Fetching event types
+
+**V1:**
+
+```python
+import requests
+
+response = requests.get(
+    'https://api.cal.com/v1/event-types',
+    params={'apiKey': 'cal_test_xxx'}
+)
+event_types = response.json()['event_types']
+```
+
+**V2:**
+
+```python
+import requests
+
+response = requests.get(
+    'https://api.cal.com/v2/event-types',
+    headers={'Authorization': 'Bearer cal_live_xxx'}
+)
+
+data = response.json()
+if data['status'] == 'success':
+    event_types = data['data']
+```
+
+## Getting help
+
+If you encounter issues during migration:
+
+1. Check the [V2 API Reference](/docs/api-reference/v2/introduction) for detailed endpoint documentation
+2. Review the [differences between V1 and V2](/docs/api-reference/v2/v1-v2-differences)
+3. Contact [Cal.com support](https://go.cal.com/support) for migration assistance
+
+## Timeline
+
+- **Now**: V2 is available and recommended for all new integrations
+- **February 15, 2026**: V1 will be discontinued
+
+Start your migration today to ensure a smooth transition and take advantage of V2's enhanced capabilities.

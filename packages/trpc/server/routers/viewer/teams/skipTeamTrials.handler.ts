@@ -1,4 +1,5 @@
-import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -35,11 +36,12 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
     });
 
     for (const team of ownedTeams) {
-      const teamBillingService = new InternalTeamBilling(team);
+      const teamBillingServiceFactory = getTeamBillingServiceFactory();
+      const teamBillingService = teamBillingServiceFactory.init(team);
 
       const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-      if (subscriptionStatus === "trialing") {
+      if (subscriptionStatus === SubscriptionStatus.TRIALING) {
         await teamBillingService.endTrial();
         log.info(`Ended trial for team ${team.id}`);
       }

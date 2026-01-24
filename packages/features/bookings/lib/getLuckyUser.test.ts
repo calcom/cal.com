@@ -1,5 +1,5 @@
-import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+import CalendarManagerMock from "@calcom/features/calendars/lib/__mocks__/CalendarManager";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { v4 as uuid } from "uuid";
 import { expect, it, describe, vi, beforeAll } from "vitest";
@@ -827,6 +827,75 @@ describe("maximize availability and weights", () => {
     );
   });
 
+  it("skips OOO calibration when there is only one host", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [],
+      }),
+    ];
+
+    const allRRHosts = [
+      {
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        weight: users[0].weight,
+        createdAt: new Date(0),
+      },
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
+
+    // Mock OOO entry for the single host
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
+      {
+        start: dayjs().subtract(10, "day").toDate(),
+        end: dayjs().subtract(5, "day").toDate(),
+        userId: users[0].id,
+      },
+    ]);
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([
+      {
+        userId: allRRHosts[0].user.id,
+        weight: allRRHosts[0].weight,
+        createdAt: allRRHosts[0].createdAt,
+      },
+    ]);
+
+    // Mock some bookings during the OOO period (though there's only one host)
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 1,
+        userId: 1,
+        createdAt: dayjs().subtract(7, "days").toDate(),
+      }),
+    ]);
+
+    // Should return the only available user without throwing division by zero error
+    await expect(
+      luckyUserService.getLuckyUser({
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      })
+    ).resolves.toStrictEqual(users[0]);
+  });
+
   it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
     const users: GetLuckyUserAvailableUsersType = [
       buildUser({
@@ -1572,4 +1641,42 @@ describe("get interval times", () => {
     });
     expect(result).toEqual(new Date("2021-06-20T11:59:59Z")); // Based on the mocked system time
   });
+});
+
+it("returns the single user correctly without fetching data when only one user available", async () => {
+  const singleUser = buildUser({
+    id: 42,
+    username: "singleuser",
+    name: "Single User",
+    email: "singleuser@example.com",
+    bookings: [],
+  });
+
+  // Create spies to verify no data fetching occurs
+  const spyCalendar = vi.spyOn(CalendarManagerMock, "getBusyCalendarTimes");
+  const spyPrismaUser = vi.spyOn(prismaMock.user, "findMany");
+  const spyPrismaHost = vi.spyOn(prismaMock.host, "findMany");
+  const spyPrismaBooking = vi.spyOn(prismaMock.booking, "findMany");
+  const spyPrismaOOO = vi.spyOn(prismaMock.outOfOfficeEntry, "findMany");
+
+  await expect(
+    luckyUserService.getLuckyUser({
+      availableUsers: [singleUser],
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        includeNoShowInRRCalculation: false,
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    })
+  ).resolves.toStrictEqual(singleUser);
+
+  // Verify no expensive operations were called
+  expect(spyCalendar).not.toHaveBeenCalled();
+  expect(spyPrismaUser).not.toHaveBeenCalled();
+  expect(spyPrismaHost).not.toHaveBeenCalled();
+  expect(spyPrismaBooking).not.toHaveBeenCalled();
+  expect(spyPrismaOOO).not.toHaveBeenCalled();
 });

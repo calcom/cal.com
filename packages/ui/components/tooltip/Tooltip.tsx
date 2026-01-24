@@ -31,7 +31,7 @@ export function Tooltip({
         side === "top" && "-mt-7",
         side === "left" && "mr-2",
         side === "right" && "ml-2",
-        "bg-inverted text-inverted relative z-50 rounded-md px-2 py-1 text-xs font-semibold shadow-lg",
+        "bg-inverted text-inverted relative z-50 rounded-sm px-2 py-1 text-xs font-semibold shadow-lg",
         props.className && `${props.className}`
       )}
       side={side}

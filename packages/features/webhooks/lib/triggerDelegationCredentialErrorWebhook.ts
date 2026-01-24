@@ -1,9 +1,9 @@
-import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
+import type { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import type { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import { WebhookRepository } from "./repository/WebhookRepository";
 import sendPayload from "./sendPayload";
 
 const log = logger.getSubLogger({ prefix: ["triggerDelegationCredentialErrorWebhook"] });
@@ -15,24 +15,30 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
   error: CalendarAppDelegationCredentialError;
   credential: DelegationCredentialErrorPayloadType["credential"];
   user: DelegationCredentialErrorPayloadType["user"];
-  orgId?: number | null;
+  delegationCredentialId: string;
 }): Promise<void> {
   try {
-    const { error, credential, user, orgId } = params;
+    const { error, credential, user, delegationCredentialId } = params;
 
-    if (!orgId) {
-      log.debug("Skipping webhook emission - no organization context");
+    const delegationCredential = await DelegationCredentialRepository.findById({
+      id: delegationCredentialId,
+    });
+
+    if (!delegationCredential) {
+      log.debug("No delegation credential found", { delegationCredentialId });
       return;
     }
 
-    const webhookRepository = WebhookRepository.getInstance();
-    const webhooks = await webhookRepository.getSubscribers({
-      teamId: orgId,
+    const { repository: webhookRepository } = getWebhookFeature();
+    const webhooks = await webhookRepository.findByOrgIdAndTrigger({
+      orgId: delegationCredential.organizationId,
       triggerEvent: WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
     });
 
     if (webhooks.length === 0) {
-      log.debug("No webhooks subscribed to DELEGATION_CREDENTIAL_ERROR for organization", { orgId });
+      log.debug("No webhooks subscribed to DELEGATION_CREDENTIAL_ERROR for organization", {
+        orgId: delegationCredential.organizationId,
+      });
       return;
     }
 
@@ -45,14 +51,16 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
         id: credential.id,
         type: credential.type,
         appId: credential.appId || "unknown",
+        delegationCredentialId: delegationCredential.id,
       },
       user: {
         id: user.id,
         email: user.email,
+        organizationId: delegationCredential.organizationId,
       },
     } satisfies DelegationCredentialErrorPayloadType;
 
-    const webhookPromises = webhooks.map((webhook) =>
+    const webhookPromises = webhooks.map((webhook: (typeof webhooks)[number]) =>
       sendPayload(
         webhook.secret,
         WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,

@@ -41,20 +41,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { id: userId, organizationId } = user;
 
   if (!organizationId)
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organizaiton" });
-
-  const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
-
-  try {
-    await roleManager.checkPermissionToChangeRole(userId, organizationId, "org");
-  } catch (error) {
-    if (error instanceof RoleManagementError) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: error.message });
-    }
-    throw error;
-  }
-
-  await ensureOrganizationIsReviewed(organizationId);
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organization" });
 
   // Is requested user a member of the organization?
   const requestedMember = await prisma.membership.findFirst({
@@ -95,6 +82,25 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   if (!requestedMember)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
+
+  const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
+
+  try {
+    await roleManager.checkPermissionToChangeRole(
+      userId,
+      organizationId,
+      "org",
+      requestedMember.id,
+      input.role
+    );
+  } catch (error) {
+    if (error instanceof RoleManagementError) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: error.message });
+    }
+    throw error;
+  }
+
+  await ensureOrganizationIsReviewed(organizationId);
 
   const hasUsernameUpdated = input.username !== requestedMember.user.profiles[0]?.username;
 

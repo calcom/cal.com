@@ -1,11 +1,11 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import type { Prisma } from "@calcom/prisma/client";
 
-vi.mock("@calcom/lib/server/repository/teamUtils", () => ({
+vi.mock("@calcom/features/ee/teams/lib/getParsedTeam", () => ({
   getParsedTeam: <T>(org: T) => org,
 }));
 
@@ -81,13 +81,15 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
     expect(result).toBeNull();
   });
 
-  it("should throw an error if multiple organizations match the email domain", async () => {
+  it("should return null if multiple organizations match the email domain", async () => {
     await createReviewedOrganization({ name: "Test Org 1", orgAutoAcceptEmail: "example.com" });
     await createReviewedOrganization({ name: "Test Org 2", orgAutoAcceptEmail: "example.com" });
 
-    await expect(
-      organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email: "test@example.com" })
-    ).rejects.toThrow("Multiple organizations found with the same auto accept email domain");
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toBeNull();
   });
 
   it("should return the parsed organization if a single match is found", async () => {
@@ -121,6 +123,65 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
     });
 
     expect(result).toEqual(null);
+  });
+
+  it("should return null when orgAutoJoinOnSignup is false", async () => {
+    await prismock.team.create({
+      data: {
+        name: "Test Org",
+        isOrganization: true,
+        organizationSettings: {
+          create: {
+            orgAutoAcceptEmail: "example.com",
+            isOrganizationVerified: true,
+            isAdminReviewed: true,
+            orgAutoJoinOnSignup: false,
+          },
+        },
+      },
+    });
+
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toBeNull();
+  });
+
+  it("should return organization when orgAutoJoinOnSignup is true", async () => {
+    const organization = await prismock.team.create({
+      data: {
+        name: "Test Org",
+        isOrganization: true,
+        organizationSettings: {
+          create: {
+            orgAutoAcceptEmail: "example.com",
+            isOrganizationVerified: true,
+            isAdminReviewed: true,
+            orgAutoJoinOnSignup: true,
+          },
+        },
+      },
+    });
+
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toEqual(organization);
+  });
+
+  it("should return organization when orgAutoJoinOnSignup is not explicitly set (defaults to true)", async () => {
+    const organization = await createReviewedOrganization({
+      name: "Test Org",
+      orgAutoAcceptEmail: "example.com",
+    });
+
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toEqual(organization);
   });
 });
 

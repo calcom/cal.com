@@ -1,25 +1,24 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ApiSuccessResponse, UserResponse } from "@calcom/platform-types";
+import type { Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { UserResponse, ApiSuccessResponse } from "@calcom/platform-types";
-import type { User, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Me Endpoints", () => {
   describe("User Authentication", () => {
@@ -95,6 +94,8 @@ describe("Me Endpoints", () => {
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
           expect(responseBody.data.name).toEqual(user.name);
+          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
+          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
@@ -117,6 +118,8 @@ describe("Me Endpoints", () => {
 
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
+          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
+          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
@@ -151,19 +154,61 @@ describe("Me Endpoints", () => {
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
-      const bodyWithIncorrectTimeFormat: UpdateManagedUserInput = { timeFormat: 100 as any };
+      const bodyWithIncorrectTimeFormat = { timeFormat: 100 };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
-      const bodyWithIncorrectWeekStart: UpdateManagedUserInput = { weekStart: "waba luba dub dub" as any };
+      const bodyWithIncorrectWeekStart = { weekStart: "waba luba dub dub" };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
+    it("should not update primary email without verification when email-verification is enabled", async () => {
+      const newEmail = `new-email-${randomString()}@api.com`;
+      const body: UpdateManagedUserInput = { email: newEmail };
+
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          expect(responseBody.data.email).toEqual(user.email);
+
+          const updatedUser = await userRepositoryFixture.get(user.id);
+          expect(updatedUser?.email).toEqual(user.email);
+          expect(updatedUser?.metadata).toHaveProperty("emailChangeWaitingForVerification", newEmail);
+        });
+    });
+
+    it("should update primary email immediately when changing to a verified secondary email", async () => {
+      const verifiedSecondaryEmail = `verified-secondary-${randomString()}@api.com`;
+
+      await userRepositoryFixture.createSecondaryEmail(user.id, verifiedSecondaryEmail, new Date());
+
+      const body: UpdateManagedUserInput = { email: verifiedSecondaryEmail };
+
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          expect(responseBody.data.email).toEqual(verifiedSecondaryEmail);
+
+          const updatedUser = await userRepositoryFixture.get(user.id);
+          expect(updatedUser?.email).toEqual(verifiedSecondaryEmail);
+        });
+    });
+
     afterAll(async () => {
-      await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.delete(user.id);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });

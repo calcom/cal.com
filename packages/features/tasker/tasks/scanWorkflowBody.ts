@@ -2,12 +2,15 @@ import z from "zod";
 
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
+import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 import { Task } from "@calcom/features/tasker/repository";
+import { URL_SCANNING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
+
+import { submitWorkflowStepForUrlScanning } from "./scanWorkflowUrls";
 
 export const scanWorkflowBodySchema = z.object({
   userId: z.number(),
@@ -18,6 +21,29 @@ export const scanWorkflowBodySchema = z.object({
 });
 
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
+
+/**
+ * Helper function to handle URL scanning or verification for a workflow step.
+ * Extracts the duplicated logic from both Iffy-enabled and Iffy-disabled paths.
+ */
+async function handleUrlScanningForStep(
+  workflowStep: { id: number; reminderBody: string | null; workflow: { user: { whitelistWorkflows: boolean } | null } },
+  userId: number
+): Promise<void> {
+  if (URL_SCANNING_ENABLED && workflowStep.reminderBody) {
+    await submitWorkflowStepForUrlScanning(
+      workflowStep.id,
+      workflowStep.reminderBody,
+      userId,
+      workflowStep.workflow.user?.whitelistWorkflows ?? false
+    );
+  } else {
+    await prisma.workflowStep.update({
+      where: { id: workflowStep.id },
+      data: { verifiedAt: new Date() },
+    });
+  }
+}
 
 export async function scanWorkflowBody(payload: string) {
   const { workflowStepIds, userId, createdAt, workflowStepId } = scanWorkflowBodySchema.parse(
@@ -118,29 +144,30 @@ export async function scanWorkflowBody(payload: string) {
         log.warn(`For whitelisted user, workflow step ${workflowStep.id} marked as spam`);
       }
 
-      await prisma.workflowStep.update({
+      // Handle URL scanning or mark as verified
+      await handleUrlScanningForStep(workflowStep, userId);
+    }
+  }
+
+  if (!process.env.IFFY_API_KEY) {
+    log.info("IFFY_API_KEY not set, skipping Iffy spam scan");
+
+    if (!URL_SCANNING_ENABLED) {
+      await prisma.workflowStep.updateMany({
         where: {
-          id: workflowStep.id,
+          id: {
+            in: stepIdsToScan,
+          },
         },
         data: {
           verifiedAt: new Date(),
         },
       });
+    } else {
+      for (const workflowStep of workflowSteps) {
+        await handleUrlScanningForStep(workflowStep, userId);
+      }
     }
-  }
-
-  if (!process.env.IFFY_API_KEY) {
-    log.info("IFFY_API_KEY not set, skipping scan");
-    await prisma.workflowStep.updateMany({
-      where: {
-        id: {
-          in: stepIdsToScan,
-        },
-      },
-      data: {
-        verifiedAt: new Date(),
-      },
-    });
   }
 
   const workflow = await prisma.workflow.findFirst({
@@ -166,13 +193,28 @@ export async function scanWorkflowBody(payload: string) {
 
   const isOrg = !!workflow?.team?.isOrganization;
 
+  const updatedWorkflowSteps = await prisma.workflowStep.findMany({
+    where: {
+      id: {
+        in: stepIdsToScan,
+      },
+    },
+    select: {
+      id: true,
+      action: true,
+      sendTo: true,
+      emailSubject: true,
+      reminderBody: true,
+      template: true,
+      sender: true,
+      verifiedAt: true,
+    },
+  });
+
   await scheduleWorkflowNotifications({
     activeOn: workflow.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
     isOrg,
-    workflowSteps: workflowSteps.map((step) => ({
-      ...step,
-      verifiedAt: new Date(),
-    })),
+    workflowSteps: updatedWorkflowSteps,
     time: workflow.time,
     timeUnit: workflow.timeUnit,
     trigger: workflow.trigger,

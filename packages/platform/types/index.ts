@@ -16,3 +16,4 @@ export * from "./routing-forms";
 export * from "./me";
 export * from "./pagination/pagination.input";
 export * from "./pagination/pagination.output";
+export * from "./utils/normalizeTimezone";

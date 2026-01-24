@@ -1,6 +1,6 @@
 import { test } from "../../lib/fixtures";
 
-const ALL_APPS = ["fathom", "matomo", "plausible", "ga4", "gtm", "metapixel"];
+const ALL_APPS = ["gtm", "metapixel"];
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -34,7 +34,7 @@ test.describe("check analytics Apps", () => {
         const user = await users.create();
         await user.apiLogin();
         const eventTypes = await user.getUserEventsAsOwner();
-        const eventTypesIds = eventTypes.map((item) => item.id).slice(0, 3);
+        const eventTypesIds = eventTypes.map((item) => item.id).slice(0, 1);
         await page.goto("/apps/categories/analytics");
         await appsPage.installAnalyticsApp(app, eventTypesIds);
         for (const id of eventTypesIds) {

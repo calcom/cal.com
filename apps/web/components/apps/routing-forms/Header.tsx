@@ -23,7 +23,7 @@ const useRoutingFormNavigation = (
 ) => {
   const pathname = usePathname();
   const router = useRouter();
-  const formContext = useFormContext<RoutingFormWithResponseCount>();
+  const { isDirty } = useFormContext<RoutingFormWithResponseCount>().formState;
 
   // Get the current page based on the pathname since we use a custom routing system
   const getCurrentPage = () => {
@@ -39,7 +39,7 @@ const useRoutingFormNavigation = (
 
     const baseUrl = `${appUrl}/${value}/${form.id}`;
 
-    if (value === "route-builder" && formContext.formState.isDirty) {
+    if (value === "route-builder" && isDirty) {
       setShowInfoLostDialog(true);
     } else {
       router.push(baseUrl);
@@ -183,7 +183,7 @@ const Actions = ({
                 action="toggle"
                 routingForm={form}
                 label="Disable Form"
-                extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
+                extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] px-3 py-2 transition"
               />
             </div>
           </FormActionsDropdown>
@@ -264,7 +264,7 @@ export function Header({
   return (
     <div className="bg-default flex flex-col lg:grid lg:grid-cols-3 lg:items-center">
       {/* Left - Back button and title */}
-      <div className="border-muted flex items-center gap-2 border-b px-4 py-3">
+      <div className="border-muted flex items-center gap-2 border-b px-3 py-3 lg:px-4">
         <Button
           color="minimal"
           variant="icon"
@@ -289,7 +289,7 @@ export function Header({
           ) : (
             <div className="group flex items-center gap-1">
               <span
-                className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
+                className="text-default hover:bg-cal-muted min-w-0 cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
                 onClick={() => setIsEditing(true)}>
                 {watchedName || "Loading..."}
               </span>
@@ -308,9 +308,9 @@ export function Header({
       </div>
 
       {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
-      <div className="border-muted flex items-center justify-between border-b px-4 py-3 lg:hidden">
+      <div className="border-muted flex items-center justify-between gap-2 overflow-hidden border-b px-3 py-3 lg:hidden lg:px-4">
         {/* Navigation Tabs - Left aligned */}
-        <div className="flex">
+        <div className="flex flex-shrink">
           <ToggleGroup
             defaultValue={getCurrentPage()}
             value={getCurrentPage()}
@@ -318,13 +318,13 @@ export function Header({
             options={[
               {
                 value: "form-edit",
-                label: t("form"),
+                label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
                 iconLeft: <Icon name="menu" className="h-3 w-3" />,
                 dataTestId: "toggle-group-item-form-edit",
               },
               {
                 value: "route-builder",
-                label: t("routing"),
+                label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
                 iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
               },
             ]}
@@ -332,7 +332,7 @@ export function Header({
         </div>
 
         {/* Actions - Right aligned */}
-        <div className="flex">
+        <div className="flex min-w-0 flex-shrink-0">
           <Actions
             form={routingForm}
             setIsTestPreviewOpen={setIsTestPreviewOpen}
@@ -346,7 +346,7 @@ export function Header({
       </div>
 
       {/* Desktop layout - Toggle group in center column */}
-      <div className="border-muted hidden justify-center border-b px-4 py-3 lg:flex">
+      <div className="border-muted hidden justify-center border-b px-3 py-3 lg:flex lg:px-4">
         <ToggleGroup
           defaultValue={getCurrentPage()}
           value={getCurrentPage()}
@@ -354,12 +354,12 @@ export function Header({
           options={[
             {
               value: "form-edit",
-              label: t("form"),
+              label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
               iconLeft: <Icon name="menu" className="h-3 w-3" />,
             },
             {
               value: "route-builder",
-              label: t("routing"),
+              label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
               iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
             },
           ]}
@@ -367,7 +367,7 @@ export function Header({
       </div>
 
       {/* Desktop layout - Actions in right column */}
-      <div className="border-muted hidden justify-end border-b px-4 py-3 lg:flex">
+      <div className="border-muted hidden justify-end border-b px-3 py-3 lg:flex lg:px-4">
         <Actions
           form={routingForm}
           setIsTestPreviewOpen={setIsTestPreviewOpen}

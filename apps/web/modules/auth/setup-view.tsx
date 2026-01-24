@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import AdminAppsList from "@calcom/features/apps/AdminAppsList";
+import AdminAppsList from "~/apps/components/AdminAppsList";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -103,7 +103,7 @@ export function Setup(props: PageProps) {
   steps.push({
     title: t("enable_apps"),
     description: t("enable_apps_description", { appName: APP_NAME }),
-    contentClassname: "!pb-0 mb-[-1px]",
+    contentClassname: "pb-0! -mb-px",
     customActions: true,
     content: (setIsPending, nav) => {
       return (
@@ -113,7 +113,7 @@ export function Setup(props: PageProps) {
           classNames={{
             form: "mb-4 rounded-md bg-default px-0 pt-0 md:max-w-full",
             appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
-            verticalTabsItem: "!w-48 md:p-4",
+            verticalTabsItem: "w-48! md:p-4",
           }}
           baseURL={`/auth/setup?step=${steps.length}`}
           useQueryParam={true}
