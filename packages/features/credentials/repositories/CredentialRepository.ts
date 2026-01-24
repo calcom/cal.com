@@ -84,7 +84,7 @@ export class CredentialRepository {
   static async findFirstByIdWithKeyAndUser({ id }: { id: number }) {
     const credential = await prisma.credential.findUnique({
       where: { id },
-      select: { ...safeCredentialSelect, key: true },
+      select: { ...safeCredentialSelect, key: true, encryptedKey: true },
     });
     return buildNonDelegationCredential(credential);
   }
