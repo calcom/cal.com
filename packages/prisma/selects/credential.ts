@@ -1,6 +1,6 @@
 import type { Prisma } from "../client";
 
-export const credentialForCalendarServiceSelect = {
+export const credentialForCalendarServiceSelect: Prisma.CredentialSelect = {
   id: true,
   appId: true,
   type: true,
@@ -12,11 +12,12 @@ export const credentialForCalendarServiceSelect = {
   },
   teamId: true,
   key: true,
+  encryptedKey: true,
   invalid: true,
   delegationCredentialId: true,
-} satisfies Prisma.CredentialSelect;
+};
 
-export const safeCredentialSelect = {
+export const safeCredentialSelect: Prisma.CredentialSelect = {
   id: true,
   type: true,
   /** Omitting to avoid frontend leaks */
@@ -31,4 +32,4 @@ export const safeCredentialSelect = {
   appId: true,
   invalid: true,
   delegationCredentialId: true,
-} satisfies Prisma.CredentialSelect;
+};

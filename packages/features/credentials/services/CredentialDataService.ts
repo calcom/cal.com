@@ -1,10 +1,14 @@
-import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { encryptSecret } from "@calcom/lib/crypto/keyring";
 
-type CredentialKey = object | string;
+type JsonPrimitive = string | number | boolean | null;
+
+type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+type CredentialKey = JsonValue;
 
 export type CredentialCreateData = {
   type: string;
-  key: object;
+  key: CredentialKey;
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
@@ -25,29 +29,14 @@ export function buildCredentialCreateData(data: {
   appId: string;
   delegationCredentialId?: string | null;
 }): CredentialCreateData {
-  const encryptedKey = createEncryptedKey(data.key);
-  const keyObject = typeof data.key === "string" ? JSON.parse(data.key) : data.key;
+  const aad = {
+    type: data.type,
+  };
+  const encryptedKey = encryptSecret({ ring: "CREDENTIALS", plaintext: JSON.stringify(data.key), aad });
 
   return {
     ...data,
-    key: keyObject,
-    ...(encryptedKey && { encryptedKey }),
+    key: data.key,
+    ...(encryptedKey && { encryptedKey: JSON.stringify(encryptedKey) }),
   };
-}
-
-/**
- * Creates an encrypted version of a credential key for storage.
- * Uses CALENDSO_ENCRYPTION_KEY environment variable for encryption.
- *
- * @param key The credential key object or value to encrypt
- * @returns The encrypted key string, or null if encryption key is not available
- */
-function createEncryptedKey(key: CredentialKey): string | null {
-  const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
-  if (!encryptionKey) {
-    return null;
-  }
-
-  const keyString = typeof key === "string" ? key : JSON.stringify(key);
-  return symmetricEncrypt(keyString, encryptionKey);
 }
