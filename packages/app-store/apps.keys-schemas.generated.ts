@@ -51,6 +51,7 @@ import { appKeysSchema as zapier_zod_ts } from "./zapier/zod";
 import { appKeysSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
 import { appKeysSchema as zohocalendar_zod_ts } from "./zohocalendar/zod";
 import { appKeysSchema as zohocrm_zod_ts } from "./zohocrm/zod";
+import { appKeysSchema as zoominfo_zod_ts } from "./zoominfo/zod";
 import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appKeysSchemas = {
   alby: alby_zod_ts,
@@ -102,5 +103,6 @@ export const appKeysSchemas = {
   "zoho-bigin": zoho_bigin_zod_ts,
   zohocalendar: zohocalendar_zod_ts,
   zohocrm: zohocrm_zod_ts,
+  zoominfo: zoominfo_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
 };

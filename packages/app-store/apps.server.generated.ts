@@ -110,5 +110,6 @@ export const apiHandlers = {
   "zoho-bigin": import("./zoho-bigin/api"),
   zohocalendar: import("./zohocalendar/api"),
   zohocrm: import("./zohocrm/api"),
+  zoominfo: import("./zoominfo/api"),
   zoomvideo: import("./zoomvideo/api"),
 };
