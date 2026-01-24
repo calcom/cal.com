@@ -185,12 +185,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sendAt?: Date;
       };
 
-      await notifySmsDeliveryFailure({
-        bookingUid: existingInsight.bookingUid,
-        recipientNumber: recipientNumber!,
-        smsText: smsText!,
-        sendAt: sendAt!,
-      });
+      try {
+        await notifySmsDeliveryFailure({
+          bookingUid: existingInsight.bookingUid,
+          recipientNumber: recipientNumber!,
+          smsText: smsText!,
+          sendAt: sendAt!,
+        });
+      } catch (e) {
+        log.error("Failed to notify sms delivery failure via email", {
+          error: JSON.stringify(e),
+        });
+      }
     }
 
     res.status(200).json({ success: true });
