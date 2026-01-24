@@ -85,22 +85,22 @@ export class CalendarEventBuilder {
     if (!eventType) throw new Error(`Booking ${uid} is missing eventType — it may have been deleted.`);
 
     const builder = new CalendarEventBuilder();
-        const {
-          description,
-          attendees,
-          references,
-          title,
-          startTime,
-          endTime,
-          location,
-          responses,
-          customInputs,
-          iCalUID,
-          iCalSequence,
-          oneTimePassword,
-          seatsReferences,
-          assignmentReason,
-        } = booking;
+    const {
+      description,
+      attendees,
+      references,
+      title,
+      startTime,
+      endTime,
+      location,
+      responses,
+      customInputs,
+      iCalUID,
+      iCalSequence,
+      oneTimePassword,
+      seatsReferences,
+      assignmentReason,
+    } = booking;
 
     const {
       conferenceCredentialId,
@@ -186,18 +186,18 @@ export class CalendarEventBuilder {
         platformCancelUrl,
         platformBookingUrl,
       })
-            .withRecurring(recurring)
-            .withUid(uid)
-            .withOneTimePassword(oneTimePassword)
-            .withOrganization(organizationId)
-            .withAssignmentReason(
-              assignmentReason?.[0]?.reasonEnum
-                ? {
-                    category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
-                    details: assignmentReason[0].reasonString ?? null,
-                  }
-                : null
-            );
+      .withRecurring(recurring)
+      .withUid(uid)
+      .withOneTimePassword(oneTimePassword)
+      .withOrganization(organizationId)
+      .withAssignmentReason(
+        assignmentReason?.[0]?.reasonEnum
+          ? {
+              category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
+              details: assignmentReason[0].reasonString ?? null,
+            }
+          : null
+      );
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -532,34 +532,34 @@ export class CalendarEventBuilder {
     return this;
   }
 
-    withHashedLink(hashedLink?: string | null) {
-      this.event = {
-        ...this.event,
-        hashedLink,
-      };
-      return this;
-    }
+  withHashedLink(hashedLink?: string | null) {
+    this.event = {
+      ...this.event,
+      hashedLink,
+    };
+    return this;
+  }
 
-    withAssignmentReason(assignmentReason?: { category: string; details?: string | null } | null) {
-      this.event = {
-        ...this.event,
-        assignmentReason,
-      };
-      return this;
-    }
+  withAssignmentReason(assignmentReason?: { category: string; details?: string | null } | null) {
+    this.event = {
+      ...this.event,
+      assignmentReason,
+    };
+    return this;
+  }
 
   withConditional<T>(
     condition: boolean,
     data: T,
     apply: (builder: this, data: NonNullable<T>) => this
   ): this {
-    if (condition && data != null) {
+    if (condition && !!data) {
       return apply(this, data as NonNullable<T>);
     }
     return this;
   }
 
-  build(): CalendarEvent | null {
+  build(): (Omit<CalendarEvent, "bookerUrl"> & { bookerUrl: string }) | null {
     // Validate required fields
     if (
       !this.event.startTime ||
@@ -571,6 +571,6 @@ export class CalendarEventBuilder {
       return null;
     }
 
-    return this.event as CalendarEvent;
+    return this.event as Omit<CalendarEvent, "bookerUrl"> & { bookerUrl: string };
   }
 }

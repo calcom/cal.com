@@ -1491,7 +1491,11 @@ async function handler(
 
   const eventName = getEventName(eventNameObject);
 
-  let evt: CalendarEvent | null = new CalendarEventBuilder()
+  let evt:
+    | (Omit<CalendarEvent, "bookerUrl"> & {
+        bookerUrl: string;
+      })
+    | null = new CalendarEventBuilder()
     .withBasicDetails({
       bookerUrl,
       title: eventName,
@@ -1737,7 +1741,7 @@ async function handler(
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
       eventType,
-      evt: { ...evt, seatsPerTimeSlot: eventType.seatsPerTimeSlot, bookerUrl },
+      evt,
       invitee,
       allCredentials,
       organizerUser,
