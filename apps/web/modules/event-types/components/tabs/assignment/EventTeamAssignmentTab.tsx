@@ -781,7 +781,10 @@ export const EventTeamAssignmentTab = ({
     getValues("assignAllTeamMembers") ?? false
   );
 
-  const metadata = getValues("metadata");
+  const metadata = useWatch({
+    control,
+    name: "metadata",
+  });
   const unlockedFields = metadata?.managedEventConfig?.unlockedFields;
   const isHiddenFieldLocked = isManagedEventType && !unlockedFields?.hidden;
 

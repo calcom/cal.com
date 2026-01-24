@@ -298,11 +298,13 @@ test.describe("Managed Event Types", () => {
 
     const childHiddenSwitch = page.getByTestId(/child-event-hidden-switch-/);
     const switchCount = await childHiddenSwitch.count();
-    if (switchCount > 0) {
-      const firstSwitch = childHiddenSwitch.first();
-      await expect(firstSwitch).toBeDisabled();
-      await expect(firstSwitch).not.toBeChecked();
-    }
+
+    // Ensure at least one child exists before validating propagation
+    expect(switchCount).toBeGreaterThan(0);
+
+    const firstSwitch = childHiddenSwitch.first();
+    await expect(firstSwitch).toBeDisabled();
+    await expect(firstSwitch).not.toBeChecked();
   });
 
   test("Children can have individual hidden values when unlocked", async ({ page, users }) => {
