@@ -1,10 +1,8 @@
 import { logger, runs, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
 import type { z } from "zod";
-
+import { CANCEL_USAGE_INCREMENT_JOB_ID, getIncrementUsageJobTag } from "../constants";
 import { platformBillingTaskConfig } from "./config";
 import { platformBillingCancelUsageIncrementTaskSchema } from "./schema";
-
-export const CANCEL_USAGE_INCREMENT_JOB_ID = "platform.billing.cancel-usage-increment";
 
 export const cancelUsageIncrement: TaskWithSchema<
   typeof CANCEL_USAGE_INCREMENT_JOB_ID,
@@ -16,7 +14,7 @@ export const cancelUsageIncrement: TaskWithSchema<
   run: async (payload: z.infer<typeof platformBillingCancelUsageIncrementTaskSchema>) => {
     const runId: string = (
       await runs.list({
-        tag: `increment-${payload.bookingUid}`,
+        tag: getIncrementUsageJobTag(payload.bookingUid),
         limit: 1,
       })
     )?.data?.[0]?.id;

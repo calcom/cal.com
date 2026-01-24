@@ -56,7 +56,7 @@ export function BulkDismissReports({ reports, onRemove }: Props) {
         isPending={bulkDismissMutation.isPending}
         onConfirm={() => {
           bulkDismissMutation.mutate({
-            reportIds: reports.map((report) => report.id),
+            emails: reports.map((group) => group.bookerEmail),
           });
         }}
       >
