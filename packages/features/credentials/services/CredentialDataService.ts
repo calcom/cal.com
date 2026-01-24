@@ -1,14 +1,8 @@
 import { encryptSecret } from "@calcom/lib/crypto/keyring";
 
-type JsonPrimitive = string | number | boolean | null;
-
-type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
-
-type CredentialKey = JsonValue;
-
 export type CredentialCreateData = {
   type: string;
-  key: CredentialKey;
+  key: object;
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
@@ -24,7 +18,7 @@ export type CredentialCreateData = {
  */
 export function buildCredentialCreateData(data: {
   type: string;
-  key: CredentialKey;
+  key: object;
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;

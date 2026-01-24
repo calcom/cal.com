@@ -178,6 +178,7 @@ describe("HubspotCalendarService", () => {
         email: "test-user@example.com",
       },
       delegationCredentialId: null,
+      encryptedKey: null,
     };
 
     service = BuildCrmService(mockCredential, {}) as CRM & { getAppOptions: () => AppOptions };
