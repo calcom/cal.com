@@ -195,7 +195,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       try {
         user = await userRepository.upsertForSignup({
           email,
-          username: username!,
+          username: username,
           hashedPassword,
           organizationId,
         });

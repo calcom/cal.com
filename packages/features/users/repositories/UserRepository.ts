@@ -1423,7 +1423,7 @@ export class UserRepository {
     organizationId,
   }: {
     email: string;
-    username: string;
+    username: string | null;
     hashedPassword: string;
     organizationId: number | null;
   }) {
