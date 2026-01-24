@@ -20,6 +20,12 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
   // TODO: Refactor and type with Record<AppCategories, AppCategoryEntry> to enforce consistency
   return [
     {
+      name: "ai",
+      href: getHref(baseURL, "ai", useQueryParam),
+      icon: "sparkles",
+      "data-testid": "ai",
+    },
+    {
       name: "analytics",
       href: getHref(baseURL, "analytics", useQueryParam),
       icon: "chart-bar",

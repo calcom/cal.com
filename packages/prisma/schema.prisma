@@ -1265,6 +1265,7 @@ model Session {
 }
 
 enum AppCategories {
+  ai
   calendar
   messaging
   other
