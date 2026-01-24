@@ -102,16 +102,22 @@ const getCalendarsEvents = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      // get the key from encryptedKey if it exists, otherwise use the key
       let key: typeof credential.key;
-      if (credential.encryptedKey) {
-        key = JSON.parse(
-          decryptSecret({
-            envelope: JSON.parse(credential.encryptedKey),
-            aad: { type: credential.type },
-          })
-        );
-      } else {
+      try {
+        if (credential.encryptedKey) {
+          key = JSON.parse(
+            decryptSecret({
+              envelope: JSON.parse(credential.encryptedKey),
+              aad: { type: credential.type },
+            })
+          );
+        } else {
+          key = credential.key;
+        }
+      } catch {
+        log.warn("Failed to decrypt credential key, falling back to legacy key", {
+          credentialId: credential.id,
+        });
         key = credential.key;
       }
 

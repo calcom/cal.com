@@ -79,15 +79,7 @@ export const encryptSecret = ({
   ring: KeyringName;
   plaintext: string;
   aad: AAD;
-}): {
-  v: 1;
-  alg: "AES-256-GCM";
-  ring: KeyringName;
-  kid: string;
-  nonce: string;
-  ct: string;
-  tag: string;
-} => {
+}): SecretEnvelopeV1 => {
   const kid = getCurrentKid(ring);
   const key = getKeyMaterial(ring, kid);
 

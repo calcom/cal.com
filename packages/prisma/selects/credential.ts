@@ -22,6 +22,7 @@ export const safeCredentialSelect = {
   type: true,
   /** Omitting to avoid frontend leaks */
   // key: true,
+  // encryptedKey: true,
   userId: true,
   user: {
     select: {
@@ -31,6 +32,5 @@ export const safeCredentialSelect = {
   teamId: true,
   appId: true,
   invalid: true,
-  encryptedKey: true,
   delegationCredentialId: true,
 } satisfies Prisma.CredentialSelect;
