@@ -91,7 +91,7 @@ export function useActiveFiltersValidator({
   }, [canReadOthersBookings, currentUser, members]);
 
   const accessibleEventTypeIds = useMemo(() => {
-    return eventTypes?.map((et) => et.value) ?? [];
+    return eventTypes?.map((et) => et.value).filter((v): v is number => typeof v === "number") ?? [];
   }, [eventTypes]);
 
   const accessibleTeamIds = useMemo(() => {
