@@ -36,7 +36,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
-const handler: CustomNextApiHandler = async (body, usernameStatus) => {
+const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   const {
     email: _email,
     password,
@@ -121,7 +121,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
   // Create the customer in Stripe with ad tracking metadata
   const cookieStore = await cookies();
   const cookiesObj = Object.fromEntries(cookieStore.getAll().map((c) => [c.name, c.value]));
-  const tracking = getTrackingFromCookies(cookiesObj);
+  const tracking = getTrackingFromCookies(cookiesObj, query);
 
   const customer = await billingService.createCustomer({
     email,
@@ -178,7 +178,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       },
     });
     if (team) {
-      const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
+      const organizationId = team.isOrganization ? team.id : (team.parent?.id ?? null);
 
       if (username) {
         const userRepository = new UserRepository(prisma);
@@ -253,10 +253,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       if (isPrismaError(error) && error.code === "P2002") {
         const target = String(error.meta?.target ?? "");
         if (target.includes("email") || target.includes("username")) {
-          return NextResponse.json(
-            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-            { status: 409 }
-          );
+          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
         }
       }
       throw error;
