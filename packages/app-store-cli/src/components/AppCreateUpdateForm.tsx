@@ -32,6 +32,7 @@ export const AppForm = ({
     category: "",
     publisher: "",
     email: "",
+    externalLinkUrl: "",
   };
 
   const [app] = useState(() => getApp(givenSlug, isTemplate));
@@ -40,11 +41,12 @@ export const AppForm = ({
     try {
       const config = JSON.parse(
         fs.readFileSync(`${getAppDirPath(givenSlug, isTemplate)}/config.json`).toString()
-      ) as AppMeta;
+      ) as AppMeta & { externalLink?: { url: string; newTab?: boolean } };
       initialConfig = {
         ...config,
         category: config.categories[0],
         template: config.__template,
+        externalLinkUrl: config.externalLink?.url || "",
       };
     } catch (e) {}
 
@@ -115,6 +117,25 @@ export const AppForm = ({
       defaultValue: "email@example.com",
     },
   ].filter((f) => f);
+
+  // Add external link URL field for link-as-an-app template
+  // Use initialConfig.template since appInputData is not yet available
+  const templateForFields = initialConfig.template || cliTemplate;
+  if (templateForFields === "link-as-an-app") {
+    // Insert after category field
+    const categoryIndex = fields.findIndex((f) => f?.name === "category");
+    if (categoryIndex !== -1) {
+      fields.splice(categoryIndex + 1, 0, {
+        optional: false,
+        label: "External Link URL",
+        name: "externalLinkUrl",
+        type: "text",
+        explainer: "The URL users will be redirected to when they install this app (e.g., https://example.com/signup)",
+        defaultValue: "https://example.com",
+      });
+    }
+  }
+
   const [appInputData, setAppInputData] = useState(initialConfig);
   const [inputIndex, setInputIndex] = useState(0);
   const [slugFinalized, setSlugFinalized] = useState(false);
@@ -124,7 +145,7 @@ export const AppForm = ({
   const fieldName = field?.name || "";
   let fieldValue = appInputData[fieldName as keyof typeof appInputData] || "";
   let validationResult: Parameters<typeof Message>[0]["message"] | null = null;
-  const { name, category, description, publisher, email, template } = appInputData;
+  const { name, category, description, publisher, email, template, externalLinkUrl } = appInputData;
 
   const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const formCompleted = inputIndex === fields.length;
@@ -149,6 +170,7 @@ export const AppForm = ({
           editMode: isEditAction,
           isTemplate,
           oldSlug: givenSlug,
+          externalLinkUrl,
         });
 
         await generateAppFiles();

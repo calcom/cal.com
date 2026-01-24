@@ -95,7 +95,6 @@ export const apiHandlers = {
   "event-type-app-card": import("./templates/event-type-app-card/api"),
   "event-type-location-video-static": import("./templates/event-type-location-video-static/api"),
   "general-app-settings": import("./templates/general-app-settings/api"),
-  "link-as-an-app": import("./templates/link-as-an-app/api"),
   twipla: import("./twipla/api"),
   umami: import("./umami/api"),
   vimcal: import("./vimcal/api"),

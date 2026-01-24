@@ -43,6 +43,27 @@ const defaultIntegrationAddHandler = async ({
   await createCredential({ user: user, appType, slug, teamId });
 };
 
+const createExternalLinkHandler = (appMetadata: {
+  type: string;
+  variant: string;
+  slug: string;
+  externalLink: { url: string; newTab?: boolean };
+}): AppDeclarativeHandler => ({
+  appType: appMetadata.type,
+  variant: appMetadata.variant,
+  slug: appMetadata.slug,
+  supportsMultipleInstalls: true, // Always allow since we don't track installations
+  handlerType: "add",
+  redirect: {
+    newTab: appMetadata.externalLink.newTab ?? true,
+    url: appMetadata.externalLink.url,
+  },
+  // External link apps don't create credentials - they just redirect to the external URL
+  createCredential: async () => {
+    // No-op: external link apps are not tracked as installed apps
+  },
+});
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
   req.session = await getServerSession({ req });
@@ -57,9 +78,29 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     /* Absolute path didn't work */
     const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
+    const metadataMap = (await import("@calcom/app-store/apps.metadata.generated")).appStoreMetadata;
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
-    const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
-    if (!handlers) throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
+    let handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
+
+    // If no handlers found, check if this is an external link app
+    if (!handlers) {
+      const appMetadata = metadataMap[handlerKey as keyof typeof metadataMap];
+      if (appMetadata && "externalLink" in appMetadata && appMetadata.externalLink) {
+        // Create a handler for external link apps from their config
+        const externalLinkHandler = createExternalLinkHandler(
+          appMetadata as {
+            type: string;
+            variant: string;
+            slug: string;
+            externalLink: { url: string; newTab?: boolean };
+          }
+        );
+        handlers = { add: externalLinkHandler };
+      } else {
+        throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
+      }
+    }
+
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
     if (typeof handler === "undefined")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
