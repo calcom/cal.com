@@ -1,10 +1,6 @@
-import { signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import type { MouseEvent } from "react";
-import { useEffect, useState } from "react";
-
-import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
+import { ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useUserAgentData } from "@calcom/lib/hooks/useUserAgentData";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -15,12 +11,19 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import FreshChatProvider from "@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider";
+import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import type { MouseEvent } from "react";
+import { useEffect, useState } from "react";
 
 declare global {
   interface Window {
@@ -43,12 +46,25 @@ interface UserDropdownProps {
   small?: boolean;
 }
 
+const DOWNLOAD_LINKS = {
+  ios: "https://go.cal.com/iOS",
+  android: "https://go.cal.com/android",
+  chrome: "https://go.cal.com/chrome",
+  safari: "https://go.cal.com/safari",
+  firefox: "https://go.cal.com/firefox",
+  edge: "https://go.cal.com/edge",
+  macos: "https://cal.com/download",
+  windows: "https://cal.com/download",
+  linux: "https://cal.com/download",
+} as const;
+
 export function UserDropdown({ small }: UserDropdownProps) {
   const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
   const { data: user, isPending } = useMeQuery();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
+  const { os, browser } = useUserAgentData();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -135,7 +151,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
             <span className="flex grow items-center gap-2">
               <span className="w-24 shrink-0 text-sm leading-none">
                 <span className="text-emphasis block truncate py-0.5 font-medium leading-normal">
-                  {isPending ? "Loading..." : user?.name ?? "Nameless User"}
+                  {isPending ? "Loading..." : (user?.name ?? "Nameless User")}
                 </span>
               </span>
               <Icon
@@ -208,11 +224,111 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 </DropdownItem>
               </DropdownMenuItem>
               {!isPlatformPages && (
-                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
-                    {t("download_desktop_app")}
-                  </DropdownItem>
-                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownMenuSubTrigger>
+                      <Icon name="download" className="mr-1 h-4 w-4 shrink-0" />
+                      {t("download_app")}
+                    </DropdownMenuSubTrigger>
+                  </DropdownMenuItem>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        StartIcon="smartphone"
+                        target="_blank"
+                        rel="noreferrer"
+                        href={DOWNLOAD_LINKS.ios}>
+                        {t("download_for_ios")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        StartIcon="smartphone"
+                        target="_blank"
+                        rel="noreferrer"
+                        href={DOWNLOAD_LINKS.android}>
+                        {t("download_for_android")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    {browser === "chrome" && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="chrome"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={DOWNLOAD_LINKS.chrome}>
+                          {t("download_chrome_extension")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                    {browser === "safari" && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="compass"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={DOWNLOAD_LINKS.safari}>
+                          {t("download_safari_extension")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                    {browser === "firefox" && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="globe"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={DOWNLOAD_LINKS.firefox}>
+                          {t("download_firefox_extension")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                    {browser === "edge" && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="globe"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={DOWNLOAD_LINKS.edge}>
+                          {t("download_edge_extension")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                    {os === "macos" && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="laptop"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={DOWNLOAD_LINKS.macos}>
+                          {t("download_for_macos")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                    {os === "windows" && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="laptop"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={DOWNLOAD_LINKS.windows}>
+                          {t("download_for_windows")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                    {os === "linux" && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="laptop"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={DOWNLOAD_LINKS.linux}>
+                          {t("download_for_linux")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               )}
 
               {!isPlatformPages && isPlatformUser && (
