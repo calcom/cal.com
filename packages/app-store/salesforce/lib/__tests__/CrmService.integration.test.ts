@@ -73,6 +73,7 @@ const createMockCredential = () => {
     appId: "test_app_id",
     invalid: false,
     delegationCredentialId: null,
+    encryptedKey: null,
   };
 };
 
