@@ -21,9 +21,6 @@ import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/sc
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
-import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
   BookingDataSchemaGetter,
   BookingHandlerInput,
@@ -31,6 +28,7 @@ import type {
   CreateRegularBookingData,
 } from "@calcom/features/bookings/lib/dto/types";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -277,95 +275,6 @@ const buildDryRunEventManager = () => {
     create: async () => ({ results: [], referencesToCreate: [] }),
     reschedule: async () => ({ results: [], referencesToCreate: [] }),
   };
-};
-
-export const buildEventForTeamEventType = async ({
-  existingEvent: evt,
-  users,
-  organizerUser,
-  schedulingType,
-  team,
-}: {
-  existingEvent: Partial<CalendarEvent>;
-  users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
-    destinationCalendar: DestinationCalendar | null;
-    isFixed?: boolean;
-  })[];
-  organizerUser: { email: string };
-  schedulingType: SchedulingType | null;
-  team?: {
-    id: number;
-    name: string;
-  } | null;
-}) => {
-  // not null assertion.
-  if (!schedulingType) {
-    throw new Error("Scheduling type is required for team event type");
-  }
-  const teamDestinationCalendars: DestinationCalendar[] = [];
-  const fixedUsers = users.filter((user) => user.isFixed);
-  const nonFixedUsers = users.filter((user) => !user.isFixed);
-  const filteredUsers =
-    schedulingType === SchedulingType.ROUND_ROBIN ? [...fixedUsers, ...nonFixedUsers] : users;
-
-  // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = filteredUsers
-    .filter((user) => user.email !== organizerUser.email)
-    .map(async (user) => {
-      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
-      // push to teamDestinationCalendars if it's a team event but collective only
-      if (schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-        teamDestinationCalendars.push({
-          ...user.destinationCalendar,
-          externalId: processExternalId(user.destinationCalendar),
-        });
-      }
-
-      return {
-        id: user.id,
-        email: user.email ?? "",
-        name: user.name ?? "",
-        firstName: "",
-        lastName: "",
-        timeZone: user.timeZone,
-        language: {
-          translate: await getTranslation(user.locale ?? "en", "common"),
-          locale: user.locale ?? "en",
-        },
-      };
-    });
-
-  const teamMembers = await Promise.all(teamMemberPromises);
-
-  const updatedEvt = CalendarEventBuilder.fromEvent(evt)
-    ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
-    .build();
-
-  if (!updatedEvt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build event with destination calendar due to missing required fields",
-    });
-  }
-
-  evt = updatedEvt;
-
-  const teamEvt = CalendarEventBuilder.fromEvent(evt)
-    ?.withTeam({
-      members: teamMembers,
-      name: team?.name || "Nameless",
-      id: team?.id ?? 0,
-    })
-    .build();
-
-  if (!teamEvt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build team event due to missing required fields",
-    });
-  }
-
-  return teamEvt;
 };
 
 type TeamMember = {
@@ -1625,7 +1534,11 @@ async function handler(
       location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
       conferenceCredentialId,
     })
-    .withDestinationCalendar([...(destinationCalendar ?? []), ...teamDestinationCalendars])
+    .withDestinationCalendar(
+      teamDestinationCalendars.length > 0
+        ? [...(destinationCalendar ?? []), ...teamDestinationCalendars]
+        : destinationCalendar
+    )
     .withIdentifiers({ iCalUID, iCalSequence })
     .withConfirmation({
       requiresConfirmation: !isConfirmedByDefault,
