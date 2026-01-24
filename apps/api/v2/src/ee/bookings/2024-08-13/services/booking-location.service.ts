@@ -1,18 +1,19 @@
-import {
-  buildCalEventFromBooking,
-  CredentialRepository,
-  makeUserActor,
-  updateEvent,
-} from "@calcom/platform-libraries";
+import type { CredentialForCalendarService } from "@calcom/platform-libraries";
+import { buildCalEventFromBooking, CredentialRepository, updateEvent } from "@calcom/platform-libraries";
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
 import type {
   BookingInputLocation_2024_08_13,
   UpdateBookingInputLocation_2024_08_13,
   UpdateBookingLocationInput_2024_08_13,
 } from "@calcom/platform-types";
-import type { Booking } from "@calcom/prisma/client";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type {
+  BookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+} from "@calcom/platform-types/bookings/2024-08-13/outputs/booking.output";
+import type { Booking, Prisma } from "@calcom/prisma/client";
 import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
-
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
@@ -40,26 +41,25 @@ export class BookingLocationService_2024_08_13 {
     bookingUid: string,
     input: UpdateBookingLocationInput_2024_08_13,
     user: ApiAuthGuardUser
-  ) {
-    const existingBooking =
-      await this.bookingsRepository.getBookingByUidWithUserAndEventDetails(
-        bookingUid
-      );
+  ): Promise<
+    | BookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13[]
+    | GetSeatedBookingOutput_2024_08_13
+    | GetRecurringSeatedBookingOutput_2024_08_13
+    | GetRecurringSeatedBookingOutput_2024_08_13[]
+  > {
+    const existingBooking = await this.bookingsRepository.getBookingByUidWithUserAndEventDetails(bookingUid);
     if (!existingBooking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
 
     if (existingBooking.eventTypeId && existingBooking.eventType) {
-      const eventType =
-        await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-          existingBooking.eventTypeId
-        );
+      const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
+        existingBooking.eventTypeId
+      );
       if (eventType) {
-        const isAllowed =
-          await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
-            user,
-            eventType
-          );
+        const isAllowed = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(user, eventType);
         if (!isAllowed) {
           throw new ForbiddenException(
             "User is not authorized to update this booking location. User must be the event type owner, host, team admin or owner, or org admin or owner."
@@ -85,42 +85,37 @@ export class BookingLocationService_2024_08_13 {
     existingBooking: Booking,
     inputLocation: UpdateBookingInputLocation_2024_08_13,
     user: ApiAuthGuardUser
-  ) {
+  ): Promise<
+    | BookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13[]
+    | GetSeatedBookingOutput_2024_08_13
+    | GetRecurringSeatedBookingOutput_2024_08_13
+    | GetRecurringSeatedBookingOutput_2024_08_13[]
+  > {
     const bookingUid = existingBooking.uid;
     const oldLocation = existingBooking.location;
-    const bookingLocation =
-      this.getLocationValue(inputLocation) ?? existingBooking.location;
+    const bookingLocation = this.getLocationValue(inputLocation) ?? existingBooking.location;
 
     if (!existingBooking.userId) {
-      throw new NotFoundException(
-        `No user found for booking with uid=${bookingUid}`
-      );
+      throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
     if (!existingBooking.eventTypeId) {
-      throw new NotFoundException(
-        `No event type found for booking with uid=${bookingUid}`
-      );
+      throw new NotFoundException(`No event type found for booking with uid=${bookingUid}`);
     }
 
-    const existingBookingHost = await this.usersRepository.findById(
-      existingBooking.userId
-    );
+    const existingBookingHost = await this.usersRepository.findById(existingBooking.userId);
 
     if (!existingBookingHost) {
-      throw new NotFoundException(
-        `No user found for booking with uid=${bookingUid}`
-      );
+      throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
     const bookingFieldsLocation = this.inputService.transformLocation(
       inputLocation as BookingInputLocation_2024_08_13
     );
 
-    const responses = (existingBooking.responses || {}) as Record<
-      string,
-      unknown
-    >;
+    const responses = (existingBooking.responses || {}) as Record<string, unknown>;
     const { location: _existingLocation, ...rest } = responses;
 
     const updatedBookingResponses = {
@@ -128,13 +123,16 @@ export class BookingLocationService_2024_08_13 {
       location: bookingFieldsLocation,
     };
 
-    const updatedBooking = await this.bookingsRepository.updateBooking(
-      bookingUid,
-      {
-        location: bookingLocation,
-        responses: updatedBookingResponses,
-      }
-    );
+    // clear videoCallUrl from metadata when explicitly setting a new location
+    // this ensures the frontend shows the new location instead of the old integration URL
+    const existingMetadata = (existingBooking.metadata || {}) as Record<string, unknown>;
+    const { videoCallUrl: _removedVideoUrl, ...metadataWithoutVideoUrl } = existingMetadata;
+
+    const updatedBooking = await this.bookingsRepository.updateBooking(bookingUid, {
+      location: bookingLocation,
+      responses: updatedBookingResponses,
+      metadata: metadataWithoutVideoUrl as Prisma.InputJsonValue,
+    });
 
     await this.bookingEventHandlerService.onLocationChanged({
       bookingUid: existingBooking.uid,
@@ -157,20 +155,12 @@ export class BookingLocationService_2024_08_13 {
   2. if booking reference not present, return
   3. if reference present, use credentials from in there to retreive calendar event and then update it accordingly
   */
-  private async syncCalendarEvent(
-    bookingId: number,
-    newLocation: string
-  ): Promise<void> {
+  private async syncCalendarEvent(bookingId: number, newLocation: string): Promise<void> {
     // 1. Fetch booking with references and user credentials
-    const booking =
-      await this.bookingsRepository.getBookingByIdWithUserAndEventDetails(
-        bookingId
-      );
+    const booking = await this.bookingsRepository.getBookingByIdWithUserAndEventDetails(bookingId);
 
     if (!booking || !booking.user) {
-      this.logger.log(
-        `syncCalendarEvent - No booking or user found for id=${bookingId}`
-      );
+      this.logger.log(`syncCalendarEvent - No booking or user found for id=${bookingId}`);
       return;
     }
 
@@ -179,9 +169,7 @@ export class BookingLocationService_2024_08_13 {
     );
 
     if (calendarReferences.length === 0) {
-      this.logger.log(
-        `syncCalendarEvent - No calendar references for booking id=${bookingId}`
-      );
+      this.logger.log(`syncCalendarEvent - No calendar references for booking id=${bookingId}`);
       return;
     }
 
@@ -230,10 +218,7 @@ export class BookingLocationService_2024_08_13 {
     });
 
     for (const reference of calendarReferences) {
-      const credential = await this.getCredentialForReference(
-        reference,
-        booking.user.credentials
-      );
+      const credential = await this.getCredentialForReference(reference, booking.user.credentials);
 
       if (!credential) {
         this.logger.warn(
@@ -243,12 +228,7 @@ export class BookingLocationService_2024_08_13 {
       }
 
       try {
-        await updateEvent(
-          credential,
-          evt,
-          reference.uid,
-          reference.externalCalendarId
-        );
+        await updateEvent(credential, evt, reference.uid, reference.externalCalendarId);
         this.logger.log(
           `syncCalendarEvent - Successfully updated calendar event for reference id=${reference.id}`
         );
@@ -279,54 +259,43 @@ export class BookingLocationService_2024_08_13 {
   ): Promise<CredentialForCalendarService | null> {
     if (reference.delegationCredentialId) {
       const delegationCred = userCredentials.find(
-        (cred) =>
-          cred.delegationCredentialId === reference.delegationCredentialId
+        (cred) => cred.delegationCredentialId === reference.delegationCredentialId
       );
       if (delegationCred) {
-        const credFromDB =
-          await CredentialRepository.findCredentialForCalendarServiceById({
-            id: delegationCred.id,
-          });
+        const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+          id: delegationCred.id,
+        });
         return credFromDB;
       }
     }
 
     if (reference.credentialId && reference.credentialId > 0) {
-      const localCred = userCredentials.find(
-        (cred) => cred.id === reference.credentialId
-      );
+      const localCred = userCredentials.find((cred) => cred.id === reference.credentialId);
       if (localCred) {
-        const credFromDB =
-          await CredentialRepository.findCredentialForCalendarServiceById({
-            id: localCred.id,
-          });
+        const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+          id: localCred.id,
+        });
         return credFromDB;
       }
 
-      const credFromDB =
-        await CredentialRepository.findCredentialForCalendarServiceById({
-          id: reference.credentialId,
-        });
+      const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+        id: reference.credentialId,
+      });
       return credFromDB;
     }
 
-    const typeCred = userCredentials.find(
-      (cred) => cred.type === reference.type
-    );
+    const typeCred = userCredentials.find((cred) => cred.type === reference.type);
     if (typeCred) {
-      const credFromDB =
-        await CredentialRepository.findCredentialForCalendarServiceById({
-          id: typeCred.id,
-        });
+      const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+        id: typeCred.id,
+      });
       return credFromDB;
     }
 
     return null;
   }
 
-  private getLocationValue(
-    loc: UpdateBookingInputLocation_2024_08_13
-  ): string | undefined {
+  private getLocationValue(loc: UpdateBookingInputLocation_2024_08_13): string | undefined {
     if (loc.type === "address") return loc.address;
     if (loc.type === "link") return loc.link;
     if (loc.type === "phone") return loc.phone;
