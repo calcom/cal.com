@@ -311,9 +311,11 @@ export async function computeTeamData({
   const filteredUsers =
     schedulingType === SchedulingType.ROUND_ROBIN ? [...fixedUsers, ...nonFixedUsers] : users;
 
+  // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = filteredUsers
     .filter((user) => user.email !== organizerEmail)
     .map(async (user) => {
+      // push to teamDestinationCalendars if it's a team event but collective only
       if (schedulingType === "COLLECTIVE" && user.destinationCalendar) {
         teamDestinationCalendars.push({
           ...user.destinationCalendar,
