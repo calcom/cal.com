@@ -44,6 +44,7 @@ export default defineConfig({
         pbac: resolve(__dirname, "./pbac.ts"),
         errors: resolve(__dirname, "./errors.ts"),
         calendars: resolve(__dirname, "./calendars.ts"),
+        tasker: resolve(__dirname, "./tasker.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",
