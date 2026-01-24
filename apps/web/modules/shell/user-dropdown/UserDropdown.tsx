@@ -253,7 +253,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {browser === "chrome" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="chrome"
+                          StartIcon="globe"
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.chrome}>
@@ -264,7 +264,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {browser === "safari" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="compass"
+                          StartIcon="globe"
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.safari}>
@@ -297,7 +297,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {os === "macos" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="laptop"
+                          StartIcon="monitor"
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.macos}>
@@ -308,7 +308,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {os === "windows" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="laptop"
+                          StartIcon="monitor"
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.windows}>
@@ -319,7 +319,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {os === "linux" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="laptop"
+                          StartIcon="monitor"
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.linux}>
