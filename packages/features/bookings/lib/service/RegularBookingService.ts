@@ -1826,11 +1826,15 @@ async function handler(
     originalRescheduledBooking?.user?.name &&
     organizerUser?.name
   ) {
-    evt.title = updateHostInEventName(
-      originalRescheduledBooking.title,
-      originalRescheduledBooking.user.name,
-      organizerUser.name
-    );
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withTitle(
+        updateHostInEventName(
+          originalRescheduledBooking.title,
+          originalRescheduledBooking.user.name,
+          organizerUser.name
+        )
+      )
+      .build();
   }
 
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
@@ -1968,7 +1972,7 @@ async function handler(
             },
           },
         });
-        evt.attendeeSeatId = uniqueAttendeeId;
+        evt = CalendarEventBuilder.fromEvent(evt).withAttendeeSeatId(uniqueAttendeeId).build();
       }
     } else {
       const { booking: dryRunBooking, troubleshooterData: _troubleshooterData } = buildDryRunBooking({
@@ -2019,8 +2023,8 @@ async function handler(
 
     evt = CalendarEventBuilder.fromEvent(evt)
       .withVideoCallDataFromReferences(originalRescheduledBooking.references)
+      .withRescheduledBy(reqBody.rescheduledBy)
       .build();
-    evt.rescheduledBy = reqBody.rescheduledBy;
 
     // If organizer is changed in RR event then we need to delete the previous host destination calendar events
     const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
@@ -2029,10 +2033,12 @@ async function handler(
 
     if (changedOrganizer) {
       // location might changed and will be new created in eventManager.create (organizer default location)
-      evt.videoCallData = undefined;
-      // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
-      evt.iCalUID = undefined;
-      evt.hasOrganizerChanged = true;
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withVideoCallData(undefined)
+        // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+        .withIdentifiers({ iCalUID: undefined })
+        .withOrganizerChanged(true)
+        .build();
     }
 
     if (changedOrganizer && originalRescheduledBooking?.user) {
@@ -2080,7 +2086,7 @@ async function handler(
     }
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt = CalendarEventBuilder.fromEvent(evt).withDescription(eventType.description).build();
 
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
@@ -2101,7 +2107,7 @@ async function handler(
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt = CalendarEventBuilder.fromEvent(evt).withDescription(eventType.description).build();
 
     const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
       results,
@@ -2186,7 +2192,9 @@ async function handler(
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
+        evt = CalendarEventBuilder.fromEvent(evt)
+          .withAppsStatus(handleAppsStatus(results, booking, reqAppsStatus))
+          .build();
         videoCallUrl =
           metadata.hangoutLink ||
           createdOrUpdatedEvent?.url ||
@@ -2197,12 +2205,15 @@ async function handler(
 
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+      const updatedICalUID = Array.isArray(calendarResult?.updatedEvent)
         ? calendarResult?.updatedEvent[0]?.iCalUID
         : calendarResult?.updatedEvent?.iCalUID || undefined;
+      evt = CalendarEventBuilder.fromEvent(evt).withIdentifiers({ iCalUID: updatedICalUID }).build();
     }
 
-    evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withAppsStatus(handleAppsStatus(results, booking, reqAppsStatus))
+      .build();
 
     if (!noEmail && isConfirmedByDefault && !isDryRun) {
       await emailsAndSmsHandler.send({
@@ -2230,12 +2241,13 @@ async function handler(
       areCalendarEventsEnabled && !skipCalendarSyncTaskCreation
         ? await eventManager.create(evt)
         : placeholderCreatedEvent;
+
     if (evt.location) {
       booking.location = evt.location;
     }
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt = CalendarEventBuilder.fromEvent(evt).withDescription(eventType.description).build();
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
@@ -2310,7 +2322,9 @@ async function handler(
         additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
         additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
         additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
+        evt = CalendarEventBuilder.fromEvent(evt)
+          .withAppsStatus(handleAppsStatus(results, booking, reqAppsStatus))
+          .build();
         videoCallUrl =
           additionalInformation.hangoutLink ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||

@@ -577,6 +577,26 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withTitle(title: string): this {
+    this.event = { ...this.event, title };
+    return this;
+  }
+
+  withDescription(description?: string | null): this {
+    this.event = { ...this.event, description };
+    return this;
+  }
+
+  withRescheduledBy(rescheduledBy?: string): this {
+    this.event = { ...this.event, rescheduledBy };
+    return this;
+  }
+
+  withOrganizerChanged(hasOrganizerChanged: boolean): this {
+    this.event = { ...this.event, hasOrganizerChanged };
+    return this;
+  }
+
   build(): Omit<CalendarEvent, "bookerUrl"> & { bookerUrl: string } {
     if (
       !this.event.startTime ||
