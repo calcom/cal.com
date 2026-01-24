@@ -49,16 +49,13 @@ export type {
   BookingCreateBody,
   BookingResponse,
 } from "@calcom/features/bookings/types";
-
 export { getBusyCalendarTimes, updateEvent } from "@calcom/features/calendars/lib/CalendarManager";
-export { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
-export { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
-
 export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
+export { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+export { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 export { ENABLE_ASYNC_TASKER, MINUTES_TO_BOOK } from "@calcom/lib/constants";
-
 export { TRPCError } from "@trpc/server";
 export { createNewUsersConnectToOrgIfExists };
 
@@ -67,9 +64,7 @@ export { getBookingInfo };
 export { handleCancelBooking };
 
 export { dynamicEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
-
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { bookingMetadataSchema, teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -79,7 +74,6 @@ export { getTranslation };
 
 export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
 export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
-
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 
 export type TeamQuery = Prisma.TeamGetPayload<{
@@ -125,7 +119,6 @@ export { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeU
 export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
 export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 export { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
-
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 export { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
@@ -137,3 +130,4 @@ export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 export type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
+export type { CredentialForCalendarService } from "@calcom/types/Credential";
