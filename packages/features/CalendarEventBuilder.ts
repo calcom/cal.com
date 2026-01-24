@@ -553,7 +553,7 @@ export class CalendarEventBuilder {
     data: T,
     apply: (builder: this, data: NonNullable<T>) => this
   ): this {
-    if (condition && data !== null) {
+    if (condition && data != null) {
       return apply(this, data as NonNullable<T>);
     }
     return this;
