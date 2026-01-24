@@ -99,6 +99,7 @@ const IntegrationsContainer = ({
 
   // TODO: Refactor and reuse getAppCategories?
   const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
+    ai: "sparkles",
     calendar: "calendar",
     conferencing: "video",
     automation: "share-2",

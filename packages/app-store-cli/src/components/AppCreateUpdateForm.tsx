@@ -86,6 +86,7 @@ export const AppForm = ({
       // TODO: Refactor and reuse getAppCategories or type as Record<AppCategories,> to enforce consistency
       options: [
         // Manually sorted alphabetically
+        { label: "AI", value: "ai" },
         { label: "Analytics", value: "analytics" },
         { label: "Automation", value: "automation" },
         { label: "Calendar", value: "calendar" },
