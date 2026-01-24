@@ -1,5 +1,5 @@
 import { ALL_APPS } from "@calcom/app-store/utils";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -585,10 +585,9 @@ export class CalendarEventBuilder {
       !this.event.bookerUrl ||
       !this.event.title
     ) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Failed to build calendar event: missing required fields (startTime, endTime, type, bookerUrl, or title)",
-      });
+      throw ErrorWithCode.Factory.BadRequest(
+        "Failed to build calendar event: missing required fields (startTime, endTime, type, bookerUrl, or title)"
+      );
     }
 
     return this.event as Omit<CalendarEvent, "bookerUrl"> & { bookerUrl: string };
