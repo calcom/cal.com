@@ -1573,13 +1573,6 @@ async function handler(
     )
     .build();
 
-  if (!evt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build calendar event due to missing required fields",
-    });
-  }
-
   // data needed for triggering webhooks
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: eventType.title,
@@ -1813,13 +1806,6 @@ async function handler(
         })
         .build();
 
-      if (!updatedEvt) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with new identifiers due to missing required fields",
-        });
-      }
-
       evt = updatedEvt;
     }
   }
@@ -1937,44 +1923,22 @@ async function handler(
         }
       }
 
-      const updatedEvtWithUid = CalendarEventBuilder.fromEvent(evt)
-        ?.withUid(booking.uid ?? null)
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withUid(booking.uid ?? null)
         .build();
 
-      if (!updatedEvtWithUid) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with UID due to missing required fields",
-        });
-      }
-
-      evt = updatedEvtWithUid;
-
-      const updatedEvtWithPassword = CalendarEventBuilder.fromEvent(evt)
-        ?.withOneTimePassword(booking.oneTimePassword ?? null)
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withOneTimePassword(booking.oneTimePassword ?? null)
         .build();
-
-      if (!updatedEvtWithPassword) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with one-time password due to missing required fields",
-        });
-      }
-
-      evt = updatedEvtWithPassword;
 
       // Add assignment reason to evt for emails
       if (assignmentReason) {
-        const updatedEvtWithAssignmentReason = CalendarEventBuilder.fromEvent(evt)
-          ?.withAssignmentReason({
+        evt = CalendarEventBuilder.fromEvent(evt)
+          .withAssignmentReason({
             category: getAssignmentReasonCategory(assignmentReason.reasonEnum),
             details: assignmentReason.reasonString ?? null,
           })
           .build();
-
-        if (updatedEvtWithAssignmentReason) {
-          evt = updatedEvtWithAssignmentReason;
-        }
       }
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
