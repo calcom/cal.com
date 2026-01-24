@@ -16,6 +16,14 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   }),
 }));
 
+vi.mock("@calcom/lib/hooks/useUserAgentData", () => ({
+  useUserAgentData: () => ({
+    os: "linux",
+    browser: "chrome",
+    isMobile: false,
+  }),
+}));
+
 const mockUseMeQuery = vi.fn();
 vi.mock("@calcom/trpc/react/hooks/useMeQuery", () => ({
   default: () => mockUseMeQuery(),
@@ -47,6 +55,9 @@ vi.mock("@calcom/ui/components/dropdown", () => ({
   DropdownMenuPortal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuSeparator: () => <hr />,
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuSub: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuSubTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuSubContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock("@calcom/ui/classNames", () => ({
