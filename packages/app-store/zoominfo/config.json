@@ -3,7 +3,7 @@
   "name": "ZoomInfo",
   "title": "ZoomInfo",
   "slug": "zoominfo",
-  "type": "zoominfo_enrichment",
+  "type": "zoominfo_other",
   "logo": "icon.svg",
   "url": "https://zoominfo.com/",
   "variant": "other",
