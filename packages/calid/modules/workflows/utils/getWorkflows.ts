@@ -144,6 +144,8 @@ export const select: Prisma.CalIdWorkflowReminderSelect = {
       emailSubject: true,
       template: true,
       sender: true,
+      metaTemplateName: true,
+      metaTemplatePhoneNumberId: true,
       includeCalendarEvent: true,
       workflow: {
         select: {
