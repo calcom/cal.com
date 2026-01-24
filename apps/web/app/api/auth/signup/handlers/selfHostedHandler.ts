@@ -27,6 +27,7 @@ import {
 export default async function handler(body: Record<string, string>) {
   const { email, password, language, token } = signupSchema.parse(body);
 
+  const userRepository = new UserRepository(prisma);
   const username = slugify(body.username);
   const userEmail = email.toLowerCase();
 
@@ -47,7 +48,6 @@ export default async function handler(body: Record<string, string>) {
     });
 
     if (foundToken?.teamId) {
-      const userRepository = new UserRepository(prisma);
       const existingUser = await userRepository.findByEmailWithInvitedTo({ email: userEmail });
       if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
@@ -101,7 +101,6 @@ export default async function handler(body: Record<string, string>) {
 
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
-      const userRepository = new UserRepository(prisma);
       const existingUserByUsername = await userRepository.findByUsernameAndOrganizationId({
         username: correctedUsername,
         organizationId,
@@ -113,7 +112,6 @@ export default async function handler(body: Record<string, string>) {
 
       let user: { id: number };
       try {
-        const userRepository = new UserRepository(prisma);
         user = await userRepository.upsertForSignup({
           email: userEmail,
           username: correctedUsername,
@@ -164,8 +162,6 @@ export default async function handler(body: Record<string, string>) {
         );
       }
     }
-
-    const userRepository = new UserRepository(prisma);
 
     try {
       await userRepository.create({

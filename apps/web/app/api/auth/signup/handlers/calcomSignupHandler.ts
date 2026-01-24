@@ -49,6 +49,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     })
     .parse(body);
 
+  const userRepository = new UserRepository(prisma);
   const billingService = getBillingProviderService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
@@ -89,7 +90,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     });
 
     if (foundToken?.teamId) {
-      const userRepository = new UserRepository(prisma);
       const existingUser = await userRepository.findByEmailWithInvitedTo({ email });
       if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
@@ -181,7 +181,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       const organizationId = team.isOrganization ? team.id : (team.parent?.id ?? null);
 
       if (username) {
-        const userRepository = new UserRepository(prisma);
         const existingUserByUsername = await userRepository.findByUsernameAndOrganizationId({
           username,
           organizationId,
@@ -194,7 +193,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
 
       let user: { id: number };
       try {
-        const userRepository = new UserRepository(prisma);
         user = await userRepository.upsertForSignup({
           email,
           username: username!,
@@ -233,7 +231,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     });
   } else {
     // Create the user
-    const userRepository = new UserRepository(prisma);
 
     try {
       await userRepository.create({
@@ -241,6 +238,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
         email,
         locked: shouldLockByDefault,
         hashedPassword,
+        identityProvider: IdentityProvider.CAL,
         metadata: {
           stripeCustomerId: customer.stripeCustomerId,
           checkoutSessionId,

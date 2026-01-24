@@ -818,8 +818,11 @@ export class UserRepository {
   }
 
   async create(
-    data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
-      username: string;
+    data: Omit<
+      Prisma.UserCreateInput,
+      "password" | "organization" | "movedToProfile"
+    > & {
+      username: string | null;
       hashedPassword?: string;
       organizationId: number | null;
       creationSource: CreationSource;
@@ -862,7 +865,7 @@ export class UserRepository {
         },
         creationSource,
         locked,
-        ...(organizationIdValue
+        ...(organizationIdValue && username
           ? {
               organizationId: organizationIdValue,
               profiles: {
