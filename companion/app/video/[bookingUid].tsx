@@ -54,15 +54,16 @@ export default function VideoCallScreen() {
   // Check if the URL is a valid Daily.co URL
   const isValidDailyUrl = useCallback((url: string | undefined): boolean => {
     if (!url) return false;
+    let urlObj: URL | null = null;
     try {
-      const urlObj = new URL(url);
-      const isDailyUrl = urlObj.hostname.includes("daily.co");
-      const isCalVideoUrl = urlObj.hostname.includes("cal.com/video");
-      const result = isDailyUrl || isCalVideoUrl;
-      return result;
+      urlObj = new URL(url);
     } catch {
       return false;
     }
+    // Logic must be outside try/catch for React Compiler compatibility
+    const isDailyUrl = urlObj.hostname.includes("daily.co");
+    const isCalVideoUrl = urlObj.hostname.includes("cal.com/video");
+    return isDailyUrl || isCalVideoUrl;
   }, []);
 
   // Convert Daily participant to our tile format
