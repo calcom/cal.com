@@ -287,7 +287,7 @@ type TeamMember = {
   language: { translate: Awaited<ReturnType<typeof getTranslation>>; locale: string };
 };
 
-async function computeTeamData({
+export async function computeTeamData({
   isTeamEventType,
   schedulingType,
   users,
