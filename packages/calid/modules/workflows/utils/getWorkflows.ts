@@ -35,6 +35,7 @@ type PartialBooking =
       eventType:
         | (Partial<EventType> & {
             slug: string;
+            title: string;
             team: { parentId?: number };
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
@@ -158,6 +159,7 @@ export const select: Prisma.CalIdWorkflowReminderSelect = {
   },
   booking: {
     select: {
+      title: true,
       startTime: true,
       endTime: true,
       location: true,

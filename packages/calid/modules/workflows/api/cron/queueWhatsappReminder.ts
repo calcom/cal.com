@@ -88,6 +88,8 @@ const processMessageQueue = async (): Promise<number> => {
       const templateVariables = constructVariablesForTemplate(
         {
           uid: message.booking.uid,
+          title: message.booking.title,
+          additionalNotes: message.booking.description,
           eventTypeId: message.booking.eventTypeId,
           eventType: message.booking.eventType,
           startTime: message.booking.startTime.toISOString(),
