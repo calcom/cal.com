@@ -75,6 +75,8 @@ export type DataTableContextType = {
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
+export type ActiveFiltersValidator = (filters: ActiveFilters) => ActiveFilters;
+
 interface DataTableProviderProps {
   tableIdentifier: string;
   children: React.ReactNode;
@@ -85,6 +87,13 @@ interface DataTableProviderProps {
   timeZone?: string;
   preferredSegmentId?: SegmentIdentifier | null;
   systemSegments?: SystemFilterSegment[];
+  /**
+   * Optional validator function to filter out invalid/inaccessible values from activeFilters.
+   * This is called when a segment is applied, allowing the caller to validate filter values
+   * against accessible resources (e.g., accessible user IDs, event type IDs, team IDs).
+   * Invalid values are filtered out in memory without being persisted back to the backend.
+   */
+  validateActiveFilters?: ActiveFiltersValidator;
 }
 
 export function DataTableProvider({
@@ -97,6 +106,7 @@ export function DataTableProvider({
   timeZone,
   preferredSegmentId,
   systemSegments,
+  validateActiveFilters,
 }: DataTableProviderProps) {
   if (!tableIdentifier.trim()) {
     throw new Error("tableIdentifier is required and cannot be empty");
@@ -207,8 +217,11 @@ export function DataTableProvider({
         segmentId,
       });
 
-      // apply the segment
-      setActiveFilters(segment.activeFilters);
+      // apply the segment with optional validation
+      const filtersToApply = validateActiveFilters
+        ? validateActiveFilters(segment.activeFilters)
+        : segment.activeFilters;
+      setActiveFilters(filtersToApply);
       if (segment.sorting) {
         setSorting(segment.sorting);
       }
@@ -239,6 +252,7 @@ export function DataTableProvider({
       setPageSize,
       setSearchTerm,
       setPageIndex,
+      validateActiveFilters,
     ]
   );
 
