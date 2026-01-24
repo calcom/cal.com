@@ -163,3 +163,40 @@ export async function openCancelBookingInWeb(bookingUid: string): Promise<void> 
     }
   }
 }
+
+/**
+ * Check if a URL is a Cal.com video URL that should be handled natively.
+ *
+ * @param url - The URL to check
+ * @returns True if the URL is a Cal.com video URL
+ */
+export function isCalVideoUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname === "app.cal.com" && urlObj.pathname.startsWith("/video/");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Extract the booking UID from a Cal.com video URL.
+ *
+ * @param url - The Cal.com video URL (e.g., https://app.cal.com/video/abc123)
+ * @returns The booking UID or null if not a valid video URL
+ */
+export function extractBookingUidFromVideoUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.hostname === "app.cal.com" && urlObj.pathname.startsWith("/video/")) {
+      const pathParts = urlObj.pathname.split("/");
+      // URL format: /video/{bookingUid}
+      if (pathParts.length >= 3 && pathParts[2]) {
+        return pathParts[2];
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
