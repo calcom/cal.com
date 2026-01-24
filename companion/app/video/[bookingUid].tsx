@@ -56,7 +56,10 @@ export default function VideoCallScreen() {
     if (!url) return false;
     try {
       const urlObj = new URL(url);
-      return urlObj.hostname.includes("daily.co") || urlObj.hostname.includes("cal.com/video");
+      const isDailyUrl = urlObj.hostname.includes("daily.co");
+      const isCalVideoUrl = urlObj.hostname.includes("cal.com/video");
+      const result = isDailyUrl || isCalVideoUrl;
+      return result;
     } catch {
       return false;
     }
