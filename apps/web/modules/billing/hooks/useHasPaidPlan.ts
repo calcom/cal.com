@@ -25,6 +25,12 @@ export function useTeamInvites() {
   return { isPending: listInvites.isPending, listInvites: listInvites.data };
 }
 
+export function useHasTeamMembership() {
+  const { data, isPending } = trpc.viewer.teams.hasTeamMembership.useQuery();
+
+  return { isPending, hasTeamMembership: data?.hasTeamMembership ?? false };
+}
+
 export function useHasTeamPlan() {
   const { data: hasTeamPlan, isPending } = trpc.viewer.teams.hasTeamPlan.useQuery();
 

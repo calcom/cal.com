@@ -109,6 +109,11 @@
       "import": "./dist/calendars.js",
       "require": "./dist/calendars.cjs",
       "types": "./dist/calendars.d.ts"
+    },
+    "./tasker": {
+      "import": "./dist/tasker.js",
+      "require": "./dist/tasker.cjs",
+      "types": "./dist/tasker.d.ts"
     }
   },
   "typesVersions": {
@@ -154,6 +159,9 @@
       ],
       "calendars": [
         "dist/calendars.d.ts"
+      ],
+      "tasker": [
+        "dist/tasker.d.ts"
       ]
     }
   }
