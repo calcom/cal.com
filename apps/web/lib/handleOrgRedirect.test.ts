@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import type { ParsedUrlQuery } from "querystring";
+import type { ParsedUrlQuery } from "node:querystring";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 import * as constants from "@calcom/lib/constants";

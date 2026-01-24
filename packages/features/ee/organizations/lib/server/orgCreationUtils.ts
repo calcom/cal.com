@@ -1,7 +1,7 @@
-import { lookup } from "dns";
+import { lookup } from "node:dns";
 import { type TFunction } from "i18next";
 
-import { sendAdminOrganizationNotification } from "@calcom/emails";
+import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
@@ -25,34 +25,52 @@ export function isNotACompanyEmail(email: string) {
   // A list of popular @domains that can't be used to allow automatic acceptance of memberships to organization
   const emailProviders = [
     "gmail.com",
+    "googlemail.com",
     "yahoo.com",
+    "ymail.com",
+    "rocketmail.com",
+    "sbcglobal.net",
+    "att.net",
     "outlook.com",
     "hotmail.com",
+    "live.com",
+    "msn.com",
+    "outlook.co",
+    "hotmail.co.uk",
     "aol.com",
     "icloud.com",
+    "me.com",
+    "mac.com",
     "mail.com",
+    "email.com",
+    "post.com",
+    "consultant.com",
+    "myself.com",
+    "dr.com",
+    "europe.com",
+    "engineer.com",
+    "asia.com",
+    "usa.com",
     "protonmail.com",
     "proton.me",
+    "pm.me",
+    "protonmail.ch",
     "zoho.com",
     "yandex.com",
     "gmx.com",
+    "gmx.de",
     "fastmail.com",
     "inbox.com",
-    "me.com",
     "hushmail.com",
-    "live.com",
     "rediffmail.com",
     "tutanota.com",
     "mail.ru",
-    "usa.com",
     "qq.com",
     "163.com",
+    "naver.com",
     "web.de",
-    "rocketmail.com",
     "excite.com",
     "lycos.com",
-    "outlook.co",
-    "hotmail.co.uk",
   ];
 
   const emailParts = email.split("@");

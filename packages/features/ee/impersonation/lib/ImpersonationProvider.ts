@@ -87,6 +87,7 @@ const auditAndReturnNextUser = async (
       },
       select: {
         id: true,
+        uuid: true,
         role: true,
       },
     });
@@ -95,8 +96,9 @@ const auditAndReturnNextUser = async (
     return {
       ...obj,
       impersonatedBy: {
-        id: impersonatedByUser?.id,
-        role: impersonatedByUser?.role,
+        id: impersonatedByUser.id,
+        uuid: impersonatedByUser.uuid,
+        role: impersonatedByUser.role,
       },
     };
   }
@@ -301,13 +303,11 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
   });
 
   if (returningUser) {
-    // Skip for none org users
     const inOrg =
       returningUser.organizationId || // Keep for backwards compatibility
       returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
-    if (returningUser.role !== UserPermissionRole.ADMIN && !inOrg) return;
-
     const hasTeams = returningUser.teams.length >= 1;
+    if (returningUser.role !== UserPermissionRole.ADMIN && !inOrg && !hasTeams) return;
 
     const profile = await findProfile(returningUser);
     return {

@@ -43,7 +43,7 @@ function CropContainer({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="relative h-52 w-[40rem]">
+      <div className="relative h-52 w-160">
         <Cropper
           image={imageSrc}
           crop={crop}
@@ -150,11 +150,11 @@ export default function BannerUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:w-[45rem] sm:max-w-[45rem]" title={t("upload_target", { target })}>
+      <DialogContent className="sm:w-180 sm:max-w-180" title={t("upload_target", { target })}>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
-              <div className="bg-muted flex h-60 w-full items-center justify-start">
+              <div className="bg-cal-muted flex h-60 w-full items-center justify-start">
                 {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
                   <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                     {t("no_target", { target })}
@@ -168,7 +168,7 @@ export default function BannerUploader({
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
               data-testid="open-upload-image-filechooser"
-              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              className="bg-subtle hover:bg-cal-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
                 type="file"

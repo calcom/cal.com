@@ -1,21 +1,25 @@
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import type { TFunction } from "i18next";
 
+import { ALL_APPS } from "@calcom/app-store/utils";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
-import type { Attendee, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-type BookingForCalEventBuilder = NonNullable<
+const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
+
+export type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
 >;
-type BookingMetaOptions = {
+export type BookingMetaOptions = {
   conferenceCredentialId?: number;
   platformClientId?: string;
   platformRescheduleUrl?: string;
@@ -38,7 +42,14 @@ async function _buildPersonFromUser(
   } satisfies Person;
 }
 
-async function _buildPersonFromAttendee(attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email">) {
+async function _buildPersonFromAttendee(
+  attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email" | "phoneNumber"> & {
+    bookingSeat: Pick<
+      BookingSeat,
+      "id" | "referenceUid" | "bookingId" | "metadata" | "data" | "attendeeId"
+    > | null;
+  }
+) {
   const translate = await getTranslation(attendee.locale ?? "en", "common");
 
   return {
@@ -46,6 +57,8 @@ async function _buildPersonFromAttendee(attendee: Pick<Attendee, "locale" | "nam
     email: attendee.email,
     timeZone: attendee.timeZone,
     language: { translate, locale: attendee.locale ?? "en" },
+    phoneNumber: attendee.phoneNumber,
+    bookingSeat: attendee.bookingSeat,
   } satisfies Person;
 }
 
@@ -73,21 +86,22 @@ export class CalendarEventBuilder {
     if (!eventType) throw new Error(`Booking ${uid} is missing eventType — it may have been deleted.`);
 
     const builder = new CalendarEventBuilder();
-    const {
-      description,
-      attendees,
-      references,
-      title,
-      startTime,
-      endTime,
-      location,
-      responses,
-      customInputs,
-      iCalUID,
-      iCalSequence,
-      oneTimePassword,
-      seatsReferences,
-    } = booking;
+        const {
+          description,
+          attendees,
+          references,
+          title,
+          startTime,
+          endTime,
+          location,
+          responses,
+          customInputs,
+          iCalUID,
+          iCalSequence,
+          oneTimePassword,
+          seatsReferences,
+          assignmentReason,
+        } = booking;
 
     const {
       conferenceCredentialId,
@@ -110,6 +124,7 @@ export class CalendarEventBuilder {
           url: videoRef.meetingUrl,
         }
       : undefined;
+    const appsStatus: AppsStatus[] = [];
 
     const organizationId = user.profiles?.[0]?.organizationId ?? null;
     const bookerUrl = await getBookerBaseUrl(eventType.team?.parentId ?? organizationId);
@@ -172,9 +187,18 @@ export class CalendarEventBuilder {
         platformCancelUrl,
         platformBookingUrl,
       })
-      .withRecurring(recurring)
-      .withUid(uid)
-      .withOneTimePassword(oneTimePassword);
+            .withRecurring(recurring)
+            .withUid(uid)
+            .withOneTimePassword(oneTimePassword)
+            .withOrganization(organizationId)
+            .withAssignmentReason(
+              assignmentReason?.[0]?.reasonEnum
+                ? {
+                    category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
+                    details: assignmentReason[0].reasonString ?? null,
+                  }
+                : null
+            );
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -188,29 +212,51 @@ export class CalendarEventBuilder {
     }
 
     // Video
-    if (videoCallData && videoCallData.id && videoCallData.password && videoCallData.url) {
-      builder
-        .withVideoCallData({
-          ...videoCallData,
-          id: videoCallData.id,
-          password: videoCallData.password,
-          url: videoCallData.url,
-        })
-        .withAppsStatus([
-          { appName: videoCallData.type, type: videoCallData.type, success: 1, failures: 0, errors: [] },
-        ]);
-    } else {
-      builder.withAppsStatus([]);
+    if (videoCallData && videoCallData.url) {
+      builder.withVideoCallData({
+        ...videoCallData,
+        id: videoCallData.id ?? "",
+        password: videoCallData.password ?? "",
+        url: videoCallData.url,
+      });
+    }
+
+    references
+      .filter((r) => r && r.type)
+      .forEach((ref) => {
+        const appName = APP_TYPE_TO_NAME_MAP.get(ref.type) || ref.type.replace("_", "-");
+        appsStatus.push({
+          appName,
+          type: ref.type,
+          success: ref.uid ? 1 : 0,
+          failures: ref.uid ? 0 : 1,
+          errors: [],
+        });
+      });
+
+    if (appsStatus.length) {
+      builder.withAppsStatus(appsStatus);
     }
 
     // Team & calendars
     if (eventType.team) {
+      // We need to get the team members assigned to the booking
+      // In the DB team members are stored in the Attendee table
+      const bookingAttendees = booking.attendees;
+
+      const hostsToInclude = eventType.hosts.filter((host) =>
+        bookingAttendees.some((attendee) => attendee.email === host.user.email)
+      );
+
+      const hostsWithoutOrganizerData = hostsToInclude.filter((host) => host.user.email !== user.email);
+
       const hostsWithoutOrganizer = await Promise.all(
-        eventType.hosts.filter((h) => h.user.email !== user.email).map((h) => _buildPersonFromUser(h.user))
+        hostsWithoutOrganizerData.map((host) => _buildPersonFromUser(host.user))
       );
 
       const hostCalendars = [
-        ...eventType.hosts.map((h) => h.user.destinationCalendar).filter(Boolean),
+        user.destinationCalendar,
+        ...hostsWithoutOrganizerData.map((h) => h.user.destinationCalendar).filter(Boolean),
         user.destinationCalendar,
       ].filter(Boolean) as NonNullable<DestinationCalendar>[];
 
@@ -479,7 +525,31 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  build(): CalendarEvent | null {
+  withOrganization(organizationId?: number | null) {
+    this.event = {
+      ...this.event,
+      organizationId,
+    };
+    return this;
+  }
+
+    withHashedLink(hashedLink?: string | null) {
+      this.event = {
+        ...this.event,
+        hashedLink,
+      };
+      return this;
+    }
+
+    withAssignmentReason(assignmentReason?: { category: string; details?: string | null } | null) {
+      this.event = {
+        ...this.event,
+        assignmentReason,
+      };
+      return this;
+    }
+
+    build(): CalendarEvent | null {
     // Validate required fields
     if (
       !this.event.startTime ||

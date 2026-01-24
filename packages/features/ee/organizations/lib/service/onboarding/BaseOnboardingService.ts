@@ -1,14 +1,16 @@
 import type { TFunction } from "i18next";
 
-import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
+import { sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -16,7 +18,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { isBase64Image, resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -143,8 +144,50 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     return organizationOnboarding;
   }
 
-  protected filterTeamsAndInvites(teams: TeamInput[] = [], invitedMembers: InvitedMemberInput[] = []) {
-    const teamsData = teams
+  private async ensureConflictingSlugTeamIsMigrated(
+    orgSlug: string,
+    teams: TeamInput[] = []
+  ): Promise<TeamInput[]> {
+    const teamRepository = new TeamRepository(prisma);
+    const ownedTeams = await teamRepository.findOwnedTeamsByUserId({ userId: this.user.id });
+
+    const conflictingTeam = ownedTeams.find((team) => team.slug === orgSlug);
+
+    if (!conflictingTeam) {
+      return teams;
+    }
+
+    const existingTeam = teams.find((t) => t.id === conflictingTeam.id);
+
+    if (existingTeam) {
+      if (existingTeam.isBeingMigrated) {
+        return teams;
+      }
+
+      return teams.map((team) =>
+        team.id === conflictingTeam.id ? { ...team, isBeingMigrated: true } : team
+      );
+    }
+
+    return [
+      ...teams,
+      {
+        id: conflictingTeam.id,
+        name: conflictingTeam.name,
+        isBeingMigrated: true,
+        slug: conflictingTeam.slug,
+      },
+    ];
+  }
+
+  protected async buildTeamsAndInvites(
+    orgSlug: string,
+    teams: TeamInput[] = [],
+    invitedMembers: InvitedMemberInput[] = []
+  ) {
+    const enrichedTeams = await this.ensureConflictingSlugTeamIsMigrated(orgSlug, teams);
+
+    const teamsData = enrichedTeams
       .filter((team) => team.name.trim().length > 0)
       .map((team) => ({
         id: team.id === -1 ? -1 : team.id,
@@ -225,7 +268,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
   }): Promise<{ logo?: string | null; bannerUrl?: string | null }> {
     const [logo, bannerUrl] = await Promise.all([
       input.logo ? resizeBase64Image(input.logo) : Promise.resolve(input.logo),
-      input.bannerUrl ? resizeBase64Image(input.bannerUrl, { maxSize: 1500 }) : Promise.resolve(input.bannerUrl),
+      input.bannerUrl
+        ? resizeBase64Image(input.bannerUrl, { maxSize: 1500 })
+        : Promise.resolve(input.bannerUrl),
     ]);
 
     return { logo, bannerUrl };
@@ -263,7 +308,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     logoUrl?: string | null;
     bannerUrl?: string | null;
   }> {
-    const uploadedLogoUrl = logoUrl ? await this.uploadImageAsset({ image: logoUrl, teamId: organizationId }) : logoUrl;
+    const uploadedLogoUrl = logoUrl
+      ? await this.uploadImageAsset({ image: logoUrl, teamId: organizationId })
+      : logoUrl;
 
     const uploadedBannerUrl = bannerUrl
       ? await this.uploadImageAsset({ image: bannerUrl, teamId: organizationId, isBanner: true })
@@ -346,11 +393,11 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
       organization = {
         ...orgCreationResult.organization,
-        ...await this.uploadOrganizationBrandAssets({
+        ...(await this.uploadOrganizationBrandAssets({
           logoUrl: orgData.logoUrl,
           bannerUrl: orgData.bannerUrl,
           organizationId: orgCreationResult.organization.id,
-        })
+        })),
       };
 
       const ownerProfile = orgCreationResult.ownerProfile;
@@ -427,11 +474,11 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
     organization = {
       ...orgCreationResult.organization,
-      ...await this.uploadOrganizationBrandAssets({
+      ...(await this.uploadOrganizationBrandAssets({
         logoUrl: orgData.logoUrl,
         bannerUrl: orgData.bannerUrl,
         organizationId: orgCreationResult.organization.id,
-      })
+      })),
     };
 
     const { ownerProfile, orgOwner: orgOwnerFromCreation } = orgCreationResult;
@@ -571,7 +618,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       } else if (member.teamName) {
         targetTeamId = teamNameToId.get(member.teamName.toLowerCase());
         log.debug(
-          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${targetTeamId || "not found"
+          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${
+            targetTeamId || "not found"
           }`
         );
       }
@@ -713,4 +761,3 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     });
   }
 }
-

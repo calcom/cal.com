@@ -1,13 +1,12 @@
 "use client";
 
-import * as Popover from "@radix-ui/react-popover";
-import { format } from "date-fns";
-import * as React from "react";
-
 import classNames from "@calcom/ui/classNames";
-
+import * as Popover from "@radix-ui/react-popover";
+import { format, isBefore, isSameDay } from "date-fns";
+import { type HTMLAttributes, useMemo, useState } from "react";
 import { Button } from "../../button";
 import { Calendar } from "./Calendar";
+import { calculateNewDateRange } from "./dateRangeLogic";
 
 type DatePickerWithRangeProps = {
   dates: { startDate?: Date; endDate?: Date };
@@ -16,6 +15,9 @@ type DatePickerWithRangeProps = {
   minDate?: Date | null;
   maxDate?: Date;
   withoutPopover?: boolean;
+  popoverModal?: boolean;
+  popoverOpen?: boolean;
+  onPopoverOpenChange?: (open: boolean) => void;
   "data-testid"?: string;
   strictlyBottom?: boolean;
   allowPastDates?: boolean;
@@ -29,43 +31,49 @@ export function DatePickerWithRange({
   onDatesChange,
   disabled,
   withoutPopover,
+  popoverModal = true,
+  popoverOpen,
+  onPopoverOpenChange,
   "data-testid": testId,
   strictlyBottom,
   allowPastDates = false,
-}: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
+}: HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
+  const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
+
   function handleDayClick(date: Date) {
-    if (allowPastDates) {
-      // for Out of Office (past dates allowed)
-      if (dates?.endDate) {
-        onDatesChange({ startDate: date, endDate: undefined });
-      } else {
-        const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
-        const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
-        onDatesChange({ startDate, endDate });
-      }
-    } else {
-      // for Limit Future Booking and other date range selections (no past dates)
-      if (!dates.startDate) {
-        onDatesChange({ startDate: date, endDate: undefined });
-      } else if (!dates.endDate) {
-        if (date < dates.startDate) {
-          onDatesChange({ startDate: date, endDate: dates.startDate });
-        } else {
-          onDatesChange({ startDate: dates.startDate, endDate: date });
-        }
-      } else {
-        if (date.getTime() === dates.startDate.getTime() || date.getTime() === dates.endDate.getTime()) {
-          onDatesChange({ startDate: date, endDate: undefined });
-        } else if (date < dates.startDate) {
-          onDatesChange({ startDate: date, endDate: undefined });
-        } else {
-          onDatesChange({ startDate: dates.startDate, endDate: date });
-        }
-      }
+    const newDates = calculateNewDateRange({
+      startDate: dates.startDate,
+      endDate: dates.endDate,
+      clickedDate: date,
+    });
+    onDatesChange(newDates);
+    setHoveredDate(undefined);
+  }
+
+  function handleDayMouseEnter(date: Date) {
+    if (dates.startDate && !dates.endDate) {
+      setHoveredDate(date);
     }
   }
 
-  const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
+  function handleDayMouseLeave() {
+    setHoveredDate(undefined);
+  }
+
+  const fromDate = allowPastDates && minDate === null ? undefined : (minDate ?? new Date());
+
+  const hoverRangeModifier = useMemo(() => {
+    if (!dates.startDate || dates.endDate || !hoveredDate) {
+      return undefined;
+    }
+    if (isSameDay(dates.startDate, hoveredDate)) {
+      return undefined;
+    }
+    if (isBefore(hoveredDate, dates.startDate)) {
+      return { from: hoveredDate, to: dates.startDate };
+    }
+    return { from: dates.startDate, to: hoveredDate };
+  }, [dates.startDate, dates.endDate, hoveredDate]);
 
   const calendar = (
     <Calendar
@@ -76,9 +84,13 @@ export function DatePickerWithRange({
       defaultMonth={dates?.startDate}
       selected={{ from: dates?.startDate, to: dates?.endDate }}
       onDayClick={(day) => handleDayClick(day)}
+      onDayMouseEnter={handleDayMouseEnter}
+      onDayMouseLeave={handleDayMouseLeave}
       numberOfMonths={1}
       disabled={disabled}
       data-testid={testId}
+      modifiers={hoverRangeModifier ? { hoverRange: hoverRangeModifier } : undefined}
+      modifiersClassNames={hoverRangeModifier ? { hoverRange: "bg-emphasis" } : undefined}
     />
   );
 
@@ -88,7 +100,8 @@ export function DatePickerWithRange({
 
   return (
     <div className={classNames("grid gap-2", className)}>
-      <Popover.Root>
+      {/* modal prop required for iOS compatibility when nested inside Dialog modals */}
+      <Popover.Root modal={popoverModal} open={popoverOpen} onOpenChange={onPopoverOpenChange}>
         <Popover.Trigger asChild>
           <Button
             data-testid="date-range"
@@ -108,14 +121,21 @@ export function DatePickerWithRange({
             )}
           </Button>
         </Popover.Trigger>
-        <Popover.Content
-          className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
-          align="start"
-          sideOffset={4}
-          side={strictlyBottom ? "bottom" : undefined}
-          avoidCollisions={!strictlyBottom}>
-          {calendar}
-        </Popover.Content>
+        <Popover.Portal>
+          <Popover.Content
+            className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
+            align="start"
+            sideOffset={4}
+            side={strictlyBottom ? "bottom" : undefined}
+            avoidCollisions={!strictlyBottom}
+            onInteractOutside={(event) => {
+              if (dates?.startDate && !dates?.endDate) {
+                event.preventDefault();
+              }
+            }}>
+            {calendar}
+          </Popover.Content>
+        </Popover.Portal>
       </Popover.Root>
     </div>
   );

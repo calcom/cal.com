@@ -1,3 +1,45 @@
+import {
+  confirmBookingHandler,
+  getAllUserBookings,
+  getCalendarLinks,
+  getTranslation,
+  handleCancelBooking,
+  handleMarkNoShow,
+  roundRobinManualReassignment,
+  roundRobinReassignment,
+} from "@calcom/platform-libraries";
+import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
+import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
+import {
+  BookingOutput_2024_08_13,
+  CancelBookingInput,
+  CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  GetBookingsInput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput,
+} from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { EventType, Team, User } from "@calcom/prisma/client";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
+import { Request } from "express";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
@@ -23,50 +65,9 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
-import { Request } from "express";
-import { DateTime } from "luxon";
-import { z } from "zod";
+import { UsersRepository } from "@/modules/users/users.repository";
 
-import {
-  getTranslation,
-  getAllUserBookings,
-  handleCancelBooking,
-  roundRobinReassignment,
-  roundRobinManualReassignment,
-  handleMarkNoShow,
-  confirmBookingHandler,
-  getCalendarLinks,
-} from "@calcom/platform-libraries";
-import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
-import {
-  CreateBookingInput_2024_08_13,
-  CreateBookingInput,
-  CreateRecurringBookingInput_2024_08_13,
-  GetBookingsInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
-  MarkAbsentBookingInput_2024_08_13,
-  ReassignToUserBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
-  RescheduleBookingInput,
-  CancelBookingInput,
-} from "@calcom/platform-types";
-import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
-import type { PrismaClient } from "@calcom/prisma";
-import type { EventType, User, Team } from "@calcom/prisma/client";
+export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -462,6 +463,7 @@ export class BookingsService_2024_08_13 {
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -486,6 +488,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       },
+      creationSource: "API_V2",
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
@@ -887,6 +890,8 @@ export class BookingsService_2024_08_13 {
     const res = await handleCancelBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
+      userUuid: authUser?.uuid,
+      actionSource: "API_V2",
       arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
       platformClientId: bookingRequest.platformClientId,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -917,7 +922,12 @@ export class BookingsService_2024_08_13 {
     return await this.getBooking(recurringBookingUid, authUser);
   }
 
-  async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
+  async markAbsent(
+    bookingUid: string,
+    bookingOwnerId: number,
+    body: MarkAbsentBookingInput_2024_08_13,
+    userUuid?: string
+  ) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
 
@@ -943,6 +953,7 @@ export class BookingsService_2024_08_13 {
       attendees: bodyTransformed.attendees,
       noShowHost: bodyTransformed.noShowHost,
       userId: bookingOwnerId,
+      userUuid,
       platformClientParams,
     });
 
@@ -992,10 +1003,25 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  async reassignBooking(bookingUid: string, requestUser: UserWithProfile) {
-    const booking = await this.bookingsRepository.getByUid(bookingUid);
+  async reassignBooking(bookingUid: string, reassignedByUser: ApiAuthGuardUser) {
+    const booking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    if (!booking.eventType) {
+      throw new BadRequestException(
+        `Event type with id=${booking.eventTypeId} was not found in the database`
+      );
+    }
+
+    const isAllowed = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+      reassignedByUser,
+      booking.eventType
+    );
+
+    if (!isAllowed) {
+      throw new ForbiddenException(BOOKING_REASSIGN_PERMISSION_ERROR);
     }
 
     const platformClientParams = booking.eventTypeId
@@ -1004,7 +1030,7 @@ export class BookingsService_2024_08_13 {
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
-    const profile = this.usersService.getUserMainProfile(requestUser);
+    const profile = this.usersService.getUserMainProfile(reassignedByUser);
 
     try {
       await roundRobinReassignment({
@@ -1012,7 +1038,9 @@ export class BookingsService_2024_08_13 {
         orgId: profile?.organizationId || null,
         emailsEnabled,
         platformClientParams,
-        reassignedById: requestUser.id,
+        reassignedById: reassignedByUser.id,
+        actionSource: "API_V2",
+        reassignedByUuid: reassignedByUser.uuid,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -1036,12 +1064,26 @@ export class BookingsService_2024_08_13 {
   async reassignBookingToUser(
     bookingUid: string,
     newUserId: number,
-    reassignedById: number,
+    reassignedByUser: ApiAuthGuardUser,
     body: ReassignToUserBookingInput_2024_08_13
   ) {
-    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+    if (!booking.eventType) {
+      throw new BadRequestException(
+        `Event type with id=${booking.eventTypeId} was not found in the database`
+      );
+    }
+
+    const isAllowed = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+      reassignedByUser,
+      booking.eventType
+    );
+
+    if (!isAllowed) {
+      throw new ForbiddenException(BOOKING_REASSIGN_PERMISSION_ERROR);
     }
 
     const user = await this.usersRepository.findByIdWithProfile(newUserId);
@@ -1063,9 +1105,11 @@ export class BookingsService_2024_08_13 {
         newUserId,
         orgId: profile?.organizationId || null,
         reassignReason: body.reason,
-        reassignedById,
+        reassignedById: reassignedByUser.id,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        reassignedByUuid: reassignedByUser.uuid,
       });
 
       return this.outputService.getOutputReassignedBooking(reassigned);
@@ -1107,6 +1151,8 @@ export class BookingsService_2024_08_13 {
         recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 
@@ -1140,6 +1186,8 @@ export class BookingsService_2024_08_13 {
         reason,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
+        actor: makeUserActor(requestUser.uuid),
       },
     });
 

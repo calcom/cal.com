@@ -1,8 +1,8 @@
-import { lookup } from "dns";
+import { lookup } from "node:dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
-import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
+import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -92,7 +92,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
   }
 
-  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail && !isPlatform) {
+  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",

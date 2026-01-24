@@ -9,7 +9,7 @@ import type { IconName } from "../icon";
 export const alertStyles = cva("rounded-[10px] p-3", {
   variants: {
     severity: {
-      neutral: "bg-default border-subtle border-[1px] text-default",
+      neutral: "bg-default border-subtle border text-default",
       info: "bg-semantic-info-subtle text-semantic-info",
       warning: "bg-semantic-attention-subtle text-semantic-attention",
       error: "bg-semantic-error-subtle text-semantic-error",
@@ -38,7 +38,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
     <div data-testid="alert" ref={ref} className={alertStyles({ severity, className: props.className })}>
       <div className="relative flex md:flex-row">
         {CustomIcon ? (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Icon
               name={CustomIcon}
               data-testid="custom-icon"
@@ -47,7 +47,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             />
           </div>
         ) : (
-          <div className={classNames("mr-2 flex-shrink-0", props.title ? "" : "mt-0.5")}>
+          <div className={classNames("mr-2 shrink-0", props.title ? "" : "mt-0.5")}>
             {severity === "error" && (
               <Icon
                 name="circle-x"
@@ -82,8 +82,8 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             )}
           </div>
         )}
-        <div className="flex flex-grow flex-col sm:flex-row">
-          <div className="space-y-1 ltr:ml-3 rtl:mr-3">
+        <div className="flex grow flex-col sm:flex-row">
+          <div className="stack-y-1 ltr:ml-3 rtl:mr-3">
             {props.title && <h3 className="text-sm font-medium leading-none">{props.title}</h3>}
             {props.message && <div className="text-sm leading-5">{props.message}</div>}
           </div>
