@@ -83,12 +83,14 @@ const ChildrenEventTypesList = ({
   value,
   onChange,
   customClassNames,
+  isHiddenFieldLocked = false,
   ...rest
 }: {
   value: ReturnType<typeof mapMemberToChildrenOption>[];
   onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
   options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  isHiddenFieldLocked?: boolean;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
@@ -110,6 +112,7 @@ const ChildrenEventTypesList = ({
           options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
           controlShouldRenderValue={false}
           customClassNames={customClassNames}
+          isHiddenFieldLocked={isHiddenFieldLocked}
           {...rest}
         />
       </div>
@@ -563,11 +566,13 @@ const ChildrenEventTypes = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
+  isHiddenFieldLocked = false,
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: ChildrenEventTypesCustomClassNames;
+  isHiddenFieldLocked?: boolean;
 }) => {
   const { setValue } = useFormContext<FormValues>();
   return (
@@ -592,6 +597,7 @@ const ChildrenEventTypes = ({
                 options={childrenEventTypeOptions}
                 onChange={onChange}
                 customClassNames={customClassNames?.childrenEventTypesList}
+                isHiddenFieldLocked={isHiddenFieldLocked}
               />
             )}
           />
@@ -662,10 +668,10 @@ const Hosts = ({
 
       return existingHost
         ? {
-          ...newValue,
-          scheduleId: existingHost.scheduleId,
-          groupId: existingHost.groupId,
-        }
+            ...newValue,
+            scheduleId: existingHost.scheduleId,
+            groupId: existingHost.groupId,
+          }
         : newValue;
     });
   };
@@ -741,17 +747,17 @@ export const EventTeamAssignmentTab = ({
     label: string;
     // description: string;
   }[] = [
-      {
-        value: "COLLECTIVE",
-        label: t("collective"),
-        // description: t("collective_description"),
-      },
-      {
-        value: "ROUND_ROBIN",
-        label: t("round_robin"),
-        // description: t("round_robin_description"),
-      },
-    ];
+    {
+      value: "COLLECTIVE",
+      label: t("collective"),
+      // description: t("collective_description"),
+    },
+    {
+      value: "ROUND_ROBIN",
+      label: t("round_robin"),
+      // description: t("round_robin_description"),
+    },
+  ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
     !!eventType.team?.parentId || !!member.username;
   const teamMembersOptions = teamMembers
@@ -774,6 +780,10 @@ export const EventTeamAssignmentTab = ({
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
   );
+
+  const metadata = getValues("metadata");
+  const unlockedFields = metadata?.managedEventConfig?.unlockedFields;
+  const isHiddenFieldLocked = isManagedEventType && !unlockedFields?.hidden;
 
   const resetRROptions = () => {
     setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
@@ -883,11 +893,11 @@ export const EventTeamAssignmentTab = ({
                       </RadioArea.Item>
                       {(eventType.team?.rrTimestampBasis &&
                         eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
-                        hostGroups?.length > 1 ? (
+                      hostGroups?.length > 1 ? (
                         <Tooltip
                           content={
                             eventType.team?.rrTimestampBasis &&
-                              eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                            eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
                               ? t("rr_load_balancing_disabled")
                               : t("rr_load_balancing_disabled_with_groups")
                           }>
@@ -951,6 +961,7 @@ export const EventTeamAssignmentTab = ({
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           childrenEventTypeOptions={childrenEventTypeOptions}
           customClassNames={customClassNames?.childrenEventTypes}
+          isHiddenFieldLocked={isHiddenFieldLocked}
         />
       )}
     </div>

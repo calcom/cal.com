@@ -1,5 +1,3 @@
-import type { DeepMockProxy } from "vitest-mock-extended";
-
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
 import logger from "@calcom/lib/logger";
@@ -7,12 +5,13 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import {
   allManagedEventTypeProps,
   allManagedEventTypePropsForZod,
   unlockedManagedEventTypePropsForZod,
 } from "@calcom/prisma/zod-utils";
-import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
+import type { DeepMockProxy } from "vitest-mock-extended";
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
@@ -184,6 +183,33 @@ export default async function handleChildrenEventTypes({
       message: "No managed event metadata",
     };
 
+  // Extract unlocked fields configuration
+  const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig ?? {};
+  const isHiddenFieldUnlocked = unlockedFields?.hidden === true;
+
+  // If children is undefined, we're only updating parent properties (e.g., from listing page toggle)
+  // We should NOT add/delete children, only propagate locked field changes
+  if (children === undefined) {
+    const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []) || [];
+
+    // Only update existing children if hidden field is locked (should propagate from parent)
+    if (previousUserIds.length > 0 && !isHiddenFieldUnlocked) {
+      await prisma.eventType.updateMany({
+        where: {
+          parentId,
+          userId: { in: previousUserIds },
+        },
+        data: {
+          hidden: eventType.hidden ?? false,
+        },
+      });
+    }
+
+    return {
+      message: "Children assignments not modified, only propagated locked fields",
+    };
+  }
+
   // Define the values for unlocked properties to use on creation, not updation
   const unlockedEventTypeValues = allManagedEventTypePropsZod
     .pick(unlockedManagedEventTypePropsForZod)
@@ -198,7 +224,7 @@ export default async function handleChildrenEventTypes({
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
   // Store result for existent event types deletion process
-  let deletedExistentEventTypes = undefined;
+  let deletedExistentEventTypes;
 
   // New users added
   if (newUserIds?.length) {
@@ -235,7 +261,9 @@ export default async function handleChildrenEventTypes({
         onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
         userId,
         parentId,
-        hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+        hidden: isHiddenFieldUnlocked
+          ? (children?.find((ch) => ch.owner.id === userId)?.hidden ?? false)
+          : (eventType.hidden ?? false),
         /**
          * RR Segment isn't applicable for managed event types.
          */
@@ -288,7 +316,8 @@ export default async function handleChildrenEventTypes({
           disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
           disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
           enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
-          enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+          enableAutomaticRecordingForOrganizer:
+            calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
           disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
           disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
           redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
@@ -322,8 +351,8 @@ export default async function handleChildrenEventTypes({
         key === "afterBufferTime"
           ? "afterEventBuffer"
           : key === "beforeBufferTime"
-          ? "beforeEventBuffer"
-          : key;
+            ? "beforeEventBuffer"
+            : key;
       // @ts-expect-error Element implicitly has any type
       acc[mappedKey] = true;
       return acc;
@@ -354,7 +383,9 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            hidden: isHiddenFieldUnlocked
+              ? (children?.find((ch) => ch.owner.id === userId)?.hidden ?? false)
+              : (eventType.hidden ?? false),
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,
@@ -474,7 +505,8 @@ export default async function handleChildrenEventTypes({
                   enableAutomaticRecordingForOrganizer:
                     calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
                   disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
-                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  disableTranscriptionForOrganizer:
+                    calVideoSettings.disableTranscriptionForOrganizer ?? false,
                   redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
                   requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
                   updatedAt: new Date(),
@@ -487,7 +519,8 @@ export default async function handleChildrenEventTypes({
                   enableAutomaticRecordingForOrganizer:
                     calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
                   disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
-                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  disableTranscriptionForOrganizer:
+                    calVideoSettings.disableTranscriptionForOrganizer ?? false,
                   redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
                   requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
                 },
