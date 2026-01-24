@@ -6,10 +6,7 @@ import { useMemo, useCallback, useEffect } from "react";
 import React from "react";
 import { shallow } from "zustand/shallow";
 
-import {
-  sdkActionManager,
-  useIsEmbed,
-} from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerEmbedEvents } from "@calcom/embed-core/src/embed-iframe/react-hooks";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import {
@@ -25,7 +22,10 @@ import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useS
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
+import {
+  useEvent,
+  useScheduleForEvent,
+} from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -61,11 +61,17 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("rescheduleUid")
+      : null;
   const rescheduledBy =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("rescheduledBy")
+      : null;
   const bookingUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("bookingUid")
+      : null;
   const timezone = searchParams?.get("cal.tz") || null;
 
   useEffect(() => {
@@ -93,7 +99,10 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     timezone,
   });
 
-  const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
+  const [dayCount] = useBookerStoreContext(
+    (state) => [state.dayCount, state.setDayCount],
+    shallow
+  );
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -105,7 +114,8 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     .reduce(
       (metadata, key) => ({
         ...metadata,
-        [key.substring("metadata[".length, key.length - 1)]: searchParams?.get(key),
+        [key.substring("metadata[".length, key.length - 1)]:
+          searchParams?.get(key),
       }),
       {}
     );
@@ -113,8 +123,11 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     return {
       name:
         searchParams?.get("name") ||
-        (firstNameQueryParam ? `${firstNameQueryParam} ${lastNameQueryParam}` : null),
-      guests: (searchParams?.getAll("guests") || searchParams?.getAll("guest")) ?? [],
+        (firstNameQueryParam
+          ? `${firstNameQueryParam} ${lastNameQueryParam}`
+          : null),
+      guests:
+        (searchParams?.getAll("guests") || searchParams?.getAll("guest")) ?? [],
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
@@ -131,10 +144,13 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const verifyEmail = useVerifyEmail({
     email: bookerForm.formEmail,
     name: bookerForm.formName,
-    requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
+    requiresBookerEmailVerification:
+      event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: bookerForm.beforeVerifyEmail,
   });
-  const slots = useSlots(event?.data ? { id: event.data.id, length: event.data.length } : null);
+  const slots = useSlots(
+    event?.data ? { id: event.data.id, length: event.data.length } : null
+  );
 
   const isEmbed = useIsEmbed();
 
@@ -201,16 +217,17 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   );
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
-    darkBrandColor: event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    darkBrandColor:
+      event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     theme: event.data?.profile.theme,
   });
 
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
-    searchParams &&
-    event.data.instantMeetingParameters?.every?.((param) =>
-      Array.from(searchParams.values()).includes(param)
-    )
+      searchParams &&
+      event.data.instantMeetingParameters?.every?.((param) =>
+        Array.from(searchParams.values()).includes(param)
+      )
   );
 
   useEffect(() => {
