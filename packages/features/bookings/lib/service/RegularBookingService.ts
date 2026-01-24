@@ -105,7 +105,6 @@ import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsF
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "../getBookingDataSchema";
 import type { LuckyUserService } from "../getLuckyUser";
-import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
 import {
   buildBookingCreatedAuditData,
   buildBookingRescheduledAuditData,
@@ -1491,11 +1490,9 @@ async function handler(
 
   const eventName = getEventName(eventNameObject);
 
-  let evt:
-    | (Omit<CalendarEvent, "bookerUrl"> & {
-        bookerUrl: string;
-      })
-    | null = new CalendarEventBuilder()
+  let evt: Omit<CalendarEvent, "bookerUrl"> & {
+    bookerUrl: string;
+  } = new CalendarEventBuilder()
     .withBasicDetails({
       bookerUrl,
       title: eventName,
@@ -2020,7 +2017,9 @@ async function handler(
     // cancel workflow reminders from previous rescheduled booking
     await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
-    evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withVideoCallDataFromReferences(originalRescheduledBooking.references)
+      .build();
     evt.rescheduledBy = reqBody.rescheduledBy;
 
     // If organizer is changed in RR event then we need to delete the previous host destination calendar events

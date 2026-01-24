@@ -2,8 +2,8 @@
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { addVideoCallDataToEvent } from "@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -58,7 +58,7 @@ const attendeeRescheduleSeatedBooking = async (
     originalRescheduledBooking = null;
 
     const evtWithVideoCallData = originalBookingReferences
-      ? addVideoCallDataToEvent(originalBookingReferences, evt)
+      ? CalendarEventBuilder.fromEvent(evt).withVideoCallDataFromReferences(originalBookingReferences).build()
       : evt;
 
     await sendRescheduledSeatEmailAndSMS(evtWithVideoCallData, seatAttendee as Person, eventType.metadata);
@@ -104,7 +104,7 @@ const attendeeRescheduleSeatedBooking = async (
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
   const copyEventWithVideoCallData = newTimeSlotBooking.references
-    ? addVideoCallDataToEvent(newTimeSlotBooking.references, copyEvent)
+    ? CalendarEventBuilder.fromEvent(copyEvent).withVideoCallDataFromReferences(newTimeSlotBooking.references).build()
     : copyEvent;
 
   await sendRescheduledSeatEmailAndSMS(copyEventWithVideoCallData, seatAttendee as Person, eventType.metadata);

@@ -7,7 +7,7 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
-import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
+import type { Attendee, BookingReference, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { AppsStatus, CalEventResponses, CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -546,6 +546,23 @@ export class CalendarEventBuilder {
       ...this.event,
       assignmentReason,
     };
+    return this;
+  }
+
+  withVideoCallDataFromReferences(bookingReferences: BookingReference[]): this {
+    const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
+
+    if (videoCallReference) {
+      this.event = {
+        ...this.event,
+        videoCallData: {
+          type: videoCallReference.type,
+          id: videoCallReference.meetingId,
+          password: videoCallReference?.meetingPassword,
+          url: videoCallReference.meetingUrl,
+        },
+      };
+    }
     return this;
   }
 
