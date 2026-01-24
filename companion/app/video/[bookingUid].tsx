@@ -62,7 +62,8 @@ export default function VideoCallScreen() {
     }
     // Logic must be outside try/catch for React Compiler compatibility
     const isDailyUrl = urlObj.hostname.includes("daily.co");
-    const isCalVideoUrl = urlObj.hostname.includes("cal.com/video");
+    const isCalVideoUrl =
+      urlObj.hostname.includes("cal.com") && urlObj.pathname.startsWith("/video/");
     return isDailyUrl || isCalVideoUrl;
   }, []);
 
