@@ -62,6 +62,7 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
     WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
+    WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
   ] as const,
   "routing-forms": [
     WebhookTriggerEvents.FORM_SUBMITTED,
