@@ -21,7 +21,7 @@ import type {
   EventTypes,
 } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
-import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
+import DateOverrideInputDialog from "@calcom/web/modules/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/web/modules/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
