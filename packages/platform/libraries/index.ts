@@ -40,7 +40,7 @@ export {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
-export type { EventBusyDate } from "@calcom/types/Calendar";
+export type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
@@ -117,6 +117,7 @@ export { verifyPhoneNumber, sendVerificationCode };
 
 export { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
+export { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 export { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
@@ -125,6 +126,7 @@ export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 export { getTasker } from "@calcom/features/tasker/tasker-factory";
+export { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 export { verifyCodeChallenge } from "@calcom/lib/pkce";
 export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
