@@ -5,7 +5,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import metadata from "../_metadata";
+import appConfig from "../config.json";
 
 export interface ZoomInfoToken {
   access_token: string;
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const zoominfoToken: ZoomInfoToken = await tokenResponse.json();
   zoominfoToken.expiryDate = Math.round(Date.now() + zoominfoToken.expires_in * 1000);
 
-  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, zoominfoToken, req);
+  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, zoominfoToken, req);
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "zoominfo" })
