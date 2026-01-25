@@ -178,9 +178,9 @@ export class RoutingTraceService {
       }
     }
 
-    // Check for routing form team members matched step
+    // Check for routing form route matched step
     const routingFormStep = trace.find(
-      (step) => step.domain === "routing_form" && step.step === "team-members-matched"
+      (step) => step.domain === "routing_form" && step.step === "route-matched"
     );
 
     if (routingFormStep && routingFormStep.data) {

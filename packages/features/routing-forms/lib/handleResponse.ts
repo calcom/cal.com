@@ -6,7 +6,7 @@ import {
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
+import { RoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";

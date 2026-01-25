@@ -17,6 +17,7 @@ export class PrismaRoutingTraceRepository implements IRoutingTraceRepository {
         createdAt: new Date(),
         trace: args.trace as Prisma.InputJsonValue,
         formResponseId: args.formResponseId,
+        queuedFormResponseId: args.queuedFormResponseId,
         bookingUid: args.bookingUid,
         assignmentReasonId: args.assignmentReasonId,
       },
