@@ -693,7 +693,7 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (props: BookerProps & WrappedBookerProps) => {
+export const Booker = (props: BookerProps & WrappedBookerProps<any, ScheduleData>) => {
   return (
     <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />

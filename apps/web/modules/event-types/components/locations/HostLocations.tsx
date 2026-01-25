@@ -15,7 +15,7 @@ import {
   isStaticLocationType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import PhoneInput from "@calcom/features/components/phone-input";
+import { PhoneInput } from "@calcom/web/modules/phone-input/components/PhoneInput";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
@@ -145,7 +145,7 @@ const LocationInputDialog = ({
             {eventLocationType.organizerInputType === "phone" ? (
               <PhoneInput
                 value={inputValue}
-                onChange={(val) => setInputValue(val || "")}
+                onChange={(val: string) => setInputValue(val || "")}
                 placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
               />
             ) : (
@@ -532,7 +532,7 @@ const LocationInputField = ({ eventLocationType, inputValue, setInputValue }: Lo
       {eventLocationType.organizerInputType === "phone" ? (
         <PhoneInput
           value={inputValue}
-          onChange={(val) => setInputValue(val || "")}
+          onChange={(val: string) => setInputValue(val || "")}
           placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
         />
       ) : (
