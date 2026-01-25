@@ -5,10 +5,40 @@ import { components } from "react-select";
 
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+
+interface ConnectedCalendar {
+  credentialId: number;
+  integration: {
+    title: string;
+  };
+  primary: {
+    integration: string;
+    email: string;
+    name: string | null;
+  } | null;
+  calendars: {
+    externalId: string;
+    integration: string;
+    name: string | null;
+    readOnly: boolean;
+  }[];
+}
+
+interface DestinationCalendar {
+  integration: string;
+  externalId: string;
+  primaryEmail: string;
+  name: string | null;
+  integrationTitle: string;
+}
+
+interface CalendarsQueryData {
+  connectedCalendars: ConnectedCalendar[];
+  destinationCalendar: DestinationCalendar | null;
+}
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -18,7 +48,7 @@ interface Props {
   value: string | undefined;
   maxWidth?: number;
   hideAdvancedText?: boolean;
-  calendarsQueryData?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+  calendarsQueryData?: CalendarsQueryData;
   customClassNames?: SelectClassNames;
 }
 
