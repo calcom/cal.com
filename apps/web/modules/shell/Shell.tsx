@@ -6,8 +6,8 @@ import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
 import React, { cloneElement } from "react";
 import { Toaster } from "sonner";
 
-import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
-import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
+import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/hooks/useRedirectToLoginIfUnauthenticated";
+import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
 import { useFormbricks } from "@calcom/features/formbricks/formbricks-client";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
