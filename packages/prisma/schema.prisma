@@ -1341,6 +1341,7 @@ model App_RoutingForms_QueuedFormResponse {
   actualResponseId     Int?                           @unique
   actualResponse       App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
   pendingRoutingTraces PendingRoutingTraces[]
+  routingTrace         RoutingTrace?
 }
 
 model RoutingFormResponseField {
@@ -3183,6 +3184,9 @@ model RoutingTrace {
 
   formResponseId Int?                           @unique
   formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+
+  queuedFormResponseId String?                              @unique
+  queuedFormResponse   App_RoutingForms_QueuedFormResponse? @relation(fields: [queuedFormResponseId], references: [id], onDelete: Cascade)
 
   bookingUid String?  @unique
   booking    Booking? @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
