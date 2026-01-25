@@ -36,7 +36,12 @@ import {
 } from "@/services/calcom";
 import { useCreateEventType, useDeleteEventType, useUpdateEventType } from "@/hooks";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
-import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
+import {
+  showErrorAlert,
+  showInfoAlert,
+  showNotAvailableAlert,
+  showSuccessAlert,
+} from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import {
   buildLocationOptions,
@@ -2250,6 +2255,8 @@ export default function EventTypeDetail() {
                             "Info",
                             "Save the event type first to configure this setting."
                           );
+                        } else if (Platform.OS === "ios") {
+                          showNotAvailableAlert();
                         } else {
                           openInAppBrowser(
                             `https://app.cal.com/event-types/${id}?tabName=apps`,
@@ -2283,6 +2290,8 @@ export default function EventTypeDetail() {
                             "Info",
                             "Save the event type first to configure this setting."
                           );
+                        } else if (Platform.OS === "ios") {
+                          showNotAvailableAlert();
                         } else {
                           openInAppBrowser(
                             `https://app.cal.com/event-types/${id}?tabName=workflows`,
@@ -2316,6 +2325,8 @@ export default function EventTypeDetail() {
                             "Info",
                             "Save the event type first to configure this setting."
                           );
+                        } else if (Platform.OS === "ios") {
+                          showNotAvailableAlert();
                         } else {
                           openInAppBrowser(
                             `https://app.cal.com/event-types/${id}?tabName=webhooks`,
@@ -2382,15 +2393,17 @@ export default function EventTypeDetail() {
                 </Text>
                 <View className="overflow-hidden rounded-[10px] bg-white">
                   <View className="bg-white pl-4">
-                    <TouchableOpacity
-                      className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
-                      style={{ height: 44 }}
-                      onPress={handlePreview}
-                      activeOpacity={0.5}
-                    >
-                      <Text className="text-[17px] text-black">Preview</Text>
-                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
-                    </TouchableOpacity>
+                    {Platform.OS !== "ios" && (
+                      <TouchableOpacity
+                        className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+                        style={{ height: 44 }}
+                        onPress={handlePreview}
+                        activeOpacity={0.5}
+                      >
+                        <Text className="text-[17px] text-black">Preview</Text>
+                        <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                      </TouchableOpacity>
+                    )}
                   </View>
                   <View className="bg-white pl-4">
                     <TouchableOpacity
