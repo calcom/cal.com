@@ -6,10 +6,16 @@
   "logo": "icon-dark.svg",
   "url": "https://github.com/calcom/wp-plugin",
   "variant": "other",
-  "categories": ["other"],
+  "categories": [
+    "other"
+  ],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Embedded booking pages right into your wordpress page",
   "__createdUsingCli": true,
-  "isAuth": false
+  "isAuth": false,
+  "externalLink": {
+    "url": "https://wordpress.org/plugins/cal-com/",
+    "newTab": true
+  }
 }
