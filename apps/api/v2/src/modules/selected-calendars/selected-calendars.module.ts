@@ -4,6 +4,7 @@ import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CALENDARS_QUEUE } from "@/ee/calendars/processors/calendars.processor";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
+import { CalendarsTaskerModule } from "@/lib/modules/calendars-tasker.module";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
@@ -29,6 +30,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
         duration: 1000,
       },
     }),
+    CalendarsTaskerModule,
   ],
   providers: [
     SelectedCalendarsRepository,
