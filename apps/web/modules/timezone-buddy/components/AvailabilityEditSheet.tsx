@@ -3,7 +3,7 @@ import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 import dayjs from "@calcom/dayjs";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import DateOverrideInputDialog from "@calcom/web/modules/schedules/components/DateOverrideInputDialog";
-import DateOverrideList from "@calcom/web/modules/schedules/components/DateOverrideList";
+import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import Schedule from "@calcom/web/modules/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
