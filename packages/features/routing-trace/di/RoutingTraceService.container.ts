@@ -21,20 +21,6 @@ function getRoutingTraceRepository(): IRoutingTraceRepository {
 }
 
 /**
- * Wraps a function with routing trace context.
- * This initializes the RoutingTraceService with all required dependencies
- * and makes it available via RoutingTraceService.current() within the wrapped function.
- */
-export function withRoutingTrace<T>(fn: () => T): T {
-  return RoutingTraceService.ensure(
-    {
-      pendingRoutingTraceRepository: getPendingRoutingTraceRepository(),
-    },
-    fn
-  );
-}
-
-/**
  * Creates a RoutingTraceService instance with both repositories.
  * Use this for processing pending traces during booking creation.
  */

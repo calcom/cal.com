@@ -1,5 +1,3 @@
-import { AsyncLocalStorage } from "async_hooks";
-
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
@@ -23,28 +21,13 @@ export interface ProcessRoutingTraceResult {
 }
 
 export class RoutingTraceService {
-  private static storage = new AsyncLocalStorage<RoutingTraceService>();
-
   private routingTraceSteps: RoutingStep[] = [];
 
   constructor(private readonly deps: IRoutingTraceServiceDeps) {}
 
-  /** Entry point — wrap your routing logic with this */
-  static ensure<T>(deps: IRoutingTraceServiceDeps, fn: () => T): T {
-    const existing = this.storage.getStore();
-    if (existing) {
-      return fn();
-    }
-    return this.storage.run(new RoutingTraceService(deps), fn);
-  }
-
-  /** Get current instance (throws if outside context) */
-  static current(): RoutingTraceService {
-    const store = this.storage.getStore();
-    if (!store) {
-      throw new Error("RoutingTraceService.ensure() must be called first");
-    }
-    return store;
+  /** For debugging - get the number of steps recorded */
+  getStepsCount(): number {
+    return this.routingTraceSteps.length;
   }
 
   /** To be called by the domain specific routing trace services */
@@ -158,18 +141,20 @@ export class RoutingTraceService {
       const { email, recordType, recordId, rrSkipToAccountLookupField, rrSKipToAccountLookupFieldName } =
         salesforceStep.data as {
           email?: string;
-          recordType?: string;
+          recordType?: string | null;
           recordId?: string;
           rrSkipToAccountLookupField?: boolean;
           rrSKipToAccountLookupFieldName?: string | null;
         };
 
-      if (email && recordType) {
+      // If we have an email, record the Salesforce assignment reason
+      // recordType might be null in some cases (e.g., when only email lookup was performed)
+      if (email) {
         return {
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
           reasonString: this.buildSalesforceReasonString({
             email,
-            recordType,
+            recordType: recordType ?? "Contact", // Default to Contact if not specified
             recordId,
             rrSkipToAccountLookupField,
             rrSKipToAccountLookupFieldName,

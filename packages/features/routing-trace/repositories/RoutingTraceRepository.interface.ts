@@ -14,3 +14,25 @@ export interface BaseRoutingTrace {
 export interface RoutingTraceWithFormResponse extends BaseRoutingTrace {
   formResponseId: string;
 }
+
+export interface RoutingTraceRecord {
+  id: string;
+  createdAt: Date;
+  trace: RoutingTrace;
+  formResponseId: number | null;
+  queuedFormResponseId: string | null;
+  bookingUid: string | null;
+  assignmentReasonId: number | null;
+}
+
+export interface IRoutingTraceRepositoryCreateArgs {
+  trace: RoutingTrace;
+  formResponseId?: number;
+  queuedFormResponseId?: string;
+  bookingUid: string;
+  assignmentReasonId?: number;
+}
+
+export interface IRoutingTraceRepository {
+  create(args: IRoutingTraceRepositoryCreateArgs): Promise<RoutingTraceRecord>;
+}
