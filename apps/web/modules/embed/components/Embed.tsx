@@ -80,6 +80,7 @@ type EmbedDialogProps = {
     darkBrandColor: string | null;
   } | null;
   noQueryParamMode?: boolean;
+  bookerUrl: string;
 };
 
 type GotoStateProps = {
@@ -783,6 +784,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   types,
   defaultBrandColor,
   noQueryParamMode,
+  ...props
 }: EmbedDialogProps & {
   embedType: EmbedType;
   embedUrl: string;
@@ -1464,6 +1466,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           calLink={calLink}
                           previewState={previewState}
                           ref={refOfEmbedCodesRefs.current[tab.name]}
+                          bookerUrl={props.bookerUrl}
                         />
                       )}
                       <div
@@ -1525,6 +1528,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     calLink={calLink}
                     previewState={previewState}
                     ref={iframeRef}
+                    bookerUrl={props.bookerUrl}
                   />
                 </div>
               )}

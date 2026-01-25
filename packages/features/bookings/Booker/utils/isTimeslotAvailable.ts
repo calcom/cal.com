@@ -11,7 +11,7 @@ type DateInBookerTimeZone = string;
 // Format is YYYY-MM-DDTHH:mm:ssZ
 type SlotInIsoFormat = string;
 type SlotsInIso = { time: SlotInIsoFormat }[];
-type ScheduleData = {
+export type ScheduleData = {
   /**
    * `slots` is a map of date in Booker's timezone to an array of time slots in ISO format
    * So, `DateInBookerTimeZone` could be on a different day number than the slot date in ISO format

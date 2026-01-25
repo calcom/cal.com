@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
+import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/lib/useSlotsViewOnSmallScreen";
 
 export const useInitializeWeekStart = (
   isPlatform: boolean,

@@ -11,7 +11,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
+import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/lib/useSlotsViewOnSmallScreen";
 
 import { extraDaysConfig } from "@calcom/features/bookings/Booker/config";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
