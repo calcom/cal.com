@@ -469,6 +469,8 @@ test.describe("OAuth client creation", () => {
 
     await closeOAuthClientDetails(page);
 
+    await page.reload();
+
     const detailsAfterUpdate = await openOAuthClientDetails(page, clientId);
     await expectOAuthClientDetails(detailsAfterUpdate, {
       clientId,

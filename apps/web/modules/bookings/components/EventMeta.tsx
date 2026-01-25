@@ -80,6 +80,7 @@ export const EventMeta = ({
     | "isDynamic"
     | "fieldTranslations"
     | "autoTranslateDescriptionEnabled"
+    | "enablePerHostLocations"
   > | null;
   isPending: boolean;
   isPrivateLink: boolean;

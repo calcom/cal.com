@@ -70,6 +70,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     schedulingType: true,
     length: true,
     locations: true,
+    enablePerHostLocations: true,
     customInputs: true,
     disableGuests: true,
     metadata: true,
