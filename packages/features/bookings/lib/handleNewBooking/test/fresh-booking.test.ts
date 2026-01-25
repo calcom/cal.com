@@ -7,7 +7,7 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -25,12 +25,11 @@ import {
   getStripeAppCredential,
   MockError,
   mockPaymentApp,
-  mockPaymentSuccessWebhookFromStripe,
   mockCalendar,
   mockCalendarToCrashOnCreateEvent,
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectWorkflowToBeNotTriggered,
@@ -45,25 +44,56 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectICalUIDAsString,
   expectBookingTrackingToBeInDatabase,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-import { testWithAndWithoutOrg } from "@calcom/web/test/utils/bookingScenario/test";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import { testWithAndWithoutOrg } from "@calcom/testing/lib/bookingScenario/test";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
+import type Stripe from "stripe";
+
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { createWatchlistEntry } from "@calcom/features/watchlist/lib/testUtils";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import type { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { CreationSource, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+
+const log = logger.getSubLogger({ prefix: ["[fresh-booking.test]"] });
+
+function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntentId: string }) {
+  return {
+    id: null,
+    data: {
+      object: {
+        id: paymentIntentId,
+      },
+    },
+  } as unknown as Stripe.Event;
+}
+
+async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
+  let webhookResponse = null;
+  try {
+    const traceContext = distributedTracing.createTrace("test_stripe_webhook");
+    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }), traceContext);
+  } catch (e) {
+    log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
+    webhookResponse = e as HttpError;
+  }
+  return { webhookResponse };
+}
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 

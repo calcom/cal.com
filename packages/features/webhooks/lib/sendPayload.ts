@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
@@ -9,7 +9,7 @@ import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 // Minimal webhook shape for sending payloads (subset of WebhookSubscriber)
-type WebhookForPayload = Pick<WebhookSubscriber, "subscriberUrl" | "appId" | "payloadTemplate">;
+type WebhookForPayload = Pick<WebhookSubscriber, "subscriberUrl" | "appId" | "payloadTemplate" | "version">;
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -79,7 +79,7 @@ export type OOOEntryPayloadType = {
   };
 };
 
-export type EventPayloadType = CalendarEvent &
+export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
     uid?: string | null;
@@ -96,6 +96,12 @@ export type EventPayloadType = CalendarEvent &
     rescheduledBy?: string;
     cancelledBy?: string;
     paymentData?: PaymentData;
+    requestReschedule?: boolean;
+    assignmentReason?:
+      | string
+      | { reasonEnum: string; reasonString: string }[]
+      | { category: string; details?: string | null }
+      | null;
   };
 
 export type WebhookPayloadType =
@@ -309,7 +315,7 @@ const _sendPayload = async (
   body: string,
   contentType: "application/json" | "application/x-www-form-urlencoded"
 ) => {
-  const { subscriberUrl } = webhook;
+  const { subscriberUrl, version } = webhook;
   if (!subscriberUrl || !body) {
     throw new Error("Missing required elements to send webhook payload.");
   }
@@ -319,6 +325,7 @@ const _sendPayload = async (
     headers: {
       "Content-Type": contentType,
       "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
+      "X-Cal-Webhook-Version": version,
     },
     redirect: "manual",
     body,

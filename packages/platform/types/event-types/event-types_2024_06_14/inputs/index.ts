@@ -14,3 +14,5 @@ export * from "./event-type-color.input";
 export * from "./seats.input";
 export * from "./destination-calendar.input";
 export * from "./disabled.input";
+export * from "./disable-rescheduling.input";
+export * from "./disable-cancelling.input";

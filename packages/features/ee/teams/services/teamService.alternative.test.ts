@@ -50,7 +50,7 @@ const mockTeamRepo = {
     throw new Error(`Team with id ${id} not found`);
   }),
 };
-vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo);
+vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo; });
 
 vi.mocked(deleteDomain).mockImplementation(async (slug) => {
   database.domains.delete(slug);
