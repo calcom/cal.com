@@ -1,5 +1,5 @@
 import { SelectedCalendarsSettings } from "@calcom/atoms/selected-calendars/SelectedCalendarsSettings";
-import AdditionalCalendarSelector from "@calcom/features/calendars/AdditionalCalendarSelector";
+import AdditionalCalendarSelector from "@calcom/web/modules/calendars/components/AdditionalCalendarSelector";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
