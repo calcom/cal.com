@@ -10,10 +10,10 @@
   },
   "include": [
     ".",
-    "../../types/next-auth.d.ts",
-    "../../types/tanstack-table.d.ts",
-    "../../types/business-days-plugin.d.ts",
-    "../../types/window.d.ts"
+    "../../../types/next-auth.d.ts",
+    "../../../types/tanstack-table.d.ts",
+    "../../../types/business-days-plugin.d.ts",
+    "../../../types/window.d.ts"
   ],
-  "exclude": ["dist", "build", "**/node_modules/**", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*", "billing"]
+  "exclude": ["dist", "build", "**/node_modules/**", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
 }
