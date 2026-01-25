@@ -1575,6 +1575,7 @@ export const EmbedDialog = ({
   eventTypeHideOptionDisabled,
   defaultBrandColor,
   noQueryParamMode = false,
+  bookerUrl,
 }: EmbedDialogProps) => {
   const { embedState, setEmbedState } = useEmbedDialogCtx(noQueryParamMode);
   const embedParams = useEmbedParams(noQueryParamMode);
@@ -1614,6 +1615,7 @@ export const EmbedDialog = ({
             eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
             defaultBrandColor={defaultBrandColor}
             noQueryParamMode={noQueryParamMode}
+            bookerUrl={bookerUrl}
           />
         )}
       </Dialog>

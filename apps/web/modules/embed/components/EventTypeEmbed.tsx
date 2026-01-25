@@ -5,10 +5,12 @@ import { trpc } from "@calcom/trpc/react";
 import { EmbedButton, EmbedDialog } from "./Embed";
 import { tabs } from "@calcom/features/embed/lib/EmbedTabs";
 import { useEmbedTypes } from "@calcom/features/embed/lib/hooks";
+import { useBookerUrl } from "@calcom/web/modules/bookings/hooks/useBookerUrl";
 
 export const EventTypeEmbedDialog = () => {
   const types = useEmbedTypes();
   const { data: user } = trpc.viewer.me.get.useQuery();
+  const bookerUrl = useBookerUrl();
 
   return (
     <EmbedDialog
@@ -16,6 +18,7 @@ export const EventTypeEmbedDialog = () => {
       tabs={tabs}
       eventTypeHideOptionDisabled={false}
       defaultBrandColor={user ? { brandColor: user.brandColor, darkBrandColor: user.darkBrandColor } : null}
+      bookerUrl={bookerUrl}
     />
   );
 };
