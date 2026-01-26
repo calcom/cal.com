@@ -65,20 +65,33 @@ export class RoutingTraceService {
     isRerouting: boolean;
     reroutedByEmail?: string | null;
   }): Promise<ProcessRoutingTraceResult | null> {
-    const { formResponseId, queuedFormResponseId, bookingId, bookingUid, isRerouting, reroutedByEmail } =
-      args;
+    const {
+      formResponseId,
+      queuedFormResponseId,
+      bookingId,
+      bookingUid,
+      isRerouting,
+      reroutedByEmail,
+    } = args;
 
     if (!this.deps.routingTraceRepository) {
-      throw new Error("routingTraceRepository is required for processForBooking");
+      throw new Error(
+        "routingTraceRepository is required for processForBooking"
+      );
     }
 
     // 1. Look up pending trace
     let pendingTrace = null;
     if (formResponseId) {
-      pendingTrace = await this.deps.pendingRoutingTraceRepository.findByFormResponseId(formResponseId);
+      pendingTrace =
+        await this.deps.pendingRoutingTraceRepository.findByFormResponseId(
+          formResponseId
+        );
     } else if (queuedFormResponseId) {
       pendingTrace =
-        await this.deps.pendingRoutingTraceRepository.findByQueuedFormResponseId(queuedFormResponseId);
+        await this.deps.pendingRoutingTraceRepository.findByQueuedFormResponseId(
+          queuedFormResponseId
+        );
     }
 
     if (!pendingTrace) {
@@ -86,10 +99,13 @@ export class RoutingTraceService {
     }
 
     // 2. Extract assignment reason from trace
-    const assignmentReasonData = this.extractAssignmentReasonFromTrace(pendingTrace.trace, {
-      isRerouting,
-      reroutedByEmail,
-    });
+    const assignmentReasonData = this.extractAssignmentReasonFromTrace(
+      pendingTrace.trace,
+      {
+        isRerouting,
+        reroutedByEmail,
+      }
+    );
 
     let assignmentReasonId: number | undefined;
 
@@ -134,18 +150,24 @@ export class RoutingTraceService {
   ): { reasonEnum: AssignmentReasonEnum; reasonString: string } | null {
     // Check for Salesforce contact owner step
     const salesforceStep = trace.find(
-      (step) => step.domain === "salesforce" && step.step === "contact-owner-found"
+      (step) =>
+        step.domain === "salesforce" && step.step === "contact-owner-found"
     );
 
     if (salesforceStep && salesforceStep.data) {
-      const { email, recordType, recordId, rrSkipToAccountLookupField, rrSKipToAccountLookupFieldName } =
-        salesforceStep.data as {
-          email?: string;
-          recordType?: string | null;
-          recordId?: string;
-          rrSkipToAccountLookupField?: boolean;
-          rrSKipToAccountLookupFieldName?: string | null;
-        };
+      const {
+        email,
+        recordType,
+        recordId,
+        rrSkipToAccountLookupField,
+        rrSKipToAccountLookupFieldName,
+      } = salesforceStep.data as {
+        email?: string;
+        recordType?: string | null;
+        recordId?: string;
+        rrSkipToAccountLookupField?: boolean;
+        rrSKipToAccountLookupFieldName?: string | null;
+      };
 
       // If we have an email, record the Salesforce assignment reason
       // recordType might be null in some cases (e.g., when only email lookup was performed)
@@ -169,18 +191,22 @@ export class RoutingTraceService {
     );
 
     if (routingFormStep && routingFormStep.data) {
-      const { fallbackUsed } = routingFormStep.data as { fallbackUsed?: boolean };
+      const { fallbackUsed } = routingFormStep.data as {
+        fallbackUsed?: boolean;
+      };
 
       const reasonEnum = context.isRerouting
         ? AssignmentReasonEnum.REROUTED
         : fallbackUsed
-          ? AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK
-          : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
+        ? AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK
+        : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
 
       return {
         reasonEnum,
         reasonString:
-          context.isRerouting && context.reroutedByEmail ? `Rerouted by ${context.reroutedByEmail}` : "",
+          context.isRerouting && context.reroutedByEmail
+            ? `Rerouted by ${context.reroutedByEmail}`
+            : "",
       };
     }
 
@@ -194,7 +220,13 @@ export class RoutingTraceService {
     rrSkipToAccountLookupField?: boolean;
     rrSKipToAccountLookupFieldName?: string | null;
   }): string {
-    const { email, recordType, recordId, rrSkipToAccountLookupField, rrSKipToAccountLookupFieldName } = data;
+    const {
+      email,
+      recordType,
+      recordId,
+      rrSkipToAccountLookupField,
+      rrSKipToAccountLookupFieldName,
+    } = data;
 
     if (rrSkipToAccountLookupField && rrSKipToAccountLookupFieldName) {
       return `Salesforce account lookup field: ${rrSKipToAccountLookupFieldName} - ${email}${
@@ -203,6 +235,8 @@ export class RoutingTraceService {
     }
 
     const recordLabel = recordType.toLowerCase();
-    return `Salesforce ${recordLabel} owner: ${email}${recordId ? ` (${recordType} ID: ${recordId})` : ""}`;
+    return `Salesforce ${recordLabel} owner: ${email}${
+      recordId ? ` (${recordType} ID: ${recordId})` : ""
+    }`;
   }
 }
