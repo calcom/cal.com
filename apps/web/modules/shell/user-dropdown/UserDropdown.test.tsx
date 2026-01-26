@@ -47,17 +47,20 @@ vi.mock("@calcom/ui/components/icon", () => ({
   Icon: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>{name}</span>,
 }));
 
-vi.mock("@calcom/ui/components/dropdown", () => ({
-  Dropdown: ({ children }: { children: React.ReactNode }) => <div data-testid="dropdown">{children}</div>,
-  DropdownItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuPortal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuSeparator: () => <hr />,
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuSub: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuSubTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuSubContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+vi.mock("@coss/ui/components/menu", () => ({
+  Menu: ({ children }: { children: React.ReactNode }) => <div data-testid="menu">{children}</div>,
+  MenuTrigger: ({ children, render }: { children: React.ReactNode; render?: React.ReactElement }) => {
+    if (render) {
+      return React.cloneElement(render, {}, children);
+    }
+    return <div>{children}</div>;
+  },
+  MenuPopup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuSeparator: () => <hr />,
+  MenuSub: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuSubTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuSubPopup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock("@calcom/ui/classNames", () => ({
@@ -243,7 +246,7 @@ describe("UserDropdown", () => {
       const { UserDropdown } = await import("./UserDropdown");
       const { getByTestId } = render(<UserDropdown />);
 
-      expect(getByTestId("dropdown")).toBeInTheDocument();
+      expect(getByTestId("menu")).toBeInTheDocument();
     });
 
     it("should render dropdown when isPending is true (loading state)", async () => {
@@ -255,7 +258,7 @@ describe("UserDropdown", () => {
       const { UserDropdown } = await import("./UserDropdown");
       const { getByTestId } = render(<UserDropdown />);
 
-      expect(getByTestId("dropdown")).toBeInTheDocument();
+      expect(getByTestId("menu")).toBeInTheDocument();
     });
   });
 });
