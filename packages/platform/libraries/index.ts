@@ -133,3 +133,4 @@ export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publ
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 export type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
 export type { CredentialForCalendarService } from "@calcom/types/Credential";
+export { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
