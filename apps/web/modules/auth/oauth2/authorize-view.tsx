@@ -226,27 +226,26 @@ export function Authorize() {
             {t("associate_with_cal_account", { clientName: client.name })}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
+            <span className="absolute left-0">&#10003;</span>
             {t("see_personal_info")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
+            <span className="absolute left-0">&#10003;</span>
             {t("see_primary_email_address")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
-            {t("connect_installed_apps")}
+            <span className="absolute left-0">&#10003;</span>
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
+            <span className="absolute left-0">&#10003;</span>
             {t("access_event_type")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
+            <span className="absolute left-0">&#10003;</span>
             {t("access_availability")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
+            <span className="absolute left-0">&#10003;</span>
             {t("access_bookings")}
           </li>
         </ul>
