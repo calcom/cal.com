@@ -2810,7 +2810,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
         });
 
-        it("should not create calendar event when booking", async () => {
+        it("should skip calendar event creation but still call EventManager.create for video meetings when booking", async () => {
           const body: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2040, 0, 9, 10, 0, 0)).toISOString(),
             eventTypeId,
@@ -2837,7 +2837,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 const data: BookingOutput_2024_08_13 = responseBody.data;
                 expect(data.id).toBeDefined();
                 expect(data.uid).toBeDefined();
-                expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                // EventManager.create is called with skipCalendarEvent: true to create video meetings
+                // while skipping calendar event creation
+                expect(EventManager.prototype.create).toHaveBeenCalledTimes(1);
+                expect(EventManager.prototype.create).toHaveBeenCalledWith(
+                  expect.anything(),
+                  expect.objectContaining({ skipCalendarEvent: true })
+                );
               } else {
                 throw new Error(
                   "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -2846,7 +2852,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             });
         });
 
-        it("should not create calendar events when booking recurring event", async () => {
+        it("should skip calendar event creation but still call EventManager.create for video meetings when booking recurring event", async () => {
           const body: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2040, 0, 11, 10, 0, 0)).toISOString(),
             eventTypeId: recurringEventTypeId,
@@ -2867,7 +2873,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const responseBody: CreateBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();
-              expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+              // EventManager.create is called 3 times (once per recurring booking) with skipCalendarEvent: true
+              expect(EventManager.prototype.create).toHaveBeenCalledTimes(3);
+              expect(EventManager.prototype.create).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({ skipCalendarEvent: true })
+              );
             });
         });
 
@@ -2901,6 +2912,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   const data: BookingOutput_2024_08_13 = responseBody.data;
                   expect(data.id).toBeDefined();
                   expect(data.uid).toBeDefined();
+                  // For bookings that require confirmation, EventManager.create is not called during initial booking
                   expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
                   bookingThatRequiresConfirmationUid = data.uid;
                 } else {
@@ -2911,7 +2923,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
           });
 
-          it("should not create calendar event when confirming event that requires confirmation", async () => {
+          it("should skip calendar event creation but still call EventManager.create for video meetings when confirming event", async () => {
             return request(app.getHttpServer())
               .post(`/v2/bookings/${bookingThatRequiresConfirmationUid}/confirm`)
               .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -2926,7 +2938,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   const data: BookingOutput_2024_08_13 = responseBody.data;
                   expect(data.id).toBeDefined();
                   expect(data.uid).toBeDefined();
-                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                  // EventManager.create is called with skipCalendarEvent: true to create video meetings
+                  // while skipping calendar event creation
+                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(1);
+                  expect(EventManager.prototype.create).toHaveBeenCalledWith(
+                    expect.anything(),
+                    expect.objectContaining({ skipCalendarEvent: true })
+                  );
                 } else {
                   throw new Error(
                     "Invalid response data - expected booking but received array of possibly recurring bookings"
