@@ -2,6 +2,7 @@ import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { UserRepository } from "../../../users/repositories/UserRepository";
+import { GoogleCalendarBackfillService } from "./GoogleCalendarBackfillService";
 import type { CalendarsTasks } from "./types";
 
 export interface ICalendarsTaskServiceDependencies {
@@ -54,5 +55,15 @@ export class CalendarsTaskService implements CalendarsTasks {
         error: err instanceof Error ? err.message : "Unknown error",
       });
     }
+  }
+
+  async backfillGoogleCalendarEvents(
+    payload: Parameters<CalendarsTasks["backfillGoogleCalendarEvents"]>[0]
+  ): Promise<void> {
+    const { startTime, endTime } = payload;
+    const { prisma, logger } = this.dependencies;
+
+    const backfillService = new GoogleCalendarBackfillService({ prisma, logger });
+    await backfillService.syncAffectedBookings(startTime, endTime);
   }
 }
