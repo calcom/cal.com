@@ -1,16 +1,14 @@
 "use client";
 
-import { DownloadIcon, XIcon } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
-
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { Button } from "@coss/ui/components/button";
 import { Group, GroupSeparator, GroupText } from "@coss/ui/components/group";
 import { Spinner } from "@coss/ui/components/spinner";
 import { toastManager } from "@coss/ui/components/toast";
 import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "@coss/ui/components/tooltip";
+import { DownloadIcon, XIcon } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
 interface PaginatedResponse<TData> {
   data: TData[];
@@ -46,8 +44,7 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
     const { signal } = abortControllerRef.current;
 
     infoToastIdRef.current = toastManager.add({
-      description: t("download_will_begin_once_ready"),
-      title: t("generating_report"),
+      title: t("downloading"),
       type: "info",
     });
 
@@ -87,14 +84,12 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
 
       if (err instanceof DOMException && err.name === "AbortError") {
         toastManager.add({
-          description: t("report_generation_cancelled"),
           title: t("cancelled"),
           type: "error",
         });
       } else {
         toastManager.add({
-          description: t("please_try_again_later"),
-          title: t("failed_to_generate_report"),
+          title: t("failed_to_download"),
           type: "error",
         });
       }
@@ -120,14 +115,19 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
               {progress.toString().padStart(2, "\u2007")}%
             </span>
             <span className="sr-only">
-              {t("generating_report")}, {progress}% {t("complete")}
+              {t("downloading")}, {t("download_progress", { progress })}
             </span>
           </GroupText>
           <GroupSeparator />
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button aria-label={t("cancel_download")} onClick={handleCancel} size="icon" variant="outline" />
+                <Button
+                  aria-label={t("cancel_download")}
+                  onClick={handleCancel}
+                  size="icon"
+                  variant="outline"
+                />
               }>
               <XIcon aria-hidden="true" />
             </TooltipTrigger>
