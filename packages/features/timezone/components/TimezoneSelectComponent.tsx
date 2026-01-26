@@ -214,4 +214,3 @@ export function TimezoneSelectComponent({
 }
 
 export type { ITimezone, ITimezoneOption };
-export { SELECT_SEARCH_DATA };
