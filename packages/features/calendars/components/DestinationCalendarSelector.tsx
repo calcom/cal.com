@@ -12,7 +12,7 @@ import { Icon } from "@calcom/ui/components/icon";
 interface ConnectedCalendar {
   credentialId: number;
   integration: {
-    title: string;
+    title?: string;
   };
   primary: {
     integration: string;
