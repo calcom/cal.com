@@ -16,8 +16,8 @@ import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import DatePicker from "../../calendars/DatePicker";
-import type { TimeRange } from "./Schedule";
-import { DayRanges } from "./Schedule";
+import type { TimeRange } from "./ScheduleComponent";
+import { DayRanges } from "./ScheduleComponent";
 
 const DateOverrideForm = ({
   value,
