@@ -1,5 +1,4 @@
 import type Stripe from "stripe";
-
 import type { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 
 export interface IBillingProviderService {
@@ -123,4 +122,41 @@ export interface IBillingProviderService {
     current_period_end: number;
     trial_end: number | null;
   } | null>;
+
+  // Invoice listing
+  listInvoices(args: {
+    customerId: string;
+    subscriptionId?: string;
+    limit: number;
+    startingAfter?: string;
+    createdGte?: number;
+    createdLte?: number;
+  }): Promise<{
+    invoices: Array<{
+      id: string;
+      number: string | null;
+      created: number;
+      amountDue: number;
+      amountPaid: number;
+      currency: string;
+      status: string | null;
+      hostedInvoiceUrl: string | null;
+      invoicePdf: string | null;
+      lineItems: Array<{
+        id: string;
+        description: string | null;
+        amount: number;
+        quantity: number | null;
+      }>;
+      description: string | null;
+      paymentMethod: {
+        type: string;
+        card?: {
+          last4: string;
+          brand: string;
+        };
+      } | null;
+    }>;
+    hasMore: boolean;
+  }>;
 }
