@@ -17,11 +17,9 @@ const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRan
 
 interface TravelSchedule {
   id: number;
-  userId: number;
   startDate: Date;
   endDate: Date | null;
   timeZone: string;
-  prevTimeZone: string | null;
 }
 
 // I would like this to be decoupled, but RHF really doesn't support this.
