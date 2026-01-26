@@ -16,8 +16,8 @@ interface ConnectedCalendar {
   integration: App & { title?: string };
   primary?: {
     integration?: string;
-    email: string;
-    name: string | null;
+    email?: string;
+    name?: string | null;
   } | null;
   calendars?: IntegrationCalendar[];
   cacheUpdatedAt: null;
