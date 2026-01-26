@@ -14,6 +14,9 @@ import { Icon } from "@calcom/ui/components/icon";
 
 type CalendarWithPrimary = Omit<IntegrationCalendar, "primary"> & {
   primary?: boolean | null;
+  isSelected?: boolean;
+  credentialId?: number | null;
+  delegationCredentialId?: string | null;
 };
 
 interface ConnectedCalendar {
