@@ -22,6 +22,24 @@ interface CsvDownloadButtonProps<TData, TTransformed = TData> {
   onDownloadStart?: () => void;
 }
 
+function wrapWithAbort<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) {
+    return Promise.reject(new DOMException("Cancelled", "AbortError"));
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    const handleAbort = () => {
+      reject(new DOMException("Cancelled", "AbortError"));
+    };
+
+    signal.addEventListener("abort", handleAbort, { once: true });
+
+    promise.then(resolve, reject).finally(() => {
+      signal.removeEventListener("abort", handleAbort);
+    });
+  });
+}
+
 export function CsvDownloadButton<TData, TTransformed = TData>({
   fetchBatch,
   transformData,
@@ -49,14 +67,14 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
     });
 
     try {
-      const firstBatch = await fetchBatch(0);
+      const firstBatch = await wrapWithAbort(fetchBatch(0), signal);
       if (!firstBatch || signal.aborted) return;
 
       let allData = firstBatch.data;
       const totalRecords = firstBatch.total;
 
       while (totalRecords > 0 && allData.length < totalRecords && !signal.aborted) {
-        const batch = await fetchBatch(allData.length);
+        const batch = await wrapWithAbort(fetchBatch(allData.length), signal);
         if (!batch || signal.aborted) break;
         allData = [...allData, ...batch.data];
 
