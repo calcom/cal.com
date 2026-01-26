@@ -1,23 +1,42 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll } from "vitest";
-
 import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaTeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { PermissionString } from "../../../domain/types/permission-registry";
 import { PermissionRepository } from "../PermissionRepository";
 
 describe("PermissionRepository - Integration Tests", () => {
   let repository: PermissionRepository;
-  let featuresRepository: FeaturesRepository;
+  let featuresRepository: {
+    setTeamFeatureState: (input: {
+      teamId: number;
+      featureId: FeatureId;
+      state: "enabled" | "disabled" | "inherit";
+      assignedBy?: string | number;
+    }) => Promise<void>;
+  };
   let testRoleId: string;
   let testUserId: number;
   let testTeamId: number;
 
   beforeAll(async () => {
     repository = new PermissionRepository(prisma);
-    featuresRepository = new FeaturesRepository(prisma);
+    const teamFeatureRepository = new PrismaTeamFeatureRepository(prisma);
+    featuresRepository = {
+      setTeamFeatureState: async (input) => {
+        if (input.state === "inherit") {
+          await teamFeatureRepository.delete(input.teamId, input.featureId);
+          return;
+        }
+        await teamFeatureRepository.upsert(
+          input.teamId,
+          input.featureId,
+          input.state === "enabled",
+          String(input.assignedBy ?? "test")
+        );
+      },
+    };
   });
 
   beforeEach(async () => {

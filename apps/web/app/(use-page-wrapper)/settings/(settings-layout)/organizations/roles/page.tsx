@@ -1,17 +1,14 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { unstable_cache } from "next/cache";
-import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
-
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { AppFlags } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CrudAction, Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
-
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { revalidatePath, unstable_cache } from "next/cache";
+import { notFound } from "next/navigation";
 import { validateUserHasOrg } from "../actions/validateUserHasOrg";
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
 import { PbacOptInView } from "./_components/PbacOptInView";
@@ -29,8 +26,8 @@ const getCachedTeamRoles = unstable_cache(
 
 const getCachedTeamFeature = unstable_cache(
   async (teamId: number, feature: keyof AppFlags) => {
-    const featureRepo = new FeaturesRepository(prisma);
-    const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
+    const teamFeatureRepository = getTeamFeatureRepository();
+    const res = await teamFeatureRepository.checkIfTeamHasFeature(teamId, feature);
     return res;
   },
   ["team-feature"],

@@ -52,7 +52,7 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
       if (user?.completedOnboarding) {
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
       } else {
-        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited();
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`;
         inviteTeamOptions.isCalcomMember = false;
       }

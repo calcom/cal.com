@@ -1,23 +1,22 @@
+import process from "node:process";
+import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
+import { PrismaTeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import { PrismaUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { prisma } from "@calcom/prisma";
+import type { EventType, Prisma, Team, User } from "@calcom/prisma/client";
+import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { Schedule } from "@calcom/types/schedule";
 import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
 import { v4 } from "uuid";
-
-import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
-import stripe from "@calcom/features/ee/payments/server/stripe";
-import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
-import type { Team } from "@calcom/prisma/client";
-import type { Prisma, User, EventType } from "@calcom/prisma/client";
-import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { Schedule } from "@calcom/types/schedule";
-
 import { createRoutingForm } from "../lib/test-helpers/routingFormHelpers";
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { createEmailsFixture } from "./emails";
@@ -254,15 +253,10 @@ const createTeamAndAddUser = async (
 
   // Enable feature flags for the team if specified
   if (teamFeatureFlags && teamFeatureFlags.length > 0) {
-    const featuresRepository = new FeaturesRepository(prisma);
+    const teamFeatureRepository = new PrismaTeamFeatureRepository(prisma);
     await Promise.all(
       teamFeatureFlags.map((featureFlag) =>
-        featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: featureFlag as FeatureId,
-          state: "enabled",
-          assignedBy: "e2e-fixture",
-        })
+        teamFeatureRepository.upsert(team.id, featureFlag as FeatureId, true, "e2e-fixture")
       )
     );
   }
@@ -426,15 +420,10 @@ export const createUsersFixture = (
       // Default to DEFAULT_USER_FEATURE_FLAGS if not specified
       const userFeatureFlags = opts?.userFeatureFlags ?? DEFAULT_USER_FEATURE_FLAGS;
       if (userFeatureFlags.length > 0) {
-        const featuresRepository = new FeaturesRepository(prisma);
+        const userFeatureRepository = new PrismaUserFeatureRepository(prisma);
         await Promise.all(
           userFeatureFlags.map((featureFlag) =>
-            featuresRepository.setUserFeatureState({
-              userId: user.id,
-              featureId: featureFlag as FeatureId,
-              state: "enabled",
-              assignedBy: "e2e-fixture",
-            })
+            userFeatureRepository.upsert(user.id, featureFlag as FeatureId, true, "e2e-fixture")
           )
         );
       }
@@ -993,7 +982,7 @@ const createUser = (
       profileUsername: opts?.profileUsername,
     }),
     schedules:
-      opts?.completedOnboarding ?? true
+      (opts?.completedOnboarding ?? true)
         ? {
             create: {
               name: "Working Hours",
@@ -1056,7 +1045,7 @@ const createUser = (
 };
 
 async function confirmPendingPayment(page: Page) {
-  await page.waitForURL(new RegExp("/booking/*"));
+  await page.waitForURL(/\/booking\/*/);
 
   const url = page.url();
 
@@ -1114,11 +1103,7 @@ export async function login(
 /**
  * Helper to retry network requests that may fail with transient errors like ECONNRESET
  */
-async function retryOnNetworkError<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  delayMs = 500
-): Promise<T> {
+async function retryOnNetworkError<T>(fn: () => Promise<T>, maxRetries = 3, delayMs = 500): Promise<T> {
   let lastError: Error | undefined;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {

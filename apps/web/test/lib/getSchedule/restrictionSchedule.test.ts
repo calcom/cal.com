@@ -1,30 +1,22 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
-  Timezones,
-  TestData,
   type ScenarioData,
+  TestData,
+  Timezones,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, test, vi } from "vitest";
-import type { z } from "zod";
-
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
-
+import { describe, test, vi } from "vitest";
+import type { z } from "zod";
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
-// Mock the FeaturesRepository to enable restriction-schedule feature
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function() {
+// Mock the TeamFeatureRepository to enable restriction-schedule feature
+vi.mock("@calcom/features/flags/repositories/CachedTeamFeatureRepository", () => ({
+  CachedTeamFeatureRepository: vi.fn().mockImplementation(function () {
     return {
       checkIfTeamHasFeature: vi.fn().mockResolvedValue(true),
-      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
-      getAllFeatures: vi.fn().mockResolvedValue([]),
-      getFeatureFlagMap: vi.fn().mockResolvedValue({}),
-      checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
     };
   }),
 }));

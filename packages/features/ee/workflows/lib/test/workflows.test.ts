@@ -1,42 +1,45 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
+  createBookingScenario,
+  createOrganization,
   getOrganizer,
   getScenarioData,
   TestData,
-  createBookingScenario,
-  createOrganization,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import {
-  expectSMSWorkflowToBeTriggered,
-  expectSMSWorkflowToBeNotTriggered,
-} from "@calcom/testing/lib/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { v4 as uuidv4 } from "uuid";
-import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/scheduleBookingReminders";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import tasker from "@calcom/features/tasker";
 import * as rateLimitModule from "@calcom/lib/checkRateLimitAndThrowError";
 import type { Prisma } from "@calcom/prisma/client";
 import {
   BookingStatus,
-  WorkflowMethods,
   TimeUnit,
-  WorkflowTriggerEvents,
   WorkflowActions,
+  WorkflowMethods,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
+import {
+  expectSMSWorkflowToBeNotTriggered,
+  expectSMSWorkflowToBeTriggered,
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { v4 as uuidv4 } from "uuid";
+import { beforeAll, beforeEach, describe, expect, vi } from "vitest";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { deleteRemindersOfActiveOnIds } from "../deleteRemindersOfActiveOnIds";
 import { scheduleAIPhoneCall } from "../reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";
 import { bookingSelect } from "../scheduleWorkflowNotifications";
+
+const mockCheckIfFeatureIsEnabledGlobally = vi.fn();
+
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: () => ({
+    checkIfFeatureIsEnabledGlobally: mockCheckIfFeatureIsEnabledGlobally,
+  }),
+}));
 
 const workflowSelect = {
   id: true,
@@ -1241,9 +1244,7 @@ describe("Routing Form Variables", () => {
 
   test("should pass routing form responses to AI phone call workflows", async () => {
     // Mock the feature flag
-    const mockCheckFeature = vi
-      .spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally")
-      .mockResolvedValue(true);
+    mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
     // Mock rate limiting
     const mockRateLimit = vi

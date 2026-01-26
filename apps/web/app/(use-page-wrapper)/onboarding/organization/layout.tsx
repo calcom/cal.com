@@ -19,7 +19,7 @@ export default async function OrganizationOnboardingLayout({ children }: { child
   const userEmail = session.user.email || "";
   const userId = session.user.id;
 
-  const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
+  const gettingStartedPath = await OnboardingPathService.getGettingStartedPath();
 
   if (!isCompanyEmail(userEmail)) {
     return redirect(gettingStartedPath);

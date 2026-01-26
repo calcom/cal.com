@@ -1,14 +1,12 @@
+import process from "node:process";
+import dayjs from "@calcom/dayjs";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+import { serverConfig } from "@calcom/lib/serverConfig";
+import { setTestEmail } from "@calcom/lib/testEmails";
 import { decodeHTML } from "entities";
 import { z } from "zod";
-
-import dayjs from "@calcom/dayjs";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
-import { serverConfig } from "@calcom/lib/serverConfig";
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { setTestEmail } from "@calcom/lib/testEmails";
-import { prisma } from "@calcom/prisma";
-
 import { sanitizeDisplayName } from "../lib/sanitizeDisplayName";
 
 export default class BaseEmail {
@@ -30,7 +28,7 @@ export default class BaseEmail {
     return {};
   }
   public async sendEmail() {
-    const featuresRepository = new FeaturesRepository(prisma);
+    const featuresRepository = getFeatureRepository();
     const emailsDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("emails");
     /** If email kill switch exists and is active, we prevent emails being sent. */
     if (emailsDisabled) {

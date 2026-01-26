@@ -1,12 +1,12 @@
-import { checkBotId } from "botid/server";
 import type { IncomingHttpHeaders } from "node:http";
-
+import process from "node:process";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { checkBotId } from "botid/server";
 
 interface BotDetectionConfig {
   eventTypeId?: number;
@@ -17,7 +17,7 @@ const log = logger.getSubLogger({ prefix: ["[BotDetectionService]"] });
 
 export class BotDetectionService {
   constructor(
-    private featuresRepository: FeaturesRepository,
+    private teamFeatureRepository: ITeamFeatureRepository,
     private eventTypeRepository: EventTypeRepository
   ) {}
 
@@ -53,7 +53,7 @@ export class BotDetectionService {
     }
 
     // Check if BotID feature is enabled for this team (also checks global scope - enabling on all teams)
-    const isBotIDEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+    const isBotIDEnabled = await this.teamFeatureRepository.checkIfTeamHasFeature(
       eventType.teamId,
       "booker-botid"
     );

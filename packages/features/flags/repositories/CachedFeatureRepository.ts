@@ -2,7 +2,6 @@ import { Memoize, Unmemoize } from "@calcom/features/cache";
 import type { FeatureId } from "@calcom/features/flags/config";
 import type { FeatureDto } from "@calcom/lib/dto/FeatureDto";
 import { FeatureDtoArraySchema, FeatureDtoSchema } from "@calcom/lib/dto/FeatureDto";
-
 import type { IFeatureRepository } from "./PrismaFeatureRepository";
 
 const CACHE_PREFIX = "features:global";
@@ -43,7 +42,7 @@ export class CachedFeatureRepository implements IFeatureRepository {
    * @param slug - The feature flag identifier to check
    * @returns Promise<boolean> - True if the feature is enabled globally, false otherwise
    */
-  async checkIfFeatureIsEnabledGlobally(slug: string): Promise<boolean> {
+  async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
     const feature = await this.findBySlug(slug);
     return Boolean(feature && feature.enabled);
   }

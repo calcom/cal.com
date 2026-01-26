@@ -1,8 +1,6 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { CustomAction } from "../domain/types/permission-registry";
 import { CrudAction, Resource } from "../domain/types/permission-registry";
@@ -55,10 +53,10 @@ export const getResourcePermissions = async ({
   userRole,
   fallbackRoles = {},
 }: ResourcePermissionsOptions): Promise<ResourcePermissions> => {
-  const featureRepo = new FeaturesRepository(prisma);
+  const teamFeatureRepository = getTeamFeatureRepository();
   const permissionService = new PermissionCheckService();
 
-  const pbacEnabled = await featureRepo.checkIfTeamHasFeature(teamId, "pbac");
+  const pbacEnabled = await teamFeatureRepository.checkIfTeamHasFeature(teamId, "pbac");
 
   // If PBAC is disabled, use fallback role configuration
   if (!pbacEnabled) {
@@ -111,10 +109,10 @@ export const getSpecificPermissions = async ({
   actions,
   fallbackRoles = {},
 }: SpecificPermissionsOptions): Promise<Record<string, boolean>> => {
-  const featureRepo = new FeaturesRepository(prisma);
+  const teamFeatureRepository = getTeamFeatureRepository();
   const permissionService = new PermissionCheckService();
 
-  const pbacEnabled = await featureRepo.checkIfTeamHasFeature(teamId, "pbac");
+  const pbacEnabled = await teamFeatureRepository.checkIfTeamHasFeature(teamId, "pbac");
 
   // If PBAC is disabled, use fallback role configuration
   if (!pbacEnabled) {

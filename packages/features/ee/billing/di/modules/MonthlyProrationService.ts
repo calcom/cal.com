@@ -1,8 +1,7 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
 import { moduleLoader as triggerDevLoggerServiceModule } from "@calcom/features/di/shared/services/triggerDevLogger.service";
 import { MonthlyProrationService } from "@calcom/features/ee/billing/service/proration/MonthlyProrationService";
-
+import { moduleLoader as cachedFeatureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedFeatureRepository.module";
 import { DI_TOKENS } from "../tokens";
 
 const thisModule = createModule();
@@ -16,7 +15,7 @@ const loadModule = bindModuleToClassOnToken({
   classs: MonthlyProrationService,
   depsMap: {
     logger: triggerDevLoggerServiceModule,
-    featuresRepository: featuresRepositoryModuleLoader,
+    featureRepository: cachedFeatureRepositoryModuleLoader,
   },
 });
 

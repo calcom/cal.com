@@ -1,7 +1,6 @@
-import { NextRequest } from "next/server";
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("next/server", () => ({
   NextRequest: class MockNextRequest {
@@ -306,7 +305,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
       expect(mockCalendarSubscriptionService).toHaveBeenCalledWith({
         adapterFactory: expect.any(Object),
         selectedCalendarRepository: expect.any(Object),
-        featuresRepository: expect.any(Object),
+        featureRepository: expect.any(Object),
+        teamFeatureRepository: expect.any(Object),
+        userFeatureRepository: expect.any(Object),
         calendarSyncService: expect.any(Object),
         calendarCacheEventService: expect.any(Object),
       });

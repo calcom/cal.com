@@ -1,17 +1,14 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import {
   DelegationCredentialCreateSchema,
-  DelegationCredentialUpdateSchema,
   DelegationCredentialDeleteSchema,
-  DelegationCredentialToggleEnabledSchema,
   DelegationCredentialGetAffectedMembersForDisableSchema,
+  DelegationCredentialToggleEnabledSchema,
+  DelegationCredentialUpdateSchema,
 } from "./schema";
 
 const checkDelegationCredentialFeature = async ({
@@ -23,7 +20,7 @@ const checkDelegationCredentialFeature = async ({
 }) => {
   const user = ctx.user;
   const t = await getTranslation(user.locale ?? "en", "common");
-  const featureRepo = new FeaturesRepository(prisma);
+  const teamFeatureRepository = getTeamFeatureRepository();
 
   if (!user.organizationId) {
     throw new TRPCError({
@@ -32,7 +29,7 @@ const checkDelegationCredentialFeature = async ({
     });
   }
 
-  const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
+  const hasDelegationCredential = await teamFeatureRepository.checkIfTeamHasFeature(
     user.organizationId,
     "delegation-credential"
   );

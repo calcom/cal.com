@@ -1,13 +1,11 @@
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import stripe from "@calcom/features/ee/payments/server/stripe";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import { prisma } from "@calcom/prisma";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -32,7 +30,7 @@ async function getHandler(req: NextRequest) {
     const organizationOnboardingId = checkoutSession.metadata?.organizationOnboardingId;
 
     // Check if onboarding-v3 feature flag is enabled
-    const featuresRepository = new FeaturesRepository(prisma);
+    const featuresRepository = getFeatureRepository();
     const isOnboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
     // Build query params to preserve

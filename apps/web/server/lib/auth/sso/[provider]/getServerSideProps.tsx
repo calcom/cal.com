@@ -28,7 +28,6 @@ export const getServerSideProps = async ({ req, query }: GetServerSidePropsConte
   } = Params.parse(query);
 
   const successDestination = await OnboardingPathService.getGettingStartedPathWithParams(
-    prisma,
     usernameParam ? { username: usernameParam } : undefined
   );
 

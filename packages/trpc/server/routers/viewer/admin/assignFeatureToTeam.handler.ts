@@ -1,7 +1,6 @@
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 
@@ -14,16 +13,11 @@ type AssignFeatureOptions = {
 };
 
 export const assignFeatureToTeamHandler = async ({ ctx, input }: AssignFeatureOptions) => {
-  const { prisma, user } = ctx;
+  const { user } = ctx;
   const { teamId, featureId } = input;
 
-  const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState({
-    teamId,
-    featureId: featureId as FeatureId,
-    state: "enabled",
-    assignedBy: `user:${user.id}`,
-  });
+  const teamFeatureRepository = getTeamFeatureRepository();
+  await teamFeatureRepository.upsert(teamId, featureId as FeatureId, true, `user:${user.id}`);
 
   return { success: true };
 };

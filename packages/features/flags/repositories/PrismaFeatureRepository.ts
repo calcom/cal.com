@@ -5,6 +5,7 @@ import type { PrismaClient } from "@calcom/prisma/client";
 export interface IFeatureRepository {
   findAll(): Promise<FeatureDto[]>;
   findBySlug(slug: string): Promise<FeatureDto | null>;
+  checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean>;
   update(input: { featureId: FeatureId; enabled: boolean; updatedBy?: number }): Promise<FeatureDto>;
 }
 
@@ -48,6 +49,11 @@ export class PrismaFeatureRepository implements IFeatureRepository {
       updatedAt: feature.updatedAt,
       updatedBy: feature.updatedBy,
     };
+  }
+
+  async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
+    const feature = await this.findBySlug(slug);
+    return Boolean(feature && feature.enabled);
   }
 
   async update(input: { featureId: FeatureId; enabled: boolean; updatedBy?: number }): Promise<FeatureDto> {

@@ -1,17 +1,16 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
-
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
 import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
 import type {
-  PermissionString,
-  Resource,
   CrudAction,
   CustomAction,
+  PermissionString,
+  Resource,
 } from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
@@ -19,17 +18,17 @@ import { PermissionService } from "./permission.service";
 export class PermissionCheckService {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
-  private readonly featuresRepository: FeaturesRepository;
+  private readonly teamFeatureRepository: ITeamFeatureRepository;
   private readonly permissionService: PermissionService;
   private readonly membershipRepository: MembershipRepository;
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
-    featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
+    teamFeatureRepository: ITeamFeatureRepository = getTeamFeatureRepository(),
     permissionService: PermissionService = new PermissionService(),
     membershipRepository: MembershipRepository = new MembershipRepository()
   ) {
-    this.featuresRepository = featuresRepository;
+    this.teamFeatureRepository = teamFeatureRepository;
     this.permissionService = permissionService;
     this.membershipRepository = membershipRepository;
   }
@@ -53,7 +52,7 @@ export class PermissionCheckService {
     resource: Resource;
   }): Promise<PermissionString[]> {
     try {
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+      const isPBACEnabled = await this.teamFeatureRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
@@ -111,7 +110,7 @@ export class PermissionCheckService {
         return false;
       }
 
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+      const isPBACEnabled = await this.teamFeatureRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
@@ -175,7 +174,7 @@ export class PermissionCheckService {
         return false;
       }
 
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+      const isPBACEnabled = await this.teamFeatureRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );

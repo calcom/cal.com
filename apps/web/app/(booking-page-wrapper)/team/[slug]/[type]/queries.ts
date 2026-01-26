@@ -1,7 +1,6 @@
-import type { GetServerSidePropsContext } from "next";
-import { unstable_cache } from "next/cache";
-
+import process from "node:process";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
@@ -11,13 +10,14 @@ import {
   processEventDataShared,
 } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getTeamEventType } from "@calcom/features/eventtypes/lib/getTeamEventType";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
+import type { GetServerSidePropsContext } from "next";
+import { unstable_cache } from "next/cache";
 
 export async function getCachedTeamData(teamSlug: string, orgSlug: string | null) {
   return unstable_cache(async () => getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
@@ -103,8 +103,11 @@ export async function getEnrichedEventType({
 }
 
 export async function shouldUseApiV2ForTeamSlots(teamId: number): Promise<boolean> {
-  const featureRepo = new FeaturesRepository(prisma);
-  const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(teamId, "use-api-v2-for-team-slots");
+  const teamFeatureRepository = getTeamFeatureRepository();
+  const teamHasApiV2Route = await teamFeatureRepository.checkIfTeamHasFeature(
+    teamId,
+    "use-api-v2-for-team-slots"
+  );
   const useApiV2 = teamHasApiV2Route && Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 
   return useApiV2;

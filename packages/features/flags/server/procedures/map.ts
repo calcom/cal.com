@@ -1,5 +1,5 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import prisma from "@calcom/prisma";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 
 /**
@@ -7,6 +7,10 @@ import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
  * Uses the FeaturesRepository to handle caching and database access.
  */
 export const map = publicProcedure.query(async () => {
-  const featuresRepository = new FeaturesRepository(prisma);
-  return featuresRepository.getFeatureFlagMap();
+  const featureRepository = getFeatureRepository();
+  const flags = await featureRepository.findAll();
+  return flags.reduce((acc, flag) => {
+    acc[flag.slug as FeatureId] = flag.enabled;
+    return acc;
+  }, {} as AppFlags);
 });

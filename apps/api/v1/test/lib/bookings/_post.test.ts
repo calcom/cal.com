@@ -1,20 +1,17 @@
 // TODO: Fix tests (These test were never running due to the vitest workspace config)
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, beforeEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { buildBooking, buildEventType, buildWebhook, buildUser } from "@calcom/lib/test/builder";
+import { buildBooking, buildEventType, buildUser, buildWebhook } from "@calcom/lib/test/builder";
 import { prisma } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { CreationSource, BookingStatus } from "@calcom/prisma/enums";
-
+import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import handler from "../../../pages/api/bookings/_post";
 
 vi.mock("@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB", () => ({
@@ -67,9 +64,11 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
 
 const mockFindOriginalRescheduledBooking = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
-  BookingRepository: vi.fn().mockImplementation(function() { return {
-    findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
-  }; }),
+  BookingRepository: vi.fn().mockImplementation(function () {
+    return {
+      findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
+    };
+  }),
 }));
 
 vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.controller", () => ({
@@ -94,7 +93,7 @@ vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
 }));
 
 vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
-  default: vi.fn().mockImplementation(function() {
+  default: vi.fn().mockImplementation(function () {
     return {
       reschedule: vi.fn().mockResolvedValue({
         results: [],
@@ -154,11 +153,19 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
     }),
   },
 }));
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function() { return {
-    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-  }; }),
+const mockCheckIfFeatureIsEnabledGlobally = vi.fn().mockResolvedValue(false);
+const mockCheckIfTeamHasFeature = vi.fn().mockResolvedValue(false);
+
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: () => ({
+    checkIfFeatureIsEnabledGlobally: mockCheckIfFeatureIsEnabledGlobally,
+  }),
+}));
+
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: () => ({
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+  }),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({

@@ -1,10 +1,10 @@
-import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
+import { PrismaTeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import { PrismaUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
 import { prisma } from "@calcom/prisma";
 import { afterEach, describe, expect, it, vi } from "vitest";
-
+import { FeatureOptInService } from "./FeatureOptInService";
 import type { IFeatureOptInService } from "./IFeatureOptInService";
 
 // Mock isFeatureAllowedForScope to always return true for integration tests.
@@ -30,17 +30,25 @@ afterEach(async () => {
   cleanupFunctions.length = 0;
 });
 
-// Access private clearCache method through type assertion
-const clearFeaturesCache = (repo: FeaturesRepository) => {
-  (repo as unknown as { clearCache: () => void }).clearCache();
-};
-
 interface TestEntities {
   user: { id: number };
   org: { id: number };
   team: { id: number };
   team2: { id: number };
-  featuresRepository: FeaturesRepository;
+  featuresRepository: {
+    setTeamFeatureState: (input: {
+      teamId: number;
+      featureId: FeatureId;
+      state: "enabled" | "disabled" | "inherit";
+      assignedBy?: string | number;
+    }) => Promise<void>;
+    setUserFeatureState: (input: {
+      userId: number;
+      featureId: FeatureId;
+      state: "enabled" | "disabled" | "inherit";
+      assignedBy?: string | number;
+    }) => Promise<void>;
+  };
   service: IFeatureOptInService;
   createdFeatures: string[];
   setupFeature: (enabled?: boolean) => Promise<FeatureId>;
@@ -88,8 +96,52 @@ async function setup(): Promise<TestEntities> {
     },
   });
 
-  const featuresRepository = getFeaturesRepository();
-  const service = getFeatureOptInService();
+  const featureRepository = new PrismaFeatureRepository(prisma);
+  const teamFeatureRepository = new PrismaTeamFeatureRepository(prisma);
+  const userFeatureRepository = new PrismaUserFeatureRepository(prisma);
+  const service = new FeatureOptInService({
+    featureRepo: featureRepository,
+    teamFeatureRepo: teamFeatureRepository,
+    userFeatureRepo: userFeatureRepository,
+  });
+  const featuresRepository = {
+    setTeamFeatureState: async (input: {
+      teamId: number;
+      featureId: FeatureId;
+      state: "enabled" | "disabled" | "inherit";
+      assignedBy?: string | number;
+    }) => {
+      if (input.state === "inherit") {
+        await teamFeatureRepository.delete(input.teamId, input.featureId);
+        return;
+      }
+      const assignedBy = input.assignedBy ?? "test";
+      await teamFeatureRepository.upsert(
+        input.teamId,
+        input.featureId,
+        input.state === "enabled",
+        String(assignedBy)
+      );
+    },
+    setUserFeatureState: async (input: {
+      userId: number;
+      featureId: FeatureId;
+      state: "enabled" | "disabled" | "inherit";
+      assignedBy?: string | number;
+    }) => {
+      if (input.state === "inherit") {
+        await userFeatureRepository.delete(input.userId, input.featureId);
+        return;
+      }
+      const assignedBy = input.assignedBy ?? "test";
+      await userFeatureRepository.upsert(
+        input.userId,
+        input.featureId,
+        input.state === "enabled",
+        String(assignedBy)
+      );
+    },
+  };
 
   // Helper to create a feature for a test and track it for cleanup
   const setupFeature = async (enabled = true): Promise<FeatureId> => {
@@ -102,8 +154,6 @@ async function setup(): Promise<TestEntities> {
         type: "EXPERIMENT",
       },
     });
-    // Clear cache after creating feature so getAllFeatures() returns fresh data
-    clearFeaturesCache(featuresRepository);
     return featureSlug;
   };
 

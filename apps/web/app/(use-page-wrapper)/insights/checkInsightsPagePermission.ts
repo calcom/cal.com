@@ -1,14 +1,11 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { prisma } from "@calcom/prisma";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 export async function checkInsightsPagePermission() {
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featuresRepository = getFeatureRepository();
   const insightsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("insights");
 
   if (!insightsEnabled) {

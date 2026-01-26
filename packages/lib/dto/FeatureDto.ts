@@ -1,17 +1,6 @@
-import type { ZodArray, ZodObject, ZodTypeAny } from "zod";
 import { z } from "zod";
 
-export const FeatureDtoSchema: ZodObject<{
-  slug: ZodTypeAny;
-  enabled: ZodTypeAny;
-  description: ZodTypeAny;
-  type: ZodTypeAny;
-  stale: ZodTypeAny;
-  lastUsedAt: ZodTypeAny;
-  createdAt: ZodTypeAny;
-  updatedAt: ZodTypeAny;
-  updatedBy: ZodTypeAny;
-}> = z.object({
+export const FeatureDtoSchema = z.object({
   slug: z.string(),
   enabled: z.boolean(),
   description: z.string().nullable(),
@@ -25,4 +14,4 @@ export const FeatureDtoSchema: ZodObject<{
 
 export type FeatureDto = z.infer<typeof FeatureDtoSchema>;
 
-export const FeatureDtoArraySchema: ZodArray<typeof FeatureDtoSchema> = z.array(FeatureDtoSchema);
+export const FeatureDtoArraySchema = z.array(FeatureDtoSchema);

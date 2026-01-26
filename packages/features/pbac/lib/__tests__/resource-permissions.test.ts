@@ -1,16 +1,17 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
-
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
-import { Resource, CrudAction } from "../../domain/types/permission-registry";
+import { CrudAction, Resource } from "../../domain/types/permission-registry";
 import { PermissionCheckService } from "../../services/permission-check.service";
 import { getResourcePermissions } from "../resource-permissions";
 
-vi.mock("@calcom/features/flags/features.repository");
+const mockCheckIfTeamHasFeature = vi.fn();
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: () => ({
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+  }),
+}));
 vi.mock("../../services/permission-check.service");
 vi.mock("../../domain/mappers/PermissionMapper", () => ({
   PermissionMapper: {
@@ -23,9 +24,6 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 describe("getResourcePermissions", () => {
-  let mockFeaturesRepository: {
-    checkIfTeamHasFeature: Mock;
-  };
   let mockPermissionCheckService: {
     getResourcePermissions: Mock;
   };
@@ -33,23 +31,20 @@ describe("getResourcePermissions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockFeaturesRepository = {
-      checkIfTeamHasFeature: vi.fn(),
-    };
-
     mockPermissionCheckService = {
       getResourcePermissions: vi.fn(),
     };
 
+    mockCheckIfTeamHasFeature.mockReset();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as any;
+    });
   });
 
   describe("when PBAC is disabled", () => {
     beforeEach(() => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+      mockCheckIfTeamHasFeature.mockResolvedValue(false);
     });
 
     it("should use fallback roles for permissions", async () => {
@@ -156,7 +151,7 @@ describe("getResourcePermissions", () => {
 
   describe("when PBAC is enabled", () => {
     beforeEach(() => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+      mockCheckIfTeamHasFeature.mockResolvedValue(true);
     });
 
     it("should get permissions from PermissionCheckService", async () => {
@@ -258,7 +253,7 @@ describe("getResourcePermissions", () => {
 
   describe("edge cases", () => {
     it("should handle errors from FeaturesRepository", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockRejectedValue(new Error("Database connection failed"));
+      mockCheckIfTeamHasFeature.mockRejectedValue(new Error("Database connection failed"));
 
       await expect(
         getResourcePermissions({
@@ -271,7 +266,7 @@ describe("getResourcePermissions", () => {
     });
 
     it("should handle errors from PermissionCheckService", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+      mockCheckIfTeamHasFeature.mockResolvedValue(true);
       mockPermissionCheckService.getResourcePermissions.mockRejectedValue(
         new Error("Permission service error")
       );
