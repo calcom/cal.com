@@ -78,6 +78,7 @@
     "expo-secure-store": "15.0.9-canary-20251230-fc48ddc",
     "expo-splash-screen": "31.0.14-canary-20251230-fc48ddc",
     "expo-status-bar": "3.0.10-canary-20251230-fc48ddc",
+    "expo-store-review": "9.0.10-canary-20251230-fc48ddc",
     "expo-web-browser": "15.0.11-canary-20251230-fc48ddc",
     "lucide-react-native": "0.562.0",
     "nativewind": "4.2.1",
