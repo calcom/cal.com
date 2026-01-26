@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 
 /**
  * Syncs knowledge from the generated JSON file to Devin's Knowledge API.
