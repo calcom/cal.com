@@ -1,8 +1,16 @@
 "use client";
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
   HAS_ORG_OPT_IN_FEATURES,
   HAS_TEAM_OPT_IN_FEATURES,
@@ -26,13 +34,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import type { ComponentProps } from "react";
-import React, { useEffect, useMemo, useState } from "react";
+
 import Shell from "~/shell/Shell";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
@@ -646,7 +648,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                   <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error this exists wtf?
+                    // @ts-ignore this exists wtf?
                     (team.isOrgAdmin && team.isOrgAdmin)) && (
                     <>
                       {/* TODO */}
@@ -824,7 +826,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`px-3 py-auto max-py-5 h-auto w-full ${
+                          className={`px-2! py-1! min-h-7 h-auto w-fit ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
@@ -1050,7 +1052,12 @@ type SettingsLayoutProps = {
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-function SettingsLayoutAppDirClient({ children, teamFeatures, permissions, ...rest }: SettingsLayoutProps) {
+function SettingsLayoutAppDirClient({
+  children,
+  teamFeatures,
+  permissions,
+  ...rest
+}: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
