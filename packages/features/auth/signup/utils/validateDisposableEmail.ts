@@ -21,8 +21,8 @@ const BLOCKED_RELAY_DOMAINS = [
   "anonaddy.com",
   "anonaddy.me",
   "addy.io",
-  // Fastmail masked emails
-  "fastmail.com",
+  // Note: Fastmail masked emails use subdomain addressing (user+alias@fastmail.com)
+  // which cannot be reliably blocked without blocking legitimate fastmail.com users
   // 33mail
   "33mail.com",
   // Blur by Abine
@@ -35,8 +35,8 @@ const BLOCKED_RELAY_DOMAINS = [
   "improvmx.com",
   // Mailsac
   "mailsac.com",
-  // Proton Mail aliases (not the main proton.me/protonmail.com)
-  "proton.me", // Note: This blocks Proton Mail entirely - may want to reconsider
+  // Note: proton.me and protonmail.com are primary mailbox domains, not relay-only domains.
+  // Proton's alias service (SimpleLogin) domains are already blocked above.
   // StartMail
   "startmail.com",
 ];
