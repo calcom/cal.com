@@ -62,6 +62,7 @@ export class RoutingTraceService {
     queuedFormResponseId?: string;
     bookingId: number;
     bookingUid: string;
+    organizerEmail: string;
     isRerouting: boolean;
     reroutedByEmail?: string | null;
   }): Promise<ProcessRoutingTraceResult | null> {
@@ -70,6 +71,7 @@ export class RoutingTraceService {
       queuedFormResponseId,
       bookingId,
       bookingUid,
+      organizerEmail,
       isRerouting,
       reroutedByEmail,
     } = args;
@@ -102,6 +104,7 @@ export class RoutingTraceService {
     const assignmentReasonData = this.extractAssignmentReasonFromTrace(
       pendingTrace.trace,
       {
+        organizerEmail,
         isRerouting,
         reroutedByEmail,
       }
@@ -142,26 +145,31 @@ export class RoutingTraceService {
 
   /**
    * Extract assignment reason from trace steps.
-   * Priority: Salesforce > Routing Form
+   * Priority: CRM (Salesforce) > Routing Form
+   * CRM assignment is only used if the booking organizer matches the CRM contact owner.
    */
   private extractAssignmentReasonFromTrace(
     trace: RoutingTrace,
-    context: { isRerouting: boolean; reroutedByEmail?: string | null }
+    context: {
+      organizerEmail: string;
+      isRerouting: boolean;
+      reroutedByEmail?: string | null;
+    }
   ): { reasonEnum: AssignmentReasonEnum; reasonString: string } | null {
-    // Check for Salesforce contact owner step
-    const salesforceStep = trace.find(
+    // Check for CRM assignment step (e.g., salesforce_assignment)
+    const crmAssignmentStep = trace.find(
       (step) =>
-        step.domain === "salesforce" && step.step === "contact-owner-found"
+        step.domain === "salesforce" && step.step === "salesforce_assignment"
     );
 
-    if (salesforceStep && salesforceStep.data) {
+    if (crmAssignmentStep && crmAssignmentStep.data) {
       const {
         email,
         recordType,
         recordId,
         rrSkipToAccountLookupField,
         rrSKipToAccountLookupFieldName,
-      } = salesforceStep.data as {
+      } = crmAssignmentStep.data as {
         email?: string;
         recordType?: string | null;
         recordId?: string;
@@ -169,9 +177,11 @@ export class RoutingTraceService {
         rrSKipToAccountLookupFieldName?: string | null;
       };
 
-      // If we have an email, record the Salesforce assignment reason
-      // recordType might be null in some cases (e.g., when only email lookup was performed)
-      if (email) {
+      // Only use CRM assignment if the booking organizer matches the contact owner
+      if (
+        email &&
+        email.toLowerCase() === context.organizerEmail.toLowerCase()
+      ) {
         return {
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
           reasonString: this.buildSalesforceReasonString({
@@ -185,19 +195,20 @@ export class RoutingTraceService {
       }
     }
 
-    // Check for routing form route matched step
+    // Check for routing form attribute logic step
     const routingFormStep = trace.find(
-      (step) => step.domain === "routing_form" && step.step === "route-matched"
+      (step) =>
+        step.domain === "routing_form" && step.step === "attribute-logic-evaluated"
     );
 
     if (routingFormStep && routingFormStep.data) {
-      const { fallbackUsed } = routingFormStep.data as {
-        fallbackUsed?: boolean;
+      const { routeIsFallback } = routingFormStep.data as {
+        routeIsFallback?: boolean;
       };
 
       const reasonEnum = context.isRerouting
         ? AssignmentReasonEnum.REROUTED
-        : fallbackUsed
+        : routeIsFallback
         ? AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK
         : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
 

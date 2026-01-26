@@ -1915,6 +1915,7 @@ async function handler(
             formResponseId: routingFormResponseId,
             bookingId: booking.id,
             bookingUid: booking.uid,
+            organizerEmail: organizerUser.email,
             isRerouting: !!reroutingFormResponses,
             reroutedByEmail: reqBody.rescheduledBy,
           });
