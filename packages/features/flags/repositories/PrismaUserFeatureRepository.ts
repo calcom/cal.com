@@ -47,18 +47,29 @@ export class PrismaUserFeatureRepository implements IUserFeatureRepository {
     userId: number,
     featureIds: FeatureId[]
   ): Promise<Partial<Record<FeatureId, UserFeaturesDto>>> {
-    const results = await Promise.all(
-      featureIds.map(async (featureId) => {
-        const userFeature = await this.findByUserIdAndFeatureId(userId, featureId);
-        return { featureId, userFeature };
-      })
-    );
+    if (featureIds.length === 0) {
+      return {};
+    }
+
+    const results = await this.prisma.userFeatures.findMany({
+      where: {
+        userId,
+        featureId: {
+          in: featureIds,
+        },
+      },
+      select: {
+        userId: true,
+        featureId: true,
+        enabled: true,
+        assignedBy: true,
+        updatedAt: true,
+      },
+    });
 
     const result: Partial<Record<FeatureId, UserFeaturesDto>> = {};
-    for (const { featureId, userFeature } of results) {
-      if (userFeature !== null) {
-        result[featureId] = userFeature;
-      }
+    for (const userFeature of results) {
+      result[userFeature.featureId as FeatureId] = this.toDto(userFeature);
     }
 
     return result;
