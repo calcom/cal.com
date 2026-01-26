@@ -203,49 +203,25 @@ export function UserDropdown({ small }: UserDropdownProps) {
             <Icon name="circle-help" />
             {t("help")}
           </MenuItem>
-          {!isPlatformPages && (
+          {!isPlatformPages && isMobile && os === "ios" && (
+            <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
+              <Icon name="download" />
+              {t("download_app")}
+            </MenuItem>
+          )}
+          {!isPlatformPages && isMobile && os === "android" && (
+            <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
+              <Icon name="download" />
+              {t("download_app")}
+            </MenuItem>
+          )}
+          {!isPlatformPages && !isMobile && (
             <MenuSub>
-              <MenuSubTrigger>
+              <MenuSubTrigger className="todesktop:hidden hidden lg:flex">
                 <Icon name="download" />
                 {t("download_app")}
               </MenuSubTrigger>
               <MenuSubPopup>
-                {(os === "ios" || !isMobile) && (
-                  <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
-                    <AppleIcon className="size-4 fill-foreground" />
-                    {t("download_for_ios")}
-                  </MenuItem>
-                )}
-                {(os === "android" || !isMobile) && (
-                  <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
-                    <PlayStoreIcon className="size-4" />
-                    {t("download_for_android")}
-                  </MenuItem>
-                )}
-                {!isMobile && browser === "chrome" && (
-                  <MenuItem render={<a href={DOWNLOAD_LINKS.chrome} target="_blank" rel="noreferrer" />}>
-                    <ChromeIcon className="size-4" />
-                    {t("download_chrome_extension")}
-                  </MenuItem>
-                )}
-                {!isMobile && browser === "safari" && (
-                  <MenuItem render={<a href={DOWNLOAD_LINKS.safari} target="_blank" rel="noreferrer" />}>
-                    <SafariIcon className="size-4" />
-                    {t("download_safari_extension")}
-                  </MenuItem>
-                )}
-                {!isMobile && browser === "firefox" && (
-                  <MenuItem render={<a href={DOWNLOAD_LINKS.firefox} target="_blank" rel="noreferrer" />}>
-                    <FirefoxIcon className="size-4" />
-                    {t("download_firefox_extension")}
-                  </MenuItem>
-                )}
-                {!isMobile && browser === "edge" && (
-                  <MenuItem render={<a href={DOWNLOAD_LINKS.edge} target="_blank" rel="noreferrer" />}>
-                    <EdgeIcon className="size-4" />
-                    {t("download_edge_extension")}
-                  </MenuItem>
-                )}
                 {os === "macos" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.macos} target="_blank" rel="noreferrer" />}>
                     <AppleIcon className="size-4 fill-foreground" />
@@ -264,6 +240,38 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {t("download_for_linux")}
                   </MenuItem>
                 )}
+                {browser === "chrome" && (
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.chrome} target="_blank" rel="noreferrer" />}>
+                    <ChromeIcon className="size-4" />
+                    {t("download_chrome_extension")}
+                  </MenuItem>
+                )}
+                {browser === "safari" && (
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.safari} target="_blank" rel="noreferrer" />}>
+                    <SafariIcon className="size-4" />
+                    {t("download_safari_extension")}
+                  </MenuItem>
+                )}
+                {browser === "firefox" && (
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.firefox} target="_blank" rel="noreferrer" />}>
+                    <FirefoxIcon className="size-4" />
+                    {t("download_firefox_extension")}
+                  </MenuItem>
+                )}
+                {browser === "edge" && (
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.edge} target="_blank" rel="noreferrer" />}>
+                    <EdgeIcon className="size-4" />
+                    {t("download_edge_extension")}
+                  </MenuItem>
+                )}
+                <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
+                  <AppleIcon className="size-4 fill-foreground" />
+                  {t("download_for_ios")}
+                </MenuItem>
+                <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
+                  <PlayStoreIcon className="size-4" />
+                  {t("download_for_android")}
+                </MenuItem>
               </MenuSubPopup>
             </MenuSub>
           )}
