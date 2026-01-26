@@ -271,13 +271,13 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstField=456&test-field-number=456&test-field-single-choice-selection=456&test-field-multiple-choice-selection=456&test-field-multiple-choice-selection=789&test-field-phone=456&test-field-email=456@example.com";
+        "firstfield=456&test-field-number=456&test-field-single-choice-selection=456&test-field-multiple-choice-selection=456&test-field-multiple-choice-selection=789&test-field-phone=456&test-field-email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
       await page.fill('[data-testid="form-field-test-field-long-text"]', "manual-fill");
 
-      await expect(page.locator('[data-testid="form-field-firstField"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-firstfield"]')).toHaveValue("456");
       await expect(page.locator('[data-testid="form-field-test-field-number"]')).toHaveValue("456");
 
       // TODO: Verify select and multiselect has prefilled values.
@@ -297,7 +297,7 @@ test.describe("Routing Forms", () => {
       const url = new URL(page.url());
 
       // Coming from the response filled by booker
-      expect(url.searchParams.get("firstField")).toBe("456");
+      expect(url.searchParams.get("firstfield")).toBe("456");
 
       // All other params come from prefill URL
       expect(url.searchParams.get("test-field-number")).toBe("456");
