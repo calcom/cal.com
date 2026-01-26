@@ -36,7 +36,7 @@ const AppCategoryNavigation = ({
   return (
     <div
       className={cs(
-        "flex flex-col xl:flex-row xl:space-x-6",
+        "flex flex-col xl:flex-row xl:space-x-6 md:mt-20",
         classNames?.root ?? className
       )}
     >
