@@ -1,9 +1,7 @@
-import { captureException } from "@sentry/nextjs";
-
 import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-
+import { captureException } from "@sentry/nextjs";
 import type { FeatureId } from "../config";
 
 export interface IUserFeatureRepository {
@@ -198,6 +196,7 @@ export class PrismaUserFeatureRepository implements IUserFeatureRepository {
     try {
       const query = Prisma.sql`
         WITH RECURSIVE TeamHierarchy AS (
+          -- Start with teams the user belongs to
           SELECT DISTINCT t.id, t."parentId",
             CASE WHEN EXISTS (
               SELECT 1 FROM "TeamFeatures" tf
@@ -209,6 +208,7 @@ export class PrismaUserFeatureRepository implements IUserFeatureRepository {
 
           UNION ALL
 
+          -- Recursively get parent teams
           SELECT DISTINCT p.id, p."parentId",
             CASE WHEN EXISTS (
               SELECT 1 FROM "TeamFeatures" tf
@@ -216,7 +216,7 @@ export class PrismaUserFeatureRepository implements IUserFeatureRepository {
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
           INNER JOIN TeamHierarchy c ON p.id = c."parentId"
-          WHERE NOT c.has_feature
+          WHERE NOT c.has_feature -- Stop recursion if we found a team with the feature
         )
         SELECT 1
         FROM TeamHierarchy
