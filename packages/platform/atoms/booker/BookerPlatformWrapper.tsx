@@ -205,7 +205,7 @@ const BookerPlatformWrapperComponent = (
     selectedDuration,
   });
 
-  const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
+  const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts, true);
   useInitializeBookerStore({
     ...props,
     teamMemberEmail,
@@ -290,7 +290,7 @@ const BookerPlatformWrapperComponent = (
 
   const startTime =
     customStartTime &&
-    dayjs(customStartTime).isAfter(dayjs(calculatedStartTime))
+      dayjs(customStartTime).isAfter(dayjs(calculatedStartTime))
       ? dayjs(customStartTime).toISOString()
       : calculatedStartTime;
   const endTime = calculatedEndTime;
@@ -331,10 +331,10 @@ const BookerPlatformWrapperComponent = (
     teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
-          isTeamEvent: props.isTeamEvent,
-          teamId: teamId,
-          rrHostSubsetIds: rrHostSubsetIds,
-        }
+        isTeamEvent: props.isTeamEvent,
+        teamId: teamId,
+        rrHostSubsetIds: rrHostSubsetIds,
+      }
       : {}),
     enabled:
       Boolean(teamId || username) &&
@@ -479,8 +479,8 @@ const BookerPlatformWrapperComponent = (
     },
     enabled: Boolean(
       hasSession &&
-        isOverlayCalendarEnabled &&
-        latestCalendarsToLoad?.length > 0
+      isOverlayCalendarEnabled &&
+      latestCalendarsToLoad?.length > 0
     ),
   });
 
@@ -497,8 +497,8 @@ const BookerPlatformWrapperComponent = (
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
     ...(props.isTeamEvent
       ? {
-          rrHostSubsetIds: rrHostSubsetIds,
-        }
+        rrHostSubsetIds: rrHostSubsetIds,
+      }
       : {}),
   });
 
