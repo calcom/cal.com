@@ -375,7 +375,7 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
             className="mb-16"
             buttonRaw={
               !searchTerm && (
-                <Button asChild>
+                <Button>
                   <Link href="/workflow/new?action=calAi&templateWorkflowId=wf-11">
                     {t("create_first_workflow")}
                   </Link>
