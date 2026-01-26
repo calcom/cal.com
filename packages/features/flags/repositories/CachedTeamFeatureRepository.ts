@@ -37,7 +37,10 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   }
 
   @Unmemoize({
-    keys: (teamId: number, featureId: FeatureId) => [KEY.byTeamIdAndFeatureId(teamId, featureId)],
+    keys: (teamId: number, featureId: FeatureId) => [
+      KEY.byTeamIdAndFeatureId(teamId, featureId),
+      KEY.enabledFeatures(teamId),
+    ],
   })
   async upsert(
     teamId: number,
@@ -49,7 +52,10 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   }
 
   @Unmemoize({
-    keys: (teamId: number, featureId: FeatureId) => [KEY.byTeamIdAndFeatureId(teamId, featureId)],
+    keys: (teamId: number, featureId: FeatureId) => [
+      KEY.byTeamIdAndFeatureId(teamId, featureId),
+      KEY.enabledFeatures(teamId),
+    ],
   })
   async delete(teamId: number, featureId: FeatureId): Promise<void> {
     return this.prismaTeamFeatureRepository.delete(teamId, featureId);

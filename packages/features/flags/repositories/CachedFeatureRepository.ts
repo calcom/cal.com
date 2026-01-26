@@ -31,7 +31,7 @@ export class CachedFeatureRepository implements IFeatureRepository {
   }
 
   @Unmemoize({
-    keys: (input: { featureId: FeatureId }) => [KEY.bySlug(input.featureId)],
+    keys: (input: { featureId: FeatureId }) => [KEY.bySlug(input.featureId), KEY.all()],
   })
   async update(input: { featureId: FeatureId; enabled: boolean; updatedBy?: number }): Promise<FeatureDto> {
     return this.prismaFeatureRepository.update(input);
