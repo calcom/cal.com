@@ -72,7 +72,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const { data: user, isPending } = useMeQuery();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
-  const { os, browser } = useUserAgentData();
+  const { os, browser, isMobile } = useUserAgentData();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -210,14 +210,18 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 {t("download_app")}
               </MenuSubTrigger>
               <MenuSubPopup>
-                <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
-                  <AppleIcon className="size-4 fill-foreground" />
-                  {t("download_for_ios")}
-                </MenuItem>
-                <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
-                  <PlayStoreIcon className="size-4" />
-                  {t("download_for_android")}
-                </MenuItem>
+                {isMobile && (
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
+                    <AppleIcon className="size-4 fill-foreground" />
+                    {t("download_for_ios")}
+                  </MenuItem>
+                )}
+                {isMobile && (
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
+                    <PlayStoreIcon className="size-4" />
+                    {t("download_for_android")}
+                  </MenuItem>
+                )}
                 {browser === "chrome" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.chrome} target="_blank" rel="noreferrer" />}>
                     <ChromeIcon className="size-4" />
