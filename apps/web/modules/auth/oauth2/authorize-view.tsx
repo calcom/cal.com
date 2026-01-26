@@ -9,6 +9,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
@@ -17,7 +18,8 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export function Authorize() {
   const { t } = useLocale();
-  const { status, data: session } = useSession();
+  const { status } = useSession();
+  const { data: user } = useMeQuery();
 
   const router = useRouter();
   const searchParams = useCompatSearchParams();
@@ -27,12 +29,18 @@ export function Authorize() {
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
   const code_challenge = searchParams?.get("code_challenge") as string;
-  const code_challenge_method = searchParams?.get("code_challenge_method") as string;
-  const show_account_selector = searchParams?.get("show_account_selector") === "true";
+  const code_challenge_method = searchParams?.get(
+    "code_challenge_method"
+  ) as string;
+  const show_account_selector =
+    searchParams?.get("show_account_selector") === "true";
 
   const queryString = searchParams?.toString();
 
-  const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
+  const [selectedAccount, setSelectedAccount] = useState<{
+    value: string;
+    label: string;
+  } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
   const {
@@ -50,25 +58,30 @@ export function Authorize() {
   );
 
   const { data, isPending: isPendingProfiles } =
-    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery(undefined, {
-      enabled: show_account_selector,
-    });
-
-  const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
-    onSuccess: (data) => {
-      window.location.href =
-        data.redirectUrl ?? `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
-    },
-    onError: (error) => {
-      if (client?.redirectUri) {
-        redirectToOAuthError({
-          redirectUri: client.redirectUri,
-          trpcError: error,
-          state,
-        });
+    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery(
+      undefined,
+      {
+        enabled: show_account_selector,
       }
-    },
-  });
+    );
+
+  const generateAuthCodeMutation =
+    trpc.viewer.oAuth.generateAuthCode.useMutation({
+      onSuccess: (data) => {
+        window.location.href =
+          data.redirectUrl ??
+          `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+      },
+      onError: (error) => {
+        if (client?.redirectUri) {
+          redirectToOAuthError({
+            redirectUri: client.redirectUri,
+            trpcError: error,
+            state,
+          });
+        }
+      },
+    });
 
   const mappedProfiles = data
     ? data
@@ -117,7 +130,11 @@ export function Authorize() {
     return <div>{getClientError.message}</div>;
   }
 
-  if (isPendingGetClient || (show_account_selector && isPendingProfiles) || status !== "authenticated") {
+  if (
+    isPendingGetClient ||
+    (show_account_selector && isPendingProfiles) ||
+    status !== "authenticated"
+  ) {
     return <></>;
   }
 
@@ -130,7 +147,9 @@ export function Authorize() {
     return (
       <div className="flex justify-center pt-32">
         <div className="flex items-center space-x-3">
-          <span className="text-lg font-medium text-gray-700">{t("authorizing")}</span>
+          <span className="text-lg font-medium text-gray-700">
+            {t("authorizing")}
+          </span>
         </div>
       </div>
     );
@@ -150,25 +169,32 @@ export function Authorize() {
           <div className="relative -ml-6 w-24 h-24">
             <div className="flex absolute inset-0 justify-center items-center">
               <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
-                <img src="/cal-com-icon.svg" alt="Logo" className="w-16 h-16 rounded-full" />
+                <img
+                  src="/cal-com-icon.svg"
+                  alt="Logo"
+                  className="w-16 h-16 rounded-full"
+                />
               </div>
             </div>
           </div>
         </div>
         <h1 className="px-5 pt-3 pb-3 text-2xl font-semibold tracking-tight text-center">
-          {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
+          {t("access_cal_account", {
+            clientName: client.name,
+            appName: APP_NAME,
+          })}
         </h1>
         {!show_account_selector && (
           <div className="flex flex-col justify-center items-center mb-6 text-sm text-gray-600">
             <div className="flex gap-2 items-center">
               <Avatar
                 size="sm"
-                alt={session?.user?.name || session?.user?.email || ""}
-                imageSrc={session?.user?.image || undefined}
+                alt={user?.username ? `Avatar of ${user.username}` : "Avatar"}
+                imageSrc={user?.avatarUrl ?? user?.avatar}
               />
-              <Tooltip content={session?.user?.email} side="bottom">
+              <Tooltip content={user?.email} side="bottom">
                 <span className="cursor-default">
-                  {t("signed_in_as", { name: session?.user?.name || session?.user?.email })}
+                  {t("signed_in_as", { name: user?.name || user?.email })}
                 </span>
               </Tooltip>
             </div>
@@ -176,7 +202,9 @@ export function Authorize() {
         )}
         {show_account_selector && (
           <>
-            <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
+            <div className="mb-1 text-sm font-medium">
+              {t("select_account_team")}
+            </div>
             <Select
               isSearchable={true}
               id="account-select"
@@ -189,29 +217,37 @@ export function Authorize() {
             />
           </>
         )}
-        <div className="mt-5 mb-4 text-base font-medium">{t("allow_client_to", { clientName: client.name })}</div>
-        <ul className="text-sm stack-y-4">
+        <div className="mt-8 mb-4 text-sm font-semibold">
+          {t("allow_client_to", { clientName: client.name })}
+        </div>
+        <ul className="text-sm stack-y-3">
           <li className="relative pl-5">
             <span className="absolute left-0">&#10003;</span>{" "}
             {t("associate_with_cal_account", { clientName: client.name })}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("see_personal_info")}
+            <span className="absolute left-0">&#10003;</span>{" "}
+            {t("see_personal_info")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("see_primary_email_address")}
+            <span className="absolute left-0">&#10003;</span>{" "}
+            {t("see_primary_email_address")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("connect_installed_apps")}
+            <span className="absolute left-0">&#10003;</span>{" "}
+            {t("connect_installed_apps")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("access_event_type")}
+            <span className="absolute left-0">&#10003;</span>{" "}
+            {t("access_event_type")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("access_availability")}
+            <span className="absolute left-0">&#10003;</span>{" "}
+            {t("access_availability")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("access_bookings")}
+            <span className="absolute left-0">&#10003;</span>{" "}
+            {t("access_bookings")}
           </li>
         </ul>
         <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
@@ -222,7 +258,9 @@ export function Authorize() {
             <div className="mb-1 text-sm font-medium">
               {t("allow_client_to_do", { clientName: client.name })}
             </div>
-            <div className="text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
+            <div className="text-sm">
+              {t("oauth_access_information", { appName: APP_NAME })}
+            </div>{" "}
           </div>
         </div>
         <div className="-mx-9 mb-4 border-b border-subtle border-" />
@@ -237,10 +275,13 @@ export function Authorize() {
               if (state) {
                 params.set("state", state);
               }
-              window.location.href = `${client.redirectUri}${separator}${params.toString()}`;
-            }}>
-          {t("go_back")}
-        </Button>
+              window.location.href = `${
+                client.redirectUri
+              }${separator}${params.toString()}`;
+            }}
+          >
+            {t("go_back")}
+          </Button>
           <Button
             onClick={() => {
               generateAuthCodeMutation.mutate({
@@ -251,11 +292,13 @@ export function Authorize() {
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>
                 codeChallenge: code_challenge || undefined,
-                codeChallengeMethod: (code_challenge_method as "S256") || undefined,
+                codeChallengeMethod:
+                  (code_challenge_method as "S256") || undefined,
                 state,
               });
             }}
-            data-testid="allow-button">
+            data-testid="allow-button"
+          >
             {t("allow")}
           </Button>
         </div>
@@ -293,7 +336,9 @@ function buildOAuthErrorRedirectUrl({
     errorParams.append("state", state);
   }
 
-  return `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}${errorParams.toString()}`;
+  return `${redirectUri}${
+    redirectUri.includes("?") ? "&" : "?"
+  }${errorParams.toString()}`;
 }
 
 function redirectToOAuthError({
@@ -316,4 +361,3 @@ function redirectToOAuthError({
 }
 
 export default Authorize;
-
