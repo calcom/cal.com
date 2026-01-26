@@ -15,7 +15,7 @@ interface ConnectedCalendar {
   credentialId: number;
   integration: App & { title?: string };
   primary?: {
-    integration: string;
+    integration?: string;
     email: string;
     name: string | null;
   } | null;
@@ -23,10 +23,19 @@ interface ConnectedCalendar {
   cacheUpdatedAt: null;
 }
 
-interface DestinationCalendar extends IntegrationCalendar {
-  id: number;
-  userId: number | null;
-  eventTypeId: number | null;
+interface DestinationCalendar {
+  integration: string;
+  externalId: string;
+  primaryEmail?: string;
+  name?: string | null;
+  integrationTitle?: string;
+  credentialId?: number | null;
+  email?: string;
+  readOnly?: boolean;
+  primary?: boolean;
+  id?: string;
+  userId?: number | null;
+  eventTypeId?: number | null;
 }
 
 interface CalendarsQueryData {
