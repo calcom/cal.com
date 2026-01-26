@@ -20,7 +20,7 @@ interface ConnectedCalendar {
   credentialId: number;
   integration: App & { title?: string };
   primary?: CalendarWithPrimary | null;
-  calendars?: IntegrationCalendar[];
+  calendars?: CalendarWithPrimary[];
   cacheUpdatedAt: null;
 }
 
