@@ -17,19 +17,19 @@ interface PaginatedResponse<TData> {
   total: number;
 }
 
-interface DownloadButtonProps<TData, TTransformed = TData> {
+interface CsvDownloadButtonProps<TData, TTransformed = TData> {
   fetchBatch: (offset: number) => Promise<PaginatedResponse<TData> | null>;
   transformData?: (data: TData[]) => TTransformed[];
   filename: string | (() => string);
   onDownloadStart?: () => void;
 }
 
-export function DownloadButton<TData, TTransformed = TData>({
+export function CsvDownloadButton<TData, TTransformed = TData>({
   fetchBatch,
   transformData,
   filename,
   onDownloadStart,
-}: DownloadButtonProps<TData, TTransformed>) {
+}: CsvDownloadButtonProps<TData, TTransformed>) {
   const { t } = useLocale();
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);

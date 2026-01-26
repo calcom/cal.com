@@ -4,7 +4,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import posthog from "posthog-js";
 
-import { DownloadButton } from "@lib/components/DownloadButton";
+import { CsvDownloadButton } from "@lib/components/CsvDownloadButton";
 import { useInsightsBookingParameters } from "../../../hooks/useInsightsBookingParameters";
 
 type RawData = RouterOutputs["viewer"]["insights"]["rawData"]["data"][number];
@@ -17,7 +17,7 @@ const Download = () => {
   const utils = trpc.useUtils();
 
   return (
-    <DownloadButton<RawData>
+    <CsvDownloadButton<RawData>
       fetchBatch={async (offset) => {
         try {
           const result = await utils.viewer.insights.rawData.fetch({

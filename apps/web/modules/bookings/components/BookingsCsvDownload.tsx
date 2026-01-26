@@ -6,7 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
-import { DownloadButton } from "@lib/components/DownloadButton";
+import { CsvDownloadButton } from "@lib/components/CsvDownloadButton";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import type { BookingListingStatus } from "../types";
 
@@ -49,7 +49,7 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
   }
 
   return (
-    <DownloadButton
+    <CsvDownloadButton
       fetchBatch={async (offset) => {
         const result = await utils.viewer.bookings.get.fetch({
           limit: BATCH_SIZE,

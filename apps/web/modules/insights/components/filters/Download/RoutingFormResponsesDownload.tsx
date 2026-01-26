@@ -3,7 +3,7 @@ import type { SortingState } from "@calcom/features/data-table";
 import { trpc } from "@calcom/trpc/react";
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 
-import { DownloadButton } from "@lib/components/DownloadButton";
+import { CsvDownloadButton } from "@lib/components/CsvDownloadButton";
 
 type Props = {
   sorting: SortingState;
@@ -17,7 +17,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const utils = trpc.useUtils();
 
   return (
-    <DownloadButton
+    <CsvDownloadButton
       fetchBatch={async (offset) => {
         const result = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
           ...insightsRoutingParameters,
