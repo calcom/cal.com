@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { CreateEventTypeFormValues } from "@calcom/features/eventtypes/hooks/useCreateEventType";
+import type { CreateEventTypeFormValues } from "@calcom/features/eventtypes/hooks/useCreateEventTypeForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";

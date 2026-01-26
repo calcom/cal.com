@@ -1,17 +1,147 @@
 import type React from "react";
+import type { UseFormReturn } from "react-hook-form";
 
-import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
-import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
-import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
-import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
+
+export type UseBookerLayoutType = {
+  shouldShowFormInDialog: boolean;
+  hasDarkBackground: boolean | undefined;
+  extraDays: number;
+  columnViewExtraDays: React.MutableRefObject<number>;
+  isMobile: boolean;
+  isEmbed: boolean | undefined;
+  isTablet: boolean;
+  layout: BookerLayout;
+  defaultLayout: BookerLayouts;
+  hideEventTypeDetails: boolean;
+  slotsViewOnSmallScreen: boolean;
+  bookerLayouts: {
+    enabledLayouts: BookerLayouts[];
+    defaultLayout: BookerLayouts;
+  };
+};
+
+export type UseBookingFormReturnType = {
+  bookingForm: UseFormReturn<{
+    locationType?: string;
+    responses: Record<string, unknown> | null;
+    globalError: undefined;
+    cfToken?: string;
+  }>;
+  bookerFormErrorRef: React.RefObject<HTMLDivElement>;
+  key: string;
+  formEmail: string | undefined;
+  formName: string | { firstName: string; lastName?: string } | undefined;
+  beforeVerifyEmail: () => void;
+  formErrors: {
+    hasFormErrors: boolean;
+    formErrors: unknown;
+  };
+  errors: {
+    hasFormErrors: boolean;
+    formErrors: unknown;
+  };
+};
+
+export type UseBookingsReturnType = {
+  handleBookEvent: (inputTimeSlot?: string) => void;
+  expiryTime: Date | undefined;
+  bookingForm: UseBookingFormReturnType["bookingForm"];
+  bookerFormErrorRef: React.RefObject<HTMLDivElement>;
+  errors: {
+    hasDataErrors: boolean;
+    dataErrors: unknown;
+  };
+  loadingStates: {
+    creatingBooking: boolean;
+    creatingRecurringBooking: boolean;
+    creatingInstantBooking: boolean;
+  };
+  instantVideoMeetingUrl: string | undefined;
+  instantConnectCooldownMs: number;
+};
+
+export type UseCalendarsReturnType<TConnectedCalendars = unknown> = {
+  overlayBusyDates:
+    | {
+        start: string | Date;
+        end: string | Date;
+      }[]
+    | undefined;
+  isOverlayCalendarEnabled: boolean;
+  connectedCalendars: TConnectedCalendars;
+  loadingConnectedCalendar: boolean;
+  onToggleCalendar: (
+    data: Set<{
+      credentialId: number;
+      externalId: string;
+    }>
+  ) => void;
+};
+
+export type QuickAvailabilityCheck = {
+  utcStartIso: string;
+  utcEndIso: string;
+  status: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast";
+  realStatus?: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast";
+};
+
+export type UseSlotsReturnType = {
+  setSelectedTimeslot: (timeslot: string | null) => void;
+  setTentativeSelectedTimeslots: (timeslots: string[]) => void;
+  selectedTimeslot: string | null;
+  tentativeSelectedTimeslots: string[];
+  slotReservationId: string | null;
+  allSelectedTimeslots: string[];
+  quickAvailabilityChecks: QuickAvailabilityCheck[];
+};
+
+export type UseVerifyCodeReturnType = {
+  verifyCodeWithSessionRequired: (code: string, email: string) => void;
+  verifyCodeWithSessionNotRequired: (code: string, email: string) => void;
+  isPending: boolean;
+  setIsPending: React.Dispatch<React.SetStateAction<boolean>>;
+  error: string;
+  value: string;
+  hasVerified: boolean;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+  setHasVerified: React.Dispatch<React.SetStateAction<boolean>>;
+  resetErrors: () => void;
+};
+
+export type UseVerifyEmailReturnType = {
+  handleVerifyEmail: () => void;
+  isEmailVerificationModalVisible: boolean;
+  setEmailVerificationModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  setVerifiedEmail: (email: string | null) => void;
+  renderConfirmNotVerifyEmailButtonCond: boolean;
+  isVerificationCodeSending: boolean;
+};
+
+export interface IUseBookingLoadingStates {
+  creatingBooking: boolean;
+  creatingRecurringBooking: boolean;
+  creatingInstantBooking: boolean;
+}
+
+export interface IUseBookingErrors {
+  hasDataErrors: boolean;
+  dataErrors: unknown;
+}
+
+export type useScheduleForEventReturnType<TScheduleData = unknown> = {
+  data: TScheduleData | undefined;
+  isPending: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+  isLoading: boolean;
+  invalidate: () => Promise<unknown>;
+  dataUpdatedAt: number;
+};
 
 export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
@@ -107,7 +237,10 @@ export interface BookerProps {
   useApiV2?: boolean;
 }
 
-export type WrappedBookerPropsMain = {
+export type WrappedBookerPropsMain<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
   rescheduledBy: string | null;
@@ -123,10 +256,10 @@ export type WrappedBookerPropsMain = {
   extraOptions: Record<string, string | string[]>;
   bookings: UseBookingsReturnType;
   slots: UseSlotsReturnType;
-  calendars: UseCalendarsReturnType;
+  calendars: UseCalendarsReturnType<TConnectedCalendars>;
   bookerForm: UseBookingFormReturnType;
   event: BookerEventQuery;
-  schedule: useScheduleForEventReturnType;
+  schedule: useScheduleForEventReturnType<TScheduleData>;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
@@ -135,21 +268,30 @@ export type WrappedBookerPropsMain = {
   confirmButtonDisabled?: boolean;
 };
 
-export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
+export type WrappedBookerPropsForPlatform<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = WrappedBookerPropsMain<TConnectedCalendars, TScheduleData> & {
   isPlatform: true;
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
   timeZones?: Timezone[];
   roundRobinHideOrgAndTeam?: boolean;
 };
-export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
+export type WrappedBookerPropsForWeb<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = WrappedBookerPropsMain<TConnectedCalendars, TScheduleData> & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
   timeZones?: Timezone[];
   roundRobinHideOrgAndTeam?: boolean;
 };
 
-export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
+export type WrappedBookerProps<
+  TConnectedCalendars = unknown,
+  TScheduleData = unknown
+> = WrappedBookerPropsForPlatform<TConnectedCalendars, TScheduleData> | WrappedBookerPropsForWeb<TConnectedCalendars, TScheduleData>;
 export type VIEW_TYPE = "MONTH_VIEW" | "WEEK_VIEW" | "COLUMN_VIEW";
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

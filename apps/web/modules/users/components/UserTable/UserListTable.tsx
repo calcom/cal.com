@@ -9,8 +9,8 @@ import {
   useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";

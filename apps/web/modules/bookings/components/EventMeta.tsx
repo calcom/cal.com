@@ -21,10 +21,10 @@ import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "@calcom/features/bookings/Booker/config";
 import { FromToTime } from "@calcom/features/bookings/Booker/utils/dates";
 import { ScrollableWithGradients } from "./ScrollableWithGradients";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/atoms/hooks/booker/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
-  () => import("@calcom/features/components/timezone-select").then((mod) => mod.TimezoneSelect),
+  () => import("@calcom/web/modules/timezone/components").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
   }

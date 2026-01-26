@@ -1,4 +1,4 @@
-import { UserCalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
+import { UserCalendarSwitch } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 
 interface IConnectedCalendarItem {
   name: string;
@@ -61,8 +61,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
               name={calendar.name || "Nameless Calendar"}
               type={integrationType}
               isChecked={calendar.isSelected}
-              isLastItemInList={i === calendars.length - 1}
-              delegationCredentialId={calendar.delegationCredentialId}
+              delegationCredentialId={calendar.delegationCredentialId ? Number(calendar.delegationCredentialId) : null}
             />
           ))}
         </ul>

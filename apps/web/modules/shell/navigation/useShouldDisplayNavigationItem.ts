@@ -1,4 +1,4 @@
-import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useFlagMap } from "@calcom/web/modules/feature-flags/context/provider";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 
 import type { NavigationItemType } from "./NavigationItem";

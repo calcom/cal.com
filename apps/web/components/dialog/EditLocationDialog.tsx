@@ -15,7 +15,7 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/modules/phone-input/components";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

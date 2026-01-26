@@ -40,7 +40,7 @@ import type {
   AttributeRoutingConfig,
 } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

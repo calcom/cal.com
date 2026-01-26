@@ -7,7 +7,7 @@ import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";

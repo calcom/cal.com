@@ -7,7 +7,7 @@ import posthog from "posthog-js";
 import { useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

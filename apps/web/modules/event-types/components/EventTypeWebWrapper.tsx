@@ -5,7 +5,7 @@ import { usePathname, useRouter as useAppRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";

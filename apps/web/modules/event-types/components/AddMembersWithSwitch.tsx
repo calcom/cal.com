@@ -1,12 +1,12 @@
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { Segment } from "./Segment";
 import type {
   FormValues,
   Host,
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
-import { Segment } from "@calcom/features/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";

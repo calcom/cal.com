@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { RefCallback, ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";

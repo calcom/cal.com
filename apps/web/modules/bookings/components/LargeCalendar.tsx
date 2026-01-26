@@ -2,15 +2,16 @@ import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useAvailableTimeSlots } from "@calcom/atoms/hooks/booker/useAvailableTimeSlots";
+import { useBookerTime } from "@calcom/atoms/hooks/booker/useBookerTime";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+
+import type { useScheduleForEventReturnType } from "../types";
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 
 export const LargeCalendar = ({

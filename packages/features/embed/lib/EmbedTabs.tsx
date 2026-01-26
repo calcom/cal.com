@@ -2,7 +2,7 @@ import type { MutableRefObject } from "react";
 import { forwardRef } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
-import { useEmbedBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
+
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui/components/form";
@@ -13,7 +13,7 @@ import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
-import { useEmbedCalOrigin } from "./hooks";
+
 
 export const enum EmbedTabName {
   HTML = "embed-code",
@@ -30,11 +30,11 @@ export const tabs = [
     "data-testid": "HTML",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedHtml({ embedType, calLink, previewState, namespace }, ref) {
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string; bookerUrl: string }
+    >(function EmbedHtml({ embedType, calLink, previewState, namespace, bookerUrl }, ref) {
       const { t } = useLocale();
-      const embedSnippetString = useGetEmbedSnippetString(namespace);
-      const embedCalOrigin = useEmbedCalOrigin();
+      const embedSnippetString = useGetEmbedSnippetString(namespace, bookerUrl);
+      const embedCalOrigin = bookerUrl;
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -87,10 +87,10 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReact({ embedType, calLink, previewState, namespace }, ref) {
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string; bookerUrl: string }
+    >(function EmbedReact({ embedType, calLink, previewState, namespace, bookerUrl }, ref) {
       const { t } = useLocale();
-      const embedCalOrigin = useEmbedCalOrigin();
+      const embedCalOrigin = bookerUrl;
 
       if (ref instanceof Function || !ref) {
         return null;
@@ -137,10 +137,10 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReactAtom({ embedType, calLink, previewState, namespace }, ref) {
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string; bookerUrl: string }
+    >(function EmbedReactAtom({ embedType, calLink, previewState, namespace, bookerUrl }, ref) {
       const { t } = useLocale();
-      const embedCalOrigin = useEmbedCalOrigin();
+      const embedCalOrigin = bookerUrl;
 
       if (ref instanceof Function || !ref) {
         return null;
@@ -186,9 +186,8 @@ ${getEmbedTypeSpecificString({
     "data-testid": "Preview",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
-    >(function Preview({ calLink, embedType }, ref) {
-      const bookerUrl = useEmbedBookerUrl();
+      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string; bookerUrl: string }
+    >(function Preview({ calLink, embedType, bookerUrl }, ref) {
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
       if (ref instanceof Function || !ref) {
         return null;
@@ -330,8 +329,7 @@ const getInstructionString = ({
   return `${apiName}("${instructionName}", ${JSON.stringify(instructionArg)});`;
 };
 
-function useGetEmbedSnippetString(namespace: string | null) {
-  const bookerUrl = useEmbedBookerUrl();
+function useGetEmbedSnippetString(namespace: string | null, bookerUrl: string) {
   // TODO: Import this string from @calcom/embed-snippet
   // Right now the problem is that embed-snippet export is not minified and has comments which makes it unsuitable for giving it to users.
   // If we can minify that during build time and then import the built code here, that could work

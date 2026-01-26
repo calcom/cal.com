@@ -4,10 +4,10 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
+import TurnstileCaptcha from "../../auth/components/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "../hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import useSkipConfirmStep from "../hooks/useSkipConfirmStep";
 import {
   fadeInLeft,
   getBookerSizeClassNames,
@@ -16,10 +16,13 @@ import {
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
 import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
-import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
+import {
+  isTimeSlotAvailable,
+  ScheduleData,
+} from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { useNonEmptyScheduleDays } from "../../schedules/hooks/useNonEmptyScheduleDays";
 import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import {
   CLOUDFLARE_SITE_ID,
@@ -92,7 +95,7 @@ const BookerComponent = ({
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
   showNoAvailabilityDialog,
-}: BookerProps & WrappedBookerProps) => {
+}: BookerProps & WrappedBookerProps<any, ScheduleData>) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStoreContext(
@@ -607,7 +610,7 @@ const BookerComponent = ({
           <div className="mb-6 mt-auto pt-6">
             <TurnstileCaptcha
               appearance="interaction-only"
-              onVerify={(token) => {
+              onVerify={(token: string) => {
                 bookingForm.setValue("cfToken", token);
               }}
             />
@@ -690,7 +693,7 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (props: BookerProps & WrappedBookerProps) => {
+export const Booker = (props: BookerProps & WrappedBookerProps<any, ScheduleData>) => {
   return (
     <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />

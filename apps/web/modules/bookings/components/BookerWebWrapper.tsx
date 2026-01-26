@@ -14,18 +14,15 @@ import {
   useInitializeBookerStoreContext,
   useBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
-import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
-import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
-import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import { useBookerLayout } from "@calcom/atoms/hooks/booker/useBookerLayout";
+import { useBookingForm } from "@calcom/atoms/hooks/booker/useBookingForm";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import {
-  useEvent,
-  useScheduleForEvent,
-} from "@calcom/features/bookings/Booker/utils/event";
+import { useBookings } from "@calcom/web/modules/bookings/hooks/useBookings";
+import { useCalendars } from "@calcom/web/modules/bookings/hooks/useCalendars";
+import { useEvent, useScheduleForEvent } from "@calcom/web/modules/bookings/hooks/useEvent";
+import { useSlots } from "@calcom/web/modules/bookings/hooks/useSlots";
+import { useVerifyCode } from "@calcom/web/modules/bookings/hooks/useVerifyCode";
+import { useVerifyEmail } from "@calcom/web/modules/bookings/hooks/useVerifyEmail";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import {
@@ -35,7 +32,6 @@ import {
 } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
-
 import { Booker as BookerComponent } from "./Booker";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
@@ -224,10 +220,10 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
-      searchParams &&
-      event.data.instantMeetingParameters?.every?.((param) =>
-        Array.from(searchParams.values()).includes(param)
-      )
+    searchParams &&
+    event.data.instantMeetingParameters?.every?.((param: string) =>
+      Array.from(searchParams.values()).includes(param)
+    )
   );
 
   useEffect(() => {

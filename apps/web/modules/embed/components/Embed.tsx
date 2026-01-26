@@ -21,13 +21,13 @@ import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store
 import {
   useEvent,
   useScheduleForEvent,
-} from "@calcom/features/bookings/Booker/utils/event";
-import DatePicker from "@calcom/features/calendars/DatePicker";
+} from "@calcom/web/modules/bookings/hooks/useEvent";
+import DatePicker from "@calcom/web/modules/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components";
+import type { Slot } from "@calcom/web/modules/schedules/hooks/types";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import {
   APP_NAME,
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -53,7 +53,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/atoms/hooks/booker/useBookerTime";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
@@ -80,6 +80,7 @@ type EmbedDialogProps = {
     darkBrandColor: string | null;
   } | null;
   noQueryParamMode?: boolean;
+  bookerUrl: string;
 };
 
 type GotoStateProps = {
@@ -783,6 +784,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   types,
   defaultBrandColor,
   noQueryParamMode,
+  ...props
 }: EmbedDialogProps & {
   embedType: EmbedType;
   embedUrl: string;
@@ -1464,6 +1466,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           calLink={calLink}
                           previewState={previewState}
                           ref={refOfEmbedCodesRefs.current[tab.name]}
+                          bookerUrl={props.bookerUrl}
                         />
                       )}
                       <div
@@ -1525,6 +1528,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     calLink={calLink}
                     previewState={previewState}
                     ref={iframeRef}
+                    bookerUrl={props.bookerUrl}
                   />
                 </div>
               )}
@@ -1571,6 +1575,7 @@ export const EmbedDialog = ({
   eventTypeHideOptionDisabled,
   defaultBrandColor,
   noQueryParamMode = false,
+  bookerUrl,
 }: EmbedDialogProps) => {
   const { embedState, setEmbedState } = useEmbedDialogCtx(noQueryParamMode);
   const embedParams = useEmbedParams(noQueryParamMode);
@@ -1610,6 +1615,7 @@ export const EmbedDialog = ({
             eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
             defaultBrandColor={defaultBrandColor}
             noQueryParamMode={noQueryParamMode}
+            bookerUrl={bookerUrl}
           />
         )}
       </Dialog>

@@ -15,17 +15,17 @@ import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "re
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components";
 import type {
   BulkUpdatParams,
   EventTypes,
 } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
-import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
-import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
+import DateOverrideInputDialog from "@calcom/web/modules/schedules/components/DateOverrideInputDialog";
+import DateOverrideList from "@calcom/web/modules/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
-} from "@calcom/features/schedules/components/Schedule";
+} from "@calcom/web/modules/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";

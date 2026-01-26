@@ -7,9 +7,11 @@ import { trpc } from "@calcom/trpc/react";
 
 import { tabs } from "@calcom/features/embed/lib/EmbedTabs";
 import { useEmbedTypes } from "@calcom/features/embed/lib/hooks";
+import { useBookerUrl } from "@calcom/web/modules/bookings/hooks/useBookerUrl";
 
 export const RoutingFormEmbedDialog = () => {
   const types = useEmbedTypes();
+  const bookerUrl = useBookerUrl();
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
   const routingFormTypes = types.filter((type) => type.type !== "email");
@@ -71,6 +73,7 @@ export const RoutingFormEmbedDialog = () => {
       eventTypeHideOptionDisabled={true}
       defaultBrandColor={user ? { brandColor: user.brandColor, darkBrandColor: user.darkBrandColor } : null}
       noQueryParamMode={true}
+      bookerUrl={bookerUrl}
     />
   );
 };

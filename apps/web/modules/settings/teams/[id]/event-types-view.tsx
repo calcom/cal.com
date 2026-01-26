@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
+import { useCreateEventType } from "@calcom/web/modules/event-types/hooks/useCreateEventType";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

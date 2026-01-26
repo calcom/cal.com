@@ -8,7 +8,7 @@ import "react-phone-number-input/style.css";
 
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/modules/phone-input/components";
 import {
   isSMSAction,
   isWhatsappAction,

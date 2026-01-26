@@ -19,9 +19,9 @@ import type { ParsedUrlQuery } from "node:querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 
-import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import { FeatureProvider } from "@calcom/features/flags/context/provider";
-import { useFlags } from "@calcom/features/flags/hooks";
+import { OrgBrandingProvider } from "@calcom/web/modules/ee/organizations/context/provider";
+import { FeatureProvider } from "@calcom/web/modules/feature-flags/context/provider";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks";
 import DynamicHelpscoutProvider from "@calcom/web/modules/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/web/modules/ee/support/lib/intercom/providerDynamic";
 

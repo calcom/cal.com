@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -388,7 +388,8 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                                 '[data-testid="open-upload-banner-dialog"]'
                               ) as HTMLButtonElement;
                               triggerButton?.click();
-                            }}>
+                            }}
+                          >
                             {t("upload_banner")}
                           </Button>
                         </div>
@@ -416,7 +417,10 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                           triggerButtonColor="secondary"
                         />
                         {showRemoveBannerButton && (
-                          <Button color="minimal" onClick={() => onChange(null)}>
+                          <Button
+                            color="minimal"
+                            onClick={() => onChange(null)}
+                          >
                             {t("remove")}
                           </Button>
                         )}

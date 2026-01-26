@@ -1,7 +1,7 @@
 import type { Dispatch } from "react";
 import { shallow } from "zustand/shallow";
 
-import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

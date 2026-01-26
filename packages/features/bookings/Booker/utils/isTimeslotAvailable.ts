@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 
-import type { QuickAvailabilityCheck } from "../components/hooks/useSlots";
+import type { QuickAvailabilityCheck } from "../types";
 import { isSlotEquivalent, isValidISOFormat } from "./isSlotEquivalent";
 
 type Maybe<T> = T | undefined;
@@ -11,7 +11,7 @@ type DateInBookerTimeZone = string;
 // Format is YYYY-MM-DDTHH:mm:ssZ
 type SlotInIsoFormat = string;
 type SlotsInIso = { time: SlotInIsoFormat }[];
-type ScheduleData = {
+export type ScheduleData = {
   /**
    * `slots` is a map of date in Booker's timezone to an array of time slots in ISO format
    * So, `DateInBookerTimeZone` could be on a different day number than the slot date in ISO format

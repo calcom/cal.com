@@ -26,7 +26,7 @@ import {
   convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { DataTableToolbar, DataTableFilters, DataTableWrapper, DataTableSelectionBar } from "~/data-table/components";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/web/modules/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
