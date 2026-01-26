@@ -290,6 +290,11 @@ export class TeamRepository {
         // This became necessary when we started migrating user to Org, without migrating some teams of the user to the org
         // Also, we would allow a user to be part of multiple orgs, then also it would be necessary.
         userId: userId,
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
       },
       include: {
         team: {
@@ -348,6 +353,11 @@ export class TeamRepository {
         accepted: true,
         role: {
           in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        },
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
         },
       },
       include: {

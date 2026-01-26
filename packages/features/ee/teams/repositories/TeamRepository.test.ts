@@ -177,6 +177,116 @@ describe("TeamRepository", () => {
       expect(result).toEqual(mockTeam);
     });
   });
+
+  describe("softDelete", () => {
+    it("should set deletedAt timestamp on the team", async () => {
+      const now = new Date();
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+
+      const mockSoftDeletedTeam = {
+        id: 1,
+        name: "Test Team",
+        slug: "test-team",
+        deletedAt: now,
+      };
+      prismaMock.team.update.mockResolvedValue(mockSoftDeletedTeam as unknown as Team);
+
+      const result = await teamRepository.softDelete({ id: 1 });
+
+      expect(prismaMock.team.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { deletedAt: now },
+      });
+      expect(result).toEqual(mockSoftDeletedTeam);
+      expect(result.deletedAt).toEqual(now);
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe("findSoftDeletedOlderThan", () => {
+    it("should find teams soft-deleted older than specified days", async () => {
+      const now = new Date("2026-01-26T12:00:00Z");
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+
+      const oldDeletedTeam = {
+        id: 1,
+        name: "Old Deleted Team",
+        slug: "old-deleted",
+        isOrganization: false,
+        deletedAt: new Date("2026-01-10T12:00:00Z"),
+      };
+      prismaMock.team.findMany.mockResolvedValue([oldDeletedTeam] as unknown as Team[]);
+
+      const result = await teamRepository.findSoftDeletedOlderThan({ days: 15 });
+
+      const expectedCutoffDate = new Date("2026-01-11T12:00:00Z");
+      expect(prismaMock.team.findMany).toHaveBeenCalledWith({
+        where: {
+          deletedAt: {
+            not: null,
+            lt: expectedCutoffDate,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isOrganization: true,
+          deletedAt: true,
+        },
+      });
+      expect(result).toEqual([oldDeletedTeam]);
+
+      vi.useRealTimers();
+    });
+
+    it("should return empty array when no soft-deleted teams exist", async () => {
+      prismaMock.team.findMany.mockResolvedValue([]);
+
+      const result = await teamRepository.findSoftDeletedOlderThan({ days: 0 });
+
+      expect(result).toEqual([]);
+    });
+
+    it("should find teams for immediate deletion when days is 0", async () => {
+      const now = new Date("2026-01-26T12:00:00Z");
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+
+      const recentlyDeletedTeam = {
+        id: 1,
+        name: "Recently Deleted",
+        slug: "recently-deleted",
+        isOrganization: false,
+        deletedAt: new Date("2026-01-26T10:00:00Z"),
+      };
+      prismaMock.team.findMany.mockResolvedValue([recentlyDeletedTeam] as unknown as Team[]);
+
+      const result = await teamRepository.findSoftDeletedOlderThan({ days: 0 });
+
+      expect(prismaMock.team.findMany).toHaveBeenCalledWith({
+        where: {
+          deletedAt: {
+            not: null,
+            lt: now,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isOrganization: true,
+          deletedAt: true,
+        },
+      });
+      expect(result).toEqual([recentlyDeletedTeam]);
+
+      vi.useRealTimers();
+    });
+  });
 });
 
 describe("getOrg", () => {

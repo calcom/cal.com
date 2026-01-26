@@ -32,7 +32,7 @@ function safeJSONStringify(x: unknown) {
   }
 }
 
-async function excludeSoftDeletedTeams(
+export async function excludeSoftDeletedTeams(
   args:
     | Prisma.TeamFindUniqueArgs
     | Prisma.TeamFindFirstArgs
