@@ -1,10 +1,13 @@
 import { Platform, AppState, type AppStateStatus } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import SharedGroupPreferences from "react-native-shared-group-preferences";
+import { ExtensionStorage } from "@bacons/apple-targets";
 
 const APP_GROUP_IDENTIFIER = "group.com.cal.companion";
 const WIDGET_BOOKINGS_KEY = "widgetBookings";
 const ANDROID_WIDGET_STORAGE_KEY = "android_widget_bookings";
+
+// Create ExtensionStorage instance for iOS App Groups
+const iosStorage = new ExtensionStorage(APP_GROUP_IDENTIFIER);
 
 export interface WidgetBookingData {
   id: string;
@@ -30,7 +33,12 @@ function formatTime(dateString: string): string {
 }
 
 async function updateIOSWidget(widgetData: WidgetData): Promise<void> {
-  await SharedGroupPreferences.setItem(WIDGET_BOOKINGS_KEY, widgetData, APP_GROUP_IDENTIFIER);
+  // Use ExtensionStorage from @bacons/apple-targets to store data in App Groups
+  // This properly stores data that iOS widgets can read
+  iosStorage.set(WIDGET_BOOKINGS_KEY, JSON.stringify(widgetData));
+
+  // Trigger widget refresh so it picks up the new data
+  ExtensionStorage.reloadWidget();
 }
 
 async function updateAndroidWidget(widgetData: WidgetData): Promise<void> {
