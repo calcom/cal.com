@@ -27,7 +27,7 @@ interface BookingData {
     email: string;
     name: string | null;
   } | null;
-  assignmentReason: Array<{
+  assignmentReasonSortedByCreatedAt: Array<{
     reasonString: string | null;
     reasonEnum: AssignmentReasonEnum | null;
   }>;
@@ -243,8 +243,8 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
 
   const bookingUid = booking.uid;
   const teamId = booking.eventType?.team?.id ?? null;
-  const routingReason = booking.assignmentReason[0]?.reasonString ?? null;
-  const routingReasonEnum = booking.assignmentReason[0]?.reasonEnum ?? null;
+  const routingReason = booking.assignmentReasonSortedByCreatedAt[0]?.reasonString ?? null;
+  const routingReasonEnum = booking.assignmentReasonSortedByCreatedAt[0]?.reasonEnum ?? null;
   const guestEmail = booking.attendees[0]?.email ?? "";
   const hostEmail = booking.user?.email ?? "";
   const hostName = booking.user?.name ?? null;

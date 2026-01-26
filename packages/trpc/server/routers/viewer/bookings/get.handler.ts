@@ -604,7 +604,7 @@ export async function getBookings({
               .selectAll()
               .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
               .orderBy("AssignmentReason.createdAt", "asc")
-          ).as("assignmentReason"),
+          ).as("assignmentReasonSortedByCreatedAt"),
           jsonObjectFrom(
             eb
               .selectFrom("BookingReport")

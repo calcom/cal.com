@@ -569,7 +569,7 @@ const BookingItemBadges = ({
           </Badge>
         </Tooltip>
       )}
-      {isRejected && !isRescheduled && booking.assignmentReason.length === 0 && (
+      {isRejected && !isRescheduled && booking.assignmentReasonSortedByCreatedAt.length === 0 && (
         <Badge variant="gray" className="ltr:mr-2 rtl:ml-2">
           {t("rejected")}
         </Badge>
@@ -581,7 +581,7 @@ const BookingItemBadges = ({
       )}
       {booking?.assignmentReason.length > 0 && (
         <AssignmentReasonTooltip
-          assignmentReason={booking.assignmentReason[booking.assignmentReason.length - 1]}
+          assignmentReason={booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]}
           onClick={onAssignmentReasonClick}
         />
       )}
