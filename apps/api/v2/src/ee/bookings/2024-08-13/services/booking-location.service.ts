@@ -3,6 +3,7 @@ import {
   BookingReferenceRepository,
   buildCalEventFromBooking,
   CredentialRepository,
+  sendLocationChangeEmailsAndSMS,
   updateEvent,
 } from "@calcom/platform-libraries";
 import { makeUserActor } from "@calcom/platform-libraries/bookings";
@@ -172,13 +173,39 @@ export class BookingLocationService_2024_08_13 {
   }
 
   /**
+   * sends location change email and SMS notifications.
+   * fetches eventType metadata from the booking for email settings.
+   */
+  private async sendLocationChangeNotifications(
+    evt: CalendarEvent,
+    bookingId: number,
+    bookingUid: string,
+    newLocation: string
+  ): Promise<void> {
+    const bookingWithEventType =
+      await this.bookingsRepository.getBookingByIdWithUserAndEventDetails(bookingId);
+    try {
+      await sendLocationChangeEmailsAndSMS(
+        { ...evt, location: newLocation },
+        bookingWithEventType?.eventType?.metadata as Record<string, unknown> | undefined
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send location change emails for booking uid=${bookingUid}`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  /**
    * updates booking with video location data and emits location changed event.
    * returns the updated booking response.
    */
   private async updateBookingWithVideoLocation(
     ctx: IntegrationHandlerContext,
     videoCallUrl: string | undefined,
-    bookingLocation: string
+    bookingLocation: string,
+    evt: CalendarEvent
   ): Promise<BookingLocationResponse> {
     const existingMetadata = (ctx.existingBooking.metadata || {}) as Record<string, unknown>;
     const updatedMetadata = {
@@ -216,6 +243,13 @@ export class BookingLocationService_2024_08_13 {
         },
       },
     });
+
+    await this.sendLocationChangeNotifications(
+      evt,
+      ctx.existingBooking.id,
+      ctx.existingBooking.uid,
+      bookingLocation
+    );
 
     return this.bookingsService.getBooking(updatedBooking.uid, ctx.user);
   }
@@ -339,6 +373,25 @@ export class BookingLocationService_2024_08_13 {
         },
       },
     });
+
+    if (bookingLocation) {
+      const bookingWithDetails = await this.bookingsRepository.getBookingByIdWithUserAndEventDetails(
+        existingBooking.id
+      );
+      if (bookingWithDetails?.user) {
+        const evt = await this.buildCalEventForIntegration(
+          bookingWithDetails as BookingWithDetails,
+          bookingLocation,
+          null
+        );
+        await this.sendLocationChangeNotifications(
+          evt,
+          existingBooking.id,
+          existingBooking.uid,
+          bookingLocation
+        );
+      }
+    }
 
     return this.bookingsService.getBooking(updatedBooking.uid, user);
   }
@@ -471,7 +524,7 @@ export class BookingLocationService_2024_08_13 {
       await this.syncCalendarEvent(ctx.existingBooking.id, bookingLocation);
     }
 
-    return this.updateBookingWithVideoLocation(ctx, videoCallUrl, bookingLocation);
+    return this.updateBookingWithVideoLocation(ctx, videoCallUrl, bookingLocation, evt);
   }
 
   /**
@@ -529,7 +582,7 @@ export class BookingLocationService_2024_08_13 {
       await this.syncCalendarEvent(ctx.existingBooking.id, bookingLocation);
     }
 
-    return this.updateBookingWithVideoLocation(ctx, videoCallUrl, bookingLocation);
+    return this.updateBookingWithVideoLocation(ctx, videoCallUrl, bookingLocation, evt);
   }
 
   /**
@@ -621,6 +674,13 @@ export class BookingLocationService_2024_08_13 {
         },
       },
     });
+
+    await this.sendLocationChangeNotifications(
+      evt,
+      ctx.existingBooking.id,
+      ctx.existingBooking.uid,
+      bookingLocation
+    );
 
     return this.bookingsService.getBooking(updatedBooking.uid, ctx.user);
   }
