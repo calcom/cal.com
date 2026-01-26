@@ -1,3 +1,4 @@
+"use no memo";
 /**
  * Video Call Screen
  *
@@ -6,6 +7,9 @@
  *
  * The Daily SDK is loaded dynamically to prevent crashes in environments
  * where native modules aren't available (like Expo Go or web).
+ *
+ * Note: "use no memo" directive excludes this file from React Compiler
+ * because dynamic import() expressions are not yet supported.
  */
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
