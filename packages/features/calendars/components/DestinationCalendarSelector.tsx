@@ -5,34 +5,28 @@ import { components } from "react-select";
 
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { App } from "@calcom/types/App";
+import type { IntegrationCalendar } from "@calcom/types/Calendar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 interface ConnectedCalendar {
   credentialId: number;
-  integration: {
-    title?: string;
-  };
+  integration: App & { title?: string };
   primary?: {
     integration: string;
     email: string;
     name: string | null;
   } | null;
-  calendars?: {
-    externalId: string;
-    integration: string;
-    name: string | null;
-    readOnly: boolean;
-  }[];
+  calendars?: IntegrationCalendar[];
+  cacheUpdatedAt: null;
 }
 
-interface DestinationCalendar {
-  integration: string;
-  externalId: string;
-  primaryEmail: string;
-  name: string | null;
-  integrationTitle: string;
+interface DestinationCalendar extends IntegrationCalendar {
+  id: number;
+  userId: number | null;
+  eventTypeId: number | null;
 }
 
 interface CalendarsQueryData {

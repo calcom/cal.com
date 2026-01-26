@@ -26,9 +26,14 @@ interface Schedule {
   isDefault: boolean;
   timeZone?: string | null;
   availability: {
+    id: number;
+    userId: number | null;
+    eventTypeId: number | null;
     days: number[];
     startTime: Date;
     endTime: Date;
+    date: Date | null;
+    scheduleId: number | null;
   }[];
 }
 
