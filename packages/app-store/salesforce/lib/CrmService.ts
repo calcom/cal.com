@@ -219,6 +219,8 @@ class SalesforceCRMService implements CRM {
     if (!credentialKey.refresh_token)
       throw new Error(`Refresh token is missing for credential ${credential.id}`);
 
+    const refreshToken = credentialKey.refresh_token;
+
     // Check if token is still valid
     // issued_at is in milliseconds (string), token_lifetime is in seconds
     const BUFFER_MS = 5 * 60 * 1000; // 5 minutes buffer before expiry
@@ -230,7 +232,7 @@ class SalesforceCRMService implements CRM {
     if (!isTokenValid) {
       try {
         const result = await this.refreshAccessToken({
-          refreshToken: credentialKey.refresh_token,
+          refreshToken,
           forceIntrospection: false,
           existingTokenLifetime: credentialKey.token_lifetime,
         });
@@ -265,7 +267,7 @@ class SalesforceCRMService implements CRM {
         try {
           // Force introspection to recalibrate token_lifetime after unexpected expiry
           const result = await this.refreshAccessToken({
-            refreshToken: credentialKey.refresh_token,
+            refreshToken,
             forceIntrospection: true,
           });
 
