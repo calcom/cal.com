@@ -653,6 +653,7 @@ model Team {
 
 model CreditBalance {
   id                String              @id @default(uuid())
+  uuid              String?             @unique @default(uuid()) @db.Uuid
   team              Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId            Int?                @unique
   // user credit balances will be supported in the future
