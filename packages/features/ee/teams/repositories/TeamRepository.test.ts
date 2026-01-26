@@ -138,7 +138,7 @@ describe("TeamRepository", () => {
       prismaMock.team.findMany.mockResolvedValue(mockTeams as unknown as Team[]);
       const result = await teamRepository.findAllByParentId({ parentId: 1 });
       expect(prismaMock.team.findMany).toHaveBeenCalledWith({
-        where: { parentId: 1, deletedAt: null },
+        where: { parentId: 1 },
         select: {
           id: true,
           name: true,
@@ -161,7 +161,7 @@ describe("TeamRepository", () => {
       prismaMock.team.findFirst.mockResolvedValue(mockTeam as unknown as Team & { members: [] });
       const result = await teamRepository.findTeamWithMembers(1);
       expect(prismaMock.team.findFirst).toHaveBeenCalledWith({
-        where: { id: 1, deletedAt: null },
+        where: { id: 1 },
         select: {
           members: {
             select: {
@@ -205,7 +205,6 @@ describe("getOrg", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
-        deletedAt: null,
         slug: "test-slug",
         isOrganization: true,
       },
@@ -245,7 +244,6 @@ describe("getOrg", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
-        deletedAt: null,
         slug: "test-slug",
         isOrganization: true,
       },
@@ -316,7 +314,6 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
-        deletedAt: null,
         slug: "test-slug",
       },
       select: {
@@ -359,7 +356,6 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
-        deletedAt: null,
         slug: "test-slug",
       },
       select: {
@@ -401,7 +397,6 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
-        deletedAt: null,
         slug: "team-in-test-org",
         parent: {
           OR: [
@@ -445,7 +440,6 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
-        deletedAt: null,
         slug: "test-team",
         parent: {
           isOrganization: true,

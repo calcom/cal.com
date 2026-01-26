@@ -9,12 +9,6 @@ import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-/**
- * Filter to exclude soft-deleted teams from queries.
- * Teams with a non-null deletedAt are considered deleted.
- */
-const notSoftDeleted = { deletedAt: null } satisfies Prisma.TeamWhereInput;
-
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {
       metadata: z.infer<typeof teamMetadataSchema>;
@@ -55,9 +49,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   isOrg,
   teamSelect,
 }: GetTeamOrOrgArg<TeamSelect>): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
-  const where: Prisma.TeamFindFirstArgs["where"] = {
-    ...notSoftDeleted,
-  };
+  const where: Prisma.TeamFindFirstArgs["where"] = {};
   teamSelect = {
     ...teamSelect,
     metadata: true,
@@ -179,10 +171,7 @@ export class TeamRepository {
 
   async findById({ id }: { id: number }) {
     const team = await this.prismaClient.team.findFirst({
-      where: {
-        id,
-        ...notSoftDeleted,
-      },
+      where: { id },
       select: teamSelect,
     });
     if (!team) {
@@ -193,10 +182,7 @@ export class TeamRepository {
 
   async findByIdIncludePlatformBilling({ id }: { id: number }) {
     const team = await this.prismaClient.team.findFirst({
-      where: {
-        id,
-        ...notSoftDeleted,
-      },
+      where: { id },
       select: { ...teamSelect, platformBilling: true },
     });
     if (!team) {
@@ -213,10 +199,7 @@ export class TeamRepository {
     select?: Prisma.TeamSelect;
   }) {
     return await this.prismaClient.team.findMany({
-      where: {
-        parentId,
-        ...notSoftDeleted,
-      },
+      where: { parentId },
       select,
     });
   }
@@ -231,11 +214,7 @@ export class TeamRepository {
     select?: Prisma.TeamSelect;
   }) {
     return await this.prismaClient.team.findFirst({
-      where: {
-        id,
-        parentId,
-        ...notSoftDeleted,
-      },
+      where: { id, parentId },
       select,
     });
   }
@@ -253,7 +232,6 @@ export class TeamRepository {
       where: {
         slug,
         parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
-        ...notSoftDeleted,
       },
       select,
     });
@@ -289,7 +267,7 @@ export class TeamRepository {
 
   async findTeamWithMembers(teamId: number) {
     return await this.prismaClient.team.findFirst({
-      where: { id: teamId, ...notSoftDeleted },
+      where: { id: teamId },
       select: {
         members: {
           select: {
@@ -312,7 +290,6 @@ export class TeamRepository {
         // This became necessary when we started migrating user to Org, without migrating some teams of the user to the org
         // Also, we would allow a user to be part of multiple orgs, then also it would be necessary.
         userId: userId,
-        team: notSoftDeleted,
       },
       include: {
         team: {
@@ -372,7 +349,6 @@ export class TeamRepository {
         role: {
           in: [MembershipRole.OWNER, MembershipRole.ADMIN],
         },
-        team: notSoftDeleted,
       },
       include: {
         team: {
@@ -391,7 +367,7 @@ export class TeamRepository {
 
   async findTeamWithOrganizationSettings(teamId: number) {
     return await this.prismaClient.team.findFirst({
-      where: { id: teamId, ...notSoftDeleted },
+      where: { id: teamId },
       select: {
         parent: {
           select: {
@@ -405,10 +381,7 @@ export class TeamRepository {
 
   async findParentOrganizationByTeamId(teamId: number) {
     const team = await this.prismaClient.team.findFirst({
-      where: {
-        id: teamId,
-        ...notSoftDeleted,
-      },
+      where: { id: teamId },
       select: {
         parent: {
           select: {
@@ -426,7 +399,6 @@ export class TeamRepository {
       where: {
         slug,
         isOrganization: true,
-        ...notSoftDeleted,
       },
       select: {
         organizationSettings: {
@@ -440,10 +412,7 @@ export class TeamRepository {
 
   async findTeamSlugById({ id }: { id: number }) {
     return await this.prismaClient.team.findFirst({
-      where: {
-        id,
-        ...notSoftDeleted,
-      },
+      where: { id },
       select: {
         slug: true,
       },
@@ -452,7 +421,7 @@ export class TeamRepository {
 
   async findTeamWithParentHideBranding({ teamId }: { teamId: number }) {
     return await this.prismaClient.team.findFirst({
-      where: { id: teamId, ...notSoftDeleted },
+      where: { id: teamId },
       select: {
         hideBranding: true,
         parent: {
@@ -468,7 +437,6 @@ export class TeamRepository {
     return await this.prismaClient.team.findFirst({
       where: {
         isOrganization: true,
-        ...notSoftDeleted,
         children: {
           some: {
             id: teamId,
@@ -493,7 +461,6 @@ export class TeamRepository {
         slug,
         parentId: null,
         isOrganization: true,
-        ...notSoftDeleted,
       },
       select: {
         id: true,
@@ -518,7 +485,6 @@ export class TeamRepository {
       },
       parentId: parentId ?? null,
       NOT: { id: teamId },
-      ...notSoftDeleted,
     };
 
     const conflictingTeam = await this.prismaClient.team.findFirst({
@@ -531,10 +497,7 @@ export class TeamRepository {
 
   async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
     return await this.prismaClient.team.findFirst({
-      where: {
-        id: teamId,
-        ...notSoftDeleted,
-      },
+      where: { id: teamId },
       select: {
         id: true,
         metadata: true,
@@ -554,10 +517,7 @@ export class TeamRepository {
     return await this.prismaClient.team.findMany({
       where: {
         parentId,
-        id: {
-          not: excludeTeamId,
-        },
-        ...notSoftDeleted,
+        id: { not: excludeTeamId },
       },
       select: { id: true },
     });
@@ -565,7 +525,7 @@ export class TeamRepository {
 
   async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
     return await this.prismaClient.team.findMany({
-      where: { id: { in: teamIds }, ...notSoftDeleted },
+      where: { id: { in: teamIds } },
       select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
     });
   }
@@ -633,7 +593,6 @@ export class TeamRepository {
         NOT: {
           parentId: orgId, // Finds any team whose orgId is NOT the target ID
         },
-        ...notSoftDeleted,
       },
     });
   }
@@ -643,7 +602,6 @@ export class TeamRepository {
       where: {
         id: { in: teamIds },
         OR: [{ id: orgId }, { parentId: orgId }],
-        ...notSoftDeleted,
       },
       select: { id: true },
     });
@@ -654,7 +612,6 @@ export class TeamRepository {
       select: { id: true },
       where: {
         slug: teamSlug,
-        ...notSoftDeleted,
         members: {
           some: {
             userId,
