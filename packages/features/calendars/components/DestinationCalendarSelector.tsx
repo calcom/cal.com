@@ -18,25 +18,27 @@ type CalendarWithPrimary = Omit<IntegrationCalendar, "primary"> & {
 
 interface ConnectedCalendar {
   credentialId: number;
-  integration: App & { title?: string };
+  integration: App & { title?: string; slug?: string; [key: string]: any };
   primary?: CalendarWithPrimary | null;
-  calendars?: CalendarWithPrimary[];
-  cacheUpdatedAt: null;
+  calendars?: CalendarWithPrimary[] | null;
+  cacheUpdatedAt?: Date | string | null;
+  [key: string]: any;
 }
 
 interface DestinationCalendar {
   integration: string;
   externalId: string;
-  primaryEmail?: string;
+  primaryEmail?: string | null;
   name?: string | null;
-  integrationTitle?: string;
+  integrationTitle?: string | null;
   credentialId?: number | null;
-  email?: string;
-  readOnly?: boolean;
-  primary?: boolean;
-  id?: string;
+  email?: string | null;
+  readOnly?: boolean | null;
+  primary?: boolean | null;
+  id?: string | number | null;
   userId?: number | null;
   eventTypeId?: number | null;
+  [key: string]: any;
 }
 
 interface CalendarsQueryData {
