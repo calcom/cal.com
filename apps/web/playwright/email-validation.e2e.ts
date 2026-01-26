@@ -10,7 +10,7 @@ test.describe("Email field validation", () => {
     await users.deleteAll();
   });
 
-  // This test demonstrates a validation gap: email format is not validated when the field is optional
+  // This test verifies that email format is validated even when the email field is optional
   test("should validate email format even when email field is optional", async ({ page, users }) => {
     const user = await users.create({
       eventTypes: [
