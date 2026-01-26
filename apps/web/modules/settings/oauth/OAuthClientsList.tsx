@@ -60,6 +60,9 @@ export const OAuthClientsList = ({
             />
             <div>
               <div className="text-emphasis font-medium">{client.name}</div>
+              {client.user?.email && (
+                <div className="text-subtle text-sm">{client.user.email}</div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
