@@ -130,7 +130,7 @@ export function Authorize() {
     return (
       <div className="flex justify-center pt-32">
         <div className="flex items-center space-x-3">
-          <span className="text-lg font-medium text-gray-700">Authorizing...</span>
+          <span className="text-lg font-medium text-gray-700">{t("authorizing")}</span>
         </div>
       </div>
     );
@@ -168,7 +168,7 @@ export function Authorize() {
               />
               <Tooltip content={session?.user?.email} side="bottom">
                 <span className="cursor-default">
-                  Signed in as {session?.user?.name || session?.user?.email}
+                  {t("signed_in_as", { name: session?.user?.name || session?.user?.email })}
                 </span>
               </Tooltip>
             </div>

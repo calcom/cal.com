@@ -2903,6 +2903,8 @@
   "allow_client_to_do": "Allow {{clientName}} to do this?",
   "oauth_access_information": "By clicking allow, you allow this app to use your information in accordance with their terms of service and privacy policy.",
   "allow": "Allow",
+  "authorizing": "Authorizing...",
+  "signed_in_as": "Signed in as {{name}}",
   "view_only_edit_availability_not_onboarded": "This user has not completed onboarding. You will not be able to set their availability until they have completed onboarding.",
   "view_only_edit_availability": "You are viewing this user's availability. You can only edit your own availability.",
   "you_can_override_calendar_in_advanced_tab": "You can override this on a per-event basis in the advanced settings in each event type.",
