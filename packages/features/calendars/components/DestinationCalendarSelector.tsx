@@ -14,12 +14,12 @@ interface ConnectedCalendar {
   integration: {
     title?: string;
   };
-  primary: {
+  primary?: {
     integration: string;
     email: string;
     name: string | null;
   } | null;
-  calendars: {
+  calendars?: {
     externalId: string;
     integration: string;
     name: string | null;
