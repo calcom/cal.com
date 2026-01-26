@@ -7,7 +7,7 @@ describe("PrismaPendingRoutingTraceRepository", () => {
   let repository: PrismaPendingRoutingTraceRepository;
 
   const mockPrisma = {
-    pendingRoutingTraces: {
+    pendingRoutingTrace: {
       create: vi.fn(),
       findUnique: vi.fn(),
     },
@@ -29,7 +29,7 @@ describe("PrismaPendingRoutingTraceRepository", () => {
         },
       ];
 
-      vi.mocked(mockPrisma.pendingRoutingTraces.create).mockResolvedValue({
+      vi.mocked(mockPrisma.pendingRoutingTrace.create).mockResolvedValue({
         id: "pending-1",
         createdAt: new Date(),
         trace,
@@ -42,7 +42,7 @@ describe("PrismaPendingRoutingTraceRepository", () => {
         formResponseId: 123,
       });
 
-      expect(mockPrisma.pendingRoutingTraces.create).toHaveBeenCalledWith({
+      expect(mockPrisma.pendingRoutingTrace.create).toHaveBeenCalledWith({
         data: {
           createdAt: expect.any(Date),
           trace,
@@ -62,7 +62,7 @@ describe("PrismaPendingRoutingTraceRepository", () => {
         },
       ];
 
-      vi.mocked(mockPrisma.pendingRoutingTraces.create).mockResolvedValue({
+      vi.mocked(mockPrisma.pendingRoutingTrace.create).mockResolvedValue({
         id: "pending-2",
         createdAt: new Date(),
         trace,
@@ -75,7 +75,7 @@ describe("PrismaPendingRoutingTraceRepository", () => {
         queuedFormResponseId: "queued-123",
       });
 
-      expect(mockPrisma.pendingRoutingTraces.create).toHaveBeenCalledWith({
+      expect(mockPrisma.pendingRoutingTrace.create).toHaveBeenCalledWith({
         data: {
           createdAt: expect.any(Date),
           trace,
@@ -88,7 +88,7 @@ describe("PrismaPendingRoutingTraceRepository", () => {
     it("should create a pending routing trace with empty trace array", async () => {
       const trace: never[] = [];
 
-      vi.mocked(mockPrisma.pendingRoutingTraces.create).mockResolvedValue({
+      vi.mocked(mockPrisma.pendingRoutingTrace.create).mockResolvedValue({
         id: "pending-3",
         createdAt: new Date(),
         trace,
@@ -101,7 +101,7 @@ describe("PrismaPendingRoutingTraceRepository", () => {
         formResponseId: 456,
       });
 
-      expect(mockPrisma.pendingRoutingTraces.create).toHaveBeenCalledWith({
+      expect(mockPrisma.pendingRoutingTrace.create).toHaveBeenCalledWith({
         data: {
           createdAt: expect.any(Date),
           trace,
@@ -131,11 +131,11 @@ describe("PrismaPendingRoutingTraceRepository", () => {
         queuedFormResponseId: null,
       };
 
-      vi.mocked(mockPrisma.pendingRoutingTraces.findUnique).mockResolvedValue(mockResult);
+      vi.mocked(mockPrisma.pendingRoutingTrace.findUnique).mockResolvedValue(mockResult);
 
       const result = await repository.findByFormResponseId(123);
 
-      expect(mockPrisma.pendingRoutingTraces.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.pendingRoutingTrace.findUnique).toHaveBeenCalledWith({
         where: { formResponseId: 123 },
       });
       expect(result).toEqual({
@@ -148,11 +148,11 @@ describe("PrismaPendingRoutingTraceRepository", () => {
     });
 
     it("should return null when no pending routing trace is found", async () => {
-      vi.mocked(mockPrisma.pendingRoutingTraces.findUnique).mockResolvedValue(null);
+      vi.mocked(mockPrisma.pendingRoutingTrace.findUnique).mockResolvedValue(null);
 
       const result = await repository.findByFormResponseId(999);
 
-      expect(mockPrisma.pendingRoutingTraces.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.pendingRoutingTrace.findUnique).toHaveBeenCalledWith({
         where: { formResponseId: 999 },
       });
       expect(result).toBeNull();
@@ -178,11 +178,11 @@ describe("PrismaPendingRoutingTraceRepository", () => {
         queuedFormResponseId: "queued-456",
       };
 
-      vi.mocked(mockPrisma.pendingRoutingTraces.findUnique).mockResolvedValue(mockResult);
+      vi.mocked(mockPrisma.pendingRoutingTrace.findUnique).mockResolvedValue(mockResult);
 
       const result = await repository.findByQueuedFormResponseId("queued-456");
 
-      expect(mockPrisma.pendingRoutingTraces.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.pendingRoutingTrace.findUnique).toHaveBeenCalledWith({
         where: { queuedFormResponseId: "queued-456" },
       });
       expect(result).toEqual({
@@ -195,11 +195,11 @@ describe("PrismaPendingRoutingTraceRepository", () => {
     });
 
     it("should return null when no pending routing trace is found by queuedFormResponseId", async () => {
-      vi.mocked(mockPrisma.pendingRoutingTraces.findUnique).mockResolvedValue(null);
+      vi.mocked(mockPrisma.pendingRoutingTrace.findUnique).mockResolvedValue(null);
 
       const result = await repository.findByQueuedFormResponseId("non-existent");
 
-      expect(mockPrisma.pendingRoutingTraces.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.pendingRoutingTrace.findUnique).toHaveBeenCalledWith({
         where: { queuedFormResponseId: "non-existent" },
       });
       expect(result).toBeNull();

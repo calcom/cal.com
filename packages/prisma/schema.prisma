@@ -1345,7 +1345,7 @@ model App_RoutingForms_FormResponse {
   routingFormResponseFields RoutingFormResponseField[]
   routingFormResponses      RoutingFormResponseDenormalized[]
   queuedFormResponse        App_RoutingForms_QueuedFormResponse?
-  pendingRoutingTraces      PendingRoutingTraces[]
+  pendingRoutingTrace       PendingRoutingTrace?
   routingTrace              RoutingTrace?
 
   @@unique([formFillerId, formId])
@@ -1355,17 +1355,17 @@ model App_RoutingForms_FormResponse {
 }
 
 model App_RoutingForms_QueuedFormResponse {
-  id                   String                         @id @default(cuid())
-  form                 App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId               String
-  response             Json
-  chosenRouteId        String?
-  createdAt            DateTime                       @default(now())
-  updatedAt            DateTime?                      @updatedAt
-  actualResponseId     Int?                           @unique
-  actualResponse       App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
-  pendingRoutingTraces PendingRoutingTraces[]
-  routingTrace         RoutingTrace?
+  id                  String                         @id @default(cuid())
+  form                App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId              String
+  response            Json
+  chosenRouteId       String?
+  createdAt           DateTime                       @default(now())
+  updatedAt           DateTime?                      @updatedAt
+  actualResponseId    Int?                           @unique
+  actualResponse      App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  pendingRoutingTrace PendingRoutingTrace?
+  routingTrace        RoutingTrace?
 }
 
 model RoutingFormResponseField {
@@ -3208,7 +3208,7 @@ model AttributeSyncFieldMapping {
   @@index([integrationAttributeSyncId])
 }
 
-model PendingRoutingTraces {
+model PendingRoutingTrace {
   id        String   @id @default(uuid())
   createdAt DateTime
   trace     Json
