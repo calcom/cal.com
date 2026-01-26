@@ -51,4 +51,14 @@ export class PrismaPendingRoutingTraceRepository
       trace: result.trace as RoutingTrace,
     };
   }
+
+  async linkToFormResponse(args: {
+    queuedFormResponseId: string;
+    formResponseId: number;
+  }): Promise<void> {
+    await this.prisma.pendingRoutingTraces.update({
+      where: { queuedFormResponseId: args.queuedFormResponseId },
+      data: { formResponseId: args.formResponseId },
+    });
+  }
 }
