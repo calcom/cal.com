@@ -17,13 +17,25 @@ export function useWidgetSync() {
       return;
     }
 
-    // Get cached bookings outside of try/catch to avoid React Compiler limitation
-    const cachedBookings = queryClient.getQueryData<Booking[]>(
-      queryKeys.bookings.list({ status: ["upcoming", "unconfirmed"] })
-    );
-    const hasCachedBookings = cachedBookings !== undefined && cachedBookings.length > 0;
+    // Try to get cached bookings from any of the common query keys used in the app
+    // The app uses different filter combinations, so we check multiple keys
+    const possibleFilters = [
+      { status: ["upcoming"], limit: 50 },
+      { status: ["upcoming"] },
+      { status: ["upcoming", "unconfirmed"] },
+      {},
+    ];
 
-    if (hasCachedBookings) {
+    let cachedBookings: Booking[] | undefined;
+    for (const filters of possibleFilters) {
+      const cached = queryClient.getQueryData<Booking[]>(queryKeys.bookings.list(filters));
+      if (cached !== undefined && cached.length > 0) {
+        cachedBookings = cached;
+        break;
+      }
+    }
+
+    if (cachedBookings !== undefined && cachedBookings.length > 0) {
       try {
         const upcomingBookings = cachedBookings
           .filter((booking) => {
@@ -37,10 +49,11 @@ export function useWidgetSync() {
         console.warn("Failed to sync cached bookings to widget:", error);
       }
     } else {
+      // No cached data found, fetch from API
       try {
         const bookings = await CalComAPIService.getBookings({
-          status: ["upcoming", "unconfirmed"],
-          limit: 5,
+          status: ["upcoming"],
+          limit: 10,
         });
 
         const upcomingBookings = bookings

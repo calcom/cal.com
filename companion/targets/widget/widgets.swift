@@ -36,12 +36,25 @@ struct Provider: TimelineProvider {
     }
     
     private func loadBookings() -> [BookingData] {
-        guard let userDefaults = UserDefaults(suiteName: "group.com.cal.companion"),
-              let data = userDefaults.data(forKey: "widgetBookings"),
-              let widgetData = try? JSONDecoder().decode(WidgetData.self, from: data) else {
+        guard let userDefaults = UserDefaults(suiteName: "group.com.cal.companion") else {
             return []
         }
-        return widgetData.bookings
+        
+        // react-native-shared-group-preferences stores data as a JSON string, not raw Data
+        // Try reading as string first (the format used by the library)
+        if let jsonString = userDefaults.string(forKey: "widgetBookings"),
+           let data = jsonString.data(using: .utf8),
+           let widgetData = try? JSONDecoder().decode(WidgetData.self, from: data) {
+            return widgetData.bookings
+        }
+        
+        // Fallback: try reading as raw Data (in case format changes)
+        if let data = userDefaults.data(forKey: "widgetBookings"),
+           let widgetData = try? JSONDecoder().decode(WidgetData.self, from: data) {
+            return widgetData.bookings
+        }
+        
+        return []
     }
 }
 
