@@ -97,6 +97,17 @@ describe("CachedFeatureRepository", () => {
       expect(mockRedis.get).toHaveBeenCalledWith("features:global:slug:feature-1");
       expect(mockPrisma.feature.findUnique).toHaveBeenCalledWith({
         where: { slug: "feature-1" },
+        select: {
+          slug: true,
+          enabled: true,
+          description: true,
+          type: true,
+          stale: true,
+          lastUsedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          updatedBy: true,
+        },
       });
       expect(mockRedis.set).toHaveBeenCalled();
     });
@@ -110,6 +121,17 @@ describe("CachedFeatureRepository", () => {
       expect(result).toBeNull();
       expect(mockPrisma.feature.findUnique).toHaveBeenCalledWith({
         where: { slug: "non-existent" },
+        select: {
+          slug: true,
+          enabled: true,
+          description: true,
+          type: true,
+          stale: true,
+          lastUsedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          updatedBy: true,
+        },
       });
     });
   });
@@ -162,6 +184,17 @@ describe("CachedFeatureRepository", () => {
       expect(mockRedis.get).toHaveBeenCalledWith("features:global:all");
       expect(mockPrisma.feature.findMany).toHaveBeenCalledWith({
         orderBy: { slug: "asc" },
+        select: {
+          slug: true,
+          enabled: true,
+          description: true,
+          type: true,
+          stale: true,
+          lastUsedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          updatedBy: true,
+        },
       });
       expect(mockRedis.set).toHaveBeenCalled();
     });
@@ -242,6 +275,17 @@ describe("CachedFeatureRepository", () => {
       expect(mockPrisma.feature.update).toHaveBeenCalledWith({
         where: { slug: "feature-1" },
         data: { enabled: false, updatedBy: 1, updatedAt: expect.any(Date) },
+        select: {
+          slug: true,
+          enabled: true,
+          description: true,
+          type: true,
+          stale: true,
+          lastUsedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          updatedBy: true,
+        },
       });
       expect(mockRedis.del).toHaveBeenCalledWith("features:global:slug:feature-1");
     });

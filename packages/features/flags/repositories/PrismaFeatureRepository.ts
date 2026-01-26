@@ -16,56 +16,55 @@ export class PrismaFeatureRepository implements IFeatureRepository {
   }
 
   async findAll(): Promise<FeatureDto[]> {
-    const features = await this.prisma.feature.findMany({
+    return this.prisma.feature.findMany({
       orderBy: { slug: "asc" },
+      select: {
+        slug: true,
+        enabled: true,
+        description: true,
+        type: true,
+        stale: true,
+        lastUsedAt: true,
+        createdAt: true,
+        updatedAt: true,
+        updatedBy: true,
+      },
     });
-    return features.map((f) => ({
-      slug: f.slug,
-      enabled: f.enabled,
-      description: f.description,
-      type: f.type,
-      stale: f.stale,
-      lastUsedAt: f.lastUsedAt,
-      createdAt: f.createdAt,
-      updatedAt: f.updatedAt,
-      updatedBy: f.updatedBy,
-    }));
   }
 
   async findBySlug(slug: string): Promise<FeatureDto | null> {
-    const feature = await this.prisma.feature.findUnique({
+    return this.prisma.feature.findUnique({
       where: { slug },
+      select: {
+        slug: true,
+        enabled: true,
+        description: true,
+        type: true,
+        stale: true,
+        lastUsedAt: true,
+        createdAt: true,
+        updatedAt: true,
+        updatedBy: true,
+      },
     });
-    if (!feature) return null;
-    return {
-      slug: feature.slug,
-      enabled: feature.enabled,
-      description: feature.description,
-      type: feature.type,
-      stale: feature.stale,
-      lastUsedAt: feature.lastUsedAt,
-      createdAt: feature.createdAt,
-      updatedAt: feature.updatedAt,
-      updatedBy: feature.updatedBy,
-    };
   }
 
   async update(input: { featureId: FeatureId; enabled: boolean; updatedBy?: number }): Promise<FeatureDto> {
     const { featureId, enabled, updatedBy } = input;
-    const feature = await this.prisma.feature.update({
+    return this.prisma.feature.update({
       where: { slug: featureId },
       data: { enabled, updatedBy, updatedAt: new Date() },
+      select: {
+        slug: true,
+        enabled: true,
+        description: true,
+        type: true,
+        stale: true,
+        lastUsedAt: true,
+        createdAt: true,
+        updatedAt: true,
+        updatedBy: true,
+      },
     });
-    return {
-      slug: feature.slug,
-      enabled: feature.enabled,
-      description: feature.description,
-      type: feature.type,
-      stale: feature.stale,
-      lastUsedAt: feature.lastUsedAt,
-      createdAt: feature.createdAt,
-      updatedAt: feature.updatedAt,
-      updatedBy: feature.updatedBy,
-    };
   }
 }

@@ -7,6 +7,7 @@ import { PrismaUserFeatureRepository } from "../PrismaUserFeatureRepository";
 interface MockPrisma {
   userFeatures: {
     findUnique: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
     upsert: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
@@ -31,6 +32,7 @@ function createMockPrisma(): MockPrisma {
   return {
     userFeatures: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       upsert: vi.fn(),
       delete: vi.fn(),
     },
@@ -138,15 +140,28 @@ describe("CachedUserFeatureRepository", () => {
         updatedAt: new Date("2024-01-01"),
       };
 
-      vi.mocked(mockPrisma.userFeatures.findUnique)
-        .mockResolvedValueOnce(dbFeature1)
-        .mockResolvedValueOnce(dbFeature2);
+      vi.mocked(mockPrisma.userFeatures.findMany).mockResolvedValue([dbFeature1, dbFeature2]);
 
       const result = await repository.findByUserIdAndFeatureIds(1, ["feature-1", "feature-2"]);
 
       expect(result).toEqual({
         "feature-1": dbFeature1,
         "feature-2": dbFeature2,
+      });
+      expect(mockPrisma.userFeatures.findMany).toHaveBeenCalledWith({
+        where: {
+          userId: 1,
+          featureId: {
+            in: ["feature-1", "feature-2"],
+          },
+        },
+        select: {
+          userId: true,
+          featureId: true,
+          enabled: true,
+          assignedBy: true,
+          updatedAt: true,
+        },
       });
     });
   });
