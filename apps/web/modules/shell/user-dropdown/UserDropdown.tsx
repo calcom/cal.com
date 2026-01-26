@@ -179,112 +179,84 @@ export function UserDropdown({ small }: UserDropdownProps) {
         <MenuPopup align="start" className="group w-[220px] overflow-hidden rounded-md">
           {!isPlatformPages && (
             <>
-              <MenuItem
-                render={<Link href="/settings/my-account/profile" />}
-                className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
+              <MenuItem render={<Link href="/settings/my-account/profile" />}>
+                <Icon name="user" />
                 {t("my_profile")}
               </MenuItem>
-              <MenuItem
-                render={<Link href="/settings/my-account/general" />}
-                className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+              <MenuItem render={<Link href="/settings/my-account/general" />}>
+                <Icon name="settings" />
                 {t("my_settings")}
               </MenuItem>
-              <MenuItem
-                render={<Link href="/settings/my-account/out-of-office" />}
-                className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
+              <MenuItem render={<Link href="/settings/my-account/out-of-office" />}>
+                <Icon name="moon" />
                 {t("out_of_office")}
               </MenuItem>
               <MenuSeparator />
             </>
           )}
 
-          <MenuItem
-            render={<a href={ROADMAP} target="_blank" rel="noreferrer" />}
-            className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-            <Icon name="map" className="h-4 w-4" />
+          <MenuItem render={<a href={ROADMAP} target="_blank" rel="noreferrer" />}>
+            <Icon name="map" />
             {t("visit_roadmap")}
           </MenuItem>
-          <MenuItem
-            onClick={handleHelpClick}
-            className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-            <Icon name="circle-help" className="h-4 w-4" aria-hidden="true" />
+          <MenuItem onClick={handleHelpClick}>
+            <Icon name="circle-help" />
             {t("help")}
           </MenuItem>
           {!isPlatformPages && (
             <MenuSub>
               <MenuSubTrigger className="todesktop:hidden hidden lg:flex">
-                <Icon name="download" className="h-4 w-4" />
+                <Icon name="download" />
                 {t("download_app")}
               </MenuSubTrigger>
               <MenuSubPopup>
-                <MenuItem
-                  render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}
-                  className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                  <AppleIcon className="h-4 w-4 fill-foreground" />
+                <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
+                  <AppleIcon className="size-4 fill-foreground" />
                   {t("download_for_ios")}
                 </MenuItem>
-                <MenuItem
-                  render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}
-                  className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                  <PlayStoreIcon className="h-4 w-4" />
+                <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
+                  <PlayStoreIcon className="size-4" />
                   {t("download_for_android")}
                 </MenuItem>
                 {browser === "chrome" && (
-                  <MenuItem
-                    render={<a href={DOWNLOAD_LINKS.chrome} target="_blank" rel="noreferrer" />}
-                    className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                    <ChromeIcon className="h-4 w-4" />
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.chrome} target="_blank" rel="noreferrer" />}>
+                    <ChromeIcon className="size-4" />
                     {t("download_chrome_extension")}
                   </MenuItem>
                 )}
                 {browser === "safari" && (
-                  <MenuItem
-                    render={<a href={DOWNLOAD_LINKS.safari} target="_blank" rel="noreferrer" />}
-                    className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                    <SafariIcon className="h-4 w-4" />
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.safari} target="_blank" rel="noreferrer" />}>
+                    <SafariIcon className="size-4" />
                     {t("download_safari_extension")}
                   </MenuItem>
                 )}
                 {browser === "firefox" && (
-                  <MenuItem
-                    render={<a href={DOWNLOAD_LINKS.firefox} target="_blank" rel="noreferrer" />}
-                    className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                    <FirefoxIcon className="h-4 w-4" />
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.firefox} target="_blank" rel="noreferrer" />}>
+                    <FirefoxIcon className="size-4" />
                     {t("download_firefox_extension")}
                   </MenuItem>
                 )}
                 {browser === "edge" && (
-                  <MenuItem
-                    render={<a href={DOWNLOAD_LINKS.edge} target="_blank" rel="noreferrer" />}
-                    className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                    <EdgeIcon className="h-4 w-4" />
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.edge} target="_blank" rel="noreferrer" />}>
+                    <EdgeIcon className="size-4" />
                     {t("download_edge_extension")}
                   </MenuItem>
                 )}
                 {os === "macos" && (
-                  <MenuItem
-                    render={<a href={DOWNLOAD_LINKS.macos} target="_blank" rel="noreferrer" />}
-                    className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                    <AppleIcon className="h-4 w-4 fill-foreground" />
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.macos} target="_blank" rel="noreferrer" />}>
+                    <AppleIcon className="size-4 fill-foreground" />
                     {t("download_for_macos")}
                   </MenuItem>
                 )}
                 {os === "windows" && (
-                  <MenuItem
-                    render={<a href={DOWNLOAD_LINKS.windows} target="_blank" rel="noreferrer" />}
-                    className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                    <WindowsIcon className="h-4 w-4" />
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.windows} target="_blank" rel="noreferrer" />}>
+                    <WindowsIcon className="size-4" />
                     {t("download_for_windows")}
                   </MenuItem>
                 )}
                 {os === "linux" && (
-                  <MenuItem
-                    render={<a href={DOWNLOAD_LINKS.linux} target="_blank" rel="noreferrer" />}
-                    className="hover:bg-subtle hover:text-emphasis text-default flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium">
-                    <LinuxIcon className="h-4 w-4" />
+                  <MenuItem render={<a href={DOWNLOAD_LINKS.linux} target="_blank" rel="noreferrer" />}>
+                    <LinuxIcon className="size-4" />
                     {t("download_for_linux")}
                   </MenuItem>
                 )}
@@ -295,9 +267,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
           {!isPlatformPages && isPlatformUser && (
             <MenuItem
               render={<Link href="/settings/platform" />}
-              className="todesktop:hidden hover:bg-subtle hover:text-emphasis text-default hidden w-full items-center gap-2 rounded-lg p-2 text-sm font-medium lg:flex">
-              <Icon name="blocks" className="h-4 w-4" />
-              Platform
+              className="todesktop:hidden hidden lg:flex">
+              <Icon name="blocks" />
+              {t("platform")}
             </MenuItem>
           )}
           <MenuSeparator />
@@ -305,10 +277,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
           <MenuItem
             onClick={() => {
               signOut({ callbackUrl: "/auth/logout" });
-            }}
-            className="hover:bg-error hover:text-error text-error flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium"
-            aria-hidden="true">
-            <Icon name="log-out" className="h-4 w-4" />
+            }}>
+            <Icon name="log-out" />
             {t("sign_out")}
           </MenuItem>
         </MenuPopup>
