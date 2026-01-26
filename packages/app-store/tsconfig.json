@@ -15,7 +15,19 @@
     "@calcom/types",
     "../types/*.d.ts",
     "../types/next-auth.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
+    "*.ts",
+    "*.tsx",
+    "_components/**/*.ts",
+    "_components/**/*.tsx",
+    "_lib/**/*.ts",
+    "_lib/**/*.tsx",
+    "_pages/**/*.ts",
+    "_pages/**/*.tsx",
+    "_utils/**/*.ts",
+    "_utils/**/*.tsx",
+    "templates/**/*.ts",
+    "templates/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
   ]
 }
