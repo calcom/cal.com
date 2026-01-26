@@ -1021,6 +1021,8 @@
   "hours": "Hours",
   "people": "People",
   "your_email": "Your email",
+  "avatar": "Avatar",
+  "avatar_of_username": "Avatar of {{username}}",
   "change_avatar": "Change avatar",
   "upload_avatar": "Upload avatar",
   "language": "Language",

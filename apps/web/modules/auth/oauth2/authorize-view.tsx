@@ -189,7 +189,7 @@ export function Authorize() {
             <div className="flex gap-2 items-center">
               <Avatar
                 size="sm"
-                alt={user?.username ? `Avatar of ${user.username}` : "Avatar"}
+                alt={user?.username ? t("avatar_of_username", { username: user.username }) : t("avatar")}
                 imageSrc={user?.avatarUrl ?? user?.avatar}
               />
               <Tooltip content={user?.email} side="bottom">
