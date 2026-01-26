@@ -11,11 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
-import { MenuSub, MenuSubTrigger, MenuSubPopup, MenuItem } from "@coss/ui/components/menu";
-import { DownloadIcon, SmartphoneIcon, GlobeIcon, MonitorIcon } from "lucide-react";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import FreshChatProvider from "@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider";
@@ -223,118 +224,111 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 </DropdownItem>
               </DropdownMenuItem>
               {!isPlatformPages && (
-                <MenuSub>
-                  <MenuSubTrigger className="todesktop:hidden hidden lg:flex">
-                    <DownloadIcon className="size-4" />
-                    {t("download_app")}
-                  </MenuSubTrigger>
-                  <MenuSubPopup>
-                    <MenuItem>
-                      <a
-                        href={DOWNLOAD_LINKS.ios}
+                <DropdownMenuSub>
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownMenuSubTrigger>
+                      <Icon name="download" className="mr-1 h-4 w-4 shrink-0" />
+                      {t("download_app")}
+                    </DropdownMenuSubTrigger>
+                  </DropdownMenuItem>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        StartIcon="smartphone"
                         target="_blank"
                         rel="noreferrer"
-                        className="flex w-full items-center gap-2">
-                        <SmartphoneIcon className="size-4" />
+                        href={DOWNLOAD_LINKS.ios}>
                         {t("download_for_ios")}
-                      </a>
-                    </MenuItem>
-                    <MenuItem>
-                      <a
-                        href={DOWNLOAD_LINKS.android}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        StartIcon="smartphone"
                         target="_blank"
                         rel="noreferrer"
-                        className="flex w-full items-center gap-2">
-                        <SmartphoneIcon className="size-4" />
+                        href={DOWNLOAD_LINKS.android}>
                         {t("download_for_android")}
-                      </a>
-                    </MenuItem>
+                      </DropdownItem>
+                    </DropdownMenuItem>
                     {browser === "chrome" && (
-                      <MenuItem>
-                        <a
-                          href={DOWNLOAD_LINKS.chrome}
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="globe"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex w-full items-center gap-2">
-                          <GlobeIcon className="size-4" />
+                          href={DOWNLOAD_LINKS.chrome}>
                           {t("download_chrome_extension")}
-                        </a>
-                      </MenuItem>
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
                     {browser === "safari" && (
-                      <MenuItem>
-                        <a
-                          href={DOWNLOAD_LINKS.safari}
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="globe"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex w-full items-center gap-2">
-                          <GlobeIcon className="size-4" />
+                          href={DOWNLOAD_LINKS.safari}>
                           {t("download_safari_extension")}
-                        </a>
-                      </MenuItem>
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
                     {browser === "firefox" && (
-                      <MenuItem>
-                        <a
-                          href={DOWNLOAD_LINKS.firefox}
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="globe"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex w-full items-center gap-2">
-                          <GlobeIcon className="size-4" />
+                          href={DOWNLOAD_LINKS.firefox}>
                           {t("download_firefox_extension")}
-                        </a>
-                      </MenuItem>
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
                     {browser === "edge" && (
-                      <MenuItem>
-                        <a
-                          href={DOWNLOAD_LINKS.edge}
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="globe"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex w-full items-center gap-2">
-                          <GlobeIcon className="size-4" />
+                          href={DOWNLOAD_LINKS.edge}>
                           {t("download_edge_extension")}
-                        </a>
-                      </MenuItem>
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
                     {os === "macos" && (
-                      <MenuItem>
-                        <a
-                          href={DOWNLOAD_LINKS.macos}
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="monitor"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex w-full items-center gap-2">
-                          <MonitorIcon className="size-4" />
+                          href={DOWNLOAD_LINKS.macos}>
                           {t("download_for_macos")}
-                        </a>
-                      </MenuItem>
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
                     {os === "windows" && (
-                      <MenuItem>
-                        <a
-                          href={DOWNLOAD_LINKS.windows}
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="monitor"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex w-full items-center gap-2">
-                          <MonitorIcon className="size-4" />
+                          href={DOWNLOAD_LINKS.windows}>
                           {t("download_for_windows")}
-                        </a>
-                      </MenuItem>
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
                     {os === "linux" && (
-                      <MenuItem>
-                        <a
-                          href={DOWNLOAD_LINKS.linux}
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          StartIcon="monitor"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex w-full items-center gap-2">
-                          <MonitorIcon className="size-4" />
+                          href={DOWNLOAD_LINKS.linux}>
                           {t("download_for_linux")}
-                        </a>
-                      </MenuItem>
+                        </DropdownItem>
+                      </DropdownMenuItem>
                     )}
-                  </MenuSubPopup>
-                </MenuSub>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               )}
 
               {!isPlatformPages && isPlatformUser && (
