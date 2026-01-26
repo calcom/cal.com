@@ -100,6 +100,7 @@ export default async function routerGetCrmContactOwnerEmail({
     return null;
 
   if (routingTraceService && contactOwner.email && contactOwner.crmAppSlug) {
+    const salesforceSettings = attributeRoutingConfig?.salesforce;
     routingTraceService.addStep({
       domain: contactOwner.crmAppSlug,
       step: `${contactOwner.crmAppSlug}_assignment`,
@@ -108,6 +109,8 @@ export default async function routerGetCrmContactOwnerEmail({
         recordType: contactOwner.recordType,
         recordId: contactOwner.recordId,
         crmAppSlug: contactOwner.crmAppSlug,
+        rrSkipToAccountLookupField: salesforceSettings?.rrSkipToAccountLookupField,
+        rrSKipToAccountLookupFieldName: salesforceSettings?.rrSKipToAccountLookupFieldName,
       },
     });
   }
