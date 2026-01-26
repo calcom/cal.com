@@ -12,7 +12,7 @@ import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 
-type CalendarWithPrimary = IntegrationCalendar & {
+type CalendarWithPrimary = Omit<IntegrationCalendar, "primary"> & {
   primary?: boolean | null;
 };
 
