@@ -294,7 +294,7 @@ export class InsightsRoutingBaseService {
         rfrd."bookingUserName",
         rfrd."bookingUserEmail",
         rfrd."bookingUserAvatarUrl",
-        rfrd."bookingAssignmentReason",
+        SPLIT_PART(rfrd."bookingAssignmentReason", ',', 1) as "bookingAssignmentReason",
         rfrd."bookingStartTime",
         rfrd."bookingEndTime",
         rfrd."eventTypeId",

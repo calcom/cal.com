@@ -1,28 +1,26 @@
-import { createColumnHelper } from "@tanstack/react-table";
-import startCase from "lodash/startCase";
-import { useMemo } from "react";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { ColumnFilterType } from "@calcom/features/data-table";
+import type { HeaderRow, RoutingFormTableRow } from "@calcom/features/insights/lib/types";
+import {
+  ZResponseMultipleValues,
+  ZResponseNumericValue,
+  ZResponseSingleValue,
+  ZResponseTextValue,
+} from "@calcom/features/insights/lib/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-
+import { createColumnHelper } from "@tanstack/react-table";
+import startCase from "lodash/startCase";
+import { useMemo } from "react";
+import { z } from "zod";
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
 import { BookingStatusBadge } from "../components/BookingStatusBadge";
 import { ResponseValueCell } from "../components/ResponseValueCell";
-import type { HeaderRow, RoutingFormTableRow } from "@calcom/features/insights/lib/types";
-import {
-  ZResponseMultipleValues,
-  ZResponseSingleValue,
-  ZResponseTextValue,
-  ZResponseNumericValue,
-} from "@calcom/features/insights/lib/types";
 
 export const useInsightsColumns = ({
   headers,
@@ -165,18 +163,21 @@ export const useInsightsColumns = ({
         const filterType = isSingleSelect
           ? ColumnFilterType.SINGLE_SELECT
           : isNumber
-          ? ColumnFilterType.NUMBER
-          : isText
-          ? ColumnFilterType.TEXT
-          : ColumnFilterType.MULTI_SELECT;
+            ? ColumnFilterType.NUMBER
+            : isText
+              ? ColumnFilterType.TEXT
+              : ColumnFilterType.MULTI_SELECT;
 
         const optionMap =
-          fieldHeader.options?.reduce((acc, option) => {
-            if (option.id) {
-              acc[option.id] = option.label;
-            }
-            return acc;
-          }, {} as Record<string, string>) ?? {};
+          fieldHeader.options?.reduce(
+            (acc, option) => {
+              if (option.id) {
+                acc[option.id] = option.label;
+              }
+              return acc;
+            },
+            {} as Record<string, string>
+          ) ?? {};
 
         return columnHelper.accessor((row) => row.fields.find((field) => field.fieldId === fieldHeader.id), {
           id: fieldHeader.id,
@@ -253,8 +254,7 @@ export const useInsightsColumns = ({
           filter: { type: ColumnFilterType.TEXT },
         },
         cell: (info) => {
-          const assignmentReason = info.getValue();
-          return <div className="max-w-[250px]">{assignmentReason}</div>;
+          return <div className="max-w-[250px]">{info.getValue()}</div>;
         },
       }),
       columnHelper.accessor("utm_source", {
