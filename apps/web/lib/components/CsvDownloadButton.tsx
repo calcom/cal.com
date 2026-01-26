@@ -75,7 +75,18 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
 
       while (totalRecords > 0 && allData.length < totalRecords && !signal.aborted) {
         const batch = await wrapWithAbort(fetchBatch(allData.length), signal);
-        if (!batch || signal.aborted) break;
+        if (signal.aborted) return;
+        if (!batch) {
+          if (infoToastIdRef.current) {
+            toastManager.close(infoToastIdRef.current);
+            infoToastIdRef.current = null;
+          }
+          toastManager.add({
+            title: t("failed_to_download"),
+            type: "error",
+          });
+          return;
+        }
         allData = [...allData, ...batch.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
