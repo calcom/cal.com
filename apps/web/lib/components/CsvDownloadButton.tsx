@@ -68,7 +68,10 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
 
     try {
       const firstBatch = await wrapWithAbort(fetchBatch(0), signal);
-      if (!firstBatch || signal.aborted) return;
+      if (signal.aborted) return;
+      if (!firstBatch) {
+        throw new Error("Failed to download data.");
+      }
 
       let allData = firstBatch.data;
       const totalRecords = firstBatch.total;
@@ -77,15 +80,7 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
         const batch = await wrapWithAbort(fetchBatch(allData.length), signal);
         if (signal.aborted) return;
         if (!batch) {
-          if (infoToastIdRef.current) {
-            toastManager.close(infoToastIdRef.current);
-            infoToastIdRef.current = null;
-          }
-          toastManager.add({
-            title: t("failed_to_download"),
-            type: "error",
-          });
-          return;
+          throw new Error("Failed to download data.");
         }
         allData = [...allData, ...batch.data];
 
@@ -94,6 +89,9 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
       }
 
       if (signal.aborted) return;
+      if (allData.length < totalRecords) {
+        throw new Error("Failed to download data.");
+      }
 
       setProgress(100);
 
