@@ -7,48 +7,45 @@ import { test } from "./lib/fixtures";
 
 /**
  * Tests that the team page does not prefetch event type pages on load.
- * This is important to prevent excessive API calls (especially to Google Calendar)
- * when teams have many event types.
- *
- * The fix adds `prefetch={false}` to Link components in team-view.tsx,
- * which prevents Next.js from automatically prefetching linked pages.
+ * When prefetch={false} is NOT set, Next.js prefetches linked pages via RSC requests
+ * with `_rsc` query parameter, which triggers server-side rendering and API calls
+ * (like Google Calendar), causing rate limits for teams with many event types.
  */
 
-async function countScheduleCallsOnPageLoad(
+async function countPrefetchRequestsOnPageLoad(
   page: Page,
-  url: string
-): Promise<{ trpcCalls: string[]; apiV2Calls: string[] }> {
-  const trpcCalls: string[] = [];
-  const apiV2Calls: string[] = [];
+  url: string,
+  teamSlug: string
+): Promise<{ rscPrefetchCalls: string[] }> {
+  const rscPrefetchCalls: string[] = [];
 
-  // Intercept getSchedule API calls
-  await page.route("**/api/trpc/slots/getSchedule**", async (route) => {
-    trpcCalls.push(route.request().url());
+  // Intercept RSC prefetch requests for event type pages
+  // These are requests with _rsc query parameter to event type URLs
+  await page.route("**/*", async (route) => {
+    const requestUrl = route.request().url();
+    // Check if this is an RSC prefetch request (_rsc parameter) for an event type page
+    // Event type URLs follow pattern: /team/{slug}/{eventTypeSlug} or /{eventTypeSlug}
+    if (requestUrl.includes("_rsc=") && !requestUrl.includes("/api/")) {
+      // Exclude the team page itself, only capture event type prefetches
+      const urlPath = new URL(requestUrl).pathname;
+      if (urlPath.startsWith(`/team/${teamSlug}/`) || urlPath.match(/^\/[^/]+$/)) {
+        rscPrefetchCalls.push(requestUrl);
+      }
+    }
     await route.continue();
   });
 
-  await page.route("**/api/v2/slots/available**", async (route) => {
-    apiV2Calls.push(route.request().url());
-    await route.continue();
-  });
-
-  // Navigate to the page
   await page.goto(url);
-
-  // Wait for the page to fully load and any potential prefetch requests to complete
   await page.waitForLoadState("networkidle");
-
-  // Additional wait to ensure any delayed prefetch requests are captured
   await page.waitForTimeout(3000);
 
-  return { trpcCalls, apiV2Calls };
+  return { rscPrefetchCalls };
 }
 
 test.describe("Team Page No Prefetch", () => {
   test.afterEach(({ users }) => users.deleteAll());
 
-  test("should not call getSchedule endpoints when loading team page", async ({ page, users }) => {
-    // Create a team with multiple event types to simulate a real scenario
+  test("should not prefetch event type pages when loading team page", async ({ page, users }) => {
     const teamOwner = await users.create(
       { name: "Team Owner" },
       {
@@ -60,22 +57,20 @@ test.describe("Team Page No Prefetch", () => {
 
     const { team } = await teamOwner.getFirstTeamMembership();
 
-    // Navigate to the team page (not the event type page)
-    // This should NOT trigger any getSchedule calls because prefetch={false}
-    const { trpcCalls, apiV2Calls } = await countScheduleCallsOnPageLoad(page, `/team/${team.slug}`);
+    const { rscPrefetchCalls } = await countPrefetchRequestsOnPageLoad(
+      page,
+      `/team/${team.slug}`,
+      team.slug
+    );
 
-    // Assert that NO schedule API calls were made on page load
-    // If prefetch={false} is working correctly, the team page should not
-    // prefetch any event type pages, which would trigger getSchedule calls
-    expect(trpcCalls.length).toBe(0);
-    expect(apiV2Calls.length).toBe(0);
+    // With prefetch={false}, no RSC prefetch requests should be made for event type pages
+    expect(rscPrefetchCalls.length).toBe(0);
   });
 
-  test("should not call getSchedule endpoints when loading team page with many event types", async ({
+  test("should not prefetch event type pages when loading team page with many event types", async ({
     page,
     users,
   }) => {
-    // Create a team with more teammates to have more event types
     const teamOwner = await users.create(
       { name: "Team Owner" },
       {
@@ -92,11 +87,12 @@ test.describe("Team Page No Prefetch", () => {
 
     const { team } = await teamOwner.getFirstTeamMembership();
 
-    // Navigate to the team page
-    const { trpcCalls, apiV2Calls } = await countScheduleCallsOnPageLoad(page, `/team/${team.slug}`);
+    const { rscPrefetchCalls } = await countPrefetchRequestsOnPageLoad(
+      page,
+      `/team/${team.slug}`,
+      team.slug
+    );
 
-    // Assert that NO schedule API calls were made
-    expect(trpcCalls.length).toBe(0);
-    expect(apiV2Calls.length).toBe(0);
+    expect(rscPrefetchCalls.length).toBe(0);
   });
 });
