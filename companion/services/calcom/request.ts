@@ -42,7 +42,7 @@ export async function testRawBookingsAPI(): Promise<void> {
       const _responseJson = safeParseJson(responseText);
       if (!_responseJson) {
         safeLogError("[CalComAPIService] Failed to parse bookings response", {
-          responseText,
+          responseLength: responseText.length,
         });
       }
     }
