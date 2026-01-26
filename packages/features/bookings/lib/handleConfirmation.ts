@@ -151,7 +151,10 @@ export async function handleConfirmation(args: {
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
   const eventManager = new EventManager(user, apps);
   const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+  // When areCalendarEventsEnabled is false, we still want to create video meetings for third-party video apps
+  // (like Daily.co) that are not tied to calendar event creation. We pass skipCalendarEvent: true to skip
+  // calendar and CRM event creation while still creating the video meeting.
+  const scheduleResult = await eventManager.create(evt, { skipCalendarEvent: !areCalendarEventsEnabled });
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);

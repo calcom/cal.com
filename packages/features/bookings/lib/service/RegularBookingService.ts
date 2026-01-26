@@ -2293,10 +2293,11 @@ async function handler(
     // Create a booking
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
-    const createManager =
-      areCalendarEventsEnabled && !skipCalendarSyncTaskCreation
-        ? await eventManager.create(evt)
-        : placeholderCreatedEvent;
+    // When areCalendarEventsEnabled is false, we still want to create video meetings for third-party video apps
+    // (like Daily.co) that are not tied to calendar event creation. We pass skipCalendarEvent: true to skip
+    // calendar and CRM event creation while still creating the video meeting.
+    const shouldSkipCalendarEvents = !areCalendarEventsEnabled || skipCalendarSyncTaskCreation;
+    const createManager = await eventManager.create(evt, { skipCalendarEvent: shouldSkipCalendarEvents });
     if (evt.location) {
       booking.location = evt.location;
     }
