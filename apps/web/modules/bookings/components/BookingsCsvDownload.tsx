@@ -5,9 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Button } from "@calcom/ui/components/button";
 
-import { useCsvDownload } from "@lib/hooks/useCsvDownload";
+import { DownloadButton } from "@lib/components/DownloadButton";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import type { BookingListingStatus } from "../types";
 
@@ -42,35 +41,6 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
 
-  const { isDownloading, handleDownload } = useCsvDownload({
-    toastId: "bookings-csv-download",
-    fetchBatch: async (offset) => {
-      const result = await utils.viewer.bookings.get.fetch({
-        limit: BATCH_SIZE,
-        offset,
-        filters: {
-          statuses: [status],
-          eventTypeIds,
-          teamIds,
-          userIds,
-          attendeeName,
-          attendeeEmail,
-          bookingUid,
-          afterStartDate: dateRange?.startDate
-            ? dayjs(dateRange?.startDate).startOf("day").toISOString()
-            : undefined,
-          beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
-        },
-      });
-      return { data: result.bookings, total: result.totalCount };
-    },
-    transform: (booking) => transformBookingToCsv(booking, t),
-    getFilename: () => `${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`,
-    errorMessage: t("unexpected_error_try_again"),
-    toastTitle: t("downloading"),
-    cancelLabel: t("cancel"),
-  });
-
   // Only show for users who are part of an organization
   const isOrgUser = Boolean(user?.organizationId);
 
@@ -79,14 +49,29 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
   }
 
   return (
-    <Button
-      color="secondary"
-      StartIcon="download"
-      loading={isDownloading}
-      onClick={handleDownload}
-      size="sm"
-      className="h-full">
-      {t("download")}
-    </Button>
+    <DownloadButton
+      fetchBatch={async (offset) => {
+        const result = await utils.viewer.bookings.get.fetch({
+          limit: BATCH_SIZE,
+          offset,
+          filters: {
+            statuses: [status],
+            eventTypeIds,
+            teamIds,
+            userIds,
+            attendeeName,
+            attendeeEmail,
+            bookingUid,
+            afterStartDate: dateRange?.startDate
+              ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+              : undefined,
+            beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+          },
+        });
+        return { data: result.bookings, total: result.totalCount };
+      }}
+      transformData={(bookings) => bookings.map((booking) => transformBookingToCsv(booking, t))}
+      filename={`${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`}
+    />
   );
 }
