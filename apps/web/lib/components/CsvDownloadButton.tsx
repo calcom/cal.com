@@ -68,14 +68,20 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
 
     try {
       const firstBatch = await wrapWithAbort(fetchBatch(0), signal);
-      if (!firstBatch || signal.aborted) return;
+      if (signal.aborted) return;
+      if (!firstBatch) {
+        throw new Error("Failed to download data.");
+      }
 
       let allData = firstBatch.data;
       const totalRecords = firstBatch.total;
 
       while (totalRecords > 0 && allData.length < totalRecords && !signal.aborted) {
         const batch = await wrapWithAbort(fetchBatch(allData.length), signal);
-        if (!batch || signal.aborted) break;
+        if (signal.aborted) return;
+        if (!batch) {
+          throw new Error("Failed to download data.");
+        }
         allData = [...allData, ...batch.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
@@ -83,6 +89,9 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
       }
 
       if (signal.aborted) return;
+      if (allData.length < totalRecords) {
+        throw new Error("Failed to download data.");
+      }
 
       setProgress(100);
 
