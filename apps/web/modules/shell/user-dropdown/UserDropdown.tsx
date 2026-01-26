@@ -205,7 +205,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
           </MenuItem>
           {!isPlatformPages && (
             <MenuSub>
-              <MenuSubTrigger className="todesktop:hidden hidden lg:flex">
+              <MenuSubTrigger>
                 <Icon name="download" />
                 {t("download_app")}
               </MenuSubTrigger>
