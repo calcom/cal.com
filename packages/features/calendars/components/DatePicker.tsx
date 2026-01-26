@@ -16,7 +16,7 @@ import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import NoAvailabilityDialog from "./components/NoAvailabilityDialog";
+import NoAvailabilityDialog from "./NoAvailabilityDialog";
 import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
 
 export type DatePickerProps = {

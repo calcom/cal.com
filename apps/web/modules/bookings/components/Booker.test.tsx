@@ -81,7 +81,7 @@ const mockEvent = {
   isPending: false,
 };
 
-vi.mock("@calcom/web/modules/calendars/components/NoAvailabilityDialog", () => ({
+vi.mock("@calcom/features/calendars/components/NoAvailabilityDialog", () => ({
   default: () => {
     return null;
   },
