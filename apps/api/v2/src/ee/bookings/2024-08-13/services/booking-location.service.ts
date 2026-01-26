@@ -594,18 +594,12 @@ export class BookingLocationService_2024_08_13 {
     requiredCalendarType: string
   ): Promise<BookingLocationResponse> {
     const calendarReference = ctx.booking.references.find(
-      (ref) => ref.type.includes("_calendar") && !ref.deleted
+      (ref) => ref.type.includes(requiredCalendarType) && !ref.deleted
     );
 
     if (!calendarReference) {
       throw new BadRequestException(
-        `No calendar event found for this booking. ${ctx.integrationSlug} requires a calendar event to generate the meeting link.`
-      );
-    }
-
-    if (!calendarReference.type.includes(requiredCalendarType.replace("_calendar", ""))) {
-      throw new BadRequestException(
-        `${ctx.integrationSlug} requires a ${requiredCalendarType.replace("_", " ")} event. This booking has a ${calendarReference.type} event.`
+        `No ${requiredCalendarType.replace("_", " ")} event found for this booking. ${ctx.integrationSlug} requires a ${requiredCalendarType.replace("_", " ")} event to generate the meeting link.`
       );
     }
 

@@ -78,7 +78,7 @@ class UpdateBookingInputLocationValidator_2024_08_13 implements ValidatorConstra
 
     const ClassType = this.classTypeMap[type];
     if (!ClassType) {
-      this.validationMessage = `UpdateBookingInputLocationValidator_2024_08_13 - Unsupported booking location type '${type}'. Valid types are address, link, phone, attendeePhone, attendeeAddress, and attendeeDefined.`;
+      this.validationMessage = `UpdateBookingInputLocationValidator_2024_08_13 - Unsupported booking location type '${type}'. Valid types are address, link, phone, attendeePhone, attendeeAddress, attendeeDefined, and integration.`;
       return false;
     }
 
@@ -120,7 +120,8 @@ export function ValidateUpdateBookingLocation_2024_08_13(validationOptions?: Val
   UpdateBookingInputAttendeeDefinedLocation_2024_08_13,
   UpdateBookingInputAttendeePhoneLocation_2024_08_13,
   UpdateBookingInputLinkLocation_2024_08_13,
-  UpdateBookingInputPhoneLocation_2024_08_13
+  UpdateBookingInputPhoneLocation_2024_08_13,
+  UpdateBookingInputIntegrationLocation_2024_08_13
 )
 export class UpdateBookingLocationInput_2024_08_13 {
   @IsOptional()
