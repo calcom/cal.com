@@ -19,7 +19,12 @@ export class FeaturesRepository implements IFeaturesRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
-  constructor(private prismaClient: PrismaClient) { }
+  constructor(private prismaClient: PrismaClient) {
+    console.log("[FeaturesRepository] Constructor called", {
+      hasPrismaClient: !!prismaClient,
+      prismaClientType: prismaClient?.constructor?.name ?? "undefined",
+    });
+  }
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;
@@ -32,11 +37,25 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   public async getAllFeatures() {
     if (FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
+      console.log("[FeaturesRepository] Returning cached features", {
+        cacheExpiry: new Date(FeaturesRepository.featuresCache.expiry).toISOString(),
+        featureCount: FeaturesRepository.featuresCache.data.length,
+      });
       return FeaturesRepository.featuresCache.data;
     }
 
+    console.log("[FeaturesRepository] Cache miss, querying database", {
+      hasPrismaClient: !!this.prismaClient,
+      prismaClientType: this.prismaClient?.constructor?.name ?? "undefined",
+    });
+
     const features = await this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
+    });
+
+    console.log("[FeaturesRepository] Database query completed", {
+      featureCount: features.length,
+      features: features.map((f) => ({ slug: f.slug, enabled: f.enabled })),
     });
 
     FeaturesRepository.featuresCache = {

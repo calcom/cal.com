@@ -1,22 +1,9 @@
-import { prisma } from "@calcom/prisma";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { MonthlyProrationService } from "../MonthlyProrationService";
-
-vi.mock("@calcom/prisma", () => ({
-  prisma: {
-    team: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-    },
-    monthlyProration: {
-      create: vi.fn(),
-      update: vi.fn(),
-      findUnique: vi.fn(),
-    },
-  },
-}));
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -24,9 +11,23 @@ vi.mock("@calcom/lib/logger", () => ({
       info: vi.fn(),
       debug: vi.fn(),
       error: vi.fn(),
+      warn: vi.fn(),
     }),
   },
 }));
+
+const mockLogger: ISimpleLogger = {
+  info: vi.fn(),
+  debug: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+};
+
+const mockFeaturesRepository: IFeaturesRepository = {
+  checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+  checkIfUserHasFeature: vi.fn().mockResolvedValue(false),
+  checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+};
 
 vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   default: {
@@ -127,7 +128,11 @@ describe("MonthlyProrationService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new MonthlyProrationService(undefined, mockBillingService);
+    service = new MonthlyProrationService({
+      logger: mockLogger,
+      featuresRepository: mockFeaturesRepository,
+      billingService: mockBillingService,
+    });
   });
 
   describe("createProrationForTeam", () => {

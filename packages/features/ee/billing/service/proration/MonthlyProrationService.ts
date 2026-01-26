@@ -1,9 +1,7 @@
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
-import type { Logger } from "tslog";
 
 import { getProrationInvoiceNotificationTasker } from "../../di/tasker/ProrationInvoiceNotificationTasker.container";
 import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
@@ -46,21 +44,25 @@ export class MonthlyProrationService {
   private billingService: IBillingProviderService;
   private featuresRepository: IFeaturesRepository;
 
-  constructor(deps: MonthlyProrationServiceDeps);
-  constructor(customLogger?: Logger<unknown>, billingService?: IBillingProviderService);
-  constructor(
-    depsOrLogger?: MonthlyProrationServiceDeps | Logger<unknown>,
-    billingService?: IBillingProviderService
-  ) {
-    if (depsOrLogger && typeof depsOrLogger === "object" && "logger" in depsOrLogger) {
-      this.logger = depsOrLogger.logger;
-      this.featuresRepository = depsOrLogger.featuresRepository;
-      this.billingService = depsOrLogger.billingService || new StripeBillingService(stripe);
-    } else {
-      this.logger = (depsOrLogger as Logger<unknown>) || log;
-      this.featuresRepository = getFeaturesRepository();
-      this.billingService = billingService || new StripeBillingService(stripe);
+  constructor(deps: MonthlyProrationServiceDeps) {
+    // Debug logging to trace DI resolution
+    log.info("MonthlyProrationService constructor called", {
+      hasLogger: !!deps.logger,
+      hasFeaturesRepository: !!deps.featuresRepository,
+      hasBillingService: !!deps.billingService,
+      featuresRepositoryType: deps.featuresRepository?.constructor?.name ?? "undefined",
+    });
+
+    if (!deps.featuresRepository) {
+      throw new Error(
+        "MonthlyProrationService requires featuresRepository to be injected via DI. " +
+          "Ensure the DI container is properly configured."
+      );
     }
+
+    this.logger = deps.logger;
+    this.featuresRepository = deps.featuresRepository;
+    this.billingService = deps.billingService || new StripeBillingService(stripe);
     this.teamRepository = new MonthlyProrationTeamRepository();
     this.prorationRepository = new MonthlyProrationRepository();
   }
@@ -68,7 +70,27 @@ export class MonthlyProrationService {
   async processMonthlyProrations(params: ProcessMonthlyProrationsParams) {
     const { monthKey, teamIds } = params;
 
-    const isFeatureEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+    this.logger.info("Checking monthly-proration feature flag", {
+      monthKey,
+      featuresRepositoryType: this.featuresRepository?.constructor?.name ?? "undefined",
+    });
+
+    let isFeatureEnabled: boolean;
+    try {
+      isFeatureEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+      this.logger.info("Feature flag check completed", {
+        monthKey,
+        isFeatureEnabled,
+      });
+    } catch (error) {
+      this.logger.error("Feature flag check failed", {
+        monthKey,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw error;
+    }
+
     if (!isFeatureEnabled) {
       this.logger.info("Monthly proration feature is not enabled, skipping batch processing", { monthKey });
       return [];
