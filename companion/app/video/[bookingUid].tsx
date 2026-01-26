@@ -61,9 +61,12 @@ export default function VideoCallScreen() {
       return false;
     }
     // Logic must be outside try/catch for React Compiler compatibility
-    const isDailyUrl = urlObj.hostname.includes("daily.co");
+    // Use strict hostname matching to prevent domain spoofing (e.g., cal.com.evil.com)
+    const hostname = urlObj.hostname;
+    const isDailyUrl = hostname === "daily.co" || hostname.endsWith(".daily.co");
     const isCalVideoUrl =
-      urlObj.hostname.includes("cal.com") && urlObj.pathname.startsWith("/video/");
+      (hostname === "cal.com" || hostname.endsWith(".cal.com")) &&
+      urlObj.pathname.startsWith("/video/");
     return isDailyUrl || isCalVideoUrl;
   }, []);
 
