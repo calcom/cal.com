@@ -63,4 +63,12 @@ export class CachedUserFeatureRepository implements IUserFeatureRepository {
   async setAutoOptIn(userId: number, enabled: boolean): Promise<void> {
     return this.prismaUserFeatureRepository.setAutoOptIn(userId, enabled);
   }
+
+  async checkIfUserHasFeature(userId: number, slug: string): Promise<boolean> {
+    return this.prismaUserFeatureRepository.checkIfUserHasFeature(userId, slug);
+  }
+
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
+    return this.prismaUserFeatureRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
+  }
 }
