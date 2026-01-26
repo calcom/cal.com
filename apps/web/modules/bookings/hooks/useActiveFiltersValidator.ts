@@ -73,9 +73,11 @@ export function createActiveFiltersValidator(accessibleResources: AccessibleReso
   };
 }
 
+export type ActiveFiltersValidatorState = ActiveFiltersValidator | "loading" | undefined;
+
 export function useActiveFiltersValidator({
   canReadOthersBookings,
-}: UseActiveFiltersValidatorOptions): ActiveFiltersValidator | undefined {
+}: UseActiveFiltersValidatorOptions): ActiveFiltersValidatorState {
   const eventTypes = useEventTypes();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery(undefined, {
@@ -117,7 +119,7 @@ export function useActiveFiltersValidator({
   );
 
   if (!isDataLoaded) {
-    return undefined;
+    return "loading";
   }
 
   return validateActiveFilters;

@@ -70,12 +70,26 @@ export type DataTableContextType = {
   searchTerm: string;
   setSearchTerm: (searchTerm: string | null) => void;
 
+  /**
+   * True when a validator is provided but still loading, and there's a segment waiting to be applied.
+   * Consumers should disable data fetching while this is true to avoid fetching with unvalidated filters.
+   */
+  isValidatorPending: boolean;
+
   timeZone?: string;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
 export type ActiveFiltersValidator = (filters: ActiveFilters) => ActiveFilters;
+
+/**
+ * State for the activeFilters validator:
+ * - undefined: No validation needed (validator not provided)
+ * - "loading": Validation needed but data is still loading
+ * - function: Validator is ready to use
+ */
+export type ActiveFiltersValidatorState = ActiveFiltersValidator | "loading" | undefined;
 
 interface DataTableProviderProps {
   tableIdentifier: string;
@@ -92,8 +106,13 @@ interface DataTableProviderProps {
    * This is called when a segment is applied, allowing the caller to validate filter values
    * against accessible resources (e.g., accessible user IDs, event type IDs, team IDs).
    * Invalid values are filtered out in memory without being persisted back to the backend.
+   *
+   * Can be:
+   * - undefined: No validation needed
+   * - "loading": Validation data is still loading (segment application will be delayed)
+   * - function: Validator is ready to use
    */
-  validateActiveFilters?: ActiveFiltersValidator;
+  validateActiveFilters?: ActiveFiltersValidatorState;
 }
 
 export function DataTableProvider({
@@ -184,43 +203,22 @@ export function DataTableProvider({
     findSelectedSegment(segmentId)
   );
 
-  const setSegmentId = useCallback(
-    (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
-      if (!segmentId) {
-        _setSegmentId(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
-        return;
-      }
+  // Track pending segment when validator is loading
+  const pendingSegmentRef = useRef<{
+    segmentId: SegmentIdentifier;
+    segment: CombinedFilterSegment;
+  } | null>(null);
 
-      const segment = providedSegment || findSelectedSegment(String(segmentId.id));
-      if (!segment) {
-        // If segmentId is invalid (or not found), clear the segmentId from the query params,
-        // but we still keep all the other states like activeFilters, etc.
-        // This is useful when someone shares a URL that is inaccessible to someone else.
-        _setSegmentId(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
-        return;
-      }
+  // Helper to check if validator is ready (not loading)
+  const isValidatorReady = validateActiveFilters !== "loading";
 
-      _setSegmentId(String(segmentId.id));
-      setSelectedSegment(segment);
-      setSegmentPreference({
-        tableIdentifier,
-        segmentId,
-      });
-
-      // apply the segment with optional validation
-      const filtersToApply = validateActiveFilters
-        ? validateActiveFilters(segment.activeFilters)
-        : segment.activeFilters;
+  // Helper to apply segment filters (extracted for reuse)
+  const applySegmentFilters = useCallback(
+    (segment: CombinedFilterSegment) => {
+      const filtersToApply =
+        typeof validateActiveFilters === "function"
+          ? validateActiveFilters(segment.activeFilters)
+          : segment.activeFilters;
       setActiveFilters(filtersToApply);
       if (segment.sorting) {
         setSorting(segment.sorting);
@@ -240,11 +238,7 @@ export function DataTableProvider({
       setPageIndex(0);
     },
     [
-      _setSegmentId,
-      setSelectedSegment,
-      setSegmentPreference,
-      tableIdentifier,
-      findSelectedSegment,
+      validateActiveFilters,
       setActiveFilters,
       setSorting,
       setColumnVisibility,
@@ -252,9 +246,71 @@ export function DataTableProvider({
       setPageSize,
       setSearchTerm,
       setPageIndex,
-      validateActiveFilters,
     ]
   );
+
+  const setSegmentId = useCallback(
+    (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
+      if (!segmentId) {
+        pendingSegmentRef.current = null;
+        _setSegmentId(null);
+        setSelectedSegment(undefined);
+        setSegmentPreference({
+          tableIdentifier,
+          segmentId: null,
+        });
+        return;
+      }
+
+      const segment = providedSegment || findSelectedSegment(String(segmentId.id));
+      if (!segment) {
+        pendingSegmentRef.current = null;
+        _setSegmentId(null);
+        setSelectedSegment(undefined);
+        setSegmentPreference({
+          tableIdentifier,
+          segmentId: null,
+        });
+        return;
+      }
+
+      _setSegmentId(String(segmentId.id));
+      setSelectedSegment(segment);
+      setSegmentPreference({
+        tableIdentifier,
+        segmentId,
+      });
+
+      // If validator is loading, store the segment as pending and don't apply filters yet
+      if (validateActiveFilters === "loading") {
+        pendingSegmentRef.current = { segmentId, segment };
+        return;
+      }
+
+      // Validator is ready (or not provided), apply filters immediately
+      pendingSegmentRef.current = null;
+      applySegmentFilters(segment);
+    },
+    [
+      _setSegmentId,
+      setSelectedSegment,
+      setSegmentPreference,
+      tableIdentifier,
+      findSelectedSegment,
+      validateActiveFilters,
+      applySegmentFilters,
+    ]
+  );
+
+  // Apply pending segment when validator becomes ready
+  useEffect(() => {
+    if (!isValidatorReady || !pendingSegmentRef.current) {
+      return;
+    }
+    const { segment } = pendingSegmentRef.current;
+    pendingSegmentRef.current = null;
+    applySegmentFilters(segment);
+  }, [isValidatorReady, applySegmentFilters]);
 
   useEffect(() => {
     if (!isSegmentFetchedSuccessfully) {
@@ -396,6 +452,9 @@ export function DataTableProvider({
 
   const ctaContainerRef = useElementByClassName<HTMLDivElement>(ctaContainerClassName);
 
+  // True when validator is loading and there's a pending segment waiting to be applied
+  const isValidatorPending = validateActiveFilters === "loading" && pendingSegmentRef.current !== null;
+
   return (
     <DataTableContext.Provider
       value={{
@@ -427,6 +486,7 @@ export function DataTableProvider({
         isSegmentEnabled,
         searchTerm,
         setSearchTerm: setDebouncedSearchTerm,
+        isValidatorPending,
         timeZone,
       }}>
       {children}
