@@ -99,12 +99,12 @@ export interface IAuditActionService {
      * Returns additional display fields with translation keys for frontend rendering
      * Optional - implement only if custom display fields are needed
      * @param storedData - Parsed stored data { version, fields }
-     * @returns Array of field objects with label and value translation keys
+     * @returns Promise of array of field objects with label and value translation keys
      */
-    getDisplayFields?(storedData: BaseStoredAuditData): Array<{
+    getDisplayFields?(storedData: BaseStoredAuditData): Promise<Array<{
         labelKey: string;  // Translation key for field label
         valueKey: string;  // Translation key for field value
-    }>;
+    }>>;
 
     /**
      * Migrate old version data to latest version

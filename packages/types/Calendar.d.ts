@@ -226,6 +226,10 @@ export interface CalendarEvent {
   rescheduledBy?: string;
   organizationId?: number | null;
   hasOrganizerChanged?: boolean;
+  assignmentReason?: {
+    category: string; // Translated label like "Routed", "Reassigned", etc.
+    details?: string | null; // The detailed reason string
+  } | null;
 }
 
 export interface EntryPoint {

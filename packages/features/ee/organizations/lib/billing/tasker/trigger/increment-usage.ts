@@ -1,10 +1,9 @@
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { logger, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
 import type { z } from "zod";
+import { INCREMENT_USAGE_JOB_ID } from "../constants";
 import { platformBillingTaskConfig } from "./config";
 import { platformBillingTaskSchema } from "./schema";
-
-export const INCREMENT_USAGE_JOB_ID = "platform.billing.increment-usage";
 
 export const incrementUsage: TaskWithSchema<typeof INCREMENT_USAGE_JOB_ID, typeof platformBillingTaskSchema> =
   schemaTask({
