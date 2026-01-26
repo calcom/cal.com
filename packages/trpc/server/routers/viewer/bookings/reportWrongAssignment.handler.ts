@@ -1,4 +1,4 @@
-import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
@@ -21,64 +21,44 @@ const log = logger.getSubLogger({ prefix: ["reportWrongAssignmentHandler"] });
 
 export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAssignmentOptions) => {
   const { user } = ctx;
-  const {
-    bookingUid,
-    bookingId,
-    bookingTitle,
-    bookingStartTime,
-    bookingEndTime,
-    bookingStatus,
-    eventTypeId,
-    eventTypeTitle,
-    eventTypeSlug,
-    teamId,
-    userId,
-    routingReason,
-    guestEmail,
-    hostEmail,
-    hostName,
-    correctAssignee,
-    additionalNotes,
-  } = input;
+  const { bookingUid, correctAssignee, additionalNotes } = input;
 
-  const bookingAccessService = new BookingAccessService(prisma);
+  const bookingRepository = new BookingRepository(prisma);
 
-  const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
-    userId: user.id,
-    bookingUid,
-  });
+  // Fetch the booking with all necessary relations
+  const booking = await bookingRepository.findByUidForWrongAssignmentReport({ bookingUid });
 
-  if (!hasAccess) {
+  if (!booking) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+  }
+
+  // Check if user has access to this booking
+  const isHost = booking.userId === user.id;
+  const isAttendee = booking.attendees.some((attendee) => attendee.email === user.email);
+
+  if (!isHost && !isAttendee) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
   }
 
-  // Get orgId from team if teamId exists
-  let orgId: number | null = null;
-  if (teamId) {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: { parentId: true },
-    });
-    orgId = team?.parentId ?? null;
-  }
+  const teamId = booking.eventType?.team?.id ?? null;
+  const orgId = booking.eventType?.team?.parentId ?? null;
 
   const webhookPayload = {
     booking: {
-      uid: bookingUid,
-      id: bookingId,
-      title: bookingTitle,
-      startTime: bookingStartTime,
-      endTime: bookingEndTime,
-      status: bookingStatus,
-      eventType:
-        eventTypeId && eventTypeTitle && eventTypeSlug
-          ? {
-              id: eventTypeId,
-              title: eventTypeTitle,
-              slug: eventTypeSlug,
-              teamId: teamId,
-            }
-          : null,
+      uid: booking.uid,
+      id: booking.id,
+      title: booking.title,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: booking.status,
+      eventType: booking.eventType
+        ? {
+            id: booking.eventType.id,
+            title: booking.eventType.title,
+            slug: booking.eventType.slug,
+            teamId: teamId,
+          }
+        : null,
     },
     report: {
       reportedBy: {
@@ -86,11 +66,11 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
         email: user.email,
         name: user.name,
       },
-      firstAssignmentReason: routingReason,
-      guest: guestEmail,
+      firstAssignmentReason: booking.assignmentReason[0]?.reasonString ?? null,
+      guest: booking.attendees[0]?.email ?? null,
       host: {
-        email: hostEmail,
-        name: hostName,
+        email: booking.user?.email ?? null,
+        name: booking.user?.name ?? null,
       },
       correctAssignee: correctAssignee || null,
       additionalNotes: additionalNotes || null,
@@ -99,7 +79,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
 
   try {
     const webhooks = await getWebhooks({
-      userId: userId,
+      userId: booking.userId,
       teamId,
       orgId,
       triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
@@ -120,9 +100,9 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
 
     await Promise.allSettled(webhookPromises);
 
-    log.info(`Wrong assignment report sent for booking ${bookingUid}`, {
+    log.info(`Wrong assignment report sent for booking ${booking.uid}`, {
       teamId,
-      userId: userId,
+      userId: booking.userId,
       webhookCount: webhooks.length,
     });
   } catch (error) {

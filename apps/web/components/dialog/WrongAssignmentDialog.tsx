@@ -18,21 +18,12 @@ import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTit
 
 interface BookingData {
   uid: string;
-  id: number;
-  title: string;
-  startTime: Date | string;
-  endTime: Date | string;
-  status: string;
   eventType?: {
-    id: number;
-    title: string;
-    slug: string;
     team?: {
       id: number;
     } | null;
   } | null;
   user?: {
-    id: number;
     email: string;
     name: string | null;
   } | null;
@@ -251,16 +242,7 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
   const { isOpenDialog, setIsOpenDialog, booking } = props;
 
   const bookingUid = booking.uid;
-  const bookingId = booking.id;
-  const bookingTitle = booking.title;
-  const bookingStartTime = typeof booking.startTime === "string" ? new Date(booking.startTime) : booking.startTime;
-  const bookingEndTime = typeof booking.endTime === "string" ? new Date(booking.endTime) : booking.endTime;
-  const bookingStatus = booking.status;
-  const eventTypeId = booking.eventType?.id ?? null;
-  const eventTypeTitle = booking.eventType?.title ?? null;
-  const eventTypeSlug = booking.eventType?.slug ?? null;
   const teamId = booking.eventType?.team?.id ?? null;
-  const userId = booking.user?.id ?? null;
   const routingReason = booking.assignmentReason[0]?.reasonString ?? null;
   const routingReasonEnum = booking.assignmentReason[0]?.reasonEnum ?? null;
   const guestEmail = booking.attendees[0]?.email ?? "";
@@ -307,21 +289,6 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
   const onSubmit = (data: FormValues): void => {
     reportWrongAssignment({
       bookingUid,
-      bookingId,
-      bookingTitle,
-      bookingStartTime,
-      bookingEndTime,
-      bookingStatus,
-      eventTypeId,
-      eventTypeTitle,
-      eventTypeSlug,
-      teamId,
-      userId,
-      routingReason,
-      routingReasonEnum,
-      guestEmail,
-      hostEmail,
-      hostName,
       correctAssignee: data.correctAssignee || undefined,
       additionalNotes: data.additionalNotes,
     });
