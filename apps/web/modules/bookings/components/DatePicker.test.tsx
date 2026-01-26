@@ -7,7 +7,7 @@ import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/co
 import { render } from "@calcom/features/bookings/Booker/__tests__/test-utils";
 import { DatePicker } from "./DatePicker";
 
-vi.mock("@calcom/web/modules/calendars/DatePicker", () => {
+vi.mock("@calcom/features/calendars/components/DatePicker", () => {
   return {
     DatePicker: vi.fn(() => <div data-testid="mock-date-picker" />),
   };
