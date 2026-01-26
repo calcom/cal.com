@@ -27,6 +27,9 @@ type GetUrlSearchParamsToForwardOptions = {
   queuedFormResponseId: string | null;
   teamMembersMatchingAttributeLogic: number[] | null;
   attributeRoutingConfig: AttributeRoutingConfig | null;
+  crmContactOwnerEmail?: string | null;
+  crmContactOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
   reroutingFormResponses?: FormResponseValueOnly;
   teamId?: number | null;
   orgId?: number | null;
@@ -40,6 +43,9 @@ export function getUrlSearchParamsToForward({
   formResponseId,
   queuedFormResponseId,
   attributeRoutingConfig,
+  crmContactOwnerEmail,
+  crmContactOwnerRecordType,
+  crmAppSlug,
   reroutingFormResponses,
   teamId,
   orgId,
@@ -123,6 +129,9 @@ export function getUrlSearchParamsToForward({
       : null),
     ...(queuedFormResponseId ? { ["cal.queuedFormResponseId"]: queuedFormResponseId } : null),
     ...attributeRoutingConfigParams,
+    ...(crmContactOwnerEmail ? { ["cal.crmContactOwnerEmail"]: crmContactOwnerEmail } : null),
+    ...(crmContactOwnerRecordType ? { ["cal.crmContactOwnerRecordType"]: crmContactOwnerRecordType } : null),
+    ...(crmAppSlug ? { ["cal.crmAppSlug"]: crmAppSlug } : null),
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
       : null),

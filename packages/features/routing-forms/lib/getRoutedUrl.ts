@@ -161,6 +161,9 @@ const _getRoutedUrl = async (
   let formResponseId = null;
   let attributeRoutingConfig = null;
   let queuedFormResponseId;
+  let crmContactOwnerEmail: string | null = null;
+  let crmContactOwnerRecordType: string | null = null;
+  let crmAppSlug: string | null = null;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -178,6 +181,9 @@ const _getRoutedUrl = async (
     formResponseId = result.formResponse?.id;
     queuedFormResponseId = result.queuedFormResponse?.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
+    crmContactOwnerEmail = result.crmContactOwnerEmail;
+    crmContactOwnerRecordType = result.crmContactOwnerRecordType;
+    crmAppSlug = result.crmAppSlug;
     timeTaken = {
       ...timeTaken,
       ...result.timeTaken,
@@ -186,7 +192,6 @@ const _getRoutedUrl = async (
     // Save the pending trace (trace steps are added inside handleResponse)
     if (!isBookingDryRun) {
       if (formResponseId) {
-        console.log("This is being hit");
         await routingTraceService.savePendingRoutingTrace({ formResponseId });
       } else if (queuedFormResponseId) {
         await routingTraceService.savePendingRoutingTrace({
@@ -247,6 +252,9 @@ const _getRoutedUrl = async (
             formResponseId: formResponseId ?? null,
             queuedFormResponseId: queuedFormResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
+            crmContactOwnerEmail,
+            crmContactOwnerRecordType,
+            crmAppSlug,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
           }),
