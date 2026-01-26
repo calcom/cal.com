@@ -3,8 +3,8 @@ import { schemaTask } from "@trigger.dev/sdk";
 import { monthlyProrationTaskConfig } from "./config";
 import { monthlyProrationBatchSchema } from "./schema";
 
-export const processMonthlyProrationBatch = schemaTask({
-  id: "billing.monthly-proration.batch",
+export const processMonthlyProrationProcess = schemaTask({
+  id: "billing.monthly-proration.process",
   ...monthlyProrationTaskConfig,
   schema: monthlyProrationBatchSchema,
   run: async (payload) => {

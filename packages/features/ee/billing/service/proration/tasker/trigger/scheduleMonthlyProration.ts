@@ -21,9 +21,8 @@ export const scheduleMonthlyProration = schedules.task({
     const { getFeaturesRepository } = await import(
       "@calcom/features/di/containers/FeaturesRepository"
     );
-    const { processMonthlyProrationBatch } = await import(
-      "./processMonthlyProrationBatch"
-    );
+    const { processMonthlyProrationProcess: processMonthlyProrationBatch } =
+      await import("./processMonthlyProration");
 
     const triggerDevLogger = new TriggerDevLogger();
     const log = triggerDevLogger.getSubLogger({
