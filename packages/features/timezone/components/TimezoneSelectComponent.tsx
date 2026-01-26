@@ -40,6 +40,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
   isWebTimezoneSelect?: boolean;
 };
 
+// TODO: I wonder if we move this to ui package, and keep the TRPC version in features
 export function TimezoneSelectComponent({
   className,
   classNames: timezoneClassNames,
