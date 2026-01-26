@@ -11,10 +11,15 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+
+type CalendarWithPrimary = IntegrationCalendar & {
+  primary?: boolean | null;
+};
+
 interface ConnectedCalendar {
   credentialId: number;
   integration: App & { title?: string };
-  primary?: IntegrationCalendar | null;
+  primary?: CalendarWithPrimary | null;
   calendars?: IntegrationCalendar[];
   cacheUpdatedAt: null;
 }
