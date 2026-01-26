@@ -2,44 +2,44 @@ import {
   BookerLayoutsInputEnum_2024_06_14,
   BookerLayoutsOutputEnum_2024_06_14,
   ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
   FrequencyInput,
+  NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
 import type {
-  InputBookingField_2024_06_14,
-  InputLocation_2024_06_14,
+  BookerLayouts_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
-  BookerLayouts_2024_06_14,
   ConfirmationPolicy_2024_06_14,
-  EventTypeColor_2024_06_14,
-  Recurrence_2024_06_14,
   CreateEventTypeInput_2024_06_14,
-  SeatOptionsTransformedSchema,
-  SeatOptionsDisabledSchema,
+  EventTypeColor_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
-  InputAttendeePhoneLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
+  InputAttendeePhoneLocation_2024_06_14,
+  InputBookingField_2024_06_14,
+  InputLocation_2024_06_14,
   InputTeamLocation_2024_06_14,
+  Recurrence_2024_06_14,
+  SeatOptionsDisabledSchema,
+  SeatOptionsTransformedSchema,
 } from "@calcom/platform-types";
 
 import {
-  systemBeforeFieldEmail,
-  systemBeforeFieldName,
   type CustomField,
   type SystemField,
+  systemBeforeFieldEmail,
+  systemBeforeFieldName,
 } from "../internal-to-api/booking-fields";
 import {
-  transformLocationsApiToInternal,
+  transformBookerLayoutsApiToInternal,
   transformBookingFieldsApiToInternal,
-  transformSelectOptionsApiToInternal,
-  transformIntervalLimitsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformEventColorsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformLocationsApiToInternal,
   transformRecurrenceApiToInternal,
   transformSeatsApiToInternal,
-  transformEventColorsApiToInternal,
-  transformBookerLayoutsApiToInternal,
-  transformConfirmationPolicyApiToInternal,
+  transformSelectOptionsApiToInternal,
   transformTeamLocationsApiToInternal,
 } from "./index";
 
@@ -182,10 +182,10 @@ describe("transformBookingFieldsApiToInternal", () => {
       disableOnPrefill: true,
     };
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     expectedField.variantsConfig.variants.fullName.fields[0].label = "Your name number";
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     expectedField.variantsConfig.variants.fullName.fields[0].placeholder = "123456789";
 
     const expectedOutput: SystemField[] = [expectedField];
@@ -698,6 +698,62 @@ describe("transformFutureBookingLimitsApiToInternal", () => {
       value: ["2024-08-06", "2024-08-28"],
     };
 
+    const expectedOutput = {
+      periodType: "RANGE",
+      periodStartDate: new Date("2024-08-06"),
+      periodEndDate: new Date("2024-08-28"),
+    };
+
+    const result = transformFutureBookingLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should normalize range type with full ISO strings to UTC midnight (positive offset)", () => {
+    // Client in Dubai (UTC+4) sends full ISO strings - without normalization this would shift dates
+    // e.g., "2024-08-06T00:00:00.000+04:00" would become 2024-08-05T20:00:00.000Z
+    const input: BookingWindow_2024_06_14 = {
+      type: "range",
+      value: ["2024-08-06T00:00:00.000+04:00", "2024-08-28T00:00:00.000+04:00"],
+    };
+
+    // Should extract date part and create UTC midnight dates
+    const expectedOutput = {
+      periodType: "RANGE",
+      periodStartDate: new Date("2024-08-06"),
+      periodEndDate: new Date("2024-08-28"),
+    };
+
+    const result = transformFutureBookingLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should normalize range type with full ISO strings to UTC midnight (negative offset)", () => {
+    // Client in Buenos Aires (UTC-3) sends full ISO strings - without normalization this would shift dates
+    // e.g., "2024-08-06T00:00:00.000-03:00" would become 2024-08-06T03:00:00.000Z (3 hours later)
+    const input: BookingWindow_2024_06_14 = {
+      type: "range",
+      value: ["2024-08-06T00:00:00.000-03:00", "2024-08-28T00:00:00.000-03:00"],
+    };
+
+    // Should extract date part and create UTC midnight dates
+    const expectedOutput = {
+      periodType: "RANGE",
+      periodStartDate: new Date("2024-08-06"),
+      periodEndDate: new Date("2024-08-28"),
+    };
+
+    const result = transformFutureBookingLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should normalize range type with full ISO strings to UTC midnight (UTC/Z suffix)", () => {
+    // Client sends UTC timestamps with Z suffix
+    const input: BookingWindow_2024_06_14 = {
+      type: "range",
+      value: ["2024-08-06T00:00:00.000Z", "2024-08-28T00:00:00.000Z"],
+    };
+
+    // Should extract date part and create UTC midnight dates
     const expectedOutput = {
       periodType: "RANGE",
       periodStartDate: new Date("2024-08-06"),
