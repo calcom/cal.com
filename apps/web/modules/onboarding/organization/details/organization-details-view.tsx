@@ -70,6 +70,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
 
     posthog.capture("onboarding_organization_details_continue_clicked", {
       has_bio: !!organizationBio,
+      featureType: "organization",
     });
 
     // Save to store
@@ -93,7 +94,9 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
               color="minimal"
               className="rounded-[10px]"
               onClick={() => {
-                posthog.capture("onboarding_organization_details_back_clicked");
+                posthog.capture("onboarding_organization_details_back_clicked", {
+                  featureType: "organization",
+                });
                 router.push("/onboarding/getting-started");
               }}>
               {t("back")}

@@ -23,13 +23,17 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
       ? "/onboarding/organization/details"
       : "/settings/organizations/new";
 
-    posthog.capture("company_email_banner_upgrade_clicked");
+    posthog.capture("company_email_banner_upgrade_clicked", {
+      featureType: "organization",
+    });
 
     router.push(redirectPath);
   };
 
   const handleDismiss = () => {
-    posthog.capture("company_email_banner_dismissed");
+    posthog.capture("company_email_banner_dismissed", {
+      featureType: "organization",
+    });
     onDismissAction();
   };
 

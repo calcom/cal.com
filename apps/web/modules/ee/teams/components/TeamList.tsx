@@ -1,9 +1,7 @@
-import { useState } from "react";
-
 import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import {
-  ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
+  ORG_SELF_SERVE_ENABLED,
 } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -12,7 +10,8 @@ import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-
+import posthog from "posthog-js";
+import { useState } from "react";
 import TeamListItem from "./TeamListItem";
 
 interface Props {
@@ -141,6 +140,11 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href: `/settings/teams/${team.id}/members`,
                         child: t("invite"),
+                        onClick: () =>
+                          posthog.capture("teams_invite_team_member_clicked", {
+                            teamId: team.id,
+                            featureType: "teams",
+                          }),
                       }}
                     />
                     <Card
@@ -151,6 +155,11 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href: `/event-types?dialog=new&eventPage=team%2F${team.slug}&teamId=${team.id}`,
                         child: t("create"),
+                        onClick: () =>
+                          posthog.capture("teams_collective_or_roundrobin_clicked", {
+                            teamId: team.id,
+                            featureType: "teams",
+                          }),
                       }}
                     />
                     <Card
@@ -161,6 +170,11 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href: `/settings/teams/${team.id}/appearance`,
                         child: t("edit"),
+                        onClick: () =>
+                          posthog.capture("teams_appearance_clicked", {
+                            teamId: team.id,
+                            featureType: "teams",
+                          }),
                       }}
                     />
                   </div>

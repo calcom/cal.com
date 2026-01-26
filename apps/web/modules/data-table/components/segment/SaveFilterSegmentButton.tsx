@@ -172,7 +172,7 @@ export function SaveFilterSegmentButton() {
         <Button
           StartIcon="bookmark"
           color="secondary"
-          onClick={() => posthog.capture("insights_routing_save_filter_clicked")}
+          onClick={() => posthog.capture("insights_routing_save_filter_clicked", { featureType: "organization" })}
           disabled={!canSaveSegment}
           data-testid="save-filter-segment-button">
           {t("save")}

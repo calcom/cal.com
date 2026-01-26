@@ -43,7 +43,10 @@ function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
     e.preventDefault(); // Prevent default form submission
 
     try {
-      posthog.capture("insights_routing_download_clicked", { teamId: routingParams.selectedTeamId });
+      posthog.capture("insights_routing_download_clicked", {
+        teamId: routingParams.selectedTeamId,
+        featureType: "organization",
+      });
       const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
         ...routingParams,
         period: selectedPeriod,

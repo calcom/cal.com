@@ -53,6 +53,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
     const validTeams = data.teams.filter((team) => team.name.trim().length > 0);
     posthog.capture("onboarding_organization_teams_continue_clicked", {
       team_count: validTeams.length,
+      featureType: "organization",
     });
     // Save teams to store
     setTeams(data.teams);
@@ -60,7 +61,9 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   };
 
   const handleSkip = () => {
-    posthog.capture("onboarding_organization_teams_skip_clicked");
+    posthog.capture("onboarding_organization_teams_skip_clicked", {
+      featureType: "organization",
+    });
     // Skip teams and go to invite
     router.push("/onboarding/organization/invite/email");
   };
@@ -83,7 +86,9 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
               color="minimal"
               className="rounded-[10px]"
               onClick={() => {
-                posthog.capture("onboarding_organization_teams_back_clicked");
+                posthog.capture("onboarding_organization_teams_back_clicked", {
+                  featureType: "organization",
+                });
                 router.push("/onboarding/organization/brand");
               }}>
               {t("back")}
@@ -131,9 +136,10 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                         className="h-7 w-7"
                         disabled={fields.length === 1}
                         onClick={() => {
-                          posthog.capture("onboarding_organization_teams_remove_clicked", {
-                            team_count: fields.length,
-                          });
+                                                    posthog.capture("onboarding_organization_teams_remove_clicked", {
+                                                      team_count: fields.length,
+                                                      featureType: "organization",
+                                                    });
                           remove(index);
                         }}>
                         <Icon name="x" className="h-4 w-4" />
@@ -150,9 +156,10 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                   StartIcon="plus"
                   className="w-fit"
                   onClick={() => {
-                    posthog.capture("onboarding_organization_teams_add_clicked", {
-                      team_count: fields.length,
-                    });
+                                        posthog.capture("onboarding_organization_teams_add_clicked", {
+                                          team_count: fields.length,
+                                          featureType: "organization",
+                                        });
                     append({ name: "" });
                   }}>
                   {t("add")}
