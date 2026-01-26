@@ -234,7 +234,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   <DropdownMenuSubContent>
                     <DropdownMenuItem>
                       <DropdownItem
-                        StartIcon="smartphone"
+                        CustomStartIcon={
+                          <img src="/icons/download/apple.svg" alt="" className="h-4 w-4" />
+                        }
                         target="_blank"
                         rel="noreferrer"
                         href={DOWNLOAD_LINKS.ios}>
@@ -243,7 +245,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <DropdownItem
-                        StartIcon="smartphone"
+                        CustomStartIcon={
+                          <img src="/icons/download/play-store.svg" alt="" className="h-4 w-4" />
+                        }
                         target="_blank"
                         rel="noreferrer"
                         href={DOWNLOAD_LINKS.android}>
@@ -253,7 +257,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {browser === "chrome" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="globe"
+                          CustomStartIcon={
+                            <img src="/icons/download/chrome.svg" alt="" className="h-4 w-4" />
+                          }
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.chrome}>
@@ -264,7 +270,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {browser === "safari" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="globe"
+                          CustomStartIcon={
+                            <img src="/icons/download/safari.svg" alt="" className="h-4 w-4" />
+                          }
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.safari}>
@@ -275,7 +283,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {browser === "firefox" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="globe"
+                          CustomStartIcon={
+                            <img src="/icons/download/firefox.svg" alt="" className="h-4 w-4" />
+                          }
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.firefox}>
@@ -286,7 +296,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {browser === "edge" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="globe"
+                          CustomStartIcon={
+                            <img src="/icons/download/edge.svg" alt="" className="h-4 w-4" />
+                          }
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.edge}>
@@ -297,7 +309,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {os === "macos" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="monitor"
+                          CustomStartIcon={
+                            <img src="/icons/download/apple.svg" alt="" className="h-4 w-4" />
+                          }
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.macos}>
@@ -308,7 +322,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {os === "windows" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="monitor"
+                          CustomStartIcon={
+                            <img src="/icons/download/windows.svg" alt="" className="h-4 w-4" />
+                          }
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.windows}>
@@ -319,7 +335,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     {os === "linux" && (
                       <DropdownMenuItem>
                         <DropdownItem
-                          StartIcon="monitor"
+                          CustomStartIcon={
+                            <img src="/icons/download/linux.svg" alt="" className="h-4 w-4" />
+                          }
                           target="_blank"
                           rel="noreferrer"
                           href={DOWNLOAD_LINKS.linux}>
