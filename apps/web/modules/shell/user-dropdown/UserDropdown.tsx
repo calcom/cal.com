@@ -176,7 +176,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
       </MenuTrigger>
 
       <FreshChatProvider>
-        <MenuPopup align="start" className="group w-[220px] overflow-hidden rounded-md">
+        <MenuPopup align="start">
           {!isPlatformPages && (
             <>
               <MenuItem render={<Link href="/settings/my-account/profile" />}>
@@ -275,6 +275,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
           <MenuSeparator />
 
           <MenuItem
+            variant="destructive"
             onClick={() => {
               signOut({ callbackUrl: "/auth/logout" });
             }}>
