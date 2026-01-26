@@ -210,37 +210,37 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 {t("download_app")}
               </MenuSubTrigger>
               <MenuSubPopup>
-                {isMobile && (
+                {os === "ios" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
                     <AppleIcon className="size-4 fill-foreground" />
                     {t("download_for_ios")}
                   </MenuItem>
                 )}
-                {isMobile && (
+                {os === "android" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
                     <PlayStoreIcon className="size-4" />
                     {t("download_for_android")}
                   </MenuItem>
                 )}
-                {browser === "chrome" && (
+                {!isMobile && browser === "chrome" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.chrome} target="_blank" rel="noreferrer" />}>
                     <ChromeIcon className="size-4" />
                     {t("download_chrome_extension")}
                   </MenuItem>
                 )}
-                {browser === "safari" && (
+                {!isMobile && browser === "safari" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.safari} target="_blank" rel="noreferrer" />}>
                     <SafariIcon className="size-4" />
                     {t("download_safari_extension")}
                   </MenuItem>
                 )}
-                {browser === "firefox" && (
+                {!isMobile && browser === "firefox" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.firefox} target="_blank" rel="noreferrer" />}>
                     <FirefoxIcon className="size-4" />
                     {t("download_firefox_extension")}
                   </MenuItem>
                 )}
-                {browser === "edge" && (
+                {!isMobile && browser === "edge" && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.edge} target="_blank" rel="noreferrer" />}>
                     <EdgeIcon className="size-4" />
                     {t("download_edge_extension")}
