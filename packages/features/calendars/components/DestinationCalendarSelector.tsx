@@ -14,11 +14,7 @@ import { Icon } from "@calcom/ui/components/icon";
 interface ConnectedCalendar {
   credentialId: number;
   integration: App & { title?: string };
-  primary?: {
-    integration?: string;
-    email?: string;
-    name?: string | null;
-  } | null;
+  primary?: IntegrationCalendar | null;
   calendars?: IntegrationCalendar[];
   cacheUpdatedAt: null;
 }
