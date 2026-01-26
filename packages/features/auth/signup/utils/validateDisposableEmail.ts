@@ -1,10 +1,14 @@
 import logger from "@calcom/lib/logger";
+import { isDisposable } from "disposable-email-domains-js";
 
 const log = logger.getSubLogger({ prefix: ["validateDisposableEmail"] });
 
 /**
  * Known email relay/forwarding services that should be blocked.
  * Apple's Hide My Email (privaterelay.appleid.com, icloud.com) is explicitly allowed.
+ *
+ * Note: We only block relay-specific domains, not legitimate email providers.
+ * For example, we don't block proton.me or fastmail.com as those are primary mailbox domains.
  */
 const BLOCKED_RELAY_DOMAINS = [
   // DuckDuckGo Email Protection
@@ -21,8 +25,6 @@ const BLOCKED_RELAY_DOMAINS = [
   "anonaddy.com",
   "anonaddy.me",
   "addy.io",
-  // Fastmail masked emails
-  "fastmail.com",
   // 33mail
   "33mail.com",
   // Blur by Abine
@@ -35,10 +37,6 @@ const BLOCKED_RELAY_DOMAINS = [
   "improvmx.com",
   // Mailsac
   "mailsac.com",
-  // Proton Mail aliases (not the main proton.me/protonmail.com)
-  "proton.me", // Note: This blocks Proton Mail entirely - may want to reconsider
-  // StartMail
-  "startmail.com",
 ];
 
 /**
@@ -74,30 +72,15 @@ function isBlockedRelayDomain(domain: string): boolean {
 }
 
 /**
- * Checks if an email is from a disposable email provider using the DeBounce free API.
- * This API is completely free and doesn't require authentication.
- * @see https://debounce.com/free-disposable-check-api/
+ * Checks if an email is from a disposable email provider using the disposable-email-domains-js npm package.
+ * This is a local check with no external API calls - the package contains 100k+ known disposable domains.
  */
-async function checkDisposableWithDebounce(email: string): Promise<boolean> {
+function checkDisposableWithLocalList(email: string): boolean {
   try {
-    const response = await fetch(`https://disposable.debounce.io/?email=${encodeURIComponent(email)}`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-      signal: AbortSignal.timeout(5000), // 5 second timeout
-    });
-
-    if (!response.ok) {
-      log.warn("DeBounce API returned non-OK status", { status: response.status });
-      return false; // Fail open - don't block if API is down
-    }
-
-    const data = (await response.json()) as { disposable: string };
-    return data.disposable === "true";
+    return isDisposable(email);
   } catch (error) {
-    log.warn("Failed to check disposable email with DeBounce API", { error });
-    return false; // Fail open - don't block if API is down
+    log.warn("Failed to check disposable email with local list", { error });
+    return false;
   }
 }
 
@@ -106,7 +89,7 @@ async function checkDisposableWithDebounce(email: string): Promise<boolean> {
  *
  * This function:
  * 1. Checks if the email domain is a known blocked relay service (except Apple)
- * 2. Checks if the email is from a disposable/throwaway email provider using DeBounce API
+ * 2. Checks if the email is from a disposable/throwaway email provider using local domain list
  *
  * @param email - The email address to validate
  * @returns Object containing validation results
@@ -131,10 +114,10 @@ export async function validateDisposableEmail(email: string): Promise<Disposable
     };
   }
 
-  // Check for disposable emails using DeBounce API
-  const isDisposable = await checkDisposableWithDebounce(email);
+  // Check for disposable emails using local domain list (no external API)
+  const disposable = checkDisposableWithLocalList(email);
 
-  if (isDisposable) {
+  if (disposable) {
     log.info("Disposable email detected", { domain });
     return {
       isDisposable: true,

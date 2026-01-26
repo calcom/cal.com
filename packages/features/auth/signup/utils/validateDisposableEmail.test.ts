@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { isDisposableOrBlockedRelayEmail, validateDisposableEmail } from "./validateDisposableEmail";
 
-import { validateDisposableEmail, isDisposableOrBlockedRelayEmail } from "./validateDisposableEmail";
-
-// Mock the global fetch
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+// Mock the disposable-email-domains-js package
+const mockIsDisposable = vi.fn();
+vi.mock("disposable-email-domains-js", () => ({
+  isDisposable: (email: string) => mockIsDisposable(email),
+}));
 
 // Mock the logger
 vi.mock("@calcom/lib/logger", () => ({
@@ -20,7 +21,8 @@ vi.mock("@calcom/lib/logger", () => ({
 
 describe("validateDisposableEmail", () => {
   beforeEach(() => {
-    mockFetch.mockReset();
+    mockIsDisposable.mockReset();
+    mockIsDisposable.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -57,10 +59,7 @@ describe("validateDisposableEmail", () => {
     });
 
     it("should allow Apple Hide My Email (privaterelay.appleid.com)", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ disposable: "false" }),
-      });
+      mockIsDisposable.mockReturnValue(false);
 
       const result = await validateDisposableEmail("test@privaterelay.appleid.com");
       expect(result.isBlockedRelay).toBe(false);
@@ -68,10 +67,7 @@ describe("validateDisposableEmail", () => {
     });
 
     it("should allow iCloud emails", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ disposable: "false" }),
-      });
+      mockIsDisposable.mockReturnValue(false);
 
       const result = await validateDisposableEmail("test@icloud.com");
       expect(result.isBlockedRelay).toBe(false);
@@ -79,12 +75,9 @@ describe("validateDisposableEmail", () => {
     });
   });
 
-  describe("disposable email detection via API", () => {
-    it("should detect disposable emails from DeBounce API", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ disposable: "true" }),
-      });
+  describe("disposable email detection via local list", () => {
+    it("should detect disposable emails from local domain list", async () => {
+      mockIsDisposable.mockReturnValue(true);
 
       const result = await validateDisposableEmail("test@mailinator.com");
       expect(result.isDisposable).toBe(true);
@@ -92,29 +85,17 @@ describe("validateDisposableEmail", () => {
     });
 
     it("should allow legitimate emails", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ disposable: "false" }),
-      });
+      mockIsDisposable.mockReturnValue(false);
 
       const result = await validateDisposableEmail("test@gmail.com");
       expect(result.isDisposable).toBe(false);
       expect(result.isBlockedRelay).toBe(false);
     });
 
-    it("should fail open when API returns error", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
+    it("should fail open when local check throws", async () => {
+      mockIsDisposable.mockImplementation(() => {
+        throw new Error("Unexpected error");
       });
-
-      const result = await validateDisposableEmail("test@unknown.com");
-      expect(result.isDisposable).toBe(false);
-      expect(result.isBlockedRelay).toBe(false);
-    });
-
-    it("should fail open when API throws", async () => {
-      mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
       const result = await validateDisposableEmail("test@unknown.com");
       expect(result.isDisposable).toBe(false);
@@ -144,7 +125,8 @@ describe("validateDisposableEmail", () => {
 
 describe("isDisposableOrBlockedRelayEmail", () => {
   beforeEach(() => {
-    mockFetch.mockReset();
+    mockIsDisposable.mockReset();
+    mockIsDisposable.mockReturnValue(false);
   });
 
   it("should return true for blocked relay emails", async () => {
@@ -153,30 +135,21 @@ describe("isDisposableOrBlockedRelayEmail", () => {
   });
 
   it("should return true for disposable emails", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ disposable: "true" }),
-    });
+    mockIsDisposable.mockReturnValue(true);
 
     const result = await isDisposableOrBlockedRelayEmail("test@mailinator.com");
     expect(result).toBe(true);
   });
 
   it("should return false for legitimate emails", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ disposable: "false" }),
-    });
+    mockIsDisposable.mockReturnValue(false);
 
     const result = await isDisposableOrBlockedRelayEmail("test@gmail.com");
     expect(result).toBe(false);
   });
 
   it("should return false for Apple relay emails", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ disposable: "false" }),
-    });
+    mockIsDisposable.mockReturnValue(false);
 
     const result = await isDisposableOrBlockedRelayEmail("test@privaterelay.appleid.com");
     expect(result).toBe(false);
