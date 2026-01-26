@@ -1,4 +1,6 @@
+import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import { createContainer } from "@calcom/features/di/di";
+import prisma from "@calcom/prisma";
 
 import type { IPendingRoutingTraceRepository } from "../repositories/PendingRoutingTraceRepository.interface";
 import type { IRoutingTraceRepository } from "../repositories/RoutingTraceRepository.interface";
@@ -21,13 +23,14 @@ function getRoutingTraceRepository(): IRoutingTraceRepository {
 }
 
 /**
- * Creates a RoutingTraceService instance with both repositories.
+ * Creates a RoutingTraceService instance with all required repositories.
  * Use this for processing pending traces during booking creation.
  */
 export function getRoutingTraceService(): RoutingTraceService {
   return new RoutingTraceService({
     pendingRoutingTraceRepository: getPendingRoutingTraceRepository(),
     routingTraceRepository: getRoutingTraceRepository(),
+    assignmentReasonRepository: new AssignmentReasonRepository(prisma),
   });
 }
 

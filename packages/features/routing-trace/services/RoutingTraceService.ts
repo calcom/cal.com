@@ -1,4 +1,5 @@
-import prisma from "@calcom/prisma";
+import type { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
+import logger from "@calcom/lib/logger";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import type { IPendingRoutingTraceRepository } from "../repositories/PendingRoutingTraceRepository.interface";
@@ -10,7 +11,8 @@ import type {
 
 interface IRoutingTraceServiceDeps {
   pendingRoutingTraceRepository: IPendingRoutingTraceRepository;
-  routingTraceRepository?: IRoutingTraceRepository;
+  routingTraceRepository: IRoutingTraceRepository;
+  assignmentReasonRepository: AssignmentReasonRepository;
 }
 
 export interface ProcessRoutingTraceResult {
@@ -24,11 +26,6 @@ export class RoutingTraceService {
   private routingTraceSteps: RoutingStep[] = [];
 
   constructor(private readonly deps: IRoutingTraceServiceDeps) {}
-
-  /** For debugging - get the number of steps recorded */
-  getStepsCount(): number {
-    return this.routingTraceSteps.length;
-  }
 
   /** To be called by the domain specific routing trace services */
   addStep({
@@ -58,45 +55,22 @@ export class RoutingTraceService {
    * Looks up the pending trace, extracts assignment reason, creates permanent trace.
    */
   async processForBooking(args: {
-    formResponseId?: number;
-    queuedFormResponseId?: string;
+    formResponseId: number;
     bookingId: number;
     bookingUid: string;
     organizerEmail: string;
     isRerouting: boolean;
     reroutedByEmail?: string | null;
   }): Promise<ProcessRoutingTraceResult | null> {
-    const {
-      formResponseId,
-      queuedFormResponseId,
-      bookingId,
-      bookingUid,
-      organizerEmail,
-      isRerouting,
-      reroutedByEmail,
-    } = args;
+    const { formResponseId, bookingId, bookingUid, organizerEmail, isRerouting, reroutedByEmail } = args;
 
-    if (!this.deps.routingTraceRepository) {
-      throw new Error(
-        "routingTraceRepository is required for processForBooking"
-      );
-    }
-
-    // 1. Look up pending trace
-    let pendingTrace = null;
-    if (formResponseId) {
-      pendingTrace =
-        await this.deps.pendingRoutingTraceRepository.findByFormResponseId(
-          formResponseId
-        );
-    } else if (queuedFormResponseId) {
-      pendingTrace =
-        await this.deps.pendingRoutingTraceRepository.findByQueuedFormResponseId(
-          queuedFormResponseId
-        );
-    }
+    // 1. Look up pending trace by formResponseId
+    // Note: For queued responses, the pending trace is linked to formResponseId when processed
+    const pendingTrace =
+      await this.deps.pendingRoutingTraceRepository.findByFormResponseId(formResponseId);
 
     if (!pendingTrace) {
+      logger.warn("Could not find pending routing trace for form response", { formResponseId, bookingId });
       return null;
     }
 
@@ -114,12 +88,10 @@ export class RoutingTraceService {
 
     // 3. Create assignment reason record if we have trace-based data
     if (assignmentReasonData) {
-      const createdReason = await prisma.assignmentReason.create({
-        data: {
-          bookingId,
-          reasonEnum: assignmentReasonData.reasonEnum,
-          reasonString: assignmentReasonData.reasonString,
-        },
+      const createdReason = await this.deps.assignmentReasonRepository.createAssignmentReason({
+        bookingId,
+        reasonEnum: assignmentReasonData.reasonEnum,
+        reasonString: assignmentReasonData.reasonString,
       });
       assignmentReasonId = createdReason.id;
     }
@@ -221,6 +193,10 @@ export class RoutingTraceService {
       };
     }
 
+    logger.warn("Could not extract assignment reason from routing trace - no matching steps found", {
+      traceSteps: trace.map((s) => `${s.domain}:${s.step}`),
+      organizerEmail: context.organizerEmail,
+    });
     return null;
   }
 
