@@ -9,6 +9,12 @@ import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+/**
+ * Filter to exclude soft-deleted teams from queries.
+ * Teams with a non-null deletedAt are considered deleted.
+ */
+const notSoftDeleted = { deletedAt: null } satisfies Prisma.TeamWhereInput;
+
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {
       metadata: z.infer<typeof teamMetadataSchema>;
@@ -49,7 +55,9 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   isOrg,
   teamSelect,
 }: GetTeamOrOrgArg<TeamSelect>): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
-  const where: Prisma.TeamFindFirstArgs["where"] = {};
+  const where: Prisma.TeamFindFirstArgs["where"] = {
+    ...notSoftDeleted,
+  };
   teamSelect = {
     ...teamSelect,
     metadata: true,
@@ -170,9 +178,10 @@ export class TeamRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async findById({ id }: { id: number }) {
-    const team = await this.prismaClient.team.findUnique({
+    const team = await this.prismaClient.team.findFirst({
       where: {
         id,
+        ...notSoftDeleted,
       },
       select: teamSelect,
     });
@@ -183,9 +192,10 @@ export class TeamRepository {
   }
 
   async findByIdIncludePlatformBilling({ id }: { id: number }) {
-    const team = await this.prismaClient.team.findUnique({
+    const team = await this.prismaClient.team.findFirst({
       where: {
         id,
+        ...notSoftDeleted,
       },
       select: { ...teamSelect, platformBilling: true },
     });
@@ -205,6 +215,7 @@ export class TeamRepository {
     return await this.prismaClient.team.findMany({
       where: {
         parentId,
+        ...notSoftDeleted,
       },
       select,
     });
@@ -223,6 +234,7 @@ export class TeamRepository {
       where: {
         id,
         parentId,
+        ...notSoftDeleted,
       },
       select,
     });
@@ -241,6 +253,7 @@ export class TeamRepository {
       where: {
         slug,
         parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+        ...notSoftDeleted,
       },
       select,
     });
@@ -275,8 +288,8 @@ export class TeamRepository {
   }
 
   async findTeamWithMembers(teamId: number) {
-    return await this.prismaClient.team.findUnique({
-      where: { id: teamId },
+    return await this.prismaClient.team.findFirst({
+      where: { id: teamId, ...notSoftDeleted },
       select: {
         members: {
           select: {
@@ -299,6 +312,7 @@ export class TeamRepository {
         // This became necessary when we started migrating user to Org, without migrating some teams of the user to the org
         // Also, we would allow a user to be part of multiple orgs, then also it would be necessary.
         userId: userId,
+        team: notSoftDeleted,
       },
       include: {
         team: {
@@ -358,6 +372,7 @@ export class TeamRepository {
         role: {
           in: [MembershipRole.OWNER, MembershipRole.ADMIN],
         },
+        team: notSoftDeleted,
       },
       include: {
         team: {
@@ -375,8 +390,8 @@ export class TeamRepository {
   }
 
   async findTeamWithOrganizationSettings(teamId: number) {
-    return await this.prismaClient.team.findUnique({
-      where: { id: teamId },
+    return await this.prismaClient.team.findFirst({
+      where: { id: teamId, ...notSoftDeleted },
       select: {
         parent: {
           select: {
@@ -389,9 +404,10 @@ export class TeamRepository {
   }
 
   async findParentOrganizationByTeamId(teamId: number) {
-    const team = await this.prismaClient.team.findUnique({
+    const team = await this.prismaClient.team.findFirst({
       where: {
         id: teamId,
+        ...notSoftDeleted,
       },
       select: {
         parent: {
@@ -410,6 +426,7 @@ export class TeamRepository {
       where: {
         slug,
         isOrganization: true,
+        ...notSoftDeleted,
       },
       select: {
         organizationSettings: {
@@ -422,9 +439,10 @@ export class TeamRepository {
   }
 
   async findTeamSlugById({ id }: { id: number }) {
-    return await this.prismaClient.team.findUnique({
+    return await this.prismaClient.team.findFirst({
       where: {
         id,
+        ...notSoftDeleted,
       },
       select: {
         slug: true,
@@ -433,8 +451,8 @@ export class TeamRepository {
   }
 
   async findTeamWithParentHideBranding({ teamId }: { teamId: number }) {
-    return await this.prismaClient.team.findUnique({
-      where: { id: teamId },
+    return await this.prismaClient.team.findFirst({
+      where: { id: teamId, ...notSoftDeleted },
       select: {
         hideBranding: true,
         parent: {
@@ -450,6 +468,7 @@ export class TeamRepository {
     return await this.prismaClient.team.findFirst({
       where: {
         isOrganization: true,
+        ...notSoftDeleted,
         children: {
           some: {
             id: teamId,
@@ -474,6 +493,7 @@ export class TeamRepository {
         slug,
         parentId: null,
         isOrganization: true,
+        ...notSoftDeleted,
       },
       select: {
         id: true,
@@ -498,6 +518,7 @@ export class TeamRepository {
       },
       parentId: parentId ?? null,
       NOT: { id: teamId },
+      ...notSoftDeleted,
     };
 
     const conflictingTeam = await this.prismaClient.team.findFirst({
@@ -509,9 +530,10 @@ export class TeamRepository {
   }
 
   async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
-    return await this.prismaClient.team.findUnique({
+    return await this.prismaClient.team.findFirst({
       where: {
         id: teamId,
+        ...notSoftDeleted,
       },
       select: {
         id: true,
@@ -535,6 +557,7 @@ export class TeamRepository {
         id: {
           not: excludeTeamId,
         },
+        ...notSoftDeleted,
       },
       select: { id: true },
     });
@@ -542,7 +565,7 @@ export class TeamRepository {
 
   async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
     return await this.prismaClient.team.findMany({
-      where: { id: { in: teamIds } },
+      where: { id: { in: teamIds }, ...notSoftDeleted },
       select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
     });
   }
@@ -610,6 +633,7 @@ export class TeamRepository {
         NOT: {
           parentId: orgId, // Finds any team whose orgId is NOT the target ID
         },
+        ...notSoftDeleted,
       },
     });
   }
@@ -619,6 +643,7 @@ export class TeamRepository {
       where: {
         id: { in: teamIds },
         OR: [{ id: orgId }, { parentId: orgId }],
+        ...notSoftDeleted,
       },
       select: { id: true },
     });
@@ -629,6 +654,7 @@ export class TeamRepository {
       select: { id: true },
       where: {
         slug: teamSlug,
+        ...notSoftDeleted,
         members: {
           some: {
             userId,
@@ -637,6 +663,43 @@ export class TeamRepository {
             },
           },
         },
+      },
+    });
+  }
+
+  /**
+   * Soft delete a team by setting the deletedAt timestamp.
+   * The team will no longer appear in normal queries but can be hard deleted later.
+   */
+  async softDelete({ id }: { id: number }) {
+    return await this.prismaClient.team.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  /**
+   * Find teams that have been soft deleted for longer than the specified number of days.
+   * Used by the scheduled cleanup job to find teams ready for hard deletion.
+   * This method intentionally bypasses the soft delete filter.
+   */
+  async findSoftDeletedOlderThan({ days }: { days: number }) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    return await this.prismaClient.team.findMany({
+      where: {
+        deletedAt: {
+          not: null,
+          lt: cutoffDate,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        isOrganization: true,
+        deletedAt: true,
       },
     });
   }

@@ -647,8 +647,12 @@ model Team {
   seatChangeLogs    SeatChangeLog[]
   monthlyProrations MonthlyProration[]
 
+  // Soft delete support - when set, the team is considered deleted
+  deletedAt DateTime?
+
   @@unique([slug, parentId])
   @@index([parentId])
+  @@index([deletedAt])
 }
 
 model CreditBalance {
