@@ -31332,6 +31332,52 @@
         },
         "required": ["type", "phone"]
       },
+      "UpdateBookingInputIntegrationLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "integration",
+            "description": "only allowed value for type is `integration`"
+          },
+          "integration": {
+            "type": "string",
+            "example": "cal-video",
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video"
+            ]
+          }
+        },
+        "required": ["type", "integration"]
+      },
       "UpdateBookingLocationInput_2024_08_13": {
         "type": "object",
         "properties": {
