@@ -49,22 +49,34 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
     });
 
     try {
+      const throwIfAborted = () => {
+        if (signal.aborted) {
+          throw new DOMException("Cancelled", "AbortError");
+        }
+      };
+
+      throwIfAborted();
       const firstBatch = await fetchBatch(0);
-      if (!firstBatch || signal.aborted) return;
+      throwIfAborted();
+
+      if (!firstBatch) return;
 
       let allData = firstBatch.data;
       const totalRecords = firstBatch.total;
 
-      while (totalRecords > 0 && allData.length < totalRecords && !signal.aborted) {
+      while (totalRecords > 0 && allData.length < totalRecords) {
+        throwIfAborted();
         const batch = await fetchBatch(allData.length);
-        if (!batch || signal.aborted) break;
+        throwIfAborted();
+
+        if (!batch) break;
         allData = [...allData, ...batch.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
         setProgress(currentProgress);
       }
 
-      if (signal.aborted) return;
+      throwIfAborted();
 
       setProgress(100);
 
