@@ -1,4 +1,4 @@
-import { isDisposable } from "disposable-email-domains-js";
+import { isDisposableEmail } from "disposable-email-domains-js";
 
 import logger from "@calcom/lib/logger";
 
@@ -78,7 +78,7 @@ function isBlockedRelayDomain(domain: string): boolean {
  */
 function checkDisposableWithLocalList(email: string): boolean {
   try {
-    return isDisposable(email);
+    return isDisposableEmail(email);
   } catch (error) {
     log.warn("Failed to check disposable email with local list", { error });
     return false;

@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isDisposableOrBlockedRelayEmail, validateDisposableEmail } from "./validateDisposableEmail";
 
 // Mock the disposable-email-domains-js package
-const mockIsDisposable = vi.fn();
+const mockIsDisposableEmail = vi.fn();
 vi.mock("disposable-email-domains-js", () => ({
-  isDisposable: (email: string) => mockIsDisposable(email),
+  isDisposableEmail: (email: string) => mockIsDisposableEmail(email),
 }));
 
 // Mock the logger
@@ -21,8 +21,8 @@ vi.mock("@calcom/lib/logger", () => ({
 
 describe("validateDisposableEmail", () => {
   beforeEach(() => {
-    mockIsDisposable.mockReset();
-    mockIsDisposable.mockReturnValue(false);
+    mockIsDisposableEmail.mockReset();
+    mockIsDisposableEmail.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -59,7 +59,7 @@ describe("validateDisposableEmail", () => {
     });
 
     it("should allow Apple Hide My Email (privaterelay.appleid.com)", async () => {
-      mockIsDisposable.mockReturnValue(false);
+      mockIsDisposableEmail.mockReturnValue(false);
 
       const result = await validateDisposableEmail("test@privaterelay.appleid.com");
       expect(result.isBlockedRelay).toBe(false);
@@ -67,7 +67,7 @@ describe("validateDisposableEmail", () => {
     });
 
     it("should allow iCloud emails", async () => {
-      mockIsDisposable.mockReturnValue(false);
+      mockIsDisposableEmail.mockReturnValue(false);
 
       const result = await validateDisposableEmail("test@icloud.com");
       expect(result.isBlockedRelay).toBe(false);
@@ -77,7 +77,7 @@ describe("validateDisposableEmail", () => {
 
   describe("disposable email detection via local list", () => {
     it("should detect disposable emails from local domain list", async () => {
-      mockIsDisposable.mockReturnValue(true);
+      mockIsDisposableEmail.mockReturnValue(true);
 
       const result = await validateDisposableEmail("test@mailinator.com");
       expect(result.isDisposable).toBe(true);
@@ -85,7 +85,7 @@ describe("validateDisposableEmail", () => {
     });
 
     it("should allow legitimate emails", async () => {
-      mockIsDisposable.mockReturnValue(false);
+      mockIsDisposableEmail.mockReturnValue(false);
 
       const result = await validateDisposableEmail("test@gmail.com");
       expect(result.isDisposable).toBe(false);
@@ -93,7 +93,7 @@ describe("validateDisposableEmail", () => {
     });
 
     it("should fail open when local check throws", async () => {
-      mockIsDisposable.mockImplementation(() => {
+      mockIsDisposableEmail.mockImplementation(() => {
         throw new Error("Unexpected error");
       });
 
@@ -125,8 +125,8 @@ describe("validateDisposableEmail", () => {
 
 describe("isDisposableOrBlockedRelayEmail", () => {
   beforeEach(() => {
-    mockIsDisposable.mockReset();
-    mockIsDisposable.mockReturnValue(false);
+    mockIsDisposableEmail.mockReset();
+    mockIsDisposableEmail.mockReturnValue(false);
   });
 
   it("should return true for blocked relay emails", async () => {
@@ -135,21 +135,21 @@ describe("isDisposableOrBlockedRelayEmail", () => {
   });
 
   it("should return true for disposable emails", async () => {
-    mockIsDisposable.mockReturnValue(true);
+    mockIsDisposableEmail.mockReturnValue(true);
 
     const result = await isDisposableOrBlockedRelayEmail("test@mailinator.com");
     expect(result).toBe(true);
   });
 
   it("should return false for legitimate emails", async () => {
-    mockIsDisposable.mockReturnValue(false);
+    mockIsDisposableEmail.mockReturnValue(false);
 
     const result = await isDisposableOrBlockedRelayEmail("test@gmail.com");
     expect(result).toBe(false);
   });
 
   it("should return false for Apple relay emails", async () => {
-    mockIsDisposable.mockReturnValue(false);
+    mockIsDisposableEmail.mockReturnValue(false);
 
     const result = await isDisposableOrBlockedRelayEmail("test@privaterelay.appleid.com");
     expect(result).toBe(false);
