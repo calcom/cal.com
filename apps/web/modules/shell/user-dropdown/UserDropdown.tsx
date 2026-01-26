@@ -210,13 +210,13 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 {t("download_app")}
               </MenuSubTrigger>
               <MenuSubPopup>
-                {os === "ios" && (
+                {(os === "ios" || !isMobile) && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
                     <AppleIcon className="size-4 fill-foreground" />
                     {t("download_for_ios")}
                   </MenuItem>
                 )}
-                {os === "android" && (
+                {(os === "android" || !isMobile) && (
                   <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
                     <PlayStoreIcon className="size-4" />
                     {t("download_for_android")}
