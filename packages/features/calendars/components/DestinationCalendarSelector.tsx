@@ -18,11 +18,14 @@ type CalendarWithPrimary = Omit<IntegrationCalendar, "primary"> & {
 
 interface ConnectedCalendar {
   credentialId: number;
-  integration: App & { title?: string; slug?: string; [key: string]: any };
+  integration: App & { title?: string; slug?: string };
   primary?: CalendarWithPrimary | null;
   calendars?: CalendarWithPrimary[] | null;
   cacheUpdatedAt?: Date | string | null;
-  [key: string]: any;
+  delegationCredentialId?: string | null;
+  error?: {
+    message: string;
+  };
 }
 
 interface DestinationCalendar {
@@ -38,7 +41,11 @@ interface DestinationCalendar {
   id?: string | number | null;
   userId?: number | null;
   eventTypeId?: number | null;
-  [key: string]: any;
+  customCalendarReminder?: number | null;
+  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
 }
 
 interface CalendarsQueryData {
