@@ -826,7 +826,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`px-2! h-7 w-fit ${
+                          className={`px-2! py-1! min-h-7 h-auto w-fit ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
