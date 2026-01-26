@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { TimezoneSelect } from "@calcom/web/modules/timezone/components";
-import type { ITimezone } from "@calcom/web/modules/timezone/components";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
+import type { ITimezone } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

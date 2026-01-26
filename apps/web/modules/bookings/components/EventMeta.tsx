@@ -24,7 +24,7 @@ import { ScrollableWithGradients } from "./ScrollableWithGradients";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
-  () => import("@calcom/web/modules/timezone/components").then((mod) => mod.TimezoneSelect),
+  () => import("@calcom/web/modules/timezone/components/TimezoneSelect").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
   }

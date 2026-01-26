@@ -22,7 +22,7 @@ const LoadingState = () => {
 
 const WebTimezoneSelect = dynamic(
   () =>
-    import("@calcom/web/modules/timezone/components").then(
+    import("@calcom/web/modules/timezone/components/TimezoneSelect").then(
       (mod) => mod.TimezoneSelect
     ),
   {
