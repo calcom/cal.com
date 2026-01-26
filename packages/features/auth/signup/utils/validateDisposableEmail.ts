@@ -1,5 +1,6 @@
-import logger from "@calcom/lib/logger";
 import { isDisposable } from "disposable-email-domains-js";
+
+import logger from "@calcom/lib/logger";
 
 const log = logger.getSubLogger({ prefix: ["validateDisposableEmail"] });
 

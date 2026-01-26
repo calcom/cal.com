@@ -91,6 +91,7 @@ const BookerComponent = ({
   timeZones,
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
+  hideOrgTeamAvatar,
   showNoAvailabilityDialog,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
@@ -470,6 +471,7 @@ const BookerComponent = ({
                     locale={userLocale}
                     timeZones={timeZones}
                     roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                    hideOrgTeamAvatar={hideOrgTeamAvatar}
                     hideEventTypeDetails={hideEventTypeDetails}>
                     {eventMetaChildren}
                   </EventMeta>
