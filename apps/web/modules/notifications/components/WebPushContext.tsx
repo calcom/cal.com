@@ -110,14 +110,6 @@ export function WebPushProvider({ children }: ProviderProps) {
   return <WebPushContext.Provider value={contextValue}>{children}</WebPushContext.Provider>;
 }
 
-export function useWebPush() {
-  const context = useContext(WebPushContext);
-  if (!context) {
-    throw new Error("useWebPush must be used within a WebPushProvider");
-  }
-  return context;
-}
-
 const urlB64ToUint8Array = (base64String: string) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
