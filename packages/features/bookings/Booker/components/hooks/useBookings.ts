@@ -23,7 +23,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
@@ -399,12 +399,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       }
 
       const error = err as Error & {
-        data: { rescheduleUid: string; startTime: string; attendees: string[] };
+        data: { rescheduleUid: string; startTime: string; attendees: string[]; seatUid?: string };
         traceId?: string;
       };
 
       if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
-        setRescheduleUid(error.data?.rescheduleUid);
+        setRescheduleUid(error.data?.seatUid ?? error.data?.rescheduleUid);
         setBookingData({
           uid: error.data?.rescheduleUid,
           startTime: error.data?.startTime,
@@ -537,7 +537,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(t("please_try_again_later_or_book_another_slot"), "error");
+        showToast(
+          t("please_try_again_later_or_book_another_slot", { remaining: Math.ceil(remaining / 60000) }),
+          "error"
+        );
         return;
       }
       createInstantBookingMutation.mutate(variables);

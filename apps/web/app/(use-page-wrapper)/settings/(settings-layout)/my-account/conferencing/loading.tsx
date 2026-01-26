@@ -1,4 +1,4 @@
-import { SkeletonLoader } from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/ConferencingAppsViewWebWrapper";
 
 export default function Loading() {
   return <SkeletonLoader />;

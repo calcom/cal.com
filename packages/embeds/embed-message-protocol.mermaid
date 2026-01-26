@@ -1,0 +1,40 @@
+flowchart TB
+    subgraph Parent["Parent Page (embed.ts)"]
+        direction TB
+        CalAPI["Cal API<br/>(Cal.inline, Cal.modal, Cal.ui)"]
+        ActionMgr["ActionManager<br/>(Event Listener)"]
+        DoInIframe["doInIframe()<br/>(Command Sender)"]
+        Queue["iframeDoQueue[]<br/>(Command Buffer)"]
+        
+        CalAPI --> DoInIframe
+        DoInIframe -->|"if !iframeReady"| Queue
+        Queue -->|"flush on ready"| DoInIframe
+    end
+    
+    subgraph Transport["postMessage Transport"]
+        direction TB
+        ToIframe["parent.postMessage()<br/>{originator: 'CAL', method, arg}"]
+        ToParent["iframe.postMessage()<br/>{originator: 'CAL', type, data}"]
+    end
+    
+    subgraph Iframe["Iframe (embed-iframe.ts)"]
+        direction TB
+        MsgListener["window.addEventListener('message')"]
+        Interface["interfaceWithParent<br/>{ui, parentKnowsIframeReady, connect}"]
+        SDKAction["sdkActionManager<br/>(Event Emitter)"]
+        EmbedStore["embedStore<br/>(State)"]
+        
+        MsgListener --> Interface
+        Interface --> EmbedStore
+        SDKAction -->|"fire()"| ToParent
+    end
+    
+    DoInIframe -->|"Commands"| ToIframe
+    ToIframe --> MsgListener
+    
+    ToParent --> ActionMgr
+    
+    style Parent fill:#e1f5fe,stroke:#01579b
+    style Iframe fill:#fff3e0,stroke:#e65100
+    style Transport fill:#f3e5f5,stroke:#7b1fa2
+

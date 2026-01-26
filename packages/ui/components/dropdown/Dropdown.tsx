@@ -143,19 +143,14 @@ type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
 
 export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   const isLink = typeof href !== "undefined";
-  const ButtonOrLink = isLink ? "a" : "button";
-
-  const content = <ButtonOrLink {...props} />;
 
   if (isLink) {
-    return (
-      <Link href={href} legacyBehavior>
-        {content}
-      </Link>
-    );
+    // Strip ref from props when using Link (Link manages its own anchor element)
+    const { ref: _ref, ...linkProps } = props;
+    return <Link href={href} {...linkProps} />;
   }
 
-  return content;
+  return <button {...props} />;
 }
 
 export const DropdownItem = (props: DropdownItemProps) => {
@@ -170,7 +165,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
         props.className
       )}>
       <>
-        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4" />)}
+        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4 shrink-0" />)}
         <div className={classNames("w-full text-left text-sm font-medium leading-none", childrenClassName)}>
           {children}
         </div>

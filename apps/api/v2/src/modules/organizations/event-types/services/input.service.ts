@@ -8,6 +8,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SchedulingType } from "@calcom/platform-libraries";
+import { slugifyLenient } from "@calcom/platform-libraries";
 import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,
@@ -42,11 +43,13 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
+    const slugifiedInputEventType = { ...inputEventType, slug: slugifyLenient(inputEventType.slug) };
+
     await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
-    await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
+    await this.validateTeamEventTypeSlug(teamId, slugifiedInputEventType.slug);
 
-    const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
+    const transformedBody = await this.transformInputCreateTeamEventType(teamId, slugifiedInputEventType);
 
     await this.inputEventTypesService.validateEventTypeInputs({
       seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
@@ -75,13 +78,21 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
+    const slugifiedInputEventType = inputEventType.slug
+      ? { ...inputEventType, slug: slugifyLenient(inputEventType.slug) }
+      : inputEventType;
+
     await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
-    if (inputEventType.slug) {
-      await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
+    if (slugifiedInputEventType.slug) {
+      await this.validateTeamEventTypeSlug(teamId, slugifiedInputEventType.slug);
     }
 
-    const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
+    const transformedBody = await this.transformInputUpdateTeamEventType(
+      eventTypeId,
+      teamId,
+      slugifiedInputEventType
+    );
 
     await this.inputEventTypesService.validateEventTypeInputs({
       eventTypeId: eventTypeId,
@@ -305,6 +316,7 @@ export class InputOrganizationsEventTypesService {
     }
 
     if (inputEventType.hosts) {
+      await this.validateHosts(teamId, inputEventType.hosts);
       return inputEventType.hosts.map((host) => host.userId);
     }
 
@@ -343,6 +355,7 @@ export class InputOrganizationsEventTypesService {
     }
 
     if (inputEventType.hosts) {
+      await this.validateHosts(teamId, inputEventType.hosts);
       return inputEventType.hosts.map((host) => host.userId);
     }
 

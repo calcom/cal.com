@@ -1,7 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

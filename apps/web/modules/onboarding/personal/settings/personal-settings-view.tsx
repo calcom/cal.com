@@ -26,9 +26,14 @@ import { useOnboardingStore } from "../../store/onboarding-store";
 type PersonalSettingsViewProps = {
   userEmail: string;
   userName?: string;
+  fromTeamOnboarding?: boolean;
 };
 
-export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsViewProps) => {
+export const PersonalSettingsView = ({
+  userEmail,
+  userName,
+  fromTeamOnboarding = false,
+}: PersonalSettingsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
@@ -117,12 +122,14 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
           subtitle={t("personal_details_subtitle")}
           footer={
             <div className="flex w-full items-center justify-end gap-4">
-              <Button
-                color="minimal"
-                className="rounded-[10px]"
-                onClick={() => router.push("/onboarding/getting-started")}>
-                {t("back")}
-              </Button>
+              {!fromTeamOnboarding && (
+                <Button
+                  color="minimal"
+                  className="rounded-[10px]"
+                  onClick={() => router.push("/onboarding/getting-started")}>
+                  {t("back")}
+                </Button>
+              )}
               <Button
                 type="submit"
                 form="personal-settings-form"
@@ -197,7 +204,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
               {/* Bio */}
               <div className="flex w-full flex-col gap-1.5">
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("bio")}</Label>
-                <TextArea {...form.register("bio")} className="min-h-[108px]" />
+                <TextArea {...form.register("bio")} className="min-h-[108px] max-h-[150px]" />
                 {form.formState.errors.bio && (
                   <p className="text-error text-sm">{form.formState.errors.bio.message}</p>
                 )}

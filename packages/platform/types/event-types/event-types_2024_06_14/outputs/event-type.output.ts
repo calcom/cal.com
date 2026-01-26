@@ -3,6 +3,7 @@ import {
   ApiPropertyOptional,
   ApiExtraModels,
   getSchemaPath,
+  ApiHideProperty,
 } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -58,6 +59,8 @@ import {
   UrlFieldOutput_2024_06_14,
 } from "../outputs/booking-fields.output";
 import { BookerActiveBookingsLimitOutput_2024_06_14 } from "./booker-active-bookings-limit.output";
+import { DisableCancellingOutput_2024_06_14 } from "./disable-cancelling.output";
+import { DisableReschedulingOutput_2024_06_14 } from "./disable-rescheduling.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
@@ -460,6 +463,60 @@ class BaseEventTypeOutput_2024_06_14 {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableCancellingOutput_2024_06_14)
+  @ApiPropertyOptional({
+    type: DisableCancellingOutput_2024_06_14,
+    description: "Settings for disabling cancelling of this event type.",
+  })
+  disableCancelling?: DisableCancellingOutput_2024_06_14;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableReschedulingOutput_2024_06_14)
+  @ApiPropertyOptional({
+    type: DisableReschedulingOutput_2024_06_14,
+    description:
+      "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+  })
+  disableRescheduling?: DisableReschedulingOutput_2024_06_14;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    description: "Set preferred language for the booking interface.",
+  })
+  interfaceLanguage?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description: "Enabling this option allows for past events to be rescheduled.",
+  })
+  allowReschedulingPastBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    type: Boolean,
+    nullable: true,
+    description:
+      "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+  })
+  allowReschedulingCancelledBookings?: boolean | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    type: Boolean,
+    nullable: true,
+    description: "Arrange time slots to optimize availability.",
+  })
+  showOptimizedSlots?: boolean | null;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -489,6 +546,14 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsArray()
   @DocsProperty()
   users!: User_2024_06_14[];
+
+  @IsString()
+  @DocsProperty({
+    description: "Full URL to the booking page for this event type",
+    example: "https://cal.com/john-doe/30min",
+    format: "uri",
+  })
+  bookingUrl!: string;
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
@@ -550,4 +615,13 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
     description: "Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  /*   @ApiPropertyOptional({
+    description:
+      "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+  }) */
+  @ApiHideProperty()
+  rrHostSubsetEnabled?: boolean;
 }
