@@ -3,27 +3,36 @@
  *
  * This screen handles deep links from app.cal.com/video/* URLs and joins
  * Daily.co video calls natively using the Daily React Native SDK.
+ *
+ * The Daily SDK is loaded dynamically to prevent crashes in environments
+ * where native modules aren't available (like Expo Go or web).
  */
-import Daily, {
-  DailyCall,
-  DailyParticipant,
-  DailyMediaView,
-} from "@daily-co/react-native-daily-js";
-import type { MediaStreamTrack as DailyMediaStreamTrack } from "@daily-co/react-native-webrtc";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Linking,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { useBookingByUid } from "@/hooks/useBookings";
 import { showErrorAlert } from "@/utils/alerts";
 
-type CallState = "idle" | "joining" | "joined" | "leaving" | "error";
+type CallState = "idle" | "joining" | "joined" | "leaving" | "error" | "unsupported";
+
+type DailyModule = typeof import("@daily-co/react-native-daily-js");
+type DailyCallType = ReturnType<DailyModule["default"]["createCallObject"]>;
 
 interface ParticipantTile {
   sessionId: string;
   userName: string;
-  videoTrack: DailyMediaStreamTrack | null;
-  audioTrack: DailyMediaStreamTrack | null;
+  videoTrack: unknown;
+  audioTrack: unknown;
   isLocal: boolean;
   isVideoEnabled: boolean;
   isAudioEnabled: boolean;
@@ -40,13 +49,15 @@ export default function VideoCallScreen() {
     error: bookingError,
   } = useBookingByUid(bookingUid);
 
-  // Daily call state
-  const callObjectRef = useRef<DailyCall | null>(null);
+  // Daily SDK and call state
+  const dailyModuleRef = useRef<DailyModule | null>(null);
+  const callObjectRef = useRef<DailyCallType | null>(null);
   const [callState, setCallState] = useState<CallState>("idle");
   const [participants, setParticipants] = useState<Map<string, ParticipantTile>>(new Map());
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [isCameraEnabled, setIsCameraEnabled] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [DailyMediaView, setDailyMediaView] = useState<DailyModule["DailyMediaView"] | null>(null);
 
   // Extract meeting URL from booking
   const meetingUrl = booking?.meetingUrl || booking?.location;
@@ -61,24 +72,35 @@ export default function VideoCallScreen() {
       return false;
     }
     // Logic must be outside try/catch for React Compiler compatibility
-    const isDailyUrl = urlObj.hostname.includes("daily.co");
+    const isDailyUrl = urlObj.hostname === "daily.co" || urlObj.hostname.endsWith(".daily.co");
     const isCalVideoUrl =
       urlObj.hostname.includes("cal.com") && urlObj.pathname.startsWith("/video/");
     return isDailyUrl || isCalVideoUrl;
   }, []);
 
   // Convert Daily participant to our tile format
-  const participantToTile = useCallback((participant: DailyParticipant): ParticipantTile => {
-    return {
-      sessionId: participant.session_id,
-      userName: participant.user_name || "Guest",
-      videoTrack: (participant.tracks?.video?.persistentTrack as DailyMediaStreamTrack) || null,
-      audioTrack: (participant.tracks?.audio?.persistentTrack as DailyMediaStreamTrack) || null,
-      isLocal: participant.local,
-      isVideoEnabled: participant.tracks?.video?.state === "playable",
-      isAudioEnabled: participant.tracks?.audio?.state === "playable",
-    };
-  }, []);
+  const participantToTile = useCallback(
+    (participant: {
+      session_id: string;
+      user_name?: string;
+      tracks?: {
+        video?: { persistentTrack?: unknown; state?: string };
+        audio?: { persistentTrack?: unknown; state?: string };
+      };
+      local: boolean;
+    }): ParticipantTile => {
+      return {
+        sessionId: participant.session_id,
+        userName: participant.user_name || "Guest",
+        videoTrack: participant.tracks?.video?.persistentTrack || null,
+        audioTrack: participant.tracks?.audio?.persistentTrack || null,
+        isLocal: participant.local,
+        isVideoEnabled: participant.tracks?.video?.state === "playable",
+        isAudioEnabled: participant.tracks?.audio?.state === "playable",
+      };
+    },
+    []
+  );
 
   // Update participants state
   const updateParticipants = useCallback(() => {
@@ -89,7 +111,16 @@ export default function VideoCallScreen() {
     const newParticipants = new Map<string, ParticipantTile>();
 
     Object.values(dailyParticipants).forEach((participant) => {
-      newParticipants.set(participant.session_id, participantToTile(participant));
+      const p = participant as {
+        session_id: string;
+        user_name?: string;
+        tracks?: {
+          video?: { persistentTrack?: unknown; state?: string };
+          audio?: { persistentTrack?: unknown; state?: string };
+        };
+        local: boolean;
+      };
+      newParticipants.set(p.session_id, participantToTile(p));
     });
 
     setParticipants(newParticipants);
@@ -124,6 +155,35 @@ export default function VideoCallScreen() {
     router.back();
   }, [router]);
 
+  // Load Daily SDK dynamically
+  const loadDailySDK = useCallback(async (): Promise<DailyModule | null> => {
+    if (dailyModuleRef.current) {
+      return dailyModuleRef.current;
+    }
+
+    if (Platform.OS === "web") {
+      setCallState("unsupported");
+      setErrorMessage(
+        "Video calls are not supported in the web version. Please use the mobile app."
+      );
+      return null;
+    }
+
+    try {
+      const Daily = await import("@daily-co/react-native-daily-js");
+      dailyModuleRef.current = Daily;
+      setDailyMediaView(() => Daily.DailyMediaView);
+      return Daily;
+    } catch (error) {
+      console.error("Failed to load Daily SDK:", error);
+      setCallState("unsupported");
+      setErrorMessage(
+        "Video calls require a development build. Please rebuild the app with native modules."
+      );
+      return null;
+    }
+  }, []);
+
   // Initialize and join the call
   const joinCall = useCallback(async () => {
     if (!meetingUrl || !isValidDailyUrl(meetingUrl)) {
@@ -135,9 +195,15 @@ export default function VideoCallScreen() {
     try {
       setCallState("joining");
 
+      // Load Daily SDK dynamically
+      const Daily = await loadDailySDK();
+      if (!Daily) {
+        return;
+      }
+
       // Create call object if it doesn't exist
       if (!callObjectRef.current) {
-        callObjectRef.current = Daily.createCallObject();
+        callObjectRef.current = Daily.default.createCallObject();
       }
 
       const callObject = callObjectRef.current;
@@ -159,6 +225,7 @@ export default function VideoCallScreen() {
   }, [
     meetingUrl,
     isValidDailyUrl,
+    loadDailySDK,
     handleJoinedMeeting,
     handleParticipantJoined,
     handleParticipantLeft,
@@ -213,6 +280,13 @@ export default function VideoCallScreen() {
     }
   }, [isCameraEnabled]);
 
+  // Open meeting URL in browser as fallback
+  const openInBrowser = useCallback(() => {
+    if (meetingUrl) {
+      Linking.openURL(meetingUrl);
+    }
+  }, [meetingUrl]);
+
   // Auto-join when meeting URL is available
   useEffect(() => {
     if (meetingUrl && callState === "idle" && isValidDailyUrl(meetingUrl)) {
@@ -247,6 +321,26 @@ export default function VideoCallScreen() {
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color="#000" />
           <Text style={styles.loadingText}>Loading meeting...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Render unsupported state (Expo Go, web, etc.)
+  if (callState === "unsupported") {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.centerContent}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+          {meetingUrl && (
+            <Pressable style={styles.button} onPress={openInBrowser}>
+              <Text style={styles.buttonText}>Open in Browser</Text>
+            </Pressable>
+          )}
+          <Pressable style={[styles.button, styles.secondaryButton]} onPress={() => router.back()}>
+            <Text style={styles.secondaryButtonText}>Go Back</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     );
@@ -297,10 +391,14 @@ export default function VideoCallScreen() {
         {remoteParticipants.length > 0 ? (
           remoteParticipants.map((participant) => (
             <View key={participant.sessionId} style={styles.remoteVideoContainer}>
-              {participant.videoTrack ? (
+              {participant.videoTrack && DailyMediaView ? (
                 <DailyMediaView
-                  videoTrack={participant.videoTrack}
-                  audioTrack={participant.audioTrack}
+                  videoTrack={
+                    participant.videoTrack as Parameters<typeof DailyMediaView>[0]["videoTrack"]
+                  }
+                  audioTrack={
+                    participant.audioTrack as Parameters<typeof DailyMediaView>[0]["audioTrack"]
+                  }
                   mirror={false}
                   zOrder={0}
                   style={styles.remoteVideo}
@@ -326,9 +424,11 @@ export default function VideoCallScreen() {
         {/* Local participant (picture-in-picture) */}
         {localParticipant && (
           <View style={styles.localVideoContainer}>
-            {localParticipant.videoTrack && isCameraEnabled ? (
+            {localParticipant.videoTrack && isCameraEnabled && DailyMediaView ? (
               <DailyMediaView
-                videoTrack={localParticipant.videoTrack}
+                videoTrack={
+                  localParticipant.videoTrack as Parameters<typeof DailyMediaView>[0]["videoTrack"]
+                }
                 audioTrack={null}
                 mirror={true}
                 zOrder={1}
@@ -396,8 +496,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
+    marginTop: 12,
   },
   buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  secondaryButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#666",
+  },
+  secondaryButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
