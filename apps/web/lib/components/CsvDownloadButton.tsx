@@ -125,39 +125,42 @@ export function CsvDownloadButton<TData, TTransformed = TData>({
 
   return (
     <TooltipProvider delay={0}>
-      {isDownloading ? (
-        <Group>
-          <GroupText aria-live="polite" className="cursor-default gap-2" role="status">
-            <Spinner />
-            <span aria-hidden="true" className="font-medium text-foreground tabular-nums">
-              {progress.toString().padStart(2, "\u2007")}%
-            </span>
-            <span className="sr-only">
-              {t("downloading")}, {t("download_progress", { progress })}
-            </span>
-          </GroupText>
-          <GroupSeparator />
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  aria-label={t("cancel_download")}
-                  onClick={handleCancel}
-                  size="icon"
-                  variant="outline"
-                />
-              }>
-              <XIcon aria-hidden="true" />
-            </TooltipTrigger>
-            <TooltipPopup>{t("cancel")}</TooltipPopup>
-          </Tooltip>
-        </Group>
-      ) : (
-        <Button onClick={handleDownload} variant="outline">
-          <DownloadIcon aria-hidden="true" />
-          {t("download")}
-        </Button>
-      )}
+      <div className="inline-grid">
+        <div className={isDownloading ? "col-start-1 row-start-1 invisible" : "col-start-1 row-start-1"}>
+          <Button onClick={handleDownload} variant="outline">
+            <DownloadIcon aria-hidden="true" />
+            {t("download")}
+          </Button>
+        </div>
+        <div className={isDownloading ? "col-start-1 row-start-1" : "col-start-1 row-start-1 invisible"}>
+          <Group>
+            <GroupText aria-live="polite" className="cursor-default gap-2" role="status">
+              <Spinner />
+              <span aria-hidden="true" className="font-medium text-foreground tabular-nums">
+                {progress.toString().padStart(2, "\u2007")}%
+              </span>
+              <span className="sr-only">
+                {t("downloading")}, {t("download_progress", { progress })}
+              </span>
+            </GroupText>
+            <GroupSeparator />
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    aria-label={t("cancel_download")}
+                    onClick={handleCancel}
+                    size="icon"
+                    variant="outline"
+                  />
+                }>
+                <XIcon aria-hidden="true" />
+              </TooltipTrigger>
+              <TooltipPopup>{t("cancel")}</TooltipPopup>
+            </Tooltip>
+          </Group>
+        </div>
+      </div>
     </TooltipProvider>
   );
 }
