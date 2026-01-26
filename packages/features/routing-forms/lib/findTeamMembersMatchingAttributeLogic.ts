@@ -455,6 +455,24 @@ export async function findTeamMembersMatchingAttributeLogic(
     runAttributeLogicOptions
   );
 
+  // Add trace step for attribute logic evaluation
+  if (routingTraceService) {
+    const attributeRoutingDetails = extractAttributeRoutingDetails({
+      resolvedAttributesQueryValue,
+      attributesOfTheOrg,
+    });
+
+    routingTraceService.addStep({
+      domain: "routing_form",
+      step: "attribute-logic-evaluated",
+      data: {
+        routeName,
+        routeIsFallback,
+        attributeRoutingDetails,
+      },
+    });
+  }
+
   // It being null means that no logic was found and thus all members match. In such case, we don't fallback intentionally.
   // This is the case when user added no rules so, he expects to match all members
   if (!teamMembersMatchingMainAttributeLogic) {
