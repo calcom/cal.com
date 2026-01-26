@@ -59,7 +59,7 @@ describe("TeamRepository", () => {
 
   describe("findById", () => {
     it("should return null if team is not found", async () => {
-      prismaMock.team.findUnique.mockResolvedValue(null);
+      prismaMock.team.findFirst.mockResolvedValue(null);
       const result = await teamRepository.findById({ id: 1 });
       expect(result).toBeNull();
     });
@@ -79,7 +79,7 @@ describe("TeamRepository", () => {
         isPlatform: true,
         requestedSlug: null,
       };
-      prismaMock.team.findUnique.mockResolvedValue(mockTeam as unknown as Team);
+      prismaMock.team.findFirst.mockResolvedValue(mockTeam as unknown as Team);
       const result = await teamRepository.findById({ id: 1 });
       expect(result).toEqual(mockTeam);
     });
@@ -138,7 +138,7 @@ describe("TeamRepository", () => {
       prismaMock.team.findMany.mockResolvedValue(mockTeams as unknown as Team[]);
       const result = await teamRepository.findAllByParentId({ parentId: 1 });
       expect(prismaMock.team.findMany).toHaveBeenCalledWith({
-        where: { parentId: 1 },
+        where: { parentId: 1, deletedAt: null },
         select: {
           id: true,
           name: true,
@@ -158,10 +158,10 @@ describe("TeamRepository", () => {
   describe("findTeamWithMembers", () => {
     it("should return team with its members", async () => {
       const mockTeam = { id: 1, members: [] };
-      prismaMock.team.findUnique.mockResolvedValue(mockTeam as unknown as Team & { members: [] });
+      prismaMock.team.findFirst.mockResolvedValue(mockTeam as unknown as Team & { members: [] });
       const result = await teamRepository.findTeamWithMembers(1);
-      expect(prismaMock.team.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
+      expect(prismaMock.team.findFirst).toHaveBeenCalledWith({
+        where: { id: 1, deletedAt: null },
         select: {
           members: {
             select: {
@@ -205,6 +205,7 @@ describe("getOrg", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
+        deletedAt: null,
         slug: "test-slug",
         isOrganization: true,
       },
@@ -244,6 +245,7 @@ describe("getOrg", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
+        deletedAt: null,
         slug: "test-slug",
         isOrganization: true,
       },
@@ -314,6 +316,7 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
+        deletedAt: null,
         slug: "test-slug",
       },
       select: {
@@ -356,6 +359,7 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
+        deletedAt: null,
         slug: "test-slug",
       },
       select: {
@@ -397,6 +401,7 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
+        deletedAt: null,
         slug: "team-in-test-org",
         parent: {
           OR: [
@@ -440,6 +445,7 @@ describe("getTeam", () => {
 
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
+        deletedAt: null,
         slug: "test-team",
         parent: {
           isOrganization: true,
