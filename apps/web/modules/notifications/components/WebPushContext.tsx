@@ -13,7 +13,7 @@ interface WebPushContextProps {
   unsubscribe: () => Promise<void>;
 }
 
-const WebPushContext = createContext<WebPushContextProps | null>(null);
+export const WebPushContext = createContext<WebPushContextProps | null>(null);
 
 interface ProviderProps {
   children: React.ReactNode;
