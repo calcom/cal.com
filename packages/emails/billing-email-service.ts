@@ -172,7 +172,11 @@ export const sendProrationInvoiceEmails = async ({
     );
   }
 
-  await Promise.all(emailsToSend);
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    console.error(`${failures.length} email(s) failed to send`, failures);
+  }
 };
 
 export const sendProrationReminderEmails = async ({
@@ -216,5 +220,9 @@ export const sendProrationReminderEmails = async ({
     );
   }
 
-  await Promise.all(emailsToSend);
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    console.error(`${failures.length} email(s) failed to send`, failures);
+  }
 };
