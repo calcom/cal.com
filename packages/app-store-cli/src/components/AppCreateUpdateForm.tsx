@@ -87,7 +87,7 @@ export const AppForm = ({
       options: [
         // Manually sorted alphabetically
         { label: "Analytics", value: "analytics" },
-        { label: "Automation", value: "automation" },
+        { label: "AI & Automation", value: "automation" },
         { label: "Calendar", value: "calendar" },
         { label: "Conferencing", value: "conferencing" },
         { label: "CRM", value: "crm" },
