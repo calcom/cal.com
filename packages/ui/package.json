@@ -34,6 +34,7 @@
     "./components/form/checkbox/Checkbox": "./components/form/checkbox/Checkbox.tsx",
     "./components/form/inputs/TextField": "./components/form/inputs/TextField.tsx",
     "./components/form/select/Select": "./components/form/select/Select.tsx",
+    "./components/form/date-range-picker/DateRangePicker": "./components/form/date-range-picker/DateRangePicker.tsx",
     "./components/form/timezone-select": "./components/form/timezone-select/index.ts",
     "./components/hover-card": "./components/hover-card/index.tsx",
     "./components/image-uploader": "./components/image-uploader/index.ts",

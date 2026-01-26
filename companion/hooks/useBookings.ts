@@ -12,6 +12,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
 import { type Booking, CalComAPIService } from "@/services/calcom";
+import { requestRating, RatingTrigger } from "@/hooks/useAppStoreRating";
 
 /**
  * Filter options for fetching bookings
@@ -225,6 +226,9 @@ export function useConfirmBooking() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
+
+      // Request app store rating on first booking confirmation
+      requestRating(RatingTrigger.BOOKING_CONFIRMED);
     },
     onError: (_error) => {
       console.error("Failed to confirm booking");
@@ -258,6 +262,9 @@ export function useDeclineBooking() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
+
+      // Request app store rating on first booking rejection
+      requestRating(RatingTrigger.BOOKING_REJECTED);
     },
     onError: (_error) => {
       console.error("Failed to decline booking");
