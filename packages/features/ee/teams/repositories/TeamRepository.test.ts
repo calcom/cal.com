@@ -287,6 +287,127 @@ describe("TeamRepository", () => {
       vi.useRealTimers();
     });
   });
+
+  describe("findTeamsByUserId - soft delete filtering", () => {
+    it("should filter out soft-deleted teams when fetching teams by user ID", async () => {
+      const activeTeam = {
+        id: 1,
+        name: "Active Team",
+        slug: "active-team",
+        logoUrl: null,
+        isOrganization: false,
+        inviteTokens: [],
+        parent: null,
+        parentId: null,
+      };
+
+      const mockMemberships = [
+        {
+          role: "MEMBER",
+          accepted: true,
+          team: activeTeam,
+        },
+      ];
+
+      prismaMock.membership.findMany.mockResolvedValue(mockMemberships as never);
+
+      const result = await teamRepository.findTeamsByUserId({ userId: 1 });
+
+      expect(prismaMock.membership.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 1,
+            team: {
+              deletedAt: null,
+            },
+          }),
+        })
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Active Team");
+    });
+
+    it("should include deletedAt: null filter in the where clause for relation queries", async () => {
+      prismaMock.membership.findMany.mockResolvedValue([]);
+
+      await teamRepository.findTeamsByUserId({ userId: 1 });
+
+      const callArgs = prismaMock.membership.findMany.mock.calls[0][0];
+      expect(callArgs.where.team).toEqual({ deletedAt: null });
+    });
+  });
+
+  describe("findOwnedTeamsByUserId - soft delete filtering", () => {
+    it("should filter out soft-deleted teams when fetching owned teams", async () => {
+      const ownedTeam = {
+        id: 1,
+        name: "Owned Team",
+        slug: "owned-team",
+        isOrganization: false,
+      };
+
+      const mockMemberships = [
+        {
+          role: "OWNER",
+          accepted: true,
+          team: ownedTeam,
+        },
+      ];
+
+      prismaMock.membership.findMany.mockResolvedValue(mockMemberships as never);
+
+      const result = await teamRepository.findOwnedTeamsByUserId({ userId: 1 });
+
+      expect(prismaMock.membership.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 1,
+            accepted: true,
+            role: {
+              in: ["OWNER", "ADMIN"],
+            },
+            team: {
+              deletedAt: null,
+            },
+          }),
+        })
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Owned Team");
+    });
+
+    it("should include deletedAt: null filter in the where clause for owned teams", async () => {
+      prismaMock.membership.findMany.mockResolvedValue([]);
+
+      await teamRepository.findOwnedTeamsByUserId({ userId: 1 });
+
+      const callArgs = prismaMock.membership.findMany.mock.calls[0][0];
+      expect(callArgs.where.team).toEqual({ deletedAt: null });
+    });
+
+    it("should not return organizations even if user is owner", async () => {
+      const orgTeam = {
+        id: 1,
+        name: "Organization",
+        slug: "org",
+        isOrganization: true,
+      };
+
+      const mockMemberships = [
+        {
+          role: "OWNER",
+          accepted: true,
+          team: orgTeam,
+        },
+      ];
+
+      prismaMock.membership.findMany.mockResolvedValue(mockMemberships as never);
+
+      const result = await teamRepository.findOwnedTeamsByUserId({ userId: 1 });
+
+      expect(result).toHaveLength(0);
+    });
+  });
 });
 
 describe("getOrg", () => {
