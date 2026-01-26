@@ -55,9 +55,20 @@ vi.mock("@calcom/ui/components/dropdown", () => ({
   DropdownMenuPortal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuSeparator: () => <hr />,
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuSub: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuSubTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuSubContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@coss/ui/components/menu", () => ({
+  MenuSub: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuSubTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuSubPopup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  MenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("lucide-react", () => ({
+  DownloadIcon: () => <span data-testid="icon-download">download</span>,
+  SmartphoneIcon: () => <span data-testid="icon-smartphone">smartphone</span>,
+  GlobeIcon: () => <span data-testid="icon-globe">globe</span>,
+  MonitorIcon: () => <span data-testid="icon-monitor">monitor</span>,
 }));
 
 vi.mock("@calcom/ui/classNames", () => ({
