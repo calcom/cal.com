@@ -91,6 +91,7 @@ const BookerComponent = ({
   timeZones,
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
+  hideOrgTeamAvatar,
   showNoAvailabilityDialog,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
@@ -471,6 +472,7 @@ const BookerComponent = ({
                     locale={userLocale}
                     timeZones={timeZones}
                     roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                    hideOrgTeamAvatar={hideOrgTeamAvatar}
                     hideEventTypeDetails={hideEventTypeDetails}
                     variant={isTablet && layout === BookerLayouts.MONTH_VIEW && bookerState !== "booking" ? "header" : "full"}>
                     {eventMetaChildren}
