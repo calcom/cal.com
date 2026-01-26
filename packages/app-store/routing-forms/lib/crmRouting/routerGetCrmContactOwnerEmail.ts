@@ -1,5 +1,6 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -10,10 +11,12 @@ export default async function routerGetCrmContactOwnerEmail({
   attributeRoutingConfig,
   identifierKeyedResponse,
   action,
+  routingTraceService,
 }: {
   attributeRoutingConfig: LocalRoute["attributeRoutingConfig"];
   identifierKeyedResponse: Record<string, string | string[]> | null;
   action: LocalRoute["action"];
+  routingTraceService?: RoutingTraceService;
 }) {
   // Check if route is skipping CRM contact check
   if (attributeRoutingConfig?.skipContactOwner) return null;

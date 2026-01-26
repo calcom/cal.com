@@ -6,7 +6,7 @@ import {
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import { RoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
+import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -30,6 +30,7 @@ const _handleResponse = async ({
   isPreview,
   queueFormResponse,
   fetchCrm,
+  traceService,
 }: {
   response: Record<
     string,
@@ -46,6 +47,7 @@ const _handleResponse = async ({
   isPreview: boolean;
   queueFormResponse?: boolean;
   fetchCrm?: boolean;
+  traceService?: RoutingTraceService;
 }) => {
   try {
     if (!form.fields) {
@@ -123,6 +125,7 @@ const _handleResponse = async ({
                     attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
                     identifierKeyedResponse,
                     action: chosenRoute.action,
+                    routingTraceService: traceService,
                   })
                 : null;
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
@@ -143,9 +146,12 @@ const _handleResponse = async ({
                       fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
                       teamId: formTeamId,
                       orgId: formOrgId,
+                      routeName: chosenRoute.name,
+                      routeIsFallback: chosenRoute.isFallback,
                     },
                     {
                       enablePerf: true,
+                      routingTraceService: traceService,
                     }
                   )
                 : null;
@@ -168,44 +174,6 @@ const _handleResponse = async ({
         ]);
 
       await withReporting(getRoutedMembers, "getRoutedMembers")();
-
-      // Add routing trace steps at high level after all data is collected
-      try {
-        const traceService = RoutingTraceService.current();
-
-        // Record CRM contact owner if found (for Salesforce assignment reason)
-        if (crmContactOwnerEmail && crmAppSlug) {
-          traceService.addStep({
-            domain: "salesforce",
-            step: "contact-owner-found",
-            data: {
-              email: crmContactOwnerEmail,
-              recordType: crmContactOwnerRecordType,
-              recordId: crmRecordId,
-              crmAppSlug,
-              rrSkipToAccountLookupField:
-                chosenRoute.attributeRoutingConfig?.salesforce?.rrSkipToAccountLookupField ?? false,
-              rrSKipToAccountLookupFieldName:
-                chosenRoute.attributeRoutingConfig?.salesforce?.rrSKipToAccountLookupFieldName ?? null,
-            },
-          });
-        }
-
-        // Record routing form route match (for routing form assignment reason)
-        traceService.addStep({
-          domain: "routing_form",
-          step: "route-matched",
-          data: {
-            chosenRouteId,
-            routeName: "name" in chosenRoute ? chosenRoute.name : null,
-            teamMemberIds: teamMemberIdsMatchingAttributeLogic,
-            fallbackUsed: checkedFallback,
-            skipContactOwner: chosenRoute.attributeRoutingConfig?.skipContactOwner ?? false,
-          },
-        });
-      } catch {
-        // Not in trace context - ignore
-      }
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
@@ -267,6 +235,7 @@ const _handleResponse = async ({
           ? chosenRoute.attributeRoutingConfig
           : null
         : null,
+      checkedFallback,
       timeTaken,
     };
   } catch (e) {

@@ -6,6 +6,7 @@ import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { getAttributesAssignmentData } from "@calcom/features/attributes/lib/getAttributes";
+import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
 import type { dynamicFieldValueOperands, AttributesQueryValue } from "@calcom/lib/raqb/types";
@@ -130,6 +131,69 @@ function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; dat
   };
 }
 
+/**
+ * Extracts attribute name/value pairs from a resolved attributesQueryValue.
+ * This is used to build the assignment reason string.
+ */
+function extractAttributeRoutingDetails({
+  resolvedAttributesQueryValue,
+  attributesOfTheOrg,
+}: {
+  resolvedAttributesQueryValue: AttributesQueryValue | null;
+  attributesOfTheOrg: Attribute[];
+}): Array<{ attributeName: string; attributeValue: string }> {
+  if (!resolvedAttributesQueryValue) {
+    return [];
+  }
+
+  if (!raqbQueryValueUtils.isQueryValueARuleGroup(resolvedAttributesQueryValue as JsonTree)) {
+    return [];
+  }
+
+  const children1 = resolvedAttributesQueryValue.children1;
+  if (!children1) {
+    return [];
+  }
+
+  const result: Array<{ attributeName: string; attributeValue: string }> = [];
+
+  for (const ruleId of Object.keys(children1)) {
+    const rule = children1[ruleId];
+    // Check if it's a rule (has properties with field)
+    if (rule.type !== "rule" || !rule.properties) {
+      continue;
+    }
+
+    const properties = rule.properties;
+    const fieldId = properties.field;
+    const value = properties.value;
+
+    if (!fieldId || !value || value[0] === null || value[0] === undefined) {
+      continue;
+    }
+
+    const attribute = attributesOfTheOrg.find((attr) => attr.id === fieldId);
+    if (!attribute) {
+      continue;
+    }
+
+    const attributeValueString = (() => {
+      const firstValue = value[0];
+      if (Array.isArray(firstValue)) {
+        return firstValue[0];
+      }
+      return String(firstValue);
+    })();
+
+    result.push({
+      attributeName: attribute.name,
+      attributeValue: attributeValueString,
+    });
+  }
+
+  return result;
+}
+
 async function getLogicResultForAllMembers(
   {
     teamMembersWithAttributeOptionValuePerAttribute,
@@ -193,6 +257,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     return {
       logicBuildingWarnings: null,
       teamMembersMatchingAttributeLogic: null,
+      resolvedAttributesQueryValue: null,
       timeTaken: null,
       ...buildTroubleshooterData({
         type: TroubleshooterCase.MATCHES_ALL_MEMBERS_BECAUSE_OF_EMPTY_QUERY_VALUE,
@@ -217,6 +282,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     return {
       teamMembersMatchingAttributeLogic: null,
       logicBuildingWarnings: null,
+      resolvedAttributesQueryValue: attributesQueryValue,
       timeTaken: {
         ttgetAttributesQueryBuilderConfigHavingListofLabels,
       },
@@ -256,6 +322,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
   return {
     teamMembersMatchingAttributeLogic,
     logicBuildingWarnings,
+    resolvedAttributesQueryValue: attributesQueryValue,
     timeTaken: {
       ttgetAttributesQueryBuilderConfigHavingListofLabels,
       ttTeamMembersMatchingAttributeLogic,
@@ -322,15 +389,18 @@ export async function findTeamMembersMatchingAttributeLogic(
     fallbackAttributesQueryValue?: AttributesQueryValue | null;
     dynamicFieldValueOperands?: dynamicFieldValueOperands;
     isPreview?: boolean;
+    routeName?: string;
+    routeIsFallback?: boolean;
   },
   options: {
     enablePerf?: boolean;
     concurrency?: number;
     enableTroubleshooter?: boolean;
+    routingTraceService?: RoutingTraceService;
   } = {}
 ) {
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
-  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false } = options;
+  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false, routingTraceService } = options;
 
   // Any explicit value being passed should cause fallback to be considered. Even undefined
   const considerFallback = "fallbackAttributesQueryValue" in data;
@@ -342,6 +412,8 @@ export async function findTeamMembersMatchingAttributeLogic(
     fallbackAttributesQueryValue,
     dynamicFieldValueOperands,
     isPreview,
+    routeName,
+    routeIsFallback,
   } = data;
 
   const {
@@ -374,6 +446,7 @@ export async function findTeamMembersMatchingAttributeLogic(
     timeTaken: teamMembersMatchingMainAttributeLogicTimeTaken,
     troubleshooter,
     logicBuildingWarnings: mainAttributeLogicBuildingWarnings,
+    resolvedAttributesQueryValue,
   } = await runMainAttributeLogic(
     {
       ...runAttributeLogicData,
@@ -390,6 +463,8 @@ export async function findTeamMembersMatchingAttributeLogic(
       checkedFallback: false,
       mainAttributeLogicBuildingWarnings,
       fallbackAttributeLogicBuildingWarnings: [],
+      routeName,
+      routeIsFallback,
       timeTaken: {
         ...teamMembersMatchingMainAttributeLogicTimeTaken,
         ttGetAttributesForLogic,
@@ -423,6 +498,8 @@ export async function findTeamMembersMatchingAttributeLogic(
       checkedFallback: true,
       fallbackAttributeLogicBuildingWarnings,
       mainAttributeLogicBuildingWarnings,
+      routeName,
+      routeIsFallback,
       timeTaken: {
         ...teamMembersMatchingFallbackLogicTimeTaken,
         ttGetAttributesForLogic,
@@ -441,6 +518,8 @@ export async function findTeamMembersMatchingAttributeLogic(
     checkedFallback: false,
     mainAttributeLogicBuildingWarnings,
     fallbackAttributeLogicBuildingWarnings: [],
+    routeName,
+    routeIsFallback,
     timeTaken: {
       ...teamMembersMatchingMainAttributeLogicTimeTaken,
       ttGetAttributesForLogic,
