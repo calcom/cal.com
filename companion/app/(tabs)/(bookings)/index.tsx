@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Text, TextInput, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { Header } from "@/components/Header";
@@ -35,6 +35,14 @@ export default function Bookings() {
       setSelectedEventTypeLabel(null);
     }
   );
+
+  // Reactively update filter when URL params change
+  useEffect(() => {
+    if (filter && filter !== activeFilter) {
+      console.log("[Bookings Android] Filter param changed:", filter);
+      handleFilterChange(filter as BookingFilter);
+    }
+  }, [filter, activeFilter, handleFilterChange]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

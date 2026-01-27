@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { generalStorage } from "@/utils/storage";
 
-export type LandingPage =
-  | "event-types"
-  | "bookings"
-  | "bookings:upcoming"
-  | "bookings:unconfirmed"
-  | "bookings:recurring"
-  | "bookings:past"
-  | "bookings:cancelled";
+export type LandingPage = "event-types" | "bookings" | "bookings:upcoming" | "bookings:unconfirmed";
 
 export interface UserPreferences {
   landingPage: LandingPage;
@@ -28,11 +21,7 @@ export interface LandingPageOption {
 export const LANDING_PAGE_OPTIONS: LandingPageOption[] = [
   { value: "event-types", label: "Event Types" },
   { value: "bookings", label: "Bookings" },
-  { value: "bookings:upcoming", label: "Bookings (Upcoming)" },
   { value: "bookings:unconfirmed", label: "Bookings (Unconfirmed)" },
-  { value: "bookings:recurring", label: "Bookings (Recurring)" },
-  { value: "bookings:past", label: "Bookings (Past)" },
-  { value: "bookings:cancelled", label: "Bookings (Cancelled)" },
 ];
 
 export function getLandingPageLabel(landingPage: LandingPage): string {
@@ -50,12 +39,6 @@ export function getRouteFromPreference(landingPage: LandingPage): string {
       return "/(tabs)/(bookings)?filter=upcoming";
     case "bookings:unconfirmed":
       return "/(tabs)/(bookings)?filter=unconfirmed";
-    case "bookings:recurring":
-      return "/(tabs)/(bookings)?filter=recurring";
-    case "bookings:past":
-      return "/(tabs)/(bookings)?filter=past";
-    case "bookings:cancelled":
-      return "/(tabs)/(bookings)?filter=cancelled";
     default:
       return "/(tabs)/(event-types)";
   }

@@ -1,7 +1,7 @@
 import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-stack";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { useEventTypes } from "@/hooks";
@@ -10,6 +10,8 @@ import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBoo
 export default function Bookings() {
   const { filter } = useLocalSearchParams<{ filter?: string }>();
   const initialFilter = (filter as BookingFilter) || "upcoming";
+
+  console.log("[Bookings.ios] Received filter param:", filter, "initialFilter:", initialFilter);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
@@ -24,6 +26,14 @@ export default function Bookings() {
       setSelectedEventTypeId(null);
     }
   );
+
+  // Update filter when URL params change (for when component is already mounted)
+  useEffect(() => {
+    if (filter && filter !== activeFilter) {
+      console.log("[Bookings.ios] Updating filter from URL param:", filter);
+      handleFilterChange(filter as BookingFilter);
+    }
+  }, [filter, activeFilter, handleFilterChange]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
