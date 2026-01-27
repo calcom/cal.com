@@ -7,9 +7,21 @@ import { BookingListScreen } from "@/components/booking-list-screen/BookingListS
 import { useEventTypes } from "@/hooks";
 import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 
+const VALID_FILTERS: BookingFilter[] = [
+  "upcoming",
+  "unconfirmed",
+  "recurring",
+  "past",
+  "cancelled",
+];
+
+function isValidBookingFilter(value: string | undefined): value is BookingFilter {
+  return value !== undefined && VALID_FILTERS.includes(value as BookingFilter);
+}
+
 export default function Bookings() {
   const { filter } = useLocalSearchParams<{ filter?: string }>();
-  const initialFilter = (filter as BookingFilter) || "upcoming";
+  const initialFilter = isValidBookingFilter(filter) ? filter : "upcoming";
 
   console.log("[Bookings.ios] Received filter param:", filter, "initialFilter:", initialFilter);
 
@@ -29,9 +41,9 @@ export default function Bookings() {
 
   // Update filter when URL params change (for when component is already mounted)
   useEffect(() => {
-    if (filter && filter !== activeFilter) {
+    if (isValidBookingFilter(filter) && filter !== activeFilter) {
       console.log("[Bookings.ios] Updating filter from URL param:", filter);
-      handleFilterChange(filter as BookingFilter);
+      handleFilterChange(filter);
     }
   }, [filter, activeFilter, handleFilterChange]);
 

@@ -14,9 +14,21 @@ import { AppPressable } from "@/components/AppPressable";
 import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 import { useEventTypes } from "@/hooks";
 
+const VALID_FILTERS: BookingFilter[] = [
+  "upcoming",
+  "unconfirmed",
+  "recurring",
+  "past",
+  "cancelled",
+];
+
+function isValidBookingFilter(value: string | undefined): value is BookingFilter {
+  return value !== undefined && VALID_FILTERS.includes(value as BookingFilter);
+}
+
 export default function Bookings() {
   const { filter } = useLocalSearchParams<{ filter?: string }>();
-  const initialFilter = (filter as BookingFilter) || "upcoming";
+  const initialFilter = isValidBookingFilter(filter) ? filter : "upcoming";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
@@ -38,9 +50,9 @@ export default function Bookings() {
 
   // Reactively update filter when URL params change
   useEffect(() => {
-    if (filter && filter !== activeFilter) {
+    if (isValidBookingFilter(filter) && filter !== activeFilter) {
       console.log("[Bookings Android] Filter param changed:", filter);
-      handleFilterChange(filter as BookingFilter);
+      handleFilterChange(filter);
     }
   }, [filter, activeFilter, handleFilterChange]);
 

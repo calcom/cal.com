@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { generalStorage } from "@/utils/storage";
 
-export type LandingPage = "event-types" | "bookings" | "bookings:upcoming" | "bookings:unconfirmed";
+export type LandingPage = "event-types" | "bookings" | "bookings:unconfirmed";
 
 export interface UserPreferences {
   landingPage: LandingPage;
@@ -35,8 +35,6 @@ export function getRouteFromPreference(landingPage: LandingPage): string {
       return "/(tabs)/(event-types)";
     case "bookings":
       return "/(tabs)/(bookings)";
-    case "bookings:upcoming":
-      return "/(tabs)/(bookings)?filter=upcoming";
     case "bookings:unconfirmed":
       return "/(tabs)/(bookings)?filter=unconfirmed";
     default:
