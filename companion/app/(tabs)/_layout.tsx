@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { ColorValue, ImageSourcePropType } from "react-native";
 import { Tabs, VectorIcon } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
-import { useColorScheme } from "nativewind";
+import { useColorScheme } from "react-native";
 import { Platform } from "react-native";
 
 // Type for vector icon families that support getImageSource
@@ -11,7 +11,7 @@ type VectorIconFamily = {
 };
 
 export default function TabLayout() {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const colors = {

@@ -1,8 +1,8 @@
 import { PortalHost } from "@rn-primitives/portal";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
-import { useColorScheme } from "nativewind";
-import { Platform, StatusBar, View } from "react-native";
+import { Platform, StatusBar, useColorScheme, View } from "react-native";
 import { CalComLogo } from "@/components/CalComLogo";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
@@ -14,7 +14,7 @@ import "../global.css";
 
 function RootLayoutContent() {
   const { isAuthenticated, loading } = useAuth();
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const colors = {
@@ -34,7 +34,10 @@ function RootLayoutContent() {
           alignItems: "center",
         }}
       >
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={colors.background}
+        />
         <CalComLogo width={120} height={26} />
       </View>
     );
@@ -427,18 +430,20 @@ function RootLayoutContent() {
       : { flex: 1 };
 
   return (
-    <View
-      style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
-      className={containerClass}
-    >
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
-      />
-      {content}
-      <NetworkStatusBanner />
-      <PortalHost />
-    </View>
+    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+      <View
+        style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
+        className={containerClass}
+      >
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={colors.background}
+        />
+        {content}
+        <NetworkStatusBanner />
+        <PortalHost />
+      </View>
+    </ThemeProvider>
   );
 }
 
