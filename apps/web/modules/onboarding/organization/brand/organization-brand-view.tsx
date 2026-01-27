@@ -1,15 +1,12 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { ColorPicker, Label } from "@calcom/ui/components/form";
+import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { ColorPicker, Label } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
-
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
@@ -30,71 +27,22 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [brandColor, setBrandColor] = useState("#000000");
-  const [isResizingLogo, setIsResizingLogo] = useState(false);
-  const [isResizingBanner, setIsResizingBanner] = useState(false);
 
-  const resizeImageMutation = trpc.viewer.organizations.resizeBase64Image.useMutation();
-
-  // Load from store on mount
   useEffect(() => {
     setLogoPreview(organizationBrand.logo);
     setBannerPreview(organizationBrand.banner);
     setBrandColor(organizationBrand.color);
   }, [organizationBrand]);
 
-    const handleLogoChange = async (file: File | null) => {
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64 = reader.result as string;
-          setIsResizingLogo(true);
-          try {
-            const result = await resizeImageMutation.mutateAsync({
-              image: base64,
-              imageType: "logo",
-            });
-            setLogoPreview(result.resizedImage);
-            setOrganizationBrand({ logo: result.resizedImage });
-          } catch (error) {
-            showToast(t("error_uploading_logo"), "error");
-            console.error("Error resizing logo:", error);
-          } finally {
-            setIsResizingLogo(false);
-          }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setLogoPreview(null);
-        setOrganizationBrand({ logo: null });
-      }
-    };
+  const handleLogoChange = (newLogo: string) => {
+    setLogoPreview(newLogo);
+    setOrganizationBrand({ logo: newLogo });
+  };
 
-    const handleBannerChange = async (file: File | null) => {
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64 = reader.result as string;
-          setIsResizingBanner(true);
-          try {
-            const result = await resizeImageMutation.mutateAsync({
-              image: base64,
-              imageType: "banner",
-            });
-            setBannerPreview(result.resizedImage);
-            setOrganizationBrand({ banner: result.resizedImage });
-          } catch (error) {
-            showToast(t("error_uploading_banner"), "error");
-            console.error("Error resizing banner:", error);
-          } finally {
-            setIsResizingBanner(false);
-          }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setBannerPreview(null);
-        setOrganizationBrand({ banner: null });
-      }
-    };
+  const handleBannerChange = (newBanner: string) => {
+    setBannerPreview(newBanner);
+    setOrganizationBrand({ banner: newBanner });
+  };
 
   const handleColorChange = (color: string) => {
     setBrandColor(color);
@@ -180,23 +128,16 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       />
                     )}
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      color="secondary"
-                      size="sm"
-                      className="w-fit"
-                      loading={isResizingBanner}
-                      onClick={() => document.getElementById("banner-upload")?.click()}>
-                      {t("upload")}
-                    </Button>
-                    <input
-                      id="banner-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleBannerChange(e.target.files?.[0] || null)}
-                    />
-                  </div>
+                  <BannerUploader
+                    id="org-banner-upload"
+                    buttonMsg={t("upload")}
+                    handleAvatarChange={handleBannerChange}
+                    imageSrc={bannerPreview || undefined}
+                    target="banner"
+                    triggerButtonColor="secondary"
+                    height={500}
+                    width={1500}
+                  />
                 </div>
                 <p className="text-subtle text-xs font-normal leading-3">
                   {t("onboarding_banner_size_hint")}
@@ -215,22 +156,15 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       />
                     )}
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      color="secondary"
-                      size="sm"
-                      loading={isResizingLogo}
-                      onClick={() => document.getElementById("logo-upload")?.click()}>
-                      {t("upload")}
-                    </Button>
-                    <input
-                      id="logo-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
-                    />
-                  </div>
+                  <ImageUploader
+                    id="org-logo-upload"
+                    buttonMsg={t("upload")}
+                    handleAvatarChange={handleLogoChange}
+                    imageSrc={logoPreview || undefined}
+                    target="logo"
+                    triggerButtonColor="secondary"
+                    buttonSize="sm"
+                  />
                 </div>
                 <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
               </div>
