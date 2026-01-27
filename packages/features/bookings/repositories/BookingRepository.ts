@@ -1369,19 +1369,23 @@ export class BookingRepository implements IBookingRepository {
       },
     };
 
-    const teamBookings = await this.prismaClient.booking.findMany({
-      where: whereTeamEventTypes,
-      select,
-    });
-
     if (!includeManagedEvents) {
-      return teamBookings;
+      return this.prismaClient.booking.findMany({
+        where: whereTeamEventTypes,
+        select,
+      });
     }
 
-    const managedBookings = await this.prismaClient.booking.findMany({
-      where: whereManagedEventTypes,
-      select,
-    });
+    const [teamBookings, managedBookings] = await Promise.all([
+      this.prismaClient.booking.findMany({
+        where: whereTeamEventTypes,
+        select,
+      }),
+      this.prismaClient.booking.findMany({
+        where: whereManagedEventTypes,
+        select,
+      }),
+    ]);
 
     return [...teamBookings, ...managedBookings];
   }
