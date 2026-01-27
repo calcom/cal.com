@@ -1,17 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
-import { WebhookListItem, CreateNewWebhookButton } from "../components";
+import { Frame, FramePanel } from "@coss/ui/components/frame";
+import { useRouter } from "next/navigation";
+import { CreateNewWebhookButton, WebhookListItem } from "../components";
 
 type WebhooksByViewer = RouterOutputs["viewer"]["webhook"]["getByViewer"];
 
@@ -42,11 +40,11 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
       CTA={<CreateNewWebhookButton />}
       borderInShellHeader={true}>
       {webhookGroups.length ? (
-        <div>
+        <Frame>
           {webhookGroups.map((group) => (
-            <div key={group.teamId}>
+            <FramePanel key={group.teamId}>
               {hasTeams && (
-                <div className="items-centers flex">
+                <div className="mb-4 flex items-center">
                   <Avatar
                     alt={group.profile.image || ""}
                     imageSrc={group.profile.image || `${bookerUrl}/${group.profile.name}/avatar.png`}
@@ -58,27 +56,25 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                   </div>
                 </div>
               )}
-              <div className="flex flex-col" key={group.profile.slug}>
-                <div className={classNames("border-subtle mb-8 rounded-b-lg border border-t-0", hasTeams && "mt-3")}>
-                  {group.webhooks.map((webhook, index) => (
-                    <WebhookListItem
-                      key={webhook.id}
-                      webhook={webhook}
-                      lastItem={group.webhooks.length === index + 1}
-                      permissions={{
-                        canEditWebhook: group?.metadata?.canModify ?? false,
-                        canDeleteWebhook: group?.metadata?.canDelete ?? false,
-                      }}
-                      onEditWebhook={() =>
-                        router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
-                      }
-                    />
-                  ))}
-                </div>
+              <div className="flex flex-col">
+                {group.webhooks.map((webhook, index) => (
+                  <WebhookListItem
+                    key={webhook.id}
+                    webhook={webhook}
+                    lastItem={group.webhooks.length === index + 1}
+                    permissions={{
+                      canEditWebhook: group?.metadata?.canModify ?? false,
+                      canDeleteWebhook: group?.metadata?.canDelete ?? false,
+                    }}
+                    onEditWebhook={() =>
+                      router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
+                    }
+                  />
+                ))}
               </div>
-            </div>
+            </FramePanel>
           ))}
-        </div>
+        </Frame>
       ) : (
         <EmptyScreen
           Icon="link"
