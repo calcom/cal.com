@@ -33,7 +33,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const [isResizingLogo, setIsResizingLogo] = useState(false);
   const [isResizingBanner, setIsResizingBanner] = useState(false);
 
-  const resizeImageMutation = trpc.viewer.organizations.resizeOnboardingImage.useMutation();
+  const resizeImageMutation = trpc.viewer.organizations.resizeBase64Image.useMutation();
 
   // Load from store on mount
   useEffect(() => {
@@ -42,59 +42,59 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     setBrandColor(organizationBrand.color);
   }, [organizationBrand]);
 
-  const handleLogoChange = async (file: File | null) => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        setIsResizingLogo(true);
-        try {
-          const result = await resizeImageMutation.mutateAsync({
-            image: base64,
-            isBanner: false,
-          });
-          setLogoPreview(result.resizedImage);
-          setOrganizationBrand({ logo: result.resizedImage });
-        } catch (error) {
-          showToast(t("error_uploading_logo"), "error");
-          console.error("Error resizing logo:", error);
-        } finally {
-          setIsResizingLogo(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setLogoPreview(null);
-      setOrganizationBrand({ logo: null });
-    }
-  };
+    const handleLogoChange = async (file: File | null) => {
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64 = reader.result as string;
+          setIsResizingLogo(true);
+          try {
+            const result = await resizeImageMutation.mutateAsync({
+              image: base64,
+              imageType: "logo",
+            });
+            setLogoPreview(result.resizedImage);
+            setOrganizationBrand({ logo: result.resizedImage });
+          } catch (error) {
+            showToast(t("error_uploading_logo"), "error");
+            console.error("Error resizing logo:", error);
+          } finally {
+            setIsResizingLogo(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setLogoPreview(null);
+        setOrganizationBrand({ logo: null });
+      }
+    };
 
-  const handleBannerChange = async (file: File | null) => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        setIsResizingBanner(true);
-        try {
-          const result = await resizeImageMutation.mutateAsync({
-            image: base64,
-            isBanner: true,
-          });
-          setBannerPreview(result.resizedImage);
-          setOrganizationBrand({ banner: result.resizedImage });
-        } catch (error) {
-          showToast(t("error_uploading_banner"), "error");
-          console.error("Error resizing banner:", error);
-        } finally {
-          setIsResizingBanner(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setBannerPreview(null);
-      setOrganizationBrand({ banner: null });
-    }
-  };
+    const handleBannerChange = async (file: File | null) => {
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64 = reader.result as string;
+          setIsResizingBanner(true);
+          try {
+            const result = await resizeImageMutation.mutateAsync({
+              image: base64,
+              imageType: "banner",
+            });
+            setBannerPreview(result.resizedImage);
+            setOrganizationBrand({ banner: result.resizedImage });
+          } catch (error) {
+            showToast(t("error_uploading_banner"), "error");
+            console.error("Error resizing banner:", error);
+          } finally {
+            setIsResizingBanner(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setBannerPreview(null);
+        setOrganizationBrand({ banner: null });
+      }
+    };
 
   const handleColorChange = (color: string) => {
     setBrandColor(color);
