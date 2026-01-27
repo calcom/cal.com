@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
-
+import { describe, expect, it, vi } from "vitest";
 import {
   buildDateRanges,
   intersect,
@@ -943,6 +941,64 @@ describe("buildDateRanges", () => {
     expect(clippedRange).toEqual({
       start: dayjs("2026-01-27T21:00:00Z").tz(timeZone, true),
       end: dayjs("2026-01-28T00:00:00Z").tz(timeZone, true),
+    });
+  });
+
+  it("should preserve next day working hours when override replaces the previous day", () => {
+    const timeZone = "UTC";
+    const dateFrom = dayjs("2026-01-27").tz(timeZone, true);
+    const dateTo = dayjs("2026-01-30").tz(timeZone, true);
+
+    // Simulation of a shift from 9:00 PM to 3:00 AM (next day)
+    const workingHours = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 21, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)),
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 3, 0)),
+      },
+    ];
+
+    // Override: Jan 28th fully unavailable
+    const overrides = [
+      {
+        date: new Date("2026-01-28T00:00:00.000Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+      },
+    ];
+
+    const availability = [...workingHours, ...overrides];
+
+    const { dateRanges } = buildDateRanges({
+      availability,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    // Jan 29 should still have working hours despite Jan 28 being overridden.
+    const rangesStartingOn29th = dateRanges.filter(
+      (r) => dayjs(r.start).tz(timeZone).format("YYYY-MM-DD") === "2026-01-29"
+    );
+
+    expect(rangesStartingOn29th.length).toBe(2);
+
+    // 00:00-03:00 
+    expect(rangesStartingOn29th[0]).toEqual({
+      start: dayjs("2026-01-29T00:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-29T03:00:00Z").tz(timeZone, true),
+    });
+
+    // 21:00-00:00
+    expect(rangesStartingOn29th[1]).toEqual({
+      start: dayjs("2026-01-29T21:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-30T00:00:00Z").tz(timeZone, true),
     });
   });
 });
