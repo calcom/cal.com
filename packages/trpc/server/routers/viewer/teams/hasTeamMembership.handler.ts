@@ -11,7 +11,7 @@ export const hasTeamMembershipHandler = async ({
   ctx,
 }: HasTeamMembershipOptions) => {
   const userId = ctx.user.id;
-  return await MembershipRepository.hasAnyTeamMembershipByUserId({ userId });
+  return MembershipRepository.hasAnyTeamMembershipByUserId({ userId });
 };
 
 export default hasTeamMembershipHandler;
