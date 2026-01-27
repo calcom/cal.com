@@ -73,9 +73,9 @@ export function useUserPreferences() {
           const parsed = JSON.parse(stored) as UserPreferences;
           setPreferences(parsed);
         }
-      } catch (error) {
-        console.warn("Failed to load user preferences:", error);
-      } finally {
+        setIsLoading(false);
+      } catch {
+        console.warn("Failed to load user preferences");
         setIsLoading(false);
       }
     };
