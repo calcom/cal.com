@@ -27,10 +27,12 @@ type OnboardingViewProps = {
 export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
+  const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } =
+    useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
   const [isPending, startTransition] = useTransition();
-  const { hasTeamMembership, isPending: isPendingMembership } = useHasTeamMembership();
+  const { hasTeamMembership, isPending: isPendingMembership } =
+    useHasTeamMembership();
 
   // Reset onboarding data when visiting this page, but preserve the selected plan
   useEffect(() => {
@@ -154,11 +156,13 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
                 color="primary"
                 className="rounded-[10px]"
                 onClick={handleContinue}
-                disabled={isPending}>
+                disabled={isPending}
+              >
                 {isPending ? t("loading") : t("continue")}
               </Button>
             </div>
-          }>
+          }
+        >
           {/* Card */}
           <div className="bg-cal-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
@@ -172,7 +176,8 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
                     plan_type: planType,
                   });
                 }}
-                className="flex w-full flex-col gap-1 rounded-[10px]">
+                className="flex w-full flex-col gap-1 rounded-[10px]"
+              >
                 {plans.map((plan) => {
                   const isSelected = selectedPlan === plan.id;
 
@@ -182,24 +187,38 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
                       value={plan.id}
                       className={classNames(
                         "bg-default relative flex items-center overflow-hidden rounded-[10px] border transition",
-                        isSelected ? "border-emphasis shadow-sm" : "border-subtle",
+                        isSelected
+                          ? "border-emphasis shadow-sm"
+                          : "border-subtle",
                         "pr-12 [&>button]:left-auto [&>button]:right-6 [&>button]:mt-0 [&>button]:transform"
                       )}
                       classNames={{
                         container: "flex w-full items-center gap-3 p-5 pr-12",
-                      }}>
+                      }}
+                    >
                       <div className="flex w-full flex-col gap-1">
                         <div className="flex flex-wrap items-center gap-1">
-                          <p className="text-emphasis text-sm font-semibold leading-4">{plan.title}</p>
+                          <p className="text-emphasis text-sm font-semibold leading-4">
+                            {plan.title}
+                          </p>
                           <Badge
                             variant="gray"
                             size="md"
-                            className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
-                            <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
+                            className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center"
+                          >
+                            <span className="text-emphasis text-xs font-medium leading-3">
+                              {plan.badge}
+                            </span>
                           </Badge>
                         </div>
-                        <Badge variant="gray" size="md" className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
-                          <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
+                        <Badge
+                          variant="gray"
+                          size="md"
+                          className="h-4 w-fit rounded-md px-1 py-1 md:hidden"
+                        >
+                          <span className="text-emphasis text-xs font-medium leading-3">
+                            {plan.badge}
+                          </span>
                         </Badge>
                         <p className="text-subtle max-w-full text-sm font-medium leading-[1.25]">
                           {plan.description}

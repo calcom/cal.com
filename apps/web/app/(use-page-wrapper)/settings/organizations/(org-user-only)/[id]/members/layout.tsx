@@ -10,6 +10,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <Shell
       withoutMain={false}
+      disableSticky={true}
       heading={t("organization_members")}
       subtitle={t("organization_description")}
       headerClassName="hidden md:block"

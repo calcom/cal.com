@@ -124,6 +124,10 @@ export const viewerTeamsRouter = router({
     return handler(opts);
   }),
   hasTeamPlan,
+  hasTeamMembership: authedProcedure.query(async (opts) => {
+    const { default: handler } = await import("./hasTeamMembership.handler");
+    return handler(opts);
+  }),
   listInvites: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./listInvites.handler");
     return handler(opts);
