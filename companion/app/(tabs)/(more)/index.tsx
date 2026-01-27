@@ -1,6 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { Header } from "@/components/Header";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +28,14 @@ export default function More() {
   const { logout } = useAuth();
   const { clearCache } = useQueryContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  // iOS system colors for dark mode
+  const colors = {
+    text: isDark ? "#FFFFFF" : "#333333",
+    textSecondary: isDark ? "#8E8E93" : "#C7C7CC",
+  };
 
   const performLogout = async () => {
     try {
@@ -88,55 +104,59 @@ export default function More() {
   ];
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white dark:bg-black">
       <Header />
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+        <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
               onPress={item.onPress}
-              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] ${
-                index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
+              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] dark:bg-[#1C1C1E] dark:active:bg-[#2C2C2E] ${
+                index < menuItems.length - 1
+                  ? "border-b border-[#E5E5EA] dark:border-[#38383A]"
+                  : ""
               }`}
             >
               <View className="flex-1 flex-row items-center">
-                <Ionicons name={item.icon} size={20} color="#333" />
-                <Text className="ml-3 text-base font-semibold text-[#333]">{item.name}</Text>
+                <Ionicons name={item.icon} size={20} color={colors.text} />
+                <Text className="ml-3 text-base font-semibold text-[#333] dark:text-gray-100">
+                  {item.name}
+                </Text>
               </View>
               {item.isExternal ? (
-                <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                <Ionicons name="open-outline" size={20} color={colors.textSecondary} />
               ) : (
-                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
               )}
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Delete Account Link */}
-        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
           <TouchableOpacity
             onPress={() =>
               openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
             }
-            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50"
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50 dark:bg-[#1C1C1E] dark:active:bg-red-900/30"
           >
             <View className="flex-1 flex-row items-center">
               <Ionicons name="trash-outline" size={20} color="#991B1B" />
               <Text className="ml-3 text-base font-medium text-[#991B1B]">Delete Account</Text>
             </View>
-            <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+            <Ionicons name="open-outline" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Sign Out Button */}
-        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
           <TouchableOpacity
             onPress={handleSignOut}
-            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
+            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50 dark:bg-[#1C1C1E] dark:active:bg-red-900/30"
           >
             <Ionicons name="log-out-outline" size={20} color="#800000" />
             <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
@@ -144,11 +164,11 @@ export default function More() {
         </View>
 
         {/* Footer Note */}
-        <Text className="mt-6 px-1 text-center text-xs text-gray-400">
+        <Text className="mt-6 px-1 text-center text-xs text-gray-400 dark:text-gray-500">
           The companion app is an extension of the web application.{"\n"}
           For advanced features, visit{" "}
           <Text
-            className="text-gray-800"
+            className="text-gray-800 dark:text-gray-300"
             onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
           >
             app.cal.com
