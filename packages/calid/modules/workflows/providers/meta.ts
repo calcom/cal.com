@@ -163,7 +163,7 @@ const SNAKE_CASE_PATTERN = /\{\{([a-z_][a-z0-9_]*)\}\}/g;
 
 const extractTemplateVariables = (
   component: TemplateComponent,
-  variableData: VariablesType,
+  variableData: ExpandedVariablesType,
   isNamedParams: boolean
 ): Array<{ type: string; text: string; parameter_name?: string }> => {
   const parameters: Array<{ type: string; text: string; parameter_name?: string }> = [];
@@ -289,12 +289,18 @@ const uploadMediaToWhatsApp = async (
   }
 };
 
+type ExpandedVariablesType = VariablesType & {
+  recipientName?: string;
+  senderName?: string;
+};
+
 // Update the buildMetaTemplateComponentsFromTemplate function
 export const buildMetaTemplateComponentsFromTemplate = async (
   template: WhatsAppTemplate,
   variableData: VariablesType,
   phoneNumberId: string,
-  accessToken: string
+  accessToken: string,
+  recieverType: "attendee" | "organizer"
 ): Promise<
   Array<{
     type: string;
@@ -304,6 +310,13 @@ export const buildMetaTemplateComponentsFromTemplate = async (
     document?: { id: string };
   }>
 > => {
+  const expandedVariables = {
+    ...variableData,
+    recipientName:
+      recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
+    senderName:
+      recieverType === "attendee" ? variableData.organizerFirstName : variableData.attendeeFirstName,
+  };
   const components: Array<{
     type: string;
     parameters?: Array<{
@@ -383,7 +396,7 @@ export const buildMetaTemplateComponentsFromTemplate = async (
         }
       } else if (component.format === "TEXT" && component.text) {
         // Extract snake_case variable placeholders from header text
-        const headerParams = extractTemplateVariables(component, variableData, isNamedParams);
+        const headerParams = extractTemplateVariables(component, expandedVariables, isNamedParams);
         if (headerParams.length > 0) {
           components.push({
             type: "header",
@@ -395,7 +408,7 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 
     // Handle BODY component
     if (component.type === "BODY" && component.text) {
-      const bodyParams = extractTemplateVariables(component, variableData, isNamedParams);
+      const bodyParams = extractTemplateVariables(component, expandedVariables, isNamedParams);
       console.log("body params: ", bodyParams);
       if (bodyParams.length > 0) {
         components.push({
@@ -413,7 +426,7 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 
           if (fieldName) {
             const camelCaseKey = snakeToCamel(fieldName);
-            const fieldValue = variableData[camelCaseKey as keyof VariablesType];
+            const fieldValue = expandedVariables[camelCaseKey as keyof VariablesType];
 
             if (fieldValue !== undefined) {
               components.push({
@@ -520,10 +533,9 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
       ? ((whatsappPhone.templates as Prisma.JsonArray).find(
           (e: any) => e?.name === config.metaTemplateName
         ) as WhatsAppTemplate | undefined)
-      : defaultTemplateComponentsMap(
-          config.templateType,
-          config.action.includes("ATTENDEE") ? "attendee" : "organizer"
-        );
+      : config.templateType
+      ? defaultTemplateComponentsMap(config.templateType)
+      : null;
 
     if (!template) {
       throw new Error(`Template ${config.metaTemplateName} not found in WhatsApp phone configuration`);
@@ -548,12 +560,7 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
 
     messagePayload.type = "template";
     messagePayload.template = {
-      name:
-        config.metaTemplateName ??
-        defaultTemplateNamesMap(
-          config.templateType!,
-          config.action.includes("ATTENDEE") ? "attendee" : "organizer"
-        ),
+      name: config.metaTemplateName ?? defaultTemplateNamesMap(config.templateType!),
       language: {
         code: template.language || "en",
       },
@@ -564,7 +571,8 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
       template,
       config.variableData,
       phoneNumberId,
-      credentials?.key?.access_token || META_ACCESS_TOKEN!
+      credentials?.key?.access_token || META_ACCESS_TOKEN!,
+      config.action.includes("ATTENDEE") ? "attendee" : "organizer"
     );
 
     messageLogger.debug("Built template components", {

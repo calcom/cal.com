@@ -112,14 +112,12 @@ function getTimeFormatFromUserSetting(timeFormat: number | null | undefined): Ti
   return timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR;
 }
 
-const determineWhatsappTemplateHandler = (
-  actionType: WorkflowActions,
-  templateCategory?: WorkflowTemplates
-): string => {
-  return defaultTemplateComponentsMap(
-    templateCategory ?? WorkflowTemplates.REMINDER,
-    actionType.includes("ATTENDEE") ? "attendee" : "organizer"
-  ).components[0].text;
+const determineWhatsappTemplateHandler = (templateCategory?: WorkflowTemplates): string => {
+  return (
+    defaultTemplateComponentsMap(templateCategory ?? WorkflowTemplates.REMINDER).components.find(
+      (e) => e.type === "BODY"
+    )?.text ?? "Body not found"
+  );
 };
 
 function determineEmailTemplateHandler(template?: WorkflowTemplates) {
@@ -142,7 +140,7 @@ function getWhatsappTemplateContent(
   templateType: WorkflowTemplates,
   timeFormatSetting: TimeFormat
 ): string | null {
-  const contentRenderer = determineWhatsappTemplateHandler(actionType, templateType);
+  const contentRenderer = determineWhatsappTemplateHandler(templateType);
   return contentRenderer;
 }
 
@@ -308,7 +306,7 @@ function getTemplateBodyForAction({
   }
 
   if (isWhatsappAction(action)) {
-    const body = determineWhatsappTemplateHandler(action, template);
+    const body = determineWhatsappTemplateHandler(template);
     return body;
   }
 
