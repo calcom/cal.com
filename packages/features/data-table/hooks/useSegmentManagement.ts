@@ -3,11 +3,14 @@
 import type { SortingState, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 
-import type { ActiveFilters, CombinedFilterSegment, SegmentIdentifier, UseSegments } from "../lib/types";
+import type {
+  ActiveFilters,
+  ActiveFiltersValidatorState,
+  CombinedFilterSegment,
+  SegmentIdentifier,
+  UseSegments,
+} from "../lib/types";
 import { SYSTEM_SEGMENT_PREFIX } from "../lib/types";
-
-export type ActiveFiltersValidator = (filters: ActiveFilters) => ActiveFilters;
-export type ActiveFiltersValidatorState = ActiveFiltersValidator | "loading" | undefined;
 
 /**
  * Type for nuqs-style setters that accept value or updater function and return Promise.
