@@ -1,9 +1,8 @@
+import AdminUserEditPage from "@calid/features/modules/admin/pages/user-edit";
 import { type Params } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { UsersEditView } from "@calcom/features/ee/users/pages/users-edit-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
@@ -39,15 +38,11 @@ const Page = async ({ params }: { params: Params }) => {
 
   if (!input.success) throw new Error("Invalid access");
 
-  const userRepo = new UserRepository(prisma);
-  const user = await userRepo.adminFindById(input.data.id);
   const t = await getTranslate();
 
   return (
     <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
-      <LicenseRequired>
-        <UsersEditView user={user} />
-      </LicenseRequired>
+      <AdminUserEditPage />
     </SettingsHeader>
   );
 };
