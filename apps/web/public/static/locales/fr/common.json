@@ -2290,7 +2290,7 @@
   "booking_questions_title": "Questions de réservation",
   "booking_questions_description": "Personnalisez les questions posées sur la page de réservation.",
   "add_a_booking_question": "Ajouter une question",
-  "identifier": "S'identifier",
+  "identifier": "Identifiant",
   "no_entries": "Aucune entrée",
   "no_entries_description": "Ajoutez un email/domaine pour commencer.",
   "duplicate_email": "L'adresse e-mail existe déjà",
