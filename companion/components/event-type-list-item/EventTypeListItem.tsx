@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   DropdownMenu,
@@ -28,6 +28,13 @@ export const EventTypeListItem = ({
     useEventTypeListItemData(item);
   const isLast = index === filteredEventTypes.length - 1;
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    icon: isDark ? "#FFFFFF" : "#3C3F44",
+    iconMenu: isDark ? "#E5E5EA" : "#374151",
+  };
 
   const contentInsets = {
     top: insets.top,
@@ -37,7 +44,9 @@ export const EventTypeListItem = ({
   };
 
   return (
-    <View className={`bg-cal-bg ${!isLast ? "border-b border-cal-border" : ""}`}>
+    <View
+      className={`bg-cal-bg dark:bg-black ${!isLast ? "border-b border-cal-border dark:border-[#38383A]" : ""}`}
+    >
       <View
         style={{ paddingHorizontal: 16, paddingVertical: 16 }}
         className="flex-row items-center justify-between"
@@ -45,7 +54,7 @@ export const EventTypeListItem = ({
         <Pressable
           onPress={() => handleEventTypePress(item)}
           style={{ flex: 1, marginRight: 12 }}
-          android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
+          android_ripple={{ color: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" }}
         >
           <EventTypeTitle
             title={item.title}
@@ -68,21 +77,31 @@ export const EventTypeListItem = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Pressable
-              className="items-center justify-center rounded-lg border border-cal-border"
+              className="items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-[#1C1C1E]"
               style={{ width: 36, height: 36, flexShrink: 0 }}
             >
-              <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+              <Ionicons name="ellipsis-horizontal" size={18} color={colors.icon} />
             </Pressable>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-44" align="end">
             <DropdownMenuItem onPress={() => handlePreview(item)}>
-              <Ionicons name="open-outline" size={18} color="#374151" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="open-outline"
+                size={18}
+                color={colors.iconMenu}
+                style={{ marginRight: 8 }}
+              />
               <Text>Preview</Text>
             </DropdownMenuItem>
 
             <DropdownMenuItem onPress={() => handleCopyLink(item)}>
-              <Ionicons name="link-outline" size={18} color="#374151" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="link-outline"
+                size={18}
+                color={colors.iconMenu}
+                style={{ marginRight: 8 }}
+              />
               <Text>Copy link</Text>
             </DropdownMenuItem>
 
@@ -92,14 +111,19 @@ export const EventTypeListItem = ({
               <Ionicons
                 name="pencil-outline"
                 size={18}
-                color="#374151"
+                color={colors.iconMenu}
                 style={{ marginRight: 8 }}
               />
               <Text>Edit</Text>
             </DropdownMenuItem>
 
             <DropdownMenuItem onPress={() => onDuplicate?.(item)}>
-              <Ionicons name="copy-outline" size={18} color="#374151" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="copy-outline"
+                size={18}
+                color={colors.iconMenu}
+                style={{ marginRight: 8 }}
+              />
               <Text>Duplicate</Text>
             </DropdownMenuItem>
 
