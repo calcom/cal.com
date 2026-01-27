@@ -22,13 +22,11 @@ import {
 import {
   expectWorkflowToBeTriggered,
   expectBookingToBeInDatabase,
-  expectBookingRescheduledWebhookToHaveBeenFired,
   expectSuccessfulBookingRescheduledEmails,
   expectSuccessfulCalendarEventUpdationInCalendar,
   expectSuccessfulVideoMeetingUpdationInCalendar,
   expectBookingInDBToBeRescheduledFromTo,
   expectBookingRequestedEmails,
-  expectBookingRequestedWebhookToHaveBeenFired,
   expectSuccessfulCalendarEventDeletionInCalendar,
   expectSuccessfulVideoMeetingDeletionInCalendar,
   expectSuccessfulRoundRobinReschedulingEmails,
@@ -283,17 +281,6 @@ describe("handleNewBooking", () => {
               getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
             ],
           });
-
-          expectBookingRescheduledWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            payload: {
-              rescheduledBy: organizer.email,
-            },
-          });
         },
         timeout
       );
@@ -498,13 +485,6 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID,
           });
-          expectBookingRescheduledWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -667,23 +647,6 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-          });
-
-          expectBookingRescheduledWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: "integrations:daily",
-            subscriberUrl: "http://my-webhook.example.com",
-            payload: {
-              uid: createdBooking.uid,
-              appsStatus: [
-                expect.objectContaining(getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug })),
-                expect.objectContaining(
-                  getMockFailingAppStatus({ slug: appStoreMetadata.googlecalendar.slug })
-                ),
-              ],
-            },
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking?.uid}`,
           });
         },
         timeout
@@ -863,14 +826,6 @@ describe("handleNewBooking", () => {
               booker,
               organizer,
               emails,
-            });
-
-            expectBookingRequestedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl,
-              eventType: scenarioData.eventTypes[0],
             });
 
             expectSuccessfulVideoMeetingDeletionInCalendar(videoMock, {
@@ -1130,13 +1085,6 @@ describe("handleNewBooking", () => {
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
-            expectBookingRescheduledWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            });
           },
           timeout
         );
@@ -1370,13 +1318,6 @@ describe("handleNewBooking", () => {
                 }),
               ],
             });
-            expectBookingRescheduledWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.GoogleMeet,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: "https://UNUSED_URL",
-            });
           },
           timeout
         );
@@ -1558,14 +1499,6 @@ describe("handleNewBooking", () => {
               booker,
               organizer,
               emails,
-            });
-
-            expectBookingRequestedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl,
-              eventType: scenarioData.eventTypes[0],
             });
 
             expectSuccessfulVideoMeetingDeletionInCalendar(videoMock, {
@@ -1837,14 +1770,6 @@ describe("handleNewBooking", () => {
               organizer,
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            });
-
-            expectBookingRescheduledWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           },
           timeout

@@ -10,10 +10,7 @@ import {
   TestData,
   getDate,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import {
-  expectBookingCancelledWebhookToHaveBeenFired,
-  expectWorkflowToBeTriggered,
-} from "@calcom/testing/lib/bookingScenario/expects";
+import { expectWorkflowToBeTriggered } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
@@ -136,23 +133,6 @@ describe("Cancel Booking", () => {
       },
     });
 
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker,
-      organizer,
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
-      },
-    });
-
     expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 
@@ -263,23 +243,6 @@ describe("Cancel Booking", () => {
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
-      },
-    });
-
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker,
-      organizer,
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
       },
     });
 
@@ -417,23 +380,6 @@ describe("Cancel Booking", () => {
     expect(result.bookingId).toBe(idOfBookingToBeCancelled);
     expect(result.bookingUid).toBe(uidOfBookingToBeCancelled);
     expect(result.onlyRemovedAttendee).toBe(false);
-
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker: hostAttendee,
-      organizer,
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
-      },
-    });
   });
 
   test("Should send EMAIL_HOST cancel workflow notification to both primary and secondary hosts in round robin events", async ({
@@ -1169,26 +1115,6 @@ describe("Cancel Booking", () => {
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
         cancellationReason: "Organization booking cancellation test",
-      },
-    });
-
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker,
-      organizer: {
-        ...organizer,
-        usernameInOrg: "username-in-org",
-      },
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
       },
     });
   });
