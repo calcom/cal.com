@@ -35,7 +35,6 @@ import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import { replaceCloakedLinksInHtml } from "../lib/reminders/utils";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -355,17 +354,10 @@ export async function handler(req: NextRequest) {
             title: booking.title || booking.eventType?.title || "",
           };
 
-          // Organization accounts are allowed to use cloaked links (URL behind text)
-          // since they are paid accounts with lower spam/scam risk
-          const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
-          const processedEmailBody = isOrganization
-            ? emailContent.emailBody
-            : replaceCloakedLinksInHtml(emailContent.emailBody);
-
           const mailData = {
             subject: emailContent.emailSubject,
             to: Array.isArray(sendTo) ? sendTo : [sendTo],
-            html: processedEmailBody,
+            html: emailContent.emailBody,
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
@@ -461,17 +453,10 @@ export async function handler(req: NextRequest) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = isSendgridEnabled ? await getBatchId() : undefined;
 
-          // Organization accounts are allowed to use cloaked links (URL behind text)
-          // since they are paid accounts with lower spam/scam risk
-          const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
-          const processedEmailBody = isOrganization
-            ? emailContent.emailBody
-            : replaceCloakedLinksInHtml(emailContent.emailBody);
-
           const mailData = {
             subject: emailContent.emailSubject,
             to: [sendTo],
-            html: processedEmailBody,
+            html: emailContent.emailBody,
             sender: reminder.workflowStep?.sender,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
               replyTo:
