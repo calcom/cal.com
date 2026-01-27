@@ -47,7 +47,10 @@ vi.mock("@calcom/lib/logger", () => ({
 }));
 vi.mock("@calcom/lib/auth/hashPassword", () => ({ hashPassword: vi.fn().mockResolvedValue("hashed") }));
 vi.mock("@calcom/lib/constants", () => ({ WEBAPP_URL: "http://localhost:3000" }));
-vi.mock("@calcom/lib/tracking", () => ({ getTrackingFromCookies: vi.fn().mockReturnValue({}) }));
+vi.mock("@calcom/lib/tracking", () => ({
+  getTrackingFromCookies: vi.fn().mockReturnValue({}),
+  getStripeTrackingMetadata: vi.fn().mockReturnValue({}),
+}));
 vi.mock("@calcom/app-store/stripepayment/lib/utils", () => ({ getPremiumMonthlyPlanPriceId: vi.fn() }));
 vi.mock("@calcom/features/auth/lib/getLocaleFromRequest", () => ({ getLocaleFromRequest: vi.fn().mockResolvedValue("en") }));
 vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({ sendEmailVerification: vi.fn() }));
