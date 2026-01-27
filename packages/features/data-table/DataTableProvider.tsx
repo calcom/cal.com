@@ -8,7 +8,8 @@ import { createContext, useCallback, useRef, useMemo } from "react";
 
 import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
 
-import { useSegmentManagement, type ActiveFiltersValidatorState } from "./hooks/useSegmentManagement";
+import { useSegmentManagement } from "./hooks/useSegmentManagement";
+import type { ActiveFiltersValidatorState } from "./lib/types";
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
   activeFiltersParser,
