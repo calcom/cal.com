@@ -125,36 +125,7 @@ export function processWorkingHours(
       continue;
     }
 
-    if (results[startResult.valueOf()]) {
-      // if a result already exists, we merge the end time
-      const oldKey = startResult.valueOf();
-      const newKey = endResult.valueOf();
 
-      results[newKey] = {
-        start: results[oldKey].start,
-        end: dayjs.max(results[oldKey].end, endResult),
-      };
-
-      if (endTimeToKeyMap) {
-        const oldEndTime = results[oldKey].end.valueOf();
-        const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
-        const filteredKeys = oldKeys.filter((k) => k !== oldKey);
-        if (filteredKeys.length === 0) {
-          endTimeToKeyMap.delete(oldEndTime);
-        } else {
-          endTimeToKeyMap.set(oldEndTime, filteredKeys);
-        }
-
-        if (!endTimeToKeyMap.has(endTimeKey)) {
-          endTimeToKeyMap.set(endTimeKey, []);
-        }
-        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
-      }
-
-      delete results[oldKey]; // delete the previous end time
-      continue;
-    }
-    // otherwise we create a new result
     const newKey = endResult.valueOf();
     results[newKey] = {
       start: startResult,
