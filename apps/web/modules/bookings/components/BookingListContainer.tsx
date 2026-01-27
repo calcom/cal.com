@@ -28,7 +28,6 @@ import {
 import type { BookingListingStatus, BookingsGetOutput, RowData } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingList } from "./BookingList";
-import { BookingsCsvDownload } from "./BookingsCsvDownload";
 import { ViewToggleButton } from "./ViewToggleButton";
 
 interface FilterButtonProps {
@@ -123,7 +122,9 @@ function BookingListInner({
     userTimeZone: user?.timeZone,
   });
 
-  const getFacetedUniqueValues = useFacetedUniqueValues();
+  const getFacetedUniqueValues = useFacetedUniqueValues({
+    canReadOthersBookings: permissions.canReadOthersBookings,
+  });
 
   const displayedFilterCount = useDisplayedFilterCount();
   const { currentTab, tabOptions } = useBookingStatusTab();
@@ -187,7 +188,7 @@ function BookingListInner({
         <div className="hidden grow md:block" />
 
         <DataTableSegment.Select />
-        <BookingsCsvDownload status={status} />
+        {/* <BookingsCsvDownload status={status} /> */}
         {bookingsV3Enabled && <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />}
       </div>
       {displayedFilterCount > 0 && showFilters && (

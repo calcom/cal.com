@@ -35,7 +35,6 @@ import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import { replaceCloakedLinksInHtml } from "../lib/reminders/utils";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -361,14 +360,11 @@ export async function handler(req: NextRequest) {
           const organizationId = isOrganization
             ? reminder.workflowStep?.workflow?.teamId
             : reminder.workflowStep?.workflow?.team?.parentId ?? null;
-          const processedEmailBody = isOrganization
-            ? emailContent.emailBody
-            : replaceCloakedLinksInHtml(emailContent.emailBody);
 
           const mailData = {
             subject: emailContent.emailSubject,
             to: Array.isArray(sendTo) ? sendTo : [sendTo],
-            html: processedEmailBody,
+            html: emailContent.emailBody,
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
@@ -471,14 +467,11 @@ export async function handler(req: NextRequest) {
           const organizationId = isOrganization
             ? reminder.workflowStep?.workflow?.teamId
             : reminder.workflowStep?.workflow?.team?.parentId ?? null;
-          const processedEmailBody = isOrganization
-            ? emailContent.emailBody
-            : replaceCloakedLinksInHtml(emailContent.emailBody);
 
           const mailData = {
             subject: emailContent.emailSubject,
             to: [sendTo],
-            html: processedEmailBody,
+            html: emailContent.emailBody,
             sender: reminder.workflowStep?.sender,
             organizationId,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
