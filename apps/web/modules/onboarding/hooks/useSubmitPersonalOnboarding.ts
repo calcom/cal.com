@@ -56,6 +56,14 @@ export const useSubmitPersonalOnboarding = () => {
       }
 
       await utils.viewer.me.get.refetch();
+
+      const redirectUrl = localStorage.getItem("onBoardingRedirect");
+      if (redirectUrl) {
+        localStorage.removeItem("onBoardingRedirect");
+        router.push(redirectUrl);
+        return;
+      }
+
       // Check if org modal flag is set - if so, don't show personal modal
       // Organization onboarding takes precedence
       const hasOrgModalFlag = sessionStorage.getItem(ORG_MODAL_STORAGE_KEY) === "true";
