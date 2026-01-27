@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
@@ -10,10 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppPressable } from "@/components/AppPressable";
-import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 import { useEventTypes } from "@/hooks";
 
 export default function Bookings() {
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
+  const initialFilter = (filter as BookingFilter) || "upcoming";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
@@ -23,7 +27,7 @@ export default function Bookings() {
 
   // Use the active booking filter hook
   const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
-    "upcoming",
+    initialFilter,
     () => {
       // Clear dependent filters when status filter changes
       setSearchQuery("");

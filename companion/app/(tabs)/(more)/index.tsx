@@ -2,9 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Header } from "@/components/Header";
+import { LandingPagePicker } from "@/components/LandingPagePicker";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryContext } from "@/contexts/QueryContext";
+import { type LandingPage, useUserPreferences } from "@/hooks/useUserPreferences";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -19,7 +21,17 @@ interface MoreMenuItem {
 export default function More() {
   const { logout } = useAuth();
   const { clearCache } = useQueryContext();
+  const { preferences, setLandingPage, landingPageLabel } = useUserPreferences();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLandingPagePicker, setShowLandingPagePicker] = useState(false);
+
+  const handleLandingPageSelect = async (value: LandingPage) => {
+    try {
+      await setLandingPage(value);
+    } catch {
+      showErrorAlert("Error", "Failed to save preference. Please try again.");
+    }
+  };
 
   const performLogout = async () => {
     try {
@@ -116,6 +128,26 @@ export default function More() {
           ))}
         </View>
 
+        {/* App Settings */}
+        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <View className="border-b border-[#E5E5EA] bg-gray-50 px-4 py-2">
+            <Text className="text-xs font-semibold uppercase text-gray-500">App Settings</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setShowLandingPagePicker(true)}
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-[#F8F9FA]"
+          >
+            <View className="flex-1 flex-row items-center">
+              <Ionicons name="home-outline" size={20} color="#333" />
+              <Text className="ml-3 text-base font-semibold text-[#333]">Default Landing Page</Text>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="mr-2 text-sm text-gray-500">{landingPageLabel}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Delete Account Link */}
         <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           <TouchableOpacity
@@ -164,6 +196,14 @@ export default function More() {
           performLogout();
         }}
         onCancel={() => setShowLogoutModal(false)}
+      />
+
+      {/* Landing Page Picker Modal */}
+      <LandingPagePicker
+        visible={showLandingPagePicker}
+        currentValue={preferences.landingPage}
+        onSelect={handleLandingPageSelect}
+        onClose={() => setShowLandingPagePicker(false)}
       />
     </View>
   );

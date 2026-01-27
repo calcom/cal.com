@@ -1,4 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { USER_PREFERENCES_KEY } from "@/hooks/useUserPreferences";
 import { CalComAPIService } from "@/services/calcom";
 import {
   type CalComOAuthService,
@@ -8,7 +9,7 @@ import {
 import type { UserProfile } from "@/services/types/users.types";
 import { WebAuthService } from "@/services/webAuth";
 import { clearQueryCache } from "@/utils/queryPersister";
-import { secureStorage } from "@/utils/storage";
+import { generalStorage, secureStorage } from "@/utils/storage";
 
 /**
  * Simplified user info stored in auth context
@@ -144,6 +145,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     try {
       await clearAuth();
+      // Clear user preferences to ensure fresh state for next user
+      try {
+        await generalStorage.removeItem(USER_PREFERENCES_KEY);
+      } catch (prefsError) {
+        console.warn("Failed to clear user preferences during logout:", prefsError);
+      }
       // Clear all cached queries to ensure fresh data on re-login
       try {
         await clearQueryCache();
