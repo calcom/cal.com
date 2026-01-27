@@ -2,8 +2,7 @@
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { ColumnFilterType, convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
-import { useColumnFilters, useDataTable } from "@calcom/web/modules/data-table/hooks";
-import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
+import { useColumnFilters, useDataTable, useSegments } from "@calcom/web/modules/data-table/hooks";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { WEBAPP_URL } from "@calcom/lib/constants";

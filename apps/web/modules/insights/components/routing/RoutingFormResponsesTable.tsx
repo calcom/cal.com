@@ -12,8 +12,7 @@ import {
   ZSingleSelectFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import { useFilterValue } from "@calcom/web/modules/data-table/hooks/useFilterValue";
-import { useDataTable } from "@calcom/web/modules/data-table/hooks/useDataTable";
+import { useFilterValue, useDataTable } from "@calcom/web/modules/data-table/hooks";
 import { DataTableWrapper, DataTableFilters, DataTableSegment, DataTableSkeleton, DateRangeFilter } from "@calcom/web/modules/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
