@@ -16,11 +16,10 @@ import {
   useKBar,
   useMatches,
   useRegisterActions,
-  VisualState,
 } from "kbar";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 
 type ShortcutArrayType = {
   shortcuts?: string[];
@@ -229,7 +228,7 @@ function buildKbarActions(push: (href: string) => void): Action[] {
   return [...staticActions, ...appStoreActions];
 }
 
-function useEventTypesAction(enabled: boolean): void {
+function useEventTypesAction(): void {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
@@ -237,7 +236,6 @@ function useEventTypesAction(enabled: boolean): void {
       group: { teamId: null, parentId: null },
     },
     {
-      enabled,
       refetchOnWindowFocus: false,
       staleTime: 1 * 60 * 60 * 1000,
       getNextPageParam: (lastPage: { nextCursor?: number | null }) => lastPage.nextCursor,
@@ -265,7 +263,7 @@ function useEventTypesAction(enabled: boolean): void {
   useRegisterActions(actions, [data]);
 }
 
-function useUpcomingBookingsAction(enabled: boolean): void {
+function useUpcomingBookingsAction(): void {
   const router = useRouter();
 
   const { data } = trpc.viewer.bookings.get.useQuery(
@@ -277,7 +275,6 @@ function useUpcomingBookingsAction(enabled: boolean): void {
       limit: 100,
     },
     {
-      enabled,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000,
     }
@@ -321,16 +318,6 @@ function CommandKey(): JSX.Element {
 
 const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
-  const hasOpenedRef = useRef(false);
-  const { visualState } = useKBar((state) => ({ visualState: state.visualState }));
-
-  const isVisible = visualState !== VisualState.hidden;
-  if (isVisible && !hasOpenedRef.current) {
-    hasOpenedRef.current = true;
-  }
-
-  useEventTypesAction(hasOpenedRef.current);
-  useUpcomingBookingsAction(hasOpenedRef.current);
 
   return (
     <KBarPortal>
@@ -468,6 +455,9 @@ function RenderResults(): JSX.Element {
   const { results } = useMatches();
   const { searchQuery } = useKBar((state) => ({ searchQuery: state.searchQuery }));
   const { t } = useLocale();
+
+  useEventTypesAction();
+  useUpcomingBookingsAction();
 
   if (results.length === 0 && searchQuery.trim().length > 0) {
     return <NoResultsFound searchQuery={searchQuery} />;
