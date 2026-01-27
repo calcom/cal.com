@@ -268,15 +268,10 @@ export default function Login({
             {/* Social Login Buttons */}
             {!twoFactorRequired && showSocialLogin && (
               <>
-                <div
-                  className={`grid gap-2 ${
-                    socialProviderCount === 2 ? "grid-cols-2" : ""
-                  }`}
-                >
+                <div className="flex flex-col gap-2">
                   {isGoogleLoginEnabled && (
                     <Button
-                      variant="outline"
-                      className="flex-1"
+                      className="w-full"
                       disabled={formState.isSubmitting}
                       data-testid="google"
                       onClick={async (e) => {
@@ -288,13 +283,13 @@ export default function Login({
                       }}
                     >
                       <GoogleIcon />
-                      <span>Google</span>
+                      <span>{t("signin_with_google")}</span>
                     </Button>
                   )}
                   {isOutlookLoginEnabled && (
                     <Button
                       variant="outline"
-                      className="flex-1"
+                      className="w-full"
                       data-testid="microsoft"
                       onClick={async (e) => {
                         e.preventDefault();
@@ -305,18 +300,8 @@ export default function Login({
                       }}
                     >
                       <MicrosoftIcon />
-                      <span>Microsoft</span>
+                      <span>{t("signin_with_microsoft")}</span>
                     </Button>
-                  )}
-                  {displaySSOLogin && (
-                    <>
-                      <SAMLLogin
-                        disabled={formState.isSubmitting}
-                        samlTenantID={samlTenantID}
-                        samlProductID={samlProductID}
-                        setErrorMessage={setErrorMessage}
-                      />
-                    </>
                   )}
                 </div>
 
@@ -370,7 +355,7 @@ export default function Login({
                         {t("forgot")}
                       </Link>
                     </div>
-                    <InputGroup>
+                    <InputGroup className="overflow-hidden">
                       <InputGroupInput
                         id="password"
                         type={showPassword ? "text" : "password"}
@@ -420,6 +405,7 @@ export default function Login({
               {/* Submit Button */}
               <Button
                 type="submit"
+                variant="outline"
                 className="mt-8 w-full"
                 disabled={formState.isSubmitting}
               >
@@ -477,15 +463,31 @@ export default function Login({
           </FormProvider>
         </div>
 
-        {/* Create Account Link */}
-        {!twoFactorRequired && showSignupLink && (
-          <div className="mt-6 text-center">
-            <Link
-              href={`${WEBSITE_URL}/signup`}
-              className="text-sm font-medium text-emphasis hover:underline"
-            >
-              {t("create_account")}
-            </Link>
+        {/* Footer Links */}
+        {!twoFactorRequired && (
+          <div className="mt-6 flex items-center justify-center gap-4 text-center">
+            {showSignupLink && (
+              <Link
+                href={`${WEBSITE_URL}/signup`}
+                className="text-sm font-medium text-emphasis hover:underline"
+              >
+                {t("create_account")}
+              </Link>
+            )}
+            {displaySSOLogin && (
+              <>
+                {showSignupLink && <span className="text-subtle">·</span>}
+                <SAMLLogin
+                  samlTenantID={samlTenantID}
+                  samlProductID={samlProductID}
+                  setErrorMessage={setErrorMessage}
+                  variant="link"
+                  color="minimal"
+                  StartIcon={undefined}
+                  className="text-sm font-medium text-emphasis hover:underline p-0 h-auto"
+                />
+              </>
+            )}
           </div>
         )}
       </div>
