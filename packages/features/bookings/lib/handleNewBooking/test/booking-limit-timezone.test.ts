@@ -23,27 +23,36 @@ describe("Reproduction GH-27261", () => {
         // Booker: America/New_York (We use hardcoded Europe/London for safety in data object, but getting booker with NY)
         // Limits should operate on Organizer Timezone normally.
 
-        const booker = getBooker({
-            email: "booker@example.com",
-            name: "Booker",
+        const booker = {
+            ...getBooker({
+                email: "booker@example.com",
+                name: "Booker",
+            }),
             timeZone: "America/New_York",
-        });
+        };
 
-        const organizer = getOrganizer({
-            name: "Organizer",
-            email: "organizer@example.com",
-            id: 101,
+        const organizer = {
+            ...getOrganizer({
+                name: "Organizer",
+                email: "organizer@example.com",
+                id: 101,
+                schedules: [
+                    {
+                        ...TestData.schedules.IstWorkHours,
+                        id: 1,
+                        availability: [
+                            {
+                                days: [0, 1, 2, 3, 4, 5, 6],
+                                startTime: new Date("1970-01-01T00:00:00Z"),
+                                endTime: new Date("1970-01-01T23:59:00Z"),
+                                date: null,
+                            },
+                        ],
+                    },
+                ],
+            }),
             timeZone: "Asia/Kolkata",
-            schedules: [
-                {
-                    ...TestData.schedules.IstWorkHours,
-                    id: 1,
-                    availability: [
-                        { days: [0, 1, 2, 3, 4, 5, 6], startTime: "00:00", endTime: "23:59" },
-                    ],
-                },
-            ],
-        });
+        };
 
         // Create Event Type with limit 1 per day
         await createBookingScenario(
@@ -85,7 +94,6 @@ describe("Reproduction GH-27261", () => {
                     {
                         email: "other@example.com",
                         timeZone: "Europe/London",
-                        locale: "en",
                     }
                 ]
             },
