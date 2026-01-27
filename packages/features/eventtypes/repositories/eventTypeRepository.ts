@@ -18,6 +18,33 @@ import type { Ensure } from "@calcom/types/utils";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 
+type EventTypeWithChildrenCount = {
+  id: number;
+  title: string;
+  parentId: number | null;
+  _count: { children: number };
+};
+
+type WorkflowActiveOnEventType = {
+  eventType: {
+    id: number;
+    title: string;
+    parentId: number | null;
+  };
+};
+
+type WorkflowWithActiveOn = {
+  workflow: {
+    activeOn?: WorkflowActiveOnEventType[];
+    [key: string]: unknown;
+  };
+};
+
+type EventTypeWithWorkflows = {
+  workflows?: WorkflowWithActiveOn[];
+  [key: string]: unknown;
+};
+
 const hashedLinkSelect = {
   select: {
     id: true,
@@ -80,6 +107,87 @@ function usersWithSelectedCalendars<
 
 export class EventTypeRepository implements IEventTypesRepository {
   constructor(private prismaClient: PrismaClient) {}
+
+  /**
+   * Fetches event types with their children count using an optimized raw SQL query.
+   * This query uses the parentId index instead of doing a full table scan.
+   */
+  async findByIdsIncludeChildrenCount(
+    ids: number[]
+  ): Promise<{ id: number; title: string; parentId: number | null; childrenCount: number }[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const result = await this.prismaClient.$queryRaw<
+      { id: number; title: string; parentId: number | null; _aggr_count_children: bigint }[]
+    >`
+      SELECT 
+        et."id", 
+        et."title", 
+        et."parentId", 
+        COALESCE(child_counts.children_count, 0) AS "_aggr_count_children"
+      FROM "public"."EventType" et
+      LEFT JOIN (
+        SELECT "parentId", COUNT(*) AS children_count 
+        FROM "public"."EventType" 
+        WHERE "parentId" = ANY(${ids}::int[])
+        GROUP BY "parentId"
+      ) AS child_counts ON et."id" = child_counts."parentId"
+      WHERE et."id" = ANY(${ids}::int[])
+    `;
+
+    return result.map((row) => ({
+      id: row.id,
+      title: row.title,
+      parentId: row.parentId,
+      childrenCount: Number(row._aggr_count_children),
+    }));
+  }
+
+  private async enrichEventTypeWithWorkflowChildrenCounts<T extends EventTypeWithWorkflows>(
+    eventType: T | null
+  ): Promise<T | null> {
+    if (!eventType || !eventType.workflows) {
+      return eventType;
+    }
+
+    const eventTypeIds = new Set<number>();
+    for (const workflowRelation of eventType.workflows) {
+      if (workflowRelation.workflow.activeOn) {
+        for (const activeOn of workflowRelation.workflow.activeOn) {
+          eventTypeIds.add(activeOn.eventType.id);
+        }
+      }
+    }
+
+    if (eventTypeIds.size === 0) {
+      return eventType;
+    }
+
+    const childrenCounts = await this.findByIdsIncludeChildrenCount(Array.from(eventTypeIds));
+    const countMap = new Map<number, number>();
+    for (const item of childrenCounts) {
+      countMap.set(item.id, item.childrenCount);
+    }
+
+    return {
+      ...eventType,
+      workflows: eventType.workflows.map((workflowRelation) => ({
+        ...workflowRelation,
+        workflow: {
+          ...workflowRelation.workflow,
+          activeOn: workflowRelation.workflow.activeOn?.map((activeOn) => ({
+            ...activeOn,
+            eventType: {
+              ...activeOn.eventType,
+              _count: { children: countMap.get(activeOn.eventType.id) ?? 0 },
+            } as EventTypeWithChildrenCount,
+          })),
+        },
+      })),
+    };
+  }
 
   async findParentEventTypeId(eventTypeId: number): Promise<number | null> {
     const managedChildEventType = await this.prismaClient.eventType.findFirst({
@@ -789,11 +897,6 @@ export class EventTypeRepository implements IEventTypesRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -824,7 +927,7 @@ export class EventTypeRepository implements IEventTypesRepository {
     // This is more efficient than using a complex join with team.members in the query
     const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
 
-    return await this.prismaClient.eventType.findFirst({
+    const eventType = await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           {
@@ -851,6 +954,8 @@ export class EventTypeRepository implements IEventTypesRepository {
       },
       select: CompleteEventTypeSelect,
     });
+
+    return this.enrichEventTypeWithWorkflowChildrenCounts(eventType);
   }
 
   async findByIdForOrgAdmin({ id, organizationId }: { id: number; organizationId: number }) {
@@ -1100,11 +1205,6 @@ export class EventTypeRepository implements IEventTypesRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -1139,7 +1239,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       AND: [{ teamId: { not: null } }, { team: { parentId: organizationId } }],
     };
 
-    return await this.prismaClient.eventType.findFirst({
+    const eventType = await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           { id },
@@ -1150,6 +1250,8 @@ export class EventTypeRepository implements IEventTypesRepository {
       },
       select: CompleteEventTypeSelect,
     });
+
+    return this.enrichEventTypeWithWorkflowChildrenCounts(eventType);
   }
 
   async findByIdMinimal({ id }: { id: number }) {

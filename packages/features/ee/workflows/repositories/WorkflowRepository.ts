@@ -46,6 +46,52 @@ export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
 const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
+type EventTypeWithChildrenCount = {
+  id: number;
+  title: string;
+  parentId: number | null;
+  _count: { children: number };
+};
+
+/**
+ * Fetches event types with their children count using an optimized raw SQL query.
+ * This query uses the parentId index instead of doing a full table scan.
+ */
+async function getEventTypesWithChildrenCount(ids: number[]): Promise<Map<number, EventTypeWithChildrenCount>> {
+  if (ids.length === 0) {
+    return new Map();
+  }
+
+  const result = await prisma.$queryRaw<
+    { id: number; title: string; parentId: number | null; _aggr_count_children: bigint }[]
+  >`
+    SELECT 
+      et."id", 
+      et."title", 
+      et."parentId", 
+      COALESCE(child_counts.children_count, 0) AS "_aggr_count_children"
+    FROM "public"."EventType" et
+    LEFT JOIN (
+      SELECT "parentId", COUNT(*) AS children_count 
+      FROM "public"."EventType" 
+      WHERE "parentId" = ANY(${ids}::int[])
+      GROUP BY "parentId"
+    ) AS child_counts ON et."id" = child_counts."parentId"
+    WHERE et."id" = ANY(${ids}::int[])
+  `;
+
+  const eventTypeMap = new Map<number, EventTypeWithChildrenCount>();
+  for (const row of result) {
+    eventTypeMap.set(row.id, {
+      id: row.id,
+      title: row.title,
+      parentId: row.parentId,
+      _count: { children: Number(row._aggr_count_children) },
+    });
+  }
+  return eventTypeMap;
+}
+
 const includedFields = {
   activeOn: {
     select: {
@@ -54,11 +100,6 @@ const includedFields = {
           id: true,
           title: true,
           parentId: true,
-          _count: {
-            select: {
-              children: true,
-            },
-          },
         },
       },
     },
@@ -86,8 +127,52 @@ const includedFields = {
   },
 } satisfies Prisma.WorkflowInclude;
 
+type ActiveOnEventType = {
+  eventType: {
+    id: number;
+    title: string;
+    parentId: number | null;
+  };
+};
+
+type ActiveOnEventTypeWithCount = {
+  eventType: EventTypeWithChildrenCount;
+};
+
+type EnrichActiveOn<T> = T extends { activeOn: ActiveOnEventType[] }
+  ? Omit<T, "activeOn"> & { activeOn: ActiveOnEventTypeWithCount[] }
+  : T extends { activeOn?: ActiveOnEventType[] }
+    ? Omit<T, "activeOn"> & { activeOn?: ActiveOnEventTypeWithCount[] }
+    : T;
+
 export class WorkflowRepository {
   private static log = logger.getSubLogger({ prefix: ["workflow"] });
+
+  private static async enrichWorkflowsWithChildrenCount<
+    T extends { activeOn?: ActiveOnEventType[] | ActiveOnEventType[] },
+  >(workflows: T[]): Promise<EnrichActiveOn<T>[]> {
+    const eventTypeIds = new Set<number>();
+    for (const workflow of workflows) {
+      if (workflow.activeOn) {
+        for (const activeOn of workflow.activeOn) {
+          eventTypeIds.add(activeOn.eventType.id);
+        }
+      }
+    }
+
+    const eventTypeMap = await getEventTypesWithChildrenCount(Array.from(eventTypeIds));
+
+    return workflows.map((workflow) => ({
+      ...workflow,
+      activeOn: workflow.activeOn?.map((activeOn) => ({
+        ...activeOn,
+        eventType: eventTypeMap.get(activeOn.eventType.id) ?? {
+          ...activeOn.eventType,
+          _count: { children: 0 },
+        },
+      })),
+    })) as EnrichActiveOn<T>[];
+  }
 
   static async getById({ id }: TGetInputSchema) {
     return await prisma.workflow.findUnique({
@@ -282,7 +367,8 @@ export class WorkflowRepository {
     });
 
     if (!filtered) {
-      const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
+      const enrichedWorkflows = await WorkflowRepository.enrichWorkflowsWithChildrenCount(allWorkflows);
+      const workflowsWithReadOnly: WorkflowType[] = enrichedWorkflows.map((workflow) => {
         const readOnly = workflow.teamId
           ? !teamIdsWithWorkflowUpdatePermission.includes(workflow.teamId)
           : false;
@@ -334,7 +420,9 @@ export class WorkflowRepository {
         },
       });
 
-      const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
+      const enrichedFilteredWorkflows =
+        await WorkflowRepository.enrichWorkflowsWithChildrenCount(filteredWorkflows);
+      const workflowsWithReadOnly: WorkflowType[] = enrichedFilteredWorkflows.map((workflow) => {
         const readOnly = workflow.teamId
           ? !teamIdsWithWorkflowUpdatePermission.includes(workflow.teamId)
           : false;
@@ -666,7 +754,7 @@ export class WorkflowRepository {
     userId: number;
     excludeFormTriggers: boolean;
   }) {
-    return await prisma.workflow.findMany({
+    const workflows = await prisma.workflow.findMany({
       where: {
         ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
         team: {
@@ -695,11 +783,6 @@ export class WorkflowRepository {
                 id: true,
                 title: true,
                 parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
               },
             },
           },
@@ -710,6 +793,8 @@ export class WorkflowRepository {
         id: "asc",
       },
     });
+
+    return WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
   }
 
   static async findUserWorkflows({
@@ -719,7 +804,7 @@ export class WorkflowRepository {
     userId: number;
     excludeFormTriggers: boolean;
   }) {
-    return await prisma.workflow.findMany({
+    const workflows = await prisma.workflow.findMany({
       where: {
         ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
         userId,
@@ -732,11 +817,6 @@ export class WorkflowRepository {
                 id: true,
                 title: true,
                 parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
               },
             },
           },
@@ -755,6 +835,8 @@ export class WorkflowRepository {
         id: "asc",
       },
     });
+
+    return WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
   }
 
   static async findAllWorkflows({
@@ -764,7 +846,7 @@ export class WorkflowRepository {
     userId: number;
     excludeFormTriggers: boolean;
   }) {
-    return await prisma.workflow.findMany({
+    const workflows = await prisma.workflow.findMany({
       where: {
         ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
         OR: [
@@ -789,11 +871,6 @@ export class WorkflowRepository {
                 id: true,
                 title: true,
                 parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
               },
             },
           },
@@ -812,6 +889,8 @@ export class WorkflowRepository {
         id: "asc",
       },
     });
+
+    return WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
   }
 
   static async findWorkflowsActiveOnRoutingForm({ routingFormId }: { routingFormId: string }) {
