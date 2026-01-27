@@ -579,7 +579,7 @@ const BookingItemBadges = ({
           {booking.eventType.team.name}
         </Badge>
       )}
-      {booking?.assignmentReason.length > 0 && (
+      {booking?.assignmentReasonSortedByCreatedAt.length > 0 && (
         <AssignmentReasonTooltip
           assignmentReason={booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]}
           onClick={onAssignmentReasonClick}
