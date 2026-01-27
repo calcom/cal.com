@@ -1,4 +1,4 @@
-import { ScrollView, View } from "react-native";
+import { ScrollView, useColorScheme, View } from "react-native";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface AvailabilityListItemSkeletonProps {
@@ -8,8 +8,17 @@ interface AvailabilityListItemSkeletonProps {
 export function AvailabilityListItemSkeleton({
   isLast = false,
 }: AvailabilityListItemSkeletonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   return (
-    <View className={`bg-cal-bg ${!isLast ? "border-b border-cal-border" : ""}`}>
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: !isLast ? 1 : 0,
+        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+      }}
+    >
       <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}>
         <View
           style={{
@@ -59,10 +68,18 @@ export function AvailabilityListSkeleton({
   count = 4,
   iosStyle = false,
 }: AvailabilityListSkeletonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    background: isDark ? "#000000" : "#FFFFFF",
+    border: isDark ? "#38383A" : "#E5E5EA",
+  };
+
   if (iosStyle) {
     return (
       <ScrollView
-        style={{ backgroundColor: "white" }}
+        style={{ backgroundColor: colors.background }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
@@ -71,7 +88,7 @@ export function AvailabilityListSkeleton({
             flex: 1,
             borderRadius: 8,
             borderWidth: 1,
-            borderColor: "#E5E5EA",
+            borderColor: colors.border,
             marginHorizontal: 8,
             marginVertical: 4,
             overflow: "hidden",
@@ -91,8 +108,15 @@ export function AvailabilityListSkeleton({
 
   return (
     <View
-      className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
-      style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+      style={{
+        flex: 1,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.background,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+      }}
     >
       {Array.from({ length: count }).map((_, index) => (
         <AvailabilityListItemSkeleton
