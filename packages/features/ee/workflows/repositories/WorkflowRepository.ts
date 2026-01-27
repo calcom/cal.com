@@ -794,7 +794,7 @@ export class WorkflowRepository {
       },
     });
 
-    return WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
+    return await WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
   }
 
   static async findUserWorkflows({
@@ -836,7 +836,7 @@ export class WorkflowRepository {
       },
     });
 
-    return WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
+    return await WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
   }
 
   static async findAllWorkflows({
@@ -890,10 +890,10 @@ export class WorkflowRepository {
       },
     });
 
-    return WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
+    return await WorkflowRepository.enrichWorkflowsWithChildrenCount(workflows);
   }
 
-  static async findWorkflowsActiveOnRoutingForm({ routingFormId }: { routingFormId: string }) {
+  static async findWorkflowsActiveOnRoutingForm({routingFormId }: { routingFormId: string }) {
     return await prisma.workflow.findMany({
       where: {
         activeOnRoutingForms: {
