@@ -94,7 +94,6 @@ jobs:
           VERSION: ${{ inputs.next_version }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
-          echo "$GITHUB_TOKEN" | gh auth login --with-token
           gh auth setup-git
           git add .
           git commit -m "chore: release v$VERSION"
