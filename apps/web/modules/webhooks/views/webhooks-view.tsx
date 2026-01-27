@@ -1,13 +1,12 @@
 "use client";
 
 import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Frame, FramePanel } from "@coss/ui/components/frame";
+import { Frame, FrameDescription, FrameHeader, FramePanel, FrameTitle } from "@coss/ui/components/frame";
 import { useRouter } from "next/navigation";
 import { CreateNewWebhookButton, WebhookListItem } from "../components";
 
@@ -34,13 +33,16 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
   const hasTeams = profiles && profiles.length > 1;
 
   return (
-    <SettingsHeader
-      title={t("webhooks")}
-      description={t("add_webhook_description", { appName: APP_NAME })}
-      CTA={<CreateNewWebhookButton />}
-      borderInShellHeader={true}>
+    <Frame>
+      <FrameHeader className="flex-row items-center justify-between">
+        <div>
+          <FrameTitle className="text-lg">{t("webhooks")}</FrameTitle>
+          <FrameDescription>{t("add_webhook_description", { appName: APP_NAME })}</FrameDescription>
+        </div>
+        <CreateNewWebhookButton />
+      </FrameHeader>
       {webhookGroups.length ? (
-        <Frame>
+        <>
           {webhookGroups.map((group) => (
             <FramePanel key={group.teamId}>
               {hasTeams && (
@@ -74,17 +76,18 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
               </div>
             </FramePanel>
           ))}
-        </Frame>
+        </>
       ) : (
-        <EmptyScreen
-          Icon="link"
-          headline={t("create_your_first_webhook")}
-          description={t("create_your_first_webhook_description", { appName: APP_NAME })}
-          className="rounded-b-lg rounded-t-none border-t-0"
-          buttonRaw={<CreateNewWebhookButton />}
-        />
+        <FramePanel>
+          <EmptyScreen
+            Icon="link"
+            headline={t("create_your_first_webhook")}
+            description={t("create_your_first_webhook_description", { appName: APP_NAME })}
+            buttonRaw={<CreateNewWebhookButton />}
+          />
+        </FramePanel>
       )}
-    </SettingsHeader>
+    </Frame>
   );
 };
 
