@@ -61,7 +61,7 @@ services:
     env_file: .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
-      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL:-postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}}
+      - DATABASE_DIRECT_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
     depends_on:
       - database
 
@@ -86,7 +86,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
       - DATABASE_READ_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
       - DATABASE_WRITE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
-      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL:-postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}}
+      - DATABASE_DIRECT_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_URL=${REDIS_URL}
@@ -128,7 +128,7 @@ services:
     env_file: .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
-      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL:-postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}}
+      - DATABASE_DIRECT_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
     depends_on:
       - database
     command:
