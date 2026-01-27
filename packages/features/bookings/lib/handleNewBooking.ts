@@ -89,7 +89,7 @@ import {
   eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllCalIdWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util.calid";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -1398,7 +1398,7 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows: CalIdWorkflow[] = await getAllWorkflowsFromEventType(
+  const workflows: CalIdWorkflow[] = await getAllCalIdWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
