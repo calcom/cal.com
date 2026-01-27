@@ -6,7 +6,10 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
-type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule">;
+type EventType = Pick<
+  NewBookingEventType,
+  "bookingLimits" | "durationLimits" | "id" | "schedule" | "timeZone" | "users"
+>;
 
 type InputProps = {
   eventType: EventType;
@@ -19,7 +22,7 @@ export interface ICheckBookingAndDurationLimitsService {
 }
 
 export class CheckBookingAndDurationLimitsService {
-  constructor(private readonly dependencies: ICheckBookingAndDurationLimitsService) {}
+  constructor(private readonly dependencies: ICheckBookingAndDurationLimitsService) { }
 
   checkBookingAndDurationLimits = withReporting(
     this._checkBookingAndDurationLimits.bind(this),
@@ -33,12 +36,16 @@ export class CheckBookingAndDurationLimitsService {
     ) {
       const startAsDate = dayjs(reqBodyStart).toDate();
       if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
+        // Prioritize event type timezone, then schedule timezone, then user timezone
+        const timeZone =
+          eventType.timeZone || eventType.schedule?.timeZone || eventType.users?.[0]?.timeZone;
+
         await this.dependencies.checkBookingLimitsService.checkBookingLimits(
           eventType.bookingLimits as IntervalLimit,
           startAsDate,
           eventType.id,
           reqBodyRescheduleUid,
-          eventType.schedule?.timeZone
+          timeZone
         );
       }
       if (eventType.durationLimits) {
