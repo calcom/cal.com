@@ -277,6 +277,3 @@ export type UseSegmentsReturn = {
   }) => void;
   isSegmentEnabled: boolean;
 };
-
-export type ActiveFiltersValidator = (filters: ActiveFilters) => ActiveFilters;
-export type ActiveFiltersValidatorState = ActiveFiltersValidator | "loading" | undefined;
