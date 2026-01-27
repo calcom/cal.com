@@ -55,6 +55,7 @@ const WHATSAPP_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.COMPLETED,
   WorkflowTemplates.CANCELLED,
   WorkflowTemplates.RESCHEDULED,
+  WorkflowTemplates.CONFIRMATION,
 ] as const;
 
 const DYNAMIC_TEXT_VARIABLES = [
