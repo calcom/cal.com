@@ -377,15 +377,25 @@ export async function getBookings({
     return fullQuery;
   });
 
+  // Use UNION ALL instead of UNION for better performance.
+  // UNION removes duplicates at each step (expensive), while UNION ALL keeps all rows.
+  // We deduplicate once at the end using DISTINCT, which is more efficient.
   const queryUnion = queriesWithFilters.reduce((acc, query) => {
-    return acc.union(query);
+    return acc.unionAll(query);
   });
 
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
   const getBookingsUnionCompiled = kysely
     .selectFrom(queryUnion.as("union_subquery"))
-    .selectAll("union_subquery")
+    .select([
+      "union_subquery.id",
+      "union_subquery.startTime",
+      "union_subquery.endTime",
+      "union_subquery.createdAt",
+      "union_subquery.updatedAt",
+    ])
+    .distinct()
     .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
       eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
     )
@@ -407,11 +417,12 @@ export async function getBookings({
 
   log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
 
+  // Use COUNT(DISTINCT id) since we're using UNION ALL which may have duplicates
   const totalCount = Number(
     (
       await kysely
         .selectFrom(queryUnion.as("union_subquery"))
-        .select(({ fn }) => fn.countAll().as("bookingCount"))
+        .select(({ fn }) => fn.count<number>("union_subquery.id").distinct().as("bookingCount"))
         .executeTakeFirst()
     )?.bookingCount ?? 0
   );
