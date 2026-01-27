@@ -2018,7 +2018,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           <Editor
                                             key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
                                             getText={() => {
-                                              const body = step.reminderBody || "";
+                                              let body = step.reminderBody || "";
 
                                               const isWhatsApp =
                                                 step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
@@ -2029,6 +2029,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                               const isTemplateMatched =
                                                 Boolean(step.metaTemplatePhoneNumberId) ===
                                                 Boolean(step.metaTemplateName);
+
+                                              // Always take whatsapp body from code not from db record.
+                                              if (isWhatsApp && isTemplateMatched) {
+                                                if (!step.metaTemplateName) {
+                                                  body = getTemplateBodyForAction({
+                                                    action: step.action,
+                                                    locale: i18n.language,
+                                                    t,
+                                                    template: step.template,
+                                                    timeFormat,
+                                                  });
+                                                }
+                                              }
 
                                               return isTemplateMatched
                                                 ? convertWhatsAppTemplateForDisplay(body)

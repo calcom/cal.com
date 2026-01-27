@@ -315,7 +315,7 @@ export const buildMetaTemplateComponentsFromTemplate = async (
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
     senderName:
-      recieverType === "organizer" ? variableData.organizerFirstName : variableData.attendeeFirstName,
+      recieverType === "attendee" ? variableData.organizerFirstName : variableData.attendeeFirstName,
   };
   const components: Array<{
     type: string;
