@@ -8,6 +8,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Frame, FrameDescription, FrameHeader, FramePanel, FrameTitle } from "@coss/ui/components/frame";
 import { useRouter } from "next/navigation";
+import React from "react";
 import { CreateNewWebhookButton, WebhookListItem } from "../components";
 
 type WebhooksByViewer = RouterOutputs["viewer"]["webhook"]["getByViewer"];
@@ -44,9 +45,9 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
       {webhookGroups.length ? (
         <>
           {webhookGroups.map((group) => (
-            <FramePanel key={group.teamId}>
+            <React.Fragment key={group.teamId}>
               {hasTeams && (
-                <div className="mb-4 flex items-center">
+                <div className="mb-2 mt-4 flex items-center px-1">
                   <Avatar
                     alt={group.profile.image || ""}
                     imageSrc={group.profile.image || `${bookerUrl}/${group.profile.name}/avatar.png`}
@@ -58,12 +59,11 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                   </div>
                 </div>
               )}
-              <div className="flex flex-col">
-                {group.webhooks.map((webhook, index) => (
+              {group.webhooks.map((webhook) => (
+                <FramePanel key={webhook.id}>
                   <WebhookListItem
-                    key={webhook.id}
                     webhook={webhook}
-                    lastItem={group.webhooks.length === index + 1}
+                    lastItem={true}
                     permissions={{
                       canEditWebhook: group?.metadata?.canModify ?? false,
                       canDeleteWebhook: group?.metadata?.canDelete ?? false,
@@ -72,9 +72,9 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                       router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
                     }
                   />
-                ))}
-              </div>
-            </FramePanel>
+                </FramePanel>
+              ))}
+            </React.Fragment>
           ))}
         </>
       ) : (
