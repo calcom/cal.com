@@ -1,4 +1,3 @@
-import process from "node:process";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
@@ -36,6 +35,25 @@ export type TrackingData = {
   xAds?: XAdsTrackingData;
   utmData?: UtmTrackingData;
 };
+
+export function getStripeTrackingMetadata(tracking?: TrackingData): Record<string, string | undefined> {
+  if (!tracking) return {};
+
+  return {
+    ...(tracking.googleAds?.gclid && {
+      gclid: tracking.googleAds.gclid,
+      campaignId: tracking.googleAds.campaignId,
+    }),
+    ...(tracking.linkedInAds?.liFatId && {
+      liFatId: tracking.linkedInAds.liFatId,
+      linkedInCampaignId: tracking.linkedInAds.campaignId,
+    }),
+    ...(tracking.xAds?.twclid && {
+      twclid: tracking.xAds.twclid,
+      xCampaignId: tracking.xAds.campaignId,
+    }),
+  };
+}
 
 export function getTrackingFromCookies(
   cookies?: NextApiRequest["cookies"],

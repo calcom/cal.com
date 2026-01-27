@@ -1,4 +1,3 @@
-import process from "node:process";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
@@ -11,7 +10,7 @@ import {
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { TrackingData } from "@calcom/lib/tracking";
+import { getStripeTrackingMetadata, type TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import { BillingPeriod, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type Stripe from "stripe";
@@ -107,15 +106,7 @@ export const generateTeamCheckoutSession = async ({
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
-      ...(tracking?.googleAds?.gclid && {
-        gclid: tracking.googleAds.gclid,
-        campaignId: tracking.googleAds?.campaignId,
-      }),
-      ...(tracking?.linkedInAds?.liFatId && {
-        liFatId: tracking.linkedInAds.liFatId,
-        linkedInCampaignId: tracking.linkedInAds?.campaignId,
-      }),
-      ...(tracking?.xAds?.twclid && { twclid: tracking.xAds.twclid, xCampaignId: tracking.xAds?.campaignId }),
+      ...getStripeTrackingMetadata(tracking),
     },
   });
   return session;
@@ -204,15 +195,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
-      ...(tracking?.googleAds?.gclid && {
-        gclid: tracking.googleAds.gclid,
-        campaignId: tracking.googleAds.campaignId,
-      }),
-      ...(tracking?.linkedInAds?.liFatId && {
-        liFatId: tracking.linkedInAds.liFatId,
-        linkedInCampaignId: tracking.linkedInAds?.campaignId,
-      }),
-      ...(tracking?.xAds?.twclid && { twclid: tracking.xAds.twclid, xCampaignId: tracking.xAds?.campaignId }),
+      ...getStripeTrackingMetadata(tracking),
     },
     subscription_data: {
       metadata: {

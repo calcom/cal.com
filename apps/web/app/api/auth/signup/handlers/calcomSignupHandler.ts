@@ -1,4 +1,3 @@
-import process from "node:process";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
@@ -22,7 +21,7 @@ import logger from "@calcom/lib/logger";
 import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
-import { getTrackingFromCookies } from "@calcom/lib/tracking";
+import { getStripeTrackingMetadata, getTrackingFromCookies } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
@@ -126,18 +125,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
       username,
-      ...(tracking.googleAds?.gclid && {
-        gclid: tracking.googleAds.gclid,
-        campaignId: tracking.googleAds.campaignId,
-      }),
-      ...(tracking.linkedInAds?.liFatId && {
-        liFatId: tracking.linkedInAds.liFatId,
-        linkedInCampaignId: tracking.linkedInAds.campaignId,
-      }),
-      ...(tracking.xAds?.twclid && {
-        twclid: tracking.xAds.twclid,
-        xCampaignId: tracking.xAds.campaignId,
-      }),
+      ...getStripeTrackingMetadata(tracking),
     },
   });
 

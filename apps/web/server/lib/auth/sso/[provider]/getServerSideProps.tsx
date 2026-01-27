@@ -1,4 +1,3 @@
-import process from "node:process";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -8,7 +7,7 @@ import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
-import { getTrackingFromCookies, type TrackingData } from "@calcom/lib/tracking";
+import { getStripeTrackingMetadata, getTrackingFromCookies, type TrackingData } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
@@ -143,15 +142,7 @@ const getStripePremiumUsernameUrl = async ({
     allow_promotion_codes: true,
     metadata: {
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
-      ...(tracking?.googleAds?.gclid && {
-        gclid: tracking.googleAds.gclid,
-        campaignId: tracking.googleAds.campaignId,
-      }),
-      ...(tracking?.linkedInAds?.liFatId && {
-        liFatId: tracking.linkedInAds.liFatId,
-        linkedInCampaignId: tracking.linkedInAds?.campaignId,
-      }),
-      ...(tracking?.xAds?.twclid && { twclid: tracking.xAds.twclid, xCampaignId: tracking.xAds?.campaignId }),
+      ...getStripeTrackingMetadata(tracking),
     },
   });
 

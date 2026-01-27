@@ -1,4 +1,3 @@
-import process from "node:process";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import {
   createGoogleCalendarServiceWithGoogleType,
@@ -34,7 +33,7 @@ import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
-import type { TrackingData } from "@calcom/lib/tracking";
+import { getStripeTrackingMetadata, type TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
 import { CreationSource, IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -1197,18 +1196,7 @@ export const getOptions = ({
                   metadata: {
                     email: newUser.email,
                     username: newUser.username ?? newUsername,
-                    ...(tracking.googleAds?.gclid && {
-                      gclid: tracking.googleAds.gclid,
-                      campaignId: tracking.googleAds.campaignId,
-                    }),
-                    ...(tracking.linkedInAds?.liFatId && {
-                      liFatId: tracking.linkedInAds.liFatId,
-                      linkedInCampaignId: tracking.linkedInAds.campaignId,
-                    }),
-                    ...(tracking.xAds?.twclid && {
-                      twclid: tracking.xAds.twclid,
-                      xCampaignId: tracking.xAds.campaignId,
-                    }),
+                    ...getStripeTrackingMetadata(tracking),
                     ...(tracking.utmData && tracking.utmData),
                   },
                 });

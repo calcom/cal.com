@@ -5,7 +5,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import type { TrackingData } from "@calcom/lib/tracking";
+import { getStripeTrackingMetadata, type TrackingData } from "@calcom/lib/tracking";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import { z } from "zod";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
@@ -81,18 +81,7 @@ export class BillingService {
         agentId: agentId || "",
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
-        ...(tracking?.googleAds?.gclid && {
-          gclid: tracking.googleAds.gclid,
-          campaignId: tracking.googleAds.campaignId,
-        }),
-        ...(tracking?.linkedInAds?.liFatId && {
-          liFatId: tracking.linkedInAds.liFatId,
-          linkedInCampaignId: tracking.linkedInAds?.campaignId,
-        }),
-        ...(tracking?.xAds?.twclid && {
-          twclid: tracking.xAds.twclid,
-          xCampaignId: tracking.xAds?.campaignId,
-        }),
+        ...getStripeTrackingMetadata(tracking),
       },
       subscription_data: {
         metadata: {
