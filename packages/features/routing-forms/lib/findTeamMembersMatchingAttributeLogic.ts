@@ -132,15 +132,76 @@ function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; dat
 }
 
 /**
+ * Checks if a string is a field template placeholder (e.g., "{field:uuid}")
+ */
+function isFieldTemplate(str: string): boolean {
+  const trimmedStr = str.trim();
+  return trimmedStr.startsWith("{field:") && trimmedStr.endsWith("}");
+}
+
+/**
+ * Extracts field ID from a field template string
+ */
+function extractFieldIdFromTemplate(template: string): string | null {
+  const trimmedTemplate = template.trim();
+  if (!isFieldTemplate(trimmedTemplate)) return null;
+  return trimmedTemplate.slice(7, -1);
+}
+
+/**
+ * Resolves a field template to its actual value from the form response
+ */
+function resolveFieldTemplateValue(
+  value: string,
+  dynamicFieldValueOperands?: dynamicFieldValueOperands
+): string {
+  if (!isFieldTemplate(value) || !dynamicFieldValueOperands) {
+    return value;
+  }
+
+  const fieldId = extractFieldIdFromTemplate(value);
+  if (!fieldId) {
+    return value;
+  }
+
+  const { fields, response } = dynamicFieldValueOperands;
+  const field = fields.find((f) => f.id === fieldId);
+
+  if (!field) {
+    // Field definition not found - return original template
+    return value;
+  }
+
+  const fieldResponse = response[field.id];
+  if (!fieldResponse) {
+    // Field not in response object - return original template
+    return value;
+  }
+
+  const fieldValue = fieldResponse.value;
+  if (fieldValue === null || fieldValue === undefined || fieldValue === "") {
+    return "(empty)";
+  }
+
+  if (Array.isArray(fieldValue)) {
+    return fieldValue.join(", ");
+  }
+
+  return String(fieldValue);
+}
+
+/**
  * Extracts attribute name/value pairs from a resolved attributesQueryValue.
  * This is used to build the assignment reason string.
  */
 function extractAttributeRoutingDetails({
   resolvedAttributesQueryValue,
   attributesOfTheOrg,
+  dynamicFieldValueOperands,
 }: {
   resolvedAttributesQueryValue: AttributesQueryValue | null;
   attributesOfTheOrg: Attribute[];
+  dynamicFieldValueOperands?: dynamicFieldValueOperands;
 }): Array<{ attributeName: string; attributeValue: string }> {
   if (!resolvedAttributesQueryValue) {
     return [];
@@ -180,9 +241,15 @@ function extractAttributeRoutingDetails({
     const attributeValueString = (() => {
       const firstValue = value[0];
       if (Array.isArray(firstValue)) {
-        return firstValue[0];
+        // Handle array values - resolve any field templates within
+        const resolvedValues = firstValue.map((v) =>
+          typeof v === "string" ? resolveFieldTemplateValue(v, dynamicFieldValueOperands) : String(v)
+        );
+        return resolvedValues.join(", ");
       }
-      return String(firstValue);
+      const stringValue = String(firstValue);
+      // Resolve field template if present
+      return resolveFieldTemplateValue(stringValue, dynamicFieldValueOperands);
     })();
 
     result.push({
@@ -460,6 +527,7 @@ export async function findTeamMembersMatchingAttributeLogic(
     const attributeRoutingDetails = extractAttributeRoutingDetails({
       resolvedAttributesQueryValue,
       attributesOfTheOrg,
+      dynamicFieldValueOperands,
     });
 
     routingTraceService.addStep({
