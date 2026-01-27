@@ -37,7 +37,20 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
   return true;
 }
 
-export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES): string | undefined {
+/**
+ * Generic type for form responses that have a value property.
+ * This allows the function to work with both FORM_SUBMITTED_WEBHOOK_RESPONSES
+ * and the response type used in handleResponse.ts
+ */
+type ResponseWithValue = Record<
+  string,
+  {
+    value: string | number | string[];
+    [key: string]: unknown;
+  }
+>;
+
+export function getSubmitterEmail(responses: ResponseWithValue): string | undefined {
   const submitterEmail = Object.values(responses).find((response) => {
     const value = typeof response === "object" && response && "value" in response ? response.value : response;
     return typeof value === "string" && value.includes("@");
