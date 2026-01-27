@@ -2670,6 +2670,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
         jest
           .spyOn(EventManager.prototype, "createAllCalendarEvents")
           .mockImplementation(() => Promise.resolve([]));
+        jest
+          .spyOn(EventManager.prototype, "createAllCRMEvents")
+          .mockImplementation(() => Promise.resolve([]));
       });
 
       describe("platform oAuth client has calendar events enabled", () => {
