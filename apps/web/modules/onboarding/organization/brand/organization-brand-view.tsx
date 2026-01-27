@@ -128,16 +128,29 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       />
                     )}
                   </div>
-                  <BannerUploader
-                    id="org-banner-upload"
-                    buttonMsg={t("upload")}
-                    handleAvatarChange={handleBannerChange}
-                    imageSrc={bannerPreview || undefined}
-                    target="banner"
-                    triggerButtonColor="secondary"
-                    height={500}
-                    width={1500}
-                  />
+                  <div className="flex gap-2">
+                    <BannerUploader
+                      id="org-banner-upload"
+                      buttonMsg={t("upload")}
+                      handleAvatarChange={handleBannerChange}
+                      imageSrc={bannerPreview || undefined}
+                      target="banner"
+                      triggerButtonColor="secondary"
+                      height={500}
+                      width={1500}
+                    />
+                    {bannerPreview && (
+                      <Button
+                        color="minimal"
+                        size="sm"
+                        onClick={() => {
+                          setBannerPreview(null);
+                          setOrganizationBrand({ banner: null });
+                        }}>
+                        {t("remove")}
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <p className="text-subtle text-xs font-normal leading-3">
                   {t("onboarding_banner_size_hint")}
@@ -165,6 +178,17 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                     triggerButtonColor="secondary"
                     buttonSize="sm"
                   />
+                  {logoPreview && (
+                    <Button
+                      color="minimal"
+                      size="sm"
+                      onClick={() => {
+                        setLogoPreview(null);
+                        setOrganizationBrand({ logo: null });
+                      }}>
+                      {t("remove")}
+                    </Button>
+                  )}
                 </div>
                 <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
               </div>
