@@ -26,10 +26,10 @@ cd apps/api/v2
 yarn generate-secrets
 ```
 
-and then the output will contain plain and hashed secrets:
+and then the secrets will be written to `apps/api/v2/.generated-secrets` file containing:
 ```
-plain - accea22c76452d07ea4bde68efffdd229dceec0c68261e36f2f4a550e13ce0d8
-hashed - 1d4c525f703815e10a3845ebf963d243a1d8addec94087d098326883c53d22b5
+plain - <PLAINTEXT_SECRET>
+hashed - <HASHED_SECRET>
 ```
 
 In the root `.env` set the following environment variables:
@@ -72,10 +72,10 @@ cd apps/api/v2
 yarn generate-secrets
 ```
 
-and then the output will contain plain and hashed secrets:
+and then the secrets will be written to `apps/api/v2/.generated-secrets` file containing:
 ```
-plain - accea22c76452d07ea4bde68efffdd229dceec0c68261e36f2f4a550e13ce0d8
-hashed - 1d4c525f703815e10a3845ebf963d243a1d8addec94087d098326883c53d22b5
+plain - <PLAINTEXT_SECRET>
+hashed - <HASHED_SECRET>
 ```
 
 Then in the `packages/platform/examples/base/.env` set the `NEXT_PUBLIC_OAUTH2_CLIENT_ID` to be equal to a random id and `OAUTH2_CLIENT_SECRET_PLAIN` to the plain secret generated above.
