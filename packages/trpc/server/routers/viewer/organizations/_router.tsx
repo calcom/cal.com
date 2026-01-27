@@ -37,6 +37,7 @@ import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
+import { ZResizeOnboardingImageInputSchema } from "./resizeOnboardingImage.schema";
 
 export const viewerOrganizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
@@ -217,5 +218,10 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./pendingReportsCount.handler");
     return handler(opts);
   }),
-
+  resizeOnboardingImage: authedProcedure
+    .input(ZResizeOnboardingImageInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./resizeOnboardingImage.handler");
+      return handler(opts);
+    }),
 });

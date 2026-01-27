@@ -2,11 +2,13 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { ColorPicker, Label } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -25,11 +27,13 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const { organizationDetails, organizationBrand, setOrganizationBrand } = useOnboardingStore();
   const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
-  const [_logoFile, setLogoFile] = useState<File | null>(null);
-  const [_bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [brandColor, setBrandColor] = useState("#000000");
+  const [isResizingLogo, setIsResizingLogo] = useState(false);
+  const [isResizingBanner, setIsResizingBanner] = useState(false);
+
+  const resizeImageMutation = trpc.viewer.organizations.resizeOnboardingImage.useMutation();
 
   // Load from store on mount
   useEffect(() => {
@@ -38,14 +42,25 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     setBrandColor(organizationBrand.color);
   }, [organizationBrand]);
 
-  const handleLogoChange = (file: File | null) => {
-    setLogoFile(file);
+  const handleLogoChange = async (file: File | null) => {
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64 = reader.result as string;
-        setLogoPreview(base64);
-        setOrganizationBrand({ logo: base64 });
+        setIsResizingLogo(true);
+        try {
+          const result = await resizeImageMutation.mutateAsync({
+            image: base64,
+            isBanner: false,
+          });
+          setLogoPreview(result.resizedImage);
+          setOrganizationBrand({ logo: result.resizedImage });
+        } catch (error) {
+          showToast(t("error_uploading_logo"), "error");
+          console.error("Error resizing logo:", error);
+        } finally {
+          setIsResizingLogo(false);
+        }
       };
       reader.readAsDataURL(file);
     } else {
@@ -54,14 +69,25 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     }
   };
 
-  const handleBannerChange = (file: File | null) => {
-    setBannerFile(file);
+  const handleBannerChange = async (file: File | null) => {
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64 = reader.result as string;
-        setBannerPreview(base64);
-        setOrganizationBrand({ banner: base64 });
+        setIsResizingBanner(true);
+        try {
+          const result = await resizeImageMutation.mutateAsync({
+            image: base64,
+            isBanner: true,
+          });
+          setBannerPreview(result.resizedImage);
+          setOrganizationBrand({ banner: result.resizedImage });
+        } catch (error) {
+          showToast(t("error_uploading_banner"), "error");
+          console.error("Error resizing banner:", error);
+        } finally {
+          setIsResizingBanner(false);
+        }
       };
       reader.readAsDataURL(file);
     } else {
@@ -159,6 +185,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       color="secondary"
                       size="sm"
                       className="w-fit"
+                      loading={isResizingBanner}
                       onClick={() => document.getElementById("banner-upload")?.click()}>
                       {t("upload")}
                     </Button>
@@ -192,6 +219,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                     <Button
                       color="secondary"
                       size="sm"
+                      loading={isResizingLogo}
                       onClick={() => document.getElementById("logo-upload")?.click()}>
                       {t("upload")}
                     </Button>
