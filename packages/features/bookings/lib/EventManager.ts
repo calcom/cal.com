@@ -364,7 +364,6 @@ export default class EventManager {
     // Some calendar libraries may edit the original event so let's clone it
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
-    // Skip calendar event creation if skipCalendarEvent is true (used by platform customers who manage their own calendar events)
     if (!skipCalendarEvent) {
       results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
     }
@@ -381,7 +380,6 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    // Skip CRM event creation if skipCalendarEvent is true (CRM events are tied to calendar events)
     const createdCRMEvents = skipCalendarEvent ? [] : await this.createAllCRMEvents(evt);
 
     results.push(...createdCRMEvents);
