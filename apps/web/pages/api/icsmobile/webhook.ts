@@ -20,11 +20,15 @@ async function notifySmsDeliveryFailure({
   recipientNumber,
   smsText,
   sendAt,
+  msgId,
+  icsMsgRef,
 }: {
   bookingUid: string | null;
   recipientNumber: string;
   smsText: string;
   sendAt: Date;
+  msgId: string;
+  icsMsgRef: string;
 }): Promise<void> {
   const subject = `🚨Cal ID SMS Delivery Failed | Booking ${bookingUid}`;
 
@@ -50,6 +54,22 @@ async function notifySmsDeliveryFailure({
           </td>
           <td style="padding: 8px 12px; border: 1px solid #d0d7de;">
             ${bookingUid}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; font-weight: bold; border: 1px solid #d0d7de;">
+            MSG UID
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #d0d7de;">
+            ${msgId}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; font-weight: bold; border: 1px solid #d0d7de;">
+            ICS MSGID
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #d0d7de;">
+            ${icsMsgRef}
           </td>
         </tr>
         <tr>
@@ -101,9 +121,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { qStatus, qMobile, qMsgRef, qDTime, SMSMSGID, qNotes } = req.query;
 
     // Validate required parameters
-    if (!SMSMSGID || !qStatus) {
-      log.warn(`Webhook fields not found: SMSMSGID=${SMSMSGID}, qStatus=${qStatus}`);
-      return res.status(400).json({ error: "Missing required fields (SMSMSGID or qStatus)" });
+    if (!SMSMSGID || !qStatus || !qMsgRef) {
+      log.warn(`Webhook fields not found: SMSMSGID=${SMSMSGID}, qStatus=${qStatus}, qMsgRef=${qMsgRef}`);
+      return res.status(400).json({ error: "Missing required fields (SMSMSGID or qStatus or qMsgRef)" });
     }
 
     // Extract values (query params can be string or string[])
@@ -185,12 +205,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sendAt?: Date;
       };
 
-      await notifySmsDeliveryFailure({
-        bookingUid: existingInsight.bookingUid,
-        recipientNumber: recipientNumber!,
-        smsText: smsText!,
-        sendAt: sendAt!,
-      });
+      try {
+        await notifySmsDeliveryFailure({
+          bookingUid: existingInsight.bookingUid,
+          recipientNumber: recipientNumber!,
+          smsText: smsText!,
+          sendAt: sendAt!,
+          msgId: msgId,
+          icsMsgRef: icsMsgRef,
+        });
+      } catch (e) {
+        log.error("Failed to notify sms delivery failure via email", {
+          error: JSON.stringify(e),
+        });
+      }
     }
 
     res.status(200).json({ success: true });

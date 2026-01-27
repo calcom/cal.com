@@ -197,7 +197,7 @@ const generateMessageContent = (
 
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
-    const formattedDate = eventMoment.format("Do MMM YYYY");
+    const formattedDate = eventMoment.format("DD MMM YYYY");
     const formattedTimeWithLocalizedTimeZone = eventMoment.format("h:mma [GMT]Z");
     const [formattedTime, localizedRecipientTimezone] = formattedTimeWithLocalizedTimeZone.split(" ");
 

@@ -98,7 +98,7 @@ const processNotificationQueue = async (): Promise<number> => {
         const eventMoment = dayjs(notification.booking.startTime)
           .tz(participantTimeZone || "UTC")
           .locale(participantLocale || "en");
-        const formattedDate = eventMoment.format("Do MMM YYYY");
+        const formattedDate = eventMoment.format("DD MMM YYYY");
         const formattedTimeWithLocalizedTimeZone = eventMoment.format("h:mma [GMT]Z");
         const [formattedTime, localizedRecipientTimezone] = formattedTimeWithLocalizedTimeZone.split(" ");
 
