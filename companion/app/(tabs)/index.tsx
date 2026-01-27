@@ -1,18 +1,22 @@
-import { Redirect } from "expo-router";
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { getRouteFromPreference, useUserPreferences } from "@/hooks/useUserPreferences";
 
 export default function TabsIndex() {
+  const router = useRouter();
   const { preferences, isLoading } = useUserPreferences();
 
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="small" color="#111827" />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (!isLoading) {
+      const route = getRouteFromPreference(preferences.landingPage);
+      router.replace(route);
+    }
+  }, [isLoading, preferences.landingPage, router]);
 
-  const route = getRouteFromPreference(preferences.landingPage);
-  return <Redirect href={route as `/${string}`} />;
+  return (
+    <View className="flex-1 items-center justify-center bg-white">
+      <ActivityIndicator size="small" color="#111827" />
+    </View>
+  );
 }
