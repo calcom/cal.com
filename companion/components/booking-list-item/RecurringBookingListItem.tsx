@@ -178,7 +178,13 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
   );
 
   return (
-    <View className="border-b border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-black">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+      }}
+    >
       <Pressable
         onPress={() => onPress(group)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
@@ -282,7 +288,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Confirm All / Reject All for unconfirmed recurring */}
         {group.hasUnconfirmed && onRejectAll && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-[#1C1C1E]"
+            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#1C1C1E]"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -323,7 +329,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Cancel All Remaining */}
         {onCancelAllRemaining && group.remainingCount > 0 && !group.hasUnconfirmed && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border bg-cal-bg dark:bg-[#1C1C1E]"
+            className="flex-row items-center justify-center rounded-lg border bg-white dark:bg-[#1C1C1E]"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -348,7 +354,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Pressable
-                className="items-center justify-center rounded-lg border border-cal-border dark:border-[#38383A]"
+                className="items-center justify-center rounded-lg border border-cal-border dark:border-cal-border-dark"
                 style={{ width: 32, height: 32 }}
               >
                 <Ionicons name="ellipsis-horizontal" size={18} color={colors.icon} />

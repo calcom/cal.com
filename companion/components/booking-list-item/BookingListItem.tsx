@@ -157,7 +157,13 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   );
 
   return (
-    <View className="border-b border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-black">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+      }}
+    >
       <Pressable
         onPress={() => onPress(booking)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
@@ -191,7 +197,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Pressable
-                className="items-center justify-center rounded-lg border border-cal-border dark:border-[#38383A]"
+                className="items-center justify-center rounded-lg border border-cal-border dark:border-cal-border-dark"
                 style={{ width: 32, height: 32 }}
               >
                 <Ionicons name="ellipsis-horizontal" size={18} color={colors.icon} />

@@ -507,7 +507,7 @@ export default function EventTypesIOS() {
           placeholder="Search event types"
           onChangeText={(e) => handleSearch(e.nativeEvent.text)}
           obscureBackground={false}
-          barTintColor="#fff"
+          barTintColor={isDark ? "#1C1C1E" : "#fff"}
         />
       </Stack.Header>
 
@@ -542,7 +542,14 @@ export default function EventTypesIOS() {
           </View>
         ) : (
           <View className="px-2 pt-4 md:px-4">
-            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
+            <View
+              className="overflow-hidden rounded-lg"
+              style={{
+                backgroundColor: colors.background,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
               {filteredEventTypes.map((item, index) => (
                 <EventTypeListItem
                   key={item.id.toString()}

@@ -42,17 +42,22 @@ module.exports = {
         cal: {
           text: {
             DEFAULT: "#333333",
+            dark: "#FFFFFF",
             secondary: "#666666",
+            secondaryDark: "#8E8E93",
             muted: "#8E8E93",
             emphasis: "#3C3F44",
           },
           bg: {
             DEFAULT: "#FFFFFF",
+            dark: "#000000",
             secondary: "#F8F9FA",
+            secondaryDark: "#1C1C1E",
             muted: "#F2F2F7",
           },
           border: {
             DEFAULT: "#E5E5EA",
+            dark: "#38383A",
             light: "#C6C6C8",
           },
           accent: {

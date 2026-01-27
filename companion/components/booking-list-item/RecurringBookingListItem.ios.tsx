@@ -3,7 +3,7 @@ import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, Text, TouchableOpacity, View, Linking } from "react-native";
+import { Pressable, Text, TouchableOpacity, View, Linking, useColorScheme } from "react-native";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import type { Booking } from "@/services/calcom";
 import type { RecurringBookingGroup } from "@/utils/bookings-utils";
@@ -80,6 +80,9 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
       isOnline: true,
     });
   }, [booking, userEmail]);
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   // Define context menu actions based on booking state
   type ContextMenuAction = {
@@ -160,7 +163,13 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
     .map(({ label, icon, onPress, role }) => ({ label, icon, onPress, role }));
 
   return (
-    <View className="border-b border-cal-border bg-cal-bg">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+      }}
+    >
       <Pressable
         onPress={() => onPress(group)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}

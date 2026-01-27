@@ -2,7 +2,7 @@ import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import { getBookingActions } from "@/utils/booking-actions";
 import {
@@ -56,6 +56,9 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
       isOnline: true, // Assume online
     });
   }, [booking, userEmail]);
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   // Define context menu actions based on booking state
   type ContextMenuAction = {
@@ -136,7 +139,13 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
     .map(({ label, icon, onPress, role }) => ({ label, icon, onPress, role }));
 
   return (
-    <View className="border-b border-cal-border bg-cal-bg">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+      }}
+    >
       {/* Native iOS Context Menu for long-press */}
       <Host matchContents>
         <ContextMenu
