@@ -9,6 +9,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
+import { getSalesforceTokenLifetime } from "../lib/getSalesforceTokenLifetime";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -41,7 +42,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
-  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, salesforceTokenInfo, req);
+  // Get token lifetime via introspection
+  const tokenLifetime = await getSalesforceTokenLifetime({
+    accessToken: salesforceTokenInfo.access_token,
+    instanceUrl: salesforceTokenInfo.instance_url,
+  });
+
+  // Store token with token_lifetime
+  await createOAuthAppCredential(
+    { appId: appConfig.slug, type: appConfig.type },
+    { ...salesforceTokenInfo, token_lifetime: tokenLifetime },
+    req
+  );
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "salesforce" })
