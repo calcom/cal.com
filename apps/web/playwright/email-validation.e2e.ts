@@ -16,15 +16,15 @@ test.describe("Email field validation", () => {
     const user = await users.create();
     await user.apiLogin();
 
-    // Get the first event type ID
-    const eventTypes = await user.getEventTypes();
-    const eventTypeId = eventTypes[0].id;
+    // Get the first event type (30-min is the default)
+    const eventType = user.eventTypes.find((e) => e.slug === "30-min");
+    if (!eventType) throw new Error("Event type not found");
 
     // Configure the event type to have phone required and email optional
-    await markPhoneNumberAsRequiredAndEmailAsOptional(page, eventTypeId);
+    await markPhoneNumberAsRequiredAndEmailAsOptional(page, eventType.id);
 
     // Go to the booking page
-    await page.goto(`/${user.username}/${eventTypes[0].slug}`);
+    await page.goto(`/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     // Fill in the form with a phone number in the email field
