@@ -204,7 +204,6 @@ export class RoutingTraceService {
 
     logger.warn("Could not extract assignment reason from routing trace - no matching steps found", {
       traceSteps: trace.map((s) => `${s.domain}:${s.step}`),
-      organizerEmail: context.organizerEmail,
     });
     return null;
   }
