@@ -1001,6 +1001,7 @@
   "hidden": "Hidden",
   "readonly": "Read only",
   "assigned": "Assigned",
+  "you_are_assigned_to_this_event": "You are assigned to this event",
   "one_time_link": "One-time link",
   "plan_description": "You're currently on the {{plan}} plan.",
   "plan_upgrade_invitation": "Upgrade your account to the PRO plan to unlock all of the features we have to offer.",
