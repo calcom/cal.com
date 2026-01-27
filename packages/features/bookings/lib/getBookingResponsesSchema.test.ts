@@ -176,6 +176,74 @@ describe("getBookingResponsesSchema", () => {
         );
       });
 
+      test(`optional email field should validate format when non-empty value is provided`, async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: false,
+            },
+            {
+              name: "attendeePhoneNumber",
+              type: "phone",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        // Phone number in email field should fail validation even if email is optional
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "+393496191286",
+          attendeePhoneNumber: "+919999999999",
+        });
+        expect(parsedResponses.success).toBe(false);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        expect(parsedResponses.error.issues[0]).toEqual(
+          expect.objectContaining({
+            message: `{email}${CUSTOM_EMAIL_VALIDATION_ERROR_MSG}`,
+            code: "custom",
+          })
+        );
+      });
+
+      test(`optional email field should allow empty value`, async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: false,
+            },
+            {
+              name: "attendeePhoneNumber",
+              type: "phone",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        // Empty email should be allowed when email is optional
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "",
+          attendeePhoneNumber: "+919999999999",
+        });
+        expect(parsedResponses.success).toBe(true);
+      });
+
       test(`hidden required email field should not be validated`, async () => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
