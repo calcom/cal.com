@@ -165,12 +165,16 @@ export default function More() {
             onPress={() => setShowLandingPagePicker(true)}
             className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-[#F8F9FA]"
           >
-            <View className="flex-1 flex-row items-center">
+            <View className="flex-row items-center">
               <Ionicons name="home-outline" size={20} color="#333" />
-              <Text className="ml-3 text-base font-semibold text-[#333]">Default Landing Page</Text>
+              <Text className="ml-3 text-base font-semibold text-[#333]">
+                Default Landing{"\n"}Page
+              </Text>
             </View>
             <View className="flex-row items-center">
-              <Text className="mr-2 text-sm text-gray-500">{landingPageLabel}</Text>
+              <View className="ml-3 mr-2 rounded-md bg-gray-100 px-2.5 py-1">
+                <Text className="text-sm font-medium text-gray-600">{landingPageLabel}</Text>
+              </View>
               <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
             </View>
           </TouchableOpacity>
