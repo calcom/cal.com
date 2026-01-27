@@ -70,6 +70,7 @@ export interface BookingRejectedDTO extends BaseEventDTO {
     smsReminderNumber?: string | null;
   };
   status: string;
+  rejectionReason?: string;
 }
 
 export interface BookingRequestedDTO extends BaseEventDTO {

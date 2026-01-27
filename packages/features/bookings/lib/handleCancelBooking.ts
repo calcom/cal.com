@@ -415,6 +415,10 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       teamId,
       orgId,
       oAuthClientId: platformClientId,
+      // Trigger-specific fields for BOOKING_CANCELLED
+      cancelledBy: cancelledBy ?? undefined,
+      cancellationReason: cancellationReason ?? undefined,
+      requestReschedule: false,
     });
   } catch (webhookError) {
     logger.error(

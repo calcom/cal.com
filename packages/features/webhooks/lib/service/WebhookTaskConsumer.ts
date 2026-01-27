@@ -181,35 +181,63 @@ export class WebhookTaskConsumer {
     }
 
     // Build DTO based on trigger event type
+    const bookingPayload = payload as BookingWebhookTaskPayload;
+    const baseDTO = {
+      createdAt: timestamp,
+      bookingId: booking.id,
+      eventTypeId: eventType.id,
+      userId: booking.user?.id ?? null,
+      teamId: bookingPayload.teamId ?? null,
+      orgId: bookingPayload.orgId,
+      platformClientId: bookingPayload.oAuthClientId,
+      evt: calendarEvent,
+      eventType,
+      booking: {
+        id: booking.id,
+        eventTypeId: booking.eventTypeId,
+        userId: booking.userId,
+        startTime: booking.startTime,
+        smsReminderNumber: booking.smsReminderNumber,
+        iCalSequence: booking.iCalSequence,
+      },
+    };
+
     switch (triggerEvent) {
       case WebhookTriggerEvents.BOOKING_CREATED:
       case WebhookTriggerEvents.BOOKING_REQUESTED:
-      case WebhookTriggerEvents.BOOKING_RESCHEDULED:
-      case WebhookTriggerEvents.BOOKING_CANCELLED:
-      case WebhookTriggerEvents.BOOKING_REJECTED:
-      case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED: {
-        const bookingPayload = payload as BookingWebhookTaskPayload;
+      case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED:
         return {
+          ...baseDTO,
           triggerEvent,
-          createdAt: timestamp,
-          bookingId: booking.id,
-          eventTypeId: eventType.id,
-          userId: booking.user?.id ?? null,
-          teamId: bookingPayload.teamId ?? null,
-          orgId: bookingPayload.orgId,
-          platformClientId: bookingPayload.oAuthClientId,
-          evt: calendarEvent,
-          eventType,
-          booking: {
-            id: booking.id,
-            eventTypeId: booking.eventTypeId,
-            userId: booking.userId,
-            startTime: booking.startTime,
-            smsReminderNumber: booking.smsReminderNumber,
-            iCalSequence: booking.iCalSequence,
-          },
         } as WebhookEventDTO;
-      }
+
+      case WebhookTriggerEvents.BOOKING_CANCELLED:
+        return {
+          ...baseDTO,
+          triggerEvent,
+          cancelledBy: bookingPayload.cancelledBy,
+          cancellationReason: bookingPayload.cancellationReason,
+          requestReschedule: bookingPayload.requestReschedule ?? false,
+        } as WebhookEventDTO;
+
+      case WebhookTriggerEvents.BOOKING_RESCHEDULED:
+        return {
+          ...baseDTO,
+          triggerEvent,
+          rescheduleId: bookingPayload.rescheduleId,
+          rescheduleUid: bookingPayload.rescheduleUid,
+          rescheduleStartTime: bookingPayload.rescheduleStartTime,
+          rescheduleEndTime: bookingPayload.rescheduleEndTime,
+          rescheduledBy: bookingPayload.rescheduledBy,
+        } as WebhookEventDTO;
+
+      case WebhookTriggerEvents.BOOKING_REJECTED:
+        return {
+          ...baseDTO,
+          triggerEvent,
+          status: "REJECTED",
+          rejectionReason: bookingPayload.rejectionReason,
+        } as WebhookEventDTO;
 
       default:
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });

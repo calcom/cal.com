@@ -2656,8 +2656,16 @@ async function handler(
           oAuthClientId: subscriberOptions.oAuthClientId,
         };
 
-        if (eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED) {
-          await this.queueBookingRescheduledWebhook(queueParams);
+        if (eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED && originalRescheduledBooking) {
+          await this.queueBookingRescheduledWebhook({
+            ...queueParams,
+            // Reschedule-specific fields from original booking
+            rescheduleId: originalRescheduledBooking.id,
+            rescheduleUid: originalRescheduledBooking.uid,
+            rescheduleStartTime: originalRescheduledBooking.startTime.toISOString(),
+            rescheduleEndTime: originalRescheduledBooking.endTime.toISOString(),
+            rescheduledBy: reqBody.rescheduledBy ?? undefined,
+          });
         } else {
           await this.queueBookingCreatedWebhook(queueParams);
         }
@@ -2901,6 +2909,12 @@ export class RegularBookingService implements IBookingService {
     teamId?: number | null;
     orgId?: number;
     oAuthClientId?: string | null;
+    // Reschedule-specific fields
+    rescheduleId?: number;
+    rescheduleUid?: string;
+    rescheduleStartTime?: string;
+    rescheduleEndTime?: string;
+    rescheduledBy?: string;
   }): Promise<void> {
     await this.deps.webhookProducer.queueBookingRescheduledWebhook({
       ...params,

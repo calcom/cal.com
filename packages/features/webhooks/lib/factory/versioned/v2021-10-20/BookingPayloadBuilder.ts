@@ -67,6 +67,9 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           status: BookingStatus.REJECTED,
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
+          extra: {
+            rejectionReason: dto.rejectionReason,
+          },
         });
 
       case WebhookTriggerEvents.BOOKING_RESCHEDULED:
