@@ -45,7 +45,7 @@ import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
-import { BookingHistory } from "@calcom/features/booking-audit/client/components/BookingHistory";
+import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
 import { SegmentedControl } from "@calcom/ui/components/segmented-control";
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 

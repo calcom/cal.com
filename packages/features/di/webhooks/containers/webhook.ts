@@ -32,7 +32,9 @@ loggerModuleLoader.loadModule(webhookContainer);
 prismaModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
-// Load webhook module
+// Load webhook module (includes cross-table repositories + all webhook services)
+webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY, webhookModule);
+webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_USER_REPOSITORY, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE, webhookModule);
