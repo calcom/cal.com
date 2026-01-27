@@ -9,6 +9,16 @@ import type {
   RoutingTrace,
 } from "../repositories/RoutingTraceRepository.interface";
 
+export const ROUTING_TRACE_DOMAINS = {
+  SALESFORCE: "salesforce",
+  ROUTING_FORM: "routing_form",
+} as const;
+
+export const ROUTING_TRACE_STEPS = {
+  SALESFORCE_ASSIGNMENT: "salesforce_assignment",
+  ATTRIBUTE_LOGIC_EVALUATED: "attribute-logic-evaluated",
+} as const;
+
 interface IRoutingTraceServiceDeps {
   pendingRoutingTraceRepository: IPendingRoutingTraceRepository;
   routingTraceRepository: IRoutingTraceRepository;
@@ -137,10 +147,10 @@ export class RoutingTraceService {
       reroutedByEmail?: string | null;
     }
   ): { reasonEnum: AssignmentReasonEnum; reasonString: string } | null {
-    // Check for CRM assignment step (e.g., salesforce_assignment)
     const crmAssignmentStep = trace.find(
       (step) =>
-        step.domain === "salesforce" && step.step === "salesforce_assignment"
+        step.domain === ROUTING_TRACE_DOMAINS.SALESFORCE &&
+        step.step === ROUTING_TRACE_STEPS.SALESFORCE_ASSIGNMENT
     );
 
     if (crmAssignmentStep && crmAssignmentStep.data) {
@@ -176,10 +186,10 @@ export class RoutingTraceService {
       }
     }
 
-    // Check for routing form attribute logic step
     const routingFormStep = trace.find(
       (step) =>
-        step.domain === "routing_form" && step.step === "attribute-logic-evaluated"
+        step.domain === ROUTING_TRACE_DOMAINS.ROUTING_FORM &&
+        step.step === ROUTING_TRACE_STEPS.ATTRIBUTE_LOGIC_EVALUATED
     );
 
     if (routingFormStep && routingFormStep.data) {

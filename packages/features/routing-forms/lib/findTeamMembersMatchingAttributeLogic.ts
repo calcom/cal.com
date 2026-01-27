@@ -7,6 +7,10 @@ import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-s
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { getAttributesAssignmentData } from "@calcom/features/attributes/lib/getAttributes";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
+import {
+  ROUTING_TRACE_DOMAINS,
+  ROUTING_TRACE_STEPS,
+} from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
 import type { dynamicFieldValueOperands, AttributesQueryValue } from "@calcom/lib/raqb/types";
@@ -522,28 +526,32 @@ export async function findTeamMembersMatchingAttributeLogic(
     runAttributeLogicOptions
   );
 
-  // Add trace step for attribute logic evaluation
-  if (routingTraceService) {
-    const attributeRoutingDetails = extractAttributeRoutingDetails({
-      resolvedAttributesQueryValue,
-      attributesOfTheOrg,
-      dynamicFieldValueOperands,
-    });
+  // Helper to add trace step for attribute logic evaluation
+  const addTraceStep = (checkedFallback: boolean) => {
+    if (routingTraceService) {
+      const attributeRoutingDetails = extractAttributeRoutingDetails({
+        resolvedAttributesQueryValue,
+        attributesOfTheOrg,
+        dynamicFieldValueOperands,
+      });
 
-    routingTraceService.addStep({
-      domain: "routing_form",
-      step: "attribute-logic-evaluated",
-      data: {
-        routeName,
-        routeIsFallback,
-        attributeRoutingDetails,
-      },
-    });
-  }
+      routingTraceService.addStep({
+        domain: ROUTING_TRACE_DOMAINS.ROUTING_FORM,
+        step: ROUTING_TRACE_STEPS.ATTRIBUTE_LOGIC_EVALUATED,
+        data: {
+          routeName,
+          routeIsFallback,
+          checkedFallback,
+          attributeRoutingDetails,
+        },
+      });
+    }
+  };
 
   // It being null means that no logic was found and thus all members match. In such case, we don't fallback intentionally.
   // This is the case when user added no rules so, he expects to match all members
   if (!teamMembersMatchingMainAttributeLogic) {
+    addTraceStep(false);
     return {
       teamMembersMatchingAttributeLogic: null,
       checkedFallback: false,
@@ -579,6 +587,7 @@ export async function findTeamMembersMatchingAttributeLogic(
       runAttributeLogicOptions
     );
 
+    addTraceStep(true);
     return {
       teamMembersMatchingAttributeLogic: teamMembersMatchingFallbackLogic,
       checkedFallback: true,
@@ -599,6 +608,7 @@ export async function findTeamMembersMatchingAttributeLogic(
     };
   }
 
+  addTraceStep(false);
   return {
     teamMembersMatchingAttributeLogic: teamMembersMatchingMainAttributeLogic,
     checkedFallback: false,
