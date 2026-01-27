@@ -19,7 +19,10 @@ export interface OrganizationBrand {
 }
 
 export interface Team {
+  id: number; // -1 for new teams, actual ID for existing teams
   name: string;
+  slug: string | null; // null for new teams, slug for migrated teams
+  isBeingMigrated: boolean; // true if migrating existing team
 }
 
 export interface Invite {
@@ -59,6 +62,9 @@ export interface OnboardingState {
   invites: Invite[];
   inviteRole: InviteRole;
 
+  // Migration state
+  migratedMembers: { email: string; name?: string; teamId: number; role: "MEMBER" | "ADMIN" }[];
+
   // Team-specific state
   teamDetails: TeamDetails;
   teamBrand: TeamBrand;
@@ -75,6 +81,9 @@ export interface OnboardingState {
   setTeams: (teams: Team[]) => void;
   setInvites: (invites: Invite[]) => void;
   setInviteRole: (role: InviteRole) => void;
+
+  // Migration actions
+  setMigratedMembers: (members: { email: string; name?: string; teamId: number; role: "MEMBER" | "ADMIN" }[]) => void;
 
   // Team actions
   setTeamDetails: (details: Partial<TeamDetails>) => void;
@@ -105,6 +114,7 @@ const initialState = {
   teams: [],
   invites: [],
   inviteRole: "MEMBER" as InviteRole,
+  migratedMembers: [],
   teamDetails: {
     name: "",
     slug: "",
@@ -148,6 +158,8 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       setInviteRole: (role) => set({ inviteRole: role }),
 
+      setMigratedMembers: (members) => set({ migratedMembers: members }),
+
       setTeamDetails: (details) =>
         set((state) => ({
           teamDetails: { ...state.teamDetails, ...details },
@@ -185,6 +197,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         teams: state.teams,
         invites: state.invites,
         inviteRole: state.inviteRole,
+        migratedMembers: state.migratedMembers,
         teamDetails: state.teamDetails,
         teamBrand: state.teamBrand,
         teamInvites: state.teamInvites,

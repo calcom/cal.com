@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import useAppsData from "@calcom/features/apps/hooks/useAppsData";
+import useAppsData from "@calcom/web/modules/apps/hooks/useAppsData";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues, EventTypeSetupProps, EventTypeApps } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -116,7 +116,7 @@ export const EventAppsTab = ({
               title={
                 <ServerTrans
                   t={t}
-                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admin"}`}
                 />
               }
               actions={<div className="flex h-full items-center">{appsDisableProps.LockedIcon}</div>}
@@ -124,7 +124,7 @@ export const EventAppsTab = ({
                 <ServerTrans
                   t={t}
                   i18nKey={`apps_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admins"
+                    isManagedEventType ? "for_members" : "by_team_admin"
                   }_description`}
                 />
               }

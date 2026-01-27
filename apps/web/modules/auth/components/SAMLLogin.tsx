@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import z from "zod";
 
-import { LastUsed, useLastUsed } from "@calcom/features/auth/lib/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "../hooks/useLastUsed";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
