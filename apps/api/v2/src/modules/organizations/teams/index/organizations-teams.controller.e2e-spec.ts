@@ -12,6 +12,7 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
+import { withNoThrottler } from "test/utils/withNoThrottler";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
@@ -40,11 +41,13 @@ describe("Organizations Team Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
+      const moduleRef = await withNoThrottler(
+        withApiAuth(
+          userEmail,
+          Test.createTestingModule({
+            imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+          })
+        )
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
@@ -301,11 +304,13 @@ describe("Organizations Team Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
+      const moduleRef = await withNoThrottler(
+        withApiAuth(
+          userEmail,
+          Test.createTestingModule({
+            imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+          })
+        )
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
@@ -415,11 +420,13 @@ describe("Organizations Team Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
+      const moduleRef = await withNoThrottler(
+        withApiAuth(
+          userEmail,
+          Test.createTestingModule({
+            imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+          })
+        )
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
@@ -545,11 +552,13 @@ describe("Organizations Team Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
+      const moduleRef = await withNoThrottler(
+        withApiAuth(
+          userEmail,
+          Test.createTestingModule({
+            imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+          })
+        )
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
