@@ -48,8 +48,4 @@ export { TeamInviteEmail } from "./TeamInviteEmail";
 export { VerifyAccountEmail } from "./VerifyAccountEmail";
 export { VerifyEmailByCode } from "./VerifyEmailByCode";
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
-export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
-export { OrganizerAddGuestsEmail } from "./OrganizerAddGuestsEmail";
-export { AttendeeAddGuestsEmail } from "./AttendeeAddGuestsEmail";
-export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
 export { SubscriptionPaymentFailedEmail } from "./SubscriptionPaymentFailedEmail";
