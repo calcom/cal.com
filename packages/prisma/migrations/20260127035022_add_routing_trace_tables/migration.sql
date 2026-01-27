@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "public"."PendingRoutingTrace" (
     "id" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT timezone('UTC', now()),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT timezone('UTC'::text, now()),
     "trace" JSONB NOT NULL,
     "formResponseId" INTEGER,
     "queuedFormResponseId" TEXT,
@@ -12,7 +12,7 @@ CREATE TABLE "public"."PendingRoutingTrace" (
 -- CreateTable
 CREATE TABLE "public"."RoutingTrace" (
     "id" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT timezone('UTC', now()),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT timezone('UTC'::text, now()),
     "trace" JSONB NOT NULL,
     "formResponseId" INTEGER,
     "queuedFormResponseId" TEXT,
