@@ -14,8 +14,6 @@ import type { z } from "zod";
 import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
-import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -284,11 +282,9 @@ export function UserPage(props: PageProps) {
 
           {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
 
-          {(!user.hideBranding || user?.bannerUrl) && (
-            <div key="logo" className={classNames("mb-8 flex w-full justify-center")}>
-              <Branding bannerUrl={user?.bannerUrl} size={user?.bannerUrl ? "sm" : "xs"} />
-            </div>
-          )}
+          <div key="logo" className={classNames("mb-8 flex w-full justify-center")}>
+            <Branding bannerUrl={user?.bannerUrl} size={user?.bannerUrl ? "sm" : "xs"} />
+          </div>
         </main>
       </div>
     </>
