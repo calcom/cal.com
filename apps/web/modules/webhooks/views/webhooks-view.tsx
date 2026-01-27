@@ -35,7 +35,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
 
   return (
     <Frame>
-      <FrameHeader className="flex-row items-center justify-between">
+      <FrameHeader className="mb-2 flex-row items-center justify-between">
         <div>
           <FrameTitle className="text-lg">{t("webhooks")}</FrameTitle>
           <FrameDescription>{t("add_webhook_description", { appName: APP_NAME })}</FrameDescription>
@@ -60,7 +60,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                 </div>
               )}
               {group.webhooks.map((webhook) => (
-                <FramePanel key={webhook.id}>
+                <FramePanel key={webhook.id} className="mt-2">
                   <WebhookListItem
                     webhook={webhook}
                     lastItem={true}
