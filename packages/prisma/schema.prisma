@@ -1350,7 +1350,7 @@ model App_RoutingForms_FormResponse {
   @@index([formFillerId])
   @@index([formId])
   @@index([routedToBookingUid])
-  @@index([submitterEmail])
+  @@index([formId, submitterEmail, createdAt])
 }
 
 model App_RoutingForms_QueuedFormResponse {
