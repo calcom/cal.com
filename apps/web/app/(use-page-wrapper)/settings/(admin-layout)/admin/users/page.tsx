@@ -1,7 +1,7 @@
+import AdminUsersListPage from "@calid/features/modules/admin/pages/users-list";
 import { Button } from "@calid/features/ui/components/button";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import UsersListingView from "@calcom/features/ee/users/pages/users-listing-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
@@ -26,7 +26,7 @@ const Page = async () => {
           <Button href="/settings/admin/users/add">Add user</Button>
         </div>
       }>
-      <UsersListingView />
+      <AdminUsersListPage />
     </SettingsHeader>
   );
 };
