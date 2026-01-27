@@ -230,7 +230,18 @@ export function DataTableSegmentProvider({
     if (fetchedPreferredSegmentId && !segmentIdRaw) {
       setSegmentId(fetchedPreferredSegmentId);
     } else if (segmentIdRaw) {
-      setSelectedSegment(findSelectedSegment(segmentIdRaw));
+      const segment = findSelectedSegment(segmentIdRaw);
+      setSelectedSegment(segment);
+      if (segment) {
+        if (validateActiveFilters === "loading") {
+          pendingSegmentRef.current = {
+            segmentId: segmentIdObject!,
+            segment,
+          };
+        } else {
+          applySegmentFilters(segment);
+        }
+      }
     }
   }, [isSegmentFetchedSuccessfully]);
 
