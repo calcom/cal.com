@@ -1249,7 +1249,7 @@ export default class EventManager {
       ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
       : false;
 
-    const uid = getUid(event);
+    const uid = getUid(event.uid);
     for (const credential of this.crmCredentials) {
       if (isTaskerEnabledForSalesforceCrm) {
         if (!event.uid) {

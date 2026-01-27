@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -39,7 +39,7 @@ const PaymentStatusView = () => {
           <Icon name="x" className="h-6 w-6 text-red-600" />
         </div>
         <div className="text-center">
-          <h1 className="font-heading text-emphasis text-2xl">{t("payment_failed")}</h1>
+          <h1 className="font-cal text-emphasis text-2xl">{t("payment_failed")}</h1>
           <p className="text-default mt-2 text-sm">{paymentError || t("payment_failed_description")}</p>
         </div>
         <Button color="secondary" href="/settings/organizations/new/onboard-members">
@@ -55,7 +55,7 @@ const PaymentStatusView = () => {
         <Icon name="check" className="h-6 w-6 text-green-600 dark:text-green-400" />
       </div>
       <div className="text-center">
-        <h1 className="font-heading text-emphasis text-2xl">{t("payment_successful")}</h1>
+        <h1 className="font-cal text-emphasis text-2xl">{t("payment_successful")}</h1>
         <p className="text-default mt-2 text-sm">{t("creating_your_organization", { orgName: name })}</p>
         <p className="text-subtle mt-1 text-sm">{t("this_may_take_a_few_seconds")}</p>
       </div>

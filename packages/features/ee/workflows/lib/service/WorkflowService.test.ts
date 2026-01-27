@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { describe, expect, vi, beforeEach } from "vitest";
 
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -249,10 +250,14 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
       timeUnit: TimeUnit.HOUR,
     };
 
+    // Use future dates to ensure scheduled date is not in the past
+    const futureStartTime = dayjs().add(3, "days").toISOString();
+    const futureEndTime = dayjs().add(3, "days").add(1, "hour").toISOString();
+
     const mockEvt = {
       uid: "booking-123",
-      startTime: "2024-12-01T10:00:00Z",
-      endTime: "2024-12-01T11:00:00Z",
+      startTime: futureStartTime,
+      endTime: futureEndTime,
     };
 
     const mockWorkflowReminder = {
@@ -297,10 +302,14 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
       timeUnit: TimeUnit.HOUR,
     };
 
+    // Use future dates to ensure scheduled date is not in the past
+    const futureStartTime = dayjs().add(1, "day").toISOString();
+    const futureEndTime = dayjs().add(1, "day").add(1, "hour").toISOString();
+
     const mockEvt = {
       uid: "booking-456",
-      startTime: "2024-12-01T10:00:00Z",
-      endTime: "2024-12-01T11:00:00Z",
+      startTime: futureStartTime,
+      endTime: futureEndTime,
     };
 
     const mockWorkflowReminder = {
@@ -337,10 +346,14 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
       timeUnit: TimeUnit.HOUR,
     };
 
+    // Use future dates to ensure scheduled date is not in the past
+    const futureStartTime = dayjs().add(3, "days").toISOString();
+    const futureEndTime = dayjs().add(3, "days").add(1, "hour").toISOString();
+
     const mockEvt = {
       uid: "booking-789",
-      startTime: "2024-12-01T10:00:00Z",
-      endTime: "2024-12-01T11:00:00Z",
+      startTime: futureStartTime,
+      endTime: futureEndTime,
     };
 
     const mockWorkflowReminder = {
@@ -406,6 +419,71 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
 
     expect(mockWorkflowReminderCreate).not.toHaveBeenCalled();
     expect(mockTasker.create).not.toHaveBeenCalled();
+  });
+
+  test("should skip reminder if scheduled date is in the past for BEFORE_EVENT", async () => {
+    const mockWorkflow = {
+      time: 48,
+      timeUnit: TimeUnit.HOUR,
+    };
+
+    // Event is only 24 hours away, but reminder is set for 48 hours before
+    // This means the scheduled date would be in the past
+    const tomorrowStartTime = dayjs().add(1, "day").toISOString();
+    const tomorrowEndTime = dayjs().add(1, "day").add(1, "hour").toISOString();
+
+    const mockEvt = {
+      uid: "booking-past-reminder",
+      startTime: tomorrowStartTime,
+      endTime: tomorrowEndTime,
+    };
+
+    await WorkflowService.scheduleLazyEmailWorkflow({
+      workflowTriggerEvent: "BEFORE_EVENT",
+      workflowStepId: 1,
+      workflow: mockWorkflow,
+      evt: mockEvt,
+    });
+
+    // Should not create reminder or schedule task when scheduled date is in the past
+    expect(mockWorkflowReminderCreate).not.toHaveBeenCalled();
+    expect(mockTasker.create).not.toHaveBeenCalled();
+  });
+
+  test("should not skip reminder for AFTER_EVENT even if calculated date seems past", async () => {
+    const mockWorkflow = {
+      time: 1,
+      timeUnit: TimeUnit.HOUR,
+    };
+
+    // For AFTER_EVENT, we add time to endTime, so it should always be in the future
+    const pastStartTime = dayjs().subtract(1, "hour").toISOString();
+    const pastEndTime = dayjs().subtract(30, "minutes").toISOString();
+
+    const mockEvt = {
+      uid: "booking-after-event",
+      startTime: pastStartTime,
+      endTime: pastEndTime,
+    };
+
+    const mockWorkflowReminder = {
+      id: 4,
+      uuid: "reminder-uuid-after",
+    };
+
+    mockWorkflowReminderCreate.mockResolvedValue(mockWorkflowReminder);
+    mockTasker.create.mockResolvedValue({ id: "task-after" });
+
+    await WorkflowService.scheduleLazyEmailWorkflow({
+      workflowTriggerEvent: "AFTER_EVENT",
+      workflowStepId: 4,
+      workflow: mockWorkflow,
+      evt: mockEvt,
+    });
+
+    // AFTER_EVENT reminders should still be scheduled (they're relative to endTime + time)
+    expect(mockWorkflowReminderCreate).toHaveBeenCalled();
+    expect(mockTasker.create).toHaveBeenCalled();
   });
 });
 

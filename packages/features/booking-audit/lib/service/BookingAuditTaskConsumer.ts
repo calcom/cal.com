@@ -271,7 +271,7 @@ export class BookingAuditTaskConsumer {
         const { organizationId, action, bookingUids } = params;
 
         if (organizationId === null) {
-            logger.info(`Skipping audit for non-organization booking: action=${action}, bookingUids=${bookingUids.join(",")}`);
+            logger.debug(`Skipping audit for non-organization booking: action=${action}, bookingUids=${bookingUids.join(",")}`);
             return false;
         }
 
@@ -281,7 +281,7 @@ export class BookingAuditTaskConsumer {
         );
 
         if (!isFeatureEnabled) {
-            logger.info(
+            logger.debug(
                 `booking-audit feature is disabled for organization: action=${action}, bookingUids=${bookingUids.join(",")}, organizationId=${organizationId}`
             );
             return false;

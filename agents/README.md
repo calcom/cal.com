@@ -4,6 +4,7 @@ This directory contains comprehensive documentation for AI agents working on the
 
 ## Quick Navigation
 
+- **[Rules](rules/)** - Modular engineering rules derived from our 2026 standards
 - **[Commands](commands.md)** - Build, test, and development commands
 - **[Knowledge Base](knowledge-base.md)** - Knowledge base & best practices
 - **[Architecture Overview](#architecture-overview)** - System structure and patterns

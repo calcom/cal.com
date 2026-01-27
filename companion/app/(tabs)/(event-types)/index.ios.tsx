@@ -1,6 +1,6 @@
-import { Button, ContextMenu, Host, HStack, Image as SwiftUIImage } from "@expo/ui/swift-ui";
+import { Button, Host, Image as SwiftUIImage } from "@expo/ui/swift-ui";
 import * as Haptics from "expo-haptics";
-import { buttonStyle, controlSize, fixedSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { buttonStyle, controlSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -28,7 +28,7 @@ import {
   useUserProfile,
 } from "@/hooks";
 import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
-import { CalComAPIService, type EventType } from "@/services/calcom";
+import type { EventType } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
@@ -111,9 +111,12 @@ export default function EventTypesIOS() {
   };
 
   const handleCopyLink = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      await Clipboard.setStringAsync(link);
+      await Clipboard.setStringAsync(eventType.bookingUrl);
       showSuccessAlert("Link Copied", "Event type link copied!");
     } catch {
       showErrorAlert("Error", "Failed to copy link. Please try again.");
@@ -121,11 +124,14 @@ export default function EventTypesIOS() {
   };
 
   const _handleShare = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Share.share({
         message: `Book a meeting: ${eventType.title}`,
-        url: link,
+        url: eventType.bookingUrl,
       });
     } catch {
       showErrorAlert("Error", "Failed to share link. Please try again.");
@@ -226,10 +232,12 @@ export default function EventTypesIOS() {
   };
 
   const handlePreview = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      // For mobile, use in-app browser
-      await openInAppBrowser(link, "event type preview");
+      await openInAppBrowser(eventType.bookingUrl, "event type preview");
     } catch {
       console.error("Failed to open preview");
       showErrorAlert("Error", "Failed to open preview. Please try again.");

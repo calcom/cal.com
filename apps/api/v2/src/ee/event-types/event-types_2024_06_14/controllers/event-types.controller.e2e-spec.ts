@@ -1,16 +1,32 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  FrequencyInput,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
+import {
+  type ApiSuccessResponse,
+  BaseConfirmationPolicy_2024_06_14,
+  type CreateEventTypeInput_2024_06_14,
+  type EventTypeOutput_2024_06_14,
+  type GuestsDefaultFieldOutput_2024_06_14,
+  type NameDefaultFieldInput_2024_06_14,
+  type NotesDefaultFieldInput_2024_06_14,
+  type SplitNameDefaultFieldOutput_2024_06_14,
+  supportedIntegrations,
+  TeamEventTypeOutput_2024_06_14,
+  type UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
+import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
+import type { EventType, PlatformOAuthClient, Schedule, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -21,32 +37,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookerLayoutsInputEnum_2024_06_14,
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-  FrequencyInput,
-} from "@calcom/platform-enums";
-import { SchedulingType } from "@calcom/platform-libraries";
-import {
-  BaseConfirmationPolicy_2024_06_14,
-  TeamEventTypeOutput_2024_06_14,
-  supportedIntegrations,
-  type ApiSuccessResponse,
-  type CreateEventTypeInput_2024_06_14,
-  type EventTypeOutput_2024_06_14,
-  type GuestsDefaultFieldOutput_2024_06_14,
-  type NameDefaultFieldInput_2024_06_14,
-  type NotesDefaultFieldInput_2024_06_14,
-  type SplitNameDefaultFieldOutput_2024_06_14,
-  type UpdateEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
-import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
-import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
-import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -636,6 +635,7 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.bookingUrl).toContain(`/${user.username}/${body.slug}`);
           expect(createdEventType.disableCancelling).toEqual({ disabled: true });
           expect(createdEventType.disableRescheduling).toEqual({ disabled: true });
           expect(createdEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(true);
@@ -732,6 +732,7 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
       expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
       expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
       expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
@@ -1552,6 +1553,7 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+      expect(fetchedEventType.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
     });
 
     it("system admin can access another user's event type by id", async () => {
@@ -2678,12 +2680,19 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.title).toEqual(body.title);
             secondCreatedEventType = responseBody.data;
 
-            const { id, title, slug, ...restFirst } = firstCreatedEventType;
-            const { id: id2, title: title2, slug: slug2, ...restSecond } = secondCreatedEventType;
+            const { id, title, slug, bookingUrl, ...restFirst } = firstCreatedEventType;
+            const {
+              id: id2,
+              title: title2,
+              slug: slug2,
+              bookingUrl: bookingUrl2,
+              ...restSecond
+            } = secondCreatedEventType;
             expect(restFirst).toEqual(restSecond);
             expect(id2).not.toEqual(id);
             expect(title2).not.toEqual(title);
             expect(slug2).not.toEqual(slug);
+            expect(bookingUrl2).not.toEqual(bookingUrl);
           });
       });
 
