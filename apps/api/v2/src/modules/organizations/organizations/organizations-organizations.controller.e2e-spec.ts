@@ -29,7 +29,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withNoThrottler } from "test/utils/withNoThrottler";
+import { mockThrottlerGuard } from "test/utils/withNoThrottler";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { getEnv } from "@/env";
@@ -92,14 +92,14 @@ describe("Organizations Organizations Endpoints", () => {
 
   const newDate = new Date(2035, 0, 9, 15, 0, 0);
 
-  beforeAll(async () => {
-    const moduleRef = await withNoThrottler(
-      Test.createTestingModule({
-        imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-      })
-    ).compile();
+    beforeAll(async () => {
+      mockThrottlerGuard();
 
-    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      const moduleRef = await Test.createTestingModule({
+        imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+      }).compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
