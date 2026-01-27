@@ -216,7 +216,11 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden && (checkOptional || bookingField.required)) {
+          // Determine if the email field needs validation
+          const needsValidation = isRequired || (value && value.trim() !== "");
+
+          // Validate email if the field is not hidden and requires validation
+          if (!bookingField.hidden && needsValidation) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({
