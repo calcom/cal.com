@@ -33,7 +33,12 @@ const WORKFLOW_TEMPLATES = [
   WorkflowTemplates.CONFIRMATION,
 ] as const;
 
-const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
+const BASIC_WORKFLOW_TEMPLATES = [
+  WorkflowTemplates.CUSTOM,
+  WorkflowTemplates.REMINDER,
+  WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED,
+] as const;
 
 const SMS_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.REMINDER,
@@ -48,6 +53,8 @@ const ATTENDEE_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.RATING,
   WorkflowTemplates.THANKYOU,
+  WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED,
 ] as const;
 
 const WHATSAPP_WORKFLOW_TEMPLATES = [

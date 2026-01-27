@@ -6,8 +6,10 @@ import { WorkflowActions, WorkflowTriggerEvents, WorkflowTemplates } from "@calc
 
 import type { CalIdWorkflowType } from "../config/types";
 import { defaultTemplateComponentsMap } from "../providers/meta_default_templates";
+import emailCancelledTemplate from "../templates/email/cancelled";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
+import emailRescheduledTemplate from "../templates/email/rescheduled";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 import {
   ATTENDEE_WORKFLOW_TEMPLATES,
@@ -130,6 +132,10 @@ function determineEmailTemplateHandler(template?: WorkflowTemplates) {
       return emailRatingTemplate;
     case WorkflowTemplates.THANKYOU:
       return emailThankYouTemplate;
+    case WorkflowTemplates.CANCELLED:
+      return emailCancelledTemplate;
+    case WorkflowTemplates.RESCHEDULED:
+      return emailRescheduledTemplate;
     default:
       return emailReminderTemplate;
   }

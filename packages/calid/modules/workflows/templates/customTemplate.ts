@@ -28,6 +28,7 @@ export type VariablesType = {
   eventStartTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
   eventTime?: string;
+  rescheduleReason?: string;
 };
 
 interface ProcessingConfiguration {
