@@ -217,7 +217,7 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "email") {
           // Determine if the email field needs validation (same pattern as phone field)
-          const needsValidation = isRequired || (value && String(value).trim() !== "");
+          const needsValidation = isRequired || (value && value.trim() !== "");
 
           if (!bookingField.hidden && needsValidation) {
             // Email RegExp to validate if the input is a valid email
