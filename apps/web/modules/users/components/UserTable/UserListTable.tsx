@@ -1,14 +1,8 @@
 "use client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import {
-  ColumnFilterType,
-  convertFacetedValuesToMap,
-  DataTableProvider,
-  type FacetedValue,
-  useColumnFilters,
-  useDataTable,
-} from "@calcom/features/data-table";
+import { DataTableProvider, ColumnFilterType, convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
+import { useColumnFilters, useDataTable } from "@calcom/web/modules/data-table/hooks";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
