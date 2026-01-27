@@ -31,6 +31,7 @@ export default function TabLayout() {
 
         // Use a minimal delay to ensure NativeTabs is initialized
         setTimeout(() => {
+          // biome-ignore lint/suspicious/noExplicitAny: expo-router types don't support dynamic route strings from preferences
           router.navigate(route as any);
         }, 50);
       }

@@ -16,5 +16,6 @@ export default function TabsIndex() {
   const route = getRouteFromPreference(preferences.landingPage);
   console.log("[TabsIndex] Redirecting to:", route, "from preference:", preferences.landingPage);
 
+  // biome-ignore lint/suspicious/noExplicitAny: expo-router types don't support dynamic route strings from preferences
   return <Redirect href={route as any} />;
 }
