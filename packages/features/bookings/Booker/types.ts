@@ -172,12 +172,14 @@ export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   customClassNames?: CustomClassNames;
   timeZones?: Timezone[];
   roundRobinHideOrgAndTeam?: boolean;
+  hideOrgTeamAvatar?: boolean;
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
   timeZones?: Timezone[];
   roundRobinHideOrgAndTeam?: boolean;
+  hideOrgTeamAvatar?: boolean;
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
