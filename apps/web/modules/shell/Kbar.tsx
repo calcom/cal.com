@@ -1,4 +1,5 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
@@ -15,12 +16,11 @@ import {
   useKBar,
   useMatches,
   useRegisterActions,
+  VisualState,
 } from "kbar";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useMemo } from "react";
-
-import dayjs from "@calcom/dayjs";
+import { useEffect, useMemo, useRef } from "react";
 
 type ShortcutArrayType = {
   shortcuts?: string[];
@@ -229,7 +229,7 @@ function buildKbarActions(push: (href: string) => void): Action[] {
   return [...staticActions, ...appStoreActions];
 }
 
-function useEventTypesAction(): void {
+function useEventTypesAction(enabled: boolean): void {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
@@ -237,6 +237,7 @@ function useEventTypesAction(): void {
       group: { teamId: null, parentId: null },
     },
     {
+      enabled,
       refetchOnWindowFocus: false,
       staleTime: 1 * 60 * 60 * 1000,
       getNextPageParam: (lastPage: { nextCursor?: number | null }) => lastPage.nextCursor,
@@ -264,7 +265,7 @@ function useEventTypesAction(): void {
   useRegisterActions(actions, [data]);
 }
 
-function useUpcomingBookingsAction(): void {
+function useUpcomingBookingsAction(enabled: boolean): void {
   const router = useRouter();
 
   const { data } = trpc.viewer.bookings.get.useQuery(
@@ -276,6 +277,7 @@ function useUpcomingBookingsAction(): void {
       limit: 100,
     },
     {
+      enabled,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000,
     }
@@ -319,8 +321,16 @@ function CommandKey(): JSX.Element {
 
 const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
-  useEventTypesAction();
-  useUpcomingBookingsAction();
+  const hasOpenedRef = useRef(false);
+  const { visualState } = useKBar((state) => ({ visualState: state.visualState }));
+
+  const isVisible = visualState !== VisualState.hidden;
+  if (isVisible && !hasOpenedRef.current) {
+    hasOpenedRef.current = true;
+  }
+
+  useEventTypesAction(hasOpenedRef.current);
+  useUpcomingBookingsAction(hasOpenedRef.current);
 
   return (
     <KBarPortal>
