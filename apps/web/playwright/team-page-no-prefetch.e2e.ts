@@ -39,6 +39,9 @@ async function countEventTypePrefetchRequests(
   await page.goto(url);
   await page.waitForLoadState("networkidle");
 
+  // Assert URL to fail fast on unexpected redirects
+  await expect(page).toHaveURL(url);
+
   // Wait for page to fully load and any prefetch requests to complete
   await page.waitForTimeout(3000);
 
