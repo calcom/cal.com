@@ -9,11 +9,13 @@ export type VariablesType = {
   eventTypeName?: string;
   eventName?: string;
   organizerName?: string;
+  organizerFirstName?: string;
   attendeeName?: string;
   attendeeFirstName?: string;
   attendeeLastName?: string;
   attendeeEmail?: string;
-  eventDate?: Dayjs;
+  eventDate?: string;
+  eventStartTime?: Dayjs;
   eventEndTime?: Dayjs;
   timezone?: string;
   location?: string | null;
@@ -28,6 +30,7 @@ export type VariablesType = {
   eventStartTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
   eventTime?: string;
+  eventTimeFormatted?: string;
 };
 
 interface ProcessingConfiguration {
@@ -98,8 +101,8 @@ const performBasicTokenSubstitution = (
     .replaceAll("{ATTENDEE_FIRST_NAME}", nameComponents.firstNameComponent)
     .replaceAll("{ATTENDEE_LAST_NAME}", nameComponents.lastNameComponent)
     .replaceAll("{EVENT_DATE}", localizedDate)
-    .replaceAll("{EVENT_TIME}", variables.eventDate?.format(timeFormat) || "")
-    .replaceAll("{START_TIME}", variables.eventDate?.format(timeFormat) || "")
+    .replaceAll("{EVENT_TIME}", variables.eventStartTime?.format(timeFormat) || "")
+    .replaceAll("{START_TIME}", variables.eventStartTime?.format(timeFormat) || "")
     .replaceAll("{EVENT_END_TIME}", variables.eventEndTime?.format(timeFormat) || "")
     .replaceAll("{LOCATION}", locationValue)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
@@ -144,7 +147,7 @@ const processDateTimeTokens = (
       token.startsWith("START_TIME_")
     ) {
       const formatSpecification = token.substring(11, textContent.length);
-      const formattedTimestamp = variables.eventDate?.locale(locale).format(formatSpecification);
+      const formattedTimestamp = variables.eventStartTime?.locale(locale).format(formatSpecification);
       processedText = processedText.replace(`{${token}}`, formattedTimestamp || "");
       return;
     }
@@ -212,7 +215,7 @@ const processTemplateContent = (config: ProcessingConfiguration): TemplateOutput
 
   const localizedDateString = generateLocalizedDateString(
     config.culturalLocale,
-    config.dataVariables.eventDate,
+    config.dataVariables.eventStartTime,
     config.dataVariables.timezone
   );
 
