@@ -1,5 +1,10 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 
+import type {
+  BookingForBackfill,
+  BookingReferenceForBackfill,
+} from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
+import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -8,37 +13,12 @@ interface GoogleCalendarBackfillServiceDependencies {
   logger: ITaskerDependencies["logger"];
 }
 
-interface BookingForBackfill {
-  id: number;
-  uid: string;
-  title: string;
-  startTime: Date;
-  endTime: Date;
-  location: string | null;
-  iCalUID: string | null;
-  responses: Record<string, unknown> | null;
-  metadata: Record<string, unknown> | null;
-  userPrimaryEmail: string | null;
-}
-
-interface BookingReferenceForBackfill {
-  id: number;
-  uid: string;
-  externalCalendarId: string | null;
-  booking: BookingForBackfill;
-  credential: {
-    id: number;
-    userId: number | null;
-    key: unknown;
-  };
-}
-
 export class GoogleCalendarBackfillService {
-  private prisma: PrismaClient;
+  private bookingReferenceRepository: BookingReferenceRepository;
   private logger: ITaskerDependencies["logger"];
 
   constructor(deps: GoogleCalendarBackfillServiceDependencies) {
-    this.prisma = deps.prisma;
+    this.bookingReferenceRepository = new BookingReferenceRepository({ prismaClient: deps.prisma });
     this.logger = deps.logger;
   }
 
@@ -64,48 +44,11 @@ export class GoogleCalendarBackfillService {
   ): Promise<void> {
     this.logger.info("Processing unsynced accepted bookings");
 
-    const unsyncedAcceptedBookings = (await this.prisma.bookingReference.findMany({
-      where: {
-        type: "google_calendar",
-        externalCalendarId: { not: null },
-        uid: "",
-        credentialId: { not: null },
-        booking: {
-          status: "ACCEPTED",
-          startTime: { gt: new Date() },
-          createdAt: {
-            gte: quotaExceededStartUTC,
-            lte: quotaExceededEndUTC,
-          },
-        },
-      },
-      select: {
-        id: true,
-        uid: true,
-        externalCalendarId: true,
-        booking: {
-          select: {
-            id: true,
-            uid: true,
-            title: true,
-            startTime: true,
-            endTime: true,
-            location: true,
-            iCalUID: true,
-            responses: true,
-            metadata: true,
-            userPrimaryEmail: true,
-          },
-        },
-        credential: {
-          select: {
-            id: true,
-            userId: true,
-            key: true,
-          },
-        },
-      },
-    })) as unknown as BookingReferenceForBackfill[];
+    const unsyncedAcceptedBookings =
+      await this.bookingReferenceRepository.findUnsyncedGoogleCalendarReferencesIncludeBookingAndCredential(
+        quotaExceededStartUTC,
+        quotaExceededEndUTC
+      );
 
     if (unsyncedAcceptedBookings.length === 0) {
       this.logger.info("No unsynced accepted bookings found");
@@ -150,17 +93,13 @@ export class GoogleCalendarBackfillService {
           googleEventId: existingGoogleEvent.id,
         });
 
-        await this.prisma.bookingReference.update({
-          where: { id: br.id },
-          data: {
-            uid: existingGoogleEvent.id || "",
-            externalCalendarId: googleCalendarId,
-            meetingId:
-              existingGoogleEvent.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === "video")
-                ?.uri || null,
-            meetingUrl: existingGoogleEvent.hangoutLink || existingGoogleEvent.htmlLink || null,
-            deleted: false,
-          },
+        await this.bookingReferenceRepository.updateWithGoogleEventData(br.id, {
+          uid: existingGoogleEvent.id || "",
+          externalCalendarId: googleCalendarId,
+          meetingId:
+            existingGoogleEvent.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === "video")?.uri ||
+            null,
+          meetingUrl: existingGoogleEvent.hangoutLink || existingGoogleEvent.htmlLink || null,
         });
 
         this.logger.info(`Updated BookingReference ${br.id} with Google Event ID ${existingGoogleEvent.id}`);
@@ -173,17 +112,12 @@ export class GoogleCalendarBackfillService {
           htmlLink: createdEvent.htmlLink,
         });
 
-        await this.prisma.bookingReference.update({
-          where: { id: br.id },
-          data: {
-            uid: createdEvent.id || "",
-            externalCalendarId: googleCalendarId,
-            meetingId:
-              createdEvent.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === "video")?.uri ||
-              null,
-            meetingUrl: createdEvent.hangoutLink || createdEvent.htmlLink || null,
-            deleted: false,
-          },
+        await this.bookingReferenceRepository.updateWithGoogleEventData(br.id, {
+          uid: createdEvent.id || "",
+          externalCalendarId: googleCalendarId,
+          meetingId:
+            createdEvent.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === "video")?.uri || null,
+          meetingUrl: createdEvent.hangoutLink || createdEvent.htmlLink || null,
         });
 
         this.logger.info(`Updated BookingReference ${br.id} with new Google Event ID ${createdEvent.id}`);
@@ -202,47 +136,11 @@ export class GoogleCalendarBackfillService {
   ): Promise<void> {
     this.logger.info("Processing unremoved cancelled bookings");
 
-    const unremovedCancelledBookings = (await this.prisma.bookingReference.findMany({
-      where: {
-        type: "google_calendar",
-        externalCalendarId: { not: null },
-        NOT: [{ uid: "" }, { uid: null }],
-        credentialId: { not: null },
-        booking: {
-          status: "CANCELLED",
-          updatedAt: {
-            gte: quotaExceededStartUTC,
-            lte: quotaExceededEndUTC,
-          },
-        },
-      },
-      select: {
-        id: true,
-        uid: true,
-        externalCalendarId: true,
-        booking: {
-          select: {
-            id: true,
-            uid: true,
-            title: true,
-            startTime: true,
-            endTime: true,
-            location: true,
-            iCalUID: true,
-            responses: true,
-            metadata: true,
-            userPrimaryEmail: true,
-          },
-        },
-        credential: {
-          select: {
-            id: true,
-            userId: true,
-            key: true,
-          },
-        },
-      },
-    })) as unknown as BookingReferenceForBackfill[];
+    const unremovedCancelledBookings =
+      await this.bookingReferenceRepository.findUnremovedCancelledGoogleCalendarReferencesIncludeBookingAndCredential(
+        quotaExceededStartUTC,
+        quotaExceededEndUTC
+      );
 
     if (unremovedCancelledBookings.length === 0) {
       this.logger.info("No unremoved cancelled bookings found for deletion");
@@ -288,20 +186,14 @@ export class GoogleCalendarBackfillService {
         if (deleted) {
           this.logger.info(`Successfully deleted Google Calendar event ${googleEventId}`);
 
-          await this.prisma.bookingReference.update({
-            where: { id: br.id },
-            data: { deleted: true },
-          });
+          await this.bookingReferenceRepository.markAsDeleted(br.id);
 
           this.logger.info(`Updated BookingReference ${br.id} to mark as deleted`);
         }
       } else {
         this.logger.info(`Google event ${googleEventId} not found or already cancelled, marking as deleted`);
 
-        await this.prisma.bookingReference.update({
-          where: { id: br.id },
-          data: { deleted: true },
-        });
+        await this.bookingReferenceRepository.markAsDeleted(br.id);
 
         this.logger.info(`Updated BookingReference ${br.id} to mark as deleted`);
       }
@@ -340,13 +232,13 @@ export class GoogleCalendarBackfillService {
     calendarId: string,
     booking: BookingForBackfill
   ): Promise<calendar_v3.Schema$Event> {
-    const bookingResponses = booking.responses || {};
+    const bookingResponses = (booking.responses || {}) as Record<string, unknown>;
 
     const attendees: calendar_v3.Schema$EventAttendee[] = [];
 
-    const email = bookingResponses.email as string | undefined;
-    const name = bookingResponses.name as string | undefined;
-    const guests = bookingResponses.guests as string[] | undefined;
+    const email = bookingResponses["email"] as string | undefined;
+    const name = bookingResponses["name"] as string | undefined;
+    const guests = bookingResponses["guests"] as string[] | undefined;
 
     if (email) {
       attendees.push({
@@ -401,8 +293,8 @@ export class GoogleCalendarBackfillService {
     const location = booking.location;
     if (!location) return undefined;
 
-    const bookingMetadata = booking.metadata || {};
-    const videoCallUrl = bookingMetadata.videoCallUrl as string | undefined;
+    const bookingMetadata = (booking.metadata || {}) as Record<string, unknown>;
+    const videoCallUrl = bookingMetadata["videoCallUrl"] as string | undefined;
 
     if (location === "integrations:daily") {
       return videoCallUrl || `https://app.cal.com/video/${booking.uid}`;
