@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -174,6 +175,19 @@ export function BookingDetailScreen({
   const router = useRouter();
   const { userInfo } = useAuth();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    background: isDark ? "#000000" : "#f2f2f7",
+    cardBackground: isDark ? "#1C1C1E" : "#FFFFFF",
+    text: isDark ? "#FFFFFF" : "#000000",
+    textSecondary: isDark ? "#8E8E93" : "#8E8E93",
+    textTertiary: isDark ? "#636366" : "#636366",
+    border: isDark ? "#38383A" : "#E5E5EA",
+    destructive: isDark ? "#FF453A" : "#800020",
+    badge: isDark ? "#38383A" : "#E5E5EA",
+  };
 
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -456,9 +470,14 @@ export function BookingDetailScreen({
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#f2f2f7]">
-        <ActivityIndicator size="large" color="#000000" />
-        <Text className="mt-4 text-base text-gray-500">Loading booking...</Text>
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.background }}
+      >
+        <ActivityIndicator size="large" color={colors.text} />
+        <Text className="mt-4 text-base" style={{ color: colors.textSecondary }}>
+          Loading booking...
+        </Text>
       </View>
     );
   }
@@ -466,13 +485,25 @@ export function BookingDetailScreen({
   if (error || !booking) {
     const errorMessage = error?.message || "Booking not found";
     return (
-      <View className="flex-1 items-center justify-center bg-[#f2f2f7] p-5">
+      <View
+        className="flex-1 items-center justify-center p-5"
+        style={{ backgroundColor: colors.background }}
+      >
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-        <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
+        <Text className="mb-2 mt-4 text-center text-xl font-bold" style={{ color: colors.text }}>
           {errorMessage}
         </Text>
-        <AppPressable className="mt-6 rounded-lg bg-black px-6 py-3" onPress={() => router.back()}>
-          <Text className="text-base font-semibold text-white">Go Back</Text>
+        <AppPressable
+          className="mt-6 rounded-lg px-6 py-3"
+          style={{ backgroundColor: isDark ? "#FFFFFF" : "#000000" }}
+          onPress={() => router.back()}
+        >
+          <Text
+            className="text-base font-semibold"
+            style={{ color: isDark ? "#000000" : "#FFFFFF" }}
+          >
+            Go Back
+          </Text>
         </AppPressable>
       </View>
     );
@@ -588,7 +619,7 @@ export function BookingDetailScreen({
           }}
         />
       )}
-      <View className="flex-1 bg-[#f2f2f7]">
+      <View className="flex-1" style={{ backgroundColor: colors.background }}>
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 }}
@@ -598,8 +629,8 @@ export function BookingDetailScreen({
           {/* Title Section - iOS Calendar Style */}
           <View className="mb-8">
             <Text
-              className="mb-4 text-[26px] font-semibold leading-tight text-black"
-              style={{ letterSpacing: -0.3 }}
+              className="mb-4 text-[26px] font-semibold leading-tight"
+              style={{ letterSpacing: -0.3, color: colors.text }}
             >
               {booking.title}
             </Text>
@@ -607,14 +638,24 @@ export function BookingDetailScreen({
             {eventTypeSlug || durationFormatted ? (
               <View className="mb-3 flex-row items-center">
                 {eventTypeSlug ? (
-                  <Text className="text-[15px] text-[#8E8E93]">{eventTypeSlug}</Text>
+                  <Text className="text-[15px]" style={{ color: colors.textSecondary }}>
+                    {eventTypeSlug}
+                  </Text>
                 ) : null}
                 {eventTypeSlug && durationFormatted ? (
-                  <Text className="mx-2 text-[15px] text-[#C7C7CC]">•</Text>
+                  <Text className="mx-2 text-[15px]" style={{ color: colors.textSecondary }}>
+                    •
+                  </Text>
                 ) : null}
                 {durationFormatted ? (
-                  <View className="rounded-full bg-[#E5E5EA] px-2.5 py-1">
-                    <Text className="text-[13px] font-medium text-[#636366]">
+                  <View
+                    className="rounded-full px-2.5 py-1"
+                    style={{ backgroundColor: colors.badge }}
+                  >
+                    <Text
+                      className="text-[13px] font-medium"
+                      style={{ color: colors.textTertiary }}
+                    >
                       {durationFormatted}
                     </Text>
                   </View>
@@ -622,55 +663,82 @@ export function BookingDetailScreen({
               </View>
             ) : null}
 
-            <Text className="mb-0.5 text-[17px] text-black">{dateFormatted}</Text>
-            <Text className="mb-0.5 text-[17px] text-black">{timeFormatted}</Text>
+            <Text className="mb-0.5 text-[17px]" style={{ color: colors.text }}>
+              {dateFormatted}
+            </Text>
+            <Text className="mb-0.5 text-[17px]" style={{ color: colors.text }}>
+              {timeFormatted}
+            </Text>
 
             {isRecurring ? (
-              <Text className="mt-0.5 text-[17px] text-[#800020]">Repeats weekly</Text>
+              <Text className="mt-0.5 text-[17px]" style={{ color: colors.destructive }}>
+                Repeats weekly
+              </Text>
             ) : null}
           </View>
 
           {/* Participants Card - iOS Calendar Style (Expandable) */}
-          <View className="mb-4 overflow-hidden rounded-xl bg-white">
+          <View
+            className="mb-4 overflow-hidden rounded-xl"
+            style={{ backgroundColor: colors.cardBackground }}
+          >
             <AppPressable onPress={() => setParticipantsExpanded(!participantsExpanded)}>
               <View className="flex-row items-center justify-between px-4 py-3.5">
-                <Text className="text-[17px] text-black">Participants</Text>
+                <Text className="text-[17px]" style={{ color: colors.text }}>
+                  Participants
+                </Text>
                 <View className="flex-row items-center">
-                  <Text className="mr-1 text-[17px] text-[#8E8E93]">{totalParticipants}</Text>
+                  <Text className="mr-1 text-[17px]" style={{ color: colors.textSecondary }}>
+                    {totalParticipants}
+                  </Text>
                   <Ionicons
                     name={participantsExpanded ? "chevron-down" : "chevron-forward"}
                     size={18}
-                    color="#C7C7CC"
+                    color={colors.textSecondary}
                   />
                 </View>
               </View>
             </AppPressable>
 
             {participantsExpanded ? (
-              <View className="border-t border-[#E5E5EA] px-4 py-2.5">
+              <View
+                className="px-4 py-2.5"
+                style={{ borderTopWidth: 1, borderTopColor: colors.border }}
+              >
                 {/* Hosts */}
                 {booking.hosts && booking.hosts.length > 0 ? (
                   booking.hosts.map((host, index) => (
                     <View
                       key={host.email || `host-${index}`}
-                      className={`flex-row items-center py-2 ${
-                        index > 0 ? "border-t border-[#E5E5EA]" : ""
-                      }`}
+                      className="flex-row items-center py-2"
+                      style={index > 0 ? { borderTopWidth: 1, borderTopColor: colors.border } : {}}
                     >
                       <Ionicons name="star" size={18} color="#FFD60A" />
-                      <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                      <Text
+                        className="ml-2.5 flex-1 text-[15px]"
+                        style={{ color: colors.text }}
+                        numberOfLines={1}
+                      >
                         {host.name || host.email || "Host"}
                       </Text>
-                      <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
+                      <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
+                        Organizer
+                      </Text>
                     </View>
                   ))
                 ) : booking.user ? (
                   <View className="flex-row items-center py-2">
                     <Ionicons name="star" size={18} color="#FFD60A" />
-                    <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                    <Text
+                      className="ml-2.5 flex-1 text-[15px]"
+                      style={{ color: colors.text }}
+                      numberOfLines={1}
+                    >
                       {booking.user.name || booking.user.email}
                     </Text>
-                    <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
+                    <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
+                      Organizer
+                    </Text>
                   </View>
                 ) : null}
 
@@ -680,14 +748,19 @@ export function BookingDetailScreen({
                   return (
                     <View
                       key={attendee.email}
-                      className={`flex-row items-center py-2 ${
+                      className="flex-row items-center py-2"
+                      style={
                         index > 0 || booking.hosts?.length || booking.user
-                          ? "border-t border-[#E5E5EA]"
-                          : ""
-                      }`}
+                          ? { borderTopWidth: 1, borderTopColor: colors.border }
+                          : {}
+                      }
                     >
                       <Ionicons name={statusIcon.name} size={20} color={statusIcon.color} />
-                      <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                      <Text
+                        className="ml-2.5 flex-1 text-[15px]"
+                        style={{ color: colors.text }}
+                        numberOfLines={1}
+                      >
                         {attendee.name || attendee.email}
                       </Text>
                       {statusIcon.label ? (
@@ -703,20 +776,27 @@ export function BookingDetailScreen({
                 {(booking as { guests?: string[] }).guests?.map((guestEmail, index) => (
                   <View
                     key={guestEmail}
-                    className={`flex-row items-center py-2 ${
+                    className="flex-row items-center py-2"
+                    style={
                       index > 0 ||
                       booking.attendees?.length ||
                       booking.hosts?.length ||
                       booking.user
-                        ? "border-t border-[#E5E5EA]"
-                        : ""
-                    }`}
+                        ? { borderTopWidth: 1, borderTopColor: colors.border }
+                        : {}
+                    }
                   >
-                    <Ionicons name="person-outline" size={20} color="#8E8E93" />
-                    <Text className="ml-2.5 flex-1 text-[15px] text-[#8E8E93]" numberOfLines={1}>
+                    <Ionicons name="person-outline" size={20} color={colors.textSecondary} />
+                    <Text
+                      className="ml-2.5 flex-1 text-[15px]"
+                      style={{ color: colors.textSecondary }}
+                      numberOfLines={1}
+                    >
                       {guestEmail}
                     </Text>
-                    <Text className="text-[13px] text-[#8E8E93]">Guest</Text>
+                    <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
+                      Guest
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -725,12 +805,20 @@ export function BookingDetailScreen({
 
           {/* Notes Card (if available) */}
           {booking.description ? (
-            <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            <View
+              className="mb-4 overflow-hidden rounded-xl"
+              style={{ backgroundColor: colors.cardBackground }}
+            >
               <View className="px-4 py-3.5">
-                <Text className="mb-1.5 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
+                <Text
+                  className="mb-1.5 text-[13px] font-medium uppercase tracking-wide"
+                  style={{ color: colors.textSecondary }}
+                >
                   Notes
                 </Text>
-                <Text className="text-[17px] leading-6 text-black">{booking.description}</Text>
+                <Text className="text-[17px] leading-6" style={{ color: colors.text }}>
+                  {booking.description}
+                </Text>
               </View>
             </View>
           ) : null}
@@ -757,9 +845,12 @@ export function BookingDetailScreen({
         {/* Cancelling overlay */}
         {isCancelling ? (
           <View className="absolute inset-0 items-center justify-center bg-black/50">
-            <View className="rounded-2xl bg-white px-8 py-6">
-              <ActivityIndicator size="large" color="#000" />
-              <Text className="mt-3 text-base font-medium text-gray-700">
+            <View
+              className="rounded-2xl px-8 py-6"
+              style={{ backgroundColor: colors.cardBackground }}
+            >
+              <ActivityIndicator size="large" color={colors.text} />
+              <Text className="mt-3 text-base font-medium" style={{ color: colors.textSecondary }}>
                 Cancelling booking...
               </Text>
             </View>

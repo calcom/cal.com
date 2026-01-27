@@ -4,7 +4,14 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { Stack, useRouter } from "expo-router";
-import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserProfile } from "@/hooks";
 import { showSuccessAlert } from "@/utils/alerts";
@@ -35,6 +42,18 @@ export default function ProfileSheet() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data: userProfile, isLoading } = useUserProfile();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    background: isDark ? "#000000" : "#FFFFFF",
+    text: isDark ? "#FFFFFF" : "#111827",
+    textSecondary: isDark ? "#8E8E93" : "#6B7280",
+    icon: isDark ? "#FFFFFF" : "#374151",
+    iconSecondary: isDark ? "#636366" : "#9CA3AF",
+    avatarBg: isDark ? "#38383A" : "#E5E7EB",
+    avatarText: isDark ? "#FFFFFF" : "#4B5563",
+  };
 
   const publicPageUrl = userProfile?.username ? `https://cal.com/${userProfile.username}` : null;
 
@@ -116,16 +135,17 @@ export default function ProfileSheet() {
           sheetAllowedDetents: [0.7, 0.9],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : "#FFFFFF",
+            backgroundColor: useGlassEffect ? "transparent" : colors.background,
           },
           headerStyle: {
             backgroundColor: "transparent",
           },
-          headerBlurEffect: useGlassEffect ? undefined : "light",
+          headerBlurEffect: useGlassEffect ? undefined : isDark ? "dark" : "light",
+          headerTintColor: colors.text,
           headerLeft: () => null,
           headerRight: () => (
             <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
-              <Ionicons name="close" size={24} color="#000" />
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           ),
         }}
@@ -134,7 +154,7 @@ export default function ProfileSheet() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : "#FFFFFF",
+          backgroundColor: useGlassEffect ? "transparent" : colors.background,
           paddingBottom: insets.bottom,
         }}
       >
@@ -142,7 +162,7 @@ export default function ProfileSheet() {
         <View className="mt-20 px-6">
           {isLoading ? (
             <View className="items-center py-8">
-              <ActivityIndicator size="large" color="#000" />
+              <ActivityIndicator size="large" color={colors.text} />
             </View>
           ) : (
             <View className="flex-row items-center">
@@ -154,10 +174,10 @@ export default function ProfileSheet() {
                 />
               ) : (
                 <View
-                  className="items-center justify-center rounded-full bg-gray-200"
-                  style={{ width: 64, height: 64 }}
+                  className="items-center justify-center rounded-full"
+                  style={{ width: 64, height: 64, backgroundColor: colors.avatarBg }}
                 >
-                  <Text className="text-2xl font-semibold text-gray-600">
+                  <Text className="text-2xl font-semibold" style={{ color: colors.avatarText }}>
                     {userProfile?.name?.charAt(0).toUpperCase() ||
                       userProfile?.email?.charAt(0).toUpperCase() ||
                       "?"}
@@ -167,11 +187,13 @@ export default function ProfileSheet() {
 
               {/* Name and Status */}
               <View className="ml-4 flex-1">
-                <Text className="text-xl font-semibold text-gray-900">
+                <Text className="text-xl font-semibold" style={{ color: colors.text }}>
                   {userProfile?.name || "User"}
                 </Text>
                 {userProfile?.email ? (
-                  <Text className="mt-1 text-sm text-gray-500">{userProfile.email}</Text>
+                  <Text className="mt-1 text-sm" style={{ color: colors.textSecondary }}>
+                    {userProfile.email}
+                  </Text>
                 ) : null}
               </View>
             </View>
@@ -183,19 +205,22 @@ export default function ProfileSheet() {
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.id}
-              className={`flex-row items-center justify-between rounded-xl px-4 py-4 active:bg-gray-100 ${
+              className={`flex-row items-center justify-between rounded-xl px-4 py-4 ${
                 index < menuItems.length - 1 ? "mb-1" : ""
               }`}
+              style={{ backgroundColor: "transparent" }}
               onPress={item.onPress}
             >
               <View className="flex-row items-center">
-                <Ionicons name={item.icon} size={22} color="#374151" />
-                <Text className="ml-4 text-base text-gray-900">{item.label}</Text>
+                <Ionicons name={item.icon} size={22} color={colors.icon} />
+                <Text className="ml-4 text-base" style={{ color: colors.text }}>
+                  {item.label}
+                </Text>
               </View>
               {item.external ? (
-                <Ionicons name="open-outline" size={18} color="#9CA3AF" />
+                <Ionicons name="open-outline" size={18} color={colors.iconSecondary} />
               ) : (
-                <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+                <Ionicons name="chevron-forward" size={18} color={colors.iconSecondary} />
               )}
             </TouchableOpacity>
           ))}

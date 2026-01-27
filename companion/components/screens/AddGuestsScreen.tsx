@@ -15,6 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -47,8 +48,24 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     ref
   ) {
     const insets = useSafeAreaInsets();
-    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
-    const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
+
+    const colors = {
+      background: isDark ? "#000000" : "#F2F2F7",
+      cardBackground: isDark ? "#1C1C1E" : "#FFFFFF",
+      text: isDark ? "#FFFFFF" : "#000000",
+      textSecondary: isDark ? "#8E8E93" : "#6B7280",
+      border: isDark ? "#38383A" : "#E5E5EA",
+      borderLight: isDark ? "#2C2C2E" : "rgba(243, 244, 246, 0.5)",
+      pill: isDark ? "#38383A" : "#E8E8ED",
+      pillTransparent: isDark ? "rgba(56, 56, 58, 0.5)" : "rgba(232, 232, 237, 0.5)",
+      inputBorder: isDark ? "rgba(56, 56, 58, 0.4)" : "rgba(209, 213, 219, 0.4)",
+      inputBackground: isDark ? "rgba(28, 28, 30, 0.6)" : "rgba(255, 255, 255, 0.6)",
+      accent: "#007AFF",
+      destructive: isDark ? "#FF453A" : "#800020",
+    };
+
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [guests, setGuests] = useState<{ email: string; name?: string }[]>([]);
