@@ -23,6 +23,9 @@ export interface BillingRecord {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
+  subscriptionStart: Date | null;
+  subscriptionTrialEnd: Date | null;
+  subscriptionEnd: Date | null;
 }
 
 export interface IBillingRepositoryUpdateArgs {

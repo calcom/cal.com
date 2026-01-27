@@ -509,6 +509,24 @@ export class TeamRepository {
     return !conflictingTeam;
   }
 
+findBySubscriptionId(subscriptionId: string) {
+    return this.prismaClient.team.findFirst({
+      where: {
+        metadata: {
+          path: ["subscriptionId"],
+          equals: subscriptionId,
+        },
+      },
+      select: {
+        id: true,
+        slug: true,
+        metadata: true,
+        isOrganization: true,
+        parentId: true,
+      },
+    });
+  }
+
   async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
     return await this.prismaClient.team.findUnique({
       where: {

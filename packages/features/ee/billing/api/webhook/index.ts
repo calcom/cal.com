@@ -7,7 +7,7 @@ import { stripeWebhookHandler } from "./__handler";
 const handlers = {
   "payment_intent.succeeded": () => import("./_payment_intent.succeeded"),
   "customer.subscription.deleted": () => import("./_customer.subscription.deleted"),
-  "customer.subscription.updated": () => import("./_customer.subscription.updated"),
+  "customer.subscription.updated": () => import("./_customer.subscription.updated/_handler"),
   "invoice.paid": () => import("./_invoice.paid"),
   "invoice.payment_failed": () => import("./_invoice.payment_failed"),
   "invoice.payment_succeeded": () => import("./_invoice.payment_succeeded"),

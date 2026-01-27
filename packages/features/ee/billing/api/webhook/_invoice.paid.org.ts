@@ -12,7 +12,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 
 import { getTeamBillingServiceFactory } from "../../di/containers/Billing";
-import type { SWHMap } from "./__handler";
+import type { SWHMap } from "../../lib/types";
 
 const invoicePaidSchema = z.object({
   object: z.object({

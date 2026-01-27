@@ -2,12 +2,10 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
 import prisma from "@calcom/prisma";
 
-import type { LazyModule, SWHMap } from "./__handler";
-import { HttpCode } from "./__handler";
+import { HttpCode } from "../../lib/httpCode";
+import type { Handlers, SWHMap } from "../../lib/types";
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
-
-type Handlers = Record<`prod_${string}`, () => LazyModule<Data>>;
 
 const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
@@ -42,7 +40,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   if (typeof productId !== "string") {
     throw new Error(`Unable to determine Product ID from subscription: ${subscription.id}`);
   }
-  const handlerGetter = handlers[productId as any];
+  const handlerGetter = handlers[productId as keyof Handlers];
   if (!handlerGetter) {
     console.log("No product handler found for product", productId);
     return {
