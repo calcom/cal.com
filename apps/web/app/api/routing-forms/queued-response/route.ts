@@ -5,6 +5,7 @@ import { z, ZodError } from "zod";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
@@ -49,6 +50,8 @@ export const queuedResponseHandler = async ({
     fieldsResponses: params,
   });
 
+  const submitterEmail = getSubmitterEmail(response) ?? null;
+
   const formResponse = await formResponseRepo.recordFormResponse({
     formId: queuedFormResponse.formId,
     queuedFormResponseId: queuedFormResponse.id,
@@ -56,6 +59,7 @@ export const queuedResponseHandler = async ({
     response,
     // We use the queuedFormResponse's chosenRouteId because that is what decided routed team members
     chosenRouteId: queuedFormResponse.chosenRouteId,
+    submitterEmail,
   });
 
   const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
