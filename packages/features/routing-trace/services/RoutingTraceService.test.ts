@@ -1,3 +1,4 @@
+import type { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,20 +9,11 @@ import type {
 import type { IRoutingTraceRepository } from "../repositories/RoutingTraceRepository.interface";
 import { RoutingTraceService } from "./RoutingTraceService";
 
-vi.mock("@calcom/prisma", () => ({
-  default: {
-    assignmentReason: {
-      create: vi.fn(),
-    },
-  },
-}));
-
-import prisma from "@calcom/prisma";
-
 describe("RoutingTraceService", () => {
   let service: RoutingTraceService;
   let mockPendingRoutingTraceRepository: IPendingRoutingTraceRepository;
   let mockRoutingTraceRepository: IRoutingTraceRepository;
+  let mockAssignmentReasonRepository: Pick<AssignmentReasonRepository, "createAssignmentReason">;
 
   function createMockPendingRoutingTraceRepository(): IPendingRoutingTraceRepository {
     return {
@@ -37,13 +29,21 @@ describe("RoutingTraceService", () => {
     };
   }
 
+  function createMockAssignmentReasonRepository(): Pick<AssignmentReasonRepository, "createAssignmentReason"> {
+    return {
+      createAssignmentReason: vi.fn(),
+    };
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockPendingRoutingTraceRepository = createMockPendingRoutingTraceRepository();
     mockRoutingTraceRepository = createMockRoutingTraceRepository();
+    mockAssignmentReasonRepository = createMockAssignmentReasonRepository();
     service = new RoutingTraceService({
       pendingRoutingTraceRepository: mockPendingRoutingTraceRepository,
       routingTraceRepository: mockRoutingTraceRepository,
+      assignmentReasonRepository: mockAssignmentReasonRepository as AssignmentReasonRepository,
     });
   });
 
@@ -150,19 +150,6 @@ describe("RoutingTraceService", () => {
       isRerouting: false,
     };
 
-    it("should throw error if routingTraceRepository is not provided", async () => {
-      const serviceWithoutRoutingTraceRepo = new RoutingTraceService({
-        pendingRoutingTraceRepository: mockPendingRoutingTraceRepository,
-      });
-
-      await expect(
-        serviceWithoutRoutingTraceRepo.processForBooking({
-          ...baseProcessArgs,
-          formResponseId: 123,
-        })
-      ).rejects.toThrow("routingTraceRepository is required for processForBooking");
-    });
-
     it("should return null if no pending trace is found", async () => {
       vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(null);
 
@@ -203,7 +190,7 @@ describe("RoutingTraceService", () => {
         };
 
         vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-        vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+        vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
           id: 1,
           bookingId: 1,
           reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
@@ -230,12 +217,10 @@ describe("RoutingTraceService", () => {
             reasonString: "",
           },
         });
-        expect(prisma.assignmentReason.create).toHaveBeenCalledWith({
-          data: {
-            bookingId: 1,
-            reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
-            reasonString: "",
-          },
+        expect(mockAssignmentReasonRepository.createAssignmentReason).toHaveBeenCalledWith({
+          bookingId: 1,
+          reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
+          reasonString: "",
         });
       });
 
@@ -256,7 +241,7 @@ describe("RoutingTraceService", () => {
         };
 
         vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-        vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+        vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
           id: 1,
           bookingId: 1,
           reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK,
@@ -302,7 +287,7 @@ describe("RoutingTraceService", () => {
         };
 
         vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-        vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+        vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
           id: 1,
           bookingId: 1,
           reasonEnum: AssignmentReasonEnum.REROUTED,
@@ -356,7 +341,7 @@ describe("RoutingTraceService", () => {
         };
 
         vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-        vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+        vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
           id: 1,
           bookingId: 1,
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
@@ -408,7 +393,7 @@ describe("RoutingTraceService", () => {
         };
 
         vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-        vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+        vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
           id: 1,
           bookingId: 1,
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
@@ -466,7 +451,7 @@ describe("RoutingTraceService", () => {
         };
 
         vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-        vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+        vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
           id: 1,
           bookingId: 1,
           reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
@@ -516,7 +501,7 @@ describe("RoutingTraceService", () => {
         };
 
         vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-        vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+        vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
           id: 1,
           bookingId: 1,
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
@@ -558,7 +543,7 @@ describe("RoutingTraceService", () => {
       };
 
       vi.mocked(mockPendingRoutingTraceRepository.findByFormResponseId).mockResolvedValue(pendingTrace);
-      vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+      vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
         id: 42,
         bookingId: 1,
         reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
@@ -623,7 +608,7 @@ describe("RoutingTraceService", () => {
       expect(result).toEqual({
         assignmentReason: undefined,
       });
-      expect(prisma.assignmentReason.create).not.toHaveBeenCalled();
+      expect(mockAssignmentReasonRepository.createAssignmentReason).not.toHaveBeenCalled();
       expect(mockRoutingTraceRepository.create).toHaveBeenCalledWith({
         trace: pendingTrace.trace,
         formResponseId: 123,
@@ -650,7 +635,7 @@ describe("RoutingTraceService", () => {
       };
 
       vi.mocked(mockPendingRoutingTraceRepository.findByQueuedFormResponseId).mockResolvedValue(pendingTrace);
-      vi.mocked(prisma.assignmentReason.create).mockResolvedValue({
+      vi.mocked(mockAssignmentReasonRepository.createAssignmentReason).mockResolvedValue({
         id: 1,
         bookingId: 1,
         reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,

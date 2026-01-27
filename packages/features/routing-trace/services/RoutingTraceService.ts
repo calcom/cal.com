@@ -27,6 +27,11 @@ export class RoutingTraceService {
 
   constructor(private readonly deps: IRoutingTraceServiceDeps) {}
 
+  /** For debugging - get the number of steps recorded */
+  getStepsCount(): number {
+    return this.routingTraceSteps.length;
+  }
+
   /** To be called by the domain specific routing trace services */
   addStep({
     domain,
@@ -55,22 +60,26 @@ export class RoutingTraceService {
    * Looks up the pending trace, extracts assignment reason, creates permanent trace.
    */
   async processForBooking(args: {
-    formResponseId: number;
+    formResponseId?: number;
+    queuedFormResponseId?: string;
     bookingId: number;
     bookingUid: string;
     organizerEmail: string;
     isRerouting: boolean;
     reroutedByEmail?: string | null;
   }): Promise<ProcessRoutingTraceResult | null> {
-    const { formResponseId, bookingId, bookingUid, organizerEmail, isRerouting, reroutedByEmail } = args;
+    const { formResponseId, queuedFormResponseId, bookingId, bookingUid, organizerEmail, isRerouting, reroutedByEmail } = args;
 
-    // 1. Look up pending trace by formResponseId
-    // Note: For queued responses, the pending trace is linked to formResponseId when processed
-    const pendingTrace =
-      await this.deps.pendingRoutingTraceRepository.findByFormResponseId(formResponseId);
+    // 1. Look up pending trace by formResponseId or queuedFormResponseId
+    let pendingTrace = null;
+    if (formResponseId) {
+      pendingTrace = await this.deps.pendingRoutingTraceRepository.findByFormResponseId(formResponseId);
+    } else if (queuedFormResponseId) {
+      pendingTrace = await this.deps.pendingRoutingTraceRepository.findByQueuedFormResponseId(queuedFormResponseId);
+    }
 
     if (!pendingTrace) {
-      logger.warn("Could not find pending routing trace for form response", { formResponseId, bookingId });
+      logger.warn("Could not find pending routing trace for form response", { formResponseId, queuedFormResponseId, bookingId });
       return null;
     }
 
