@@ -7,6 +7,9 @@
     "paths": {
       "~/*": [
         "/*"
+      ],
+      "@calcom/testing/*": [
+        "../testing/src/*"
       ]
     },
     "resolveJsonModule": true,
