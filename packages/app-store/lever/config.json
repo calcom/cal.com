@@ -1,0 +1,18 @@
+{
+  "name": "Lever ATS",
+  "slug": "lever",
+  "type": "lever_other_calendar",
+  "logo": "icon.svg",
+  "url": "https://www.lever.co",
+  "variant": "other",
+  "categories": ["crm"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Lever ATS integration via Merge.dev unified API for candidate management and activity logging",
+  "extendsFeature": "User",
+  "concurrentMeetings": true,
+  "credential": {
+    "type": "lever_other_calendar"
+  },
+  "dirName": "lever"
+}
