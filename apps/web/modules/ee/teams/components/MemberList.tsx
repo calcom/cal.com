@@ -18,10 +18,8 @@ import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import {
-  DataTableProvider,
-  convertFacetedValuesToMap,
-} from "@calcom/features/data-table";
+import { convertFacetedValuesToMap } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/web/modules/data-table/components/DataTableProvider";
 import {
   useDataTable,
   useFetchMoreOnBottomReached,

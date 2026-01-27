@@ -1,6 +1,7 @@
 "use client";
 
-import { ColumnFilterType, DataTableProvider, type SystemFilterSegment } from "@calcom/features/data-table";
+import { ColumnFilterType, type SystemFilterSegment } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/web/modules/data-table/components/DataTableProvider";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import FeatureOptInBannerWrapper from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

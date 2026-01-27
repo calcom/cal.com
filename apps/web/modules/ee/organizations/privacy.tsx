@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-import { DataTableProvider } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/web/modules/data-table/components/DataTableProvider";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import OrgAutoJoinSetting from "~/ee/organizations/components/OrgAutoJoinSetting";
