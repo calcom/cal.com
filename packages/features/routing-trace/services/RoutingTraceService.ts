@@ -183,8 +183,9 @@ export class RoutingTraceService {
     );
 
     if (routingFormStep && routingFormStep.data) {
-      const { routeIsFallback } = routingFormStep.data as {
+      const { routeIsFallback, attributeRoutingDetails } = routingFormStep.data as {
         routeIsFallback?: boolean;
+        attributeRoutingDetails?: Array<{ attributeName: string; attributeValue: string }>;
       };
 
       const reasonEnum = context.isRerouting
@@ -195,10 +196,11 @@ export class RoutingTraceService {
 
       return {
         reasonEnum,
-        reasonString:
-          context.isRerouting && context.reroutedByEmail
-            ? `Rerouted by ${context.reroutedByEmail}`
-            : "",
+        reasonString: this.buildRoutingFormReasonString({
+          isRerouting: context.isRerouting,
+          reroutedByEmail: context.reroutedByEmail,
+          attributeRoutingDetails,
+        }),
       };
     }
 
@@ -206,6 +208,26 @@ export class RoutingTraceService {
       traceSteps: trace.map((s) => `${s.domain}:${s.step}`),
     });
     return null;
+  }
+
+  private buildRoutingFormReasonString(data: {
+    isRerouting: boolean;
+    reroutedByEmail?: string | null;
+    attributeRoutingDetails?: Array<{ attributeName: string; attributeValue: string }>;
+  }): string {
+    const { isRerouting, reroutedByEmail, attributeRoutingDetails } = data;
+
+    const reroutingPart = isRerouting && reroutedByEmail ? `Rerouted by ${reroutedByEmail}` : "";
+
+    const attributesPart =
+      attributeRoutingDetails && attributeRoutingDetails.length > 0
+        ? attributeRoutingDetails
+            .map(({ attributeName, attributeValue }) => `${attributeName}: ${attributeValue}`)
+            .join(", ")
+        : "";
+
+    // Combine both parts, matching main branch behavior
+    return `${reroutingPart} ${attributesPart}`.trim();
   }
 
   private buildSalesforceReasonString(data: {
