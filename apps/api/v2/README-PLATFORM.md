@@ -126,7 +126,7 @@ cd packages/platform/atoms
 yarn dev-on
 yarn build-npm
 ```
-The dev-on command changes how atoms are built. Remember to run `yarn dev-off` when you are done testing atoms locally.
+The dev-on command changes how atoms are built. Remember to run `yarn dev-off` when you are done testing atoms locally. If you update anything related to frontend, for example, Booker, then you need to run `yarn build-npm` again to rebuild atoms.
 
 2. Start api v2:
 ```
