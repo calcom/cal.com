@@ -2050,7 +2050,6 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
           select: {
             email: true,
           },
-          take: 1,
         },
         assignmentReason: {
           select: {
