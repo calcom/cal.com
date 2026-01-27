@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
@@ -60,6 +61,17 @@ export function AvailabilityListScreen({
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    background: isDark ? "#000000" : "#FFFFFF",
+    backgroundSecondary: isDark ? "#1C1C1E" : "#f8f9fa",
+    border: isDark ? "#38383A" : "#E5E5EA",
+    text: isDark ? "#FFFFFF" : "#333333",
+    textSecondary: isDark ? "#8E8E93" : "#666666",
+  };
 
   // Use React Query hooks
   const { data: schedules = [], isLoading: loading, error: queryError, refetch } = useSchedules();
@@ -249,7 +261,7 @@ export function AvailabilityListScreen({
 
   if (loading) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
+      <View style={{ flex: 1, backgroundColor: colors.backgroundSecondary }}>
         <Header />
         <View className="flex-1 px-2 pt-4 md:px-4">
           <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
@@ -260,16 +272,21 @@ export function AvailabilityListScreen({
 
   if (error) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
+      <View style={{ flex: 1, backgroundColor: colors.backgroundSecondary }}>
         <Header />
         <View className="flex-1 items-center justify-center p-5">
           <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-[#333]">
+          <Text style={{ color: colors.text }} className="mb-2 mt-4 text-center text-xl font-bold">
             Unable to load availability
           </Text>
-          <Text className="mb-6 text-center text-base text-[#666]">{error}</Text>
-          <AppPressable className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
-            <Text className="text-base font-semibold text-white">Retry</Text>
+          <Text style={{ color: colors.textSecondary }} className="mb-6 text-center text-base">
+            {error}
+          </Text>
+          <AppPressable
+            className="rounded-lg bg-black px-6 py-3 dark:bg-white"
+            onPress={() => refetch()}
+          >
+            <Text className="text-base font-semibold text-white dark:text-black">Retry</Text>
           </AppPressable>
         </View>
       </View>
@@ -287,11 +304,23 @@ export function AvailabilityListScreen({
       {/* Non-iOS header with search */}
       <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+        <View
+          style={{
+            backgroundColor: isDark ? "#000000" : "#f3f4f6",
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}
+          className="flex-row items-center gap-3 px-4 py-2"
+        >
           <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+            style={{
+              backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
+              borderColor: colors.border,
+              color: colors.text,
+            }}
+            className="flex-1 rounded-lg border px-3 py-2 text-[17px]"
             placeholder="Search schedules"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={handleSearch}
             autoCapitalize="none"
@@ -299,11 +328,11 @@ export function AvailabilityListScreen({
             clearButtonMode="while-editing"
           />
           <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2 dark:bg-white"
             onPress={handleCreateNew}
           >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
+            <Ionicons name="add" size={18} color={isDark ? "#000" : "#fff"} />
+            <Text className="text-base font-semibold text-white dark:text-black">New</Text>
           </TouchableOpacity>
         </View>
       </Activity>
@@ -311,7 +340,7 @@ export function AvailabilityListScreen({
       {/* Empty state - no schedules */}
       <Activity mode={showEmptyState ? "visible" : "hidden"}>
         <ScrollView
-          style={{ backgroundColor: "white" }}
+          style={{ backgroundColor: colors.background }}
           contentContainerStyle={{
             flexGrow: 1,
             justifyContent: "center",
@@ -337,7 +366,7 @@ export function AvailabilityListScreen({
         {/* Search empty state */}
         <Activity mode={showSearchEmptyState ? "visible" : "hidden"}>
           <ScrollView
-            style={{ backgroundColor: "white" }}
+            style={{ backgroundColor: colors.background }}
             contentContainerStyle={{
               flexGrow: 1,
               justifyContent: "center",
@@ -363,7 +392,13 @@ export function AvailabilityListScreen({
             <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
           ) : (
             <FlatList
-              className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
+              style={{
+                flex: 1,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+              }}
               contentContainerStyle={{
                 paddingBottom: 90,
                 paddingHorizontal: 8,

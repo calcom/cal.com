@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   DropdownMenu,
@@ -37,6 +37,9 @@ export const AvailabilityListItem = ({
     left: 12,
     right: 12,
   };
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   type DropdownAction = {
     label: string;
@@ -83,7 +86,13 @@ export const AvailabilityListItem = ({
   );
 
   return (
-    <View className="border-b border-cal-border bg-cal-bg">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+      }}
+    >
       <View
         className="flex-row items-center"
         style={{ paddingHorizontal: 16, paddingVertical: 16 }}
@@ -105,10 +114,22 @@ export const AvailabilityListItem = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Pressable
-                className="items-center justify-center rounded-lg border border-cal-border"
-                style={{ width: 32, height: 32, flexShrink: 0 }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  flexShrink: 0,
+                  borderWidth: 1,
+                  borderColor: isDark ? "#38383A" : "#E5E5EA",
+                  borderRadius: 8,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  size={18}
+                  color={isDark ? "#E5E5EA" : "#3C3F44"}
+                />
               </Pressable>
             </DropdownMenuTrigger>
 
@@ -122,7 +143,13 @@ export const AvailabilityListItem = ({
                     <Ionicons
                       name={action.icon}
                       size={18}
-                      color={action.variant === "destructive" ? "#800020" : "#374151"}
+                      color={
+                        action.variant === "destructive"
+                          ? "#800020"
+                          : isDark
+                            ? "#E5E5EA"
+                            : "#374151"
+                      }
                       style={{ marginRight: 8 }}
                     />
                     <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
