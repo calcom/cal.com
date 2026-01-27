@@ -10,25 +10,27 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WatchlistType } from "@calcom/prisma/enums";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
-import type { BookingReport, BlocklistScope } from "../types";
+import type { GroupedBookingReport, BlocklistScope } from "../types";
 import { BookingReportDetailsModal } from "./BookingReportDetailsModal";
 import { usePendingReportsColumns } from "./PendingReportsColumns";
 
-export interface PendingReportsTableProps<T extends BookingReport> {
+export type SortByOption = "createdAt" | "reportCount";
+
+export interface PendingReportsTableProps<T extends GroupedBookingReport> {
   scope: BlocklistScope;
   data: T[];
   totalRowCount: number;
   isPending: boolean;
   limit: number;
-  onAddToBlocklist: (reportIds: string[], type: WatchlistType, onSuccess: () => void) => void;
-  onDismiss: (reportId: string, onSuccess: () => void) => void;
+  onAddToBlocklist: (email: string, type: WatchlistType, onSuccess: () => void) => void;
+  onDismiss: (email: string, onSuccess: () => void) => void;
   isAddingToBlocklist?: boolean;
   isDismissing?: boolean;
   enableRowSelection?: boolean;
   renderBulkActions?: (selectedReports: T[], clearSelection: () => void) => ReactNode;
 }
 
-export function PendingReportsTable<T extends BookingReport>({
+export function PendingReportsTable<T extends GroupedBookingReport>({
   scope,
   data,
   totalRowCount,
@@ -78,7 +80,7 @@ export function PendingReportsTable<T extends BookingReport>({
     state: {
       rowSelection,
     },
-    getRowId: (row) => row.id,
+    getRowId: (row) => row.bookerEmail,
   });
 
   const numberOfSelectedRows = table.getFilteredSelectedRowModel().rows.length;
@@ -103,7 +105,7 @@ export function PendingReportsTable<T extends BookingReport>({
         }
         totalRowCount={totalRowCount}>
         {enableRowSelection && numberOfSelectedRows > 0 && renderBulkActions && (
-          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+          <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
@@ -117,8 +119,8 @@ export function PendingReportsTable<T extends BookingReport>({
         entry={selectedReport}
         isOpen={showReviewDialog}
         onClose={handleCloseModal}
-        onAddToBlocklist={(reportIds, type) => onAddToBlocklist(reportIds, type, handleCloseModal)}
-        onDismiss={(reportId) => onDismiss(reportId, handleCloseModal)}
+        onAddToBlocklist={(email, type) => onAddToBlocklist(email, type, handleCloseModal)}
+        onDismiss={(email) => onDismiss(email, handleCloseModal)}
         isAddingToBlocklist={isAddingToBlocklist}
         isDismissing={isDismissing}
       />
