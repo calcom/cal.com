@@ -216,7 +216,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden && (checkOptional || bookingField.required)) {
+          if (!bookingField.hidden && (checkOptional || bookingField.required || (value && value.trim() !== ""))) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({
