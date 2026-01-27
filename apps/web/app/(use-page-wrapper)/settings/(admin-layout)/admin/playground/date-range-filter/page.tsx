@@ -4,9 +4,8 @@ import { useReactTable, getCoreRowModel, createColumnHelper } from "@tanstack/re
 import { useMemo } from "react";
 
 import { ColumnFilterType } from "@calcom/features/data-table";
-import { DataTableProvider } from "@calcom/web/modules/data-table/components/DataTableProvider";
+import { DataTableProvider, DateRangeFilter } from "~/data-table/components";
 import type { DateRangeFilterOptions } from "@calcom/features/data-table/lib/types";
-import { DateRangeFilter } from "~/data-table/components/filters/DateRangeFilter";
 
 type DemoRow = {
   id: number;

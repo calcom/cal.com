@@ -102,10 +102,14 @@ DataTableProvider (Context)
 
 ```tsx
 import {
-  DataTableProvider,
   DataTableWrapper,
   DataTableFilters,
+  DataTableProvider,
+} from "@calcom/web/modules/data-table/components";
+import {
   useDataTable,
+} from "@calcom/web/modules/data-table/hooks";
+import {
   ColumnFilterType,
 } from "@calcom/features/data-table";
 
