@@ -134,7 +134,7 @@ export class BookingRepository {
         userId: true,
         eventType: {
           select: {
-            teamId: true,
+            calIdTeamId: true,
           },
         },
       },
@@ -145,13 +145,13 @@ export class BookingRepository {
     if (userId === booking.userId) return true;
 
     // If the booking doesn't belong to the user and there's no team then return early
-    if (!booking.eventType || !booking.eventType.teamId) return false;
+    if (!booking.eventType || !booking.eventType.calIdTeamId) return false;
 
     // TODO add checks for team and org
     const userRepo = new UserRepository(this.prismaClient);
-    const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
+    const isAdminOrUser = await userRepo.isAdminOrOwnerOfTeam({
       userId,
-      teamId: booking.eventType.teamId,
+      teamId: booking.eventType.calIdTeamId,
     });
 
     return isAdminOrUser;

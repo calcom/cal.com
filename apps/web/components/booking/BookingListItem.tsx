@@ -412,6 +412,8 @@ export default function BookingListItem(booking: BookingItemProps) {
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)
+        : action.id === "reassign"
+        ? () => setIsOpenReassignDialog(true)
         : undefined,
   })) as ActionType[];
 
