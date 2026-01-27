@@ -139,7 +139,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             <Section.SubSection>
               <Section.SubSectionHeader
                 icon="users"
-                title={t("hubspot_book_directly_with_attendee_owner")}
+                title={t("crm_book_directly_with_attendee_owner")}
                 labelFor="book-directly-with-attendee-owner">
                 <Switch
                   size="sm"
@@ -158,7 +158,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               <Section.SubSection>
                 <Section.SubSectionHeader
                   icon="users"
-                  title={t("hubspot_if_free_email_domain_skip_owner_check")}
+                  title={t("crm_if_free_email_domain_skip_owner_check")}
                   labelFor="if-free-email-domain-skip-owner-check">
                   <Switch
                     size="sm"
