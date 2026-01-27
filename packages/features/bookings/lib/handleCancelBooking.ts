@@ -20,8 +20,7 @@ import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/W
 import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { webhookContainer } from "@calcom/features/di/webhooks/containers/webhook";
-import { WEBHOOK_TOKENS } from "@calcom/features/di/webhooks/Webhooks.tokens";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import {
   deleteWebhookScheduledTriggers,
@@ -91,6 +90,7 @@ type Dependencies = {
   profileRepository: ProfileRepository;
   bookingReferenceRepository: BookingReferenceRepository;
   attendeeRepository: PrismaBookingAttendeeRepository;
+  webhookProducer: IWebhookProducerService;
 };
 
 /**
@@ -143,12 +143,14 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     profileRepository,
     bookingReferenceRepository,
     attendeeRepository,
-  } = dependencies || {
+    webhookProducer,
+  } = dependencies ?? {
     userRepository: new UserRepository(prismaClient),
     bookingRepository: new BookingRepository(prismaClient),
     profileRepository: new ProfileRepository({ prismaClient }),
     bookingReferenceRepository: new BookingReferenceRepository({ prismaClient }),
     attendeeRepository: new PrismaBookingAttendeeRepository(prismaClient),
+    webhookProducer: getWebhookProducer(),
   };
   const body = input.bookingData;
   const {
@@ -404,12 +406,8 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
 
-  // Queue BOOKING_CANCELLED webhook via Producer
+  // Queue BOOKING_CANCELLED webhook via injected producer
   try {
-    const webhookProducer = webhookContainer.get(
-      WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
-    ) as IWebhookProducerService;
-
     await webhookProducer.queueBookingCancelledWebhook({
       bookingUid: bookingToDelete.uid,
       userId: organizerUserId ?? undefined,
@@ -690,6 +688,7 @@ type BookingCancelServiceDependencies = {
   profileRepository: ProfileRepository;
   bookingReferenceRepository: BookingReferenceRepository;
   attendeeRepository: PrismaBookingAttendeeRepository;
+  webhookProducer: IWebhookProducerService;
 };
 
 /**

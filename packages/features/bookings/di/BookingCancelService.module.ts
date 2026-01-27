@@ -5,6 +5,7 @@ import { moduleLoader as bookingAttendeeRepositoryModuleLoader } from "./Booking
 import { moduleLoader as bookingReferenceRepositoryModuleLoader } from "./BookingReferenceRepository.module";
 import { moduleLoader as profileRepositoryModuleLoader } from "@calcom/features/users/di/Profile.module";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
+import { moduleLoader as webhookProducerModuleLoader } from "@calcom/features/di/webhooks/modules/WebhookProducerService.module";
 
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 
@@ -22,6 +23,7 @@ const loadModule = bindModuleToClassOnToken({
     profileRepository: profileRepositoryModuleLoader,
     bookingReferenceRepository: bookingReferenceRepositoryModuleLoader,
     attendeeRepository: bookingAttendeeRepositoryModuleLoader,
+    webhookProducer: webhookProducerModuleLoader,
   },
 });
 

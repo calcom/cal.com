@@ -7,8 +7,7 @@ import { getBookingEventHandlerService } from "@calcom/features/bookings/di/Book
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import { webhookContainer } from "@calcom/features/di/webhooks/containers/webhook";
-import { WEBHOOK_TOKENS } from "@calcom/features/di/webhooks/Webhooks.tokens";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
@@ -19,7 +18,6 @@ import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -544,11 +542,9 @@ export async function handleConfirmation(args: {
       oAuthClientId: platformClientParams?.platformClientId,
     });
 
-    // Queue BOOKING_CREATED webhook via Producer
+    // Queue BOOKING_CREATED webhook via Producer (service locator at entry point)
     try {
-      const webhookProducer = webhookContainer.get(
-        WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
-      ) as IWebhookProducerService;
+      const webhookProducer = getWebhookProducer();
 
       await webhookProducer.queueBookingCreatedWebhook({
         bookingUid: booking.uid,

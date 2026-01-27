@@ -58,8 +58,6 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
-import { webhookContainer } from "@calcom/features/di/webhooks/containers/webhook";
-import { WEBHOOK_TOKENS } from "@calcom/features/di/webhooks/Webhooks.tokens";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
@@ -481,6 +479,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+  webhookProducer: IWebhookProducerService;
 }
 
 async function validateRescheduleRestrictions({
@@ -2489,14 +2488,10 @@ async function handler(
       bookingFields: eventType.bookingFields,
       locale: language,
     });
-    // Queue BOOKING_PAYMENT_INITIATED webhook via Producer
+    // Queue BOOKING_PAYMENT_INITIATED webhook via injected producer
     if (!isDryRun && booking) {
       try {
-        const webhookProducer = webhookContainer.get(
-          WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
-        ) as IWebhookProducerService;
-
-        await webhookProducer.queueBookingPaymentInitiatedWebhook({
+        await this.queueBookingPaymentInitiatedWebhook({
           bookingUid: booking.uid,
           userId: triggerForUser ? organizerUser.id : undefined,
           eventTypeId,
@@ -2649,13 +2644,9 @@ async function handler(
       );
     }
 
-    // Queue BOOKING_CREATED/BOOKING_RESCHEDULED webhook via Producer
+    // Queue BOOKING_CREATED/BOOKING_RESCHEDULED webhook via injected producer
     if (!isDryRun && booking) {
       try {
-        const webhookProducer = webhookContainer.get(
-          WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
-        ) as IWebhookProducerService;
-
         const queueParams = {
           bookingUid: booking.uid,
           userId: subscriberOptions.userId ?? undefined,
@@ -2666,9 +2657,9 @@ async function handler(
         };
 
         if (eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED) {
-          await webhookProducer.queueBookingRescheduledWebhook(queueParams);
+          await this.queueBookingRescheduledWebhook(queueParams);
         } else {
-          await webhookProducer.queueBookingCreatedWebhook(queueParams);
+          await this.queueBookingCreatedWebhook(queueParams);
         }
       } catch (webhookError) {
         tracingLogger.error(
@@ -2678,14 +2669,10 @@ async function handler(
       }
     }
   } else {
-    // if eventType requires confirmation, queue BOOKING_REQUESTED webhook via Producer
+    // if eventType requires confirmation, queue BOOKING_REQUESTED webhook via injected producer
     if (!isDryRun && booking) {
       try {
-        const webhookProducer = webhookContainer.get(
-          WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE
-        ) as IWebhookProducerService;
-
-        await webhookProducer.queueBookingRequestedWebhook({
+        await this.queueBookingRequestedWebhook({
           bookingUid: booking.uid,
           userId: subscriberOptions.userId ?? undefined,
           eventTypeId: subscriberOptions.eventTypeId ?? undefined,
@@ -2867,6 +2854,78 @@ async function handler(
  */
 export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) {}
+
+  /**
+   * Queue BOOKING_PAYMENT_INITIATED webhook via injected producer.
+   */
+  async queueBookingPaymentInitiatedWebhook(params: {
+    bookingUid: string;
+    userId?: number;
+    eventTypeId?: number;
+    teamId?: number | null;
+    orgId?: number;
+    oAuthClientId?: string | null;
+  }): Promise<void> {
+    await this.deps.webhookProducer.queueBookingPaymentInitiatedWebhook({
+      ...params,
+      teamId: params.teamId ?? undefined,
+      oAuthClientId: params.oAuthClientId ?? undefined,
+    });
+  }
+
+  /**
+   * Queue BOOKING_CREATED webhook via injected producer.
+   */
+  async queueBookingCreatedWebhook(params: {
+    bookingUid: string;
+    userId?: number;
+    eventTypeId?: number;
+    teamId?: number | null;
+    orgId?: number;
+    oAuthClientId?: string | null;
+  }): Promise<void> {
+    await this.deps.webhookProducer.queueBookingCreatedWebhook({
+      ...params,
+      teamId: params.teamId ?? undefined,
+      oAuthClientId: params.oAuthClientId ?? undefined,
+    });
+  }
+
+  /**
+   * Queue BOOKING_RESCHEDULED webhook via injected producer.
+   */
+  async queueBookingRescheduledWebhook(params: {
+    bookingUid: string;
+    userId?: number;
+    eventTypeId?: number;
+    teamId?: number | null;
+    orgId?: number;
+    oAuthClientId?: string | null;
+  }): Promise<void> {
+    await this.deps.webhookProducer.queueBookingRescheduledWebhook({
+      ...params,
+      teamId: params.teamId ?? undefined,
+      oAuthClientId: params.oAuthClientId ?? undefined,
+    });
+  }
+
+  /**
+   * Queue BOOKING_REQUESTED webhook via injected producer.
+   */
+  async queueBookingRequestedWebhook(params: {
+    bookingUid: string;
+    userId?: number;
+    eventTypeId?: number;
+    teamId?: number | null;
+    orgId?: number;
+    oAuthClientId?: string | null;
+  }): Promise<void> {
+    await this.deps.webhookProducer.queueBookingRequestedWebhook({
+      ...params,
+      teamId: params.teamId ?? undefined,
+      oAuthClientId: params.oAuthClientId ?? undefined,
+    });
+  }
 
   async fireBookingEvents({
     booking,
