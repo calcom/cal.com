@@ -1,12 +1,10 @@
-import type { TFunction } from "i18next";
-
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM } from "@calcom/types/CrmService";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import type { TFunction } from "i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
-
 import { CrmFieldType, DateFieldType, WhenToWrite } from "../../_lib/crm-enums";
 import type { appDataSchema } from "../zod";
 
@@ -28,7 +26,7 @@ const {
           create: ReturnType<typeof vi.fn>;
           getById: ReturnType<typeof vi.fn>;
           update: ReturnType<typeof vi.fn>;
-        }; 
+        };
       };
       objects: {
         meetings: {
