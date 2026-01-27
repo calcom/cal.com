@@ -220,33 +220,7 @@ class StripePaymentService implements IAbstractPaymentService {
         safeStringify(error)
       );
 
-      const errorMappings: Record<string, string> = {
-        "no such customer": "stripe_customer_not_found",
-        "invalid api key": "stripe_invalid_api_key",
-        "rate limit": "stripe_rate_limit_exceeded",
-        "account has been deactivated": "stripe_account_deactivated",
-        "this account cannot currently make live charges": "stripe_account_cannot_make_charges",
-      };
-
-      let userMessage = "could_not_collect_payment_method";
-
-      if (error instanceof Error) {
-        const errorMessage = error.message.toLowerCase();
-
-        for (const [key, message] of Object.entries(errorMappings)) {
-          if (errorMessage.includes(key)) {
-            userMessage = message;
-            break;
-          }
-        }
-      }
-
-      const stripeError = error as { type?: string; code?: string };
-      if (stripeError.type === "StripeCardError" || stripeError.code) {
-        userMessage = (stripeError as Stripe.errors.StripeError).message || userMessage;
-      }
-
-      throw new ErrorWithCode(ErrorCode.CollectCardFailure, userMessage);
+      throw new ErrorWithCode(ErrorCode.CollectCardFailure, "Stripe: Payment method could not be collected");
     }
   }
 
