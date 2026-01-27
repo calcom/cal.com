@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import { useFilterValue, useColumnFilters, ZDateRangeFilterValue } from "@calcom/features/data-table";
 import { getDefaultStartDate, getDefaultEndDate } from "@calcom/features/data-table/lib/dateRange";
-
+import { useFilterValue } from "@calcom/web/modules/data-table/hooks/useFilterValue";
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsRoutingParameters() {

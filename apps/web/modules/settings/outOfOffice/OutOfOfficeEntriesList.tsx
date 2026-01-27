@@ -14,10 +14,9 @@ import dayjs from "@calcom/dayjs";
 import {
   DataTableProvider,
   ColumnFilterType,
-  useDataTable,
-  useFilterValue,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
+import { useDataTable, useFilterValue } from "@calcom/web/modules/data-table/hooks";
 import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";

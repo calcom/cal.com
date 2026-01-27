@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from "react";
 
-import { ColumnFilterType, useDataTable } from "@calcom/features/data-table";
+import { ColumnFilterType } from "@calcom/features/data-table";
+import { useDataTable } from "@calcom/web/modules/data-table/hooks";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 /**
