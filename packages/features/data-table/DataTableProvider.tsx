@@ -4,10 +4,11 @@ import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } fro
 import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
 import { useQueryState } from "nuqs";
-import { useState, createContext, useCallback, useEffect, useRef, useMemo } from "react";
+import { createContext, useCallback, useRef, useMemo } from "react";
 
 import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
 
+import { useSegmentManagement, type ActiveFiltersValidatorState } from "./hooks/useSegmentManagement";
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
   activeFiltersParser,
@@ -20,17 +21,18 @@ import {
   searchTermParser,
   DEFAULT_PAGE_SIZE,
 } from "./lib/parsers";
-import {
-  type FilterValue,
-  type FilterSegmentOutput,
-  type SystemFilterSegment,
-  type CombinedFilterSegment,
-  type SegmentIdentifier,
-  type ActiveFilters,
-  type UseSegments,
-  SYSTEM_SEGMENT_PREFIX,
+import type {
+  FilterValue,
+  FilterSegmentOutput,
+  SystemFilterSegment,
+  CombinedFilterSegment,
+  SegmentIdentifier,
+  ActiveFilters,
+  UseSegments,
 } from "./lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
+
+export type { ActiveFiltersValidatorState };
 
 export type DataTableContextType = {
   tableIdentifier: string;
@@ -81,15 +83,6 @@ export type DataTableContextType = {
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
-export type ActiveFiltersValidator = (filters: ActiveFilters) => ActiveFilters;
-
-/**
- * State for the activeFilters validator:
- * - undefined: No validation needed (validator not provided)
- * - "loading": Validation needed but data is still loading
- * - function: Validator is ready to use
- */
-export type ActiveFiltersValidatorState = ActiveFiltersValidator | "loading" | undefined;
 
 interface DataTableProviderProps {
   tableIdentifier: string;
@@ -142,103 +135,33 @@ export function DataTableProvider({
     columnVisibilityParser
   );
   const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
+
   const initialSegmentId = useMemo(
     () => (preferredSegmentId ? String(preferredSegmentId.id) : null),
     [preferredSegmentId]
   );
-  const [segmentId, _setSegmentId] = useQueryState(
+  const [segmentIdFromUrl, rawSetSegmentId] = useQueryState(
     "segment",
     initialSegmentId ? segmentIdParser.withDefault(initialSegmentId) : segmentIdParser
   );
+
   const {
     segments,
-    preferredSegmentId: fetchedPreferredSegmentId,
-    setPreference: setSegmentPreference,
+    selectedSegment,
+    segmentId,
+    setSegmentId,
     isSegmentEnabled,
-    isSuccess: isSegmentFetchedSuccessfully,
-  } = useSegments({
+    isValidatorPending,
+    clearSystemSegmentSelectionIfExists,
+  } = useSegmentManagement({
     tableIdentifier,
+    useSegments,
     providedSegments,
     systemSegments,
-  });
-
-  const findSelectedSegment = useCallback(
-    (segmentId: string) => {
-      return segments.find((segment) => {
-        if (
-          segment.type === "system" &&
-          segmentId &&
-          segmentId.startsWith(SYSTEM_SEGMENT_PREFIX) &&
-          segment.id === segmentId
-        ) {
-          return true;
-        } else if (segment.type === "user") {
-          const segmentIdNumber = parseInt(segmentId, 10);
-          return segment.id === segmentIdNumber;
-        }
-      });
-    },
-    [segments]
-  );
-
-  const segmentIdObject = useMemo(() => {
-    if (segmentId && segmentId.startsWith(SYSTEM_SEGMENT_PREFIX)) {
-      return {
-        id: segmentId,
-        type: "system" as const,
-      };
-    } else {
-      const segmentIdNumber = parseInt(segmentId, 10);
-      if (!Number.isNaN(segmentIdNumber)) {
-        return {
-          id: segmentIdNumber,
-          type: "user" as const,
-        };
-      }
-    }
-    return null;
-  }, [segmentId]);
-
-  const [selectedSegment, setSelectedSegment] = useState<CombinedFilterSegment | undefined>(
-    findSelectedSegment(segmentId)
-  );
-
-  // Track pending segment when validator is loading
-  const pendingSegmentRef = useRef<{
-    segmentId: SegmentIdentifier;
-    segment: CombinedFilterSegment;
-  } | null>(null);
-
-  // Helper to check if validator is ready (not loading)
-  const isValidatorReady = validateActiveFilters !== "loading";
-
-  // Helper to apply segment filters (extracted for reuse)
-  const applySegmentFilters = useCallback(
-    (segment: CombinedFilterSegment) => {
-      const filtersToApply =
-        typeof validateActiveFilters === "function"
-          ? validateActiveFilters(segment.activeFilters)
-          : segment.activeFilters;
-      setActiveFilters(filtersToApply);
-      if (segment.sorting) {
-        setSorting(segment.sorting);
-      }
-      if (segment.columnVisibility) {
-        setColumnVisibility(segment.columnVisibility);
-      }
-      if (segment.columnSizing) {
-        setColumnSizing(segment.columnSizing);
-      }
-      if (segment.perPage !== undefined) {
-        setPageSize(segment.perPage);
-      }
-      if (segment.searchTerm !== undefined) {
-        setSearchTerm(segment.searchTerm);
-      }
-      setPageIndex(0);
-    },
-    [
-      validateActiveFilters,
+    preferredSegmentId,
+    initialSegmentId: segmentIdFromUrl,
+    validateActiveFilters,
+    stateSetters: {
       setActiveFilters,
       setSorting,
       setColumnVisibility,
@@ -246,93 +169,9 @@ export function DataTableProvider({
       setPageSize,
       setSearchTerm,
       setPageIndex,
-    ]
-  );
-
-  const setSegmentId = useCallback(
-    (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
-      if (!segmentId) {
-        pendingSegmentRef.current = null;
-        _setSegmentId(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
-        return;
-      }
-
-      const segment = providedSegment || findSelectedSegment(String(segmentId.id));
-      if (!segment) {
-        pendingSegmentRef.current = null;
-        _setSegmentId(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
-        return;
-      }
-
-      _setSegmentId(String(segmentId.id));
-      setSelectedSegment(segment);
-      setSegmentPreference({
-        tableIdentifier,
-        segmentId,
-      });
-
-      // If validator is loading, store the segment as pending and don't apply filters yet
-      if (validateActiveFilters === "loading") {
-        pendingSegmentRef.current = { segmentId, segment };
-        return;
-      }
-
-      // Validator is ready (or not provided), apply filters immediately
-      pendingSegmentRef.current = null;
-      applySegmentFilters(segment);
     },
-    [
-      _setSegmentId,
-      setSelectedSegment,
-      setSegmentPreference,
-      tableIdentifier,
-      findSelectedSegment,
-      validateActiveFilters,
-      applySegmentFilters,
-    ]
-  );
-
-  // Apply pending segment when validator becomes ready
-  useEffect(() => {
-    if (!isValidatorReady || !pendingSegmentRef.current) {
-      return;
-    }
-    const { segment } = pendingSegmentRef.current;
-    pendingSegmentRef.current = null;
-    applySegmentFilters(segment);
-  }, [isValidatorReady, applySegmentFilters]);
-
-  useEffect(() => {
-    if (!isSegmentFetchedSuccessfully) {
-      return;
-    }
-    // If the preferred segment id has been fetched
-    // and no segment id has been selected yet,
-    // then we set it.
-    if (fetchedPreferredSegmentId && !segmentId) {
-      setSegmentId(fetchedPreferredSegmentId);
-    } else if (segmentId) {
-      setSelectedSegment(findSelectedSegment(segmentId));
-    }
-    // We intentionally have only `isSegmentFetchedSuccessfully`
-    // in the dependency array.
-  }, [isSegmentFetchedSuccessfully]);
-
-  const clearSystemSegmentSelectionIfExists = useCallback(() => {
-    if (selectedSegment?.type === "system") {
-      setSegmentId(null);
-    }
-  }, [selectedSegment, setSegmentId]);
+    rawSetSegmentId,
+  });
 
   const setDebouncedSearchTerm = useMemo(
     () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
@@ -452,9 +291,6 @@ export function DataTableProvider({
 
   const ctaContainerRef = useElementByClassName<HTMLDivElement>(ctaContainerClassName);
 
-  // True when validator is loading and there's a pending segment waiting to be applied
-  const isValidatorPending = validateActiveFilters === "loading" && pendingSegmentRef.current !== null;
-
   return (
     <DataTableContext.Provider
       value={{
@@ -480,7 +316,7 @@ export function DataTableProvider({
         offset: pageIndex * pageSize,
         segments,
         selectedSegment,
-        segmentId: segmentIdObject,
+        segmentId,
         setSegmentId,
         canSaveSegment,
         isSegmentEnabled,
