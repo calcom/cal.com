@@ -955,10 +955,10 @@ export class EventTypeRepository implements IEventTypesRepository {
       select: CompleteEventTypeSelect,
     });
 
-    return this.enrichEventTypeWithWorkflowChildrenCounts(eventType);
+    return await this.enrichEventTypeWithWorkflowChildrenCounts(eventType);
   }
 
-  async findByIdForOrgAdmin({ id, organizationId }: { id: number; organizationId: number }) {
+  async findByIdForOrgAdmin({id, organizationId }: { id: number; organizationId: number }) {
     const userSelect = {
       name: true,
       avatarUrl: true,
@@ -1251,10 +1251,10 @@ export class EventTypeRepository implements IEventTypesRepository {
       select: CompleteEventTypeSelect,
     });
 
-    return this.enrichEventTypeWithWorkflowChildrenCounts(eventType);
+    return await this.enrichEventTypeWithWorkflowChildrenCounts(eventType);
   }
 
-  async findByIdMinimal({ id }: { id: number }) {
+  async findByIdMinimal({id }: { id: number }) {
     return await this.prismaClient.eventType.findUnique({
       where: {
         id,
