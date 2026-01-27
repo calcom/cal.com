@@ -38,7 +38,7 @@ type OAuthClientDetails = {
   clientType?: string;
   user?: {
     email: string;
-  };
+  } | null;
 };
 
 const OAuthClientDetailsDialog = ({
