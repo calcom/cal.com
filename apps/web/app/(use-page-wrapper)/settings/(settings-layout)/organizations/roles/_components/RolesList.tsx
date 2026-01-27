@@ -71,7 +71,7 @@ export function RolesList({
   return (
     <>
       <div className="mt-4">
-        <div className="bg-muted border-muted flex flex-col rounded-xl border p-[1px]">
+        <div className="bg-cal-muted border-muted flex flex-col rounded-xl border p-px">
           {/* Roles list header */}
           <div className="px-5 py-4">
             <h2 className="text-default text-sm font-semibold leading-none">{t("role")}</h2>

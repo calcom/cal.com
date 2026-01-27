@@ -1,12 +1,10 @@
-import { render } from "@testing-library/react";
-import type { RenderOptions } from "@testing-library/react";
-import React from "react";
-import type { ReactElement } from "react";
-import { vi } from "vitest";
-import type { StoreApi } from "zustand";
-
 import dayjs from "@calcom/dayjs";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { RenderOptions } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import React, { type ReactElement, type ReactNode } from "react";
+import { vi } from "vitest";
+import type { StoreApi } from "zustand";
 
 import { BookerStoreContext } from "../BookerStoreProvider";
 import type { BookerStore } from "../store";
@@ -15,6 +13,7 @@ interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   mockStore?: Partial<BookerStore>;
 }
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: mock store requires many properties
 const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerStore> => {
   let state: BookerStore = {
     username: null,
@@ -42,8 +41,8 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
     setTentativeSelectedTimeslots: vi.fn(),
     recurringEventCount: null,
     setRecurringEventCount: vi.fn(),
-    occurenceCount: null,
-    setOccurenceCount: vi.fn(),
+    recurringEventCountQueryParam: null,
+    setRecurringEventCountQueryParam: vi.fn(),
     dayCount: null,
     setDayCount: vi.fn(),
     rescheduleUid: null,
@@ -69,6 +68,10 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
     crmRecordId: null,
     isPlatform: false,
     allowUpdatingUrlParams: true,
+    verificationCode: null,
+    setVerificationCode: vi.fn(),
+    isSlotSelectionModalVisible: false,
+    setIsSlotSelectionModalVisible: vi.fn(),
     ...initialState,
   };
 
@@ -91,10 +94,13 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
   } as unknown as StoreApi<BookerStore>;
 };
 
-export const renderWithBookerStore = (ui: ReactElement, options?: CustomRenderOptions) => {
+export const renderWithBookerStore = (
+  ui: ReactElement,
+  options?: CustomRenderOptions
+): ReturnType<typeof render> => {
   const mockStore = createMockStore(options?.mockStore);
 
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: ReactNode }): ReactElement => (
     <BookerStoreContext.Provider value={mockStore}>{children}</BookerStoreContext.Provider>
   );
 

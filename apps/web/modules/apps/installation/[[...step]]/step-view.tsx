@@ -8,6 +8,7 @@ import type { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import type { LocationObject } from "@calcom/app-store/locations";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
@@ -15,7 +16,6 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { LocationObject } from "@calcom/app-store/locations";
 import type { Team } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -102,7 +102,7 @@ type TUpdateObject = {
 
 const OnboardingPage = ({
   step,
-  teams,
+  teams = [],
   personalAccount,
   appMetadata,
   eventTypeGroups,
@@ -116,6 +116,8 @@ const OnboardingPage = ({
   const pathname = usePathname();
   const router = useRouter();
 
+  const [configureStep, setConfigureStep] = useState(false);
+
   const STEPS_MAP: StepObj = {
     [AppOnboardingSteps.ACCOUNTS_STEP]: {
       getTitle: () => `${t("select_account_header")}`,
@@ -127,19 +129,18 @@ const OnboardingPage = ({
       getTitle: () => `${t("select_event_types_header")}`,
       getDescription: (appName) =>
         `${t("select_event_types_description", { appName, interpolation: { escapeValue: false } })}`,
-      stepNumber: installableOnTeams ? 2 : 1,
+      stepNumber: teams.length > 0 && installableOnTeams ? 2 : 1,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
       getTitle: (appName) =>
         `${t("configure_app_header", { appName, interpolation: { escapeValue: false } })}`,
       getDescription: () => `${t("configure_app_description")}`,
-      stepNumber: installableOnTeams ? 3 : 2,
+      stepNumber: teams.length > 0 && installableOnTeams ? 3 : 2,
     },
   } as const;
-  const [configureStep, setConfigureStep] = useState(false);
 
   const currentStep: AppOnboardingSteps = useMemo(() => {
-    if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
+    if (step === AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
       return AppOnboardingSteps.CONFIGURE_STEP;
     }
     return step;
@@ -150,8 +151,8 @@ const OnboardingPage = ({
     if (!showEventTypesStep) {
       return 1;
     }
-    return installableOnTeams ? STEPS.length : STEPS.length - 1;
-  }, [showEventTypesStep, installableOnTeams]);
+    return teams.length > 0 && installableOnTeams ? STEPS.length : STEPS.length - 1;
+  }, [showEventTypesStep, teams, installableOnTeams]);
 
   const utils = trpc.useContext();
 
@@ -177,7 +178,7 @@ const OnboardingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeGroups]);
 
-  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async (data) => {
       showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
     },
@@ -233,7 +234,7 @@ const OnboardingPage = ({
   return (
     <div
       key={pathname}
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
+      className="text-emphasis min-h-screen px-4"
       data-testid="onboarding">
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
@@ -309,21 +310,20 @@ const OnboardingPage = ({
                     handleSetUpLater={handleSetUpLater}
                   />
                 )}
-              {currentStep === AppOnboardingSteps.CONFIGURE_STEP &&
-                eventTypeGroups && (
-                  <ConfigureStepCard
-                    slug={appMetadata.slug}
-                    categories={appMetadata.categories}
-                    credentialId={credentialId}
-                    userName={userName}
-                    loading={updateMutation.isPending}
-                    formPortalRef={formPortalRef}
-                    setConfigureStep={setConfigureStep}
-                    eventTypeGroups={eventTypeGroups}
-                    handleSetUpLater={handleSetUpLater}
-                    isConferencing={isConferencing}
-                  />
-                )}
+              {currentStep === AppOnboardingSteps.CONFIGURE_STEP && eventTypeGroups && (
+                <ConfigureStepCard
+                  slug={appMetadata.slug}
+                  categories={appMetadata.categories}
+                  credentialId={credentialId}
+                  userName={userName}
+                  loading={updateMutation.isPending}
+                  formPortalRef={formPortalRef}
+                  setConfigureStep={setConfigureStep}
+                  eventTypeGroups={eventTypeGroups}
+                  handleSetUpLater={handleSetUpLater}
+                  isConferencing={isConferencing}
+                />
+              )}
             </Form>
           </div>
         </div>

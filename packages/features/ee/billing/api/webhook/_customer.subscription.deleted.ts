@@ -1,6 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import { prisma } from "@calcom/prisma";
+import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
+import prisma from "@calcom/prisma";
 
 import { HttpCode } from "../../lib/httpCode";
 import type { Handlers, SWHMap } from "../../lib/types";

@@ -724,10 +724,11 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.$queryRaw<{ id: number }[]>`
+      const query = Prisma.sql`
         SELECT id FROM "BookingTimeStatusDenormalized"
         WHERE ${baseConditions}
       `;
+      const results = await prisma.$queryRaw<{ id: number }[]>(query);
 
       // Should return the user booking since it matches both conditions
       expect(results).toEqual([

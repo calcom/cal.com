@@ -1,6 +1,21 @@
-import { bootstrap } from "@/app";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { VerifiedResourcesRepositoryFixtures } from "test/fixtures/repository/verified-resources.repository.fixture";
+import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
+import { randomString } from "test/utils/randomString";
 // Assuming this is your main app bootstrapper
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -14,13 +29,13 @@ import {
 } from "@/modules/workflows/inputs/create-form-workflow";
 import {
   ATTENDEE,
-  REMINDER,
-  PHONE_NUMBER,
   EMAIL,
-  WorkflowEmailAttendeeStepDto,
-  WorkflowEmailAddressStepDto,
+  PHONE_NUMBER,
+  REMINDER,
   UpdateEmailAddressWorkflowStepDto,
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
+  WorkflowEmailAddressStepDto,
+  WorkflowEmailAttendeeStepDto,
 } from "@/modules/workflows/inputs/workflow-step.input";
 import {
   AFTER_EVENT,
@@ -42,22 +57,6 @@ import {
   GetRoutingFormWorkflowOutput,
   GetRoutingFormWorkflowsOutput,
 } from "@/modules/workflows/outputs/routing-form-workflow.output";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { VerifiedResourcesRepositoryFixtures } from "test/fixtures/repository/verified-resources.repository.fixture";
-import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { User, Team } from "@calcom/prisma/client";
 
 describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let app: INestApplication;
@@ -404,7 +403,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       invalidWorkflow.steps = [
         {
           stepNumber: 1,
-          action: "sms_number",
+          action: "cal_ai_phone_call",
           recipient: PHONE_NUMBER,
           template: REMINDER,
           verifiedPhoneId: verifiedPhoneId,
@@ -439,6 +438,18 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
             html: "<p>Reminder for your event {EVENT_NAME}.</p>",
           },
         },
+        {
+          stepNumber: 2,
+          action: "sms_attendee",
+          recipient: EMAIL,
+          template: REMINDER,
+          phoneRequired: false,
+          sender: "updatedSender",
+          message: {
+            subject: "Update Upcoming: {EVENT_NAME}",
+            text: "Update Reminder for your event {EVENT_NAME}.</p>",
+          },
+        },
       ];
       return request(app.getHttpServer())
         .post(`${basePath}/routing-form`)
@@ -459,11 +470,14 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           }
 
           expect(responseBody.data.trigger.type).toEqual(sampleCreateWorkflowRoutingFormDto.trigger.type);
-          expect(responseBody.data.steps).toHaveLength(sampleCreateWorkflowRoutingFormDto.steps.length);
+          expect(responseBody.data.steps).toHaveLength(validWorkflow.steps.length);
           expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.id).toBeDefined();
           expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.sender).toEqual(
             "CalcomE2EStep1"
           );
+
+          expect(responseBody.data.steps.find((step) => step.stepNumber === 2)?.id).toBeDefined();
+          expect(responseBody.data.steps.find((step) => step.action === "sms_attendee")).toBeDefined();
 
           const trigger = sampleCreateWorkflowRoutingFormDto.trigger as OnFormSubmittedTriggerDto;
           expect(responseBody.data.trigger?.type).toEqual(trigger.type);
@@ -889,6 +903,60 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .patch(`${basePath}/${createdWorkflowId}`)
         .send(partialUpdateDto)
         .expect(401);
+    });
+
+    it("should preserve time and timeUnit when not provided in partial update", async () => {
+      const workflowWithOffset = await request(app.getHttpServer())
+        .post(basePath)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          name: `Workflow With Offset ${randomString()}`,
+          activation: {
+            isActiveOnAllEventTypes: true,
+            activeOnEventTypeIds: [],
+          },
+          trigger: {
+            type: BEFORE_EVENT,
+            offset: {
+              value: 2,
+              unit: DAY,
+            },
+          },
+          steps: [
+            {
+              stepNumber: 1,
+              action: "email_attendee",
+              recipient: ATTENDEE,
+              template: REMINDER,
+              sender: "CalcomE2ETest",
+              includeCalendarEvent: true,
+              message: {
+                subject: "Upcoming: {EVENT_NAME}",
+                html: "<p>Reminder for your event {EVENT_NAME}.</p>",
+              },
+            },
+          ],
+        })
+        .expect(201);
+
+      const workflowId = workflowWithOffset.body.data.id;
+      expect(workflowWithOffset.body.data.trigger?.offset?.value).toEqual(2);
+      expect(workflowWithOffset.body.data.trigger?.offset?.unit).toEqual(DAY);
+
+      const partialUpdateDto = {
+        name: `Updated Workflow Name ${randomString()}`,
+      };
+
+      const updatedWorkflow = await request(app.getHttpServer())
+        .patch(`${basePath}/${workflowId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(partialUpdateDto)
+        .expect(200);
+
+      expect(updatedWorkflow.body.data.trigger?.offset?.value).toEqual(2);
+      expect(updatedWorkflow.body.data.trigger?.offset?.unit).toEqual(DAY);
+
+      await workflowsRepositoryFixture.delete(workflowId);
     });
   });
 

@@ -33,15 +33,7 @@ const WEBAPP_PARAMS = ["overlayCalendar"];
 // Helper function to create a mock booking with sensible defaults
 type MockBooking = Pick<
   BookingResponse,
-  | "uid"
-  | "title"
-  | "description"
-  | "startTime"
-  | "endTime"
-  | "location"
-  | "attendees"
-  | "user"
-  | "responses"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "attendees" | "user" | "responses"
 >;
 
 const createMockBooking = (overrides: Partial<MockBooking> = {}): MockBooking => ({

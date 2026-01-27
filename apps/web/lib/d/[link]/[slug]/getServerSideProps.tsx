@@ -13,7 +13,7 @@ import {
   shouldHideBrandingForUserEvent,
 } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -82,9 +82,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         redirect: {
           permanent: false,
           // App Router doesn't have access to the current path directly, so we build it manually
-          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${
-            redirectWithOriginAndSearchString.searchString
-          }`,
+          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${redirectWithOriginAndSearchString.searchString
+            }`,
         },
       };
     }

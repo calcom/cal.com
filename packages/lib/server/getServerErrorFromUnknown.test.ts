@@ -1,9 +1,12 @@
 import { describe, expect, test } from "vitest";
+import { ZodError } from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { Prisma } from "@calcom/prisma/client";
 
 import { HttpError } from "../http-error";
+import { TracedError } from "../tracing/error";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 
 const test400Codes = [
@@ -17,6 +20,7 @@ const test400Codes = [
   ErrorCode.BookerLimitExceeded,
   ErrorCode.BookerLimitExceededReschedule,
   ErrorCode.ChargeCardFailure,
+  ErrorCode.CollectCardFailure,
 ];
 
 const test404Codes = [
@@ -61,7 +65,11 @@ describe("getServerErrorFromUnknown", () => {
     expect(result).toBeInstanceOf(HttpError);
     expect(result.statusCode).toBe(400);
     expect(result.message).toBe(stripeError.message);
-    expect(result.cause).toEqual(stripeError);
+    // Check that cause contains the essential properties (Vitest 4.0 uses stricter equality)
+    expect(result.cause).toMatchObject({
+      name: stripeError.name,
+      message: stripeError.message,
+    });
     expect(result.name).toBe("HttpError");
   });
 
@@ -111,6 +119,99 @@ describe("getServerErrorFromUnknown", () => {
     expect(result.statusCode).toBe(500);
     expect(result.message).toBe("OAuth client creation failed");
   });
+});
+
+describe("TracedError handling", () => {
+  test("should extract traceId and tracedData from TracedError", () => {
+    const originalError = new Error("Original error message");
+    const tracedData = { userId: "123", operation: "booking" };
+    const traceContext = {
+      traceId: "trace_abc123",
+      spanId: "span_123",
+      operation: "test_operation",
+    };
+
+    const tracedError = new TracedError(originalError, traceContext, tracedData);
+
+    const result = getServerErrorFromUnknown(tracedError);
+
+    expect(result.statusCode).toBe(500);
+    expect(result.message).toBe("Original error message");
+    expect(result.data).toEqual({ ...tracedData, traceId: traceContext.traceId });
+  });
+
+  test("should handle TracedError wrapping ErrorWithCode", () => {
+    const originalError = new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
+    const tracedData = { bookingId: "456" };
+    const traceContext = {
+      traceId: "trace_def456",
+      spanId: "span_456",
+      operation: "booking_lookup",
+    };
+
+    const tracedError = new TracedError(originalError, traceContext, tracedData);
+
+    const result = getServerErrorFromUnknown(tracedError);
+
+    expect(result.statusCode).toBe(404);
+    expect(result.message).toBe("Booking not found");
+    expect(result.data).toEqual({ ...tracedData, traceId: traceContext.traceId });
+  });
+});
+
+describe("ZodError handling", () => {
+  test("should handle ZodError with validation issues", () => {
+    const zodError = new ZodError([
+      {
+        code: "invalid_type",
+        expected: "string",
+        received: "number",
+        path: ["name"],
+        message: "Expected string, received number",
+      },
+    ]);
+
+    const result = getServerErrorFromUnknown(zodError);
+
+    expect(result.statusCode).toBe(400);
+    expect(result.message).toBe("invalid_type in 'name': Expected string, received number");
+    expect(result.cause).toBe(zodError);
+  });
+});
+
+describe("Prisma error handling", () => {
+  test("should handle Prisma P2025 error (record not found)", () => {
+    const prismaError = new Error("Record to delete does not exist.") as any;
+    prismaError.code = "P2025";
+    prismaError.clientVersion = "5.0.0";
+    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+
+    const result = getServerErrorFromUnknown(prismaError);
+
+    expect(result.statusCode).toBe(404);
+    expect(result.message).toBe("Record to delete does not exist.");
+    expect(result.cause).toBe(prismaError);
+  });
+
+  test("should handle other Prisma errors as 400", () => {
+    const prismaError = new Error("Foreign key constraint failed") as any;
+    prismaError.code = "P2003";
+    prismaError.clientVersion = "5.0.0";
+    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+
+    const result = getServerErrorFromUnknown(prismaError);
+
+    expect(result.statusCode).toBe(400);
+    expect(result.message).toBe("Foreign key constraint failed");
+  });
+});
+
+test("should handle unknown type fallback", () => {
+  const result = getServerErrorFromUnknown({ someProperty: "value" });
+
+  expect(result.statusCode).toBe(500);
+  expect(result.message).toBe("Unhandled error of type 'object'. Please reach out for our customer support.");
+  expect(result.data).toBeUndefined();
 });
 
 test400Codes.forEach((errorCode) => {

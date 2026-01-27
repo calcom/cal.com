@@ -6,8 +6,8 @@ import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class AttendeeScheduledEmail extends BaseEmail {

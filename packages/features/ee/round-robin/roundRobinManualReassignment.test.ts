@@ -1,30 +1,34 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
-
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 import {
-  getDate,
-  createBookingScenario,
-  getScenarioData,
-  getMockBookingAttendee,
-  TestData,
   addWorkflowReminders,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+  createBookingScenario,
+  getDate,
+  getMockBookingAttendee,
+  getScenarioData,
+  TestData,
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingStatus, SchedulingType, WorkflowMethods } from "@calcom/prisma/enums";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
   expectWorkflowToBeTriggered,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, vi, expect } from "vitest";
-
-import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import { parse } from "node-html-parser";
+import { v4 as uuidv4 } from "uuid";
+import { beforeEach, describe, expect, vi } from "vitest";
+import type { BookingEventHandlerService } from "../../bookings/lib/onBookingEvents/BookingEventHandlerService";
 
 vi.mock("@calcom/features/bookings/lib/EventManager");
 vi.mock("@calcom/app-store/utils", () => ({
   getAppFromSlug: vi.fn(),
+}));
+vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => ({
+  getBookingEventHandlerService: vi.fn(),
 }));
 
 // Type definitions
@@ -56,6 +60,7 @@ const createTestUser = (overrides?: {
   email?: string;
   destinationCalendar?: { integration: string; externalId: string };
   metadata?: TestUserMetadata;
+  uuid?: string;
 }) => ({
   id: overrides?.id ?? 1,
   name: overrides?.name ?? `user-${overrides?.id ?? 1}`,
@@ -77,6 +82,7 @@ const createTestUser = (overrides?: {
   completedOnboarding: true,
   locked: false,
   organizationId: null,
+  uuid: overrides?.uuid ?? `uuid-${overrides?.id ?? 1}`,
 });
 
 const createTestDestinationCalendar = (overrides?: { integration?: string; externalId?: string }) => ({
@@ -179,7 +185,10 @@ type ConferenceResult = {
 const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
   const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  const existingSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  // Clear any existing mock calls from previous tests
+  existingSpy.mockClear();
+  const spy = existingSpy;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   spy.mockImplementation(async (event: any) => {
@@ -217,8 +226,8 @@ const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
               conferenceType === "zoom"
                 ? "https://zoom.us/j/123456789"
                 : conferenceType === "google"
-                ? "https://meet.google.com/test-meeting"
-                : `https://${conferenceType}.co/test-room`,
+                  ? "https://meet.google.com/test-meeting"
+                  : `https://${conferenceType}.co/test-room`,
           },
         });
       }
@@ -237,6 +246,14 @@ const mockGetAppFromSlug = async () => {
 
 describe("roundRobinManualReassignment test", () => {
   setupAndTeardown();
+
+  beforeEach(() => {
+    // Set up default mock for BookingEventHandlerService
+    const mockOnReassignment = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(getBookingEventHandlerService).mockReturnValue({
+      onReassignment: mockOnReassignment,
+    } as unknown as BookingEventHandlerService);
+  });
 
   test("should reassign round robin booking to new host and update workflows", async ({ emails }) => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
@@ -297,6 +314,8 @@ describe("roundRobinManualReassignment test", () => {
       newUserId: newHost.id,
       orgId: null,
       reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: originalHost.uuid,
     });
 
     expectEventManagerCalledWith(eventManagerRescheduleSpy, {
@@ -365,6 +384,8 @@ describe("roundRobinManualReassignment test", () => {
       newUserId: newHost.id,
       orgId: null,
       reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: originalHost.uuid,
     });
 
     // Verify that EventManager.reschedule was called with an event containing conferenceCredentialId
@@ -441,6 +462,8 @@ describe("roundRobinManualReassignment test", () => {
       newUserId: newHost.id,
       orgId: null,
       reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: fixedHost.uuid,
     });
 
     expectEventManagerCalledWith(eventManagerRescheduleSpy, {
@@ -465,9 +488,9 @@ describe("roundRobinManualReassignment test", () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     await mockEventManagerReschedule();
 
-    const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
-      await import("@calcom/emails"),
-      "sendRoundRobinReassignedEmailsAndSMS"
+    const sendReassignedEmailsAndSMSSpy = vi.spyOn(
+      await import("@calcom/emails/email-manager"),
+      "sendReassignedEmailsAndSMS"
     );
 
     const testDestinationCalendar = createTestDestinationCalendar();
@@ -521,14 +544,24 @@ describe("roundRobinManualReassignment test", () => {
       newUserId: newHost.id,
       orgId: null,
       reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: originalHost.uuid,
     });
 
-    expect(sendRoundRobinReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    expect(sendReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("roundRobinManualReassignment - Location Changes", () => {
   setupAndTeardown();
+
+  beforeEach(() => {
+    // Set up default mock for BookingEventHandlerService
+    const mockOnReassignment = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(getBookingEventHandlerService).mockReturnValue({
+      onReassignment: mockOnReassignment,
+    } as any);
+  });
 
   const createConferencingUsers = () => {
     return {
@@ -650,6 +683,8 @@ describe("roundRobinManualReassignment - Location Changes", () => {
         orgId: null,
         reassignReason: "Host unavailable",
         reassignedById: 999,
+        actionSource: "WEBAPP",
+        reassignedByUuid: "uuid-999",
       });
 
       expectEventManagerCalledWith(eventManagerRescheduleSpy, {
@@ -715,6 +750,8 @@ describe("roundRobinManualReassignment - Location Changes", () => {
         orgId: null,
         reassignReason: "Host unavailable",
         reassignedById: 999,
+        actionSource: "WEBAPP",
+        reassignedByUuid: "uuid-999",
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
@@ -766,6 +803,8 @@ describe("roundRobinManualReassignment - Location Changes", () => {
         orgId: null,
         reassignReason: "Host unavailable",
         reassignedById: 999,
+        actionSource: "WEBAPP",
+        reassignedByUuid: "uuid-999",
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
@@ -816,6 +855,8 @@ describe("roundRobinManualReassignment - Location Changes", () => {
         orgId: null,
         reassignReason: "Host unavailable",
         reassignedById: 999,
+        actionSource: "WEBAPP",
+        reassignedByUuid: "uuid-999",
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
@@ -871,7 +912,329 @@ describe("roundRobinManualReassignment - Location Changes", () => {
         orgId: null,
         reassignReason: "Host unavailable",
         reassignedById: 999,
+        actionSource: "WEBAPP",
+        reassignedByUuid: "uuid-999",
       })
     ).rejects.toThrow("Failed to set video conferencing link, but the meeting has been rescheduled");
+  });
+});
+
+describe("roundRobinManualReassignment - Seated Events", () => {
+  setupAndTeardown();
+
+  beforeEach(() => {
+    // Set up default mock for BookingEventHandlerService
+    const mockOnReassignment = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(getBookingEventHandlerService).mockReturnValue({
+      onReassignment: mockOnReassignment,
+    } as any);
+  });
+
+  test("should not expose other attendees in updated email when seatsShowAttendees is disabled for seated round-robin event", async ({
+    emails,
+  }) => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    const eventManagerRescheduleSpy = await mockEventManagerReschedule();
+
+    const testDestinationCalendar = createTestDestinationCalendar();
+    const originalHost = createTestUser({ id: 1, destinationCalendar: testDestinationCalendar });
+    const newHost = createTestUser({ id: 2 });
+    const users = [originalHost, newHost, createTestUser({ id: 3 })];
+
+    const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
+
+    const bookingToReassignUid = "seated-booking-manual-reassign";
+    const attendee1Email = "attendee1@test.com";
+    const attendee2Email = "attendee2@test.com";
+    const attendee3Email = "attendee3@test.com";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "round-robin-seated-event",
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            length: 45,
+            seatsPerTimeSlot: 5,
+            seatsShowAttendees: false,
+            users: users.map((user) => ({ id: user.id })),
+            hosts: users.map((user) => ({ userId: user.id, isFixed: false })),
+          },
+        ],
+        bookings: [
+          await createTestBooking({
+            eventTypeId: 1,
+            userId: originalHost.id,
+            bookingId: 125,
+            bookingUid: bookingToReassignUid,
+            attendees: [
+              {
+                ...getMockBookingAttendee({
+                  id: 2,
+                  name: "Attendee 1",
+                  email: attendee1Email,
+                  locale: "en",
+                  timeZone: "Asia/Kolkata",
+                }),
+                bookingSeat: {
+                  referenceUid: uuidv4(),
+                  data: {},
+                },
+              },
+              {
+                ...getMockBookingAttendee({
+                  id: 3,
+                  name: "Attendee 2",
+                  email: attendee2Email,
+                  locale: "en",
+                  timeZone: "Asia/Kolkata",
+                }),
+                bookingSeat: {
+                  referenceUid: uuidv4(),
+                  data: {},
+                },
+              },
+              {
+                ...getMockBookingAttendee({
+                  id: 4,
+                  name: "Attendee 3",
+                  email: attendee3Email,
+                  locale: "en",
+                  timeZone: "Asia/Kolkata",
+                }),
+                bookingSeat: {
+                  referenceUid: uuidv4(),
+                  data: {},
+                },
+              },
+            ],
+          }),
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 125,
+      newUserId: newHost.id,
+      orgId: null,
+      reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: originalHost.uuid,
+    });
+
+    // Verify that updated emails were sent to all attendees
+    const updatedEmails = emails.get().filter((email) => {
+      const subject = email.subject || "";
+      return subject.includes("updated") || subject.includes("event_type_has_been_updated");
+    });
+
+    // Check that each attendee received an email
+    expect(updatedEmails.some((email) => email.to.includes(attendee1Email))).toBe(true);
+    expect(updatedEmails.some((email) => email.to.includes(attendee2Email))).toBe(true);
+    expect(updatedEmails.some((email) => email.to.includes(attendee3Email))).toBe(true);
+
+    // Verify that each attendee's email does not contain other attendees' information
+    const attendee1EmailContent = updatedEmails.find((email) => email.to.includes(attendee1Email));
+    if (attendee1EmailContent) {
+      const emailHtml = parse(attendee1EmailContent.html);
+      const emailText = emailHtml.innerText;
+
+      // Should not contain other attendees' emails or names
+      expect(emailText).not.toContain(attendee2Email);
+      expect(emailText).not.toContain(attendee3Email);
+      expect(emailText).not.toContain("Attendee 2");
+      expect(emailText).not.toContain("Attendee 3");
+      // Should contain their own info
+      expect(emailText).toContain("Attendee 1");
+    }
+
+    const attendee2EmailContent = updatedEmails.find((email) => email.to.includes(attendee2Email));
+    if (attendee2EmailContent) {
+      const emailHtml = parse(attendee2EmailContent.html);
+      const emailText = emailHtml.innerText;
+
+      // Should not contain other attendees' emails or names
+      expect(emailText).not.toContain(attendee1Email);
+      expect(emailText).not.toContain(attendee3Email);
+      expect(emailText).not.toContain("Attendee 1");
+      expect(emailText).not.toContain("Attendee 3");
+      // Should contain their own info
+      expect(emailText).toContain("Attendee 2");
+    }
+
+    const attendee3EmailContent = updatedEmails.find((email) => email.to.includes(attendee3Email));
+    if (attendee3EmailContent) {
+      const emailHtml = parse(attendee3EmailContent.html);
+      const emailText = emailHtml.innerText;
+
+      // Should not contain other attendees' emails or names
+      expect(emailText).not.toContain(attendee1Email);
+      expect(emailText).not.toContain(attendee2Email);
+      expect(emailText).not.toContain("Attendee 1");
+      expect(emailText).not.toContain("Attendee 2");
+      // Should contain their own info
+      expect(emailText).toContain("Attendee 3");
+    }
+  });
+});
+
+describe("roundRobinManualReassignment - Audit Data Verification", () => {
+  setupAndTeardown();
+
+  test("should call BookingEventHandlerService.onReassignment with correct audit data when organizer changes", async () => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    await mockEventManagerReschedule();
+
+    const mockOnReassignment = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(getBookingEventHandlerService).mockReturnValue({
+      onReassignment: mockOnReassignment,
+    } as any);
+
+    const testDestinationCalendar = createTestDestinationCalendar();
+    const originalHost = createTestUser({
+      id: 1,
+      uuid: "uuid-1",
+      destinationCalendar: testDestinationCalendar,
+    });
+    const newHost = createTestUser({ id: 2, uuid: "uuid-2" });
+    const reassigningUser = createTestUser({ id: 3, uuid: "uuid-3" });
+    const users = [originalHost, newHost, reassigningUser];
+
+    const bookingToReassignUid = "booking-audit-test";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          createRoundRobinEventType({
+            id: 1,
+            slug: "round-robin-event",
+            users,
+          }),
+        ],
+        bookings: [
+          await createTestBooking({
+            eventTypeId: 1,
+            userId: originalHost.id,
+            bookingId: 123,
+            bookingUid: bookingToReassignUid,
+          }),
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 123,
+      newUserId: newHost.id,
+      orgId: null,
+      reassignedById: reassigningUser.id,
+      actionSource: "WEBAPP",
+      reassignedByUuid: reassigningUser.uuid,
+      reassignReason: "Test reassignment reason",
+    });
+
+    expect(mockOnReassignment).toHaveBeenCalledTimes(1);
+    expect(mockOnReassignment).toHaveBeenCalledWith({
+      bookingUid: bookingToReassignUid,
+      actor: { identifiedBy: "user", userUuid: reassigningUser.uuid },
+      organizationId: null,
+      source: "WEBAPP",
+      auditData: {
+        organizerUuid: { old: originalHost.uuid, new: newHost.uuid },
+        reassignmentReason: "Test reassignment reason",
+        reassignmentType: "manual",
+      },
+    });
+  });
+
+  test("should call BookingEventHandlerService.onReassignment with correct audit data when only attendee changes (fixed host scenario)", async () => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    await mockEventManagerReschedule();
+
+    const mockOnReassignment = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(getBookingEventHandlerService).mockReturnValue({
+      onReassignment: mockOnReassignment,
+    } as any);
+
+    const testDestinationCalendar = createTestDestinationCalendar();
+    const fixedHost = createTestUser({ id: 1, uuid: "uuid-1", destinationCalendar: testDestinationCalendar });
+    const currentRRHost = createTestUser({ id: 2, uuid: "uuid-2" });
+    const newHost = createTestUser({ id: 3, uuid: "uuid-3" });
+    const reassigningUser = createTestUser({ id: 4, uuid: "uuid-4" });
+    const users = [fixedHost, currentRRHost, newHost, reassigningUser];
+
+    const bookingToReassignUid = "booking-audit-fixed-host-test";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          createRoundRobinEventType({
+            id: 1,
+            slug: "round-robin-event",
+            users: [fixedHost, currentRRHost, newHost],
+            hosts: users.slice(0, 3).map((user) => ({
+              userId: user.id,
+              isFixed: user.id === fixedHost.id,
+            })),
+          }),
+        ],
+        bookings: [
+          await createTestBooking({
+            eventTypeId: 1,
+            userId: fixedHost.id,
+            bookingId: 123,
+            bookingUid: bookingToReassignUid,
+            attendees: [
+              getMockBookingAttendee({
+                id: 1,
+                name: "attendee",
+                email: "attendee@test.com",
+                locale: "en",
+                timeZone: "Asia/Kolkata",
+              }),
+              getMockBookingAttendee({
+                id: currentRRHost.id,
+                name: currentRRHost.name,
+                email: currentRRHost.email,
+                locale: "en",
+                timeZone: currentRRHost.timeZone,
+              }),
+            ],
+          }),
+        ],
+        organizer: fixedHost,
+        usersApartFromOrganizer: users.slice(1, 3),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 123,
+      newUserId: newHost.id,
+      orgId: null,
+      reassignedById: reassigningUser.id,
+      actionSource: "WEBAPP",
+      reassignedByUuid: reassigningUser.uuid,
+      reassignReason: "Test reason",
+    });
+
+    expect(mockOnReassignment).toHaveBeenCalledTimes(1);
+    const callArgs = mockOnReassignment.mock.calls[0][0];
+    expect(callArgs.bookingUid).toBe(bookingToReassignUid);
+    expect(callArgs.actor).toEqual({ identifiedBy: "user", userUuid: reassigningUser.uuid });
+    expect(callArgs.organizationId).toBe(null);
+    expect(callArgs.source).toBe("WEBAPP");
+    // organizerUuid should NOT be included when organizer hasn't changed (fixed host scenario)
+    expect(callArgs.auditData.organizerUuid).toBeUndefined();
+    expect(callArgs.auditData.reassignmentType).toBe("manual");
+    expect(callArgs.auditData.reassignmentReason).toBe("Test reason");
+    expect(callArgs.auditData.hostAttendeeUpdated).toBeDefined();
+    expect(callArgs.auditData.hostAttendeeUpdated?.withUserUuid).toEqual({
+      old: currentRRHost.uuid,
+      new: newHost.uuid,
+    });
   });
 });

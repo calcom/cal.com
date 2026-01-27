@@ -2,30 +2,34 @@ import { z } from "zod";
 
 import logger from "@calcom/lib/logger";
 
-import type { SWHMap } from "../../lib/types";
-import { TeamBilling } from "../../teams";
+import { getTeamBillingDataRepository, getTeamBillingServiceFactory } from "../../di/containers/Billing";
+import type { SWHMap } from "./__handler";
 
 const metadataSchema = z.object({
   teamId: z.coerce.number(),
 });
 
 const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) => {
-  const log = logger.getSubLogger({ prefix: ["stripe", "webhook", "customer.subscription.deleted"] });
   const subscription = data.object;
+  const teamBillingFactory = getTeamBillingServiceFactory();
+  const log = logger.getSubLogger({
+    prefix: [`[customer.subscription.deleted.team-plan]: subscriptionId: ${subscription.id}`],
+  });
+
   try {
     const { teamId } = metadataSchema.parse(subscription.metadata);
-    const teamBilling = await TeamBilling.findAndInit(teamId);
-    await teamBilling.downgrade();
+    const teamBillingService = await teamBillingFactory.findAndInit(teamId);
+    await teamBillingService.downgrade();
     return { success: true };
-  } catch (error) {
+  } catch {
+    const teamBillingDataRepository = getTeamBillingDataRepository();
     // If stripe metadata is missing teamId, we attempt to find by sub ID.
-    const team = await TeamBilling.repo.findBySubscriptionId(subscription.id);
+    const team = await teamBillingDataRepository.findBySubscriptionId(subscription.id);
     if (!team) {
-      log.error(`Cannot find team for subscription ${subscription.id}`);
+      log.warn("No team found with subscriptionId");
       return { success: false };
     }
-    log.error(`Error downgrading team plan for team ${team.id}`, error);
-    const teamBilling = TeamBilling.init(team);
+    const teamBilling = teamBillingFactory.init(team);
     await teamBilling.downgrade();
     return { success: true };
   }

@@ -2,9 +2,9 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import type { DefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -22,6 +22,7 @@ const getEventTypesFromDBSelect = {
   restrictionScheduleId: true,
   useBookerTimezone: true,
   disableRescheduling: true,
+  minimumRescheduleNotice: true,
   disableCancelling: true,
   users: {
     select: {
@@ -126,6 +127,7 @@ const getEventTypesFromDBSelect = {
       timeZone: true,
     },
   },
+  enablePerHostLocations: true,
   hosts: {
     select: {
       isFixed: true,
@@ -133,6 +135,16 @@ const getEventTypesFromDBSelect = {
       weight: true,
       createdAt: true,
       groupId: true,
+      location: {
+        select: {
+          id: true,
+          type: true,
+          credentialId: true,
+          link: true,
+          address: true,
+          phoneNumber: true,
+        },
+      },
       user: {
         select: {
           credentials: {
@@ -181,6 +193,9 @@ const getEventTypesFromDBSelect = {
       name: true,
     },
   },
+  rrHostSubsetEnabled: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  autoTranslateInstantMeetingTitleEnabled: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

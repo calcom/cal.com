@@ -1,7 +1,7 @@
 import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RRResetInterval } from "@calcom/prisma/client";
@@ -65,6 +65,7 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
 
 type BaseUser = {
   id: number;
+  uuid: string;
   email: string;
 };
 

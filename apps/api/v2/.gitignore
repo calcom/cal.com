@@ -43,3 +43,4 @@ lerna-debug.log*
 !.env.example
 !.env.appStore.example
 /client/*
+/generated/prisma/*

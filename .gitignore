@@ -38,6 +38,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 .env.*
 !.env.example
 !.env.appStore.example
@@ -60,18 +61,22 @@ yarn-error.log*
 .history/
 
 # Typescript
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # turbo
 .turbo
 
 # Prisma generated files
 packages/prisma/client/*
+!packages/prisma/client/index.ts
+apps/api/v2/generated/prisma/*
+packages/prisma/generated/prisma/*
 packages/prisma/zod/**/*.ts
 packages/prisma/enums
 
 # Builds
 dist
+packages/app-store/types
 
 # Linting
 lint-results
@@ -100,5 +105,9 @@ apps/auth
 i18n.cache
 packages/**/.yarn/ci-cache/
 
-# AI
-.claude
+# AI - session/user specific files (keep CLAUDE.md and .cursor/skills tracked)
+.claude/plans/
+.claude/settings.local.json
+
+# trigger.dev
+.trigger

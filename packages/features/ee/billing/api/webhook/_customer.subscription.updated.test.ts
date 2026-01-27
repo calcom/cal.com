@@ -1,262 +1,97 @@
-import type Stripe from "stripe";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { HttpCode } from "../../lib/httpCode";
+import type { SWHMap } from "./__handler";
+import handler from "./_customer.subscription.updated";
 
-vi.mock("./_customer.subscription.updated/_teamAndOrgUpdateHandler");
-vi.mock("./_customer.subscription.updated/_calAIPhoneNumberUpdateHandler");
+const { findByStripeSubscriptionId, prismaMock } = vi.hoisted(() => {
+  const findByStripeSubscriptionIdFn = vi.fn().mockResolvedValue(null);
+  const prismaMockObj = {
+    teamBilling: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    organizationBilling: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    calAiPhoneNumber: {
+      update: vi.fn(),
+    },
+  };
+  return {
+    findByStripeSubscriptionId: findByStripeSubscriptionIdFn,
+    prismaMock: prismaMockObj,
+  };
+});
 
-type SubscriptionData = Stripe.CustomerSubscriptionUpdatedEvent["data"];
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => {
+  return {
+    PrismaPhoneNumberRepository: class {
+      findByStripeSubscriptionId = findByStripeSubscriptionId;
+    },
+  };
+});
 
-describe("_customer.subscription.updated handler", () => {
+vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
+  getBillingProviderService: () => ({
+    extractSubscriptionDates: () => ({
+      subscriptionStart: new Date("2024-01-01T00:00:00.000Z"),
+      subscriptionEnd: new Date("2024-12-31T00:00:00.000Z"),
+      subscriptionTrialEnd: null,
+    }),
+  }),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: prismaMock,
+}));
+
+describe("customer.subscription.updated webhook", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
-    vi.stubEnv("STRIPE_TEAM_PRODUCT_ID", "prod_team_123");
-    vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "prod_org_456");
-    vi.stubEnv("STRIPE_CAL_AI_PHONE_NUMBER_PRODUCT_ID", "prod_phone_789");
+    vi.clearAllMocks();
   });
 
-  const createSubscriptionData = (overrides: Partial<Stripe.Subscription> = {}): SubscriptionData => ({
-    object: {
-      id: "sub_123",
-      status: "active",
-      customer: "cus_123",
-      items: {
-        data: [],
-      },
-      ...overrides,
-    } as Stripe.Subscription,
-  });
+  it("updates team billing on renewal", async () => {
+    prismaMock.teamBilling.findUnique.mockResolvedValue({ id: "tb_1", teamId: 123 });
+    prismaMock.organizationBilling.findUnique.mockResolvedValue(null);
 
-  it("should throw error if subscription ID is missing", async () => {
-    const handler = (await import("./_customer.subscription.updated/_handler")).default;
-
-    const data: SubscriptionData = {
+    const data = {
       object: {
-        id: null,
+        id: "sub_123",
         status: "active",
-        customer: "cus_123",
-        items: { data: [] },
-      } as unknown as Stripe.Subscription,
-    };
-
-    await expect(handler(data)).rejects.toThrow(new HttpCode(400, "Subscription ID not found"));
-  });
-
-  it("should handle team subscription update", async () => {
-    const mockTeamHandler = vi.fn().mockResolvedValue({
-      success: true,
-      subscriptionId: "sub_123",
-      status: "active",
-    });
-
-    const { default: teamAndOrgHandler } = await import(
-      "./_customer.subscription.updated/_teamAndOrgUpdateHandler"
-    );
-    vi.mocked(teamAndOrgHandler).mockImplementation(mockTeamHandler);
-
-    const handler = (await import("./_customer.subscription.updated/_handler")).default;
-
-    const data = createSubscriptionData({
-      items: {
-        data: [
-          {
-            id: "si_123",
-            price: {
-              product: "prod_team_123",
+        items: {
+          data: [
+            {
+              quantity: 5,
+              price: {
+                unit_amount: 12000,
+                recurring: { interval: "year" },
+              },
             },
-          } as Stripe.SubscriptionItem,
-        ],
-      } as Stripe.ApiList<Stripe.SubscriptionItem>,
-    });
+          ],
+        },
+      },
+      previous_attributes: {
+        current_period_start: 1690000000,
+      },
+    } as unknown as SWHMap["customer.subscription.updated"]["data"];
 
     const result = await handler(data);
 
+    expect(prismaMock.teamBilling.update).toHaveBeenCalledWith({
+      where: { id: "tb_1" },
+      data: expect.objectContaining({
+        billingPeriod: "ANNUALLY",
+        pricePerSeat: 12000,
+        paidSeats: 5,
+        subscriptionStart: new Date("2024-01-01T00:00:00.000Z"),
+        subscriptionEnd: new Date("2024-12-31T00:00:00.000Z"),
+        subscriptionTrialEnd: null,
+      }),
+    });
     expect(result).toEqual({
-      success: true,
-      subscriptionId: "sub_123",
-      status: "active",
+      phoneNumber: null,
+      teamBilling: { success: true, type: "team", teamId: 123 },
     });
-    expect(mockTeamHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        productId: "prod_team_123",
-        object: expect.objectContaining({
-          id: "sub_123",
-        }),
-      })
-    );
-  });
-
-  it("should handle organization subscription update", async () => {
-    const mockOrgHandler = vi.fn().mockResolvedValue({
-      success: true,
-      subscriptionId: "sub_123",
-      status: "active",
-    });
-
-    const { default: teamAndOrgHandler } = await import(
-      "./_customer.subscription.updated/_teamAndOrgUpdateHandler"
-    );
-    vi.mocked(teamAndOrgHandler).mockImplementation(mockOrgHandler);
-
-    const handler = (await import("./_customer.subscription.updated/_handler")).default;
-
-    const data = createSubscriptionData({
-      items: {
-        data: [
-          {
-            id: "si_456",
-            price: {
-              product: "prod_org_456",
-            },
-          } as Stripe.SubscriptionItem,
-        ],
-      } as Stripe.ApiList<Stripe.SubscriptionItem>,
-    });
-
-    const result = await handler(data);
-
-    expect(result).toEqual({
-      success: true,
-      subscriptionId: "sub_123",
-      status: "active",
-    });
-    expect(mockOrgHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        productId: "prod_org_456",
-        object: expect.objectContaining({
-          id: "sub_123",
-        }),
-      })
-    );
-  });
-
-  it("should prioritize org product over team product", async () => {
-    const mockOrgHandler = vi.fn().mockResolvedValue({
-      success: true,
-      subscriptionId: "sub_123",
-      status: "active",
-    });
-
-    const { default: teamAndOrgHandler } = await import(
-      "./_customer.subscription.updated/_teamAndOrgUpdateHandler"
-    );
-    vi.mocked(teamAndOrgHandler).mockImplementation(mockOrgHandler);
-
-    const handler = (await import("./_customer.subscription.updated/_handler")).default;
-
-    const data = createSubscriptionData({
-      items: {
-        data: [
-          {
-            id: "si_team",
-            price: {
-              product: "prod_team_123",
-            },
-          } as Stripe.SubscriptionItem,
-          {
-            id: "si_org",
-            price: {
-              product: "prod_org_456",
-            },
-          } as Stripe.SubscriptionItem,
-        ],
-      } as Stripe.ApiList<Stripe.SubscriptionItem>,
-    });
-
-    await handler(data);
-
-    expect(mockOrgHandler).toHaveBeenCalledTimes(2);
-    expect(mockOrgHandler).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        productId: "prod_team_123",
-      })
-    );
-    expect(mockOrgHandler).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        productId: "prod_org_456",
-      })
-    );
-  });
-
-  it("should handle phone number subscription update", async () => {
-    const mockPhoneHandler = vi.fn().mockResolvedValue({
-      success: true,
-      subscriptionId: "sub_123",
-      subscriptionStatus: "active",
-    });
-
-    const { default: phoneHandler } = await import(
-      "./_customer.subscription.updated/_calAIPhoneNumberUpdateHandler"
-    );
-    vi.mocked(phoneHandler).mockImplementation(mockPhoneHandler);
-
-    const handler = (await import("./_customer.subscription.updated/_handler")).default;
-
-    const data = createSubscriptionData({
-      items: {
-        data: [
-          {
-            id: "si_phone",
-            price: {
-              product: "prod_phone_789",
-            },
-          } as Stripe.SubscriptionItem,
-        ],
-      } as Stripe.ApiList<Stripe.SubscriptionItem>,
-    });
-
-    const result = await handler(data);
-
-    expect(result).toEqual({
-      success: true,
-      subscriptionId: "sub_123",
-      subscriptionStatus: "active",
-    });
-    expect(mockPhoneHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        productId: "prod_phone_789",
-        object: expect.objectContaining({
-          id: "sub_123",
-        }),
-      })
-    );
-  });
-
-  it("should return undefined when no matching product handler found", async () => {
-    const handler = (await import("./_customer.subscription.updated/_handler")).default;
-
-    const data = createSubscriptionData({
-      items: {
-        data: [
-          {
-            id: "si_unknown",
-            price: {
-              product: "prod_unknown_999",
-            },
-          } as Stripe.SubscriptionItem,
-        ],
-      } as Stripe.ApiList<Stripe.SubscriptionItem>,
-    });
-
-    const result = await handler(data);
-
-    expect(result).toBeUndefined();
-  });
-
-  it("should return undefined when subscription items is empty", async () => {
-    const handler = (await import("./_customer.subscription.updated/_handler")).default;
-
-    const data = createSubscriptionData({
-      items: {
-        data: [],
-      } as Stripe.ApiList<Stripe.SubscriptionItem>,
-    });
-
-    const result = await handler(data);
-
-    expect(result).toBeUndefined();
   });
 });

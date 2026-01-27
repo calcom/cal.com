@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
-import { subtract } from "@calcom/lib/date-ranges";
+import { subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { stringToDayjs } from "@calcom/lib/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -9,13 +10,12 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import type { Booking, EventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { EventBusyDetails } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 export interface IBusyTimesService {
@@ -52,7 +52,7 @@ export class BusyTimesService {
       | null;
     bypassBusyCalendarTimes: boolean;
     silentlyHandleCalendarFailures?: boolean;
-    shouldServeCache?: boolean;
+    mode?: CalendarFetchMode;
   }) {
     const {
       credentials,
@@ -70,7 +70,7 @@ export class BusyTimesService {
       duration,
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
-      shouldServeCache,
+      mode,
     } = params;
 
     logger.silly(
@@ -194,7 +194,7 @@ export class BusyTimesService {
         startTime,
         endTime,
         selectedCalendars,
-        shouldServeCache
+        mode
       );
 
       if (!calendarBusyTimesQuery.success) {

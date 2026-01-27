@@ -1,3 +1,4 @@
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
@@ -7,7 +8,6 @@ import { HttpCode } from "../../../lib/httpCode";
 import type { SWHMap } from "../../../lib/types";
 import { BillingRepositoryFactory } from "../../../repository/billingRepositoryFactory";
 import { TeamSubscriptionEventHandler } from "../../../service/TeamSubscriptionEventHandler";
-import { StripeBillingService } from "../../../stripe-billing-service";
 
 const handler = async (data: SWHMap["customer.subscription.updated"]["data"] & { productId: string }) => {
   const log = logger.getSubLogger({ prefix: ["_teamAndOrgUpdateHandler"] });
@@ -26,13 +26,14 @@ const handler = async (data: SWHMap["customer.subscription.updated"]["data"] & {
   const teamRepository = new TeamRepository(prisma);
   const teamSubscriptionEventHandler = new TeamSubscriptionEventHandler(billingRepository, teamRepository);
 
-  const status = StripeBillingService.mapSubscriptionStatusToCalStatus({
+  const billingProviderService = getBillingProviderService();
+  const status = billingProviderService.mapStripeStatusToCalStatus({
     stripeStatus: subscription.status,
     subscriptionId: subscription.id,
   });
 
   const { subscriptionStart, subscriptionTrialEnd, subscriptionEnd } =
-    StripeBillingService.extractSubscriptionDates(subscription);
+    billingProviderService.extractSubscriptionDates(subscription);
 
   try {
     await teamSubscriptionEventHandler.handleUpdate({
