@@ -52,6 +52,7 @@ export function getStripeTrackingMetadata(tracking?: TrackingData): Record<strin
       twclid: tracking.xAds.twclid,
       xCampaignId: tracking.xAds.campaignId,
     }),
+    ...(tracking.utmData && tracking.utmData),
   };
 }
 

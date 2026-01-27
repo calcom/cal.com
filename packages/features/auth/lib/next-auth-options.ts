@@ -1197,7 +1197,6 @@ export const getOptions = ({
                     email: newUser.email,
                     username: newUser.username ?? newUsername,
                     ...getStripeTrackingMetadata(tracking),
-                    ...(tracking.utmData && tracking.utmData),
                   },
                 });
                 await prisma.user.update({
