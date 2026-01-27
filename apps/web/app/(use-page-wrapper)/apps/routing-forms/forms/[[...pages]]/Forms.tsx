@@ -149,6 +149,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   return (
     <LicenseRequired>
       <ShellMain
+        disableSticky={true}
         heading={t("routing")}
         CTA={
           hasPaidPlan && forms?.length ? (
