@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { DataTableProvider } from "~/data-table/components";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import {
   RoutingFormResponsesTable,

@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 
-import { DataTableProvider } from "@calcom/web/modules/data-table/components/DataTableProvider";
-import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
+import { DataTableProvider } from "~/data-table/components";
+import { useSegments } from "@calcom/web/modules/data-table/hooks";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import OrgAutoJoinSetting from "~/ee/organizations/components/OrgAutoJoinSetting";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

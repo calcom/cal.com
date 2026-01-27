@@ -4,9 +4,15 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useMemo, useReducer, useState } from "react";
 
-import { DataTableProvider } from "@calcom/features/data-table";
 import { useColumnFilters, useDataTable } from "@calcom/web/modules/data-table/hooks";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSelectionBar,
+  DataTableProvider,
+} from "~/data-table/components";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

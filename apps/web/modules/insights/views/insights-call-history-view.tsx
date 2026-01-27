@@ -11,12 +11,11 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
 import {
-  DataTableProvider,
   ColumnFilterType,
   convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useDataTable } from "@calcom/web/modules/data-table/hooks";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters } from "~/data-table/components";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableProvider } from "~/data-table/components";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type {

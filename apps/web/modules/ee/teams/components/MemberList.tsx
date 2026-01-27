@@ -19,13 +19,12 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { convertFacetedValuesToMap } from "@calcom/features/data-table";
-import { DataTableProvider } from "@calcom/web/modules/data-table/components/DataTableProvider";
+import { DataTableToolbar, DataTableFilters, DataTableWrapper, DataTableSelectionBar, DataTableProvider } from "~/data-table/components";
 import {
   useDataTable,
   useFetchMoreOnBottomReached,
   useColumnFilters,
 } from "@calcom/web/modules/data-table/hooks";
-import { DataTableToolbar, DataTableFilters, DataTableWrapper, DataTableSelectionBar } from "~/data-table/components";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";

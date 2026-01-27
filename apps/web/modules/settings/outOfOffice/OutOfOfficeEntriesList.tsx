@@ -12,12 +12,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
-  DataTableProvider,
   ColumnFilterType,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
 import { useDataTable, useFilterValue } from "@calcom/web/modules/data-table/hooks";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableProvider } from "~/data-table/components";
 import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";

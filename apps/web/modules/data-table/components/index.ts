@@ -5,5 +5,6 @@ export * from "./filters";
 export { DataTable } from "./DataTable";
 export { DataTableSkeleton } from "./DataTableSkeleton";
 export { DataTableWrapper } from "./DataTableWrapper";
+export { DataTableProvider } from "./DataTableProvider";
 export type { DataTableProps } from "./DataTable";
 export { DataTableSegment } from "./segment";
