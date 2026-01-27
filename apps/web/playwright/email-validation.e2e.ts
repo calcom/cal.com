@@ -89,7 +89,7 @@ test.describe("Email field validation", () => {
 
     await page.locator('[data-testid="confirm-book-button"]').click();
 
-    const emailError = page.locator('[data-fob-field-name="email"] [role="alert"]');
+    const emailError = page.locator('[data-testid="error-message-email"]');
     await expect(emailError).toBeVisible({ timeout: 5000 });
   });
 
@@ -107,7 +107,7 @@ test.describe("Email field validation", () => {
 
     await page.locator('[data-testid="confirm-book-button"]').click();
 
-    const emailError = page.locator('[data-fob-field-name="email"] [role="alert"]');
+    const emailError = page.locator('[data-testid="error-message-email"]');
     await expect(emailError).toBeVisible({ timeout: 5000 });
   });
 });
