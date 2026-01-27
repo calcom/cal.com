@@ -60,8 +60,8 @@ services:
       - 3000:3000
     env_file: .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
+      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL:-postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}}
     depends_on:
       - database
 
@@ -83,10 +83,10 @@ services:
       - NODE_ENV=${NODE_ENV}
       - API_PORT=${API_PORT:-80}
       - API_URL=${API_URL}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_READ_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_WRITE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
+      - DATABASE_READ_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
+      - DATABASE_WRITE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
+      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL:-postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_URL=${REDIS_URL}
@@ -127,8 +127,8 @@ services:
       - 5555:5555
     env_file: .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}
+      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL:-postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}/${POSTGRES_DB:-calendso}}
     depends_on:
       - database
     command:
