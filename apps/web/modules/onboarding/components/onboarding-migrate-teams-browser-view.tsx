@@ -9,29 +9,28 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
 
-type OnboardingTeamsBrowserViewProps = {
-  teams: Array<{ name: string; slug?: string | null; isMigrated?: boolean }>;
+type OnboardingMigrateTeamsBrowserViewProps = {
+  teams: Array<{ id: number; name: string; slug: string | null; isSelected?: boolean }>;
   organizationLogo?: string | null;
   organizationName?: string;
   organizationBanner?: string | null;
   slug?: string;
 };
 
-export const OnboardingTeamsBrowserView = ({
+export const OnboardingMigrateTeamsBrowserView = ({
   teams,
   organizationLogo,
   organizationName,
   organizationBanner,
   slug,
-}: OnboardingTeamsBrowserViewProps) => {
+}: OnboardingMigrateTeamsBrowserViewProps) => {
   const pathname = usePathname();
   const { t } = useLocale();
   const displayUrl = slug ? `${slug}.${subdomainSuffix()}` : subdomainSuffix();
 
-  // Show placeholder if no teams or all teams are empty
-  const hasValidTeams = teams.some((team) => team.name && team.name.trim().length > 0);
+  const selectedTeams = teams.filter((team) => team.isSelected);
+  const hasValidTeams = teams.length > 0;
 
-  // Animation variants for entry and exit
   const containerVariants = {
     initial: {
       opacity: 0,
@@ -102,7 +101,7 @@ export const OnboardingTeamsBrowserView = ({
                       size="lg"
                       imageSrc={organizationLogo}
                       alt={organizationName || ""}
-                      className="border-4 border-white"
+                      className="border-default border-4"
                     />
                   </div>
                 )}
@@ -111,27 +110,31 @@ export const OnboardingTeamsBrowserView = ({
               {/* Teams Info */}
               <div className="flex flex-col gap-2 px-4 pb-4 pt-12">
                 <h2 className="text-emphasis text-xl font-semibold leading-tight">{t("teams")}</h2>
+                {selectedTeams.length > 0 && (
+                  <p className="text-subtle text-sm font-medium leading-tight">
+                    {selectedTeams.length === 1
+                      ? t("migrating_teams_count", { count: selectedTeams.length })
+                      : t("migrating_teams_count_plural", { count: selectedTeams.length })}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Teams List */}
             <div className="flex flex-col overflow-y-auto">
               {hasValidTeams ? (
-                teams
-                  .filter((team) => team.name && team.name.trim().length > 0)
-                  .map((team, index) => (
-                    <div key={index} className="">
+                <>
+                  {teams.map((team, index) => (
+                    <div key={team.id}>
                       {index > 0 && <div className="border-subtle h-px border-t" />}
                       <div className="flex items-center gap-3 px-5 py-4">
                         <Avatar
                           size="md"
                           alt={team.name}
-                          className="border-2 border-white"
+                          className="border-default border-2"
                           fallback={
                             <div className="bg-emphasis flex h-full w-full items-center justify-center text-white">
-                              <span className="text-sm font-semibold">
-                                {team.name.charAt(0).toUpperCase()}
-                              </span>
+                              <span className="text-sm font-semibold uppercase">{team.name.charAt(0)}</span>
                             </div>
                           }
                         />
@@ -140,7 +143,7 @@ export const OnboardingTeamsBrowserView = ({
                             <h3 className="text-subtle line-clamp-1 min-w-0 truncate text-sm font-semibold leading-none">
                               {team.name}
                             </h3>
-                            {team.isMigrated && (
+                            {team.isSelected && (
                               <Badge variant="green" className="shrink-0 text-xs">
                                 {t("migrating")}
                               </Badge>
@@ -151,17 +154,18 @@ export const OnboardingTeamsBrowserView = ({
                               ? `${slug}.${subdomainSuffix()}/${team.slug}`
                               : team.slug
                                 ? `${team.slug}.${subdomainSuffix()}`
-                                : t("onboarding_teams_browser_view_team_description")}
+                                : t("team_slug_pending")}
                           </p>
                         </div>
-                        {team.isMigrated ? (
+                        {team.isSelected ? (
                           <Icon name="check" className="text-emphasis h-5 w-5" />
                         ) : (
                           <Icon name="arrow-right" className="text-subtle h-4 w-4" />
                         )}
                       </div>
                     </div>
-                  ))
+                  ))}
+                </>
               ) : (
                 <div className="flex flex-col items-center justify-center gap-3 px-5 py-12">
                   <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-full">
@@ -169,10 +173,10 @@ export const OnboardingTeamsBrowserView = ({
                   </div>
                   <div className="flex flex-col gap-1 text-center">
                     <p className="text-default truncate text-sm font-semibold leading-tight">
-                      {t("onboarding_teams_browser_view_no_teams_title")}
+                      {t("no_teams_to_migrate")}
                     </p>
                     <p className="text-subtle truncate text-xs font-medium leading-tight">
-                      {t("onboarding_teams_browser_view_no_teams_description")}
+                      {t("create_teams_in_next_step")}
                     </p>
                   </div>
                 </div>
@@ -184,3 +188,4 @@ export const OnboardingTeamsBrowserView = ({
     </div>
   );
 };
+
