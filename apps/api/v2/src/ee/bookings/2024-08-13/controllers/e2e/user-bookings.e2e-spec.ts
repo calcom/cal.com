@@ -2841,6 +2841,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 expect(data.id).toBeDefined();
                 expect(data.uid).toBeDefined();
                 expect(EventManager.prototype.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+                expect(EventManager.prototype.createAllCRMEvents).toHaveBeenCalledTimes(0);
               } else {
                 throw new Error(
                   "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -2871,6 +2872,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();
               expect(EventManager.prototype.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+              expect(EventManager.prototype.createAllCRMEvents).toHaveBeenCalledTimes(0);
             });
         });
 
@@ -2905,6 +2907,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   expect(data.id).toBeDefined();
                   expect(data.uid).toBeDefined();
                   expect(EventManager.prototype.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+                  expect(EventManager.prototype.createAllCRMEvents).toHaveBeenCalledTimes(0);
                   bookingThatRequiresConfirmationUid = data.uid;
                 } else {
                   throw new Error(
@@ -2930,6 +2933,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   expect(data.id).toBeDefined();
                   expect(data.uid).toBeDefined();
                   expect(EventManager.prototype.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+                  expect(EventManager.prototype.createAllCRMEvents).toHaveBeenCalledTimes(0);
                 } else {
                   throw new Error(
                     "Invalid response data - expected booking but received array of possibly recurring bookings"
