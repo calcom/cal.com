@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQueryContext } from "@/contexts/QueryContext";
 import { useUserProfile } from "@/hooks";
 import { type LandingPage, useUserPreferences } from "@/hooks/useUserPreferences";
-import { showErrorAlert, showNotAvailableAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert, showNotAvailableAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
 
@@ -34,6 +34,7 @@ export default function More() {
   const handleLandingPageSelect = async (value: LandingPage) => {
     try {
       await setLandingPage(value);
+      showSuccessAlert("Saved", "Default landing page updated");
     } catch {
       showErrorAlert("Error", "Failed to save preference. Please try again.");
     }
