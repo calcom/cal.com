@@ -5,7 +5,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import type { TGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
-import { getAllWorkflowsFromEventType, getEventTypeWorkflows } from "./util";
+import { getEventTypeWorkflows } from "./util";
+import { getAllCalIdWorkflowsFromEventType } from "./util.calid";
 
 type GetAllActiveWorkflowsOptions = {
   ctx: {
@@ -41,7 +42,7 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
     if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const allActiveWorkflows = await getAllWorkflowsFromEventType(
+  const allActiveWorkflows = await getAllCalIdWorkflowsFromEventType(
     {
       ...completeEventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
