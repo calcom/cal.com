@@ -59,22 +59,23 @@ enum CreationSource {
 }
 
 model Host {
-  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
-  eventType        EventType   @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventType        EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId      Int
-  isFixed          Boolean     @default(false)
+  isFixed          Boolean       @default(false)
   priority         Int?
   weight           Int?
   // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
-  schedule         Schedule?   @relation(fields: [scheduleId], references: [id])
+  schedule         Schedule?     @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
-  createdAt        DateTime    @default(now())
-  group            HostGroup?  @relation(fields: [groupId], references: [id])
+  createdAt        DateTime      @default(now())
+  group            HostGroup?    @relation(fields: [groupId], references: [id])
   groupId          String?
   memberId         Int?
-  member           Membership? @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  member           Membership?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  location         HostLocation?
 
   @@id([userId, eventTypeId])
   @@index([memberId])
@@ -93,6 +94,25 @@ model HostGroup {
   updatedAt   DateTime   @updatedAt
 
   @@index([name])
+  @@index([eventTypeId])
+}
+
+model HostLocation {
+  id           String      @id @default(uuid())
+  userId       Int
+  eventTypeId  Int
+  host         Host        @relation(fields: [userId, eventTypeId], references: [userId, eventTypeId], onDelete: Cascade)
+  type         String
+  credentialId Int?
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  link         String?
+  address      String?
+  phoneNumber  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@unique([userId, eventTypeId])
+  @@index([credentialId])
   @@index([eventTypeId])
 }
 
@@ -259,6 +279,7 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
   rrHostSubsetEnabled           Boolean @default(false)
+  enablePerHostLocations        Boolean @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -304,6 +325,7 @@ model Credential {
   delegationCredentialId    String?
   delegationCredential      DelegationCredential?      @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   integrationAttributeSyncs IntegrationAttributeSync[]
+  hostLocations             HostLocation[]
 
   @@index([appId])
   @@index([subscriptionId])
