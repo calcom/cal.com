@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   DropdownMenu,
@@ -40,6 +40,15 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   onReportBooking,
   onCancelBooking,
 }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    icon: isDark ? "#FFFFFF" : "#3C3F44",
+    iconDestructive: "#800020",
+    iconDefault: isDark ? "#E5E5EA" : "#374151",
+  };
+
   const {
     isUpcoming,
     isPending,
@@ -148,12 +157,12 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   );
 
   return (
-    <View className="border-b border-cal-border bg-cal-bg">
+    <View className="border-b border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-black">
       <Pressable
         onPress={() => onPress(booking)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-        className="active:bg-cal-bg-secondary"
-        android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
+        className="active:bg-cal-bg-secondary dark:active:bg-[#1C1C1E]"
+        android_ripple={{ color: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" }}
       >
         <TimeAndDateRow formattedDate={formattedDate} formattedTimeRange={formattedTimeRange} />
         <BadgesRow isPending={isPending} />
@@ -182,10 +191,10 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Pressable
-                className="items-center justify-center rounded-lg border border-cal-border"
+                className="items-center justify-center rounded-lg border border-cal-border dark:border-[#38383A]"
                 style={{ width: 32, height: 32 }}
               >
-                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+                <Ionicons name="ellipsis-horizontal" size={18} color={colors.icon} />
               </Pressable>
             </DropdownMenuTrigger>
 
@@ -199,7 +208,11 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
                     <Ionicons
                       name={action.icon}
                       size={18}
-                      color={action.variant === "destructive" ? "#800020" : "#374151"}
+                      color={
+                        action.variant === "destructive"
+                          ? colors.iconDestructive
+                          : colors.iconDefault
+                      }
                       style={{ marginRight: 8 }}
                     />
                     <Text className={action.variant === "destructive" ? "text-destructive" : ""}>

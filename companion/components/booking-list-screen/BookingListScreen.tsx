@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { FullScreenModal } from "@/components/FullScreenModal";
@@ -99,6 +100,8 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const router = useRouter();
   const { userInfo } = useAuth();
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   // Use React Query hook for fetching bookings
   const {
@@ -598,8 +601,8 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const renderListItem = ({ item }: { item: ListItem }) => {
     if (item.type === "monthHeader") {
       return (
-        <View className="border-b border-[#E5E5EA] bg-[#f1f1f1] px-2 py-3 md:px-4">
-          <Text className="text-base font-bold text-[#333]">{item.monthYear}</Text>
+        <View className="border-b border-[#E5E5EA] bg-[#f1f1f1] px-2 py-3 dark:border-[#38383A] dark:bg-[#1C1C1E] md:px-4">
+          <Text className="text-base font-bold text-[#333] dark:text-white">{item.monthYear}</Text>
         </View>
       );
     }
@@ -633,7 +636,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50 dark:bg-black">
         {renderHeader?.()}
         {renderFilterControls?.()}
         <BookingListSkeleton count={4} iosStyle={iosStyle} />
@@ -643,15 +646,17 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
   if (error) {
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50 dark:bg-black">
         {renderHeader?.()}
         {renderFilterControls?.()}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-black">
           <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
+          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-white">
             Unable to load bookings
           </Text>
-          <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
+          <Text className="mb-6 text-center text-base text-gray-500 dark:text-[#8E8E93]">
+            {error}
+          </Text>
         </View>
       </View>
     );
@@ -671,7 +676,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
       {/* Empty state - no bookings */}
       <Activity mode={showEmptyState ? "visible" : "hidden"}>
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50 dark:bg-black">
           <ScrollView
             contentContainerStyle={{
               padding: 20,
@@ -680,7 +685,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
               <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
             }
             contentInsetAdjustmentBehavior="automatic"
-            style={{ backgroundColor: "white" }}
+            style={{ backgroundColor: isDark ? "#000000" : "white" }}
           >
             <EmptyScreen
               icon={emptyState.icon}
@@ -693,7 +698,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
       {/* Search empty state */}
       <Activity mode={showSearchEmptyState ? "visible" : "hidden"}>
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50 dark:bg-black">
           <ScrollView
             contentContainerStyle={{
               padding: 20,
@@ -702,7 +707,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
               <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
             }
             contentInsetAdjustmentBehavior="automatic"
-            style={{ backgroundColor: "white" }}
+            style={{ backgroundColor: isDark ? "#000000" : "white" }}
           >
             <EmptyScreen
               icon="search-outline"
@@ -728,13 +733,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                 refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior="automatic"
-                style={{ backgroundColor: "white" }}
+                style={{ backgroundColor: isDark ? "#000000" : "white" }}
               />
             </Activity>
 
             <Activity mode={!iosStyle ? "visible" : "hidden"}>
               <View className="flex-1 px-2 pt-4 md:px-4">
-                <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+                <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-black">
                   <FlatList
                     data={listItems}
                     keyExtractor={(item) => item.key}
@@ -790,31 +795,33 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           onRequestClose={handleCloseCancelModal}
         >
           <View className="flex-1 items-center justify-center bg-black/50 p-4">
-            <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-[#1C1C1E]">
               <View className="p-6">
                 <View className="flex-row">
                   {/* Danger icon */}
-                  <View className="mr-3 self-start rounded-full bg-red-50 p-2">
+                  <View className="mr-3 self-start rounded-full bg-red-50 p-2 dark:bg-red-900/30">
                     <Ionicons name="alert-circle" size={20} color="#800000" />
                   </View>
 
                   {/* Title and description */}
                   <View className="flex-1">
-                    <Text className="mb-2 text-xl font-semibold text-gray-900">Cancel Event</Text>
-                    <Text className="text-sm leading-5 text-gray-600">
+                    <Text className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+                      Cancel Event
+                    </Text>
+                    <Text className="text-sm leading-5 text-gray-600 dark:text-[#8E8E93]">
                       Are you sure you want to cancel "{cancelBooking?.title}"? Cancellation reason
                       will be shared with guests.
                     </Text>
 
                     {/* Reason Input */}
                     <View className="mt-4">
-                      <Text className="mb-2 text-sm font-medium text-gray-700">
+                      <Text className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                         Reason for cancellation
                       </Text>
                       <TextInput
-                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900"
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 dark:border-[#38383A] dark:bg-[#2C2C2E] dark:text-white"
                         placeholder="Why are you cancelling?"
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
                         value={cancelReason}
                         onChangeText={setCancelReason}
                         multiline
@@ -831,17 +838,21 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
               <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
                 <TouchableOpacity
                   className="rounded-lg px-4 py-2.5"
-                  style={{ backgroundColor: "#111827" }}
+                  style={{ backgroundColor: isDark ? "#FFFFFF" : "#111827" }}
                   onPress={handleSubmitCancel}
                 >
-                  <Text className="text-center text-base font-medium text-white">Cancel Event</Text>
+                  <Text className="text-center text-base font-medium text-white dark:text-black">
+                    Cancel Event
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 dark:border-[#38383A] dark:bg-[#2C2C2E]"
                   onPress={handleCloseCancelModal}
                 >
-                  <Text className="text-center text-base font-medium text-gray-700">Nevermind</Text>
+                  <Text className="text-center text-base font-medium text-gray-700 dark:text-white">
+                    Nevermind
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -855,7 +866,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           <AlertDialogContent>
             <AlertDialogHeader className="items-start">
               <AlertDialogTitle>
-                <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+                <UIText className="text-left text-lg font-semibold dark:text-white">
+                  Cancel event
+                </UIText>
               </AlertDialogTitle>
               <AlertDialogDescription>
                 <UIText className="text-left text-sm text-muted-foreground">
@@ -866,11 +879,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
             {/* Reason Input */}
             <View>
-              <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+              <UIText className="mb-2 text-sm font-medium dark:text-white">
+                Reason for cancellation
+              </UIText>
               <TextInput
-                className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900"
+                className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 dark:border-[#38383A] dark:bg-[#2C2C2E] dark:text-white"
                 placeholder="Why are you cancelling?"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
                 value={cancelReason}
                 onChangeText={setCancelReason}
                 autoFocus
@@ -906,12 +921,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             </AlertDialogHeader>
 
             <View className="py-4">
-              <Text className="mb-2 text-sm font-medium text-cal-text">
+              <Text className="mb-2 text-sm font-medium text-cal-text dark:text-white">
                 Cancellation Reason (required)
               </Text>
               <TextInput
-                className="rounded-lg border border-cal-border bg-cal-bg px-3 py-2 text-base text-cal-text"
+                className="rounded-lg border border-cal-border bg-cal-bg px-3 py-2 text-base text-cal-text dark:border-[#38383A] dark:bg-[#2C2C2E] dark:text-white"
                 placeholder="Please provide a reason for cancelling"
+                placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
                 value={cancelAllReason}
                 onChangeText={setCancelAllReason}
                 multiline
@@ -973,12 +989,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             </AlertDialogHeader>
 
             <View className="py-4">
-              <Text className="mb-2 text-sm font-medium text-cal-text">
+              <Text className="mb-2 text-sm font-medium text-cal-text dark:text-white">
                 Rejection Reason (optional)
               </Text>
               <TextInput
-                className="rounded-lg border border-cal-border bg-cal-bg px-3 py-2 text-base text-cal-text"
+                className="rounded-lg border border-cal-border bg-cal-bg px-3 py-2 text-base text-cal-text dark:border-[#38383A] dark:bg-[#2C2C2E] dark:text-white"
                 placeholder="Optionally provide a reason for rejecting"
+                placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
                 value={rejectAllReason}
                 onChangeText={setRejectAllReason}
                 multiline

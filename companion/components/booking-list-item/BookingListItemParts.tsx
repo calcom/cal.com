@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Linking, Text, TouchableOpacity, View } from "react-native";
+import { Linking, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { SvgImage } from "@/components/SvgImage";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
@@ -13,8 +13,10 @@ interface TimeAndDateRowProps {
 export function TimeAndDateRow({ formattedDate, formattedTimeRange }: TimeAndDateRowProps) {
   return (
     <View className="mb-2 flex-row flex-wrap items-center">
-      <Text className="text-sm font-medium text-cal-text">{formattedDate}</Text>
-      <Text className="ml-2 text-sm text-cal-text-secondary">{formattedTimeRange}</Text>
+      <Text className="text-sm font-medium text-cal-text dark:text-white">{formattedDate}</Text>
+      <Text className="ml-2 text-sm text-cal-text-secondary dark:text-[#8E8E93]">
+        {formattedTimeRange}
+      </Text>
     </View>
   );
 }
@@ -44,7 +46,7 @@ interface BookingTitleProps {
 export function BookingTitle({ title, isCancelled, isRejected }: BookingTitleProps) {
   return (
     <Text
-      className={`mb-2 text-lg font-medium leading-5 text-cal-text ${isCancelled || isRejected ? "line-through" : ""}`}
+      className={`mb-2 text-lg font-medium leading-5 text-cal-text dark:text-white ${isCancelled || isRejected ? "line-through" : ""}`}
       numberOfLines={2}
     >
       {title}
@@ -59,7 +61,10 @@ interface BookingDescriptionProps {
 export function BookingDescription({ description }: BookingDescriptionProps) {
   if (!description) return null;
   return (
-    <Text className="mb-2 text-sm leading-5 text-cal-text-secondary" numberOfLines={1}>
+    <Text
+      className="mb-2 text-sm leading-5 text-cal-text-secondary dark:text-[#8E8E93]"
+      numberOfLines={1}
+    >
       "{description}"
     </Text>
   );
@@ -77,9 +82,9 @@ export function HostAndAttendees({
   if (!hostAndAttendeesDisplay) return null;
   return (
     <View className="mb-2 flex-row items-center">
-      <Text className="text-sm text-cal-text">{hostAndAttendeesDisplay}</Text>
+      <Text className="text-sm text-cal-text dark:text-white">{hostAndAttendeesDisplay}</Text>
       {hasNoShowAttendee && (
-        <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-1.5 py-0.5">
+        <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-1.5 py-0.5 dark:bg-red-900/30">
           <Ionicons name="eye-off" size={10} color="#800020" />
           <Text className="ml-0.5 text-[10px] font-medium text-cal-accent-destructive">
             No-show
@@ -139,11 +144,15 @@ export function ConfirmRejectButtons({
   onConfirm,
   onReject,
 }: ConfirmRejectButtonsProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const iconColor = isDark ? "#FFFFFF" : "#3C3F44";
+
   if (!isPending) return null;
   return (
     <>
       <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg"
+        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-[#1C1C1E]"
         style={{
           paddingHorizontal: 12,
           paddingVertical: 8,
@@ -155,11 +164,13 @@ export function ConfirmRejectButtons({
           onConfirm(booking);
         }}
       >
-        <Ionicons name="checkmark" size={16} color="#3C3F44" />
-        <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Confirm</Text>
+        <Ionicons name="checkmark" size={16} color={iconColor} />
+        <Text className="ml-1 text-sm font-medium text-cal-text-emphasis dark:text-white">
+          Confirm
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg"
+        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-[#1C1C1E]"
         style={{
           paddingHorizontal: 12,
           paddingVertical: 8,
@@ -171,8 +182,10 @@ export function ConfirmRejectButtons({
           onReject(booking);
         }}
       >
-        <Ionicons name="close" size={16} color="#3C3F44" />
-        <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Reject</Text>
+        <Ionicons name="close" size={16} color={iconColor} />
+        <Text className="ml-1 text-sm font-medium text-cal-text-emphasis dark:text-white">
+          Reject
+        </Text>
       </TouchableOpacity>
     </>
   );
