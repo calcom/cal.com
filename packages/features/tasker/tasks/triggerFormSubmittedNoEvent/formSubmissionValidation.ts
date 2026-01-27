@@ -66,6 +66,7 @@ export function getSubmitterName(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES) {
 
 /**
  * Check for duplicate form submissions within the last 60 minutes
+ * Uses the submitterEmail column for efficient querying instead of iterating through all responses
  */
 async function hasDuplicateSubmission({
   formId,
@@ -87,27 +88,13 @@ async function hasDuplicateSubmission({
 
   const sixtyMinutesAgo = new Date(date.getTime() - 60 * 60 * 1000);
 
-  const recentResponses = await formResponseRepository.findAllResponsesWithBooking({
+  const duplicateResponse = await formResponseRepository.findResponseWithBookingByEmail({
     formId,
     responseId,
+    submitterEmail,
     createdAfter: sixtyMinutesAgo,
     createdBefore: new Date(),
   });
 
-  // Check if there's a duplicate email in recent responses
-  return recentResponses.some((response) => {
-    if (!response.response || typeof response.response !== "object") return false;
-
-    return Object.values(response.response as Record<string, { value: string; label: string }>).some(
-      (field) => {
-        return (
-          typeof field === "object" &&
-          field &&
-          "value" in field &&
-          typeof field.value === "string" &&
-          field.value.toLowerCase() === submitterEmail.toLowerCase()
-        );
-      }
-    );
-  });
+  return duplicateResponse !== null;
 }

@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
 import {
   onSubmissionOfFormResponse,
@@ -14,10 +12,26 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-
+import { z } from "zod";
 import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
+
+/**
+ * Extracts the submitter's email from form responses.
+ * Looks for the first field value that contains an @ symbol.
+ */
+function extractSubmitterEmail(
+  response: Record<string, { value: string | number | string[]; label: string; identifier?: string }>
+): string | null {
+  for (const field of Object.values(response)) {
+    const value = field.value;
+    if (typeof value === "string" && value.includes("@")) {
+      return value;
+    }
+  }
+  return null;
+}
 
 const _handleResponse = async ({
   response,
@@ -171,11 +185,13 @@ const _handleResponse = async ({
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
       const formResponseRepo = new RoutingFormResponseRepository(prisma);
+      const submitterEmail = extractSubmitterEmail(response);
       if (queueFormResponse) {
         queuedFormResponse = await formResponseRepo.recordQueuedFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
+          submitterEmail,
         });
         dbFormResponse = null;
       } else {
@@ -183,6 +199,7 @@ const _handleResponse = async ({
           formId: form.id,
           response,
           chosenRouteId,
+          submitterEmail,
         });
         queuedFormResponse = null;
 

@@ -1328,14 +1328,15 @@ model App_RoutingForms_Form {
 }
 
 model App_RoutingForms_FormResponse {
-  id           Int                   @id @default(autoincrement())
-  uuid         String?               @default(uuid())
-  formFillerId String                @default(cuid())
-  form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId       String
-  response     Json
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime?             @updatedAt
+  id             Int                   @id @default(autoincrement())
+  uuid           String?               @default(uuid())
+  formFillerId   String                @default(cuid())
+  form           App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId         String
+  response       Json
+  submitterEmail String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime?             @updatedAt
 
   routedToBookingUid        String?                              @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
@@ -1349,6 +1350,7 @@ model App_RoutingForms_FormResponse {
   @@index([formFillerId])
   @@index([formId])
   @@index([routedToBookingUid])
+  @@index([submitterEmail])
 }
 
 model App_RoutingForms_QueuedFormResponse {
@@ -1356,6 +1358,7 @@ model App_RoutingForms_QueuedFormResponse {
   form             App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId           String
   response         Json
+  submitterEmail   String?
   chosenRouteId    String?
   createdAt        DateTime                       @default(now())
   updatedAt        DateTime?                      @updatedAt

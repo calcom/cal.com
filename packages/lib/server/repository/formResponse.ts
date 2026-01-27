@@ -5,6 +5,7 @@ interface RecordFormResponseInput {
   formId: string;
   response: Record<string, any> | Prisma.JsonValue;
   chosenRouteId: string | null;
+  submitterEmail?: string | null;
 }
 
 export class RoutingFormResponseRepository {
@@ -17,6 +18,7 @@ export class RoutingFormResponseRepository {
       formId: input.formId,
       response: input.response as Prisma.InputJsonValue,
       chosenRouteId: input.chosenRouteId,
+      submitterEmail: input.submitterEmail ?? null,
       ...(input.queuedFormResponseId
         ? {
             queuedFormResponse: {
@@ -156,6 +158,43 @@ export class RoutingFormResponseRepository {
       select: {
         id: true,
         response: true,
+      },
+    });
+  }
+
+  async findResponseWithBookingByEmail({
+    formId,
+    responseId,
+    submitterEmail,
+    createdAfter,
+    createdBefore,
+  }: {
+    formId: string;
+    responseId: number;
+    submitterEmail: string;
+    createdAfter: Date;
+    createdBefore: Date;
+  }) {
+    return await this.prismaClient.app_RoutingForms_FormResponse.findFirst({
+      where: {
+        formId,
+        submitterEmail: {
+          equals: submitterEmail,
+          mode: "insensitive",
+        },
+        createdAt: {
+          gte: createdAfter,
+          lt: createdBefore,
+        },
+        routedToBookingUid: {
+          not: null,
+        },
+        NOT: {
+          id: responseId,
+        },
+      },
+      select: {
+        id: true,
       },
     });
   }
