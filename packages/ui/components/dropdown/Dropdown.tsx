@@ -1,13 +1,11 @@
+import classNames from "@calcom/ui/classNames";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { forwardRef } from "react";
-
-import classNames from "@calcom/ui/classNames";
-
 import type { ButtonColor } from "../button";
-import { Icon } from "../icon";
 import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
@@ -111,6 +109,45 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
 DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
 
 export const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
+
+export const DropdownMenuSub = DropdownMenuPrimitive.Sub;
+
+type DropdownMenuSubTriggerProps = ComponentProps<(typeof DropdownMenuPrimitive)["SubTrigger"]>;
+export const DropdownMenuSubTrigger = forwardRef<HTMLDivElement, DropdownMenuSubTriggerProps>(
+  ({ className = "", children, ...props }, forwardedRef) => (
+    <DropdownMenuPrimitive.SubTrigger
+      className={classNames(
+        "hover:bg-subtle hover:text-emphasis text-default flex cursor-pointer select-none items-center justify-between rounded-lg p-2 text-sm font-medium outline-none ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:bg-subtle focus:text-emphasis",
+        className
+      )}
+      {...props}
+      ref={forwardedRef}>
+      {children}
+      <Icon name="chevron-right" className="ml-auto h-4 w-4" />
+    </DropdownMenuPrimitive.SubTrigger>
+  )
+);
+DropdownMenuSubTrigger.displayName = "DropdownMenuSubTrigger";
+
+type DropdownMenuSubContentProps = ComponentProps<(typeof DropdownMenuPrimitive)["SubContent"]>;
+export const DropdownMenuSubContent = forwardRef<HTMLDivElement, DropdownMenuSubContentProps>(
+  ({ children, sideOffset = 2, alignOffset = -5, ...props }, forwardedRef) => {
+    return (
+      <DropdownMenuPrimitive.SubContent
+        sideOffset={sideOffset}
+        alignOffset={alignOffset}
+        {...props}
+        className={classNames(
+          "shadow-dropdown bg-default border-subtle relative z-50 min-w-[180px] origin-top-left stack-y-px rounded-xl border p-1 text-sm",
+          props.className
+        )}
+        ref={forwardedRef}>
+        {children}
+      </DropdownMenuPrimitive.SubContent>
+    );
+  }
+);
+DropdownMenuSubContent.displayName = "DropdownMenuSubContent";
 
 type DropdownMenuRadioItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["RadioItem"]>;
 export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadioItemProps>(
