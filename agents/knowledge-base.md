@@ -2,7 +2,7 @@
 
 This file contains domain knowledge about the Cal.com product and codebase. For coding guidelines and rules, see [`rules/`](rules/).
 
-## Business Rules
+## When working with managed events, organizations, or OAuth clients
 
 ### 1. Managed Event Types
 
@@ -31,7 +31,7 @@ There are two types of OAuth clients:
 
 If someone says "platform OAuth client" they mean the one in the `PlatformOAuthClient` table.
 
-## Product & Codebase Knowledge
+## When you need product or codebase context
 
 ### Monorepo Structure
 
