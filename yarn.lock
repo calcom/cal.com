@@ -3524,7 +3524,7 @@ __metadata:
     "@hookform/resolvers": "npm:2.9.7"
     "@microsoft/microsoft-graph-types-beta": "npm:0.15.0-preview"
     "@next-auth/prisma-adapter": "npm:1.0.4"
-    "@next/bundle-analyzer": "npm:16.1.0"
+    "@next/bundle-analyzer": "npm:16.1.5"
     "@next/third-parties": "npm:14.2.5"
     "@playwright/test": "npm:1.57.0"
     "@prisma/nextjs-monorepo-workaround-plugin": "npm:6.16.1"
@@ -8500,12 +8500,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/bundle-analyzer@npm:16.1.0":
-  version: 16.1.0
-  resolution: "@next/bundle-analyzer@npm:16.1.0"
+"@next/bundle-analyzer@npm:16.1.5":
+  version: 16.1.5
+  resolution: "@next/bundle-analyzer@npm:16.1.5"
   dependencies:
     webpack-bundle-analyzer: "npm:4.10.1"
-  checksum: 10/f6657feda9e7d295d76fbc4a5cf14f189c47624a53c7d62f2a0656def8d2a9870aa46178ab524a986df54aace90537c9b1b2ec52aaf3803800093505570d4ada
+  checksum: 10/2bf5f7bce2192bfa1f940ed8d90502637b8c9f70da7dda094ea218730dd45d879f99ea235d812a4540f75b1cf0f028307ef328a17944b0b6a9679824c4191308
   languageName: node
   linkType: hard
 
