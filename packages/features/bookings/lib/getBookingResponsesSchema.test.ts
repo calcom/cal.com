@@ -1871,7 +1871,7 @@ describe("require email/domain validation", () => {
         {
           name: "optionalEmail",
           type: "email",
-          required: false, // This is the crucial part
+          required: false,
         },
       ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
@@ -1880,7 +1880,7 @@ describe("require email/domain validation", () => {
     const parsedResponses = await schema.safeParseAsync({
       name: "John Doe",
       email: "john@example.com",
-      optionalEmail: "not-a-valid-email", // Should be caught by your refinement
+      optionalEmail: "not-a-valid-email",
     });
 
     expect(parsedResponses.success).toBe(false);
@@ -1918,7 +1918,7 @@ describe("require email/domain validation", () => {
     const parsedResponses = await schema.safeParseAsync({
       name: "John Doe",
       email: "john@example.com",
-      optionalEmail: "", // Should be allowed by your refinement
+      optionalEmail: "",
     });
 
     expect(parsedResponses.success).toBe(true);
