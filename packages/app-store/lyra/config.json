@@ -16,7 +16,7 @@
     "location": {
       "linkType": "dynamic",
       "type": "integrations:lyra",
-      "label": "Lyra"
+      "label": "Lyra Meeting"
     }
   }
 }
