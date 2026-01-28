@@ -129,7 +129,7 @@ describe("SelectedCalendarRepository", () => {
               some: {
                 accepted: true,
                 team: {
-                  teamFeatures: {
+                  features: {
                     some: {
                       featureId: { in: ["calendar-subscription-cache"] },
                       enabled: true,
@@ -182,7 +182,7 @@ describe("SelectedCalendarRepository", () => {
               some: {
                 accepted: true,
                 team: {
-                  teamFeatures: {
+                  features: {
                     some: {
                       featureId: { in: ["calendar-subscription-cache"] },
                       enabled: true,
@@ -238,7 +238,7 @@ describe("SelectedCalendarRepository", () => {
               some: {
                 accepted: true,
                 team: {
-                  teamFeatures: {
+                  features: {
                     some: {
                       featureId: { in: ["calendar-subscription-cache"] },
                       enabled: true,

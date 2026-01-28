@@ -67,7 +67,7 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
             some: {
               accepted: true,
               team: {
-                teamFeatures: {
+                features: {
                   some: {
                     featureId: { in: featureIds },
                     enabled: true,
