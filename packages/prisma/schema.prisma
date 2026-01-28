@@ -3215,7 +3215,7 @@ model AttributeSyncFieldMapping {
 
 model PendingRoutingTrace {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(dbgenerated("timezone('UTC'::text, now())"))
+  createdAt DateTime @default(now())
   trace     Json
 
   formResponseId Int?                           @unique
@@ -3227,7 +3227,7 @@ model PendingRoutingTrace {
 
 model RoutingTrace {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(dbgenerated("timezone('UTC'::text, now())"))
+  createdAt DateTime @default(now())
   trace     Json
 
   formResponseId Int?                           @unique
