@@ -842,6 +842,7 @@ model Attendee {
 
   @@index([email])
   @@index([bookingId])
+  @@index([email, bookingId])
 }
 
 enum BookingStatus {
@@ -931,6 +932,10 @@ model Booking {
   @@index([status])
   @@index([startTime, endTime, status])
   @@index([fromReschedule])
+  @@index([userId, endTime])
+  @@index([userId, status, startTime])
+  @@index([eventTypeId, status])
+  @@index([userId, createdAt])
 }
 
 model Tracking {
@@ -2167,6 +2172,7 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+  @@index([email, emailVerified])
 }
 
 // Needed to store tasks that need to be processed by a background worker or Tasker
@@ -3086,6 +3092,7 @@ model MonthlyProration {
 
   invoiceItemId String?
   invoiceId     String?
+  invoiceUrl    String?
 
   status ProrationStatus @default(PENDING)
 
@@ -3210,7 +3217,7 @@ model AttributeSyncFieldMapping {
 
 model PendingRoutingTrace {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(dbgenerated("timezone('UTC'::text, now())"))
+  createdAt DateTime @default(now())
   trace     Json
 
   formResponseId Int?                           @unique
@@ -3222,7 +3229,7 @@ model PendingRoutingTrace {
 
 model RoutingTrace {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(dbgenerated("timezone('UTC'::text, now())"))
+  createdAt DateTime @default(now())
   trace     Json
 
   formResponseId Int?                           @unique
