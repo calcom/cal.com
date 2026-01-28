@@ -109,5 +109,8 @@ packages/**/.yarn/ci-cache/
 .claude/plans/
 .claude/settings.local.json
 
+# Spec drafts (rough work, not ready for review)
+specs/**/_drafts/
+
 # trigger.dev
 .trigger
