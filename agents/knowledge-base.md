@@ -2,9 +2,7 @@
 
 This file contains domain knowledge about the Cal.com product and codebase. For coding guidelines and rules, see [`rules/`](rules/).
 
-## When working with managed events, organizations, or OAuth clients
-
-### 1. Managed Event Types
+## When working with managed event types
 
 When a managed event type is created, we create:
 - A **parent managed event type** for the team (has `teamId` set in EventType table)
@@ -14,13 +12,13 @@ Example: If we create a managed event type and assign Alice and Bob, three rows 
 
 **Important**: Only child managed event types can be booked.
 
-### 2. Organizations and Teams
+## When working with organizations and teams
 
 Both organizations and teams are stored in the `Team` table:
 - **Organizations**: Have `isOrganization` set to `true`
 - **Teams within an organization**: Have `parentId` set (pointing to the organization)
 
-### 3. OAuth Client Types
+## When working with OAuth clients
 
 There are two types of OAuth clients:
 
