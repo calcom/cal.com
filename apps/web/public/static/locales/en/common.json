@@ -3328,6 +3328,8 @@
   "booking_limits": "Booking limits",
   "booking_limits_team_description": "Booking limits for team members across all team event types",
   "limit_team_booking_frequency_description": "Limit how many times members can be booked across all team event types",
+  "team_limits_apply": "Team limits apply",
+  "managed_by_team_admins": "Managed by team admins",
   "booking_limits_updated_successfully": "Booking limits updated successfully",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
   "delegation_credential_disabled": "Delegation credential disabled",
