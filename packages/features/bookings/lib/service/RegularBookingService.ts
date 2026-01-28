@@ -2718,6 +2718,9 @@ async function handler(
             rescheduleStartTime: originalRescheduledBooking.startTime.toISOString(),
             rescheduleEndTime: originalRescheduledBooking.endTime.toISOString(),
             rescheduledBy: reqBody.rescheduledBy ?? undefined,
+            platformRescheduleUrl,
+            platformCancelUrl,
+            platformBookingUrl,
           });
         } else {
           await this.queueBookingCreatedWebhook({
@@ -2987,11 +2990,17 @@ export class RegularBookingService implements IBookingService {
     rescheduleStartTime?: string;
     rescheduleEndTime?: string;
     rescheduledBy?: string;
+    platformRescheduleUrl?: string | null;
+    platformCancelUrl?: string | null;
+    platformBookingUrl?: string | null;
   }): Promise<void> {
     await this.deps.webhookProducer.queueBookingRescheduledWebhook({
       ...params,
       teamId: params.teamId ?? undefined,
       oAuthClientId: params.oAuthClientId ?? undefined,
+      platformRescheduleUrl: params.platformRescheduleUrl ?? undefined,
+      platformCancelUrl: params.platformCancelUrl ?? undefined,
+      platformBookingUrl: params.platformBookingUrl ?? undefined,
     });
   }
 

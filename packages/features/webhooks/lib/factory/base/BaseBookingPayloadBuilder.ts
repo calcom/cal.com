@@ -11,7 +11,6 @@ import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory"
 export type BookingExtraDataMap = {
   [WebhookTriggerEvents.BOOKING_CREATED]: {
     metadata?: Record<string, unknown>;
-    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   [WebhookTriggerEvents.BOOKING_CANCELLED]: {
     cancelledBy?: string;
@@ -28,6 +27,7 @@ export type BookingExtraDataMap = {
     rescheduleStartTime?: string;
     rescheduleEndTime?: string;
     rescheduledBy?: string;
+    metadata?: Record<string, unknown>;
   };
   [WebhookTriggerEvents.BOOKING_PAID]: { paymentId?: number; paymentData?: Record<string, unknown> };
   [WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED]: {

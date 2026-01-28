@@ -253,6 +253,7 @@ export class WebhookTaskConsumer {
           rescheduleStartTime: bookingPayload.rescheduleStartTime,
           rescheduleEndTime: bookingPayload.rescheduleEndTime,
           rescheduledBy: bookingPayload.rescheduledBy,
+          metadata: bookingPayload.metadata,
         } as WebhookEventDTO;
 
       case WebhookTriggerEvents.BOOKING_REJECTED:

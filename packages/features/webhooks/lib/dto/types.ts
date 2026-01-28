@@ -27,10 +27,10 @@ export interface BookingCreatedDTO extends BaseEventDTO {
     userId: number | null;
     startTime: Date;
     smsReminderNumber?: string | null;
+    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   status: "ACCEPTED" | "PENDING";
   metadata?: Record<string, unknown>;
-  assignmentReason?: { reasonEnum: string; reasonString: string }[];
 }
 
 export interface BookingCancelledDTO extends BaseEventDTO {
@@ -91,12 +91,14 @@ export interface BookingRescheduledDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   rescheduleId?: number;
   rescheduleUid?: string;
   rescheduleStartTime?: string;
   rescheduleEndTime?: string;
   rescheduledBy?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BookingPaidDTO extends BaseEventDTO {
