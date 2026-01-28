@@ -1247,8 +1247,7 @@ export class BookingRepository implements IBookingRepository {
         where: whereCollectiveRoundRobinOwner,
       });
 
-      // PERFORMANCE: Use subquery to match attendee emails via user IDs instead of materializing all emails
-      // This avoids passing 100+ email parameters while preserving the original semantics
+      // PERFORMANCE: Use array parameter instead of expanding 100+ individual email/ID parameters
       const collectiveRoundRobinBookingsAttendee = await this.prismaClient.$queryRaw<[{ count: bigint }]>`
         SELECT COUNT(DISTINCT b.id) as count
         FROM "Booking" b
@@ -1262,7 +1261,7 @@ export class BookingRepository implements IBookingRepository {
             SELECT 1 FROM "Attendee" a
             INNER JOIN "users" u ON a.email = u.email
             WHERE a."bookingId" = b.id
-              AND u.id IN (${Prisma.join(userIds)})
+              AND u.id = ANY(${userIds}::int[])
           )
       `;
 
@@ -1286,8 +1285,7 @@ export class BookingRepository implements IBookingRepository {
       where: whereCollectiveRoundRobinOwner,
     });
 
-    // PERFORMANCE: Use subquery to match attendee emails via user IDs instead of materializing all emails
-    // This avoids passing 100+ email parameters while preserving the original semantics
+    // PERFORMANCE: Use array parameter instead of expanding 100+ individual email/ID parameters
     const collectiveRoundRobinBookingsAttendee = await this.prismaClient.$queryRaw<Booking[]>`
       SELECT b.*
       FROM "Booking" b
@@ -1301,7 +1299,7 @@ export class BookingRepository implements IBookingRepository {
           SELECT 1 FROM "Attendee" a
           INNER JOIN "users" u ON a.email = u.email
           WHERE a."bookingId" = b.id
-            AND u.id IN (${Prisma.join(userIds)})
+            AND u.id = ANY(${userIds}::int[])
         )
     `;
 
