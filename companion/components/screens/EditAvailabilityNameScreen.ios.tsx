@@ -137,11 +137,17 @@ export const EditAvailabilityNameScreen = forwardRef<
           <>
             {/* Name Input - Glass UI */}
             <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Schedule Name</Text>
-            <View className="mb-4 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60">
+            <View
+              className={`mb-4 overflow-hidden rounded-xl ${
+                isDark
+                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  : "border border-gray-300/40 bg-white/60"
+              }`}
+            >
               <TextInput
-                className="px-4 py-3.5 text-[17px] text-black"
+                className={`px-4 py-3.5 text-[17px] ${isDark ? "text-white" : "text-black"}`}
                 placeholder="Enter schedule name"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -151,12 +157,20 @@ export const EditAvailabilityNameScreen = forwardRef<
 
             {/* Timezone Selector - Glass UI */}
             <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Timezone</Text>
-            <View className="mb-4 flex-row items-center rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3">
+            <View
+              className={`mb-4 flex-row items-center rounded-xl px-4 py-3 ${
+                isDark
+                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  : "border border-gray-300/40 bg-white/60"
+              }`}
+            >
               <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-[#007AFF]/20">
                 <Ionicons name="globe-outline" size={20} color="#007AFF" />
               </View>
               <View className="flex-1">
-                <Text className="text-[17px] font-medium text-black">{selectedTimezoneLabel}</Text>
+                <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-black"}`}>
+                  {selectedTimezoneLabel}
+                </Text>
                 <Text className="mt-0.5 text-[13px] text-[#8E8E93]">{timezone}</Text>
               </View>
 

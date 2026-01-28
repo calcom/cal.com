@@ -300,7 +300,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       <View
         className={`mb-4 rounded-xl px-4 py-3.5 ${
           transparentBackground
-            ? "border border-gray-300/40 bg-white/60"
+            ? isDark
+              ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+              : "border border-gray-300/40 bg-white/60"
             : isDark
               ? "bg-[#1C1C1E]"
               : "bg-white"
@@ -330,7 +332,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       <View
         className={`mb-4 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
           transparentBackground
-            ? "border border-gray-300/40 bg-white/60"
+            ? isDark
+              ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+              : "border border-gray-300/40 bg-white/60"
             : isDark
               ? "bg-[#1C1C1E]"
               : "bg-white"
@@ -361,7 +365,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
           <View
             className={`mb-4 rounded-xl px-4 py-3.5 ${
               transparentBackground
-                ? "border border-gray-300/40 bg-white/60"
+                ? isDark
+                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  : "border border-gray-300/40 bg-white/60"
                 : isDark
                   ? "bg-[#1C1C1E]"
                   : "bg-white"
@@ -404,7 +410,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
           <View
             className={`overflow-hidden rounded-xl ${
               transparentBackground
-                ? "border border-gray-300/40 bg-white/60"
+                ? isDark
+                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  : "border border-gray-300/40 bg-white/60"
                 : isDark
                   ? "bg-[#1C1C1E]"
                   : "bg-white"

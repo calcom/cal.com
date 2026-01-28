@@ -329,7 +329,9 @@ export const EditAvailabilityDayScreen = forwardRef<
       <View
         className={`mb-4 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
           transparentBackground
-            ? "border border-gray-300/40 bg-white/60"
+            ? isDark
+              ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+              : "border border-gray-300/40 bg-white/60"
             : isDark
               ? "bg-[#1C1C1E]"
               : "bg-white"
@@ -356,7 +358,9 @@ export const EditAvailabilityDayScreen = forwardRef<
               key={`slot-${slot.startTime}-${slot.endTime}-${index}`}
               className={`mb-3 rounded-xl px-4 py-3 ${
                 transparentBackground
-                  ? "border border-gray-300/40 bg-white/60"
+                  ? isDark
+                    ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                    : "border border-gray-300/40 bg-white/60"
                   : isDark
                     ? "bg-[#1C1C1E]"
                     : "bg-white"
@@ -408,7 +412,9 @@ export const EditAvailabilityDayScreen = forwardRef<
             onPress={handleAddSlot}
             className={`flex-row items-center justify-center rounded-xl py-3.5 ${
               transparentBackground
-                ? "border border-dashed border-gray-300/60 bg-white/40"
+                ? isDark
+                  ? "border border-dashed border-[#38383A]/60 bg-[#1C1C1E]/60"
+                  : "border border-dashed border-gray-300/60 bg-white/40"
                 : isDark
                   ? "border border-dashed border-[#38383A] bg-[#1C1C1E]"
                   : "border border-dashed border-[#C7C7CC] bg-white"
@@ -425,7 +431,9 @@ export const EditAvailabilityDayScreen = forwardRef<
         <View
           className={`items-center rounded-xl px-4 py-8 ${
             transparentBackground
-              ? "border border-gray-300/40 bg-white/60"
+              ? isDark
+                ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                : "border border-gray-300/40 bg-white/60"
               : isDark
                 ? "bg-[#1C1C1E]"
                 : "bg-white"
