@@ -92,7 +92,9 @@ jobs:
       - name: Commit changes
         env:
           VERSION: ${{ inputs.next_version }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
+          gh auth setup-git
           git add .
           git commit -m "chore: release v$VERSION"
           git push

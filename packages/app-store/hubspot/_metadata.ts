@@ -1,5 +1,5 @@
+import process from "node:process";
 import type { AppMeta } from "@calcom/types/App";
-
 import _package from "./package.json";
 
 export const metadata = {
