@@ -28,6 +28,7 @@ import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/sc
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
@@ -1991,6 +1992,20 @@ async function handler(
       }
 
       evt = updatedEvtWithPassword;
+
+      // Add assignment reason to evt for emails
+      if (assignmentReason) {
+        const updatedEvtWithAssignmentReason = CalendarEventBuilder.fromEvent(evt)
+          ?.withAssignmentReason({
+            category: getAssignmentReasonCategory(assignmentReason.reasonEnum),
+            details: assignmentReason.reasonString ?? null,
+          })
+          .build();
+
+        if (updatedEvtWithAssignmentReason) {
+          evt = updatedEvtWithAssignmentReason;
+        }
+      }
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
