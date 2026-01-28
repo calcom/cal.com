@@ -481,7 +481,6 @@ export default function Login({
                   samlTenantID={samlTenantID}
                   samlProductID={samlProductID}
                   setErrorMessage={setErrorMessage}
-                  variant="link"
                   color="minimal"
                   StartIcon={undefined}
                   className="text-sm font-medium text-emphasis hover:underline p-0 h-auto"
