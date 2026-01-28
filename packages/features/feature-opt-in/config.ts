@@ -30,30 +30,27 @@ export interface OptInFeatureConfig {
   displayLocations?: OptInFeatureDisplayLocation[];
 }
 
-/** All available scopes for feature opt-in configuration */
-export const ALL_SCOPES: OptInFeatureScope[] = ["org", "team", "user"];
-
 /**
  * Features that appear in opt-in settings.
  * Add new features here to make them available for user/team opt-in.
  */
 export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
-  // Example - to be populated with actual features
-  // {
-  //   slug: "bookings-v3",
-  //   i18n: {
-  //     title: "bookings_v3_title",
-  //     name: "bookings_v3_name",
-  //     description: "bookings_v3_description",
-  //   },
-  //   bannerImage: {
-  //     src: "/opt_in_banner_bookings_v3.png",
-  //     width: 548,
-  //     height: 348,
-  //   },
-  //   policy: "permissive",
-  //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
-  // },
+  {
+    slug: "bookings-v3",
+    i18n: {
+      title: "bookings_v3_title",
+      name: "bookings_v3_name",
+      description: "bookings_v3_description",
+    },
+    bannerImage: {
+      src: "/opt_in_banner_bookings_v3.png",
+      width: 548,
+      height: 348,
+    },
+    policy: "permissive",
+    displayLocations: ["settings"],
+    scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
+  },
 ];
 
 /**
@@ -89,18 +86,6 @@ export function shouldDisplayFeatureAt(
 ): boolean {
   return getFeatureDisplayLocations(feature).includes(location);
 }
-
-/**
- * Get all opt-in features that should be displayed at a specific location.
- */
-export function getOptInFeaturesForLocation(location: OptInFeatureDisplayLocation): OptInFeatureConfig[] {
-  return OPT_IN_FEATURES.filter((feature) => shouldDisplayFeatureAt(feature, location));
-}
-
-/**
- * Check if there are any opt-in features available.
- */
-export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;
 
 /**
  * Whether there are opt-in features available for the user scope in settings.
