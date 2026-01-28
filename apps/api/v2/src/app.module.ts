@@ -27,9 +27,7 @@ import { VercelWebhookController } from "@/vercel-webhook.controller";
   imports: [
     SentryModule.forRoot(),
     ConfigModule.forRoot({
-      ...(process.env.NODE_ENV === "production"
-        ? { envFilePath: ".env.production" }
-        : { ignoreEnvFile: true }),
+      ignoreEnvFile: true,
       isGlobal: true,
       load: [appConfig],
     }),
