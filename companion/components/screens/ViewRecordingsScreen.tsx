@@ -50,7 +50,7 @@ export function ViewRecordingsScreen({
   const pillStyle = transparentBackground
     ? "bg-[#E8E8ED]/50"
     : isDark
-      ? "bg-[#38383A]"
+      ? "bg-[#4D4D4D]"
       : "bg-[#E8E8ED]";
 
   const handleOpenRecording = async (recording: BookingRecording) => {
@@ -68,10 +68,10 @@ export function ViewRecordingsScreen({
       className={`mb-3 overflow-hidden rounded-xl ${
         transparentBackground
           ? isDark
-            ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+            ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
             : "border border-gray-300/40 bg-white/60"
           : isDark
-            ? "bg-[#1C1C1E]"
+            ? "bg-[#171717]"
             : "bg-white"
       }`}
       onPress={() => handleOpenRecording(item)}
@@ -79,13 +79,13 @@ export function ViewRecordingsScreen({
     >
       <View className="flex-row items-center p-4">
         <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
-          <Ionicons name="videocam" size={20} color={isDark ? "#8E8E93" : "#6B7280"} />
+          <Ionicons name="videocam" size={20} color={isDark ? "#A3A3A3" : "#6B7280"} />
         </View>
         <View className="flex-1">
           <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-[#000]"}`}>
             Recording
           </Text>
-          <Text className={`mt-0.5 text-[15px] ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}>
+          <Text className={`mt-0.5 text-[15px] ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}>
             {formatDate(item.startTime)}
           </Text>
           {item.duration && (
@@ -103,7 +103,7 @@ export function ViewRecordingsScreen({
     return (
       <View className={`flex-1 items-center justify-center px-8 ${backgroundStyle}`}>
         <View className={`mb-4 h-16 w-16 items-center justify-center rounded-full ${pillStyle}`}>
-          <Ionicons name="videocam-off" size={32} color="#8E8E93" />
+          <Ionicons name="videocam-off" size={32} color="#A3A3A3" />
         </View>
         <Text
           className={`text-center text-[17px] font-semibold ${isDark ? "text-white" : "text-[#000]"}`}
@@ -111,7 +111,7 @@ export function ViewRecordingsScreen({
           No recordings available
         </Text>
         <Text
-          className={`mt-2 text-center text-[15px] leading-5 ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+          className={`mt-2 text-center text-[15px] leading-5 ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}
         >
           Recordings may take some time to process after the meeting ends.
         </Text>

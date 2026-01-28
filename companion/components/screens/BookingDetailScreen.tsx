@@ -180,13 +180,13 @@ export function BookingDetailScreen({
 
   const colors = {
     background: isDark ? "#000000" : "#f2f2f7",
-    cardBackground: isDark ? "#1C1C1E" : "#FFFFFF",
+    cardBackground: isDark ? "#171717" : "#FFFFFF",
     text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#8E8E93" : "#8E8E93",
+    textSecondary: isDark ? "#A3A3A3" : "#A3A3A3",
     textTertiary: isDark ? "#636366" : "#636366",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
     destructive: isDark ? "#FF453A" : "#800020",
-    badge: isDark ? "#38383A" : "#E5E5EA",
+    badge: isDark ? "#4D4D4D" : "#E5E5EA",
   };
 
   const [showActionsModal, setShowActionsModal] = useState(false);
@@ -545,7 +545,7 @@ export function BookingDetailScreen({
     if (normalizedStatus === "pending") {
       return {
         name: "help-circle" as const,
-        color: "#8E8E93",
+        color: "#A3A3A3",
         label: "Pending",
       };
     }
@@ -553,7 +553,7 @@ export function BookingDetailScreen({
     if (normalizedStatus === "cancelled" || normalizedStatus === "rejected") {
       return {
         name: "close-circle-outline" as const,
-        color: "#8E8E93",
+        color: "#A3A3A3",
         label: null,
       };
     }

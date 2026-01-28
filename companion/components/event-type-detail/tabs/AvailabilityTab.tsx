@@ -103,7 +103,7 @@ function NavigationRow({
           {Platform.OS === "ios" && options && onSelect ? (
             <>
               {value ? (
-                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-2 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}
@@ -121,7 +121,7 @@ function NavigationRow({
               disabled={disabled}
             >
               {value ? (
-                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-1 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}
@@ -170,7 +170,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
               style={{ height: 44 }}
             >
               <Text className="text-[17px] text-black">Weekly Schedule</Text>
-              <Text className="text-[17px] text-[#8E8E93]">
+              <Text className="text-[17px] text-[#A3A3A3]">
                 {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
               </Text>
             </View>
@@ -179,7 +179,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
           {/* Day rows */}
           {props.scheduleDetailsLoading ? (
             <View className="items-center bg-white py-6">
-              <Text className="text-[15px] italic text-[#8E8E93]">Loading schedule details...</Text>
+              <Text className="text-[15px] italic text-[#A3A3A3]">Loading schedule details...</Text>
             </View>
           ) : props.selectedScheduleDetails ? (
             <View className="bg-white px-4 py-2">
@@ -204,7 +204,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                     {/* Day name */}
                     <Text
                       className={`w-24 text-[15px] font-medium ${
-                        isEnabled ? "text-black" : "text-[#8E8E93]"
+                        isEnabled ? "text-black" : "text-[#A3A3A3]"
                       }`}
                     >
                       {day}
@@ -225,7 +225,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                         ))}
                       </View>
                     ) : (
-                      <Text className="flex-1 text-right text-[15px] text-[#8E8E93]">
+                      <Text className="flex-1 text-right text-[15px] text-[#A3A3A3]">
                         Unavailable
                       </Text>
                     )}
@@ -235,7 +235,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
             </View>
           ) : (
             <View className="items-center bg-white py-6">
-              <Text className="text-[15px] italic text-[#8E8E93]">
+              <Text className="text-[15px] italic text-[#A3A3A3]">
                 Failed to load schedule details
               </Text>
             </View>

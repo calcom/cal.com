@@ -77,7 +77,7 @@ function InputRow({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor="#A3A3A3"
           multiline={multiline}
           numberOfLines={numberOfLines}
           keyboardType={keyboardType}
@@ -149,7 +149,7 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
                 value={props.eventSlug}
                 onChangeText={(text) => props.setEventSlug(slugify(text, true))}
                 placeholder="event-slug"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor="#A3A3A3"
               />
             </View>
           </View>
@@ -171,7 +171,7 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
                   value={props.eventDuration}
                   onChangeText={props.setEventDuration}
                   placeholder="30"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
                 <Text className="text-[15px] text-[#6D6D72]">minutes</Text>

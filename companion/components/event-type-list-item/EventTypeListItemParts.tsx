@@ -33,7 +33,7 @@ export function EventTypeTitle({ title, username, slug, bookingUrl }: EventTypeT
   return (
     <View className="mb-1 flex-row flex-wrap items-baseline">
       <Text className="text-base font-semibold text-cal-text dark:text-white">{title}</Text>
-      <Text className="ml-1 text-sm text-cal-text-secondary dark:text-[#8E8E93]">{linkText}</Text>
+      <Text className="ml-1 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">{linkText}</Text>
     </View>
   );
 }
@@ -46,7 +46,7 @@ export function EventTypeDescription({ normalizedDescription }: EventTypeDescrip
   if (!normalizedDescription) return null;
   return (
     <Text
-      className="mb-2 mt-0.5 text-sm leading-5 text-cal-text-secondary dark:text-[#8E8E93]"
+      className="mb-2 mt-0.5 text-sm leading-5 text-cal-text-secondary dark:text-[#A3A3A3]"
       numberOfLines={2}
     >
       {normalizedDescription}
@@ -63,7 +63,7 @@ interface EventTypeLinkProps {
 export function EventTypeLink({ username, slug, bookingUrl }: EventTypeLinkProps) {
   const linkText = getDisplayUrl(bookingUrl, username, slug);
   return (
-    <Text className="mb-1 mt-0.5 text-sm text-cal-text-secondary dark:text-[#8E8E93]">
+    <Text className="mb-1 mt-0.5 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
       {linkText}
     </Text>
   );
@@ -129,7 +129,7 @@ export function EventTypeBadges({
     <View className="mt-2 flex-row flex-wrap items-center gap-2" style={{ width: "100%" }}>
       {/* Duration Badge */}
       <View
-        className="rounded-md border border-cal-border bg-cal-border dark:border-[#38383A] dark:bg-[#38383A]"
+        className="rounded-md border border-cal-border bg-cal-border dark:border-[#4D4D4D] dark:bg-[#4D4D4D]"
         style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
       >
         <Ionicons name="time-outline" size={14} color={badgeIconColor} />
@@ -141,7 +141,7 @@ export function EventTypeBadges({
       {/* Hidden Badge */}
       {hidden ? (
         <View
-          className="rounded-md border border-cal-border bg-cal-border dark:border-[#38383A] dark:bg-[#38383A]"
+          className="rounded-md border border-cal-border bg-cal-border dark:border-[#4D4D4D] dark:bg-[#4D4D4D]"
           style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
         >
           <Ionicons name="eye-off-outline" size={14} color={badgeIconColor} />
@@ -154,7 +154,7 @@ export function EventTypeBadges({
       {/* Seats Badge */}
       {hasSeats ? (
         <View
-          className="rounded-md border border-cal-border bg-cal-border dark:border-[#38383A] dark:bg-[#38383A]"
+          className="rounded-md border border-cal-border bg-cal-border dark:border-[#4D4D4D] dark:bg-[#4D4D4D]"
           style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
         >
           <Ionicons name="people-outline" size={14} color={badgeIconColor} />
@@ -167,7 +167,7 @@ export function EventTypeBadges({
       {/* Price Badge */}
       {hasPrice && formattedPrice ? (
         <View
-          className="rounded-md border border-cal-border bg-cal-border dark:border-[#38383A] dark:bg-[#38383A]"
+          className="rounded-md border border-cal-border bg-cal-border dark:border-[#4D4D4D] dark:bg-[#4D4D4D]"
           style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
         >
           <Ionicons name="card-outline" size={14} color={badgeIconColor} />
@@ -180,7 +180,7 @@ export function EventTypeBadges({
       {/* Repeats Badge */}
       {hasRecurrence ? (
         <View
-          className="rounded-md border border-cal-border bg-cal-border dark:border-[#38383A] dark:bg-[#38383A]"
+          className="rounded-md border border-cal-border bg-cal-border dark:border-[#4D4D4D] dark:bg-[#4D4D4D]"
           style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
         >
           <Ionicons name="repeat-outline" size={14} color={badgeIconColor} />
@@ -193,7 +193,7 @@ export function EventTypeBadges({
       {/* Requires Confirmation Badge */}
       {requiresConfirmation ? (
         <View
-          className="rounded-md border border-cal-border bg-cal-border dark:border-[#38383A] dark:bg-[#38383A]"
+          className="rounded-md border border-cal-border bg-cal-border dark:border-[#4D4D4D] dark:bg-[#4D4D4D]"
           style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
         >
           <Ionicons name="checkmark-circle-outline" size={14} color={badgeIconColor} />
@@ -230,7 +230,7 @@ export function EventTypeActions({
     <View className="flex-row">
       <Tooltip text="Preview">
         <TouchableOpacity
-          className="items-center justify-center rounded-l-lg border border-r-0 border-cal-border dark:border-[#38383A] dark:bg-[#1C1C1E]"
+          className="items-center justify-center rounded-l-lg border border-r-0 border-cal-border dark:border-[#4D4D4D] dark:bg-[#171717]"
           style={{ width: 32, height: 32 }}
           onPress={() => handlePreview(item)}
         >
@@ -239,7 +239,7 @@ export function EventTypeActions({
       </Tooltip>
       <Tooltip text={copiedEventTypeId === item.id ? "Copied!" : "Copy link"}>
         <TouchableOpacity
-          className="items-center justify-center border border-r-0 border-cal-border dark:border-[#38383A] dark:bg-[#1C1C1E]"
+          className="items-center justify-center border border-r-0 border-cal-border dark:border-[#4D4D4D] dark:bg-[#171717]"
           style={{ width: 32, height: 32 }}
           onPress={() => handleCopyLink(item)}
         >
@@ -264,7 +264,7 @@ export function EventTypeActions({
       </Tooltip>
       <Tooltip text="More">
         <TouchableOpacity
-          className="items-center justify-center rounded-r-lg border border-cal-border dark:border-[#38383A] dark:bg-[#1C1C1E]"
+          className="items-center justify-center rounded-r-lg border border-cal-border dark:border-[#4D4D4D] dark:bg-[#171717]"
           style={{ width: 32, height: 32 }}
           onPress={() => handleEventTypeLongPress(item)}
         >

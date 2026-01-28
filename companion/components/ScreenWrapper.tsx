@@ -76,7 +76,7 @@ export function ScreenWrapper({
     return (
       <View className="flex-1 bg-gray-100 dark:bg-black">
         {showHeader && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <LoadingSpinner size="large" />
         </View>
       </View>
@@ -87,7 +87,7 @@ export function ScreenWrapper({
     return (
       <View className="flex-1 bg-gray-100 dark:bg-black">
         {showHeader && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <Ionicons name="alert-circle" size={64} color={errorIconColor} />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-gray-100">
             {errorTitle}
@@ -112,7 +112,7 @@ export function ScreenWrapper({
     return (
       <View className="flex-1 bg-gray-100 dark:bg-black">
         {showHeader && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <EmptyScreen {...emptyProps} />
         </View>
       </View>

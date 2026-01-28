@@ -25,10 +25,10 @@ export function EmptyScreen({
 
   const colors = {
     text: isDark ? "#FFFFFF" : "#111827",
-    textSecondary: isDark ? "#8E8E93" : "#6B7280",
-    background: isDark ? "#1C1C1E" : "#FFFFFF",
+    textSecondary: isDark ? "#A3A3A3" : "#6B7280",
+    background: isDark ? "#171717" : "#FFFFFF",
     backgroundSecondary: isDark ? "#2C2C2E" : "#F3F4F6",
-    border: isDark ? "#38383A" : "#D1D5DB",
+    border: isDark ? "#4D4D4D" : "#D1D5DB",
     icon: isDark ? "#E5E5EA" : "#374151",
     buttonBg: isDark ? "#FFFFFF" : "#111827",
     buttonText: isDark ? "#000000" : "#FFFFFF",

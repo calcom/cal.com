@@ -183,12 +183,12 @@ export const EditAvailabilityDayScreen = forwardRef<
 
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#F9FAFB",
-    cardBackground: isDark ? "#1C1C1E" : "#FFFFFF",
+    backgroundSecondary: isDark ? "#171717" : "#F9FAFB",
+    cardBackground: isDark ? "#171717" : "#FFFFFF",
     text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#8E8E93" : "#6B7280",
-    border: isDark ? "#38383A" : "#E5E5EA",
-    iconColor: isDark ? "#FFFFFF" : "#8E8E93",
+    textSecondary: isDark ? "#A3A3A3" : "#6B7280",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
+    iconColor: isDark ? "#FFFFFF" : "#A3A3A3",
   };
 
   // Use mutation hook for cache-synchronized updates
@@ -206,7 +206,7 @@ export const EditAvailabilityDayScreen = forwardRef<
   // Render modal content
   const renderTimePickerContent = () => (
     <>
-      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-[#38383A]">
+      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-[#4D4D4D]">
         <Text className="text-[17px] font-semibold text-black dark:text-white">
           Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
         </Text>
@@ -229,7 +229,7 @@ export const EditAvailabilityDayScreen = forwardRef<
                 className={`mb-2.5 rounded-xl border-2 px-4 py-4 ${
                   isSelected
                     ? "border-[#007AFF] bg-blue-50 shadow-md dark:bg-[#0A84FF]/20"
-                    : "border-gray-200 bg-gray-50 dark:border-[#38383A] dark:bg-[#1C1C1E]"
+                    : "border-gray-200 bg-gray-50 dark:border-[#4D4D4D] dark:bg-[#171717]"
                 }`}
               >
                 <View className="flex-row items-center justify-between">
@@ -370,7 +370,7 @@ export const EditAvailabilityDayScreen = forwardRef<
   if (!schedule) {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-        <Text className="text-gray-500 dark:text-[#8E8E93]">No schedule data</Text>
+        <Text className="text-gray-500 dark:text-[#A3A3A3]">No schedule data</Text>
       </View>
     );
   }
@@ -383,7 +383,7 @@ export const EditAvailabilityDayScreen = forwardRef<
         paddingBottom: insets.bottom + 16,
       }}
     >
-      <View className="mb-4 flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5 dark:border-[#38383A] dark:bg-[#1C1C1E]">
+      <View className="mb-4 flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5 dark:border-[#4D4D4D] dark:bg-[#171717]">
         <Text className="text-[17px] font-medium text-black dark:text-white">
           Available on {dayName}
         </Text>
@@ -397,17 +397,17 @@ export const EditAvailabilityDayScreen = forwardRef<
 
       {isEnabled && (
         <>
-          <Text className="mb-2 text-[13px] font-medium text-gray-500 dark:text-[#8E8E93]">
+          <Text className="mb-2 text-[13px] font-medium text-gray-500 dark:text-[#A3A3A3]">
             Time Slots
           </Text>
 
           {slots.map((slot, index) => (
             <View
               key={`slot-${slot.startTime}-${slot.endTime}-${index}`}
-              className="mb-3 rounded-xl border-2 border-gray-200 bg-white px-4 py-4 dark:border-[#38383A] dark:bg-[#1C1C1E]"
+              className="mb-3 rounded-xl border-2 border-gray-200 bg-white px-4 py-4 dark:border-[#4D4D4D] dark:bg-[#171717]"
             >
               <View className="flex-row items-center justify-between">
-                <Text className="text-[15px] font-medium text-gray-500 dark:text-[#8E8E93]">
+                <Text className="text-[15px] font-medium text-gray-500 dark:text-[#A3A3A3]">
                   Slot {index + 1}
                 </Text>
                 {slots.length > 1 && (
@@ -422,8 +422,8 @@ export const EditAvailabilityDayScreen = forwardRef<
 
               <View className="mt-3 flex-row items-center">
                 {Platform.OS === "web" ? (
-                  <View className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#38383A]">
-                    <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">Start</Text>
+                  <View className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#4D4D4D]">
+                    <Text className="text-[13px] text-gray-500 dark:text-[#A3A3A3]">Start</Text>
                     <input
                       type="time"
                       value={slot.startTime}
@@ -446,21 +446,21 @@ export const EditAvailabilityDayScreen = forwardRef<
                   </View>
                 ) : (
                   <AppPressable
-                    className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#38383A]"
+                    className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#4D4D4D]"
                     onPress={() => setShowTimePicker({ slotIndex: index, type: "start" })}
                   >
-                    <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">Start</Text>
+                    <Text className="text-[13px] text-gray-500 dark:text-[#A3A3A3]">Start</Text>
                     <Text className="text-[17px] font-medium text-black dark:text-white">
                       {formatTime12Hour(slot.startTime)}
                     </Text>
                   </AppPressable>
                 )}
 
-                <Text className="mx-3 text-[17px] text-gray-400 dark:text-[#8E8E93]">–</Text>
+                <Text className="mx-3 text-[17px] text-gray-400 dark:text-[#A3A3A3]">–</Text>
 
                 {Platform.OS === "web" ? (
-                  <View className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#38383A]">
-                    <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">End</Text>
+                  <View className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#4D4D4D]">
+                    <Text className="text-[13px] text-gray-500 dark:text-[#A3A3A3]">End</Text>
                     <input
                       type="time"
                       value={slot.endTime}
@@ -483,10 +483,10 @@ export const EditAvailabilityDayScreen = forwardRef<
                   </View>
                 ) : (
                   <AppPressable
-                    className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#38383A]"
+                    className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100 dark:bg-[#2C2C2E] dark:border-[#4D4D4D]"
                     onPress={() => setShowTimePicker({ slotIndex: index, type: "end" })}
                   >
-                    <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">End</Text>
+                    <Text className="text-[13px] text-gray-500 dark:text-[#A3A3A3]">End</Text>
                     <Text className="text-[17px] font-medium text-black dark:text-white">
                       {formatTime12Hour(slot.endTime)}
                     </Text>
@@ -497,7 +497,7 @@ export const EditAvailabilityDayScreen = forwardRef<
           ))}
 
           <AppPressable onPress={handleAddSlot}>
-            <View className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-4 dark:border-[#38383A] dark:bg-[#1C1C1E]">
+            <View className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-4 dark:border-[#4D4D4D] dark:bg-[#171717]">
               <Ionicons name="add-circle" size={22} color="#007AFF" />
               <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add Time Slot</Text>
             </View>
@@ -506,14 +506,14 @@ export const EditAvailabilityDayScreen = forwardRef<
       )}
 
       {!isEnabled && (
-        <View className="items-center rounded-xl border-2 border-dashed border-gray-200 px-4 py-12 dark:border-[#38383A] dark:bg-[#1C1C1E]">
+        <View className="items-center rounded-xl border-2 border-dashed border-gray-200 px-4 py-12 dark:border-[#4D4D4D] dark:bg-[#171717]">
           <View className="items-center justify-center rounded-full bg-gray-50 p-4 dark:bg-[#2C2C2E]">
             <Ionicons name="moon-outline" size={32} color={colors.textSecondary} />
           </View>
           <Text className="mt-4 text-center text-[17px] font-medium text-gray-900 dark:text-white">
             Unavailable
           </Text>
-          <Text className="mt-1 text-center text-[15px] text-gray-500 dark:text-[#8E8E93]">
+          <Text className="mt-1 text-center text-[15px] text-gray-500 dark:text-[#A3A3A3]">
             You are currently unavailable on {dayName}.{"\n"}Toggle the switch above to add hours.
           </Text>
         </View>
@@ -531,7 +531,7 @@ export const EditAvailabilityDayScreen = forwardRef<
             onPress={() => setShowTimePicker(null)}
           >
             <TouchableOpacity
-              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2 dark:bg-[#1C1C1E]"
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2 dark:bg-[#171717]"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
               style={shadows.xl()}
@@ -540,7 +540,7 @@ export const EditAvailabilityDayScreen = forwardRef<
             </TouchableOpacity>
           </TouchableOpacity>
         ) : (
-          <View className="flex-1 bg-white p-2 dark:bg-[#1C1C1E]">{renderTimePickerContent()}</View>
+          <View className="flex-1 bg-white p-2 dark:bg-[#171717]">{renderTimePickerContent()}</View>
         )}
       </FullScreenModal>
     </ScrollView>

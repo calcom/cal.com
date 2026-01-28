@@ -82,13 +82,13 @@ export const AvailabilityDetailScreen = forwardRef<
 
   const colors = {
     background: isDark ? "#000000" : "#f2f2f7",
-    cardBackground: isDark ? "#1C1C1E" : "#FFFFFF",
+    cardBackground: isDark ? "#171717" : "#FFFFFF",
     text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#8E8E93" : "#8E8E93",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    textSecondary: isDark ? "#A3A3A3" : "#A3A3A3",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
     chevron: isDark ? "#636366" : "#C7C7CC",
     enabledDot: "#34C759",
-    disabledDot: isDark ? "#38383A" : "#E5E5EA",
+    disabledDot: isDark ? "#4D4D4D" : "#E5E5EA",
     destructive: isDark ? "#FF453A" : "#FF3B30",
   };
 

@@ -150,7 +150,7 @@ export function NavigationRow({
           {Platform.OS === "ios" && options && onSelect ? (
             <>
               {value ? (
-                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-2 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}
@@ -163,7 +163,7 @@ export function NavigationRow({
               activeOpacity={0.5}
             >
               {value ? (
-                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-1 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}

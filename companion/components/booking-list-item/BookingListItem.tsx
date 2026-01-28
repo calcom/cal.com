@@ -161,13 +161,13 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
       style={{
         backgroundColor: isDark ? "#000000" : "#FFFFFF",
         borderBottomWidth: 1,
-        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
       }}
     >
       <Pressable
         onPress={() => onPress(booking)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-        className="active:bg-cal-bg-secondary dark:active:bg-[#1C1C1E]"
+        className="active:bg-cal-bg-secondary dark:active:bg-[#171717]"
         android_ripple={{ color: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" }}
       >
         <TimeAndDateRow formattedDate={formattedDate} formattedTimeRange={formattedTimeRange} />

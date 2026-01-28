@@ -163,7 +163,7 @@ export default function Bookings() {
             placeholder: "Search bookings",
             onChangeText: (e) => handleSearch(e.nativeEvent.text),
             obscureBackground: false,
-            barTintColor: isDark ? "#1C1C1E" : "#fff",
+            barTintColor: isDark ? "#171717" : "#fff",
           },
           unstable_headerRightItems: () => {
             const eventTypeFilterMenu = buildEventTypeFilterMenu();

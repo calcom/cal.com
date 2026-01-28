@@ -23,7 +23,7 @@ export default function Bookings() {
   // iOS system colors for dark mode
   const colors = {
     text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#8E8E93" : "#333333",
+    textSecondary: isDark ? "#A3A3A3" : "#333333",
   };
 
   // Use React Query hook for event types (same as iOS for unified caching)
@@ -63,13 +63,13 @@ export default function Bookings() {
       selectedEventTypeId !== null ? selectedEventTypeLabel || "Event Type" : "Filter";
 
     return (
-      <View className="border-b border-gray-300 bg-gray-100 px-2 py-2 dark:border-[#38383A] dark:bg-black md:px-4">
+      <View className="border-b border-gray-300 bg-gray-100 px-2 py-2 dark:border-[#4D4D4D] dark:bg-black md:px-4">
         <View className="flex-row items-center gap-3">
           {/* Dropdown menu for event type filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <AppPressable
-                className="flex-row items-center rounded-lg border border-gray-200 bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]"
+                className="flex-row items-center rounded-lg border border-gray-200 bg-white dark:border-[#4D4D4D] dark:bg-[#171717]"
                 style={{
                   paddingHorizontal: 8,
                   paddingVertical: 6,
@@ -132,7 +132,7 @@ export default function Bookings() {
 
           <View style={{ flex: 1 }}>
             <TextInput
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black dark:border-[#38383A] dark:bg-[#1C1C1E] dark:text-white"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
               placeholder="Search bookings"
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}

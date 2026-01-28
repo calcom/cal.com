@@ -29,7 +29,7 @@ export function ScheduleName({ name, isDefault }: ScheduleNameProps) {
       {isDefault && (
         <View
           className="ml-2 rounded px-2 py-0.5"
-          style={{ backgroundColor: isDark ? "#8E8E93" : "#666666" }}
+          style={{ backgroundColor: isDark ? "#A3A3A3" : "#666666" }}
         >
           <Text className="text-xs font-semibold text-white">Default</Text>
         </View>
@@ -46,7 +46,7 @@ interface AvailabilitySlotsProps {
 export function AvailabilitySlots({ availability, scheduleId }: AvailabilitySlotsProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const textColor = isDark ? "#8E8E93" : "#666666";
+  const textColor = isDark ? "#A3A3A3" : "#666666";
 
   if (!availability || availability.length === 0) {
     return (
@@ -89,7 +89,7 @@ interface TimeZoneRowProps {
 export function TimeZoneRow({ timeZone }: TimeZoneRowProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const iconColor = isDark ? "#8E8E93" : "#666666";
+  const iconColor = isDark ? "#A3A3A3" : "#666666";
 
   return (
     <View className="mt-2 flex-row items-center">
@@ -121,7 +121,7 @@ export function ScheduleActionsButton({
         width: 32,
         height: 32,
         borderWidth: 1,
-        borderColor: isDark ? "#38383A" : "#E5E5EA",
+        borderColor: isDark ? "#4D4D4D" : "#E5E5EA",
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",

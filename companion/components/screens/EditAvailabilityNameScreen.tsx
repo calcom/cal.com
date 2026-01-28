@@ -107,12 +107,12 @@ export const EditAvailabilityNameScreen = forwardRef<
   // Render timezone list content
   const renderTimezoneContent = () => (
     <>
-      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-[#38383A]">
+      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-[#4D4D4D]">
         <Text className="text-[17px] font-semibold text-black dark:text-white">
           Select Timezone
         </Text>
         <AppPressable onPress={() => setShowTimezoneModal(false)}>
-          <Ionicons name="close" size={24} color={isDark ? "#FFFFFF" : "#8E8E93"} />
+          <Ionicons name="close" size={24} color={isDark ? "#FFFFFF" : "#A3A3A3"} />
         </AppPressable>
       </View>
       <ScrollView className="px-4 py-3">
@@ -128,7 +128,7 @@ export const EditAvailabilityNameScreen = forwardRef<
               className={`mb-2.5 rounded-xl border-2 px-4 py-4 ${
                 tz.id === timezone
                   ? "border-[#007AFF] bg-blue-50 shadow-md dark:bg-[#0A84FF]/20"
-                  : "border-gray-200 bg-gray-50 dark:border-[#38383A] dark:bg-[#1C1C1E]"
+                  : "border-gray-200 bg-gray-50 dark:border-[#4D4D4D] dark:bg-[#171717]"
               }`}
             >
               <View className="flex-row items-center justify-between">
@@ -142,7 +142,7 @@ export const EditAvailabilityNameScreen = forwardRef<
                   >
                     {tz.label}
                   </Text>
-                  <Text className="mt-0.5 text-[13px] text-gray-500 dark:text-[#8E8E93]">
+                  <Text className="mt-0.5 text-[13px] text-gray-500 dark:text-[#A3A3A3]">
                     {tz.id}
                   </Text>
                 </View>
@@ -162,7 +162,7 @@ export const EditAvailabilityNameScreen = forwardRef<
   if (!schedule) {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-        <Text className="text-gray-500 dark:text-[#8E8E93]">No schedule data</Text>
+        <Text className="text-gray-500 dark:text-[#A3A3A3]">No schedule data</Text>
       </View>
     );
   }
@@ -177,24 +177,24 @@ export const EditAvailabilityNameScreen = forwardRef<
         }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text className="mb-2 text-[13px] font-medium uppercase tracking-wide text-gray-500 dark:text-[#8E8E93]">
+        <Text className="mb-2 text-[13px] font-medium uppercase tracking-wide text-gray-500 dark:text-[#A3A3A3]">
           Schedule Name
         </Text>
         <TextInput
-          className="mb-4 rounded-lg border border-gray-300 bg-gray-50 px-4 py-3 text-[17px] text-black dark:border-[#38383A] dark:bg-[#1C1C1E] dark:text-white"
+          className="mb-4 rounded-lg border border-gray-300 bg-gray-50 px-4 py-3 text-[17px] text-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
           placeholder="Enter schedule name"
-          placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
+          placeholderTextColor={isDark ? "#A3A3A3" : "#9CA3AF"}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
           editable={!isSaving}
         />
 
-        <Text className="mb-2 text-[13px] font-medium uppercase tracking-wide text-gray-500 dark:text-[#8E8E93]">
+        <Text className="mb-2 text-[13px] font-medium uppercase tracking-wide text-gray-500 dark:text-[#A3A3A3]">
           Timezone
         </Text>
         <AppPressable onPress={() => setShowTimezoneModal(true)}>
-          <View className="flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-4 dark:border-[#38383A] dark:bg-[#1C1C1E]">
+          <View className="flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-4 dark:border-[#4D4D4D] dark:bg-[#171717]">
             <View className="flex-row items-center">
               <Ionicons
                 name="globe-outline"
@@ -206,12 +206,12 @@ export const EditAvailabilityNameScreen = forwardRef<
                 <Text className="text-[17px] text-black dark:text-white">
                   {selectedTimezoneLabel}
                 </Text>
-                <Text className="mt-0.5 text-[13px] text-gray-500 dark:text-[#8E8E93]">
+                <Text className="mt-0.5 text-[13px] text-gray-500 dark:text-[#A3A3A3]">
                   {timezone}
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-down" size={20} color={isDark ? "#8E8E93" : "#C7C7CC"} />
+            <Ionicons name="chevron-down" size={20} color={isDark ? "#A3A3A3" : "#C7C7CC"} />
           </View>
         </AppPressable>
       </ScrollView>
@@ -228,7 +228,7 @@ export const EditAvailabilityNameScreen = forwardRef<
             onPress={() => setShowTimezoneModal(false)}
           >
             <TouchableOpacity
-              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2 dark:bg-[#1C1C1E]"
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2 dark:bg-[#171717]"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
               style={shadows.xl()}
@@ -237,7 +237,7 @@ export const EditAvailabilityNameScreen = forwardRef<
             </TouchableOpacity>
           </TouchableOpacity>
         ) : (
-          <View className="flex-1 bg-white p-2 dark:bg-[#1C1C1E]">{renderTimezoneContent()}</View>
+          <View className="flex-1 bg-white p-2 dark:bg-[#171717]">{renderTimezoneContent()}</View>
         )}
       </FullScreenModal>
     </KeyboardAvoidingView>

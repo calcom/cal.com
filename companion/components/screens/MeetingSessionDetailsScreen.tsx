@@ -60,7 +60,7 @@ export function MeetingSessionDetailsScreen({
   const pillStyle = transparentBackground
     ? "bg-[#E8E8ED]/50"
     : isDark
-      ? "bg-[#38383A]"
+      ? "bg-[#4D4D4D]"
       : "bg-[#E8E8ED]";
 
   const renderSession = ({ item, index }: { item: ConferencingSession; index: number }) => (
@@ -68,10 +68,10 @@ export function MeetingSessionDetailsScreen({
       className={`mb-4 overflow-hidden rounded-xl ${
         transparentBackground
           ? isDark
-            ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+            ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
             : "border border-gray-300/40 bg-white/60"
           : isDark
-            ? "bg-[#1C1C1E]"
+            ? "bg-[#171717]"
             : "bg-white"
       }`}
     >
@@ -80,13 +80,13 @@ export function MeetingSessionDetailsScreen({
           transparentBackground
             ? ""
             : isDark
-              ? "border-b border-[#38383A]"
+              ? "border-b border-[#4D4D4D]"
               : "border-b border-gray-100"
         }`}
       >
         <View className="flex-row items-center">
           <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
-            <Ionicons name="videocam" size={20} color={isDark ? "#8E8E93" : "#6B7280"} />
+            <Ionicons name="videocam" size={20} color={isDark ? "#A3A3A3" : "#6B7280"} />
           </View>
           <Text className={`text-[17px] font-semibold ${isDark ? "text-white" : "text-[#000]"}`}>
             Session {sessions.length > 1 ? index + 1 : ""}
@@ -95,7 +95,7 @@ export function MeetingSessionDetailsScreen({
         {item.duration && (
           <View className={`rounded-full px-3 py-1 ${pillStyle}`}>
             <Text
-              className={`text-[13px] font-medium ${isDark ? "text-[#8E8E93]" : "text-gray-600"}`}
+              className={`text-[13px] font-medium ${isDark ? "text-[#A3A3A3]" : "text-gray-600"}`}
             >
               {formatDuration(item.duration)}
             </Text>
@@ -105,23 +105,23 @@ export function MeetingSessionDetailsScreen({
 
       <View className="p-4">
         <View className="mb-2 flex-row items-center">
-          <Ionicons name="time-outline" size={18} color="#8E8E93" />
-          <Text className={`ml-2 text-[15px] ${isDark ? "text-[#8E8E93]" : "text-gray-600"}`}>
+          <Ionicons name="time-outline" size={18} color="#A3A3A3" />
+          <Text className={`ml-2 text-[15px] ${isDark ? "text-[#A3A3A3]" : "text-gray-600"}`}>
             Started: {formatDate(item.startTime)}
           </Text>
         </View>
         {item.endTime && (
           <View className="mb-2 flex-row items-center">
-            <Ionicons name="time-outline" size={18} color="#8E8E93" />
-            <Text className={`ml-2 text-[15px] ${isDark ? "text-[#8E8E93]" : "text-gray-600"}`}>
+            <Ionicons name="time-outline" size={18} color="#A3A3A3" />
+            <Text className={`ml-2 text-[15px] ${isDark ? "text-[#A3A3A3]" : "text-gray-600"}`}>
               Ended: {formatTime(item.endTime)}
             </Text>
           </View>
         )}
         {item.maxParticipants && (
           <View className="flex-row items-center">
-            <Ionicons name="people-outline" size={18} color="#8E8E93" />
-            <Text className={`ml-2 text-[15px] ${isDark ? "text-[#8E8E93]" : "text-gray-600"}`}>
+            <Ionicons name="people-outline" size={18} color="#A3A3A3" />
+            <Text className={`ml-2 text-[15px] ${isDark ? "text-[#A3A3A3]" : "text-gray-600"}`}>
               Max participants: {item.maxParticipants}
             </Text>
           </View>
@@ -134,12 +134,12 @@ export function MeetingSessionDetailsScreen({
             transparentBackground
               ? ""
               : isDark
-                ? "border-t border-[#38383A]"
+                ? "border-t border-[#4D4D4D]"
                 : "border-t border-gray-100"
           }`}
         >
           <Text
-            className={`mb-3 text-[13px] font-semibold uppercase tracking-wide ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+            className={`mb-3 text-[13px] font-semibold uppercase tracking-wide ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}
           >
             Participants ({item.participants.length})
           </Text>
@@ -150,14 +150,14 @@ export function MeetingSessionDetailsScreen({
                 transparentBackground
                   ? ""
                   : isDark
-                    ? "rounded-xl bg-[#38383A]/50"
+                    ? "rounded-xl bg-[#4D4D4D]/50"
                     : "rounded-xl bg-[#F2F2F7]"
               }`}
             >
               <View
                 className={`mr-3 h-9 w-9 items-center justify-center rounded-full ${pillStyle}`}
               >
-                <Ionicons name="person" size={18} color={isDark ? "#8E8E93" : "#6B7280"} />
+                <Ionicons name="person" size={18} color={isDark ? "#A3A3A3" : "#6B7280"} />
               </View>
               <View className="flex-1">
                 <Text
@@ -166,7 +166,7 @@ export function MeetingSessionDetailsScreen({
                   {participant.userName || "Unknown participant"}
                 </Text>
                 <Text
-                  className={`mt-0.5 text-[13px] ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+                  className={`mt-0.5 text-[13px] ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}
                 >
                   Joined: {formatTime(participant.joinTime)}
                   {participant.duration && ` • ${formatDuration(participant.duration)}`}
@@ -183,7 +183,7 @@ export function MeetingSessionDetailsScreen({
     return (
       <View className={`flex-1 items-center justify-center px-8 ${backgroundStyle}`}>
         <View className={`mb-4 h-16 w-16 items-center justify-center rounded-full ${pillStyle}`}>
-          <Ionicons name="information-circle" size={32} color="#8E8E93" />
+          <Ionicons name="information-circle" size={32} color="#A3A3A3" />
         </View>
         <Text
           className={`text-center text-[17px] font-semibold ${isDark ? "text-white" : "text-[#000]"}`}
@@ -191,7 +191,7 @@ export function MeetingSessionDetailsScreen({
           No session details available
         </Text>
         <Text
-          className={`mt-2 text-center text-[15px] leading-5 ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+          className={`mt-2 text-center text-[15px] leading-5 ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}
         >
           Session details may not be available for all meetings.
         </Text>

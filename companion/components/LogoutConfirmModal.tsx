@@ -12,10 +12,10 @@ export function LogoutConfirmModal({ visible, onConfirm, onCancel }: LogoutConfi
   const isDark = colorScheme === "dark";
 
   const colors = {
-    background: isDark ? "#1C1C1E" : "#FFFFFF",
+    background: isDark ? "#171717" : "#FFFFFF",
     text: isDark ? "#FFFFFF" : "#111827",
-    textSecondary: isDark ? "#8E8E93" : "#4B5563",
-    border: isDark ? "#38383A" : "#1F2937",
+    textSecondary: isDark ? "#A3A3A3" : "#4B5563",
+    border: isDark ? "#4D4D4D" : "#1F2937",
     cancelBg: isDark ? "#2C2C2E" : "#FFFFFF",
   };
 

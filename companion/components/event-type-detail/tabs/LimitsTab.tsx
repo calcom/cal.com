@@ -73,7 +73,7 @@ function ModalPickerButton({ value, onPress }: { value: string; onPress: () => v
       onPress={onPress}
     >
       <Text className="text-[15px] text-black">{value}</Text>
-      <Ionicons name="chevron-down" size={14} color="#8E8E93" style={{ marginLeft: 4 }} />
+      <Ionicons name="chevron-down" size={14} color="#A3A3A3" style={{ marginLeft: 4 }} />
     </TouchableOpacity>
   );
 }
@@ -167,12 +167,12 @@ export function LimitsTab(props: LimitsTabProps) {
                   props.setMinimumNoticeValue(numericValue);
                 }}
                 placeholder="1"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor="#A3A3A3"
                 keyboardType="numeric"
               />
               {Platform.OS === "ios" ? (
                 <View className="flex-row items-center">
-                  <Text className="mr-1 text-[17px] text-[#8E8E93]">{props.minimumNoticeUnit}</Text>
+                  <Text className="mr-1 text-[17px] text-[#A3A3A3]">{props.minimumNoticeUnit}</Text>
                   <LimitsTabIOSPicker
                     options={TIME_UNIT_OPTIONS}
                     selectedValue={props.minimumNoticeUnit}
@@ -252,13 +252,13 @@ export function LimitsTab(props: LimitsTabProps) {
                       props.updateFrequencyLimit(limit.id, "value", numericValue);
                     }}
                     placeholder="1"
-                    placeholderTextColor="#8E8E93"
+                    placeholderTextColor="#A3A3A3"
                     keyboardType="numeric"
                   />
                   <Text className="text-[15px] text-[#6D6D72]">per</Text>
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
-                      <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
+                      <Text className="mr-1 text-[17px] text-[#A3A3A3]">{limit.unit}</Text>
                       <LimitsTabIOSPicker
                         options={FREQUENCY_UNIT_OPTIONS}
                         selectedValue={limit.unit}
@@ -311,13 +311,13 @@ export function LimitsTab(props: LimitsTabProps) {
                       props.updateDurationLimit(limit.id, "value", numericValue);
                     }}
                     placeholder="60"
-                    placeholderTextColor="#8E8E93"
+                    placeholderTextColor="#A3A3A3"
                     keyboardType="numeric"
                   />
                   <Text className="text-[15px] text-[#6D6D72]">minutes per</Text>
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
-                      <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
+                      <Text className="mr-1 text-[17px] text-[#A3A3A3]">{limit.unit}</Text>
                       <LimitsTabIOSPicker
                         options={DURATION_UNIT_OPTIONS}
                         selectedValue={limit.unit}
@@ -369,7 +369,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     props.setMaxActiveBookingsValue(numericValue);
                   }}
                   placeholder="1"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
                 <Text className="text-[15px] text-[#6D6D72]">bookings</Text>
@@ -415,7 +415,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     props.setFutureBookingType("rolling");
                   }}
                   placeholder="30"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
                 <TouchableOpacity

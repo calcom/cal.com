@@ -34,7 +34,7 @@ export default function More() {
   // iOS system colors for dark mode
   const colors = {
     text: isDark ? "#FFFFFF" : "#333333",
-    textSecondary: isDark ? "#8E8E93" : "#C7C7CC",
+    textSecondary: isDark ? "#A3A3A3" : "#C7C7CC",
   };
 
   const performLogout = async () => {
@@ -110,14 +110,14 @@ export default function More() {
         contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
+        <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
               onPress={item.onPress}
-              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] dark:bg-[#1C1C1E] dark:active:bg-[#2C2C2E] ${
+              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] dark:bg-[#171717] dark:active:bg-[#2C2C2E] ${
                 index < menuItems.length - 1
-                  ? "border-b border-[#E5E5EA] dark:border-[#38383A]"
+                  ? "border-b border-[#E5E5EA] dark:border-[#4D4D4D]"
                   : ""
               }`}
             >
@@ -137,12 +137,12 @@ export default function More() {
         </View>
 
         {/* Delete Account Link */}
-        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
+        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
           <TouchableOpacity
             onPress={() =>
               openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
             }
-            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50 dark:bg-[#1C1C1E] dark:active:bg-red-900/30"
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50 dark:bg-[#171717] dark:active:bg-red-900/30"
           >
             <View className="flex-1 flex-row items-center">
               <Ionicons name="trash-outline" size={20} color="#991B1B" />
@@ -153,10 +153,10 @@ export default function More() {
         </View>
 
         {/* Sign Out Button */}
-        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
+        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
           <TouchableOpacity
             onPress={handleSignOut}
-            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50 dark:bg-[#1C1C1E] dark:active:bg-red-900/30"
+            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50 dark:bg-[#171717] dark:active:bg-red-900/30"
           >
             <Ionicons name="log-out-outline" size={20} color="#800000" />
             <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>

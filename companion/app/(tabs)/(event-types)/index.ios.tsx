@@ -47,8 +47,8 @@ export default function EventTypesIOS() {
   // iOS system colors for dark mode
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#F9FAFB",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    backgroundSecondary: isDark ? "#171717" : "#F9FAFB",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
   };
 
   // No modal state needed for iOS - using native Alert.prompt
@@ -365,7 +365,7 @@ export default function EventTypesIOS() {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+      <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-gray-100">
           Unable to load event types
@@ -392,7 +392,7 @@ export default function EventTypesIOS() {
             headerLargeTitleEnabled: true,
           }}
         />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <EmptyScreen
             icon="link-outline"
             headline="Create your first event type"
@@ -507,7 +507,7 @@ export default function EventTypesIOS() {
           placeholder="Search event types"
           onChangeText={(e) => handleSearch(e.nativeEvent.text)}
           obscureBackground={false}
-          barTintColor={isDark ? "#1C1C1E" : "#fff"}
+          barTintColor={isDark ? "#171717" : "#fff"}
         />
       </Stack.Header>
 
@@ -522,7 +522,7 @@ export default function EventTypesIOS() {
         {refreshing ? (
           <EventTypeListSkeleton />
         ) : filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
-          <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20 dark:bg-[#1C1C1E]">
+          <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20 dark:bg-[#171717]">
             <EmptyScreen
               icon="search-outline"
               headline={`No results found for "${searchQuery}"`}

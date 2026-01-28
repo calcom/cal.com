@@ -14,7 +14,7 @@ export function TimeAndDateRow({ formattedDate, formattedTimeRange }: TimeAndDat
   return (
     <View className="mb-2 flex-row flex-wrap items-center">
       <Text className="text-sm font-medium text-cal-text dark:text-white">{formattedDate}</Text>
-      <Text className="ml-2 text-sm text-cal-text-secondary dark:text-[#8E8E93]">
+      <Text className="ml-2 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
         {formattedTimeRange}
       </Text>
     </View>
@@ -62,7 +62,7 @@ export function BookingDescription({ description }: BookingDescriptionProps) {
   if (!description) return null;
   return (
     <Text
-      className="mb-2 text-sm leading-5 text-cal-text-secondary dark:text-[#8E8E93]"
+      className="mb-2 text-sm leading-5 text-cal-text-secondary dark:text-[#A3A3A3]"
       numberOfLines={1}
     >
       "{description}"
@@ -152,7 +152,7 @@ export function ConfirmRejectButtons({
   return (
     <>
       <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-[#1C1C1E]"
+        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#4D4D4D] dark:bg-[#171717]"
         style={{
           paddingHorizontal: 12,
           paddingVertical: 8,
@@ -170,7 +170,7 @@ export function ConfirmRejectButtons({
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#38383A] dark:bg-[#1C1C1E]"
+        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#4D4D4D] dark:bg-[#171717]"
         style={{
           paddingHorizontal: 12,
           paddingVertical: 8,

@@ -56,10 +56,10 @@ export default function EventTypes() {
   // iOS system colors for dark mode
   const colors = {
     text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#8E8E93" : "#666666",
+    textSecondary: isDark ? "#A3A3A3" : "#666666",
     background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#F9FAFB",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    backgroundSecondary: isDark ? "#171717" : "#F9FAFB",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
   };
 
   // Modal state for creating new event type
@@ -411,7 +411,7 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100 dark:bg-black">
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <Ionicons name="alert-circle" size={64} color="#800020" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-gray-100">
             Unable to load event types
@@ -434,7 +434,7 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100 dark:bg-black">
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <EmptyScreen
             icon="link-outline"
             headline="Create your first event type"
@@ -453,9 +453,9 @@ export default function EventTypes() {
         {Platform.OS === "web" && (
           <>
             <Header />
-            <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-[#38383A] dark:bg-black">
+            <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-[#4D4D4D] dark:bg-black">
               <TextInput
-                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black dark:border-[#38383A] dark:bg-[#1C1C1E] dark:text-white"
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
                 placeholder="Search event types"
                 placeholderTextColor={colors.textSecondary}
                 value={searchQuery}
@@ -475,7 +475,7 @@ export default function EventTypes() {
             </View>
           </>
         )}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <EmptyScreen
             icon="search-outline"
             headline={`No results found for "${searchQuery}"`}
@@ -518,9 +518,9 @@ export default function EventTypes() {
               activeFilterCount,
             }}
           />
-          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-[#38383A] dark:bg-black">
+          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-[#4D4D4D] dark:bg-black">
             <TextInput
-              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black dark:border-[#38383A] dark:bg-[#1C1C1E] dark:text-white"
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
               placeholder="Search event types"
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
@@ -563,7 +563,7 @@ export default function EventTypes() {
           </View>
         ) : (
           <View className="px-2 pt-4 md:px-4">
-            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#38383A] dark:bg-[#1C1C1E]">
+            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
               {filteredEventTypes.map((item, index) => (
                 <EventTypeListItem
                   key={item.id.toString()}
@@ -653,7 +653,7 @@ export default function EventTypes() {
             onPress={handleCloseCreateModal}
           >
             <TouchableOpacity
-              className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white dark:bg-[#1C1C1E]"
+              className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white dark:bg-[#171717]"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
               style={shadows.xl()}
@@ -676,7 +676,7 @@ export default function EventTypes() {
                     Title
                   </Text>
                   <TextInput
-                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-black focus:ring-2 focus:ring-black dark:border-[#38383A] dark:bg-[#2C2C2E] dark:text-white"
+                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-black focus:ring-2 focus:ring-black dark:border-[#4D4D4D] dark:bg-[#2C2C2E] dark:text-white"
                     placeholder="Quick Chat"
                     placeholderTextColor={colors.textSecondary}
                     value={newEventTitle}
@@ -690,10 +690,10 @@ export default function EventTypes() {
               </View>
 
               {/* Footer */}
-              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4 dark:border-[#38383A] dark:bg-[#2C2C2E]">
+              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4 dark:border-[#4D4D4D] dark:bg-[#2C2C2E]">
                 <View className="flex-row justify-end gap-2 space-x-2">
                   <TouchableOpacity
-                    className="rounded-xl border border-gray-300 bg-white px-4 py-2 dark:border-[#38383A] dark:bg-[#1C1C1E]"
+                    className="rounded-xl border border-gray-300 bg-white px-4 py-2 dark:border-[#4D4D4D] dark:bg-[#171717]"
                     onPress={handleCloseCreateModal}
                     disabled={creating}
                   >
@@ -735,13 +735,13 @@ export default function EventTypes() {
           }}
         >
           <TouchableOpacity
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#1C1C1E]"
+            className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#171717]"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
             {selectedEventType ? (
               <>
-                <View className="border-b border-gray-200 p-6 dark:border-[#38383A]">
+                <View className="border-b border-gray-200 p-6 dark:border-[#4D4D4D]">
                   <Text className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                     {selectedEventType.title}
                   </Text>
@@ -780,7 +780,7 @@ export default function EventTypes() {
                   </TouchableOpacity>
 
                   {/* Separator before delete button */}
-                  <View className="my-2 h-px bg-gray-200 dark:bg-[#38383A]" />
+                  <View className="my-2 h-px bg-gray-200 dark:bg-[#4D4D4D]" />
 
                   <TouchableOpacity
                     className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#2C2C2E] md:p-4"
@@ -796,7 +796,7 @@ export default function EventTypes() {
                   </TouchableOpacity>
                 </View>
 
-                <View className="border-t border-gray-200 p-2 dark:border-[#38383A] md:p-4">
+                <View className="border-t border-gray-200 p-2 dark:border-[#4D4D4D] md:p-4">
                   <TouchableOpacity
                     className="w-full rounded-lg bg-gray-100 p-3 dark:bg-[#2C2C2E]"
                     onPress={() => {
@@ -827,12 +827,12 @@ export default function EventTypes() {
           onPress={() => setShowNewModal(false)}
         >
           <TouchableOpacity
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#1C1C1E]"
+            className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#171717]"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <View className="border-b border-gray-200 p-6 dark:border-[#38383A]">
+            <View className="border-b border-gray-200 p-6 dark:border-[#4D4D4D]">
               <Text className="text-xl font-semibold text-gray-900 dark:text-white">New</Text>
               <Text className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Choose what to create
@@ -858,7 +858,7 @@ export default function EventTypes() {
             </View>
 
             {/* Cancel button */}
-            <View className="border-t border-gray-200 p-2 dark:border-[#38383A] md:p-4">
+            <View className="border-t border-gray-200 p-2 dark:border-[#4D4D4D] md:p-4">
               <TouchableOpacity
                 className="w-full rounded-lg bg-gray-100 p-3 dark:bg-[#2C2C2E]"
                 onPress={() => setShowNewModal(false)}
@@ -884,7 +884,7 @@ export default function EventTypes() {
         }}
       >
         <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-[#1C1C1E]">
+          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-[#171717]">
             {/* Header with icon and title */}
             <View className="p-6">
               <View className="flex-row">
@@ -923,7 +923,7 @@ export default function EventTypes() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 dark:border-[#38383A] dark:bg-[#2C2C2E]"
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 dark:border-[#4D4D4D] dark:bg-[#2C2C2E]"
                 onPress={() => {
                   setShowDeleteModal(false);
                   setEventTypeToDelete(null);

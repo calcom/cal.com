@@ -285,7 +285,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 value={props.seatsPerTimeSlot}
                 onChangeText={props.setSeatsPerTimeSlot}
                 placeholder="2"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor="#A3A3A3"
                 keyboardType="numeric"
               />
             </View>
@@ -368,7 +368,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 onPress={() => setShowLanguagePicker(false)}
                 className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
               >
-                <Ionicons name="close" size={20} color="#8E8E93" />
+                <Ionicons name="close" size={20} color="#A3A3A3" />
               </TouchableOpacity>
               <Text className="text-[17px] font-semibold text-black">Select Language</Text>
               <View className="h-8 w-8" />
@@ -425,7 +425,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                   value={props.successRedirectUrl}
                   onChangeText={props.setSuccessRedirectUrl}
                   placeholder="https://example.com/thank-you"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor="#A3A3A3"
                   keyboardType="url"
                   autoCapitalize="none"
                 />
@@ -490,7 +490,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 value={props.eventTypeColorLight}
                 onChangeText={props.setEventTypeColorLight}
                 placeholder="292929"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor="#A3A3A3"
                 autoCapitalize="none"
               />
             </View>
@@ -513,7 +513,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 value={props.eventTypeColorDark}
                 onChangeText={props.setEventTypeColorDark}
                 placeholder="fafafa"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor="#A3A3A3"
                 autoCapitalize="none"
               />
             </View>

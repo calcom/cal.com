@@ -343,7 +343,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   if (!schedule) {
     return (
       <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
-        <Text className="text-[#8E8E93]">No schedule data</Text>
+        <Text className="text-[#A3A3A3]">No schedule data</Text>
       </View>
     );
   }
@@ -357,16 +357,16 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       }}
       showsVerticalScrollIndicator={!transparentBackground}
     >
-      <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Date</Text>
+      <Text className="mb-2 px-1 text-[13px] font-medium text-[#A3A3A3]">Date</Text>
       <Pressable
         onPress={openDatePicker}
         className={`mb-4 rounded-xl px-4 py-3.5 ${
           transparentBackground
             ? isDark
-              ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+              ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
               : "border border-gray-300/40 bg-white/60"
             : isDark
-              ? "bg-[#1C1C1E]"
+              ? "bg-[#171717]"
               : "bg-white"
         }`}
       >
@@ -379,7 +379,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
               {formatDateForDisplay(selectedDate)}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={isDark ? "#8E8E93" : "#C7C7CC"} />
+          <Ionicons name="chevron-forward" size={18} color={isDark ? "#A3A3A3" : "#C7C7CC"} />
         </View>
       </Pressable>
 
@@ -387,10 +387,10 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         className={`mb-4 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
           transparentBackground
             ? isDark
-              ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+              ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
               : "border border-gray-300/40 bg-white/60"
             : isDark
-              ? "bg-[#1C1C1E]"
+              ? "bg-[#171717]"
               : "bg-white"
         }`}
       >
@@ -402,7 +402,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             <Text className={`text-[17px] ${isDark ? "text-white" : "text-black"}`}>
               Mark as unavailable
             </Text>
-            <Text className="text-[13px] text-[#8E8E93]">Block this entire day</Text>
+            <Text className="text-[13px] text-[#A3A3A3]">Block this entire day</Text>
           </View>
         </View>
         <Switch
@@ -415,30 +415,30 @@ export const EditAvailabilityOverrideScreen = forwardRef<
 
       {!isUnavailable && (
         <>
-          <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Available Hours</Text>
+          <Text className="mb-2 px-1 text-[13px] font-medium text-[#A3A3A3]">Available Hours</Text>
           <View
             className={`mb-4 rounded-xl px-4 py-3.5 ${
               transparentBackground
                 ? isDark
-                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
                   : "border border-gray-300/40 bg-white/60"
                 : isDark
-                  ? "bg-[#1C1C1E]"
+                  ? "bg-[#171717]"
                   : "bg-white"
             }`}
           >
             <View className="flex-row items-center">
               <Pressable onPress={openStartTimePicker} className="flex-1">
-                <Text className="mb-1 text-[13px] text-[#8E8E93]">Start Time</Text>
+                <Text className="mb-1 text-[13px] text-[#A3A3A3]">Start Time</Text>
                 <Text className={`text-[17px] ${isDark ? "text-white" : "text-black"}`}>
                   {formatTime12Hour(dateToTimeString(startTime))}
                 </Text>
               </Pressable>
 
-              <Text className="mx-4 text-[17px] text-[#8E8E93]">–</Text>
+              <Text className="mx-4 text-[17px] text-[#A3A3A3]">–</Text>
 
               <Pressable onPress={openEndTimePicker} className="flex-1">
-                <Text className="mb-1 text-[13px] text-[#8E8E93]">End Time</Text>
+                <Text className="mb-1 text-[13px] text-[#A3A3A3]">End Time</Text>
                 <Text className={`text-[17px] ${isDark ? "text-white" : "text-black"}`}>
                   {formatTime12Hour(dateToTimeString(endTime))}
                 </Text>
@@ -450,17 +450,17 @@ export const EditAvailabilityOverrideScreen = forwardRef<
 
       {!isEditing && schedule.overrides && schedule.overrides.length > 0 && (
         <>
-          <Text className="mb-2 mt-4 px-1 text-[13px] font-medium text-[#8E8E93]">
+          <Text className="mb-2 mt-4 px-1 text-[13px] font-medium text-[#A3A3A3]">
             Existing Overrides
           </Text>
           <View
             className={`overflow-hidden rounded-xl ${
               transparentBackground
                 ? isDark
-                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
                   : "border border-gray-300/40 bg-white/60"
                 : isDark
-                  ? "bg-[#1C1C1E]"
+                  ? "bg-[#171717]"
                   : "bg-white"
             }`}
           >
@@ -470,7 +470,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                 className={`flex-row items-center justify-between px-4 py-3 ${
                   index > 0
                     ? isDark
-                      ? "border-t border-[#38383A]"
+                      ? "border-t border-[#4D4D4D]"
                       : "border-t border-[#E5E5EA]"
                     : ""
                 }`}
@@ -484,7 +484,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                   normalizeTimeString(override.endTime ?? "00:00") === "00:00" ? (
                     <Text className="text-[13px] text-[#FF3B30]">Unavailable</Text>
                   ) : (
-                    <Text className="text-[13px] text-[#8E8E93]">
+                    <Text className="text-[13px] text-[#A3A3A3]">
                       {formatTime12Hour(normalizeTimeString(override.startTime ?? "00:00"))} –{" "}
                       {formatTime12Hour(normalizeTimeString(override.endTime ?? "00:00"))}
                     </Text>
@@ -498,10 +498,10 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                     <Ionicons name="trash-outline" size={18} color="#FF3B30" />
                   </Pressable>
                   <Pressable
-                    className="ml-3 rounded-full bg-[#8E8E93]/10 p-2"
+                    className="ml-3 rounded-full bg-[#A3A3A3]/10 p-2"
                     onPress={() => onEditOverride?.(index)}
                   >
-                    <Ionicons name="chevron-forward" size={18} color="#8E8E93" />
+                    <Ionicons name="chevron-forward" size={18} color="#A3A3A3" />
                   </Pressable>
                 </View>
               </Pressable>

@@ -16,7 +16,7 @@ export function AvailabilityListItemSkeleton({
       style={{
         backgroundColor: isDark ? "#000000" : "#FFFFFF",
         borderBottomWidth: !isLast ? 1 : 0,
-        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
       }}
     >
       <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}>
@@ -73,7 +73,7 @@ export function AvailabilityListSkeleton({
 
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
   };
 
   if (iosStyle) {

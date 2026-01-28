@@ -39,11 +39,11 @@ export default function More() {
 
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#FFFFFF",
+    backgroundSecondary: isDark ? "#171717" : "#FFFFFF",
     backgroundActive: isDark ? "#2C2C2E" : "#F8F9FA",
     text: isDark ? "#FFFFFF" : "#333333",
-    textSecondary: isDark ? "#8E8E93" : "#C7C7CC",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    textSecondary: isDark ? "#A3A3A3" : "#C7C7CC",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
   };
 
   const performLogout = async () => {

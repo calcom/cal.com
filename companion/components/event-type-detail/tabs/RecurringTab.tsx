@@ -81,12 +81,12 @@ export function RecurringTab({
                     }
                   }}
                   placeholder="1"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
                 {Platform.OS === "ios" ? (
                   <View className="flex-row items-center">
-                    <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                    <Text className="mr-1 text-[17px] text-[#A3A3A3]">
                       {frequencyToLabel[recurringFrequency] || recurringFrequency}
                     </Text>
                     <RecurringTabIOSPicker
@@ -112,7 +112,7 @@ export function RecurringTab({
                     <Ionicons
                       name="chevron-down"
                       size={14}
-                      color="#8E8E93"
+                      color="#A3A3A3"
                       style={{ marginLeft: 4 }}
                     />
                   </TouchableOpacity>
@@ -141,7 +141,7 @@ export function RecurringTab({
                     }
                   }}
                   placeholder="12"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
                 <Text className="text-[15px] text-[#6D6D72]">events</Text>

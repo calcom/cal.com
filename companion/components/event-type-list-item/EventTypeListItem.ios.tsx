@@ -93,7 +93,7 @@ export const EventTypeListItem = ({
       style={{
         backgroundColor: isDark ? "#000000" : "#FFFFFF",
         borderBottomWidth: !isLast ? 1 : 0,
-        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
       }}
     >
       {/* Calculate minHeight based on badge rows to ensure proper spacing */}

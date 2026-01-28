@@ -67,10 +67,10 @@ export function AvailabilityListScreen({
 
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#f8f9fa",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    backgroundSecondary: isDark ? "#171717" : "#f8f9fa",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
     text: isDark ? "#FFFFFF" : "#333333",
-    textSecondary: isDark ? "#8E8E93" : "#666666",
+    textSecondary: isDark ? "#A3A3A3" : "#666666",
   };
 
   // Use React Query hooks
@@ -314,7 +314,7 @@ export function AvailabilityListScreen({
         >
           <TextInput
             style={{
-              backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
+              backgroundColor: isDark ? "#171717" : "#FFFFFF",
               borderColor: colors.border,
               color: colors.text,
             }}

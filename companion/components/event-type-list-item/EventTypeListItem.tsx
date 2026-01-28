@@ -48,7 +48,7 @@ export const EventTypeListItem = ({
       style={{
         backgroundColor: isDark ? "#000000" : "#FFFFFF",
         borderBottomWidth: !isLast ? 1 : 0,
-        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
       }}
     >
       <View
@@ -81,7 +81,7 @@ export const EventTypeListItem = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Pressable
-              className="items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#1C1C1E]"
+              className="items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#171717]"
               style={{ width: 36, height: 36, flexShrink: 0 }}
             >
               <Ionicons name="ellipsis-horizontal" size={18} color={colors.icon} />

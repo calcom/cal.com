@@ -52,7 +52,7 @@ export function LimitsTabDatePicker({ value, onChange, placeholder }: LimitsTabD
 
   return (
     <Pressable onPress={openDatePicker} className="rounded-lg bg-[#F2F2F7] px-3 py-2">
-      <Text className={`text-[15px] ${value ? "text-black" : "text-[#8E8E93]"}`}>
+      <Text className={`text-[15px] ${value ? "text-black" : "text-[#A3A3A3]"}`}>
         {displayText}
       </Text>
     </Pressable>

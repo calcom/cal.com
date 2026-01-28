@@ -182,19 +182,19 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
       style={{
         backgroundColor: isDark ? "#000000" : "#FFFFFF",
         borderBottomWidth: 1,
-        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
       }}
     >
       <Pressable
         onPress={() => onPress(group)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-        className="active:bg-cal-bg-secondary dark:active:bg-[#1C1C1E]"
+        className="active:bg-cal-bg-secondary dark:active:bg-[#171717]"
         android_ripple={{ color: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" }}
       >
         {/* Date and Time */}
         <View className="mb-2 flex-row flex-wrap items-center">
           <Text className="text-sm font-medium text-cal-text dark:text-white">{formattedDate}</Text>
-          <Text className="ml-2 text-sm text-cal-text-secondary dark:text-[#8E8E93]">
+          <Text className="ml-2 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
             {formattedTimeRange}
           </Text>
         </View>
@@ -218,7 +218,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
         {/* Recurrence Pattern Text (for unconfirmed recurring) */}
         {group.hasUnconfirmed && group.recurrenceText && (
-          <Text className="mb-2 text-sm text-cal-text-secondary dark:text-[#8E8E93]">
+          <Text className="mb-2 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
             {group.recurrenceText}
           </Text>
         )}
@@ -234,7 +234,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Description */}
         {booking.description ? (
           <Text
-            className="mb-2 text-sm leading-5 text-cal-text-secondary dark:text-[#8E8E93]"
+            className="mb-2 text-sm leading-5 text-cal-text-secondary dark:text-[#A3A3A3]"
             numberOfLines={1}
           >
             "{booking.description}"
@@ -288,7 +288,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Confirm All / Reject All for unconfirmed recurring */}
         {group.hasUnconfirmed && onRejectAll && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#1C1C1E]"
+            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#171717]"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -329,7 +329,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Cancel All Remaining */}
         {onCancelAllRemaining && group.remainingCount > 0 && !group.hasUnconfirmed && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border bg-white dark:bg-[#1C1C1E]"
+            className="flex-row items-center justify-center rounded-lg border bg-white dark:bg-[#171717]"
             style={{
               paddingHorizontal: 12,
               height: 32,

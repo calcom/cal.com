@@ -14,7 +14,7 @@ export function LimitsTabDatePicker({ value, onChange, placeholder }: LimitsTabD
         value={value}
         onChangeText={onChange}
         placeholder={placeholder || "YYYY-MM-DD"}
-        placeholderTextColor="#8E8E93"
+        placeholderTextColor="#A3A3A3"
       />
     </View>
   );

@@ -36,12 +36,12 @@ export default function ProfileSheet() {
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
     text: isDark ? "#FFFFFF" : "#111827",
-    textSecondary: isDark ? "#8E8E93" : "#6B7280",
+    textSecondary: isDark ? "#A3A3A3" : "#6B7280",
     icon: isDark ? "#FFFFFF" : "#374151",
     iconSecondary: isDark ? "#636366" : "#9CA3AF",
-    avatarBg: isDark ? "#38383A" : "#E5E7EB",
+    avatarBg: isDark ? "#4D4D4D" : "#E5E7EB",
     avatarText: isDark ? "#FFFFFF" : "#4B5563",
-    activeBackground: isDark ? "#1C1C1E" : "#F3F4F6",
+    activeBackground: isDark ? "#171717" : "#F3F4F6",
   };
 
   const publicPageUrl = userProfile?.username ? `https://cal.com/${userProfile.username}` : null;

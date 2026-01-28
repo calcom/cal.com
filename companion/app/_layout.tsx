@@ -19,8 +19,8 @@ function RootLayoutContent() {
 
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
-    secondaryBackground: isDark ? "#1C1C1E" : "#F2F2F7",
-    border: isDark ? "#38383A" : "#C6C6C8",
+    secondaryBackground: isDark ? "#171717" : "#F2F2F7",
+    border: isDark ? "#4D4D4D" : "#C6C6C8",
   };
 
   // Show Cal.com logo while checking auth state to prevent login flash

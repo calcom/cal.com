@@ -73,7 +73,7 @@ export function MarkNoShowScreen({
   const pillStyle = transparentBackground
     ? "bg-[#E8E8ED]/50"
     : isDark
-      ? "bg-[#38383A]"
+      ? "bg-[#4D4D4D]"
       : "bg-[#E8E8ED]";
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
@@ -179,24 +179,24 @@ export function MarkNoShowScreen({
     // For transparent mode (iOS glass UI), use consistent styling regardless of no-show state
     const itemBgStyle = transparentBackground
       ? isDark
-        ? "bg-[#1C1C1E]/80"
+        ? "bg-[#171717]/80"
         : "bg-white/60"
       : isNoShow
         ? isDark
           ? "bg-[#FF453A]/10"
           : "bg-[#FEF2F2]"
         : isDark
-          ? "bg-[#1C1C1E]"
+          ? "bg-[#171717]"
           : "bg-white";
 
     return (
       <TouchableOpacity
         className={`flex-row items-center px-4 py-4 ${
           transparentBackground
-            ? `rounded-xl ${isDark ? "border border-[#38383A]/40" : "border border-gray-300/40"} ${!isLast ? "mb-3" : ""}`
+            ? `rounded-xl ${isDark ? "border border-[#4D4D4D]/40" : "border border-gray-300/40"} ${!isLast ? "mb-3" : ""}`
             : !isLast
               ? isDark
-                ? "border-b border-[#38383A]"
+                ? "border-b border-[#4D4D4D]"
                 : "border-b border-gray-100"
               : ""
         } ${itemBgStyle}`}
@@ -224,7 +224,7 @@ export function MarkNoShowScreen({
                     ? "text-[#FF453A]"
                     : "text-[#800020]"
                   : isDark
-                    ? "text-[#8E8E93]"
+                    ? "text-[#A3A3A3]"
                     : "text-gray-600"
             }`}
           >
@@ -235,7 +235,7 @@ export function MarkNoShowScreen({
           <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-[#000]"}`}>
             {item.name || "Unknown"}
           </Text>
-          <Text className={`mt-0.5 text-[15px] ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}>
+          <Text className={`mt-0.5 text-[15px] ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}>
             {item.email}
           </Text>
           {isNoShow && (
@@ -248,14 +248,14 @@ export function MarkNoShowScreen({
           )}
         </View>
         {isProcessing ? (
-          <ActivityIndicator size="small" color={isDark ? "#8E8E93" : "#6B7280"} />
+          <ActivityIndicator size="small" color={isDark ? "#A3A3A3" : "#6B7280"} />
         ) : (
           <View className="flex-row items-center">
             <View
               className={`flex-row items-center rounded-full px-3.5 py-2 ${
                 isNoShow
                   ? isDark
-                    ? "border border-[#16A34A] bg-[#1C1C1E]"
+                    ? "border border-[#16A34A] bg-[#171717]"
                     : "border border-[#16A34A] bg-white"
                   : isDark
                     ? "border border-[#FF453A]/30 bg-[#FF453A]/10"
@@ -284,7 +284,7 @@ export function MarkNoShowScreen({
   if (!booking) {
     return (
       <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
-        <Text className={`${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}>No booking data</Text>
+        <Text className={`${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}>No booking data</Text>
       </View>
     );
   }
@@ -297,13 +297,13 @@ export function MarkNoShowScreen({
             <View
               className={`mb-4 h-20 w-20 items-center justify-center rounded-full ${pillStyle}`}
             >
-              <Ionicons name="people" size={40} color={isDark ? "#8E8E93" : "#9CA3AF"} />
+              <Ionicons name="people" size={40} color={isDark ? "#A3A3A3" : "#9CA3AF"} />
             </View>
             <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-gray-700"}`}>
               No attendees found
             </Text>
             <Text
-              className={`mt-2 max-w-[280px] text-center text-[15px] ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+              className={`mt-2 max-w-[280px] text-center text-[15px] ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}
             >
               Attendee information is not available for this booking.
             </Text>
@@ -311,7 +311,7 @@ export function MarkNoShowScreen({
         ) : (
           <>
             <Text
-              className={`mb-2 px-1 text-[13px] font-medium uppercase tracking-wide ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+              className={`mb-2 px-1 text-[13px] font-medium uppercase tracking-wide ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}
             >
               Attendees ({safeAttendees.length})
             </Text>
@@ -325,7 +325,7 @@ export function MarkNoShowScreen({
               />
             ) : (
               <View
-                className={`overflow-hidden rounded-xl ${isDark ? "bg-[#1C1C1E]" : "bg-white"}`}
+                className={`overflow-hidden rounded-xl ${isDark ? "bg-[#171717]" : "bg-white"}`}
               >
                 <FlatList
                   data={safeAttendees}

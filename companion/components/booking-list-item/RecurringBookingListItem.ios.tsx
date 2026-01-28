@@ -167,7 +167,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
       style={{
         backgroundColor: isDark ? "#000000" : "#FFFFFF",
         borderBottomWidth: 1,
-        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
       }}
     >
       <Pressable

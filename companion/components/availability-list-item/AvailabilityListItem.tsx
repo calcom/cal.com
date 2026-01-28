@@ -90,7 +90,7 @@ export const AvailabilityListItem = ({
       style={{
         backgroundColor: isDark ? "#000000" : "#FFFFFF",
         borderBottomWidth: 1,
-        borderBottomColor: isDark ? "#38383A" : "#E5E5EA",
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
       }}
     >
       <View
@@ -119,7 +119,7 @@ export const AvailabilityListItem = ({
                   height: 32,
                   flexShrink: 0,
                   borderWidth: 1,
-                  borderColor: isDark ? "#38383A" : "#E5E5EA",
+                  borderColor: isDark ? "#4D4D4D" : "#E5E5EA",
                   borderRadius: 8,
                   alignItems: "center",
                   justifyContent: "center",

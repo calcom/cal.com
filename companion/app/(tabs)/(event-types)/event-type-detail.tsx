@@ -2272,7 +2272,7 @@ export default function EventTypeDetail() {
                         </View>
                         <View>
                           <Text className="text-[17px] text-black">Apps</Text>
-                          <Text className="text-[13px] text-[#8E8E93]">Manage integrations</Text>
+                          <Text className="text-[13px] text-[#A3A3A3]">Manage integrations</Text>
                         </View>
                       </View>
                       <Ionicons name="open-outline" size={18} color="#C7C7CC" />
@@ -2307,7 +2307,7 @@ export default function EventTypeDetail() {
                         </View>
                         <View>
                           <Text className="text-[17px] text-black">Workflows</Text>
-                          <Text className="text-[13px] text-[#8E8E93]">Automated actions</Text>
+                          <Text className="text-[13px] text-[#A3A3A3]">Automated actions</Text>
                         </View>
                       </View>
                       <Ionicons name="open-outline" size={18} color="#C7C7CC" />
@@ -2342,7 +2342,7 @@ export default function EventTypeDetail() {
                         </View>
                         <View>
                           <Text className="text-[17px] text-black">Webhooks</Text>
-                          <Text className="text-[13px] text-[#8E8E93]">Event notifications</Text>
+                          <Text className="text-[13px] text-[#A3A3A3]">Event notifications</Text>
                         </View>
                       </View>
                       <Ionicons name="open-outline" size={18} color="#C7C7CC" />

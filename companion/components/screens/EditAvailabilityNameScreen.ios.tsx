@@ -117,7 +117,7 @@ export const EditAvailabilityNameScreen = forwardRef<
   if (!schedule) {
     return (
       <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
-        <Text className="text-[#8E8E93]">No schedule data</Text>
+        <Text className="text-[#A3A3A3]">No schedule data</Text>
       </View>
     );
   }
@@ -136,18 +136,18 @@ export const EditAvailabilityNameScreen = forwardRef<
         {transparentBackground ? (
           <>
             {/* Name Input - Glass UI */}
-            <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Schedule Name</Text>
+            <Text className="mb-2 px-1 text-[13px] font-medium text-[#A3A3A3]">Schedule Name</Text>
             <View
               className={`mb-4 overflow-hidden rounded-xl ${
                 isDark
-                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
                   : "border border-gray-300/40 bg-white/60"
               }`}
             >
               <TextInput
                 className={`px-4 py-3.5 text-[17px] ${isDark ? "text-white" : "text-black"}`}
                 placeholder="Enter schedule name"
-                placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
+                placeholderTextColor={isDark ? "#A3A3A3" : "#9CA3AF"}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -156,11 +156,11 @@ export const EditAvailabilityNameScreen = forwardRef<
             </View>
 
             {/* Timezone Selector - Glass UI */}
-            <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Timezone</Text>
+            <Text className="mb-2 px-1 text-[13px] font-medium text-[#A3A3A3]">Timezone</Text>
             <View
               className={`mb-4 flex-row items-center rounded-xl px-4 py-3 ${
                 isDark
-                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
                   : "border border-gray-300/40 bg-white/60"
               }`}
             >
@@ -171,7 +171,7 @@ export const EditAvailabilityNameScreen = forwardRef<
                 <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-black"}`}>
                   {selectedTimezoneLabel}
                 </Text>
-                <Text className="mt-0.5 text-[13px] text-[#8E8E93]">{timezone}</Text>
+                <Text className="mt-0.5 text-[13px] text-[#A3A3A3]">{timezone}</Text>
               </View>
 
               {/* Native iOS Context Menu Button */}
@@ -209,16 +209,16 @@ export const EditAvailabilityNameScreen = forwardRef<
           </>
         ) : (
           <>
-            <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
+            <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-[#A3A3A3]">
               Schedule Name
             </Text>
             <View
-              className={`mb-4 overflow-hidden rounded-xl ${isDark ? "bg-[#1C1C1E]" : "bg-white"}`}
+              className={`mb-4 overflow-hidden rounded-xl ${isDark ? "bg-[#171717]" : "bg-white"}`}
             >
               <TextInput
                 className={`px-4 py-3.5 text-[17px] ${isDark ? "text-white" : "text-black"}`}
                 placeholder="Enter schedule name"
-                placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
+                placeholderTextColor={isDark ? "#A3A3A3" : "#9CA3AF"}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -226,11 +226,11 @@ export const EditAvailabilityNameScreen = forwardRef<
               />
             </View>
 
-            <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
+            <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-[#A3A3A3]">
               Timezone
             </Text>
             <View
-              className={`mb-4 flex-row items-center rounded-xl px-4 py-3 ${isDark ? "bg-[#1C1C1E]" : "bg-white"}`}
+              className={`mb-4 flex-row items-center rounded-xl px-4 py-3 ${isDark ? "bg-[#171717]" : "bg-white"}`}
             >
               <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-[#007AFF]/10">
                 <Ionicons name="globe-outline" size={20} color="#007AFF" />
@@ -239,7 +239,7 @@ export const EditAvailabilityNameScreen = forwardRef<
                 <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-black"}`}>
                   {selectedTimezoneLabel}
                 </Text>
-                <Text className="mt-0.5 text-[13px] text-[#8E8E93]">{timezone}</Text>
+                <Text className="mt-0.5 text-[13px] text-[#A3A3A3]">{timezone}</Text>
               </View>
 
               {/* Native iOS Context Menu Button */}

@@ -69,9 +69,9 @@ export function Header({
   // iOS system colors for dark mode
   const colors = {
     text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#8E8E93" : "#666666",
+    textSecondary: isDark ? "#A3A3A3" : "#666666",
     background: isDark ? "#000000" : "#FFFFFF",
-    border: isDark ? "#38383A" : "#E5E5EA",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
     logoColor: isDark ? "#FFFFFF" : "#333333",
   };
 
@@ -105,7 +105,7 @@ export function Header({
 
   return (
     <View
-      className="flex-row items-center justify-between border-b border-[#E5E5EA] bg-white px-2 dark:border-[#38383A] dark:bg-black md:px-4"
+      className="flex-row items-center justify-between border-b border-[#E5E5EA] bg-white px-2 dark:border-[#4D4D4D] dark:bg-black md:px-4"
       style={{ paddingTop: insets.top + 4, paddingBottom: 4 }}
     >
       {/* Left: Cal.com Logo */}
@@ -474,7 +474,7 @@ export function Header({
             />
           ) : (
             <View
-              className="items-center justify-center rounded-full bg-[#E5E5EA] dark:bg-[#38383A]"
+              className="items-center justify-center rounded-full bg-[#E5E5EA] dark:bg-[#4D4D4D]"
               style={{ width: 32, height: 32 }}
             >
               <Ionicons name="person-outline" size={20} color={colors.textSecondary} />

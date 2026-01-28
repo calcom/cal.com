@@ -95,7 +95,7 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
     if (!schedule) {
       return (
         <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-          <Text className="text-gray-500 dark:text-[#8E8E93]">No schedule data</Text>
+          <Text className="text-gray-500 dark:text-[#A3A3A3]">No schedule data</Text>
         </View>
       );
     }
@@ -108,11 +108,11 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
           paddingBottom: insets.bottom + 16,
         }}
       >
-        <Text className="mb-3 text-[13px] font-medium text-gray-500 dark:text-[#8E8E93]">
+        <Text className="mb-3 text-[13px] font-medium text-gray-500 dark:text-[#A3A3A3]">
           Tap a day to edit its hours
         </Text>
 
-        <View className="overflow-hidden rounded-xl bg-white border border-gray-200 dark:bg-[#1C1C1E] dark:border-[#38383A]">
+        <View className="overflow-hidden rounded-xl bg-white border border-gray-200 dark:bg-[#171717] dark:border-[#4D4D4D]">
           {DAYS.map((day, dayIndex) => {
             const daySlots = availability[dayIndex] || [];
             const isEnabled = daySlots.length > 0;
@@ -121,7 +121,7 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
               <AppPressable key={day} onPress={() => onDayPress(dayIndex)}>
                 <View
                   className={`flex-row items-center px-4 py-3.5 ${
-                    dayIndex > 0 ? "border-t border-gray-100 dark:border-[#38383A]" : ""
+                    dayIndex > 0 ? "border-t border-gray-100 dark:border-[#4D4D4D]" : ""
                   }`}
                 >
                   <View
@@ -132,7 +132,7 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
 
                   <Text
                     className={`w-28 text-[17px] font-medium ${
-                      isEnabled ? "text-black dark:text-white" : "text-gray-400 dark:text-[#8E8E93]"
+                      isEnabled ? "text-black dark:text-white" : "text-gray-400 dark:text-[#A3A3A3]"
                     }`}
                   >
                     {day}
@@ -143,13 +143,13 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
                       daySlots.map((slot, slotIndex) => (
                         <Text
                           key={`${slotIndex}-${slot.startTime}`}
-                          className={`text-[15px] text-gray-600 dark:text-[#8E8E93] ${slotIndex > 0 ? "mt-0.5" : ""}`}
+                          className={`text-[15px] text-gray-600 dark:text-[#A3A3A3] ${slotIndex > 0 ? "mt-0.5" : ""}`}
                         >
                           {formatTime12Hour(slot.startTime)} – {formatTime12Hour(slot.endTime)}
                         </Text>
                       ))
                     ) : (
-                      <Text className="text-[15px] text-gray-400 dark:text-[#8E8E93]">
+                      <Text className="text-[15px] text-gray-400 dark:text-[#A3A3A3]">
                         Unavailable
                       </Text>
                     )}
@@ -158,7 +158,7 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
                   <Ionicons
                     name="chevron-forward"
                     size={20}
-                    color={isDark ? "#8E8E93" : "#C7C7CC"}
+                    color={isDark ? "#A3A3A3" : "#C7C7CC"}
                   />
                 </View>
               </AppPressable>

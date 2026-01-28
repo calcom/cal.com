@@ -106,11 +106,11 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
 
     const colors = {
       background: isDark ? "#000000" : "#F2F2F7",
-      cardBackground: isDark ? "#1C1C1E" : "#FFFFFF",
+      cardBackground: isDark ? "#171717" : "#FFFFFF",
       text: isDark ? "#FFFFFF" : "#000000",
-      textSecondary: isDark ? "#8E8E93" : "#6B7280",
-      border: isDark ? "#38383A" : "#E5E5EA",
-      pill: isDark ? "#38383A" : "#E8E8ED",
+      textSecondary: isDark ? "#A3A3A3" : "#6B7280",
+      border: isDark ? "#4D4D4D" : "#E5E5EA",
+      pill: isDark ? "#4D4D4D" : "#E8E8ED",
       inputBorder: isDark ? "rgba(56, 56, 58, 0.4)" : "rgba(209, 213, 219, 0.4)",
       inputBackground: isDark ? "rgba(28, 28, 30, 0.6)" : "rgba(255, 255, 255, 0.6)",
       accent: "#007AFF",
