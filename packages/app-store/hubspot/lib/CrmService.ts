@@ -327,7 +327,12 @@ class HubspotCalendarService implements CRM {
 
     try {
       await this.hubspotClient.crm.contacts.basicApi.update(contactId, {
-        properties: confirmedCustomFieldInputs as Record<string, string>,
+        properties: Object.fromEntries(
+          Object.entries(confirmedCustomFieldInputs).map(([key, value]) => [
+            key,
+            typeof value === "boolean" ? (value ? "true" : "false") : value,
+          ])
+        ),
       });
     } catch (error) {
       this.log.error(`Error writing to contact record ${contactId}:`, error);
