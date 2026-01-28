@@ -99,9 +99,9 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
     "@types/chrome": "0.1.31",
-    "@types/react": "19.2.4",
+    "@types/react": "19.2.10",
     "@types/node": "22.19.6",
-    "@types/react-dom": "19.2.4",
+    "@types/react-dom": "19.2.3",
     "babel-plugin-react-compiler": "19.0.0-beta-af1b7da-20250417",
     "babel-preset-expo": "54.0.7",
     "eslint": "9.28.0",
