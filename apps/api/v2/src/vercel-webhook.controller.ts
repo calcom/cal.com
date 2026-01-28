@@ -10,6 +10,7 @@ import {
 } from "@nestjs/common";
 import { ApiExcludeController } from "@nestjs/swagger";
 import { VercelWebhookGuard } from "./vercel-webhook.guard";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 
 interface VercelWebhookPayload {
   type?: string;
@@ -17,7 +18,7 @@ interface VercelWebhookPayload {
 
 @Controller({
   path: "/v2/webhooks/vercel",
-  version: [],
+  version: API_VERSIONS_VALUES,
 })
 @ApiExcludeController(true)
 export class VercelWebhookController {
