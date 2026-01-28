@@ -3085,6 +3085,7 @@ model MonthlyProration {
 
   invoiceItemId String?
   invoiceId     String?
+  invoiceUrl    String?
 
   status ProrationStatus @default(PENDING)
 
