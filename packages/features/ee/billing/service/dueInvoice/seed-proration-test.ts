@@ -609,7 +609,7 @@ async function main() {
     console.log(`Unprocessed SeatChangeLogs: ${result.unprocessedSeatChanges}`);
     console.log("MonthlyProration records: 0 (intentionally absent)");
 
-    console.log(`\nAdmin: ${ADMIN_EMAIL} (password: ${TEST_PASSWORD})`);
+    console.log(`\nAdmin: ${ADMIN_EMAIL}`);
 
     if (result.stripe.customer) {
       console.log("\nStripe:");
