@@ -20,23 +20,16 @@ export class VercelWebhookGuard implements CanActivate {
       throw new UnauthorizedException("Missing x-vercel-signature header");
     }
 
-    // Get raw body - can be Buffer (from RawBodyMiddleware) or string/object (from tests)
+    // Get raw body from RawBodyMiddleware (Buffer) or string
     const rawBody = request.body;
 
-    // Convert body to Buffer for consistent signature verification
-    let bodyBuffer: Buffer;
-    if (Buffer.isBuffer(rawBody)) {
-      bodyBuffer = rawBody;
-    } else if (typeof rawBody === "string") {
-      bodyBuffer = Buffer.from(rawBody);
-    } else if (typeof rawBody === "object" && rawBody !== null) {
-      bodyBuffer = Buffer.from(JSON.stringify(rawBody));
-    } else {
-      this.logger.error("Request body is empty or invalid");
+    if (!rawBody) {
+      this.logger.error("Request body is empty. Ensure RawBodyMiddleware is active.");
       throw new UnauthorizedException("Invalid request format");
     }
 
-    const expectedSignature = crypto.createHmac("sha1", webhookSecret).update(bodyBuffer).digest("hex");
+    // RawBodyMiddleware provides a Buffer, compute signature from raw bytes
+    const expectedSignature = crypto.createHmac("sha1", webhookSecret).update(rawBody).digest("hex");
 
     // Secure comparison to prevent timing attacks
     const isSignatureValid = crypto.timingSafeEqual(
