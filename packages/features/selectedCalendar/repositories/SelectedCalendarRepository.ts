@@ -19,12 +19,12 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
 
   async findNextSubscriptionBatch({
     take,
-    teamIds,
+    featureId,
     integrations,
     genericCalendarSuffixes,
   }: {
     take: number;
-    teamIds: number[];
+    featureId: string;
     integrations: string[];
     genericCalendarSuffixes?: string[];
   }) {
@@ -65,8 +65,15 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
         user: {
           teams: {
             some: {
-              teamId: { in: teamIds },
               accepted: true,
+              team: {
+                teamFeatures: {
+                  some: {
+                    featureId,
+                    enabled: true,
+                  },
+                },
+              },
             },
           },
         },
