@@ -67,12 +67,12 @@ export class AppController {
 
   private async promoteTriggerDeployment(maxRetries: number = 3): Promise<void> {
     // biome-ignore lint/style/noProcessEnv: Environment variable access required for trigger.dev API
-    const triggerApiKey = process.env.TRIGGER_API_KEY;
+    const triggerSecretKey = process.env.TRIGGER_SECRET_KEY;
     // biome-ignore lint/style/noProcessEnv: Environment variable access required for trigger.dev API
     const triggerVersion = process.env.TRIGGER_VERSION;
 
-    if (!triggerApiKey || !triggerVersion) {
-      this.logger.error("Missing TRIGGER_API_KEY or TRIGGER_VERSION environment variables");
+    if (!triggerSecretKey || !triggerVersion) {
+      this.logger.error("Missing TRIGGER_SECRET_KEY or TRIGGER_VERSION environment variables");
       throw new Error("Trigger.dev configuration missing");
     }
 
@@ -83,7 +83,7 @@ export class AppController {
         const response = await fetch(url, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${triggerApiKey}`,
+            Authorization: `Bearer ${triggerSecretKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({}),
