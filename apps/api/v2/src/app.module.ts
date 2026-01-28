@@ -1,3 +1,11 @@
+import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
+import { BullModule } from "@nestjs/bull";
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { seconds, ThrottlerModule } from "@nestjs/throttler";
+import { SentryGlobalFilter, SentryModule } from "@sentry/nestjs/setup";
+import { AppController } from "./app.controller";
 import appConfig from "@/config/app";
 import { CustomThrottlerGuard } from "@/lib/throttler-guard";
 import { AppLoggerMiddleware } from "@/middleware/app.logger.middleware";
@@ -13,15 +21,6 @@ import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
-import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
-import { BullModule } from "@nestjs/bull";
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from "@nestjs/core";
-import { seconds, ThrottlerModule } from "@nestjs/throttler";
-import { SentryModule, SentryGlobalFilter } from "@sentry/nestjs/setup";
-
-import { AppController } from "./app.controller";
 
 @Module({
   imports: [
@@ -95,6 +94,10 @@ export class AppModule implements NestModule {
         },
         {
           path: "/v2/billing/webhook",
+          method: RequestMethod.POST,
+        },
+        {
+          path: "/webhooks/vercel/deployment-promoted",
           method: RequestMethod.POST,
         }
       )
