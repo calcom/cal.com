@@ -37,6 +37,8 @@ export default async function routerGetCrmContactOwnerEmail({
   if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId)
     return null;
 
+  const eventTypeId = action.eventTypeId;
+
   const eventTypeRepo = new EventTypeRepository(prisma);
   const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({
     id: action.eventTypeId,
@@ -76,7 +78,7 @@ export default async function routerGetCrmContactOwnerEmail({
         const ownerQuery = await appHandler(
           prospectEmail,
           attributeRoutingConfig,
-          action.eventTypeId
+          eventTypeId
         );
 
         if (ownerQuery?.email) {
