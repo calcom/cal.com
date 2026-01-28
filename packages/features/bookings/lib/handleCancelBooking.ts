@@ -42,7 +42,9 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WorkflowMethods } from "@calcom/prisma/enums";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus, CancellationReasonRequirement } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
+
+import { isCancellationReasonRequired } from "./cancellationReason";
 import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -220,25 +222,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
-  const requiresCancellationReasonSetting =
-    bookingToDelete.eventType?.requiresCancellationReason ?? CancellationReasonRequirement.MANDATORY_HOST_ONLY;
+  const isReasonRequired = isCancellationReasonRequired(
+    bookingToDelete.eventType?.requiresCancellationReason,
+    isCancellationUserHost
+  );
 
-  const isReasonRequiredForUser = () => {
-    if (requiresCancellationReasonSetting === CancellationReasonRequirement.OPTIONAL_BOTH) return false;
-    if (requiresCancellationReasonSetting === CancellationReasonRequirement.MANDATORY_BOTH) return true;
-    if (requiresCancellationReasonSetting === CancellationReasonRequirement.MANDATORY_HOST_ONLY)
-      return isCancellationUserHost;
-    if (requiresCancellationReasonSetting === CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY)
-      return !isCancellationUserHost;
-    return false;
-  };
-
-  if (
-    !platformClientId &&
-    !cancellationReason?.trim() &&
-    isReasonRequiredForUser() &&
-    !skipCancellationReasonValidation
-  ) {
+  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required",

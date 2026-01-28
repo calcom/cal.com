@@ -3,9 +3,9 @@
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { isCancellationReasonRequired } from "@calcom/features/bookings/lib/cancellationReason";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { CancellationReasonRequirement } from "@calcom/prisma/enums";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
@@ -164,18 +164,12 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
-  const requirementSetting =
-    props.requiresCancellationReason ?? CancellationReasonRequirement.MANDATORY_HOST_ONLY;
+  const isReasonRequired = isCancellationReasonRequired(
+    props.requiresCancellationReason,
+    isCancellationUserHost
+  );
 
-  const isReasonRequiredForUser = () => {
-    if (requirementSetting === CancellationReasonRequirement.OPTIONAL_BOTH) return false;
-    if (requirementSetting === CancellationReasonRequirement.MANDATORY_BOTH) return true;
-    if (requirementSetting === CancellationReasonRequirement.MANDATORY_HOST_ONLY) return isCancellationUserHost;
-    if (requirementSetting === CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY) return !isCancellationUserHost;
-    return false;
-  };
-
-  const missingRequiredReason = isReasonRequiredForUser() && !cancellationReason?.trim();
+  const missingRequiredReason = isReasonRequired && !cancellationReason?.trim();
   const hostMissingInternalNote =
     isCancellationUserHost && props.internalNotePresets.length > 0 && !internalNote?.id;
   const cancellationNoShowFeeNotAcknowledged =
@@ -231,8 +225,7 @@ export default function CancelBooking(props: Props) {
           )}
 
           <Label>
-            {t("cancellation_reason")}
-            {!isReasonRequiredForUser() && ` ${t("cancellation_reason_optional")}`}
+            {t(isReasonRequired ? "cancellation_reason" : "cancellation_reason_optional_label")}
           </Label>
 
           <TextArea
