@@ -24,9 +24,9 @@ vi.mock("@calcom/lib/hooks/useUserAgentData", () => ({
   }),
 }));
 
-const mockUseMeQuery = vi.fn();
-vi.mock("@calcom/trpc/react/hooks/useMeQuery", () => ({
-  default: () => mockUseMeQuery(),
+const mockUseMeAvatar = vi.fn();
+vi.mock("@calcom/trpc/react/hooks/useMeAvatar", () => ({
+  default: () => mockUseMeAvatar(),
 }));
 
 vi.mock("@calcom/web/components/settings/platform/hooks/useGetUserAttributes", () => ({
@@ -103,7 +103,7 @@ describe("UserDropdown", () => {
 
   describe("Beacon session-data functionality", () => {
     it("should call Beacon with session-data when Beacon is available and user has username", async () => {
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: { username: "testuser", name: "Test User", avatarUrl: null, avatar: null },
         isPending: false,
       });
@@ -120,7 +120,7 @@ describe("UserDropdown", () => {
     });
 
     it("should call Beacon with 'Unknown' username when user has no username", async () => {
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: { username: null, name: "Test User", avatarUrl: null, avatar: null },
         isPending: false,
       });
@@ -139,7 +139,7 @@ describe("UserDropdown", () => {
     it("should not throw error when Beacon is undefined", async () => {
       delete window.Beacon;
 
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: { username: "testuser", name: "Test User", avatarUrl: null, avatar: null },
         isPending: false,
       });
@@ -154,7 +154,7 @@ describe("UserDropdown", () => {
       // Start with Beacon undefined (simulating lazy load)
       delete window.Beacon;
 
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: { username: "testuser", name: "Test User", avatarUrl: null, avatar: null },
         isPending: false,
       });
@@ -188,7 +188,7 @@ describe("UserDropdown", () => {
       const { rerender } = render(<div />);
 
       // First render with initial username
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: { username: "user1", name: "User One", avatarUrl: null, avatar: null },
         isPending: false,
       });
@@ -207,7 +207,7 @@ describe("UserDropdown", () => {
       mockBeacon.mockClear();
 
       // Update username
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: { username: "user2", name: "User Two", avatarUrl: null, avatar: null },
         isPending: false,
       });
@@ -225,7 +225,7 @@ describe("UserDropdown", () => {
 
   describe("Component rendering", () => {
     it("should return null when user is not available and not pending", async () => {
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: null,
         isPending: false,
       });
@@ -238,7 +238,7 @@ describe("UserDropdown", () => {
     });
 
     it("should render dropdown when user is available", async () => {
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: { username: "testuser", name: "Test User", avatarUrl: null, avatar: null },
         isPending: false,
       });
@@ -250,7 +250,7 @@ describe("UserDropdown", () => {
     });
 
     it("should render dropdown when isPending is true (loading state)", async () => {
-      mockUseMeQuery.mockReturnValue({
+      mockUseMeAvatar.mockReturnValue({
         data: null,
         isPending: true,
       });
