@@ -171,6 +171,8 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         // Ensure additionalNotes and description are always present (legacy compat)
         additionalNotes: params.evt.additionalNotes ?? "",
         description: params.evt.description ?? params.evt.additionalNotes ?? "",
+        // Use raw assignmentReason from booking for legacy format [{ reasonEnum, reasonString }]
+        assignmentReason: params.booking.assignmentReason,
         ...(params.extra || {}),
       },
     };

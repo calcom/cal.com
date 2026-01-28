@@ -212,6 +212,7 @@ export class WebhookTaskConsumer {
         startTime: booking.startTime,
         smsReminderNumber: booking.smsReminderNumber,
         iCalSequence: booking.iCalSequence,
+        // Raw assignmentReason from DB for legacy format [{ reasonEnum, reasonString }]
         assignmentReason: booking.assignmentReason,
       },
     };

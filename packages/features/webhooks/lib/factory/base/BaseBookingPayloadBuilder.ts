@@ -42,7 +42,7 @@ export interface BookingPayloadParams<T extends keyof BookingExtraDataMap> {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
-    // Raw assignmentReason from DB for legacy webhook format
+    // Raw assignmentReason from DB for legacy webhook format [{ reasonEnum, reasonString }]
     assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   eventType: EventTypeInfo;

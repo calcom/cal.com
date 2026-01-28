@@ -2718,6 +2718,7 @@ async function handler(
             rescheduleStartTime: originalRescheduledBooking.startTime.toISOString(),
             rescheduleEndTime: originalRescheduledBooking.endTime.toISOString(),
             rescheduledBy: reqBody.rescheduledBy ?? undefined,
+            metadata: { ...metadata, ...reqBody.metadata },
             platformRescheduleUrl,
             platformCancelUrl,
             platformBookingUrl,
@@ -2984,6 +2985,7 @@ export class RegularBookingService implements IBookingService {
     teamId?: number | null;
     orgId?: number;
     oAuthClientId?: string | null;
+    metadata?: Record<string, unknown>;
     // Reschedule-specific fields
     rescheduleId?: number;
     rescheduleUid?: string;
@@ -2998,6 +3000,7 @@ export class RegularBookingService implements IBookingService {
       ...params,
       teamId: params.teamId ?? undefined,
       oAuthClientId: params.oAuthClientId ?? undefined,
+      metadata: params.metadata ?? {},
       platformRescheduleUrl: params.platformRescheduleUrl ?? undefined,
       platformCancelUrl: params.platformCancelUrl ?? undefined,
       platformBookingUrl: params.platformBookingUrl ?? undefined,
