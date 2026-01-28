@@ -615,6 +615,7 @@ type HostsCustomClassNames = {
 
 // Maps eventType.hosts (from API) to Host[] (form type)
 // The API type has nullable priority/weight, form type requires non-nullable
+// Note: location is omitted as API type structure differs from HostLocation (missing userId/eventTypeId)
 const mapEventTypeHostsToFormHosts = (hosts: EventTypeSetup["hosts"]): Host[] => {
   return hosts.map((host) => ({
     isFixed: host.isFixed,
@@ -623,7 +624,6 @@ const mapEventTypeHostsToFormHosts = (hosts: EventTypeSetup["hosts"]): Host[] =>
     weight: host.weight ?? 100, // Default weight
     scheduleId: host.scheduleId,
     groupId: host.groupId,
-    location: host.location ?? null,
   }));
 };
 
