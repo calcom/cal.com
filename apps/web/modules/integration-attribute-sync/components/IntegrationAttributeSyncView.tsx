@@ -7,9 +7,9 @@ import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
-import EditIntegrationAttributeSyncCard from "./components/EditIntegrationAttributeSyncCard";
-import NewIntegrationAttributeSyncCard from "./components/NewIntegrationAttributeSyncCard";
-import type { IntegrationAttributeSync } from "./repositories/IIntegrationAttributeSyncRepository";
+import EditIntegrationAttributeSyncCard from "./EditIntegrationAttributeSyncCard";
+import NewIntegrationAttributeSyncCard from "./NewIntegrationAttributeSyncCard";
+import type { IntegrationAttributeSync } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 
 interface IIntegrationAttributeSyncViewProps {
   credentialsData: {
