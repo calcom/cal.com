@@ -119,6 +119,15 @@ export default function EditLocation() {
         options={{
           title: "Edit Location",
           headerBackButtonDisplayMode: "minimal",
+          contentStyle: {
+            backgroundColor: theme.background,
+          },
+          headerStyle: {
+            backgroundColor: theme.background,
+          },
+          headerTitleStyle: {
+            color: theme.text,
+          },
           headerLeft: Platform.OS !== "ios" ? renderHeaderLeft : undefined,
           headerRight: Platform.OS !== "ios" ? renderHeaderRight : undefined,
         }}
