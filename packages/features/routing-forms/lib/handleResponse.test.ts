@@ -181,6 +181,7 @@ describe("handleResponse", () => {
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
+      submitterEmail: "john.doe@example.com",
     });
     expect(onSubmissionOfFormResponse).toHaveBeenCalledWith({
       form: mockForm,
@@ -217,6 +218,7 @@ describe("handleResponse", () => {
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
+      submitterEmail: "john.doe@example.com",
     });
     expect(mockRoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
     expect(onSubmissionOfFormResponse).not.toHaveBeenCalled();

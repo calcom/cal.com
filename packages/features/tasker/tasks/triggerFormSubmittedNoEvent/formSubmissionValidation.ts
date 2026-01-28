@@ -37,7 +37,20 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
   return true;
 }
 
-export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES): string | undefined {
+/**
+ * Generic type for form responses that have a value property.
+ * This allows the function to work with both FORM_SUBMITTED_WEBHOOK_RESPONSES
+ * and the response type used in handleResponse.ts
+ */
+type ResponseWithValue = Record<
+  string,
+  {
+    value: string | number | string[];
+    [key: string]: unknown;
+  }
+>;
+
+export function getSubmitterEmail(responses: ResponseWithValue): string | undefined {
   const submitterEmail = Object.values(responses).find((response) => {
     const value = typeof response === "object" && response && "value" in response ? response.value : response;
     return typeof value === "string" && value.includes("@");
@@ -66,6 +79,7 @@ export function getSubmitterName(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES) {
 
 /**
  * Check for duplicate form submissions within the last 60 minutes
+ * Uses the submitterEmail column for efficient querying instead of iterating through all responses
  */
 async function hasDuplicateSubmission({
   formId,
@@ -87,27 +101,13 @@ async function hasDuplicateSubmission({
 
   const sixtyMinutesAgo = new Date(date.getTime() - 60 * 60 * 1000);
 
-  const recentResponses = await formResponseRepository.findAllResponsesWithBooking({
+  const duplicateResponse = await formResponseRepository.findResponseWithBookingByEmail({
     formId,
     responseId,
+    submitterEmail,
     createdAfter: sixtyMinutesAgo,
     createdBefore: new Date(),
   });
 
-  // Check if there's a duplicate email in recent responses
-  return recentResponses.some((response) => {
-    if (!response.response || typeof response.response !== "object") return false;
-
-    return Object.values(response.response as Record<string, { value: string; label: string }>).some(
-      (field) => {
-        return (
-          typeof field === "object" &&
-          field &&
-          "value" in field &&
-          typeof field.value === "string" &&
-          field.value.toLowerCase() === submitterEmail.toLowerCase()
-        );
-      }
-    );
-  });
+  return duplicateResponse !== null;
 }

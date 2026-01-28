@@ -1,11 +1,10 @@
-import { z } from "zod";
-
 import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
 import {
   onSubmissionOfFormResponse,
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -14,7 +13,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-
+import { z } from "zod";
 import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
@@ -171,11 +170,13 @@ const _handleResponse = async ({
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
       const formResponseRepo = new RoutingFormResponseRepository(prisma);
+      const submitterEmail = getSubmitterEmail(response) ?? null;
       if (queueFormResponse) {
         queuedFormResponse = await formResponseRepo.recordQueuedFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
+          submitterEmail,
         });
         dbFormResponse = null;
       } else {
@@ -183,6 +184,7 @@ const _handleResponse = async ({
           formId: form.id,
           response,
           chosenRouteId,
+          submitterEmail,
         });
         queuedFormResponse = null;
 
