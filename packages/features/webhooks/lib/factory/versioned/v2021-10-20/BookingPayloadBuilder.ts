@@ -33,6 +33,7 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           createdAt: dto.createdAt,
           extra: {
             metadata: dto.metadata,
+            assignmentReason: dto.assignmentReason,
           },
         });
 
@@ -170,7 +171,6 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         // Ensure additionalNotes and description are always present (legacy compat)
         additionalNotes: params.evt.additionalNotes ?? "",
         description: params.evt.description ?? params.evt.additionalNotes ?? "",
-        ...(params.evt.assignmentReason ? { assignmentReason: params.evt.assignmentReason } : {}),
         ...(params.extra || {}),
       },
     };

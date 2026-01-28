@@ -1,9 +1,8 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { WebhookVersion } from "../interface/IWebhookRepository";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { WebhookVersion } from "../interface/IWebhookRepository";
 
 export interface BaseEventDTO {
   triggerEvent: WebhookTriggerEvents;
@@ -31,6 +30,7 @@ export interface BookingCreatedDTO extends BaseEventDTO {
   };
   status: "ACCEPTED" | "PENDING";
   metadata?: Record<string, unknown>;
+  assignmentReason?: { reasonEnum: string; reasonString: string }[];
 }
 
 export interface BookingCancelledDTO extends BaseEventDTO {

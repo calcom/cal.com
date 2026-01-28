@@ -11,6 +11,7 @@ import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory"
 export type BookingExtraDataMap = {
   [WebhookTriggerEvents.BOOKING_CREATED]: {
     metadata?: Record<string, unknown>;
+    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   [WebhookTriggerEvents.BOOKING_CANCELLED]: {
     cancelledBy?: string;
@@ -41,6 +42,8 @@ export interface BookingPayloadParams<T extends keyof BookingExtraDataMap> {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    // Raw assignmentReason from DB for legacy webhook format
+    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   eventType: EventTypeInfo;
   evt: CalendarEvent;

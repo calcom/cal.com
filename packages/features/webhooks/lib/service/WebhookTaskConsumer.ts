@@ -6,8 +6,8 @@ import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderF
 import type { IWebhookDataFetcher } from "../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
-import type { IWebhookService } from "../interface/services";
 import type { ILogger } from "../interface/infrastructure";
+import type { IWebhookService } from "../interface/services";
 import type { BookingWebhookTaskPayload, WebhookTaskPayload } from "../types/webhookTask";
 
 /**
@@ -212,6 +212,7 @@ export class WebhookTaskConsumer {
         startTime: booking.startTime,
         smsReminderNumber: booking.smsReminderNumber,
         iCalSequence: booking.iCalSequence,
+        assignmentReason: booking.assignmentReason,
       },
     };
 
