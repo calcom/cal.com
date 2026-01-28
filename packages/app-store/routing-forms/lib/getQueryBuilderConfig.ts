@@ -58,13 +58,29 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
       const widget = FormFieldsInitialConfig.widgets[fieldType];
       const widgetType = widget.type;
 
+      // Fields that support options for routing rules
+      const fieldsWithOptions: string[] = ["select", "multiselect", "checkbox", "radio"];
+
+      // Boolean fields get predefined Yes/No options for routing
+      const booleanOptions = [
+        { value: "true", title: "Yes" },
+        { value: "false", title: "No" },
+      ];
+
       fields[field.id] = {
         label: field.label,
         type: widgetType,
         valueSources: ["value"],
         fieldSettings: {
-          // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
+          // IMPORTANT: listValues must be undefined for text-like fields otherwise RAQB doesn't like it.
+          // It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid.
+          // Fields with options (select, multiselect, checkbox, radio) need listValues for routing rules.
+          // Boolean gets predefined Yes/No options.
+          listValues: fieldsWithOptions.includes(fieldType)
+            ? options
+            : fieldType === "boolean"
+            ? booleanOptions
+            : undefined,
         },
       };
     } else {

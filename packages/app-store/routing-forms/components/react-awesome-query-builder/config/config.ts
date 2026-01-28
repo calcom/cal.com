@@ -15,6 +15,24 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     email: {
       ...BasicConfig.widgets.text,
     },
+    address: {
+      ...BasicConfig.widgets.text,
+    },
+    url: {
+      ...BasicConfig.widgets.text,
+    },
+    // Checkbox group behaves like multiselect (array of values)
+    checkbox: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    // Radio group behaves like select (single value from options)
+    radio: {
+      ...BasicConfig.widgets.select,
+    },
+    // Boolean is rendered as a select with Yes/No options for routing
+    boolean: {
+      ...BasicConfig.widgets.select,
+    },
   };
   return widgetsWithoutFactory;
 }
@@ -40,6 +58,43 @@ function getTypes(configFor: ConfigFor) {
       ...BasicConfig.types.text,
       widgets: {
         ...BasicConfig.types.text.widgets,
+      },
+    },
+    address: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    url: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    // Checkbox group: array of selected values, same routing behavior as multiselect
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        multiselect: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [...multiSelectOperators],
+        },
+      },
+    },
+    // Radio group: single value from options, same routing behavior as select
+    radio: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
+      },
+    },
+    // Boolean: treated as select with Yes/No for routing rules
+    boolean: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
       },
     },
     multiselect: {

@@ -141,4 +141,108 @@ describe("getFieldResponseForJsonLogic", () => {
       expect(result).toBe("1");
     });
   });
+
+  describe("checkbox", () => {
+    it("should return option ids for checkbox field with array values", () => {
+      const field = {
+        type: "checkbox",
+        options: [
+          { id: "1", label: "Option 1" },
+          { id: "2", label: "Option 2" },
+        ],
+      };
+      const value = ["1", "2"];
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toEqual(["1", "2"]);
+    });
+
+    it("should return ids if matching labels are provided in value for checkbox", () => {
+      const field = {
+        type: "checkbox",
+        options: [
+          { id: "1", label: "Option 1" },
+          { id: "2", label: "Option 2" },
+        ],
+      };
+      const value = ["Option 1", "Option 2"];
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toEqual(["1", "2"]);
+    });
+  });
+
+  describe("radio", () => {
+    it("should handle radio field with options", () => {
+      const field = {
+        type: "radio",
+        options: [
+          { id: "1", label: "Option 1" },
+          { id: "2", label: "Option 2" },
+        ],
+      };
+      const value = "1";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("1");
+    });
+
+    it("should handle radio field with label value", () => {
+      const field = {
+        type: "radio",
+        options: [
+          { id: "1", label: "Option 1" },
+          { id: "2", label: "Option 2" },
+        ],
+      };
+      const value = "Option 1";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("1");
+    });
+  });
+
+  describe("boolean", () => {
+    it("should return 'true' string for boolean true value", () => {
+      const field = { type: "boolean", options: undefined };
+      const value = true;
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("true");
+    });
+
+    it("should return 'false' string for boolean false value", () => {
+      const field = { type: "boolean", options: undefined };
+      const value = false;
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("false");
+    });
+
+    it("should return 'true' string for string 'true' value", () => {
+      const field = { type: "boolean", options: undefined };
+      const value = "true";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("true");
+    });
+
+    it("should return 'false' string for string 'false' value", () => {
+      const field = { type: "boolean", options: undefined };
+      const value = "false";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("false");
+    });
+  });
+
+  describe("address", () => {
+    it("should return the value as-is for address type", () => {
+      const field = { type: "address", options: undefined };
+      const value = "123 Main St, City, State 12345";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("123 Main St, City, State 12345");
+    });
+  });
+
+  describe("url", () => {
+    it("should return the value as-is for url type", () => {
+      const field = { type: "url", options: undefined };
+      const value = "https://example.com";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("https://example.com");
+    });
+  });
 });

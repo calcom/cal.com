@@ -69,7 +69,8 @@ export function getFieldResponseForJsonLogic({
     }
     return value;
   }
-  if (field.type === "multiselect") {
+  // Multiselect and checkbox group both produce arrays of selected values
+  if (field.type === "multiselect" || field.type === "checkbox") {
     // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
     let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
 
@@ -80,7 +81,8 @@ export function getFieldResponseForJsonLogic({
     return valueOrLabelArray;
   }
 
-  if (field.type === "select") {
+  // Select and radio group both produce a single selected value
+  if (field.type === "select" || field.type === "radio") {
     const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
     const valueAsString =
       valueAsStringOrStringArray instanceof Array
@@ -89,5 +91,14 @@ export function getFieldResponseForJsonLogic({
 
     return transformSelectValue({ field, idOrLabel: valueAsString });
   }
+
+  // Boolean stores "true" or "false" as string for routing logic
+  if (field.type === "boolean") {
+    if (typeof value === "boolean") {
+      return value ? "true" : "false";
+    }
+    return value === "true" ? "true" : "false";
+  }
+
   return value;
 }
