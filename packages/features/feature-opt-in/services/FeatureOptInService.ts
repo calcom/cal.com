@@ -13,7 +13,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import {
   getOptInFeatureConfig,
-  getOptInFeaturesForScope,
+  getOptInFeaturesForScopeInSettings,
   isFeatureAllowedForScope,
   isOptInFeature,
 } from "../config";
@@ -229,7 +229,8 @@ export class FeatureOptInService implements IFeatureOptInService {
 
   /**
    * List all opt-in features with their states for a user across teams.
-   * Only returns features that are in the allowlist, globally enabled, and scoped to "user".
+   * Only returns features that are in the allowlist, globally enabled, scoped to "user",
+   * and configured to be displayed in settings.
    */
   async listFeaturesForUser(input: {
     userId: number;
@@ -237,7 +238,7 @@ export class FeatureOptInService implements IFeatureOptInService {
     teamIds: number[];
   }): Promise<ListFeaturesForUserResult[]> {
     const { userId, orgId, teamIds } = input;
-    const userScopedFeatures = getOptInFeaturesForScope("user");
+    const userScopedFeatures = getOptInFeaturesForScopeInSettings("user");
     const featureIds = userScopedFeatures.map((config) => config.slug);
 
     const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
@@ -253,7 +254,8 @@ export class FeatureOptInService implements IFeatureOptInService {
   /**
    * List all opt-in features with their raw states for a team or organization.
    * Used for team/org admin settings page to configure feature opt-in.
-   * Only returns features that are in the allowlist, globally enabled, and scoped to the specified scope.
+   * Only returns features that are in the allowlist, globally enabled, scoped to the specified scope,
+   * and configured to be displayed in settings.
    * If parentOrgId is provided, also returns the organization state for each feature.
    */
   async listFeaturesForTeam(input: {
@@ -263,7 +265,7 @@ export class FeatureOptInService implements IFeatureOptInService {
   }): Promise<ListFeaturesForTeamResult[]> {
     const { teamId, parentOrgId, scope = "team" } = input;
     const teamIdsToQuery = getTeamIdsToQuery(teamId, parentOrgId);
-    const scopedFeatures = getOptInFeaturesForScope(scope);
+    const scopedFeatures = getOptInFeaturesForScopeInSettings(scope);
 
     const [allFeatures, teamStates] = await Promise.all([
       this.deps.featureRepo.findAll(),
