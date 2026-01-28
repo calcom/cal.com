@@ -44,3 +44,13 @@ The section ID (in parentheses) is the filename prefix used to group rules.
 
 **Impact:** MEDIUM
 **Description:** Engineering culture, accountability, and collaboration standards.
+
+## 9. CI/CD (ci)
+
+**Impact:** HIGH
+**Description:** Continuous integration practices, type checking priorities, and git workflow standards.
+
+## 10. Reference (reference)
+
+**Impact:** LOW
+**Description:** Informational lookups, file locations, and local development setup guides.

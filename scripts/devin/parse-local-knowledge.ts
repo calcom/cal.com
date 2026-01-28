@@ -143,18 +143,6 @@ function parseCommandsFile(filePath: string): DevinKnowledgeEntry {
   };
 }
 
-function parseCodingStandardsFile(filePath: string): DevinKnowledgeEntry {
-  const content = fs.readFileSync(filePath, "utf-8");
-
-  return {
-    name: "Cal.com Coding Standards & Best Practices",
-    body: content,
-    trigger_description:
-      "When writing code in the Cal.com repository, follow these coding standards for imports, code structure, ORM usage, and security rules",
-    folder: "Coding Standards",
-  };
-}
-
 function main() {
   const agentsDir = path.join(__dirname, "..", "..", "agents");
   const rulesDir = path.join(agentsDir, "rules");
@@ -172,10 +160,6 @@ function main() {
       {
         name: "Commands",
         description: "Build, test, and development commands for Cal.com",
-      },
-      {
-        name: "Coding Standards",
-        description: "Coding standards and best practices for Cal.com",
       },
     ],
     knowledge: [],
@@ -203,13 +187,6 @@ function main() {
   const commandsPath = path.join(agentsDir, "commands.md");
   if (fs.existsSync(commandsPath)) {
     const entry = parseCommandsFile(commandsPath);
-    output.knowledge.push(entry);
-  }
-
-  // Parse coding-standards.md
-  const codingStandardsPath = path.join(agentsDir, "coding-standards.md");
-  if (fs.existsSync(codingStandardsPath)) {
-    const entry = parseCodingStandardsFile(codingStandardsPath);
     output.knowledge.push(entry);
   }
 
