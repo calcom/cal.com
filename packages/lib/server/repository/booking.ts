@@ -149,7 +149,7 @@ export class BookingRepository {
 
     // TODO add checks for team and org
     const userRepo = new UserRepository(this.prismaClient);
-    const isAdminOrUser = await userRepo.isAdminOrOwnerOfCalIdTeam({
+    const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
       userId,
       teamId: booking.eventType.teamId,
     });
