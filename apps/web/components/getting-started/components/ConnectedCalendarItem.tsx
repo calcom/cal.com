@@ -1,4 +1,4 @@
-import { UserCalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
+import { UserCalendarSwitch } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 
 interface IConnectedCalendarItem {
   name: string;

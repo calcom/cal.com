@@ -1,49 +1,26 @@
-import type { ZodEnum } from "zod";
-import { z } from "zod";
-
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
+import type { ZodEnum } from "zod";
+import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
 import { createOrgPbacProcedure, createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
+import { router } from "../../../trpc";
 
-const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum(["enabled", "disabled", "inherit"]);
+const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum([
+  "enabled",
+  "disabled",
+  "inherit",
+]);
 
-const featureOptInService = getFeatureOptInService();
-const featuresRepository = new FeaturesRepository(prisma);
-const teamRepository = new TeamRepository(prisma);
-const membershipRepository = new MembershipRepository(prisma);
-
-/**
- * Helper to get user's org and team IDs from their memberships.
- * Returns orgId (if user belongs to an org) and teamIds (non-org teams).
- */
-async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-  const memberships = await membershipRepository.findAllByUserId({
-    userId,
-    filters: { accepted: true },
-  });
-
-  let orgId: number | null = null;
-  const teamIds: number[] = [];
-
-  for (const membership of memberships) {
-    if (membership.team.isOrganization) {
-      orgId = membership.teamId;
-    } else {
-      teamIds.push(membership.teamId);
-    }
-  }
-
-  return { orgId, teamIds };
-}
+const featureOptInService: ReturnType<typeof getFeatureOptInService> = getFeatureOptInService();
+const teamFeatureRepository: ReturnType<typeof getTeamFeatureRepository> = getTeamFeatureRepository();
+const userFeatureRepository: ReturnType<typeof getUserFeatureRepository> = getUserFeatureRepository();
+const teamRepository: TeamRepository = new TeamRepository(prisma);
 
 export const featureOptInRouter = router({
   /**
@@ -51,12 +28,8 @@ export const featureOptInRouter = router({
    * This considers all teams/orgs the user belongs to.
    */
   listForUser: authedProcedure.query(async ({ ctx }) => {
-    const { orgId, teamIds } = await getUserOrgAndTeamIds(ctx.user.id);
-
     return featureOptInService.listFeaturesForUser({
       userId: ctx.user.id,
-      orgId,
-      teamIds,
     });
   }),
 
@@ -82,6 +55,19 @@ export const featureOptInRouter = router({
     // Pass scope: "org" to filter features that are scoped to organizations
     return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId, scope: "org" });
   }),
+
+  checkFeatureOptInEligibility: authedProcedure
+    .input(
+      z.object({
+        featureId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return featureOptInService.checkFeatureOptInEligibility({
+        userId: ctx.user.id,
+        featureId: input.featureId,
+      });
+    }),
 
   /**
    * Set user's feature state.
@@ -174,7 +160,7 @@ export const featureOptInRouter = router({
    * Get user's auto opt-in preference.
    */
   getUserAutoOptIn: authedProcedure.query(async ({ ctx }) => {
-    const autoOptIn = await featuresRepository.getUserAutoOptIn(ctx.user.id);
+    const autoOptIn = await userFeatureRepository.findAutoOptInByUserId(ctx.user.id);
     return { autoOptIn };
   }),
 
@@ -188,7 +174,7 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await featuresRepository.setUserAutoOptIn(ctx.user.id, input.autoOptIn);
+      await userFeatureRepository.setAutoOptIn(ctx.user.id, input.autoOptIn);
       return { success: true };
     }),
 
@@ -196,7 +182,7 @@ export const featureOptInRouter = router({
    * Get team's auto opt-in preference (requires team admin).
    */
   getTeamAutoOptIn: createTeamPbacProcedure("featureOptIn.read").query(async ({ input }) => {
-    const result = await featuresRepository.getTeamsAutoOptIn([input.teamId]);
+    const result = await teamFeatureRepository.findAutoOptInByTeamIds([input.teamId]);
     return { autoOptIn: result[input.teamId] ?? false };
   }),
 
@@ -210,7 +196,7 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      await featuresRepository.setTeamAutoOptIn(input.teamId, input.autoOptIn);
+      await teamFeatureRepository.setAutoOptIn(input.teamId, input.autoOptIn);
       return { success: true };
     }),
 
@@ -218,7 +204,7 @@ export const featureOptInRouter = router({
    * Get organization's auto opt-in preference (requires org admin).
    */
   getOrganizationAutoOptIn: createOrgPbacProcedure("featureOptIn.read").query(async ({ ctx }) => {
-    const result = await featuresRepository.getTeamsAutoOptIn([ctx.organizationId]);
+    const result = await teamFeatureRepository.findAutoOptInByTeamIds([ctx.organizationId]);
     return { autoOptIn: result[ctx.organizationId] ?? false };
   }),
 
@@ -232,7 +218,7 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await featuresRepository.setTeamAutoOptIn(ctx.organizationId, input.autoOptIn);
+      await teamFeatureRepository.setAutoOptIn(ctx.organizationId, input.autoOptIn);
       return { success: true };
     }),
 });

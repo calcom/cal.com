@@ -38,6 +38,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 .env.*
 !.env.example
 !.env.appStore.example
@@ -104,8 +105,9 @@ apps/auth
 i18n.cache
 packages/**/.yarn/ci-cache/
 
-# AI
-.claude
+# AI - session/user specific files (keep CLAUDE.md and .cursor/skills tracked)
+.claude/plans/
+.claude/settings.local.json
 
 # trigger.dev
 .trigger

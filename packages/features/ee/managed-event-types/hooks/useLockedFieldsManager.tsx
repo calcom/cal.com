@@ -138,8 +138,7 @@ const useLockedFieldsManager = ({
 
   const setUnlockedFields = (fieldName: string, val: boolean | undefined) => {
     const path = "metadata.managedEventConfig.unlockedFields";
-    const metaUnlockedFields = getValues(path);
-    if (!metaUnlockedFields) return;
+    const metaUnlockedFields = getValues(path) || {};
     if (val === undefined) {
       delete metaUnlockedFields[fieldName as keyof typeof metaUnlockedFields];
       setValue(path, { ...metaUnlockedFields }, { shouldDirty: true });
