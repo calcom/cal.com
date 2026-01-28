@@ -184,7 +184,7 @@ function preprocess<T extends z.ZodType>({
             parsedValue = JSON.parse(value);
           } catch (e) {
             log.error(
-              `Failed to parse JSON for field ${field.name}: ${value}`,
+              `Failed to parse JSON for field ${field.name}`,
               e
             );
           }
