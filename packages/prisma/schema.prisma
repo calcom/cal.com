@@ -2172,6 +2172,7 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+  @@index([email, emailVerified])
 }
 
 // Needed to store tasks that need to be processed by a background worker or Tasker
