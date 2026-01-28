@@ -1974,7 +1974,7 @@ model OutOfOfficeEntry {
   reasonId         Int?
   reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
-  externalReferences OutOfOfficeReference[]
+  externalReference OutOfOfficeReference?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1989,7 +1989,7 @@ model OutOfOfficeReference {
   id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid())
 
-  oooEntryId Int
+  oooEntryId Int              @unique
   oooEntry   OutOfOfficeEntry @relation(fields: [oooEntryId], references: [id], onDelete: Cascade)
 
   source             String // App slug: "deel", "bamboohr"
@@ -2003,7 +2003,6 @@ model OutOfOfficeReference {
   syncedAt DateTime @default(now())
 
   @@unique([source, externalId])
-  @@index([oooEntryId])
   @@index([credentialId])
 }
 

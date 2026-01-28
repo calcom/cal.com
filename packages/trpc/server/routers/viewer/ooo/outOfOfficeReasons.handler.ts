@@ -66,48 +66,44 @@ export async function outOfOfficeReasonList(
     };
   }
 
-  const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
+  // Get the highest priority HRMS credential (org > team > user)
+  const hrmsCredential = await CredentialRepository.findFirstHrmsCredentialByPriority({
     userId: user.id,
     category: [AppCategories.hrms],
   });
 
-  if (hrmsCredentials.length > 0 && user.email) {
-    const hrmsReasons: OOOReason[] = [];
-    let reasonId = -1;
+  if (hrmsCredential && user.email) {
+    try {
+      const hrmsManager = new HrmsManager(hrmsCredential);
+      const reasons = await hrmsManager.listOOOReasons(user.email);
 
-    for (const credential of hrmsCredentials) {
-      try {
-        const hrmsManager = new HrmsManager(credential);
-        const reasons = await hrmsManager.listOOOReasons(user.email);
+      let reasonId = -1;
+      const hrmsReasons: OOOReason[] = reasons.map((reason) => ({
+        id: reasonId--,
+        emoji: null,
+        reason: reason.name,
+        userId: null,
+        enabled: true,
+        hrmsSource: hrmsCredential.appId || "unknown",
+        hrmsReasonId: reason.externalId,
+      }));
 
-        const mappedReasons: OOOReason[] = reasons.map((reason) => ({
-          id: reasonId--,
-          emoji: null,
-          reason: reason.name,
-          userId: null,
-          enabled: true,
-          hrmsSource: credential.appId || "unknown",
-          hrmsReasonId: reason.externalId,
-        }));
+      log.info("Successfully fetched HRMS OOO reasons", {
+        appId: hrmsCredential.appId,
+        count: reasons.length,
+      });
 
-        hrmsReasons.push(...mappedReasons);
-        log.info("Successfully fetched HRMS OOO reasons", {
-          appId: credential.appId,
-          count: reasons.length,
-        });
-      } catch (error) {
-        log.error("Failed to fetch HRMS OOO reasons", {
-          appId: credential.appId,
-          error: getErrorMessage(error),
-        });
+      if (hrmsReasons.length > 0) {
+        return {
+          hasHrmsIntegration: true,
+          reasons: hrmsReasons,
+        };
       }
-    }
-
-    if (hrmsReasons.length > 0) {
-      return {
-        hasHrmsIntegration: true,
-        reasons: hrmsReasons,
-      };
+    } catch (error) {
+      log.error("Failed to fetch HRMS OOO reasons", {
+        appId: hrmsCredential.appId,
+        error: getErrorMessage(error),
+      });
     }
   }
 

@@ -44,7 +44,7 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     }
   }
 
-  // First, fetch the OOO entry with its external references before deleting
+  // First, fetch the OOO entry with its external reference before deleting (1:1 relationship)
   const oooEntry = await prisma.outOfOfficeEntry.findUnique({
     where: {
       uuid: input.outOfOfficeUid,
@@ -54,7 +54,7 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
       id: true,
       start: true,
       end: true,
-      externalReferences: {
+      externalReference: {
         select: {
           id: true,
           source: true,
@@ -91,17 +91,15 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
   }
 
-  // Delete HRMS time-off entries before deleting the OOO entry
+  // Delete HRMS time-off entry before deleting the OOO entry (1:1 relationship)
   try {
-    for (const reference of oooEntry.externalReferences) {
-      if (reference.credential) {
-        const hrmsManager = new HrmsManager(reference.credential);
-        await hrmsManager.deleteOOO(reference.externalId);
-        log.info("Deleted HRMS time-off request", {
-          source: reference.source,
-          externalId: reference.externalId,
-        });
-      }
+    if (oooEntry.externalReference?.credential) {
+      const hrmsManager = new HrmsManager(oooEntry.externalReference.credential);
+      await hrmsManager.deleteOOO(oooEntry.externalReference.externalId);
+      log.info("Deleted HRMS time-off request", {
+        source: oooEntry.externalReference.source,
+        externalId: oooEntry.externalReference.externalId,
+      });
     }
   } catch (error) {
     log.error("Failed to delete HRMS time-off request", { error });

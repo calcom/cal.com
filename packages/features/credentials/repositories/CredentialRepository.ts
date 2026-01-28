@@ -202,6 +202,60 @@ export class CredentialRepository {
     return credentials;
   }
 
+  /**
+   * Fetches the highest priority HRMS credential for a user.
+   * Priority order: Organization > Team > User
+   * Returns only a single credential (the first found with highest priority).
+   */
+  static async findFirstHrmsCredentialByPriority({
+    userId,
+    category,
+  }: {
+    userId: number;
+    category: AppCategories[];
+  }) {
+    // 1. First check organization credentials (highest priority)
+    const organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId });
+
+    if (organizationId) {
+      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: organizationId,
+        category,
+      });
+      if (orgCredentials && orgCredentials.length > 0) {
+        return orgCredentials[0];
+      }
+    }
+
+    // 2. Then check team credentials
+    const userTeams = await prisma.membership.findMany({
+      where: { userId },
+      select: { teamId: true },
+    });
+
+    for (const membership of userTeams) {
+      const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: membership.teamId,
+        category,
+      });
+      if (teamCredentials && teamCredentials.length > 0) {
+        return teamCredentials[0];
+      }
+    }
+
+    // 3. Finally check user's own credentials (lowest priority)
+    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+      userId,
+      category,
+    });
+
+    if (userCredentials && userCredentials.length > 0) {
+      return userCredentials[0];
+    }
+
+    return null;
+  }
+
   static async findManyByCategoryAndAppSlug({
     category,
     appSlug,
