@@ -119,8 +119,8 @@ export function SettingRow({
           <Switch
             value={value}
             onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: isDark ? "#FFFFFF" : "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? (isDark ? "#000000" : "#FFFFFF") : undefined}
+            trackColor={{ false: "#E9E9EA", true: isDark ? "#34C759" : "#000000" }}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
