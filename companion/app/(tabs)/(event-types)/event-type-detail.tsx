@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   Modal,
@@ -1278,8 +1279,11 @@ export default function EventTypeDetail() {
 
   const renderHeaderLeft = () => (
     <HeaderButtonWrapper side="left">
-      <AppPressable onPress={() => router.back()} className="px-2 py-2">
-        <Ionicons name="close" size={24} color={isDarkMode ? "#FFFFFF" : "#000000"} />
+      <AppPressable
+        onPress={() => router.back()}
+        className="mr-2 h-10 w-10 items-center justify-center rounded-full border border-[#E5E5E5] bg-white dark:border-[#262626] dark:bg-[#171717]"
+      >
+        <Ionicons name="chevron-back" size={20} color={isDarkMode ? "#FFFFFF" : "#000000"} />
       </AppPressable>
     </HeaderButtonWrapper>
   );
@@ -1290,22 +1294,13 @@ export default function EventTypeDetail() {
         {/* Tab Navigation Dropdown Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <AppPressable
-              className="flex-row items-center gap-1 px-2 py-2"
-              style={{ flexDirection: "row", alignItems: "center" }}
-            >
+            <AppPressable className="h-10 flex-row items-center justify-center gap-2 rounded-full border border-[#E5E5E5] bg-white px-4 dark:border-[#262626] dark:bg-[#171717]">
               <Text
-                className="text-[16px] font-semibold text-[#000000] dark:text-white"
+                className="text-[15px] font-medium text-[#000000] dark:text-white"
                 numberOfLines={1}
               >
                 {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
               </Text>
-              <Ionicons
-                name="chevron-down"
-                size={16}
-                color={isDarkMode ? "#FFFFFF" : "#000000"}
-                style={{ marginLeft: 2, flexShrink: 0 }}
-              />
             </AppPressable>
           </DropdownMenuTrigger>
 
@@ -1345,21 +1340,49 @@ export default function EventTypeDetail() {
         <AppPressable
           onPress={handleSave}
           disabled={isSaving || !isDirty}
-          className={`px-2 py-2 ${isSaving || !isDirty ? "opacity-50" : ""}`}
+          className={`h-10 flex-row items-center justify-center rounded-full border px-5 ${
+            isSaving || !isDirty
+              ? "border-[#E5E5EA] bg-[#E5E5EA] dark:border-[#262626] dark:bg-[#262626]"
+              : "border-black bg-black dark:border-white dark:bg-white"
+          }`}
         >
-          <Text
-            className={`text-[16px] font-semibold ${
-              isSaving || !isDirty
-                ? "text-[#C7C7CC] dark:text-[#666666]"
-                : "text-[#000000] dark:text-white"
-            }`}
-          >
-            {saveButtonText}
-          </Text>
+          {isSaving ? (
+            <ActivityIndicator
+              size="small"
+              color={
+                isSaving || !isDirty
+                  ? isDarkMode
+                    ? "#A3A3A3"
+                    : "#A3A3A3"
+                  : isDarkMode
+                    ? "#000000"
+                    : "#FFFFFF"
+              }
+            />
+          ) : (
+            <Text
+              className={`text-[15px] font-medium ${
+                isSaving || !isDirty ? "text-[#A3A3A3]" : isDarkMode ? "text-black" : "text-white"
+              }`}
+            >
+              {saveButtonText}
+            </Text>
+          )}
         </AppPressable>
       </View>
     </HeaderButtonWrapper>
   );
+
+  // Force header update on Android/Web when state changes
+  const navigation = useNavigation();
+  useEffect(() => {
+    if (Platform.OS === "android" || Platform.OS === "web") {
+      navigation.setOptions({
+        headerRight: renderHeaderRight,
+        headerLeft: renderHeaderLeft,
+      });
+    }
+  }, [navigation, renderHeaderRight, renderHeaderLeft]);
 
   return (
     <>
@@ -1367,14 +1390,14 @@ export default function EventTypeDetail() {
         options={{
           title: headerTitle,
           headerBackButtonDisplayMode: "minimal",
-          headerLeft:
-            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderLeft : undefined,
-          headerRight:
-            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderRight : undefined,
           headerShown: Platform.OS !== "ios",
           headerTransparent: Platform.select({
             ios: true,
           }),
+          headerStyle: {
+            backgroundColor: isDarkMode ? "black" : "white",
+          },
+          headerShadowVisible: false,
         }}
       />
 

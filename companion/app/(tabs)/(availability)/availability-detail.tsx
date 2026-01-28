@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getColors } from "@/constants/colors";
+import { AppPressable } from "@/components/AppPressable";
 
 // Type for action handlers exposed by AvailabilityDetailScreen
 type ActionHandlers = {
@@ -76,28 +77,41 @@ export default function AvailabilityDetail() {
     <>
       <Stack.Screen
         options={{
-          title: "Availability",
-          headerBackTitle: "Availability",
+          title: "",
+          headerBackTitle: "", // Hide default back title if it appears
           headerStyle: {
-            backgroundColor: isDark ? theme.background : theme.backgroundMuted,
+            backgroundColor: isDark ? "black" : "white",
           },
           headerShadowVisible: false,
+          headerLeft: () => (
+            <HeaderButtonWrapper side="left">
+              <AppPressable
+                onPress={() => router.back()}
+                className="mr-2 h-10 flex-row items-center justify-center rounded-full border border-[#E5E5E5] bg-white px-3 dark:border-[#262626] dark:bg-[#171717]"
+              >
+                <Ionicons
+                  name="chevron-back"
+                  size={20}
+                  color={isDark ? "#FFFFFF" : "#000000"}
+                  style={{ marginRight: 4 }}
+                />
+                <Text className={`text-[15px] font-medium ${isDark ? "text-white" : "text-black"}`}>
+                  Availability
+                </Text>
+              </AppPressable>
+            </HeaderButtonWrapper>
+          ),
           headerRight: () => (
             <HeaderButtonWrapper side="right">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <TouchableOpacity
-                    style={{
-                      padding: 8,
-                      marginRight: -8,
-                    }}
-                  >
-                    <Ionicons
-                      name="ellipsis-horizontal-circle"
-                      size={24}
-                      color={isDark ? theme.text : "#000000"}
-                    />
-                  </TouchableOpacity>
+                  <AppPressable className="h-10 flex-row items-center justify-center rounded-full border border-[#E5E5E5] bg-white px-4 dark:border-[#262626] dark:bg-[#171717]">
+                    <Text
+                      className={`text-[15px] font-medium ${isDark ? "text-white" : "text-black"}`}
+                    >
+                      Edit
+                    </Text>
+                  </AppPressable>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onPress={handleEditNameAndTimezone}>
