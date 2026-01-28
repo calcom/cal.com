@@ -1,4 +1,4 @@
-import { Platform, Text, TouchableOpacity, View } from "react-native";
+import { Platform, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { showErrorAlert } from "@/utils/alerts";
@@ -8,6 +8,8 @@ import { CalComLogo } from "./CalComLogo";
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const handleOAuthLogin = async () => {
     try {
@@ -31,7 +33,7 @@ export function LoginScreen() {
     <View className="flex-1 bg-white dark:bg-black">
       {/* Logo centered in the middle */}
       <View className="flex-1 items-center justify-center">
-        <CalComLogo width={180} height={40} color="#111827" />
+        <CalComLogo width={180} height={40} color={isDark ? "#FFFFFF" : "#111827"} />
       </View>
 
       {/* Bottom section with button */}
@@ -42,13 +44,13 @@ export function LoginScreen() {
           disabled={loading}
           className="flex-row items-center justify-center rounded-2xl py-[18px]"
           style={[
-            { backgroundColor: loading ? "#9CA3AF" : "#000000" },
+            { backgroundColor: loading ? "#9CA3AF" : isDark ? "#FFFFFF" : "#000000" },
             Platform.select({
               web: {
                 boxShadow: loading ? "none" : "0 4px 12px rgba(0, 0, 0, 0.2)",
               },
               default: {
-                shadowColor: "#000",
+                shadowColor: isDark ? "#FFF" : "#000",
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: loading ? 0 : 0.2,
                 shadowRadius: 12,
@@ -58,7 +60,12 @@ export function LoginScreen() {
           ]}
           activeOpacity={0.9}
         >
-          <Text className="text-[17px] font-semibold text-white">Continue with Cal.com</Text>
+          <Text
+            className="text-[17px] font-semibold"
+            style={{ color: isDark ? "#000000" : "#FFFFFF" }}
+          >
+            Continue with Cal.com
+          </Text>
         </TouchableOpacity>
 
         {/* Sign up link - hidden on iOS */}
