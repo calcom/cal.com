@@ -2478,7 +2478,7 @@ async function handler(
     tracingLogger,
   });
 
-  const webhookLocation = metadata?.videoCallUrl || booking.location || evt.location;
+  const webhookLocation = metadata?.videoCallUrl || evt.location;
 
   const webhookData: EventPayloadType = {
     ...evt,
