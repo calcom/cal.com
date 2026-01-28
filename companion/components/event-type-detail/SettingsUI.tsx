@@ -1,5 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Alert, Platform, Switch, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  Switch,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { openInAppBrowser } from "@/utils/browser";
 import { IOSPickerTrigger } from "./tabs/IOSPickerTrigger";
 
@@ -65,6 +73,8 @@ export function SettingRow({
   isFirst?: boolean;
   isLast?: boolean;
 }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
   const height = isFirst || isLast ? 52 : 44;
   const showDescription = () => {
     if (!description) return;
@@ -109,8 +119,8 @@ export function SettingRow({
           <Switch
             value={value}
             onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
+            trackColor={{ false: "#E9E9EA", true: isDark ? "#FFFFFF" : "#000000" }}
+            thumbColor={Platform.OS !== "ios" ? (isDark ? "#000000" : "#FFFFFF") : undefined}
           />
         </View>
       </View>

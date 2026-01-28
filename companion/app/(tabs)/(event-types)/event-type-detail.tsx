@@ -2414,8 +2414,11 @@ export default function EventTypeDetail() {
                         <Switch
                           value={isHidden}
                           onValueChange={setIsHidden}
-                          trackColor={{ false: "#E5E5EA", true: "#000000" }}
-                          thumbColor="#FFFFFF"
+                          trackColor={{
+                            false: "#E5E5EA",
+                            true: isDarkMode ? "#FFFFFF" : "#000000",
+                          }}
+                          thumbColor={isDarkMode ? "#000000" : "#FFFFFF"}
                         />
                       </View>
                     </View>
