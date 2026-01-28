@@ -1,15 +1,13 @@
 "use client";
 
-import type { TFunction } from "i18next";
-
-import { useCallback, useMemo } from "react";
-
 import type { EffectiveStateReason } from "@calcom/features/feature-opt-in/lib/computeEffectiveState";
 import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import type { TFunction } from "i18next";
+import { useCallback, useMemo } from "react";
 
 type UserFeatureData = {
   featureId: string;
@@ -53,8 +51,9 @@ function createUserBlockedWarningFn(t: TFunction): (feature: NormalizedFeature) 
       case "feature_any_team_disabled":
         return t("feature_blocked_by_team_warning");
       case "feature_no_explicit_enablement":
-      case "feature_user_only_not_allowed":
         return t("feature_no_explicit_enablement_warning");
+      case "feature_user_only_not_allowed":
+        return t("feature_user_only_not_allowed_warning");
       default:
         return null;
     }
@@ -76,8 +75,12 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const featuresQuery = trpc.viewer.featureOptIn.listForUser.useQuery(undefined, { refetchOnWindowFocus: false });
-  const autoOptInQuery = trpc.viewer.featureOptIn.getUserAutoOptIn.useQuery(undefined, { refetchOnWindowFocus: false });
+  const featuresQuery = trpc.viewer.featureOptIn.listForUser.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const autoOptInQuery = trpc.viewer.featureOptIn.getUserAutoOptIn.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
   const invalidateFeatures = useCallback(() => utils.viewer.featureOptIn.listForUser.invalidate(), [utils]);
   const invalidateFeaturesAndAutoOptIn = useCallback(() => {
@@ -89,10 +92,13 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
   const setAutoOptInMutationCallbacks = useMutationCallbacks(invalidateFeaturesAndAutoOptIn);
 
   const setStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation(setStateMutationCallbacks);
-  const setAutoOptInMutation = trpc.viewer.featureOptIn.setUserAutoOptIn.useMutation(setAutoOptInMutationCallbacks);
+  const setAutoOptInMutation = trpc.viewer.featureOptIn.setUserAutoOptIn.useMutation(
+    setAutoOptInMutationCallbacks
+  );
 
   const features = useMemo(() => normalizeUserFeatures(featuresQuery.data), [featuresQuery.data]);
-  const setFeatureState = (slug: string, state: FeatureState): void => setStateMutation.mutate({ slug, state });
+  const setFeatureState = (slug: string, state: FeatureState): void =>
+    setStateMutation.mutate({ slug, state });
   const setAutoOptIn = (checked: boolean): void => setAutoOptInMutation.mutate({ autoOptIn: checked });
   const getBlockedWarning = createUserBlockedWarningFn(t);
 

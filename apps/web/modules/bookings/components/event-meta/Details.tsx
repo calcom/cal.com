@@ -21,6 +21,7 @@ type EventDetailsPropsBase = {
     | "currency"
     | "price"
     | "locations"
+    | "enablePerHostLocations"
     | "requiresConfirmation"
     | "recurringEvent"
     | "length"
@@ -149,7 +150,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.LOCATION:
-            if (!event?.locations?.length || isInstantMeeting) return null;
+            if (!event?.locations?.length || isInstantMeeting || event.enablePerHostLocations) return null;
             return (
               <EventMetaBlock key={block}>
                 <AvailableEventLocations locations={event.locations} />

@@ -168,6 +168,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     updatedAt: null,
     rrHostSubsetEnabled: false,
     requiresCancellationReason: null,
+    enablePerHostLocations: false,
     ...eventType,
   };
 };
@@ -268,7 +269,6 @@ type UserPayload = Prisma.UserGetPayload<{
     defaultScheduleId: true;
     disableImpersonation: true;
     emailVerified: true;
-    endTime: true;
     hideBranding: true;
     identityProvider: true;
     identityProviderId: true;
@@ -276,7 +276,6 @@ type UserPayload = Prisma.UserGetPayload<{
     locale: true;
     metadata: true;
     role: true;
-    startTime: true;
     theme: true;
     appTheme: true;
     timeFormat: true;
@@ -319,7 +318,6 @@ export const buildUser = <T extends Partial<UserPayload>>(
     destinationCalendar: null,
     disableImpersonation: false,
     emailVerified: null,
-    endTime: 0,
     hideBranding: true,
     identityProvider: "CAL",
     identityProviderId: null,
@@ -329,7 +327,6 @@ export const buildUser = <T extends Partial<UserPayload>>(
     role: "USER",
     schedules: [],
     selectedCalendars: [],
-    startTime: 0,
     theme: null,
     appTheme: null,
     timeFormat: null,

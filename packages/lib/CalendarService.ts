@@ -98,6 +98,80 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
+/** Folds lines per RFC 5545 (max 75 octets, UTF-8 aware) */
+const foldLine = (line: string): string => {
+  const encoder = new TextEncoder();
+  if (encoder.encode(line).length <= 75) return line;
+
+  const result: string[] = [];
+  let segment = "";
+  let byteCount = 0;
+
+  for (const char of line) {
+    const charBytes = encoder.encode(char).length;
+    const limit = result.length === 0 ? 75 : 74;
+
+    if (byteCount + charBytes > limit) {
+      result.push(segment);
+      segment = char;
+      byteCount = charBytes;
+    } else {
+      segment += char;
+      byteCount += charBytes;
+    }
+  }
+  if (segment) result.push(segment);
+  return result.join("\r\n ");
+};
+
+/** Finds the value separator colon, skipping colons inside quoted strings */
+const findValueColon = (str: string): number => {
+  let inQuotes = false;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '"') inQuotes = !inQuotes;
+    if (str[i] === ":" && !inQuotes) return i;
+  }
+  return -1;
+};
+
+/** Checks if SCHEDULE-AGENT parameter exists in the params portion */
+const hasScheduleAgent = (params: string): boolean =>
+  /;SCHEDULE-AGENT=/i.test(params) || /^SCHEDULE-AGENT=/i.test(params);
+
+/**
+ * Injects SCHEDULE-AGENT=CLIENT into ORGANIZER and ATTENDEE properties.
+ * Prevents CalDAV servers from sending duplicate invitation emails (RFC 6638).
+ */
+const injectScheduleAgent = (iCalString: string): string => {
+  // Remove METHOD:PUBLISH per RFC 4791 Section 4.1
+  let result = iCalString.replace(/METHOD:[^\r\n]+[\r\n]+/g, "");
+
+  // Process ORGANIZER and ATTENDEE lines (handles folded lines)
+  result = result.replace(
+    /^(ORGANIZER|ATTENDEE)((?:[^\r\n]|\r?\n[ \t])*)(\r?\n(?![ \t]))/gim,
+    (match, property, rest, lineEnding) => {
+      const unfolded = rest.replace(/\r?\n[ \t]/g, "");
+
+      // Try to find colon via :mailto:/:http: pattern first
+      const valueMatch = unfolded.match(/:(mailto:|http:|https:|urn:)/i);
+      const colonIndex = valueMatch?.index ?? findValueColon(unfolded);
+
+      if (colonIndex === -1) return match;
+
+      const params = unfolded.slice(0, colonIndex);
+      const value = unfolded.slice(colonIndex);
+
+      if (hasScheduleAgent(params)) {
+        return foldLine(property + unfolded) + lineEnding;
+      }
+
+      return foldLine(property + params + ";SCHEDULE-AGENT=CLIENT" + value) + lineEnding;
+    }
+  );
+
+  return result;
+};
+
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -187,8 +261,7 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              iCalString: injectScheduleAgent(iCalString),
               headers: this.headers,
             })
           )
@@ -255,8 +328,7 @@ export default abstract class BaseCalendarService implements Calendar {
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
-              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              data: injectScheduleAgent(iCalString ?? ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
@@ -458,9 +530,9 @@ export default abstract class BaseCalendarService implements Calendar {
           startDate.second = event.startDate.second;
           const iterator = event.iterator(startDate);
           let current: ICAL.Time;
-          let currentEvent;
-          let currentStart = null;
-          let currentError;
+          let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
+          let currentStart: ReturnType<typeof dayjs> | null = null;
+          let currentError: string | undefined;
 
           while (
             maxIterations > 0 &&
