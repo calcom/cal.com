@@ -305,10 +305,10 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     }
   }
 
-  const memberships = await prisma.calidMembership.findMany({
+  const memberships = await prisma.calIdMembership.findMany({
     where: {
       userId: oooUserId,
-      accepted: true,
+      acceptedInvitation: true,
     },
   });
 
