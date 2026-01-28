@@ -27,7 +27,7 @@ type OrganizerType =
       username: string | null;
     };
 
-export async function getTeamMembers({
+export async function getMembersInTeam({
   eventTypeHosts,
   attendees,
   organizer,
