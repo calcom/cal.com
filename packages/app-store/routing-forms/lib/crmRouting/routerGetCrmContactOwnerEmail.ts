@@ -1,5 +1,4 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { prisma } from "@calcom/prisma";
@@ -49,9 +48,6 @@ export default async function routerGetCrmContactOwnerEmail({
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
 
-  // Create CRM-specific trace service from parent
-  const crmTrace = CrmRoutingTraceService.create(routingTraceService);
-
   let contactOwner: {
     email: string | null;
     recordType: string | null;
@@ -63,42 +59,53 @@ export default async function routerGetCrmContactOwnerEmail({
     crmAppSlug: null,
     recordId: null,
   };
-  //   Determine if there is a CRM option enabled in the chosen route
-  for (const appSlug of enabledAppSlugs) {
-    const routingOptions =
-      attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
 
-    if (!routingOptions) continue;
-    // See if any options are true
-    if (Object.values(routingOptions).some((option) => option === true)) {
-      const appBookingFormHandler = (
-        await import("@calcom/app-store/routing-forms/appBookingFormHandler")
-      ).default;
-      const appHandler =
-        appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
+  // Run CRM operations within trace context (if available)
+  // This makes the trace service available via AsyncLocalStorage to all nested calls
+  const runCrmOperations = async () => {
+    //   Determine if there is a CRM option enabled in the chosen route
+    for (const appSlug of enabledAppSlugs) {
+      const routingOptions =
+        attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
 
-      const ownerQuery = await appHandler(
-        prospectEmail,
-        attributeRoutingConfig,
-        action.eventTypeId,
-        crmTrace
-      );
+      if (!routingOptions) continue;
+      // See if any options are true
+      if (Object.values(routingOptions).some((option) => option === true)) {
+        const appBookingFormHandler = (
+          await import("@calcom/app-store/routing-forms/appBookingFormHandler")
+        ).default;
+        const appHandler =
+          appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
 
-      if (ownerQuery?.email) {
-        contactOwner = { ...ownerQuery, crmAppSlug: appSlug };
-        break;
+        const ownerQuery = await appHandler(
+          prospectEmail,
+          attributeRoutingConfig,
+          action.eventTypeId
+        );
+
+        if (ownerQuery?.email) {
+          contactOwner = { ...ownerQuery, crmAppSlug: appSlug };
+          break;
+        }
       }
     }
+
+    if (!contactOwner || (!contactOwner.email && !contactOwner.recordType)) {
+      const ownerQuery = await getCRMContactOwnerForRRLeadSkip(
+        prospectEmail,
+        eventTypeMetadata
+      );
+      if (ownerQuery?.email) contactOwner = ownerQuery;
+    }
+  };
+
+  // If we have a trace service, run within its context; otherwise run directly
+  if (routingTraceService) {
+    await routingTraceService.runAsync(runCrmOperations);
+  } else {
+    await runCrmOperations();
   }
 
-  if (!contactOwner || (!contactOwner.email && !contactOwner.recordType)) {
-    const ownerQuery = await getCRMContactOwnerForRRLeadSkip(
-      prospectEmail,
-      eventTypeMetadata,
-      crmTrace
-    );
-    if (ownerQuery?.email) contactOwner = ownerQuery;
-  }
   if (!contactOwner) return null;
 
   //   Check that the contact owner is a part of the event type

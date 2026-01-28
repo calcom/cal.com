@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 import type { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import logger from "@calcom/lib/logger";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -23,6 +25,32 @@ export interface ProcessRoutingTraceResult {
 }
 
 export class RoutingTraceService {
+  private static als = new AsyncLocalStorage<RoutingTraceService>();
+
+  /**
+   * Get the current RoutingTraceService from AsyncLocalStorage.
+   * Returns undefined if not within a trace context.
+   */
+  static getCurrent(): RoutingTraceService | undefined {
+    return this.als.getStore();
+  }
+
+  /**
+   * Run a function within this trace service's context.
+   * Any code within the callback can access this trace service via getCurrent().
+   */
+  run<T>(fn: () => T): T {
+    return RoutingTraceService.als.run(this, fn);
+  }
+
+  /**
+   * Run an async function within this trace service's context.
+   * Any code within the callback can access this trace service via getCurrent().
+   */
+  runAsync<T>(fn: () => Promise<T>): Promise<T> {
+    return RoutingTraceService.als.run(this, fn);
+  }
+
   private routingTraceSteps: RoutingStep[] = [];
 
   constructor(private readonly deps: IRoutingTraceServiceDeps) {}

@@ -1,13 +1,5 @@
 import type { CalendarEvent, CalEventResponses } from "./Calendar";
 
-/**
- * Minimal interface for CRM routing trace service.
- * Used to avoid circular dependency between types and app-store packages.
- */
-export interface CrmRoutingTraceServiceInterface {
-  addStep(domain: string, step: string, data?: Record<string, unknown>): void;
-}
-
 export interface CrmData {
   id: string;
   type: string;
@@ -46,12 +38,10 @@ export interface CRM {
     emails,
     includeOwner,
     forRoundRobinSkip,
-    crmTrace,
   }: {
     emails: string | string[];
     includeOwner?: boolean;
     forRoundRobinSkip?: boolean;
-    crmTrace?: CrmRoutingTraceServiceInterface;
   }) => Promise<Contact[]>;
   createContacts: (
     contactsToCreate: ContactCreateInput[],

@@ -4,13 +4,11 @@ import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import { createSalesforceCrmServiceWithSalesforceType } from "./CrmService";
 import { SalesforceRecordEnum, RoutingReasons } from "./enums";
 import { EventTypeService } from "./eventTypeService";
-import type { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
 
 const routingFormBookingFormHandler = async (
   attendeeEmail: string,
   attributeRoutingConfig: AttributeRoutingConfig,
-  eventTypeId: number,
-  crmTrace?: CrmRoutingTraceService
+  eventTypeId: number
 ) => {
   const salesforceSettings = attributeRoutingConfig?.salesforce;
 
@@ -34,8 +32,7 @@ const routingFormBookingFormHandler = async (
   const userLookupEmail = await crm.findUserEmailFromLookupField(
     attendeeEmail,
     salesforceSettings.rrSKipToAccountLookupFieldName,
-    SalesforceRecordEnum.ACCOUNT,
-    crmTrace
+    SalesforceRecordEnum.ACCOUNT
   );
 
   return {

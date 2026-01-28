@@ -2,7 +2,7 @@ import getCrm from "@calcom/app-store/_utils/getCrm";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, ContactCreateInput, CrmRoutingTraceServiceInterface } from "@calcom/types/CrmService";
+import type { CRM, ContactCreateInput } from "@calcom/types/CrmService";
 
 const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export default class CrmManager {
@@ -65,7 +65,6 @@ export default class CrmManager {
     emails: string | string[];
     includeOwner?: boolean;
     forRoundRobinSkip?: boolean;
-    crmTrace?: CrmRoutingTraceServiceInterface;
   }) {
     const crmService = await this.getCrmService(this.credential);
     const contacts = await crmService?.getContacts(params);
