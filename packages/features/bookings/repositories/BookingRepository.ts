@@ -1247,8 +1247,8 @@ export class BookingRepository implements IBookingRepository {
         where: whereCollectiveRoundRobinOwner,
       });
 
-      // PERFORMANCE: Use subquery with team membership instead of materializing all emails (can be 400+ for large orgs)
-      // This replaces the previous pattern of passing all user emails to an IN clause
+      // PERFORMANCE: Use subquery to match attendee emails via user IDs instead of materializing all emails
+      // This avoids passing 100+ email parameters while preserving the original semantics
       const collectiveRoundRobinBookingsAttendee = await this.prismaClient.$queryRaw<[{ count: bigint }]>`
         SELECT COUNT(DISTINCT b.id) as count
         FROM "Booking" b
@@ -1261,9 +1261,8 @@ export class BookingRepository implements IBookingRepository {
           AND EXISTS (
             SELECT 1 FROM "Attendee" a
             INNER JOIN "users" u ON a.email = u.email
-            INNER JOIN "Membership" m ON u.id = m."userId"
             WHERE a."bookingId" = b.id
-              AND m."teamId" = ${teamId}
+              AND u.id IN (${Prisma.join(userIds)})
           )
       `;
 
@@ -1287,8 +1286,8 @@ export class BookingRepository implements IBookingRepository {
       where: whereCollectiveRoundRobinOwner,
     });
 
-    // PERFORMANCE: Use subquery with team membership instead of materializing all emails (can be 400+ for large orgs)
-    // This replaces the previous pattern of passing all user emails to an IN clause
+    // PERFORMANCE: Use subquery to match attendee emails via user IDs instead of materializing all emails
+    // This avoids passing 100+ email parameters while preserving the original semantics
     const collectiveRoundRobinBookingsAttendee = await this.prismaClient.$queryRaw<Booking[]>`
       SELECT b.*
       FROM "Booking" b
@@ -1301,9 +1300,8 @@ export class BookingRepository implements IBookingRepository {
         AND EXISTS (
           SELECT 1 FROM "Attendee" a
           INNER JOIN "users" u ON a.email = u.email
-          INNER JOIN "Membership" m ON u.id = m."userId"
           WHERE a."bookingId" = b.id
-            AND m."teamId" = ${teamId}
+            AND u.id IN (${Prisma.join(userIds)})
         )
     `;
 
