@@ -28,7 +28,7 @@ export function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white dark:bg-black">
       {/* Logo centered in the middle */}
       <View className="flex-1 items-center justify-center">
         <CalComLogo width={180} height={40} color="#111827" />
@@ -70,10 +70,11 @@ export function LoginScreen() {
             activeOpacity={0.7}
           >
             <View>
-              <Text className="text-[15px] text-gray-500">
-                Don't have an account? <Text className="font-semibold text-gray-900">Sign up</Text>
+              <Text className="text-[15px] text-gray-500 dark:text-[#A3A3A3]">
+                Don't have an account?{" "}
+                <Text className="font-semibold text-gray-900 dark:text-white">Sign up</Text>
               </Text>
-              <View className="h-px bg-gray-400" style={{ marginTop: 2 }} />
+              <View className="h-px bg-gray-400 dark:bg-[#4D4D4D]" style={{ marginTop: 2 }} />
             </View>
           </TouchableOpacity>
         )}

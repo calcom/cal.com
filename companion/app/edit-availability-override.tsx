@@ -69,7 +69,7 @@ export default function EditAvailabilityOverride() {
   if (isLoading) {
     return (
       <View
-        className="flex-1 items-center justify-center bg-white"
+        className="flex-1 items-center justify-center bg-white dark:bg-black"
         style={{ paddingBottom: insets.bottom }}
       >
         <Stack.Screen
@@ -84,7 +84,7 @@ export default function EditAvailabilityOverride() {
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
+    <View className="flex-1 bg-white dark:bg-black" style={{ paddingBottom: insets.bottom }}>
       <Stack.Screen
         options={{
           title,

@@ -76,8 +76,8 @@ function ActionButton({
         onPress();
       }}
       disabled={!enabled}
-      className={`flex-row items-center px-4 py-3 active:bg-gray-50 ${
-        !isLast ? "border-b border-gray-100" : ""
+      className={`flex-row items-center px-4 py-3 active:bg-gray-50 dark:active:bg-[#262626] ${
+        !isLast ? "border-b border-gray-100 dark:border-[#4D4D4D]" : ""
       }`}
       activeOpacity={0.7}
     >
@@ -88,8 +88,8 @@ function ActionButton({
         {label}
       </Text>
       {!enabled && (
-        <View className="rounded bg-gray-100 px-2 py-0.5">
-          <Text className="text-xs text-gray-500">Unavailable</Text>
+        <View className="rounded bg-gray-100 px-2 py-0.5 dark:bg-[#262626]">
+          <Text className="text-xs text-gray-500 dark:text-[#A3A3A3]">Unavailable</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -102,8 +102,8 @@ interface SectionHeaderProps {
 
 function SectionHeader({ title }: SectionHeaderProps) {
   return (
-    <View className="bg-gray-50 px-4 py-2">
-      <Text className="text-[12px] font-semibold uppercase tracking-wide text-gray-500">
+    <View className="bg-gray-50 px-4 py-2 dark:bg-[#262626]">
+      <Text className="text-[12px] font-semibold uppercase tracking-wide text-gray-500 dark:text-[#A3A3A3]">
         {title}
       </Text>
     </View>
@@ -248,10 +248,13 @@ export function BookingActionsModal({
           onPress={(e) => e.stopPropagation()}
         >
           {/* Actions Card */}
-          <View className="mb-4 overflow-hidden rounded-2xl bg-white shadow-lg">
+          <View className="mb-4 overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-[#171717]">
             {/* Booking Title Header */}
-            <View className="border-b border-gray-100 px-4 py-3">
-              <Text className="text-center text-[14px] font-medium text-gray-600" numberOfLines={1}>
+            <View className="border-b border-gray-100 px-4 py-3 dark:border-[#4D4D4D]">
+              <Text
+                className="text-center text-[14px] font-medium text-gray-600 dark:text-[#A3A3A3]"
+                numberOfLines={1}
+              >
                 {booking.title}
               </Text>
             </View>
@@ -316,12 +319,14 @@ export function BookingActionsModal({
 
           {/* Cancel Button */}
           <TouchableOpacity
-            className="overflow-hidden rounded-2xl bg-white shadow-lg"
+            className="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-[#171717]"
             onPress={onClose}
             activeOpacity={0.7}
           >
             <View className="px-4 py-3">
-              <Text className="text-center text-[16px] font-semibold text-gray-700">Cancel</Text>
+              <Text className="text-center text-[16px] font-semibold text-gray-700 dark:text-white">
+                Cancel
+              </Text>
             </View>
           </TouchableOpacity>
         </TouchableOpacity>

@@ -277,11 +277,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Seats Configuration - shown when enabled */}
       {props.seatsEnabled ? (
         <SettingsGroup header="Seats">
-          <View className="bg-white pl-4">
-            <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-              <Text className="mb-2 text-[13px] text-[#6D6D72]">Seats per booking</Text>
+          <View className="bg-white pl-4 dark:bg-[#171717]">
+            <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4 dark:border-[#4D4D4D]">
+              <Text className="mb-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">
+                Seats per booking
+              </Text>
               <TextInput
-                className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black dark:bg-[#262626] dark:text-white"
                 value={props.seatsPerTimeSlot}
                 onChangeText={props.setSeatsPerTimeSlot}
                 placeholder="2"
@@ -336,12 +338,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
         onRequestClose={() => setShowLanguagePicker(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Platform.OS === "ios" ? "#F2F2F7" : "rgba(0,0,0,0.5)",
-          }}
-        >
+        <View className="flex-1 bg-[#F2F2F7] dark:bg-black">
           {Platform.OS !== "ios" ? (
             <TouchableOpacity
               style={{ flex: 1 }}
@@ -350,27 +347,23 @@ export function AdvancedTab(props: AdvancedTabProps) {
             />
           ) : null}
           <View
-            style={
+            className={
               Platform.OS === "ios"
-                ? { flex: 1 }
-                : {
-                    backgroundColor: "#F2F2F7",
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
-                    height: "70%",
-                    width: "100%",
-                  }
+                ? "flex-1"
+                : "h-[70%] w-full rounded-t-[20px] bg-[#F2F2F7] dark:bg-black"
             }
           >
             {/* Header */}
-            <View className="h-[60px] flex-row items-center justify-between border-b border-[#E5E5E5] bg-white px-4">
+            <View className="h-[60px] flex-row items-center justify-between border-b border-[#E5E5E5] bg-white px-4 dark:border-[#4D4D4D] dark:bg-[#171717]">
               <TouchableOpacity
                 onPress={() => setShowLanguagePicker(false)}
-                className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
+                className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA] dark:bg-[#404040]"
               >
                 <Ionicons name="close" size={20} color="#A3A3A3" />
               </TouchableOpacity>
-              <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+              <Text className="text-[17px] font-semibold text-black dark:text-white">
+                Select Language
+              </Text>
               <View className="h-8 w-8" />
             </View>
 
@@ -378,13 +371,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
               className="flex-1"
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
             >
-              <View className="overflow-hidden rounded-[10px] bg-white">
+              <View className="overflow-hidden rounded-[10px] bg-white dark:bg-[#171717]">
                 {interfaceLanguageOptions.map((option, index) => (
-                  <View key={option.value} className="bg-white pl-4">
+                  <View key={option.value} className="bg-white pl-4 dark:bg-[#171717]">
                     <TouchableOpacity
                       className={`flex-row items-center justify-between py-3 pr-4 ${
                         index !== interfaceLanguageOptions.length - 1
-                          ? "border-b border-[#E5E5E5]"
+                          ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]"
                           : ""
                       }`}
                       onPress={() => {
@@ -392,9 +385,9 @@ export function AdvancedTab(props: AdvancedTabProps) {
                         setShowLanguagePicker(false);
                       }}
                     >
-                      <Text className="text-[17px] text-black">{option.label}</Text>
+                      <Text className="text-[17px] text-black dark:text-white">{option.label}</Text>
                       {props.interfaceLanguage === option.value ? (
-                        <Ionicons name="checkmark" size={20} color="#000000" />
+                        <Ionicons name="checkmark" size={20} color="#007AFF" />
                       ) : null}
                     </TouchableOpacity>
                   </View>
@@ -417,11 +410,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
         />
         {props.redirectEnabled ? (
           <>
-            <View className="bg-white pl-4">
-              <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-                <Text className="mb-2 text-[13px] text-[#6D6D72]">Redirect URL</Text>
+            <View className="bg-white pl-4 dark:bg-[#171717]">
+              <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4 dark:border-[#4D4D4D]">
+                <Text className="mb-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">
+                  Redirect URL
+                </Text>
                 <TextInput
-                  className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                  className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black dark:bg-[#262626] dark:text-white"
                   value={props.successRedirectUrl}
                   onChangeText={props.setSuccessRedirectUrl}
                   placeholder="https://example.com/thank-you"
@@ -473,12 +468,12 @@ export function AdvancedTab(props: AdvancedTabProps) {
 
       {/* Event type colors */}
       <SettingsGroup header="Event Type Colors">
-        <View className="bg-white pl-4">
-          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">Light Theme</Text>
+        <View className="bg-white pl-4 dark:bg-[#171717]">
+          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4 dark:border-[#4D4D4D]">
+            <Text className="mb-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">Light Theme</Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
+                className="h-8 w-8 rounded-lg border border-[#C6C6C8] dark:border-[#4D4D4D]"
                 style={{
                   backgroundColor: props.eventTypeColorLight.startsWith("#")
                     ? props.eventTypeColorLight
@@ -486,7 +481,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black dark:bg-[#262626] dark:text-white"
                 value={props.eventTypeColorLight}
                 onChangeText={props.setEventTypeColorLight}
                 placeholder="292929"
@@ -496,12 +491,12 @@ export function AdvancedTab(props: AdvancedTabProps) {
             </View>
           </View>
         </View>
-        <View className="bg-white pl-4">
+        <View className="bg-white pl-4 dark:bg-[#171717]">
           <View className="pt-3 pb-4 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">Dark Theme</Text>
+            <Text className="mb-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">Dark Theme</Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
+                className="h-8 w-8 rounded-lg border border-[#C6C6C8] dark:border-[#4D4D4D]"
                 style={{
                   backgroundColor: props.eventTypeColorDark.startsWith("#")
                     ? props.eventTypeColorDark
@@ -509,7 +504,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black dark:bg-[#262626] dark:text-white"
                 value={props.eventTypeColorDark}
                 onChangeText={props.setEventTypeColorDark}
                 placeholder="fafafa"

@@ -69,10 +69,10 @@ const DURATION_UNIT_OPTIONS = ["Per day", "Per week", "Per month"];
 function ModalPickerButton({ value, onPress }: { value: string; onPress: () => void }) {
   return (
     <TouchableOpacity
-      className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
+      className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5 dark:bg-[#262626]"
       onPress={onPress}
     >
-      <Text className="text-[15px] text-black">{value}</Text>
+      <Text className="text-[15px] text-black dark:text-white">{value}</Text>
       <Ionicons name="chevron-down" size={14} color="#A3A3A3" style={{ marginLeft: 4 }} />
     </TouchableOpacity>
   );
@@ -152,15 +152,15 @@ export function LimitsTab(props: LimitsTabProps) {
           onSelect={props.setAfterEventBuffer}
           onPress={() => props.setShowAfterBufferDropdown(true)}
         />
-        <View className="bg-white pl-4">
+        <View className="bg-white pl-4 dark:bg-[#171717]">
           <View
-            className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+            className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4 dark:border-[#4D4D4D]"
             style={{ height: 44 }}
           >
-            <Text className="text-[17px] text-black">Minimum Notice</Text>
+            <Text className="text-[17px] text-black dark:text-white">Minimum Notice</Text>
             <View className="flex-row items-center gap-2">
               <TextInput
-                className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black dark:bg-[#262626] dark:text-white"
                 value={props.minimumNoticeValue}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
@@ -237,15 +237,17 @@ export function LimitsTab(props: LimitsTabProps) {
       {props.limitBookingFrequency ? (
         <SettingsGroup header="Frequency Limits">
           {props.frequencyLimits.map((limit, index) => (
-            <View key={limit.id} className="bg-white pl-4">
+            <View key={limit.id} className="bg-white pl-4 dark:bg-[#171717]">
               <View
                 className={`flex-row items-center justify-between pr-4 py-3 ${
-                  index !== props.frequencyLimits.length - 1 ? "border-b border-[#E5E5E5]" : ""
+                  index !== props.frequencyLimits.length - 1
+                    ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]"
+                    : ""
                 }`}
               >
                 <View className="flex-row items-center gap-2">
                   <TextInput
-                    className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                    className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black dark:bg-[#262626] dark:text-white"
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
@@ -255,7 +257,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     placeholderTextColor="#A3A3A3"
                     keyboardType="numeric"
                   />
-                  <Text className="text-[15px] text-[#6D6D72]">per</Text>
+                  <Text className="text-[15px] text-[#6D6D72] dark:text-[#A3A3A3]">per</Text>
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
                       <Text className="mr-1 text-[17px] text-[#A3A3A3]">{limit.unit}</Text>
@@ -283,7 +285,7 @@ export function LimitsTab(props: LimitsTabProps) {
             </View>
           ))}
           <TouchableOpacity
-            className="flex-row items-center justify-center bg-white py-3"
+            className="flex-row items-center justify-center bg-white py-3 dark:bg-[#171717]"
             onPress={props.addFrequencyLimit}
           >
             <Ionicons name="add" size={20} color="#007AFF" />
@@ -296,15 +298,17 @@ export function LimitsTab(props: LimitsTabProps) {
       {props.limitTotalDuration ? (
         <SettingsGroup header="Duration Limits">
           {props.durationLimits.map((limit, index) => (
-            <View key={limit.id} className="bg-white pl-4">
+            <View key={limit.id} className="bg-white pl-4 dark:bg-[#171717]">
               <View
                 className={`flex-row items-center justify-between pr-4 py-3 ${
-                  index !== props.durationLimits.length - 1 ? "border-b border-[#E5E5E5]" : ""
+                  index !== props.durationLimits.length - 1
+                    ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]"
+                    : ""
                 }`}
               >
                 <View className="flex-row items-center gap-2">
                   <TextInput
-                    className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                    className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black dark:bg-[#262626] dark:text-white"
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
@@ -314,7 +318,9 @@ export function LimitsTab(props: LimitsTabProps) {
                     placeholderTextColor="#A3A3A3"
                     keyboardType="numeric"
                   />
-                  <Text className="text-[15px] text-[#6D6D72]">minutes per</Text>
+                  <Text className="text-[15px] text-[#6D6D72] dark:text-[#A3A3A3]">
+                    minutes per
+                  </Text>
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
                       <Text className="mr-1 text-[17px] text-[#A3A3A3]">{limit.unit}</Text>
@@ -342,7 +348,7 @@ export function LimitsTab(props: LimitsTabProps) {
             </View>
           ))}
           <TouchableOpacity
-            className="flex-row items-center justify-center bg-white py-3"
+            className="flex-row items-center justify-center bg-white py-3 dark:bg-[#171717]"
             onPress={props.addDurationLimit}
           >
             <Ionicons name="add" size={20} color="#007AFF" />
@@ -354,15 +360,15 @@ export function LimitsTab(props: LimitsTabProps) {
       {/* Max Active Bookings Configuration */}
       {props.maxActiveBookingsPerBooker ? (
         <SettingsGroup header="Active Bookings Limit">
-          <View className="bg-white pl-4">
+          <View className="bg-white pl-4 dark:bg-[#171717]">
             <View
-              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4 dark:border-[#4D4D4D]"
               style={{ height: 44 }}
             >
-              <Text className="text-[17px] text-black">Max bookings</Text>
+              <Text className="text-[17px] text-black dark:text-white">Max bookings</Text>
               <View className="flex-row items-center gap-2">
                 <TextInput
-                  className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                  className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black dark:bg-[#262626] dark:text-white"
                   value={props.maxActiveBookingsValue}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
@@ -372,7 +378,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
-                <Text className="text-[15px] text-[#6D6D72]">bookings</Text>
+                <Text className="text-[15px] text-[#6D6D72] dark:text-[#A3A3A3]">bookings</Text>
               </View>
             </View>
           </View>
@@ -391,11 +397,11 @@ export function LimitsTab(props: LimitsTabProps) {
         <SettingsGroup header="Future Booking Limit">
           {/* Rolling option */}
           <TouchableOpacity
-            className="bg-white pl-4"
+            className="bg-white pl-4 dark:bg-[#171717]"
             onPress={() => props.setFutureBookingType("rolling")}
             activeOpacity={0.7}
           >
-            <View className="flex-row items-center border-b border-[#E5E5E5] pr-4 py-3">
+            <View className="flex-row items-center border-b border-[#E5E5E5] pr-4 py-3 dark:border-[#4D4D4D]">
               <View
                 className={`mr-3 h-5 w-5 items-center justify-center rounded-full border-2 ${
                   props.futureBookingType === "rolling" ? "border-[#007AFF]" : "border-[#C7C7CC]"
@@ -407,7 +413,7 @@ export function LimitsTab(props: LimitsTabProps) {
               </View>
               <View className="flex-1 flex-row flex-wrap items-center gap-2">
                 <TextInput
-                  className="w-14 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                  className="w-14 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black dark:bg-[#262626] dark:text-white"
                   value={props.rollingDays}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
@@ -419,24 +425,24 @@ export function LimitsTab(props: LimitsTabProps) {
                   keyboardType="numeric"
                 />
                 <TouchableOpacity
-                  className="rounded-lg bg-[#F2F2F7] px-2 py-1.5"
+                  className="rounded-lg bg-[#F2F2F7] px-2 py-1.5 dark:bg-[#262626]"
                   onPress={() => {
                     props.setRollingCalendarDays(!props.rollingCalendarDays);
                     props.setFutureBookingType("rolling");
                   }}
                 >
-                  <Text className="text-[15px] text-black">
+                  <Text className="text-[15px] text-black dark:text-white">
                     {props.rollingCalendarDays ? "calendar" : "business"}
                   </Text>
                 </TouchableOpacity>
-                <Text className="text-[15px] text-[#6D6D72]">days ahead</Text>
+                <Text className="text-[15px] text-[#6D6D72] dark:text-[#A3A3A3]">days ahead</Text>
               </View>
             </View>
           </TouchableOpacity>
 
           {/* Date Range option */}
           <TouchableOpacity
-            className="bg-white pl-4"
+            className="bg-white pl-4 dark:bg-[#171717]"
             onPress={() => props.setFutureBookingType("range")}
             activeOpacity={0.7}
           >
@@ -451,11 +457,15 @@ export function LimitsTab(props: LimitsTabProps) {
                 ) : null}
               </View>
               <View className="flex-1">
-                <Text className="mb-2 text-[17px] text-black">Within a date range</Text>
+                <Text className="mb-2 text-[17px] text-black dark:text-white">
+                  Within a date range
+                </Text>
                 {props.futureBookingType === "range" ? (
                   <View className="gap-3">
                     <View className="flex-row items-center">
-                      <Text className="w-20 text-[13px] text-[#6D6D72]">Start date</Text>
+                      <Text className="w-20 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">
+                        Start date
+                      </Text>
                       <LimitsTabDatePicker
                         value={props.rangeStartDate}
                         onChange={props.setRangeStartDate}
@@ -463,7 +473,9 @@ export function LimitsTab(props: LimitsTabProps) {
                       />
                     </View>
                     <View className="flex-row items-center">
-                      <Text className="w-20 text-[13px] text-[#6D6D72]">End date</Text>
+                      <Text className="w-20 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">
+                        End date
+                      </Text>
                       <LimitsTabDatePicker
                         value={props.rangeEndDate}
                         onChange={props.setRangeEndDate}

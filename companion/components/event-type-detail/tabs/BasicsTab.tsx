@@ -64,15 +64,15 @@ function InputRow({
   isLast?: boolean;
 }) {
   return (
-    <View className="bg-white pl-4">
+    <View className="bg-white pl-4 dark:bg-[#171717]">
       <View
-        className={`pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""} ${
+        className={`pr-4 ${!isLast ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]" : ""} ${
           isFirst ? "pt-4 pb-3" : isLast ? "pt-3 pb-4" : "py-3"
         }`}
       >
-        <Text className="mb-2 text-[13px] text-[#6D6D72]">{label}</Text>
+        <Text className="mb-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">{label}</Text>
         <TextInput
-          className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+          className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black dark:bg-[#262626] dark:text-white"
           style={multiline ? { height: 80, textAlignVertical: "top" } : undefined}
           value={value}
           onChangeText={onChangeText}
@@ -118,11 +118,11 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
           numberOfLines={4}
         />
         {/* URL Input */}
-        <View className="bg-white pl-4">
+        <View className="bg-white pl-4 dark:bg-[#171717]">
           <View className="pr-4 pt-3 pb-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">URL</Text>
-            <View className="flex-row items-center overflow-hidden rounded-lg bg-[#F2F2F7]">
-              <Text className="bg-[#E5E5EA] px-3 py-2 text-[15px] text-[#666]">
+            <Text className="mb-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">URL</Text>
+            <View className="flex-row items-center overflow-hidden rounded-lg bg-[#F2F2F7] dark:bg-[#262626]">
+              <Text className="bg-[#E5E5EA] px-3 py-2 text-[15px] text-[#666] dark:bg-[#404040] dark:text-[#A3A3A3]">
                 {(() => {
                   // Parse bookingUrl to get domain prefix (e.g., "i.cal.com/" or "cal.com/username/")
                   if (props.bookingUrl) {
@@ -145,7 +145,7 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
                 })()}
               </Text>
               <TextInput
-                className="flex-1 px-3 py-2 text-[17px] text-black"
+                className="flex-1 px-3 py-2 text-[17px] text-black dark:text-white"
                 value={props.eventSlug}
                 onChangeText={(text) => props.setEventSlug(slugify(text, true))}
                 placeholder="event-slug"
@@ -159,22 +159,22 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
       {/* Duration */}
       <SettingsGroup header="Duration">
         {!props.allowMultipleDurations ? (
-          <View className="bg-white pl-4" style={{ height: 52 }}>
+          <View className="bg-white pl-4 dark:bg-[#171717]" style={{ height: 52 }}>
             <View
-              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4 dark:border-[#4D4D4D]"
               style={{ height: 52 }}
             >
-              <Text className="text-[17px] text-black">Duration</Text>
+              <Text className="text-[17px] text-black dark:text-white">Duration</Text>
               <View className="flex-row items-center gap-2">
                 <TextInput
-                  className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                  className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black dark:bg-[#262626] dark:text-white"
                   value={props.eventDuration}
                   onChangeText={props.setEventDuration}
                   placeholder="30"
                   placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
-                <Text className="text-[15px] text-[#6D6D72]">minutes</Text>
+                <Text className="text-[15px] text-[#6D6D72] dark:text-[#A3A3A3]">minutes</Text>
               </View>
             </View>
           </View>

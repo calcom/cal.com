@@ -14,7 +14,7 @@ export function SectionHeader({
   return (
     <View className={`flex-row items-center ${rightElement ? "justify-between pr-4" : ""} mb-2`}>
       <Text
-        className="ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+        className="ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72] dark:text-[#A3A3A3]"
         style={{ letterSpacing: 0.5 }}
       >
         {title}
@@ -39,8 +39,10 @@ export function SettingsGroup({
   return (
     <View>
       {header ? <SectionHeader title={header} rightElement={headerRight} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-      {footer ? <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72]">{footer}</Text> : null}
+      <View className="overflow-hidden rounded-[14px] bg-white dark:bg-[#171717]">{children}</View>
+      {footer ? (
+        <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">{footer}</Text>
+      ) : null}
     </View>
   );
 }
@@ -84,9 +86,9 @@ export function SettingRow({
   };
 
   return (
-    <View className="bg-white pl-4">
+    <View className="bg-white pl-4 dark:bg-[#171717]">
       <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
+        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]" : ""}`}
         style={{ height, flexDirection: "row", alignItems: "center" }}
       >
         <TouchableOpacity
@@ -96,7 +98,7 @@ export function SettingRow({
           activeOpacity={description ? 0.7 : 1}
           disabled={!description}
         >
-          <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
+          <Text className="text-[17px] text-black dark:text-white" style={{ fontWeight: "400" }}>
             {title}
           </Text>
           {description ? (
@@ -136,14 +138,14 @@ export function NavigationRow({
 }) {
   const height = isFirst || isLast ? 52 : 44;
   return (
-    <View className="bg-white pl-4" style={{ height }}>
+    <View className="bg-white pl-4 dark:bg-[#171717]" style={{ height }}>
       <View
         className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
+          !isLast ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]" : ""
         }`}
         style={{ height }}
       >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
+        <Text className="text-[17px] text-black dark:text-white" style={{ fontWeight: "400" }}>
           {title}
         </Text>
         <View className="flex-row items-center">

@@ -36,9 +36,9 @@ export function SearchHeader({
   newButtonText = "New",
 }: SearchHeaderProps) {
   return (
-    <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+    <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-[#4D4D4D] dark:bg-black">
       <TextInput
-        className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+        className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
         placeholder={placeholder}
         placeholderTextColor="#9CA3AF"
         value={searchQuery}
@@ -47,11 +47,11 @@ export function SearchHeader({
         autoCorrect={false}
       />
       <TouchableOpacity
-        className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+        className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2 dark:bg-white"
         onPress={onNewPress}
       >
         <Ionicons name="add" size={18} color="#fff" />
-        <Text className="text-base font-semibold text-white">{newButtonText}</Text>
+        <Text className="text-base font-semibold text-white dark:text-black">{newButtonText}</Text>
       </TouchableOpacity>
     </View>
   );
