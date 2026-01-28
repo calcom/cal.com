@@ -1,11 +1,23 @@
 import type { FeatureId } from "@calcom/features/flags/config";
+import type { OptInFeaturePolicy, OptInFeatureScope } from "./types";
 
 export type OptInFeatureDisplayLocation = "settings" | "banner";
 
 export interface OptInFeatureConfig {
   slug: FeatureId;
-  titleI18nKey: string;
-  descriptionI18nKey: string;
+  i18n: {
+    title: string;
+    name: string;
+    description: string;
+  };
+  bannerImage: {
+    src: string;
+    width: number;
+    height: number;
+  };
+  policy: OptInFeaturePolicy;
+  /** Scopes where this feature can be configured. Defaults to all scopes if not specified. */
+  scope?: OptInFeatureScope[];
   /**
    * Where this feature should be displayed for opt-in.
    * - 'settings': Show in the Settings page
@@ -18,6 +30,9 @@ export interface OptInFeatureConfig {
   displayLocations?: OptInFeatureDisplayLocation[];
 }
 
+/** All available scopes for feature opt-in configuration */
+export const ALL_SCOPES: OptInFeatureScope[] = ["org", "team", "user"];
+
 /**
  * Features that appear in opt-in settings.
  * Add new features here to make them available for user/team opt-in.
@@ -26,8 +41,18 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   // Example - to be populated with actual features
   // {
   //   slug: "bookings-v3",
-  //   titleI18nKey: "bookings_v3_title",
-  //   descriptionI18nKey: "bookings_v3_description",
+  //   i18n: {
+  //     title: "bookings_v3_title",
+  //     name: "bookings_v3_name",
+  //     description: "bookings_v3_description",
+  //   },
+  //   bannerImage: {
+  //     src: "/opt_in_banner_bookings_v3.png",
+  //     width: 548,
+  //     height: 348,
+  //   },
+  //   policy: "permissive",
+  //   scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
   // },
 ];
 
@@ -39,11 +64,50 @@ export function getOptInFeatureConfig(slug: string): OptInFeatureConfig | undefi
 }
 
 /**
- * Check if a feature slug is in the opt-in allowlist.
+ * Check if a slug is in the opt-in allowlist.
  * Acts as a type guard, narrowing the slug to FeatureId when true.
  */
 export function isOptInFeature(slug: string): slug is FeatureId {
   return OPT_IN_FEATURES.some((f) => f.slug === slug);
+}
+
+/**
+ * Check if there are any opt-in features available.
+ */
+export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;
+
+/** Whether there are opt-in features available for the user scope */
+export const HAS_USER_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
+  (f) => !f.scope || f.scope.includes("user")
+);
+
+/** Whether there are opt-in features available for the team scope */
+export const HAS_TEAM_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
+  (f) => !f.scope || f.scope.includes("team")
+);
+
+/** Whether there are opt-in features available for the org scope */
+export const HAS_ORG_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
+  (f) => !f.scope || f.scope.includes("org")
+);
+
+/**
+ * Get opt-in features that are available for a specific scope.
+ * Features without a scope field are available for all scopes.
+ */
+export function getOptInFeaturesForScope(scope: OptInFeatureScope): OptInFeatureConfig[] {
+  return OPT_IN_FEATURES.filter((f) => !f.scope || f.scope.includes(scope));
+}
+
+/**
+ * Check if a feature is allowed for a specific scope.
+ * Features without a scope field are allowed for all scopes.
+ * Features not in the config are NOT allowed (must be explicitly configured).
+ */
+export function isFeatureAllowedForScope(slug: string, scope: OptInFeatureScope): boolean {
+  const config = getOptInFeatureConfig(slug);
+  if (!config) return false;
+  return !config.scope || config.scope.includes(scope);
 }
 
 /**

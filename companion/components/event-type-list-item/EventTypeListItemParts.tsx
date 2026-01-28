@@ -4,14 +4,32 @@ import Svg, { Path } from "react-native-svg";
 import { Tooltip } from "@/components/Tooltip";
 import type { EventType } from "@/services/types/event-types.types";
 
+/**
+ * Parse bookingUrl to get display text (domain + path).
+ * Falls back to /{username}/{slug} if bookingUrl is not available.
+ */
+function getDisplayUrl(bookingUrl?: string, username?: string, slug?: string): string {
+  if (bookingUrl) {
+    try {
+      const url = new URL(bookingUrl);
+      // Return domain + pathname (e.g., "i.cal.com/keith/30min")
+      return url.hostname + url.pathname;
+    } catch {
+      // fallback if URL parsing fails
+    }
+  }
+  return username ? `/${username}/${slug}` : `/${slug}`;
+}
+
 interface EventTypeTitleProps {
   title: string;
   username?: string;
   slug: string;
+  bookingUrl?: string;
 }
 
-export function EventTypeTitle({ title, username, slug }: EventTypeTitleProps) {
-  const linkText = username ? `/${username}/${slug}` : `/${slug}`;
+export function EventTypeTitle({ title, username, slug, bookingUrl }: EventTypeTitleProps) {
+  const linkText = getDisplayUrl(bookingUrl, username, slug);
   return (
     <View className="mb-1 flex-row flex-wrap items-baseline">
       <Text className="text-base font-semibold text-cal-text">{title}</Text>
@@ -36,10 +54,11 @@ export function EventTypeDescription({ normalizedDescription }: EventTypeDescrip
 interface EventTypeLinkProps {
   username?: string;
   slug: string;
+  bookingUrl?: string;
 }
 
-export function EventTypeLink({ username, slug }: EventTypeLinkProps) {
-  const linkText = username ? `/${username}/${slug}` : `/${slug}`;
+export function EventTypeLink({ username, slug, bookingUrl }: EventTypeLinkProps) {
+  const linkText = getDisplayUrl(bookingUrl, username, slug);
   return <Text className="mb-1 mt-0.5 text-sm text-cal-text-secondary">{linkText}</Text>;
 }
 
@@ -134,7 +153,15 @@ export function EventTypeBadges({
 
       {/* Price Badge */}
       {hasPrice && formattedPrice ? (
-        <Text className="text-sm font-medium text-cal-accent-success">{formattedPrice}</Text>
+        <View
+          className="rounded-md border border-cal-border bg-cal-border"
+          style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons name="card-outline" size={14} color="#000000" />
+          <Text className="ml-1.5 text-xs font-semibold text-cal-brand-black">
+            {formattedPrice}
+          </Text>
+        </View>
       ) : null}
 
       {/* Repeats Badge */}

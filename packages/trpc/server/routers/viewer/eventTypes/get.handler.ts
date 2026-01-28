@@ -1,3 +1,4 @@
+// Cache bust: workflows.activeOn.eventType no longer includes _count.children
 import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -20,5 +21,6 @@ export const getHandler = ({ ctx, input }: GetOptions) => {
     prisma: ctx.prisma,
     isTrpcCall: true,
     isUserOrganizationAdmin: !!ctx.user?.organization?.isOrgAdmin,
+    userLocale: ctx.user.locale,
   });
 };

@@ -12,6 +12,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
 import { CalComAPIService, type CreateEventTypeInput, type EventType } from "@/services/calcom";
+import { requestRating, RatingTrigger } from "@/hooks/useAppStoreRating";
 
 /**
  * Hook to fetch all event types
@@ -94,6 +95,9 @@ export function useCreateEventType() {
 
       // Optionally, add the new event type to cache immediately
       queryClient.setQueryData(queryKeys.eventTypes.detail(newEventType.id), newEventType);
+
+      // Request app store rating on first event type save
+      requestRating(RatingTrigger.EVENT_TYPE_SAVED);
     },
     onError: (error) => {
       console.error("Failed to create event type");
@@ -107,7 +111,7 @@ export function useCreateEventType() {
 }
 
 /**
- * Hook to update an event type
+ * Hook to update an event type with optimistic updates
  *
  * @returns Mutation function and state
  *
@@ -125,16 +129,76 @@ export function useUpdateEventType() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: Partial<CreateEventTypeInput> }) =>
+    mutationFn: ({ id, updates }: { id: number; updates: Record<string, unknown> }) =>
       CalComAPIService.updateEventType(id, updates),
-    onSuccess: (updatedEventType, variables) => {
-      // Invalidate the list
-      queryClient.invalidateQueries({ queryKey: queryKeys.eventTypes.lists() });
+    onMutate: async ({ id, updates }) => {
+      // Cancel any outgoing refetches to prevent overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: queryKeys.eventTypes.detail(id) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.eventTypes.lists() });
 
-      // Update the specific event type in cache
-      queryClient.setQueryData(queryKeys.eventTypes.detail(variables.id), updatedEventType);
+      // Snapshot the previous values for rollback
+      const previousEventType = queryClient.getQueryData<EventType | null>(
+        queryKeys.eventTypes.detail(id)
+      );
+      const previousEventTypes = queryClient.getQueryData<EventType[]>(
+        queryKeys.eventTypes.lists()
+      );
+
+      // Optimistically update the detail cache if it exists
+      if (previousEventType) {
+        const optimisticEventType: EventType = {
+          ...previousEventType,
+          ...updates,
+        };
+        queryClient.setQueryData(queryKeys.eventTypes.detail(id), optimisticEventType);
+      }
+
+      // Update the list cache optimistically (even if detail cache doesn't exist)
+      if (previousEventTypes) {
+        const updatedList = previousEventTypes.map((et) => {
+          if (et.id === id) {
+            return {
+              ...et,
+              ...updates,
+            };
+          }
+          return et;
+        });
+        queryClient.setQueryData(queryKeys.eventTypes.lists(), updatedList);
+      }
+
+      return { previousEventType, previousEventTypes };
     },
-    onError: (error) => {
+    onSuccess: (updatedEventType, variables) => {
+      // Update the specific event type in cache with server response
+      queryClient.setQueryData(queryKeys.eventTypes.detail(variables.id), updatedEventType);
+
+      // Update the list cache with the server response
+      const currentEventTypes = queryClient.getQueryData<EventType[]>(queryKeys.eventTypes.lists());
+      if (currentEventTypes) {
+        const updatedList = currentEventTypes.map((et) =>
+          et.id === variables.id ? updatedEventType : et
+        );
+        queryClient.setQueryData(queryKeys.eventTypes.lists(), updatedList);
+      } else {
+        // If list cache doesn't exist, invalidate to trigger refetch when user navigates to list
+        queryClient.invalidateQueries({ queryKey: queryKeys.eventTypes.lists() });
+      }
+
+      // Request app store rating on first event type save
+      requestRating(RatingTrigger.EVENT_TYPE_SAVED);
+    },
+    onError: (error, variables, context) => {
+      // Rollback to previous values on error
+      if (context?.previousEventType) {
+        queryClient.setQueryData(
+          queryKeys.eventTypes.detail(variables.id),
+          context.previousEventType
+        );
+      }
+      if (context?.previousEventTypes) {
+        queryClient.setQueryData(queryKeys.eventTypes.lists(), context.previousEventTypes);
+      }
       console.error("Failed to update event type");
       if (__DEV__) {
         const message = error instanceof Error ? error.message : String(error);

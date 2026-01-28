@@ -212,10 +212,9 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid/recordings")
-  // @Pbac(["booking.readRecordings"])
+  @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(BookingUidGuard)
-  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
@@ -230,16 +229,13 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: recordings,
-      message:
-        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
   @Get("/:bookingUid/transcripts")
-  // @Pbac(["booking.readRecordings"])
+  @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(BookingUidGuard)
-  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get Cal Video real time transcript download links for the booking",
@@ -258,8 +254,6 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: transcripts ?? [],
-      message:
-        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
@@ -280,7 +274,7 @@ export class BookingsController_2024_08_13 {
     const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
-      orgId: profile?.organizationId,
+      orgId: profile?.organizationId ?? undefined,
     });
 
     return {
@@ -397,18 +391,18 @@ export class BookingsController_2024_08_13 {
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
-    async markNoShow(
-      @Param("bookingUid") bookingUid: string,
-      @Body() body: MarkAbsentBookingInput_2024_08_13,
-      @GetUser() user: ApiAuthGuardUser
-    ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
+  async markNoShow(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: MarkAbsentBookingInput_2024_08_13,
+    @GetUser() user: ApiAuthGuardUser
+  ): Promise<MarkAbsentBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
 
-      return {
-        status: SUCCESS_STATUS,
-        data: booking,
-      };
-    }
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
 
   @Post("/:bookingUid/reassign")
   @HttpCode(HttpStatus.OK)

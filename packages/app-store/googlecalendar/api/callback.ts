@@ -2,7 +2,7 @@ import { calendar_v3 } from "@googleapis/calendar";
 import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { createGoogleCalendarServiceWithGoogleType } from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import {
@@ -78,7 +78,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       type: "google_calendar",
     });
 
-    const gCalService = new GoogleCalendarService({
+    const gCalService = createGoogleCalendarServiceWithGoogleType({
       ...gcalCredential,
       user: null,
       delegatedTo: null,
