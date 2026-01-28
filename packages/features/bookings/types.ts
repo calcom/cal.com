@@ -1,21 +1,12 @@
-import type { ErrorOption, FieldPath } from "react-hook-form";
-
 import type { RegularBookingCreateResult } from "@calcom/features/bookings/lib/dto/types";
 import type { Slots } from "@calcom/features/calendars/lib/types";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
-
+import type { ErrorOption, FieldPath } from "react-hook-form";
 import type { BookingCreateBody } from "./lib/bookingCreateBodySchema";
 
-export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
-
-export type BookerEventQuery = {
-  isSuccess: boolean;
-  isError: boolean;
-  isPending: boolean;
-  data?: BookerEvent | null;
-};
+type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 
 type BookerEventUser = Pick<
   PublicEvent["subsetOfUsers"][number],
@@ -27,7 +18,19 @@ type BookerEventUser = Pick<
   bookerUrl: string;
 };
 
-type BookerEventProfile = Pick<PublicEvent["profile"], "name" | "image" | "bookerLayouts">;
+type BookerEventProfile = Pick<
+  PublicEvent["profile"],
+  "name" | "image" | "bookerLayouts" | "brandColor" | "darkBrandColor" | "theme" | "weekStart" | "username"
+>;
+
+export type { PublicEvent };
+
+export type BookerEventQuery = {
+  isSuccess: boolean;
+  isError: boolean;
+  isPending: boolean;
+  data?: BookerEvent | null;
+};
 
 // Re-export Slots from the server-safe location
 export type { Slots };
@@ -41,10 +44,10 @@ export type BookerEvent = Pick<
   | "recurringEvent"
   | "entity"
   | "locations"
-  | "enablePerHostLocations"
   | "metadata"
   | "isDynamic"
   | "requiresConfirmation"
+  | "requiresBookerEmailVerification"
   | "price"
   | "currency"
   | "lockTimeZoneToggleOnBookingPage"
@@ -70,6 +73,9 @@ export type BookerEvent = Pick<
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
+  enablePerHostLocations?: boolean;
+  useBookerTimezone?: boolean;
+  restrictionScheduleId?: number | null;
 } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];

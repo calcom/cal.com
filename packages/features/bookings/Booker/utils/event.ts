@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -71,6 +72,8 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
   bookerLayout,
+  useBookerTimezone,
+  restrictionScheduleId,
 }: {
   username?: string | null;
   eventSlug?: string | null;
@@ -92,12 +95,28 @@ export const useScheduleForEvent = ({
     extraDays: number;
     columnViewExtraDays: { current: number };
   };
+  /**
+   * When false and there's a restriction schedule, timezone changes won't trigger refetch
+   */
+  useBookerTimezone?: boolean;
+  restrictionScheduleId?: number | null;
 }) => {
   const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
+
+  // Store the initial timezone to use when useBookerTimezone is disabled
+  // This prevents unnecessary refetches when timezone changes but the server
+  // doesn't need the booker's timezone for restriction schedule calculations
+  const initialTimezoneRef = useRef(timezone);
+
+  // Use stable timezone when useBookerTimezone is explicitly false and there's a restriction schedule
+  // Otherwise use the dynamic timezone (default behavior)
+  const shouldUseStableTimezone =
+    useBookerTimezone === false && restrictionScheduleId != null && restrictionScheduleId > 0;
+  const effectiveTimezone = shouldUseStableTimezone ? initialTimezoneRef.current : timezone;
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
@@ -106,7 +125,7 @@ export const useScheduleForEvent = ({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
-    timezone,
+    timezone: effectiveTimezone,
     selectedDate,
     dayCount,
     rescheduleUid,
