@@ -33,6 +33,7 @@ export async function checkRegularUsername(_username: string, currentOrgDomain?:
       where: {
         username,
         organizationId: null,
+        OR: [{ locked: false }, { locked: true }],
       },
       select: {
         id: true,

@@ -155,6 +155,8 @@ export default function Login({
     else if (!res.error) {
       setLastUsed("credentials");
       router.push(callbackUrl);
+    } else if (res.error === ErrorCode.UserAccountLocked || res.url?.includes("/auth/locked")) {
+      router.push("/auth/locked");
     } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
     else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
     else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));

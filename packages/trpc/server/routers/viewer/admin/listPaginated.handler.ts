@@ -73,6 +73,7 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
         },
       },
       whitelistWorkflows: true,
+      avatarUrl: true,
     },
   });
 

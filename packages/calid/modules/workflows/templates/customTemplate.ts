@@ -30,6 +30,7 @@ export type VariablesType = {
   eventStartTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
   eventTime?: string;
+  cancellationReason?: string;
   eventTimeFormatted?: string;
 };
 
@@ -121,7 +122,8 @@ const performBasicTokenSubstitution = (
     .replaceAll(
       "{EVENT_END_TIME_IN_ATTENDEE_TIMEZONE}",
       variables.eventEndTimeInAttendeeTimezone?.format(timeFormat) || ""
-    );
+    )
+    .replaceAll("{CANCELLATION_REASON}", variables.cancellationReason || "");
 };
 
 const extractCustomTokens = (textContent: string): string[] => {

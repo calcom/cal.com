@@ -2,6 +2,7 @@ import ImpersonationProvider from "@calid/features/modules/impersonation/Imperso
 import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { serialize } from "cookie";
 import { OAuth2Client } from "googleapis-common";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
@@ -17,6 +18,7 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { UsersRepository } from "@calcom/features/users/users.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -273,6 +275,17 @@ const providers: Provider[] = [
       }
 
       const userRepo = new UserRepository(prisma);
+      const lockedCheck = await prisma.user.findFirst({
+        where: {
+          email: credentials.email.toLowerCase(),
+          OR: [{ locked: false }, { locked: true }],
+        },
+        select: { locked: true },
+      });
+      if (lockedCheck?.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
+      }
+
       const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: credentials.email,
       });
@@ -591,6 +604,7 @@ export const getOptions = ({
   cookies: Partial<{
     dub_id?: string;
     utm_params?: string;
+    last_active_throttle?: string;
   }>;
   res?: any;
 }): AuthOptions => ({
@@ -640,6 +654,27 @@ export const getOptions = ({
         "callbacks:jwt",
         safeStringify({ tokenEmail: token?.email, trigger, hasUser: !!user, hasAccount: !!account })
       );
+      
+       if (token.id && !cookies.last_active_throttle && res) {
+        waitUntil(new UsersRepository().updateLastActiveAt(token.id as number));
+        const useSecureCookies = WEBAPP_URL?.startsWith("https://");
+        const cookieValue = serialize("last_active_throttle", "1", {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: useSecureCookies,
+          path: "/",
+          maxAge: 12 * 60 * 60,
+        });
+        const existing = res.getHeader("Set-Cookie");
+        if (existing) {
+          res.setHeader(
+            "Set-Cookie",
+            Array.isArray(existing) ? [...existing, cookieValue] : [existing, cookieValue]
+          );
+        } else {
+          res.setHeader("Set-Cookie", [cookieValue]);
+        }
+      }
 
       // Handle session updates
       if (trigger === "update") {
@@ -1034,6 +1069,9 @@ export const getOptions = ({
           }
         }
 
+        if (existingUser?.locked) {
+          return "/auth/locked";
+        }
         // Existing user found
         if (existingUser) {
           // Email hasn't changed
