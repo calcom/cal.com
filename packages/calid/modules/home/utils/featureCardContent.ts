@@ -18,22 +18,9 @@ export const newFeatureCardContent: Feature[] = [
     isNew: true,
   },
   {
-    icon: "linkedin",
-    title: "Social Profiles on Public Page",
-    description: "Add your social profiles to show on your public page.",
-    pageSlug: "/settings/my-account/custom-branding",
-    isNew: true,
-  },
-  {
     icon: "credit-card",
     title: "Multi-Seat Booking",
     description: "Collect payment from multiple bookers for a single event.",
-    isNew: true,
-  },
-  {
-    icon: "paperclip",
-    title: "Attachments",
-    description: "Allow your bookers to upload attachments to their bookings.",
     isNew: true,
   },
   {
@@ -52,16 +39,15 @@ export const featureCardContent: Feature[] = [
     pageSlug: "/apps/razorpay",
   },
   {
+    icon: "paperclip",
+    title: "Attachments",
+    description: "Allow your bookers to upload attachments to their bookings.",
+  },
+  {
     icon: "paintbrush",
     title: "Custom Branding",
     description: "Customize your booking page with your own branding.",
     pageSlug: "/settings/my-account/custom-branding",
-  },
-  {
-    icon: "wallpaper",
-    title: "Public Page Banner",
-    description: "Put a custom banner to showcase your brand.",
-    pageSlug: "/settings/my-account/profile",
   },
   {
     icon: "download",
