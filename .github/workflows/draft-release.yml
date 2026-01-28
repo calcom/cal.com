@@ -94,7 +94,7 @@ jobs:
           echo "$CONTENT" > apps/api/v1/trigger.version.js
     
           # Force add to git since these are likely in .gitignore
-          git add -f apps/web/trigger.version.ts apps/api/v2/trigger.version.ts apps/api/v1/trigger.version.ts
+          git add -f apps/web/trigger.version.ts apps/api/v2/trigger.version.ts apps/api/v1/trigger.version.js
 
       # 4. Commit everything together
       - name: Commit changes
