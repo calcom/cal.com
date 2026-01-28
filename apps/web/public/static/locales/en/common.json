@@ -4465,6 +4465,8 @@
   "timestamp": "Timestamp",
   "json": "JSON",
   "hubspot_ignore_guests": "Do not create new records for guests added to the booking",
+  "crm_book_directly_with_attendee_owner": "If attendee exists in {{appName}}, book directly with the owner",
+  "crm_if_free_email_domain_skip_owner_check": "If attendee has a free email domain, skip the ownership check and round robin as normal",
   "saml_idp_not_authoritative_error": "This SAML identity provider is not authorized to manage your account. Please sign in with your original login method.",
   "audit_logs_organization_required": "You must be part of an organization to view audit logs.",
   "audit_logs_booking_not_found_or_permission_denied": "Booking not found or you do not have permission to view its audit logs.",
