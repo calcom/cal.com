@@ -59,7 +59,7 @@ export function getFieldResponseForJsonLogic({
   field: Pick<Field, "options" | "type">;
   value: FormResponse[string]["value"] | undefined;
 }) {
-  if (!value) {
+  if (value === undefined || value === null || value === "") {
     return "";
   }
   // type="number" still gives value as a string but we need to store that as number so that number operators can work.

@@ -17,6 +17,20 @@ describe("getFieldResponseForJsonLogic", () => {
     expect(result).toBe(123);
   });
 
+  it("should handle number 0 correctly (not treat as falsy)", () => {
+    const field = { type: "number", options: undefined };
+    const value = "0";
+    const result = getFieldResponseForJsonLogic({ field, value });
+    expect(result).toBe(0);
+  });
+
+  it("should return empty string for null value", () => {
+    const field = { type: "text", options: undefined };
+    const value = null;
+    const result = getFieldResponseForJsonLogic({ field, value });
+    expect(result).toBe("");
+  });
+
   describe("multiselect", () => {
     describe("non-legacy options", () => {
       it("should return option ids for the field if the value is an array of option ids", () => {
