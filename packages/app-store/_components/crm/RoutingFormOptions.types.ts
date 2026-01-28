@@ -18,10 +18,8 @@ export interface RoutingFormOptionsProps<T extends string = string> {
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
   /** Path to the app icon (e.g., "/app-store/hubspot/icon.svg") */
   iconPath: string;
-  /** Translation key for the app label (e.g., "hubspot_option") */
-  labelKey: string;
-  /** Message to show when the app is disabled */
-  disabledMessage: string;
+  /** Display name of the app (e.g., "HubSpot", "Salesforce") - used for translations */
+  appName: string;
   /** Available routing options for this CRM */
   routingOptions: RoutingOption<T>[];
   /** Function to determine the initial selected option based on route config */

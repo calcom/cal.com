@@ -10,6 +10,8 @@ enum HubspotRoutingConfig {
   SKIP_OWNER = "skip_owner",
 }
 
+const APP_NAME = "HubSpot";
+
 const RoutingFormOptions = ({
   appData,
   route,
@@ -23,11 +25,11 @@ const RoutingFormOptions = ({
 
   const hubspotRoutingOptions: RoutingOption<HubspotRoutingConfig>[] = [
     {
-      label: t("hubspot_route_to_owner"),
+      label: t("crm_route_to_contact_owner", { appName: APP_NAME }),
       value: HubspotRoutingConfig.ROUTE_OWNER,
     },
     {
-      label: t("hubspot_do_not_route_to_owner"),
+      label: t("crm_skip_contact_owner", { appName: APP_NAME }),
       value: HubspotRoutingConfig.SKIP_OWNER,
     },
   ];
@@ -70,8 +72,7 @@ const RoutingFormOptions = ({
       route={route}
       setAttributeRoutingConfig={setAttributeRoutingConfig}
       iconPath="/app-store/hubspot/icon.svg"
-      labelKey="hubspot_option"
-      disabledMessage="HubSpot is not enabled on event type"
+      appName={APP_NAME}
       routingOptions={hubspotRoutingOptions}
       getInitialOption={getInitialOption}
       onOptionChange={onOptionChange}

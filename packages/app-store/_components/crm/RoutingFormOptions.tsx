@@ -16,8 +16,7 @@ function RoutingFormOptions<T extends string = string>({
   route,
   setAttributeRoutingConfig,
   iconPath,
-  labelKey,
-  disabledMessage,
+  appName,
   routingOptions,
   getInitialOption,
   onOptionChange,
@@ -48,7 +47,7 @@ function RoutingFormOptions<T extends string = string>({
   const isAppDisabled = !validatedAppData?.enabled;
 
   const appDisabledOption = {
-    label: disabledMessage,
+    label: t("crm_not_enabled_on_event_type", { appName }),
     value: "disabled",
   };
 
@@ -57,7 +56,7 @@ function RoutingFormOptions<T extends string = string>({
       <div className="flex">
         <span className="flex items-center text-emphasis text-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={iconPath} alt="" className="mr-2 h-6 w-6" /> {t(labelKey)}
+          <img src={iconPath} alt="" className="mr-2 h-6 w-6" /> {t("crm_routing_option", { appName })}
         </span>
         {isAppDisabled ? (
           <Select value={appDisabledOption} isDisabled className="ml-2 w-full" />
