@@ -475,7 +475,7 @@ async function seed(): Promise<SeedResult> {
     subscription: null,
     product: null,
     price: null,
-    pricePerSeat: 15000,
+    pricePerSeat: 18000,
   };
   let stripeCustomerId = `cus_fake_trigger_${Date.now()}`;
   let stripeSubscriptionId = `sub_fake_trigger_${Date.now()}`;
