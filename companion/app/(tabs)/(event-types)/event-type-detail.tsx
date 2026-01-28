@@ -2415,10 +2415,10 @@ export default function EventTypeDetail() {
                           value={isHidden}
                           onValueChange={setIsHidden}
                           trackColor={{
-                            false: "#E5E5EA",
-                            true: isDarkMode ? "#FFFFFF" : "#000000",
+                            false: isDarkMode ? "#404040" : "#E5E5EA",
+                            true: isDarkMode ? "#007AFF" : "#000000",
                           }}
-                          thumbColor={isDarkMode ? "#000000" : "#FFFFFF"}
+                          thumbColor="#FFFFFF"
                         />
                       </View>
                     </View>

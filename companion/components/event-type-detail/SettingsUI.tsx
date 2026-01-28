@@ -138,8 +138,11 @@ export function SettingRow({
           <Switch
             value={value}
             onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: isDark ? "#FFFFFF" : "#000000" }}
-            thumbColor={isDark ? "#000000" : "#FFFFFF"}
+            trackColor={{
+              false: isDark ? theme.backgroundEmphasis : "#E9E9EA",
+              true: isDark ? theme.accent : "#000000",
+            }}
+            thumbColor="#FFFFFF"
           />
         </View>
       </View>

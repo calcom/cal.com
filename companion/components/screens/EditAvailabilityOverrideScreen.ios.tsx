@@ -357,8 +357,11 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         <Switch
           value={isUnavailable}
           onValueChange={setIsUnavailable}
-          trackColor={{ false: "#E5E5EA", true: isDark ? "#FFFFFF" : "#000000" }}
-          thumbColor={isDark ? "#000000" : "#FFFFFF"}
+          trackColor={{
+            false: isDark ? theme.backgroundEmphasis : "#E5E5EA",
+            true: isDark ? theme.accent : "#000000",
+          }}
+          thumbColor="#FFFFFF"
         />
       </View>
 
