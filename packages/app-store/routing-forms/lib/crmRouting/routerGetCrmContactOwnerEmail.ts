@@ -97,10 +97,10 @@ export default async function routerGetCrmContactOwnerEmail({
     }
   };
 
-  const crmTrace = CrmRoutingTraceService.create(routingTraceService);
+  const crmRoutingTraceService = CrmRoutingTraceService.create(routingTraceService);
 
-  if (crmTrace) {
-    await crmTrace.runAsync(runCrmOperations);
+  if (crmRoutingTraceService) {
+    await crmRoutingTraceService.runAsync(runCrmOperations);
   } else {
     await runCrmOperations();
   }
