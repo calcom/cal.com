@@ -3,6 +3,8 @@ import type { OptInFeaturePolicy, OptInFeatureScope } from "./types";
 
 export type OptInFeatureDisplayLocation = "settings" | "banner";
 
+const DEFAULT_DISPLAY_LOCATIONS: OptInFeatureDisplayLocation[] = ["settings"];
+
 export interface OptInFeatureConfig {
   slug: FeatureId;
   i18n: {
@@ -69,14 +71,6 @@ export function isOptInFeature(slug: string): slug is FeatureId {
 }
 
 /**
- * Get the display locations for a feature.
- * Returns ['settings'] as the default if displayLocations is not specified.
- */
-export function getFeatureDisplayLocations(feature: OptInFeatureConfig): OptInFeatureDisplayLocation[] {
-  return feature.displayLocations ?? ["settings"];
-}
-
-/**
  * Check if a feature should be displayed at a specific location.
  * Defaults to 'settings' if displayLocations is not specified.
  */
@@ -84,7 +78,7 @@ export function shouldDisplayFeatureAt(
   feature: OptInFeatureConfig,
   location: OptInFeatureDisplayLocation
 ): boolean {
-  return getFeatureDisplayLocations(feature).includes(location);
+  return (feature.displayLocations ?? DEFAULT_DISPLAY_LOCATIONS).includes(location);
 }
 
 /**
