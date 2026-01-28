@@ -151,7 +151,7 @@ const EventTypeWeb = ({
   const leaveWithoutAssigningHosts = useRef(false);
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
+  const { eventType, locationOptions, team, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
@@ -231,34 +231,34 @@ const EventTypeWeb = ({
     eventType.slug
   }`;
 
+  // Use functions to lazily render tabs - only the active tab is instantiated
+  // This prevents all tab hooks (including watch("hosts") with 700 hosts) from running on every render
   const tabMap = {
-    setup: (
+    setup: () => (
       <EventSetupTab
         eventType={eventType}
         locationOptions={locationOptions}
         team={team}
-        teamMembers={teamMembers}
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: (
+    availability: () => (
       <EventAvailabilityTab
         eventType={eventType}
         isTeamEvent={!!team}
         user={user}
-        teamMembers={teamMembers}
       />
     ),
-    team: (
+    team: () => (
       <EventTeamAssignmentTab
         orgId={orgBranding?.id ?? null}
-        teamMembers={teamMembers}
+        teamMembers={[]}
         team={team}
         eventType={eventType}
       />
     ),
-    limits: <EventLimitsTab eventType={eventType} />,
-    advanced: (
+    limits: () => <EventLimitsTab eventType={eventType} />,
+    advanced: () => (
       <EventAdvancedTab
         eventType={eventType}
         team={team}
@@ -268,23 +268,23 @@ const EventTypeWeb = ({
         orgId={orgBranding?.id ?? null}
       />
     ),
-    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: (
+    instant: () => <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
+    recurring: () => <EventRecurringTab eventType={eventType} />,
+    apps: () => (
       <EventAppsTab
         eventType={{ ...eventType, URL: permalink }}
         eventTypeApps={eventTypeApps}
         isPendingApps={isPendingApps}
       />
     ),
-    workflows:
+    workflows: () =>
       allActiveWorkflows && canReadWorkflows ? (
         <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
       ) : (
         <></>
       ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
-    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
+    webhooks: () => <EventWebhooksTab eventType={eventType} />,
+    ai: () => <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
 
   useHandleRouteChange({
@@ -293,7 +293,7 @@ const EventTypeWeb = ({
     isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
     isTeamEventType: !!team,
     assignedUsers: eventType.children,
-    hosts: eventType.hosts,
+    hostCount: eventType._count.hosts,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
     onError: (url) => {

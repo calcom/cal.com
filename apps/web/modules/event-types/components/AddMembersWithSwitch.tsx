@@ -39,7 +39,7 @@ export const mapUserToValue = (
   defaultScheduleId,
 });
 
-const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
+const sortByLabel = (a: { label: string }, b: { label: string }) => {
   if (a.label < b.label) {
     return -1;
   }

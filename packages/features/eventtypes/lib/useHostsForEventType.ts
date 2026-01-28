@@ -20,7 +20,20 @@ const DEFAULT_PENDING_CHANGES: PendingHostChanges = {
  * This dramatically improves performance for event types with many hosts.
  */
 export function useHostsForEventType() {
-  const { setValue, getValues, control } = useFormContext<FormValues>();
+  const { setValue: rawSetValue, getValues, control } = useFormContext<FormValues>();
+
+  // Type-safe wrapper for setValue with optional fields
+  // react-hook-form resolves the value type to `never` for optional fields
+  const setPendingChanges = useCallback(
+    (value: PendingHostChanges, options?: { shouldDirty?: boolean }) => {
+      (rawSetValue as (name: string, value: unknown, options?: { shouldDirty?: boolean }) => void)(
+        "pendingHostChanges",
+        value,
+        options
+      );
+    },
+    [rawSetValue]
+  );
 
   // Use useWatch for better performance - only re-renders when this specific field changes
   const pendingChanges = useWatch({
@@ -32,12 +45,11 @@ export function useHostsForEventType() {
   // Add a new host
   const addHost = useCallback(
     (host: Host) => {
-      const current = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
+      const current: PendingHostChanges = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
 
       // If this host was previously removed, just remove from hostsToRemove
       if (current.hostsToRemove.includes(host.userId)) {
-        setValue(
-          "pendingHostChanges",
+        setPendingChanges(
           {
             ...current,
             hostsToRemove: current.hostsToRemove.filter((id) => id !== host.userId),
@@ -48,8 +60,7 @@ export function useHostsForEventType() {
       }
 
       // Otherwise add to hostsToAdd
-      setValue(
-        "pendingHostChanges",
+      setPendingChanges(
         {
           ...current,
           hostsToAdd: [...current.hostsToAdd, host],
@@ -57,13 +68,13 @@ export function useHostsForEventType() {
         { shouldDirty: true }
       );
     },
-    [getValues, setValue]
+    [getValues, setPendingChanges]
   );
 
   // Update an existing host
   const updateHost = useCallback(
     (userId: number, changes: Partial<Omit<Host, "userId">>) => {
-      const current = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
+      const current: PendingHostChanges = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
 
       // Check if this is a newly added host
       const addedIndex = current.hostsToAdd.findIndex((h) => h.userId === userId);
@@ -71,8 +82,7 @@ export function useHostsForEventType() {
         // Update the host in hostsToAdd directly
         const updated = [...current.hostsToAdd];
         updated[addedIndex] = { ...updated[addedIndex], ...changes };
-        setValue(
-          "pendingHostChanges",
+        setPendingChanges(
           {
             ...current,
             hostsToAdd: updated,
@@ -88,8 +98,7 @@ export function useHostsForEventType() {
         // Merge with existing update
         const updated = [...current.hostsToUpdate];
         updated[existingUpdateIndex] = { ...updated[existingUpdateIndex], ...changes };
-        setValue(
-          "pendingHostChanges",
+        setPendingChanges(
           {
             ...current,
             hostsToUpdate: updated,
@@ -98,8 +107,7 @@ export function useHostsForEventType() {
         );
       } else {
         // Add new update
-        setValue(
-          "pendingHostChanges",
+        setPendingChanges(
           {
             ...current,
             hostsToUpdate: [...current.hostsToUpdate, { userId, ...changes }],
@@ -108,19 +116,18 @@ export function useHostsForEventType() {
         );
       }
     },
-    [getValues, setValue]
+    [getValues, setPendingChanges]
   );
 
   // Remove a host
   const removeHost = useCallback(
     (userId: number) => {
-      const current = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
+      const current: PendingHostChanges = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
 
       // Check if this is a newly added host - just remove from hostsToAdd
       const addedIndex = current.hostsToAdd.findIndex((h) => h.userId === userId);
       if (addedIndex >= 0) {
-        setValue(
-          "pendingHostChanges",
+        setPendingChanges(
           {
             ...current,
             hostsToAdd: current.hostsToAdd.filter((h) => h.userId !== userId),
@@ -132,8 +139,7 @@ export function useHostsForEventType() {
       }
 
       // Otherwise add to hostsToRemove and clean up hostsToUpdate
-      setValue(
-        "pendingHostChanges",
+      setPendingChanges(
         {
           ...current,
           hostsToRemove: [...current.hostsToRemove, userId],
@@ -142,7 +148,7 @@ export function useHostsForEventType() {
         { shouldDirty: true }
       );
     },
-    [getValues, setValue]
+    [getValues, setPendingChanges]
   );
 
   // Set all hosts (replaces current state) - used for bulk operations
@@ -196,8 +202,7 @@ export function useHostsForEventType() {
         }
       }
 
-      setValue(
-        "pendingHostChanges",
+      setPendingChanges(
         {
           hostsToAdd,
           hostsToUpdate,
@@ -206,7 +211,7 @@ export function useHostsForEventType() {
         { shouldDirty: hostsToAdd.length > 0 || hostsToUpdate.length > 0 || hostsToRemove.length > 0 }
       );
     },
-    [setValue]
+    [setPendingChanges]
   );
 
   // Memoize the return value to prevent unnecessary re-renders

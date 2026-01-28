@@ -207,10 +207,7 @@ export const eventTypesRouter = router({
       });
     }),
 
-  searchTeamMembers: createEventPbacProcedure("eventType.update", [
-    MembershipRole.ADMIN,
-    MembershipRole.OWNER,
-  ])
+  searchTeamMembers: authedProcedure
     .input(ZSearchTeamMembersInputSchema)
     .query(async ({ ctx, input }) => {
       const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");

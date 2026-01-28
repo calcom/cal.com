@@ -1,5 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma/client";
 
+import { TRPCError } from "@trpc/server";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TSearchTeamMembersInputSchema } from "./searchTeamMembers.schema";
 
@@ -31,6 +33,16 @@ export const searchTeamMembersHandler = async ({
   input,
 }: SearchTeamMembersInput): Promise<SearchTeamMembersResponse> => {
   const { teamId, cursor, limit, search } = input;
+
+  // Verify the requesting user is a member of this team
+  const callerMembership = await ctx.prisma.membership.findFirst({
+    where: { teamId, userId: ctx.user.id },
+    select: { id: true },
+  });
+
+  if (!callerMembership) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
+  }
 
   const where: Record<string, unknown> = {
     teamId,
