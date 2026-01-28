@@ -1,5 +1,6 @@
 import type {
   EventTypeSetupProps,
+  EventTypeSetup,
   FormValues,
   Host,
   SelectClassNames,
@@ -29,7 +30,7 @@ import WeightDescription from "@calcom/web/modules/event-types/components/Weight
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 import { v4 as uuidv4 } from "uuid";
@@ -611,6 +612,21 @@ type HostsCustomClassNames = {
   fixedHosts?: FixedHostsCustomClassNames;
   roundRobinHosts?: RoundRobinHostsCustomClassNames;
 };
+
+// Maps eventType.hosts (from API) to Host[] (form type)
+// The API type has nullable priority/weight, form type requires non-nullable
+const mapEventTypeHostsToFormHosts = (hosts: EventTypeSetup["hosts"]): Host[] => {
+  return hosts.map((host) => ({
+    isFixed: host.isFixed,
+    userId: host.userId,
+    priority: host.priority ?? 2, // Default priority
+    weight: host.weight ?? 100, // Default weight
+    scheduleId: host.scheduleId,
+    groupId: host.groupId,
+    location: host.location ?? null,
+  }));
+};
+
 const Hosts = ({
   orgId,
   teamId,
@@ -631,7 +647,7 @@ const Hosts = ({
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
   hideFixedHostsForCollective?: boolean;
-  eventTypeHosts: Host[];
+  eventTypeHosts: EventTypeSetup["hosts"];
   isRRWeightsEnabled: boolean;
 }) => {
   const {
@@ -650,15 +666,21 @@ const Hosts = ({
     submitCount: number;
   } | null>(null);
 
+  // Memoize the mapped hosts to avoid recalculating on every render
+  const mappedEventTypeHosts = useMemo(
+    () => mapEventTypeHostsToFormHosts(eventTypeHosts).sort((a, b) => sortHosts(a, b, isRRWeightsEnabled)),
+    [eventTypeHosts, isRRWeightsEnabled]
+  );
+
   // Get the effective hosts value - use eventTypeHosts if form hosts is undefined (not yet modified)
   const getEffectiveHosts = useCallback((): Host[] => {
     const formHosts = getValues("hosts");
     if (formHosts === undefined) {
-      // Form hosts not yet initialized - use the original eventType hosts
-      return eventTypeHosts.sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+      // Form hosts not yet initialized - use the original eventType hosts (mapped to form type)
+      return mappedEventTypeHosts;
     }
     return formHosts;
-  }, [getValues, eventTypeHosts, isRRWeightsEnabled]);
+  }, [getValues, mappedEventTypeHosts]);
 
   useEffect(() => {
     const currentHosts = getEffectiveHosts();
@@ -697,8 +719,8 @@ const Hosts = ({
     <Controller<FormValues>
       name="hosts"
       render={({ field: { onChange, value } }) => {
-        // Use eventTypeHosts for rendering if form value is undefined (not yet modified)
-        const effectiveValue = value === undefined ? eventTypeHosts.sort((a, b) => sortHosts(a, b, isRRWeightsEnabled)) : value;
+        // Use mappedEventTypeHosts for rendering if form value is undefined (not yet modified)
+        const effectiveValue = value === undefined ? mappedEventTypeHosts : value;
 
         const schedulingTypeRender = {
           COLLECTIVE: hideFixedHostsForCollective ? (
