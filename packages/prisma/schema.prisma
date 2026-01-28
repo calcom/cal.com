@@ -842,6 +842,7 @@ model Attendee {
 
   @@index([email])
   @@index([bookingId])
+  @@index([email, bookingId])
 }
 
 enum BookingStatus {
@@ -930,6 +931,10 @@ model Booking {
   @@index([status])
   @@index([startTime, endTime, status])
   @@index([fromReschedule])
+  @@index([userId, endTime])
+  @@index([userId, status, startTime])
+  @@index([eventTypeId, status])
+  @@index([userId, createdAt])
 }
 
 model Tracking {

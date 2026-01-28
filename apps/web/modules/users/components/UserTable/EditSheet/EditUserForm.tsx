@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
