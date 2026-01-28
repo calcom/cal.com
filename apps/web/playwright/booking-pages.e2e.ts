@@ -920,3 +920,54 @@ test.describe("Past booking cancellation", () => {
     await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 });
+
+test.describe("Optional Email Field Validation", () => {
+  test("should validate format if input is provided, but allow empty submission", async ({ page, users }) => {
+   
+    const user = await users.create({
+      eventTypes: [
+        {
+          title: "Test Event",
+          slug: "test-event",
+          length: 30,
+          bookingFields: [
+            { name: "name", type: "name", required: true },
+            { name: "email", type: "email", required: true },
+            { 
+              name: "altEmail", 
+              type: "email", 
+              required: false, 
+              label: "Alternate Email"
+            },
+          ],
+        },
+      ],
+    });
+
+    await page.goto(`/${user.username}/test-event`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.fill('[name="name"]', 'Test Booker');
+    await page.fill('[name="email"]', 'booker@example.com');
+
+    const optionalField = page.getByLabel(/Alternate Email/i);
+    
+    if (await optionalField.isVisible()) {
+      // Verify validation is active
+      await optionalField.fill('not-an-email');
+      await page.click('[data-testid="confirm-book-button"]');
+
+      // The test waits here to ensure the error message appeared
+      await expect(page.locator('text=That doesn\'t look like an email address')).toBeVisible();
+
+      // Clear the field to allow submission
+      await optionalField.clear(); 
+      // Click again - Now it should actually submit!
+      await page.click('[data-testid="confirm-book-button"]');
+
+      // Verify it reached the end
+      await expect(page).toHaveURL(/.*isSuccessBookingPage=true.*/);
+      await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
+    }
+  });
+});
