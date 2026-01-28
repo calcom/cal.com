@@ -11,6 +11,7 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IS_PROD_DOMAIN, IS_PRODUCTION } from "@calcom/lib/constants";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { IconSprites } from "@calcom/ui/components/icon";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -242,7 +243,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 visibility: "visible",
               }
         }>
-        {spriteSheetContent && (
+        {spriteSheetContent ? (
           <div
             dangerouslySetInnerHTML={{
               __html: spriteSheetContent,
@@ -250,6 +251,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             style={{ display: "none" }}
             aria-hidden="true"
           />
+        ) : (
+          <IconSprites />
         )}
         <SpeculationRules
           prerenderPathsOnHover={[
