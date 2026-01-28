@@ -425,7 +425,7 @@ describe("CalendarSubscriptionService", () => {
       expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).toHaveBeenCalledWith({
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
-        featureId: "calendar-subscription-cache",
+        featureIds: ["calendar-subscription-cache"],
         genericCalendarSuffixes: [
           "@group.v.calendar.google.com",
           "@group.calendar.google.com",
@@ -452,7 +452,7 @@ describe("CalendarSubscriptionService", () => {
       expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).toHaveBeenCalledWith({
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
-        featureId: "calendar-subscription-cache",
+        featureIds: ["calendar-subscription-cache"],
         genericCalendarSuffixes: [
           "@group.v.calendar.google.com",
           "@group.calendar.google.com",
@@ -475,7 +475,7 @@ describe("CalendarSubscriptionService", () => {
       expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).toHaveBeenCalledWith({
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
-        featureId: "calendar-subscription-cache",
+        featureIds: ["calendar-subscription-cache"],
         genericCalendarSuffixes: [
           "@group.v.calendar.google.com",
           "@group.calendar.google.com",

@@ -117,7 +117,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        featureId: "calendar-subscription-cache",
+        featureIds: ["calendar-subscription-cache"],
         integrations: ["google_calendar", "office365_calendar"],
       });
 
@@ -131,7 +131,7 @@ describe("SelectedCalendarRepository", () => {
                 team: {
                   teamFeatures: {
                     some: {
-                      featureId: "calendar-subscription-cache",
+                      featureId: { in: ["calendar-subscription-cache"] },
                       enabled: true,
                     },
                   },
@@ -170,7 +170,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 5,
-        featureId: "calendar-subscription-cache",
+        featureIds: ["calendar-subscription-cache"],
         integrations: [],
       });
 
@@ -184,7 +184,7 @@ describe("SelectedCalendarRepository", () => {
                 team: {
                   teamFeatures: {
                     some: {
-                      featureId: "calendar-subscription-cache",
+                      featureId: { in: ["calendar-subscription-cache"] },
                       enabled: true,
                     },
                   },
@@ -225,7 +225,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        featureId: "calendar-subscription-cache",
+        featureIds: ["calendar-subscription-cache"],
         integrations: ["google_calendar"],
         genericCalendarSuffixes: genericSuffixes,
       });
@@ -240,7 +240,7 @@ describe("SelectedCalendarRepository", () => {
                 team: {
                   teamFeatures: {
                     some: {
-                      featureId: "calendar-subscription-cache",
+                      featureId: { in: ["calendar-subscription-cache"] },
                       enabled: true,
                     },
                   },

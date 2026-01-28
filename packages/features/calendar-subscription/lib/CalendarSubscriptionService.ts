@@ -443,7 +443,7 @@ export class CalendarSubscriptionService {
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
-      featureId: CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE,
+      featureIds: [CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE],
       genericCalendarSuffixes: this.deps.adapterFactory.getGenericCalendarSuffixes(),
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
