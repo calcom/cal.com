@@ -34,35 +34,34 @@ const Page = async ({ params }: PageProps) => {
   const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
-  let canReadOthersBookings = false;
-  if (session?.user?.id) {
-    const permissionService = new PermissionCheckService();
-    const userId = session.user.id;
-
-    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
-      userId,
-      permission: "booking.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-    // We check if teamIdsWithPermission.length > 0.
-    // While this may not be entirely accurate, it's acceptable
-    // because we perform a thorough validation on the server side for the actual filter values.
-    // This variable is primarily for UI purposes.
-    canReadOthersBookings = teamIdsWithPermission.length > 0;
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
   }
+
+  const userId = session.user.id;
+  const permissionService = new PermissionCheckService();
+
+  const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
+    userId,
+    permission: "booking.read",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+  // We check if teamIdsWithPermission.length > 0.
+  // While this may not be entirely accurate, it's acceptable
+  // because we perform a thorough validation on the server side for the actual filter values.
+  // This variable is primarily for UI purposes.
+  const canReadOthersBookings = teamIdsWithPermission.length > 0;
 
   const featuresRepository = getFeaturesRepository();
   const featureOptInService = getFeatureOptInService();
 
-  const [featureFlags, featureStates] = session?.user?.id
-    ? await Promise.all([
-        featuresRepository.getUserFeaturesStatus(session.user.id, ["booking-audit"]),
-        featureOptInService.resolveFeatureStates({
-          userId: session.user.id,
-          featureIds: ["bookings-v3"],
-        }),
-      ])
-    : [{ "booking-audit": false }, {}];
+  const [featureFlags, featureStates] = await Promise.all([
+    featuresRepository.getUserFeaturesStatus(userId, ["booking-audit"]),
+    featureOptInService.resolveFeatureStates({
+      userId,
+      featureIds: ["bookings-v3"],
+    }),
+  ]);
 
   const bookingsV3Enabled = featureStates["bookings-v3"]?.effectiveEnabled ?? false;
   const bookingAuditEnabled = featureFlags["booking-audit"] ?? false;
@@ -74,7 +73,7 @@ const Page = async ({ params }: PageProps) => {
       headerClassName="bookings-shell-heading">
       <BookingsList
         status={parsed.data.status}
-        userId={session?.user?.id}
+        userId={userId}
         permissions={{ canReadOthersBookings }}
         bookingsV3Enabled={bookingsV3Enabled}
         bookingAuditEnabled={bookingAuditEnabled}
