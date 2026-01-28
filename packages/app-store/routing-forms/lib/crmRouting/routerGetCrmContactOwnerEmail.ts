@@ -1,5 +1,6 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -61,7 +62,7 @@ export default async function routerGetCrmContactOwnerEmail({
   };
 
   // Run CRM operations within trace context (if available)
-  // This makes the trace service available via AsyncLocalStorage to all nested calls
+  // This makes the trace service available via AsyncLocalStorage to all nested CRM calls
   const runCrmOperations = async () => {
     //   Determine if there is a CRM option enabled in the chosen route
     for (const appSlug of enabledAppSlugs) {
@@ -99,9 +100,13 @@ export default async function routerGetCrmContactOwnerEmail({
     }
   };
 
-  // If we have a trace service, run within its context; otherwise run directly
-  if (routingTraceService) {
-    await routingTraceService.runAsync(runCrmOperations);
+  // Create CRM trace service if we have a parent trace service
+  // This wraps the RoutingTraceService and provides AsyncLocalStorage access for CRM-specific traces
+  const crmTrace = CrmRoutingTraceService.create(routingTraceService);
+
+  // If we have a CRM trace service, run within its context; otherwise run directly
+  if (crmTrace) {
+    await crmTrace.runAsync(runCrmOperations);
   } else {
     await runCrmOperations();
   }

@@ -1,4 +1,4 @@
-import { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
+import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
 
 const DOMAIN = "salesforce";
 
@@ -9,7 +9,7 @@ const DOMAIN = "salesforce";
  */
 export class SalesforceRoutingTraceService {
   private static addStep(step: string, data: Record<string, unknown> = {}): void {
-    RoutingTraceService.getCurrent()?.addStep({ domain: DOMAIN, step, data });
+    CrmRoutingTraceService.getCurrent()?.addStep(DOMAIN, step, data);
   }
 
   // ===== Account Resolution (SOQL path) =====
