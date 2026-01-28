@@ -227,10 +227,6 @@ export class FeatureOptInService implements IFeatureOptInService {
     };
   }
 
-  /**
-   * Simplified method to resolve feature states for a user.
-   * Internally fetches the user's org and team IDs, then delegates to resolveFeatureStatesAcrossTeams.
-   */
   async resolveFeatureStates(input: {
     userId: number;
     featureIds: FeatureId[];
