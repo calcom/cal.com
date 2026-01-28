@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 import type { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import logger from "@calcom/lib/logger";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -33,6 +35,32 @@ export interface ProcessRoutingTraceResult {
 }
 
 export class RoutingTraceService {
+  private static als = new AsyncLocalStorage<RoutingTraceService>();
+
+  /**
+   * Get the current RoutingTraceService from AsyncLocalStorage.
+   * Returns undefined if not within a trace context.
+   */
+  static getCurrent(): RoutingTraceService | undefined {
+    return this.als.getStore();
+  }
+
+  /**
+   * Run a function within this trace service's context.
+   * Any code within the callback can access this trace service via getCurrent().
+   */
+  run<T>(fn: () => T): T {
+    return RoutingTraceService.als.run(this, fn);
+  }
+
+  /**
+   * Run an async function within this trace service's context.
+   * Any code within the callback can access this trace service via getCurrent().
+   */
+  runAsync<T>(fn: () => Promise<T>): Promise<T> {
+    return RoutingTraceService.als.run(this, fn);
+  }
+
   private routingTraceSteps: RoutingStep[] = [];
 
   constructor(private readonly deps: IRoutingTraceServiceDeps) {}
@@ -80,7 +108,6 @@ export class RoutingTraceService {
   }): Promise<ProcessRoutingTraceResult | null> {
     const { formResponseId, queuedFormResponseId, bookingId, bookingUid, organizerEmail, isRerouting, reroutedByEmail } = args;
 
-    // 1. Look up pending trace by formResponseId or queuedFormResponseId
     let pendingTrace = null;
     if (formResponseId) {
       pendingTrace = await this.deps.pendingRoutingTraceRepository.findByFormResponseId(formResponseId);
@@ -93,7 +120,6 @@ export class RoutingTraceService {
       return null;
     }
 
-    // 2. Extract assignment reason from trace
     const assignmentReasonData = this.extractAssignmentReasonFromTrace(
       pendingTrace.trace,
       {
@@ -105,7 +131,6 @@ export class RoutingTraceService {
 
     let assignmentReasonId: number | undefined;
 
-    // 3. Create assignment reason record if we have trace-based data
     if (assignmentReasonData) {
       const createdReason = await this.deps.assignmentReasonRepository.createAssignmentReason({
         bookingId,
@@ -115,7 +140,6 @@ export class RoutingTraceService {
       assignmentReasonId = createdReason.id;
     }
 
-    // 4. Create permanent routing trace
     await this.deps.routingTraceRepository.create({
       trace: pendingTrace.trace,
       formResponseId: pendingTrace.formResponseId ?? undefined,
@@ -168,7 +192,6 @@ export class RoutingTraceService {
         rrSKipToAccountLookupFieldName?: string | null;
       };
 
-      // Only use CRM assignment if the booking organizer matches the contact owner
       if (
         email &&
         email.toLowerCase() === context.organizerEmail.toLowerCase()
@@ -177,7 +200,7 @@ export class RoutingTraceService {
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
           reasonString: this.buildSalesforceReasonString({
             email,
-            recordType: recordType ?? "Contact", // Default to Contact if not specified
+            recordType: recordType ?? "Contact",
             recordId,
             rrSkipToAccountLookupField,
             rrSKipToAccountLookupFieldName,
@@ -236,7 +259,6 @@ export class RoutingTraceService {
             .join(", ")
         : "";
 
-    // Combine both parts, matching main branch behavior
     return `${reroutingPart} ${attributesPart}`.trim();
   }
 
