@@ -100,7 +100,10 @@ export const useEventTypeForm = ({
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
-      hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
+      // hosts is intentionally not loaded into the form initially for performance optimization.
+      // The UI renders hosts from eventType.hosts prop, and only populates this field when hosts are modified.
+      // This prevents slowness on the event type settings page when there are many hosts.
+      hosts: undefined,
       hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,

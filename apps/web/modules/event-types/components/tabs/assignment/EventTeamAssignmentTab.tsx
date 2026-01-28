@@ -159,16 +159,18 @@ const FixedHosts = ({
   const { t } = useLocale();
   const { getValues, setValue } = useFormContext<FormValues>();
 
-  const hasActiveFixedHosts = isRoundRobinEvent && getValues("hosts").some((host) => host.isFixed);
+  // Use value prop (which is the effective value from parent) instead of getValues("hosts")
+  // since form hosts might be undefined initially for performance optimization
+  const hasActiveFixedHosts = isRoundRobinEvent && value.some((host) => host.isFixed);
 
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
 
   const handleFixedHostsActivation = useCallback(() => {
-    const currentHosts = getValues("hosts");
+    // Use value prop instead of getValues("hosts") since form hosts might be undefined
     setValue(
       "hosts",
       teamMembers.map((teamMember) => {
-        const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+        const host = value.find((host) => host.userId === parseInt(teamMember.value, 10));
         return {
           isFixed: true,
           userId: parseInt(teamMember.value, 10),
@@ -181,19 +183,20 @@ const FixedHosts = ({
       }),
       { shouldDirty: true }
     );
-  }, [getValues, setValue, teamMembers]);
+  }, [setValue, teamMembers, value]);
 
   const handleFixedHostsToggle = useCallback(
     (checked: boolean) => {
       if (!checked) {
-        const rrHosts = getValues("hosts")
+        // Use value prop instead of getValues("hosts") since form hosts might be undefined
+        const rrHosts = value
           .filter((host) => !host.isFixed)
           .sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
         setValue("hosts", rrHosts, { shouldDirty: true });
       }
       setIsDisabled(checked);
     },
-    [getValues, setValue]
+    [setValue, value]
   );
 
   return (
@@ -314,28 +317,28 @@ const RoundRobinHosts = ({
     name: "hostGroups",
   });
 
-  const handleWeightsEnabledChange = (active: boolean, onChange: (value: boolean) => void) => {
-    onChange(active);
-    const allHosts = getValues("hosts");
-    const fixedHosts = allHosts.filter((host) => host.isFixed);
-    const rrHosts = allHosts.filter((host) => !host.isFixed);
+  // Use value prop instead of getValues("hosts") since form hosts might be undefined initially
+  const handleWeightsEnabledChange = (active: boolean, onChangeCallback: (val: boolean) => void) => {
+    onChangeCallback(active);
+    const fixedHosts = value.filter((host) => host.isFixed);
+    const rrHosts = value.filter((host) => !host.isFixed);
     const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
     // Preserve fixed hosts when updating
-    setValue("hosts", [...fixedHosts, ...sortedRRHosts]);
+    setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
   };
 
   const handleWeightsChange = (hosts: Host[]) => {
-    const allHosts = getValues("hosts");
-    const fixedHosts = allHosts.filter((host) => host.isFixed);
+    // Use value prop instead of getValues("hosts") since form hosts might be undefined initially
+    const fixedHosts = value.filter((host) => host.isFixed);
     const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
     // Preserve fixed hosts when updating
     setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
   };
 
   const handleAddGroup = useCallback(() => {
-    const allHosts = getValues("hosts");
-    const currentRRHosts = allHosts.filter((host) => !host.isFixed);
-    const fixedHosts = allHosts.filter((host) => host.isFixed);
+    // Use value prop instead of getValues("hosts") since form hosts might be undefined initially
+    const currentRRHosts = value.filter((host) => !host.isFixed);
+    const fixedHosts = value.filter((host) => host.isFixed);
 
     // If there are already hosts added and no group exists yet, create two groups
     if (hostGroups?.length === 0 && currentRRHosts.length > 0) {
@@ -363,7 +366,7 @@ const RoundRobinHosts = ({
       setValue("assignAllTeamMembers", false, { shouldDirty: true });
       setAssignAllTeamMembers(false);
     }
-  }, [hostGroups, getValues, setValue, assignAllTeamMembers, setAssignAllTeamMembers]);
+  }, [hostGroups, value, setValue, assignAllTeamMembers, setAssignAllTeamMembers]);
 
   const handleGroupNameChange = useCallback(
     (groupId: string, newName: string) => {
@@ -390,11 +393,11 @@ const RoundRobinHosts = ({
 
   const handleMembersActivation = useCallback(
     (groupId: string | null) => {
-      const currentHosts = getValues("hosts");
+      // Use value prop instead of getValues("hosts") since form hosts might be undefined initially
       setValue(
         "hosts",
         teamMembers.map((teamMember) => {
-          const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+          const host = value.find((host) => host.userId === parseInt(teamMember.value, 10));
           return {
             isFixed: false,
             userId: parseInt(teamMember.value, 10),
@@ -408,7 +411,7 @@ const RoundRobinHosts = ({
         { shouldDirty: true }
       );
     },
-    [getValues, setValue, teamMembers]
+    [setValue, teamMembers, value]
   );
 
   const AddMembersWithSwitchComponent = ({
@@ -617,6 +620,8 @@ const Hosts = ({
   customClassNames,
   isSegmentApplicable,
   hideFixedHostsForCollective = false,
+  eventTypeHosts,
+  isRRWeightsEnabled,
 }: {
   orgId: number | null;
   teamId: number;
@@ -626,6 +631,8 @@ const Hosts = ({
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
   hideFixedHostsForCollective?: boolean;
+  eventTypeHosts: Host[];
+  isRRWeightsEnabled: boolean;
 }) => {
   const {
     control,
@@ -638,45 +645,61 @@ const Hosts = ({
     name: "schedulingType",
   });
   const initialValue = useRef<{
-    hosts: FormValues["hosts"];
+    hosts: Host[];
     schedulingType: SchedulingType | null;
     submitCount: number;
   } | null>(null);
 
+  // Get the effective hosts value - use eventTypeHosts if form hosts is undefined (not yet modified)
+  const getEffectiveHosts = useCallback((): Host[] => {
+    const formHosts = getValues("hosts");
+    if (formHosts === undefined) {
+      // Form hosts not yet initialized - use the original eventType hosts
+      return eventTypeHosts.sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+    }
+    return formHosts;
+  }, [getValues, eventTypeHosts, isRRWeightsEnabled]);
+
   useEffect(() => {
+    const currentHosts = getEffectiveHosts();
     // Handles init & out of date initial value after submission.
     if (!initialValue.current || initialValue.current?.submitCount !== submitCount) {
-      initialValue.current = { hosts: getValues("hosts"), schedulingType, submitCount };
+      initialValue.current = { hosts: currentHosts, schedulingType, submitCount };
       return;
     }
-    setValue(
-      "hosts",
-      initialValue.current.schedulingType === schedulingType ? initialValue.current.hosts : [],
-      { shouldDirty: true }
-    );
-  }, [schedulingType, setValue, getValues, submitCount]);
+    // Only set hosts in form when scheduling type changes (this triggers the dirty state)
+    if (initialValue.current.schedulingType !== schedulingType) {
+      setValue("hosts", [], { shouldDirty: true });
+    }
+  }, [schedulingType, setValue, getEffectiveHosts, submitCount]);
 
   // To ensure existing host do not loose its scheduleId and groupId properties, whenever a new host of same type is added.
   // This is because the host is created from list option in CheckedHostField component.
-  const updatedHosts = (changedHosts: Host[]) => {
-    const existingHosts = getValues("hosts");
-    return changedHosts.map((newValue) => {
-      const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
+  const updatedHosts = useCallback(
+    (changedHosts: Host[]) => {
+      const existingHosts = getEffectiveHosts();
+      return changedHosts.map((newValue) => {
+        const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
 
-      return existingHost
-        ? {
-            ...newValue,
-            scheduleId: existingHost.scheduleId,
-            groupId: existingHost.groupId,
-          }
-        : newValue;
-    });
-  };
+        return existingHost
+          ? {
+              ...newValue,
+              scheduleId: existingHost.scheduleId,
+              groupId: existingHost.groupId,
+            }
+          : newValue;
+      });
+    },
+    [getEffectiveHosts]
+  );
 
   return (
     <Controller<FormValues>
       name="hosts"
       render={({ field: { onChange, value } }) => {
+        // Use eventTypeHosts for rendering if form value is undefined (not yet modified)
+        const effectiveValue = value === undefined ? eventTypeHosts.sort((a, b) => sortHosts(a, b, isRRWeightsEnabled)) : value;
+
         const schedulingTypeRender = {
           COLLECTIVE: hideFixedHostsForCollective ? (
             <></>
@@ -684,7 +707,7 @@ const Hosts = ({
             <FixedHosts
               teamId={teamId}
               teamMembers={teamMembers}
-              value={value}
+              value={effectiveValue}
               onChange={(changeValue) => {
                 onChange([...updatedHosts(changeValue)]);
               }}
@@ -698,9 +721,9 @@ const Hosts = ({
               <FixedHosts
                 teamId={teamId}
                 teamMembers={teamMembers}
-                value={value}
+                value={effectiveValue}
                 onChange={(changeValue) => {
-                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
+                  onChange([...effectiveValue.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -711,9 +734,9 @@ const Hosts = ({
                 orgId={orgId}
                 teamId={teamId}
                 teamMembers={teamMembers}
-                value={value}
+                value={effectiveValue}
                 onChange={(changeValue) => {
-                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
+                  const hosts = [...effectiveValue.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
                   onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
@@ -949,6 +972,8 @@ export const EventTeamAssignmentTab = ({
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
             hideFixedHostsForCollective={hideFixedHostsForCollective}
+            eventTypeHosts={eventType.hosts}
+            isRRWeightsEnabled={eventType.isRRWeightsEnabled}
           />
         </>
       )}
