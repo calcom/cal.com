@@ -2478,6 +2478,8 @@ async function handler(
     tracingLogger,
   });
 
+  const webhookLocation = metadata?.videoCallUrl || booking.location || evt.location;
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2495,6 +2497,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
+    location: webhookLocation,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
 
