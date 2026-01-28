@@ -2416,9 +2416,9 @@ export default function EventTypeDetail() {
                           onValueChange={setIsHidden}
                           trackColor={{
                             false: "#E5E5EA",
-                            true: isDarkMode ? "#34C759" : "#000000",
+                            true: isDarkMode ? "#FFFFFF" : "#000000",
                           }}
-                          thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
+                          thumbColor={isDarkMode ? "#000000" : "#FFFFFF"}
                         />
                       </View>
                     </View>
