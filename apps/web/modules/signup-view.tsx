@@ -58,14 +58,11 @@ function addOrUpdateQueryParam(url: string, key: string, value: string) {
 export default function Signup({
   prepopulateFormValues,
   token,
-  orgSlug,
   isGoogleLoginEnabled,
   isSAMLLoginEnabled,
-  orgAutoAcceptEmail,
   redirectUrl,
   emailVerificationEnabled,
 }: SignupProps) {
-  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({
     label: "",
@@ -213,10 +210,6 @@ export default function Signup({
         const gettingStartedWithPlatform = "settings/platform/new";
 
         const constructCallBackIfUrlPresent = () => {
-          if (isOrgInviteByLink) {
-            return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
-          }
-
           return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
         };
 
@@ -414,7 +407,7 @@ export default function Signup({
                     if (!formMethods.getValues().username) {
                       updatedValues = {
                         ...values,
-                        username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),
+                        username: getOrgUsernameFromEmail(values.email, null),
                       };
                     }
                     await signUp(updatedValues);
@@ -442,7 +435,6 @@ export default function Signup({
                       data-testid="signup-passwordfield"
                       prefixIcon="lock"
                       autoComplete="new-password"
-                      // disabled={!formMethods.getValues("email")}
                       label={t("password")}
                       variant="floating"
                       showStrengthMeter={true}

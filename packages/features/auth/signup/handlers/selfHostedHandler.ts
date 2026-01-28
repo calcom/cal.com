@@ -25,9 +25,11 @@ import {
 
 export default async function handler(body: Record<string, string>) {
   const { email, password, language, token } = signupSchema.parse(body);
+  //checks if a user with the given username already exists
   const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
     username: body.username,
   });
+  // if username already taken, proceed with randomizing the input username
   const username = existingUserWithUsername ? usernameSlugRandom(body.username) : _username;
   const userEmail = email.toLowerCase();
 
@@ -38,8 +40,12 @@ export default async function handler(body: Record<string, string>) {
   let foundToken: { id: number; calIdTeamId: number | null; expires: Date } | null = null;
   let correctedUsername = username;
   if (token) {
+    //if token passed, retrieve the token details or else throw in case of invalid token
     foundToken = await findTokenByToken({ token });
+    //throwing unauthorized error if token expired
     throwIfTokenExpired(foundToken?.expires);
+
+    //allows user if unique or if already invited to the team, else throws error
     correctedUsername = await validateAndGetCorrectedUsernameForTeam({
       username,
       email: userEmail,
@@ -47,6 +53,7 @@ export default async function handler(body: Record<string, string>) {
       isSignup: true,
     });
   } else {
+    //allows user if unique , else throws error
     const userValidation = await validateAndGetCorrectedUsernameAndEmail({
       username,
       email: userEmail,
@@ -62,144 +69,98 @@ export default async function handler(body: Record<string, string>) {
     correctedUsername = userValidation.username;
   }
 
+  //create password for the user being created
   const { hash, salt } = hashPasswordWithSalt(password);
+  // extract utm info for user tracking
   const utmParams = await extractUtmInfo();
 
+  // Common username validation
+  const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
+  if (!isUsernameAvailable) {
+    return NextResponse.json({ message: "A user exists with that username" }, { status: 409 });
+  }
+
+  // Team-specific logic
+  let team = null;
   if (foundToken && foundToken?.calIdTeamId) {
-    const team = await prisma.calIdTeam.findUnique({
-      where: {
-        id: foundToken.calIdTeamId,
-      },
+    team = await prisma.calIdTeam.findUnique({
+      where: { id: foundToken.calIdTeamId },
     });
+  }
 
-    if (team) {
-      // const isInviteForATeamInOrganization = !!team.parent;
-      // const isCheckingUsernameInGlobalNamespace = !team.isOrganization && !isInviteForATeamInOrganization;
-      const isCheckingUsernameInGlobalNamespace = true;
-      if (isCheckingUsernameInGlobalNamespace) {
-        const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
-        if (!isUsernameAvailable) {
-          return NextResponse.json({ message: "A user exists with that username" }, { status: 409 });
-        }
-      }
-
-      const existingUser = await prisma.user.findUnique({
-        where: { email: userEmail },
-        select: { metadata: true },
-      });
-
-      const mergedMetadata = {
-        ...(isPrismaObjOrUndefined(existingUser?.metadata) ?? {}),
-        ...(utmParams && { utm: utmParams }),
-      };
-
-      const user = await prisma.user.upsert({
-        where: { email: userEmail },
-        update: {
-          username: correctedUsername,
-          password: {
-            upsert: {
-              create: { hash, salt },
-              update: { hash, salt },
-            },
-          },
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          ...(utmParams && { metadata: mergedMetadata }),
-        },
-        create: {
-          username: correctedUsername,
-          email: userEmail,
-          password: { create: { hash, salt } },
-          identityProvider: IdentityProvider.CAL,
-          ...(utmParams && { metadata: { utm: utmParams } }),
-        },
-      });
-
-      const { membership } = await createOrUpdateMemberships({
-        user,
-        team,
-      });
-
-      // // Accept any child team invites for orgs.
-      // if (team.parent) {
-      //   await joinAnyChildTeamOnOrgInvite({
-      //     userId: user.id,
-      //     org: team.parent,
-      //   });
-      // }
-
-      await sendUserToMakeWebhook({
-        id: user.id,
-        email: user.email,
-        name: user.name ?? "N/A",
-        username: user.username ?? "N/A",
-        identityProvider: user.identityProvider,
-      });
+  // Non-team-specific validations
+  if (!team && IS_PREMIUM_USERNAME_ENABLED) {
+    const checkUsername = await checkPremiumUsername(correctedUsername);
+    if (checkUsername.premium) {
+      return NextResponse.json(
+        { message: `Sign up from ${SIGNUP_URL} to claim your premium username` },
+        { status: 422 }
+      );
     }
+  }
 
-    // Cleanup token after use
-    await prisma.verificationToken.delete({
-      where: {
-        id: foundToken.id,
-      },
-    });
-  } else {
-    const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
-    if (!isUsernameAvailable) {
-      return NextResponse.json({ message: "A user exists with that username" }, { status: 409 });
-    }
-    if (IS_PREMIUM_USERNAME_ENABLED) {
-      const checkUsername = await checkPremiumUsername(correctedUsername);
-      if (checkUsername.premium) {
-        return NextResponse.json(
-          { message: `Sign up from ${SIGNUP_URL} to claim your premium username` },
-          { status: 422 }
-        );
-      }
-    }
+  // Common user upsert logic
+  const existingUser = await prisma.user.findUnique({
+    where: { email: userEmail },
+    select: { metadata: true },
+  });
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: userEmail },
-      select: { metadata: true },
-    });
+  const mergedMetadata = {
+    ...(isPrismaObjOrUndefined(existingUser?.metadata) ?? {}),
+    ...(utmParams && { utm: utmParams }),
+  };
 
-    const mergedMetadata = {
-      ...(isPrismaObjOrUndefined(existingUser?.metadata) ?? {}),
-      ...(utmParams && { utm: utmParams }),
-    };
-
-    await prisma.user.upsert({
-      where: { email: userEmail },
-      update: {
-        username: correctedUsername,
-        password: {
-          upsert: {
-            create: { hash, salt },
-            update: { hash, salt },
-          },
+  const user = await prisma.user.upsert({
+    where: { email: userEmail },
+    update: {
+      username: correctedUsername,
+      password: {
+        upsert: {
+          create: { hash, salt },
+          update: { hash, salt },
         },
-        emailVerified: new Date(Date.now()),
-        identityProvider: IdentityProvider.CAL,
-        ...(utmParams && { metadata: mergedMetadata }),
       },
-      create: {
-        username: correctedUsername,
-        email: userEmail,
-        password: { create: { hash, salt } },
-        identityProvider: IdentityProvider.CAL,
-        ...(utmParams && { metadata: { utm: utmParams } }),
-      },
-    });
+      emailVerified: new Date(Date.now()),
+      identityProvider: IdentityProvider.CAL,
+      ...(utmParams && { metadata: mergedMetadata }),
+    },
+    create: {
+      username: correctedUsername,
+      email: userEmail,
+      password: { create: { hash, salt } },
+      identityProvider: IdentityProvider.CAL,
+      ...(utmParams && { metadata: { utm: utmParams } }),
+    },
+  });
 
+  // Team-specific post-processing
+  if (team) {
+    await createOrUpdateMemberships({ user, team });
+    await sendUserToMakeWebhook({
+      id: user.id,
+      email: user.email,
+      name: user.name ?? "N/A",
+      username: user.username ?? "N/A",
+      identityProvider: user.identityProvider,
+    });
+  }
+
+  // Non-team post-processing
+  if (!team) {
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email: userEmail });
     }
-
     await sendEmailVerification({
       email: userEmail,
       username: correctedUsername,
       language,
+    });
+  }
+
+  // Cleanup token if it exists
+  if (foundToken) {
+    await prisma.verificationToken.delete({
+      where: { id: foundToken.id },
     });
   }
 
