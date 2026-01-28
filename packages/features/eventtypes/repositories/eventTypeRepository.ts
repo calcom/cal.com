@@ -789,11 +789,6 @@ export class EventTypeRepository implements IEventTypesRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -1100,11 +1095,6 @@ export class EventTypeRepository implements IEventTypesRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },

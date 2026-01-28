@@ -1,6 +1,5 @@
 "use client";
 
-import { AnchoredToastProvider, ToastProvider } from "@coss/ui/components/toast";
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
 import CacheProvider from "react-inlinesvg/provider";
@@ -28,11 +27,7 @@ export function Providers({ isEmbed, children, country }: ProvidersProps) {
           {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
           {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
           <CacheProvider>
-            <WebPushProvider>
-              <ToastProvider>
-                <AnchoredToastProvider>{children}</AnchoredToastProvider>
-              </ToastProvider>
-            </WebPushProvider>
+            <WebPushProvider>{children}</WebPushProvider>
           </CacheProvider>
         </TrpcProvider>
       </SessionProvider>
