@@ -93,7 +93,7 @@ describe("findMatchingRoute", () => {
       const result = findMatchingRoute({
         form,
         response: createMockResponse(),
-        routingFormTrace: mockRoutingFormTrace,
+        routingFormTraceService: mockRoutingFormTrace,
       });
 
       expect(result).not.toBeNull();
@@ -117,7 +117,7 @@ describe("findMatchingRoute", () => {
       const result = findMatchingRoute({
         form,
         response: createMockResponse(),
-        routingFormTrace: mockRoutingFormTrace,
+        routingFormTraceService: mockRoutingFormTrace,
       });
 
       expect(result).not.toBeNull();
@@ -141,7 +141,7 @@ describe("findMatchingRoute", () => {
       const result = findMatchingRoute({
         form,
         response: createMockResponse(),
-        routingFormTrace: mockRoutingFormTrace,
+        routingFormTraceService: mockRoutingFormTrace,
       });
 
       expect(result).not.toBeNull();
@@ -162,7 +162,7 @@ describe("findMatchingRoute", () => {
       const result = findMatchingRoute({
         form,
         response: createMockResponse(),
-        routingFormTrace: mockRoutingFormTrace,
+        routingFormTraceService: mockRoutingFormTrace,
       });
 
       expect(result).not.toBeNull();
@@ -201,7 +201,7 @@ describe("findMatchingRoute", () => {
       const result = findMatchingRoute({
         form,
         response: createMockResponse(),
-        routingFormTrace: mockRoutingFormTrace,
+        routingFormTraceService: mockRoutingFormTrace,
       });
 
       expect(result).not.toBeNull();

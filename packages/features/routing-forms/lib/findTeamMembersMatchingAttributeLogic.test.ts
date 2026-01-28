@@ -1305,7 +1305,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           routeIsFallback: false,
         },
         {
-          routingFormTrace: mockRoutingFormTrace as never,
+          routingFormTraceService: mockRoutingFormTrace as never,
         }
       );
 
@@ -1377,7 +1377,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           routeIsFallback: false,
         },
         {
-          routingFormTrace: mockRoutingFormTrace as never,
+          routingFormTraceService: mockRoutingFormTrace as never,
         }
       );
 
@@ -1487,7 +1487,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           routeIsFallback: false,
         },
         {
-          routingFormTrace: mockRoutingFormTrace as never,
+          routingFormTraceService: mockRoutingFormTrace as never,
         }
       );
 
