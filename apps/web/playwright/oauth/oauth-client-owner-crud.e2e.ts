@@ -455,7 +455,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Approved",
       pkceEnabled: true,
       hasLogo: false,
-      userEmail: "admin@example.com",
+      userEmail: user.email,
     });
 
     await expectOAuthClientInDb(prisma, clientId, {
@@ -488,7 +488,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: false,
-      userEmail: "admin@example.com",
+      userEmail: user.email,
     });
     await closeOAuthClientDetails(page);
 
