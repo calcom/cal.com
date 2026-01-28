@@ -13,7 +13,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 
-import SectionBottomActions from "./SectionBottomActions";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 
 type BookerLayoutSelectorProps = {
   title?: string;
