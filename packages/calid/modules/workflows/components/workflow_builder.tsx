@@ -1981,7 +1981,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                               <Label className={cn("flex-none", readOnly ? "mb-2" : "mb-0")}>
                                                 {t("email_subject")}
                                               </Label>
-                                              {!readOnly && (
+                                              {!readOnly && step.template == WorkflowTemplates.CUSTOM && (
                                                 <div className="flex-grow text-right">
                                                   <VariableDropdown
                                                     onSelect={(variable) =>

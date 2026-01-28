@@ -11,10 +11,10 @@ interface CancelledNotificationConfig {
   sessionName?: string;
   timezoneRegion?: string;
   venueDetails?: string;
-  virtualMeetingLink?: string;
   counterpartyName?: string;
   userDisplayName?: string;
   brandingHidden?: boolean;
+  cancellationReason?: string;
 }
 
 interface NotificationOutput {
@@ -22,17 +22,13 @@ interface NotificationOutput {
   emailBody: string;
 }
 
-const resolveLocationDisplay = (
-  venueInfo?: string,
-  meetingLink?: string,
-  isPreviewMode?: boolean
-): string => {
+const resolveLocationDisplay = (venueInfo?: string, isPreviewMode?: boolean): string => {
   if (isPreviewMode) {
     return "{LOCATION}";
   }
 
   const processedLocation = guessEventLocationType(venueInfo)?.label || venueInfo || "";
-  return `${processedLocation} ${meetingLink || ""}`.trim();
+  return `${processedLocation} `.trim();
 };
 
 const generatePreviewPlaceholders = (operationTarget?: WorkflowActions) => {
@@ -49,6 +45,7 @@ const generatePreviewPlaceholders = (operationTarget?: WorkflowActions) => {
     attendeeName: "{ATTENDEE_NAME}",
     counterpartyName: isAttendeeTarget ? "{ORGANIZER_NAME}" : "{ATTENDEE_NAME}",
     userDisplayName: isAttendeeTarget ? "{ATTENDEE_NAME}" : "{ORGANIZER_NAME}",
+    cancellationReason: "{CANCELLATION_REASON}",
   };
 };
 
@@ -82,6 +79,10 @@ const generateVenueBlock = (locationInfo: string): string => {
   return `<div><strong class="editor-text-bold">Location: </strong></div>${locationInfo}<br><br>`;
 };
 
+const generateCancellationReasonBlock = (reason?: string): string => {
+  return `<div><strong class="editor-text-bold">Cancellation Reason: </strong></div>${reason}<br><br>`;
+};
+
 const createFooterSection = (brandingHidden?: boolean, previewMode?: boolean): string => {
   const brandingText = !brandingHidden && !previewMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 
@@ -94,17 +95,22 @@ const assembleNotificationContent = (
   scheduleHtml: string,
   participantsHtml: string,
   venueHtml: string,
+  cancellationReasonHtml: string,
   footerHtml: string
 ): string => {
-  return welcomeHtml + eventDetailsHtml + scheduleHtml + participantsHtml + venueHtml + footerHtml;
+  return (
+    welcomeHtml +
+    eventDetailsHtml +
+    scheduleHtml +
+    participantsHtml +
+    venueHtml +
+    cancellationReasonHtml +
+    footerHtml
+  );
 };
 
 const processCancelledConfiguration = (config: CancelledNotificationConfig): NotificationOutput => {
-  const locationDisplay = resolveLocationDisplay(
-    config.venueDetails,
-    config.virtualMeetingLink,
-    config.previewMode
-  );
+  const locationDisplay = resolveLocationDisplay(config.venueDetails, config.previewMode);
 
   let contentData: {
     eventName: string;
@@ -117,6 +123,7 @@ const processCancelledConfiguration = (config: CancelledNotificationConfig): Not
     attendeeName: string;
     counterpartyName: string;
     userDisplayName: string;
+    cancellationReason: string;
   };
 
   if (config.previewMode) {
@@ -143,6 +150,7 @@ const processCancelledConfiguration = (config: CancelledNotificationConfig): Not
           : config.counterpartyName || "",
       counterpartyName: config.counterpartyName || "",
       userDisplayName: config.userDisplayName || "",
+      cancellationReason: config.cancellationReason || "",
     };
   }
 
@@ -158,6 +166,7 @@ const processCancelledConfiguration = (config: CancelledNotificationConfig): Not
   );
   const participantsSection = generateParticipantsBlock(contentData.counterpartyName);
   const venueSection = generateVenueBlock(contentData.location);
+  const cancellationReasonSection = generateCancellationReasonBlock(contentData.cancellationReason);
   const footerSection = createFooterSection(config.brandingHidden, config.previewMode);
 
   const bodyContent = assembleNotificationContent(
@@ -166,6 +175,7 @@ const processCancelledConfiguration = (config: CancelledNotificationConfig): Not
     scheduleSection,
     participantsSection,
     venueSection,
+    cancellationReasonSection,
     footerSection
   );
 
@@ -184,9 +194,9 @@ const emailCancelledTemplate = ({
   eventName,
   timeZone,
   location,
-  meetingUrl,
   otherPerson,
   name,
+  cancellationReason,
   isBrandingDisabled,
 }: {
   isEditingMode: boolean;
@@ -197,9 +207,9 @@ const emailCancelledTemplate = ({
   eventName?: string;
   timeZone?: string;
   location?: string;
-  meetingUrl?: string;
   otherPerson?: string;
   name?: string;
+  cancellationReason?: string;
   isBrandingDisabled?: boolean;
 }) => {
   const cancelledConfig: CancelledNotificationConfig = {
@@ -211,10 +221,10 @@ const emailCancelledTemplate = ({
     sessionName: eventName,
     timezoneRegion: timeZone,
     venueDetails: location,
-    virtualMeetingLink: meetingUrl,
     counterpartyName: otherPerson,
     userDisplayName: name,
     brandingHidden: isBrandingDisabled,
+    cancellationReason: cancellationReason,
   };
 
   return processCancelledConfiguration(cancelledConfig);

@@ -1,6 +1,5 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
@@ -56,5 +55,6 @@ export const constructVariablesForTemplate = (
     eventStartTimeInAttendeeTimezone: dayjs(eventStartTime).tz(eventData.attendees[0].timeZone),
     eventEndTimeInAttendeeTimezone: dayjs(eventEndTime).tz(eventData.attendees[0].timeZone),
     eventTime: formatTimestamp(eventData?.startTime, "ddd, MMM D, YYYY h:mma"),
+    cancellationReason: eventData.cancellationReason || "",
   };
 };

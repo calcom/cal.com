@@ -80,6 +80,7 @@ const DYNAMIC_TEXT_VARIABLES = [
   "additional_notes",
   "meeting_url",
   "cancel_url",
+  "cancellation_reason",
   "reschedule_url",
   "rating_url",
   "no_show_url",

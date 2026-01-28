@@ -29,6 +29,7 @@ export type VariablesType = {
   eventEndTimeInAttendeeTimezone?: Dayjs;
   eventTime?: string;
   rescheduleReason?: string;
+  cancellationReason?: string;
 };
 
 interface ProcessingConfiguration {
@@ -119,7 +120,8 @@ const performBasicTokenSubstitution = (
     .replaceAll(
       "{EVENT_END_TIME_IN_ATTENDEE_TIMEZONE}",
       variables.eventEndTimeInAttendeeTimezone?.format(timeFormat) || ""
-    );
+    )
+    .replaceAll("{CANCELLATION_REASON}", variables.cancellationReason || "");
 };
 
 const extractCustomTokens = (textContent: string): string[] => {
