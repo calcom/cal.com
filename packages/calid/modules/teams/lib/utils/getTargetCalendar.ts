@@ -4,7 +4,7 @@ import type { DestinationCalendar } from "@calcom/prisma/client";
 
 import type { BookingSelectResult } from "./bookingSelect";
 
-export async function getDestinationCalendar({
+export async function getTargetCalendar({
   eventType,
   booking,
   newUserId,
