@@ -98,7 +98,7 @@ export class AppModule implements NestModule {
           method: RequestMethod.POST,
         },
         {
-          path: "/webhooks/vercel/deployment-promoted",
+          path: "/v2/webhooks/vercel/deployment-promoted",
           method: RequestMethod.POST,
         }
       )

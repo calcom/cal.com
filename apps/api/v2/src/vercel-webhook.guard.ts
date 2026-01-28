@@ -8,6 +8,7 @@ export class VercelWebhookGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const signature = request.headers["x-vercel-signature"];
+    // biome-ignore lint/style/noProcessEnv: Environment variable access required for webhook secret
     const webhookSecret = process.env.VERCEL_PROMOTE_WEBHOOK_SECRET;
 
     if (!webhookSecret) {

@@ -8,21 +8,30 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { ApiExcludeController } from "@nestjs/swagger";
 import { VercelWebhookGuard } from "./vercel-webhook.guard";
 
-@Controller("webhooks/vercel")
+interface VercelWebhookPayload {
+  type?: string;
+}
+
+@Controller({
+  path: "/v2/webhooks/vercel",
+  version: [],
+})
+@ApiExcludeController(true)
 export class VercelWebhookController {
   private readonly logger = new Logger(VercelWebhookController.name);
 
   @Post("deployment-promoted")
-  @UseGuards(VercelWebhookGuard) // Guard handles all security
+  @UseGuards(VercelWebhookGuard)
   @HttpCode(HttpStatus.OK)
-  async handlePromotion(@Body() payload: any): Promise<{ status: string; version: string }> {
-    // Optional: Filter only for the 'deployment.promoted' event type
+  async handlePromotion(@Body() payload: VercelWebhookPayload): Promise<{ status: string; version: string }> {
     if (payload.type !== "deployment.promoted") {
       return { status: "ignored", version: "" };
     }
 
+    // biome-ignore lint/style/noProcessEnv: Environment variable access required for trigger.dev API
     const TRIGGER_VERSION = process.env.TRIGGER_VERSION;
 
     if (!TRIGGER_VERSION) {
@@ -38,6 +47,7 @@ export class VercelWebhookController {
   }
 
   private async promoteTriggerDeployment(version: string, maxRetries: number = 3): Promise<void> {
+    // biome-ignore lint/style/noProcessEnv: Environment variable access required for trigger.dev API
     const triggerSecretKey = process.env.TRIGGER_SECRET_KEY;
 
     const url = `https://api.trigger.dev/api/v1/deployments/${version}/promote`;
@@ -60,9 +70,11 @@ export class VercelWebhookController {
         this.logger.log(`Successfully promoted Trigger.dev deployment: ${version}`);
         return;
       } catch (error) {
-        this.logger.error(
-          `Promotion attempt ${attempt} failed: ${error instanceof Error ? error.message : "Unknown error"}`
-        );
+        let errorMessage = "Unknown error";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        this.logger.error(`Promotion attempt ${attempt} failed: ${errorMessage}`);
         if (attempt === maxRetries) throw error;
 
         // Exponential backoff: 2s, 4s, 8s
