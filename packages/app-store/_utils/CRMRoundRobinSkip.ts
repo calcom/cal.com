@@ -6,10 +6,12 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { CrmRoutingTraceServiceInterface } from "@calcom/types/CrmService";
 
 export async function getCRMContactOwnerForRRLeadSkip(
   bookerEmail: string,
-  eventTypeMetadata: Prisma.JsonValue
+  eventTypeMetadata: Prisma.JsonValue,
+  crmTrace?: CrmRoutingTraceServiceInterface
 ): Promise<{
   email: string | null;
   recordType: string | null;
@@ -25,7 +27,7 @@ export async function getCRMContactOwnerForRRLeadSkip(
   if (!crm) return nullReturnValue;
   const { crmManager, crmAppSlug } = crm;
   const startTime = performance.now();
-  const contact = await crmManager.getContacts({ emails: bookerEmail, forRoundRobinSkip: true });
+  const contact = await crmManager.getContacts({ emails: bookerEmail, forRoundRobinSkip: true, crmTrace });
   const endTime = performance.now();
   logger.info(`Fetching from CRM took ${endTime - startTime}ms`);
   if (!contact?.length || !contact[0].ownerEmail) return nullReturnValue;

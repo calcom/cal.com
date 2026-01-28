@@ -1,4 +1,5 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
+import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { prisma } from "@calcom/prisma";
@@ -48,6 +49,9 @@ export default async function routerGetCrmContactOwnerEmail({
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
 
+  // Create CRM-specific trace service from parent
+  const crmTrace = CrmRoutingTraceService.create(routingTraceService);
+
   let contactOwner: {
     email: string | null;
     recordType: string | null;
@@ -76,7 +80,8 @@ export default async function routerGetCrmContactOwnerEmail({
       const ownerQuery = await appHandler(
         prospectEmail,
         attributeRoutingConfig,
-        action.eventTypeId
+        action.eventTypeId,
+        crmTrace
       );
 
       if (ownerQuery?.email) {
@@ -89,7 +94,8 @@ export default async function routerGetCrmContactOwnerEmail({
   if (!contactOwner || (!contactOwner.email && !contactOwner.recordType)) {
     const ownerQuery = await getCRMContactOwnerForRRLeadSkip(
       prospectEmail,
-      eventTypeMetadata
+      eventTypeMetadata,
+      crmTrace
     );
     if (ownerQuery?.email) contactOwner = ownerQuery;
   }
