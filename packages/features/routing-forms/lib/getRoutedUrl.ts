@@ -16,6 +16,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
+import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HttpError } from "@calcom/lib/http-error";
@@ -36,7 +37,9 @@ const querySchema = z
   })
   .catchall(z.string().or(z.array(z.string())));
 
-const getDeterministicHashForResponse = (fieldsResponses: Record<string, unknown>) => {
+const getDeterministicHashForResponse = (
+  fieldsResponses: Record<string, unknown>
+) => {
   const sortedFields = Object.keys(fieldsResponses)
     .sort()
     .reduce((obj: Record<string, unknown>, key) => {
@@ -53,7 +56,13 @@ export function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">, fetchCrm = true) => {
+const _getRoutedUrl = async (
+  context: Pick<GetServerSidePropsContext, "query" | "req">,
+  fetchCrm = true
+) => {
+  // Initialize trace service for tracking routing decisions
+  const routingTraceService = getRoutingTraceService();
+
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -87,7 +96,9 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   const paramsToBeForwardedAsIs = {
     ...fieldsResponses,
     // Must be forwarded if present to Booking Page. Setting it explicitly here as it is critical to be present in the URL.
-    ...(isBookingDryRunParam ? { "cal.isBookingDryRun": isBookingDryRunParam } : null),
+    ...(isBookingDryRunParam
+      ? { "cal.isBookingDryRun": isBookingDryRunParam }
+      : null),
   };
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
@@ -95,7 +106,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let timeTaken: Record<string, number | null> = {};
 
   const formQueryStart = performance.now();
-  const form = await PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
+  const form =
+    await PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
   timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {
@@ -113,7 +125,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
   if (
-    !isAuthorizedToViewFormOnOrgDomain({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })
+    !isAuthorizedToViewFormOnOrgDomain({
+      user: formWithUserProfile.user,
+      currentOrgDomain,
+      team: form.team,
+    })
   ) {
     return {
       notFound: true,
@@ -144,10 +160,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
+  let queuedFormResponseId;
   let crmContactOwnerEmail: string | null = null;
   let crmContactOwnerRecordType: string | null = null;
   let crmAppSlug: string | null = null;
-  let queuedFormResponseId;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -158,18 +174,31 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       isPreview: isBookingDryRun,
       queueFormResponse: shouldQueueFormResponse,
       fetchCrm,
+      traceService: isBookingDryRun ? undefined : routingTraceService,
     });
-    teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
+    teamMembersMatchingAttributeLogic =
+      result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse?.id;
     queuedFormResponseId = result.queuedFormResponse?.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
+    crmContactOwnerEmail = result.crmContactOwnerEmail;
+    crmContactOwnerRecordType = result.crmContactOwnerRecordType;
+    crmAppSlug = result.crmAppSlug;
     timeTaken = {
       ...timeTaken,
       ...result.timeTaken,
     };
-    crmContactOwnerEmail = result.crmContactOwnerEmail;
-    crmContactOwnerRecordType = result.crmContactOwnerRecordType;
-    crmAppSlug = result.crmAppSlug;
+
+    // Save the pending trace (trace steps are added inside handleResponse)
+    if (!isBookingDryRun) {
+      if (formResponseId) {
+        await routingTraceService.savePendingRoutingTrace({ formResponseId });
+      } else if (queuedFormResponseId) {
+        await routingTraceService.savePendingRoutingTrace({
+          queuedFormResponseId,
+        });
+      }
+    }
   } catch (e) {
     if (e instanceof HttpError || e instanceof TRPCError) {
       return {
@@ -214,17 +243,20 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
             formResponse: response,
             fields: serializableForm.fields,
             searchParams: new URLSearchParams(
-              stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
+              stringify({
+                ...paramsToBeForwardedAsIs,
+                "cal.action": "eventTypeRedirectUrl",
+              })
             ),
             teamMembersMatchingAttributeLogic,
             formResponseId: formResponseId ?? null,
             queuedFormResponseId: queuedFormResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
-            teamId: form?.teamId,
-            orgId: form.team?.parentId,
             crmContactOwnerEmail,
             crmContactOwnerRecordType,
             crmAppSlug,
+            teamId: form?.teamId,
+            orgId: form.team?.parentId,
           }),
           isEmbed: pageProps.isEmbed,
         }),
@@ -234,7 +266,9 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   } else if (decidedAction.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
+        destination: `${decidedAction.value}?${stringify(
+          context.query
+        )}&cal.action=externalRedirectUrl`,
         permanent: false,
       },
     };

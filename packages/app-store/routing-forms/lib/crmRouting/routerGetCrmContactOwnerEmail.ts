@@ -1,5 +1,6 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -10,10 +11,12 @@ export default async function routerGetCrmContactOwnerEmail({
   attributeRoutingConfig,
   identifierKeyedResponse,
   action,
+  routingTraceService,
 }: {
   attributeRoutingConfig: LocalRoute["attributeRoutingConfig"];
   identifierKeyedResponse: Record<string, string | string[]> | null;
   action: LocalRoute["action"];
+  routingTraceService?: RoutingTraceService;
 }) {
   // Check if route is skipping CRM contact check
   if (attributeRoutingConfig?.skipContactOwner) return null;
@@ -23,7 +26,8 @@ export default async function routerGetCrmContactOwnerEmail({
     for (const identifier of Object.keys(identifierKeyedResponse)) {
       const fieldResponse = identifierKeyedResponse[identifier];
       if (identifier === "email") {
-        prospectEmail = fieldResponse instanceof Array ? fieldResponse[0] : fieldResponse;
+        prospectEmail =
+          fieldResponse instanceof Array ? fieldResponse[0] : fieldResponse;
         break;
       }
     }
@@ -31,11 +35,15 @@ export default async function routerGetCrmContactOwnerEmail({
   if (!prospectEmail) return null;
 
   // Determine if the action is an event type redirect
-  if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId) return null;
+  if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId)
+    return null;
 
   const eventTypeRepo = new EventTypeRepository(prisma);
-  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: action.eventTypeId });
-  if (!eventType || eventType.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({
+    id: action.eventTypeId,
+  });
+  if (!eventType || eventType.schedulingType !== SchedulingType.ROUND_ROBIN)
+    return null;
 
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
@@ -53,16 +61,23 @@ export default async function routerGetCrmContactOwnerEmail({
   };
   //   Determine if there is a CRM option enabled in the chosen route
   for (const appSlug of enabledAppSlugs) {
-    const routingOptions = attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
+    const routingOptions =
+      attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
 
     if (!routingOptions) continue;
     // See if any options are true
     if (Object.values(routingOptions).some((option) => option === true)) {
-      const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler"))
-        .default;
-      const appHandler = appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
+      const appBookingFormHandler = (
+        await import("@calcom/app-store/routing-forms/appBookingFormHandler")
+      ).default;
+      const appHandler =
+        appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
 
-      const ownerQuery = await appHandler(prospectEmail, attributeRoutingConfig, action.eventTypeId);
+      const ownerQuery = await appHandler(
+        prospectEmail,
+        attributeRoutingConfig,
+        action.eventTypeId
+      );
 
       if (ownerQuery?.email) {
         contactOwner = { ...ownerQuery, crmAppSlug: appSlug };
@@ -72,13 +87,33 @@ export default async function routerGetCrmContactOwnerEmail({
   }
 
   if (!contactOwner || (!contactOwner.email && !contactOwner.recordType)) {
-    const ownerQuery = await getCRMContactOwnerForRRLeadSkip(prospectEmail, eventTypeMetadata);
+    const ownerQuery = await getCRMContactOwnerForRRLeadSkip(
+      prospectEmail,
+      eventTypeMetadata
+    );
     if (ownerQuery?.email) contactOwner = ownerQuery;
   }
   if (!contactOwner) return null;
 
   //   Check that the contact owner is a part of the event type
-  if (!eventType.hosts.some((host) => host.user.email === contactOwner.email)) return null;
+  if (!eventType.hosts.some((host) => host.user.email === contactOwner.email))
+    return null;
+
+  if (routingTraceService && contactOwner.email && contactOwner.crmAppSlug) {
+    const salesforceSettings = attributeRoutingConfig?.salesforce;
+    routingTraceService.addStep({
+      domain: contactOwner.crmAppSlug,
+      step: `${contactOwner.crmAppSlug}_assignment`,
+      data: {
+        email: contactOwner.email,
+        recordType: contactOwner.recordType,
+        recordId: contactOwner.recordId,
+        crmAppSlug: contactOwner.crmAppSlug,
+        rrSkipToAccountLookupField: salesforceSettings?.rrSkipToAccountLookupField,
+        rrSKipToAccountLookupFieldName: salesforceSettings?.rrSKipToAccountLookupFieldName,
+      },
+    });
+  }
 
   return contactOwner;
 }
