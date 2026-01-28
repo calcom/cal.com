@@ -106,24 +106,12 @@ function parseKnowledgeBaseSections(filePath: string): DevinKnowledgeEntry[] {
     const sectionContent = content.substring(section.startIndex, endIndex).trim();
 
     const title = section.title;
-    let triggerDescription = "";
-
-    if (title.toLowerCase().startsWith("when ")) {
-      triggerDescription = title;
-    } else if (title.toLowerCase().includes("error")) {
-      triggerDescription = `When handling errors in Cal.com: ${title}`;
-    } else if (title.toLowerCase().includes("file naming")) {
-      triggerDescription = `When creating or naming files in Cal.com`;
-    } else if (title.toLowerCase().includes("pull request") || title.toLowerCase().includes("pr")) {
-      triggerDescription = `When creating pull requests for Cal.com`;
-    } else {
-      triggerDescription = `When working on Cal.com and need guidance on: ${title}`;
-    }
-
+    // Section titles in knowledge-base.md must start with "When..." (enforced by validate-local-knowledge.ts)
+    // so we use the title directly as the trigger description
     entries.push({
       name: title,
       body: sectionContent,
-      trigger_description: triggerDescription,
+      trigger_description: title,
       folder: "Domain Knowledge",
     });
   }
