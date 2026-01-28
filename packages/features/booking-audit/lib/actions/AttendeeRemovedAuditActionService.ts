@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringArrayChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Attendee Removed Audit Action Service
@@ -14,8 +14,7 @@ const fieldsSchemaV1 = z.object({
     attendees: StringArrayChangeSchema,
 });
 
-export class AttendeeRemovedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class AttendeeRemovedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "ATTENDEE_REMOVED" as const;
     private static dataSchemaV1 = z.object({
@@ -59,16 +58,15 @@ export class AttendeeRemovedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_removed" };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeRemovedAuditDisplayData {
-        const { fields } = storedData;
-        // Note: fields.attendees stores the state change (old -> new), not the removed attendees directly
-        // old = attendees before removal, new = remaining attendees after removal
+    getDisplayJson({
+        storedData,
+    }: GetDisplayJsonParams): AttendeeRemovedAuditDisplayData {
+        const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
         const remainingAttendeesSet = new Set(fields.attendees.new ?? []);
-        // Compute removed attendees: those in old but not in new (remaining)
         const removedAttendees = (fields.attendees.old ?? []).filter(
             (email) => !remainingAttendeesSet.has(email)
         );

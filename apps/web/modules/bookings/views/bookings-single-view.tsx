@@ -21,7 +21,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
@@ -42,7 +42,9 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { AssignmentReasonEnum, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+
+import assignmentReasonBadgeTitleMap from "@calcom/web/lib/booking/assignmentReasonBadgeTitleMap";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -53,7 +55,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -80,6 +81,7 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
   rating: z.string().optional(),
   noShow: stringToBoolean,
+  redirect_status: z.string().optional(),
 });
 
 const useBrandColors = ({
@@ -121,6 +123,7 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
+    redirect_status,
   } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
@@ -149,7 +152,10 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
+
+  const isPaymentSucceededFromRedirect = redirect_status === "succeeded";
+  const isAwaitingPayment =
+    props.paymentStatus && !props.paymentStatus.success && !isPaymentSucceededFromRedirect;
 
   const attendees = bookingInfo?.attendees;
 
@@ -309,6 +315,7 @@ export default function Success(props: PageProps) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
           user: props.profile.name,
+          interpolation: { escapeValue: false },
         });
       }
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
@@ -500,7 +507,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32")}>
+                      className={classNames(isRoundRobin && "min-h-24 min-w-32 relative mx-auto h-24 w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -550,7 +557,7 @@ export default function Success(props: PageProps) {
                         (bookingInfo.status === BookingStatus.CANCELLED ||
                           bookingInfo.status === BookingStatus.REJECTED) && <h4>{paymentStatusMessage}</h4>}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left sm:gap-x-0 rtl:text-right">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -638,21 +645,30 @@ export default function Success(props: PageProps) {
                                   )}
                                 </div>
                               )}
-                              {bookingInfo?.attendees.map((attendee) => (
-                                <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                                  {attendee.name && (
-                                    <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
-                                  )}
-                                  {attendee.phoneNumber && (
-                                    <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                      {attendee.phoneNumber}
-                                    </p>
-                                  )}
-                                  {!isSmsCalEmail(attendee.email) && (
-                                    <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
-                                  )}
-                                </div>
-                              ))}
+                              {bookingInfo?.attendees.map((attendee) => {
+                                // Check if attendee is a team member/host (for round robin scenarios)
+                                const isTeamMemberOrHost =
+                                  eventType.hosts?.some((host) => host.user.email === attendee.email) ||
+                                  eventType.users?.some((user) => user.email === attendee.email);
+                                const shouldHideEmail =
+                                  bookingInfo.eventType?.hideOrganizerEmail && isTeamMemberOrHost;
+
+                                return (
+                                  <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+                                    {attendee.name && (
+                                      <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                                    )}
+                                    {attendee.phoneNumber && (
+                                      <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
+                                        {attendee.phoneNumber}
+                                      </p>
+                                    )}
+                                    {!isSmsCalEmail(attendee.email) && !shouldHideEmail && (
+                                      <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </>
                         )}
@@ -750,6 +766,28 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {canViewHiddenData &&
+                          bookingInfo.assignmentReason &&
+                          bookingInfo.assignmentReason.length > 0 &&
+                          bookingInfo.assignmentReason[0].reasonEnum && (
+                            <>
+                              <div className="mt-9 font-medium">{t("assignment_reason")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
+                                <Badge variant="gray" className="mb-2">
+                                  {t(
+                                    assignmentReasonBadgeTitleMap(
+                                      bookingInfo.assignmentReason[0].reasonEnum as AssignmentReasonEnum
+                                    )
+                                  )}
+                                </Badge>
+                                {bookingInfo.assignmentReason[0].reasonString && (
+                                  <p className="text-muted wrap-break-word text-sm">
+                                    {bookingInfo.assignmentReason[0].reasonString}
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                         {eventType.bookingFields.map((field) => {
@@ -771,6 +809,7 @@ export default function Success(props: PageProps) {
 
                           return (
                             <Fragment key={field.name}>
+                              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
                               <div
                                 className="text-emphasis mt-4 font-medium"
                                 dangerouslySetInnerHTML={{
@@ -801,15 +840,14 @@ export default function Success(props: PageProps) {
                           </span>
                           {/* Login button but redirect to here */}
                           <span className="text-default inline">
-                            <span className="underline" data-testid="reschedule-link">
-                              <Link
-                                href={`/auth/login?callbackUrl=${encodeURIComponent(
-                                  `/booking/${bookingInfo?.uid}`
-                                )}`}
-                                legacyBehavior>
-                                {t("login")}
-                              </Link>
-                            </span>
+                            <Link
+                              href={`/auth/login?callbackUrl=${encodeURIComponent(
+                                `/booking/${bookingInfo?.uid}`
+                              )}`}
+                              className="underline"
+                              data-testid="reschedule-link">
+                              {t("login")}
+                            </Link>
                           </span>
                         </div>
                       </>
@@ -839,17 +877,16 @@ export default function Success(props: PageProps) {
                                     canReschedule &&
                                     !isRescheduleDisabled && (
                                       <span className="text-default inline">
-                                        <span className="underline" data-testid="reschedule-link">
-                                          <Link
-                                            href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                              currentUserEmail
-                                                ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                                : ""
-                                            }`}
-                                            legacyBehavior>
-                                            {t("reschedule")}
-                                          </Link>
-                                        </span>
+                                        <Link
+                                          href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                            currentUserEmail
+                                              ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                              : ""
+                                          }`}
+                                          className="underline"
+                                          data-testid="reschedule-link">
+                                          {t("reschedule")}
+                                        </Link>
                                         {!isBookingInPast && canCancel && (
                                           <span className="mx-2">{t("or_lowercase")}</span>
                                         )}
@@ -1087,7 +1124,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle ltr:text-left rtl:text-right"
+                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
                   message={
                     <div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +11,7 @@ import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedOrganizationSlug } from "./validated-organization-slug";
 
@@ -29,14 +31,23 @@ const slugify = (text: string): string => {
 
 export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
+  const { organizationDetails, setOrganizationDetails, selectedPlan, setSelectedPlan } = useOnboardingStore();
+  const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
   const [organizationName, setOrganizationName] = useState("");
   const [organizationLink, setOrganizationLink] = useState("");
   const [organizationBio, setOrganizationBio] = useState("");
   const [isSlugValid, setIsSlugValid] = useState(false);
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+
+  // Ensure selectedPlan is set to "organization" when entering organization onboarding
+  useEffect(() => {
+    if (selectedPlan !== "organization") {
+      setSelectedPlan("organization");
+    }
+  }, [selectedPlan, setSelectedPlan]);
 
   // Load from store on mount
   useEffect(() => {
@@ -67,17 +78,25 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
       return;
     }
 
+    posthog.capture("onboarding_organization_details_continue_clicked", {
+      has_bio: !!organizationBio,
+    });
+
     // Save to store
     setOrganizationDetails({
       name: organizationName,
       link: organizationLink,
       bio: organizationBio,
     });
-    router.push("/onboarding/organization/brand");
+    const migrateParam = searchParams?.get("migrate");
+    const nextUrl = `/onboarding/organization/brand${migrateParam ? `?migrate=${migrateParam}` : ""}`;
+    router.push(nextUrl);
   };
 
+  const totalSteps = isMigrationFlow && hasTeams ? 6 : 4;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={totalSteps}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_details_title")}
@@ -87,7 +106,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
             <Button
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/getting-started")}>
+              onClick={() => {
+                posthog.capture("onboarding_organization_details_back_clicked");
+                router.push("/onboarding/getting-started");
+              }}>
               {t("back")}
             </Button>
             <Button

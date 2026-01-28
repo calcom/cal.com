@@ -1,23 +1,16 @@
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { shallow } from "zustand/shallow";
-
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
-
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { shallow } from "zustand/shallow";
 import { useBookerStore } from "../../store";
+import type { ToggledConnectedCalendars } from "../../types";
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
-import { useLocalSet } from "./useLocalSet";
 
-export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
 type UseCalendarsProps = {
   hasSession: boolean;
 };
-export type ToggledConnectedCalendars = Set<{
-  credentialId: number;
-  externalId: string;
-}>;
 
 export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const searchParams = useSearchParams();
@@ -26,11 +19,11 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const switchEnabled =
     searchParams?.get("overlayCalendar") === "true" ||
     localStorage?.getItem("overlayCalendarSwitchDefault") === "true";
-  const { set, clearSet } = useLocalSet<{
-    credentialId: number;
-    externalId: string;
-  }>("toggledConnectedCalendars", []);
-  const utils = trpc.useUtils();
+
+  const [set, setSet] = useState<Set<ToggledConnectedCalendars>>(() => {
+    const storedValue = localStorage.getItem("toggledConnectedCalendars");
+    return storedValue ? new Set(JSON.parse(storedValue)) : new Set([]);
+  });
 
   const [calendarSettingsOverlay] = useOverlayCalendarStore(
     (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
@@ -55,22 +48,25 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (!isError) return;
-      clearSet();
+      setSet(new Set([]));
     },
     [isError]
   );
 
-  const { data, isPending } = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
-    enabled: !!calendarSettingsOverlay || Boolean(searchParams?.get("overlayCalendar")),
-  });
+  const { data, isPending } = trpc.viewer.calendars.connectedCalendars.useQuery(
+    {
+      skipSync: true,
+    },
+    {
+      enabled: !!calendarSettingsOverlay || Boolean(searchParams?.get("overlayCalendar")),
+    }
+  );
 
   return {
     overlayBusyDates,
     isOverlayCalendarEnabled: switchEnabled,
     connectedCalendars: data?.connectedCalendars || [],
     loadingConnectedCalendar: isPending,
-    onToggleCalendar: (data: ToggledConnectedCalendars) => {
-      utils.viewer.availability.calendarOverlay.reset();
-    },
+    onToggleCalendar: setSet,
   };
 };

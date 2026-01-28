@@ -18,6 +18,7 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  datesOutOfOfficeTimeZone?: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -76,6 +77,7 @@ function buildSlotsWithDateRanges({
   offsetStart,
   datesOutOfOffice,
   showOptimizedSlots,
+  datesOutOfOfficeTimeZone,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -85,6 +87,7 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  datesOutOfOfficeTimeZone?: string;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -122,7 +125,6 @@ function buildSlotsWithDateRanges({
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
-
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
@@ -181,8 +183,15 @@ function buildSlotsWithDateRanges({
       }
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
-      const slotDateYYYYMMDD = slotStartTime.format("YYYY-MM-DD");
-      const dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD];
+
+      let dateOutOfOfficeExists = undefined;
+      if (datesOutOfOffice) {
+        const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
+          ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")
+          : slotStartTime.utc().format("YYYY-MM-DD");
+        dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD];
+      }
+
       let slotData: {
         time: Dayjs;
         userIds?: number[];
@@ -229,6 +238,7 @@ const getSlots = ({
   offsetStart = 0,
   datesOutOfOffice,
   showOptimizedSlots,
+  datesOutOfOfficeTimeZone,
 }: GetSlots): {
   time: Dayjs;
   userIds?: number[];
@@ -247,6 +257,7 @@ const getSlots = ({
     offsetStart,
     datesOutOfOffice,
     showOptimizedSlots,
+    datesOutOfOfficeTimeZone,
   });
 };
 

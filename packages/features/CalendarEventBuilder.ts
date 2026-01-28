@@ -1,5 +1,7 @@
 import type { TFunction } from "i18next";
 
+import { ALL_APPS } from "@calcom/app-store/utils";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -11,6 +13,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+
+const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
 
 export type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
@@ -82,21 +86,22 @@ export class CalendarEventBuilder {
     if (!eventType) throw new Error(`Booking ${uid} is missing eventType — it may have been deleted.`);
 
     const builder = new CalendarEventBuilder();
-    const {
-      description,
-      attendees,
-      references,
-      title,
-      startTime,
-      endTime,
-      location,
-      responses,
-      customInputs,
-      iCalUID,
-      iCalSequence,
-      oneTimePassword,
-      seatsReferences,
-    } = booking;
+        const {
+          description,
+          attendees,
+          references,
+          title,
+          startTime,
+          endTime,
+          location,
+          responses,
+          customInputs,
+          iCalUID,
+          iCalSequence,
+          oneTimePassword,
+          seatsReferences,
+          assignmentReason,
+        } = booking;
 
     const {
       conferenceCredentialId,
@@ -182,10 +187,18 @@ export class CalendarEventBuilder {
         platformCancelUrl,
         platformBookingUrl,
       })
-      .withRecurring(recurring)
-      .withUid(uid)
-      .withOneTimePassword(oneTimePassword)
-      .withOrganization(organizationId);
+            .withRecurring(recurring)
+            .withUid(uid)
+            .withOneTimePassword(oneTimePassword)
+            .withOrganization(organizationId)
+            .withAssignmentReason(
+              assignmentReason?.[0]?.reasonEnum
+                ? {
+                    category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
+                    details: assignmentReason[0].reasonString ?? null,
+                  }
+                : null
+            );
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -211,8 +224,9 @@ export class CalendarEventBuilder {
     references
       .filter((r) => r && r.type)
       .forEach((ref) => {
+        const appName = APP_TYPE_TO_NAME_MAP.get(ref.type) || ref.type.replace("_", "-");
         appsStatus.push({
-          appName: ref.type.replace("_", "-"),
+          appName,
           type: ref.type,
           success: ref.uid ? 1 : 0,
           failures: ref.uid ? 0 : 1,
@@ -234,9 +248,7 @@ export class CalendarEventBuilder {
         bookingAttendees.some((attendee) => attendee.email === host.user.email)
       );
 
-      const hostsWithoutOrganizerData = hostsToInclude.filter(
-        (host) => host.user.email !== user.email
-      );
+      const hostsWithoutOrganizerData = hostsToInclude.filter((host) => host.user.email !== user.email);
 
       const hostsWithoutOrganizer = await Promise.all(
         hostsWithoutOrganizerData.map((host) => _buildPersonFromUser(host.user))
@@ -521,15 +533,23 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  withHashedLink(hashedLink?: string | null) {
-    this.event = {
-      ...this.event,
-      hashedLink,
-    };
-    return this;
-  }
+    withHashedLink(hashedLink?: string | null) {
+      this.event = {
+        ...this.event,
+        hashedLink,
+      };
+      return this;
+    }
 
-  build(): CalendarEvent | null {
+    withAssignmentReason(assignmentReason?: { category: string; details?: string | null } | null) {
+      this.event = {
+        ...this.event,
+        assignmentReason,
+      };
+      return this;
+    }
+
+    build(): CalendarEvent | null {
     // Validate required fields
     if (
       !this.event.startTime ||

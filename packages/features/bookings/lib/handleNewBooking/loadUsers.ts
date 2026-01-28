@@ -98,9 +98,18 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
   if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
     throw new Error("dynamicUserList is not properly defined or empty.");
   }
-  return findUsersByUsername({
+
+  const users = await findUsersByUsername({
     usernameList: dynamicUserList,
     orgSlug: currentOrgDomain ? currentOrgDomain : null,
+  });
+
+  // For dynamic group bookings: reorder users to match dynamicUserList order
+  // to ensure the first user in the URL is the organizer/host
+  return users.sort((a, b) => {
+    const aIndex = dynamicUserList.indexOf(a.username!);
+    const bIndex = dynamicUserList.indexOf(b.username!);
+    return aIndex - bIndex;
   });
 };
 

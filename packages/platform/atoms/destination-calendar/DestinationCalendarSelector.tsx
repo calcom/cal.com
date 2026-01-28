@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-
-import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
-import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
+import {
+  OptionComponent,
+  SingleValueComponent,
+} from "@calcom/features/calendars/DestinationCalendarSelector";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
-
+import { useEffect, useMemo, useState } from "react";
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 
 export type DestinationCalendarProps = {
@@ -43,8 +43,7 @@ export const DestinationCalendarSelector = ({
 
   useEffect(() => {
     const selected = connectedCalendars
-      .map((connected) => connected.calendars ?? [])
-      .flat()
+      .flatMap((connected) => connected.calendars ?? [])
       .find((cal) => cal.externalId === value);
 
     if (selected) {
@@ -52,15 +51,16 @@ export const DestinationCalendarSelector = ({
         integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
       );
 
+      const label = selected.name ? `${selected.name} ` : "";
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: `${selected.name} ` || "",
+        label,
         subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
           selectedIntegration?.primary?.name
         })`,
       });
     }
-  }, [connectedCalendars]);
+  }, [connectedCalendars, value]);
 
   const options = useMemo(() => {
     return (
@@ -95,8 +95,8 @@ export const DestinationCalendarSelector = ({
           !hidePlaceholder ? (
             `${t("create_events_on")}`
           ) : (
-            <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-              <Badge variant="blue">Default</Badge>{" "}
+            <span className="min-w-0 overflow-hidden truncate whitespace-nowrap text-default">
+              <Badge variant="blue">{t("default")}</Badge>{" "}
               {destinationCalendar?.primaryEmail &&
                 `${destinationCalendar.name} (${destinationCalendar?.integrationTitle} - ${destinationCalendar.primaryEmail})`}
             </span>
@@ -104,27 +104,22 @@ export const DestinationCalendarSelector = ({
         }
         options={options}
         styles={{
-          placeholder: (styles) => ({
-            ...styles,
-            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
-          }),
-          singleValue: (styles) => ({
-            ...styles,
-            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
-          }),
-          control: (defaultStyles) => {
-            return {
-              ...defaultStyles,
-              "@media only screen and (min-width: 640px)": {
-                ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
-                maxWidth,
-              },
-            };
-          },
+          placeholder: (styles) =>
+            Object.assign({}, styles, getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`)),
+          singleValue: (styles) =>
+            Object.assign({}, styles, getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`)),
+          control: (defaultStyles) =>
+            Object.assign({}, defaultStyles, {
+              "@media only screen and (min-width: 640px)": Object.assign(
+                {},
+                defaultStyles["@media only screen and (min-width: 640px)"] as object,
+                { maxWidth }
+              ),
+            }),
         }}
         isSearchable={false}
         className={classNames(
-          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
+          "my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-default text-sm"
         )}
         onChange={(newValue) => {
           setSelectedOption(newValue);

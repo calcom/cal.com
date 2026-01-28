@@ -1,16 +1,7 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-
 import dayjs from "@calcom/dayjs";
-import {
-  useDataTable,
-  DataTableFilters,
-  DataTableSegment,
-  useDisplayedFilterCount,
-} from "@calcom/features/data-table";
+import { useDataTable, useDisplayedFilterCount } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -19,18 +10,21 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
-
+import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useBookingListColumns } from "~/bookings/hooks/useBookingListColumns";
 import { useBookingListData } from "~/bookings/hooks/useBookingListData";
 import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-
+import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
+import { DataTableFilters, DataTableSegment } from "~/data-table/components";
 import {
   BookingDetailsSheetStoreProvider,
   useBookingDetailsSheetStore,
 } from "../store/bookingDetailsSheetStore";
-import type { RowData, BookingListingStatus, BookingsGetOutput } from "../types";
+import type { BookingListingStatus, BookingsGetOutput, RowData } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingList } from "./BookingList";
 import { ViewToggleButton } from "./ViewToggleButton";
@@ -69,6 +63,7 @@ interface BookingListContainerProps {
     canReadOthersBookings: boolean;
   };
   bookingsV3Enabled: boolean;
+  bookingAuditEnabled: boolean;
 }
 
 interface BookingListInnerProps extends BookingListContainerProps {
@@ -77,12 +72,15 @@ interface BookingListInnerProps extends BookingListContainerProps {
   hasError: boolean;
   errorMessage?: string;
   totalRowCount?: number;
+  bookings: BookingsGetOutput["bookings"];
 }
 
 function BookingListInner({
   status,
   permissions,
+  bookings,
   bookingsV3Enabled,
+  bookingAuditEnabled,
   data,
   isPending,
   hasError,
@@ -94,6 +92,9 @@ function BookingListInner({
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const router = useRouter();
   const [showFilters, setShowFilters] = useState(true);
+
+  // Handle auto-selection for list view
+  useListAutoSelector(bookings);
 
   const ErrorView = errorMessage ? (
     <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
@@ -114,9 +115,15 @@ function BookingListInner({
     handleBookingClick,
   });
 
-  const finalData = useBookingListData({ data, status, userTimeZone: user?.timeZone });
+  const finalData = useBookingListData({
+    data,
+    status,
+    userTimeZone: user?.timeZone,
+  });
 
-  const getFacetedUniqueValues = useFacetedUniqueValues();
+  const getFacetedUniqueValues = useFacetedUniqueValues({
+    canReadOthersBookings: permissions.canReadOthersBookings,
+  });
 
   const displayedFilterCount = useDisplayedFilterCount();
   const { currentTab, tabOptions } = useBookingStatusTab();
@@ -179,8 +186,9 @@ function BookingListInner({
         {/* Desktop: auto-pushed to right via flex-grow spacer, Mobile: continue on second row */}
         <div className="hidden grow md:block" />
 
-        <DataTableSegment.Select shortLabel />
-        {bookingsV3Enabled && <ViewToggleButton />}
+        <DataTableSegment.Select />
+        {/* <BookingsCsvDownload status={status} /> */}
+        {bookingsV3Enabled && <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />}
       </div>
       {displayedFilterCount > 0 && showFilters && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -214,6 +222,7 @@ function BookingListInner({
           userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
           userId={user?.id}
           userEmail={user?.email}
+          bookingAuditEnabled={bookingAuditEnabled}
         />
       )}
     </>
@@ -221,12 +230,13 @@ function BookingListInner({
 }
 
 export function BookingListContainer(props: BookingListContainerProps) {
-  const { limit, offset } = useDataTable();
+  const { limit, offset, setPageIndex } = useDataTable();
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
 
-  const query = trpc.viewer.bookings.get.useQuery(
-    {
+  // Build query input once - shared between query and prefetching
+  const queryInput = useMemo(
+    () => ({
       limit,
       offset,
       filters: {
@@ -242,14 +252,37 @@ export function BookingListContainer(props: BookingListContainerProps) {
           : undefined,
         beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
       },
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
-      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
-    }
+    }),
+    [
+      limit,
+      offset,
+      props.status,
+      eventTypeIds,
+      teamIds,
+      userIds,
+      attendeeName,
+      attendeeEmail,
+      bookingUid,
+      dateRange,
+    ]
   );
 
+  const query = trpc.viewer.bookings.get.useQuery(queryInput, {
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
+    gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+  });
+
   const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);
+
+  // Always call the hook and provide navigation capabilities
+  // The BookingDetailsSheet is only rendered when bookingsV3Enabled is true (see line 212)
+  // const capabilities = useListNavigationCapabilities({
+  //   limit,
+  //   offset,
+  //   totalCount: query.data?.totalCount,
+  //   setPageIndex,
+  //   queryInput,
+  // });
 
   return (
     <BookingDetailsSheetStoreProvider bookings={bookings}>
@@ -260,6 +293,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
         hasError={!!query.error}
         errorMessage={query.error?.message}
         totalRowCount={query.data?.totalCount}
+        bookings={bookings}
       />
     </BookingDetailsSheetStoreProvider>
   );

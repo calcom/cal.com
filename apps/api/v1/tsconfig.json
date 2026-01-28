@@ -6,7 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["*"],
-      "@prisma/client/*": ["@calcom/prisma/client/*"]
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/testing/*": ["../../../packages/testing/src/*"]
     },
     "experimentalDecorators": true
   },

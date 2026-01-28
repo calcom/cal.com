@@ -1,13 +1,12 @@
-import { createColumnHelper } from "@tanstack/react-table";
-import { useMemo } from "react";
-
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import BookingListItem from "@calcom/web/components/booking/BookingListItem";
+import { createColumnHelper } from "@tanstack/react-table";
+import { useMemo } from "react";
 
-import type { RowData, BookingListingStatus } from "../types";
+import type { BookingListingStatus, RowData } from "../types";
 
 export function useBookingListColumns({
   user,
@@ -55,7 +54,7 @@ export function useBookingListColumns({
       columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: canReadOthersBookings,
+        enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
         meta: {
@@ -98,7 +97,7 @@ export function useBookingListColumns({
           filter: {
             type: ColumnFilterType.DATE_RANGE,
             dateRangeOptions: {
-              range: status === "past" ? "past" : "custom",
+              range: status === "past" ? "past" : status === "cancelled" ? "any" : "future", // upcoming, unconfirmed, recurring are all future-only
             },
           },
         },
@@ -148,5 +147,5 @@ export function useBookingListColumns({
         },
       }),
     ];
-  }, [user, status, t, canReadOthersBookings, bookingsV3Enabled, handleBookingClick]);
+  }, [user, status, t, bookingsV3Enabled, handleBookingClick]);
 }

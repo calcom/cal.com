@@ -1,12 +1,15 @@
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import type { WebhookSubscriber, PaymentData } from "@calcom/features/webhooks/lib/dto/types";
 import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+
+// Minimal webhook shape for sending payloads (subset of WebhookSubscriber)
+type WebhookForPayload = Pick<WebhookSubscriber, "subscriberUrl" | "appId" | "payloadTemplate" | "version">;
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -76,7 +79,7 @@ export type OOOEntryPayloadType = {
   };
 };
 
-export type EventPayloadType = CalendarEvent &
+export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
     uid?: string | null;
@@ -92,7 +95,13 @@ export type EventPayloadType = CalendarEvent &
     paymentId?: number;
     rescheduledBy?: string;
     cancelledBy?: string;
-    paymentData?: Payment;
+    paymentData?: PaymentData;
+    requestReschedule?: boolean;
+    assignmentReason?:
+      | string
+      | { reasonEnum: string; reasonString: string }[]
+      | { category: string; details?: string | null }
+      | null;
   };
 
 export type WebhookPayloadType =
@@ -217,7 +226,7 @@ const sendPayload = async (
   secretKey: string | null,
   triggerEvent: string,
   createdAt: string,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  webhook: WebhookForPayload,
   data: WebhookPayloadType
 ) => {
   const { appId, payloadTemplate: template } = webhook;
@@ -268,7 +277,7 @@ export const sendGenericWebhookPayload = async ({
   secretKey: string | null;
   triggerEvent: string;
   createdAt: string;
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">;
+  webhook: WebhookForPayload;
   data: Record<string, unknown>;
   rootData?: Record<string, unknown>;
 }) => {
@@ -302,11 +311,11 @@ export const createWebhookSignature = (params: { secret?: string | null; body: s
 
 const _sendPayload = async (
   secretKey: string | null,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  webhook: WebhookForPayload,
   body: string,
   contentType: "application/json" | "application/x-www-form-urlencoded"
 ) => {
-  const { subscriberUrl } = webhook;
+  const { subscriberUrl, version } = webhook;
   if (!subscriberUrl || !body) {
     throw new Error("Missing required elements to send webhook payload.");
   }
@@ -316,6 +325,7 @@ const _sendPayload = async (
     headers: {
       "Content-Type": contentType,
       "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
+      "X-Cal-Webhook-Version": version,
     },
     redirect: "manual",
     body,
