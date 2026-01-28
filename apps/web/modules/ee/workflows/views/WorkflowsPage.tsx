@@ -7,8 +7,8 @@ import { useState } from "react";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { FilterResults } from "~/filters/components/FilterResults";
+import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
