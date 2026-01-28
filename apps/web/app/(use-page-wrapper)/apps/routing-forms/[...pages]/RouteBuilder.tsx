@@ -559,7 +559,7 @@ const Route = ({
     // team member attributes are only available for organization teams
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm && isOrganization ? (
       <div className="mt-4">
-        {/* TODO: */}
+        {/* CRM Routing Options */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
         "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
           <div className="mt-4 px-2.5">
@@ -567,6 +567,18 @@ const Route = ({
               componentMap={routingFormAppComponents}
               slug="salesforce"
               appData={eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata["salesforce"]}
+              route={route}
+              setAttributeRoutingConfig={setAttributeRoutingConfig}
+            />
+          </div>
+        ) : null}
+        {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
+        "hubspot" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
+          <div className="mt-4 px-2.5">
+            <DynamicAppComponent
+              componentMap={routingFormAppComponents}
+              slug="hubspot"
+              appData={eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata["hubspot"]}
               route={route}
               setAttributeRoutingConfig={setAttributeRoutingConfig}
             />

@@ -23,6 +23,9 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
+import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/lib/server/repository/PrismaRoutingFormResponseRepository";
+import { RoutingFormResponseDataFactory } from "../../routing-forms/lib/RoutingFormResponseDataFactory";
+import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
 
@@ -142,6 +145,48 @@ class HubspotCalendarService implements CRM {
     });
   }
 
+  private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string, fieldName: string) {
+    const log = logger.getSubLogger({
+      prefix: [`[getTextValueFromRoutingFormResponse]: ${fieldName} - bookingUid: ${bookingUid}`],
+    });
+
+    const regex = /\{form:(.*?)\}/;
+    const regexMatch = fieldValue.match(regex);
+    if (!regexMatch) {
+      log.error("Could not find regex match to {form:}");
+      return fieldValue;
+    }
+
+    const identifierField = regexMatch[1];
+    if (!identifierField) {
+      log.error(`Could not find matching regex string ${regexMatch}`);
+      return fieldValue;
+    }
+
+    const routingFormResponseDataFactory = new RoutingFormResponseDataFactory({
+      logger: log,
+      routingFormResponseRepo: new RoutingFormResponseRepository(),
+    });
+
+    try {
+      const findFieldResult = findFieldValueByIdentifier(
+        await routingFormResponseDataFactory.createWithBookingUid(bookingUid),
+        identifierField
+      );
+      if (findFieldResult.success) {
+        return String(findFieldResult.data);
+      }
+      log.error(
+        `Could not find field value for identifier ${identifierField} in bookingUid ${bookingUid}`,
+        `failed with error: ${findFieldResult.error}`
+      );
+    } catch (error) {
+      log.error(`Error getting routing form response: ${error}`);
+    }
+
+    return fieldValue;
+  }
+
   private async getDateFieldValue(
     fieldValue: string,
     startTime?: string,
@@ -224,6 +269,13 @@ class HubspotCalendarService implements CRM {
           return null;
         }
         valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid, fieldName);
+      } else if (fieldValue.startsWith("{form:")) {
+        // Extract from routing form responses
+        if (!bookingUid) {
+          log.error(`BookingUid not passed. Cannot get routing form values without it`);
+          return null;
+        }
+        valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, fieldName);
       } else {
         // Extract from booking form responses
         if (!calEventResponses) {

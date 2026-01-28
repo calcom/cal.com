@@ -58,6 +58,7 @@ export const attributeRoutingConfigSchema = z
   .object({
     skipContactOwner: z.boolean().optional(),
     salesforce: routingFormAppDataSchemas["salesforce"],
+    hubspot: routingFormAppDataSchemas["hubspot"],
   })
   .nullish();
 
