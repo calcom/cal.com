@@ -139,7 +139,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             <Section.SubSection>
               <Section.SubSectionHeader
                 icon="users"
-                title={t("crm_book_directly_with_attendee_owner")}
+                title={t("crm_book_directly_with_attendee_owner", { appName: app.name })}
                 labelFor="book-directly-with-attendee-owner">
                 <Switch
                   size="sm"
