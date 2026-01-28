@@ -11,6 +11,7 @@ import {
   Switch,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
@@ -138,6 +139,8 @@ const tabs: Tab[] = [
 
 export default function EventTypeDetail() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const { id, title, description, duration, slug } = useLocalSearchParams<{
     id: string;
     title: string;
@@ -1276,7 +1279,7 @@ export default function EventTypeDetail() {
   const renderHeaderLeft = () => (
     <HeaderButtonWrapper side="left">
       <AppPressable onPress={() => router.back()} className="px-2 py-2">
-        <Ionicons name="close" size={24} color="#000000" />
+        <Ionicons name="close" size={24} color={isDarkMode ? "#FFFFFF" : "#000000"} />
       </AppPressable>
     </HeaderButtonWrapper>
   );
@@ -1291,13 +1294,16 @@ export default function EventTypeDetail() {
               className="flex-row items-center gap-1 px-2 py-2"
               style={{ flexDirection: "row", alignItems: "center" }}
             >
-              <Text className="text-[16px] font-semibold text-[#000000]" numberOfLines={1}>
+              <Text
+                className="text-[16px] font-semibold text-[#000000] dark:text-white"
+                numberOfLines={1}
+              >
                 {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
               </Text>
               <Ionicons
                 name="chevron-down"
                 size={16}
-                color="#000000"
+                color={isDarkMode ? "#FFFFFF" : "#000000"}
                 style={{ marginLeft: 2, flexShrink: 0 }}
               />
             </AppPressable>
@@ -1317,11 +1323,13 @@ export default function EventTypeDetail() {
                     <Ionicons
                       name={isSelected ? "checkmark-circle" : tab.icon}
                       size={16}
-                      color={isSelected ? "#000000" : "#666"}
+                      color={isSelected ? (isDarkMode ? "#FFFFFF" : "#000000") : "#666"}
                     />
                     <Text
                       className={
-                        isSelected ? "text-base font-semibold text-[#000000]" : "text-base"
+                        isSelected
+                          ? "text-base font-semibold text-[#000000] dark:text-white"
+                          : "text-base text-popover-foreground"
                       }
                     >
                       {tab.label}
@@ -1341,7 +1349,9 @@ export default function EventTypeDetail() {
         >
           <Text
             className={`text-[16px] font-semibold ${
-              isSaving || !isDirty ? "text-[#C7C7CC]" : "text-[#000000]"
+              isSaving || !isDirty
+                ? "text-[#C7C7CC] dark:text-[#666666]"
+                : "text-[#000000] dark:text-white"
             }`}
           >
             {saveButtonText}
@@ -1369,7 +1379,9 @@ export default function EventTypeDetail() {
       />
 
       {Platform.OS === "ios" && (
-        <Stack.Header blurEffect={isLiquidGlassAvailable() ? undefined : "light"}>
+        <Stack.Header
+          blurEffect={isLiquidGlassAvailable() ? undefined : isDarkMode ? "dark" : "light"}
+        >
           <Stack.Header.Right>
             <Stack.Header.Menu>
               <Stack.Header.Label>
@@ -1403,7 +1415,7 @@ export default function EventTypeDetail() {
               onPress={handleSave}
               disabled={isSaving || !isDirty}
               variant="prominent"
-              tintColor="#000"
+              tintColor={isDarkMode ? "#FFF" : "#000"}
             >
               {saveButtonText}
             </Stack.Header.Button>
@@ -1411,7 +1423,7 @@ export default function EventTypeDetail() {
         </Stack.Header>
       )}
 
-      <View className="flex-1 bg-[#f8f9fa]">
+      <View className="flex-1 bg-[#f8f9fa] dark:bg-black">
         <ScrollView
           style={{
             flex: 1,
@@ -1467,7 +1479,7 @@ export default function EventTypeDetail() {
                 {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
                   <GlassView glassEffectStyle="regular" className="p-0">
                     <View className="flex-col p-6">
-                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black dark:text-white">
                         Select Available Durations
                       </Text>
                       <ScrollView style={{ maxHeight: 400, marginBottom: 20 }}>
@@ -1476,31 +1488,37 @@ export default function EventTypeDetail() {
                             key={duration}
                             className={`flex-row items-center justify-between py-3.5 ${
                               index < availableDurations.length - 1
-                                ? "border-b border-black/10"
+                                ? "border-b border-black/10 dark:border-white/10"
                                 : ""
                             }`}
                             onPress={() => toggleDurationSelection(duration)}
                           >
                             <Text
-                              className={`text-[17px] text-black ${
+                              className={`text-[17px] text-black dark:text-white ${
                                 selectedDurations.includes(duration) ? "font-bold" : "font-medium"
                               }`}
                             >
                               {duration}
                             </Text>
                             {selectedDurations.includes(duration) ? (
-                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                              <Ionicons
+                                name="checkmark-circle"
+                                size={24}
+                                color={isDarkMode ? "#FFFFFF" : "#000000"}
+                              />
                             ) : (
-                              <View className="h-6 w-6 rounded-full border-2 border-black/20" />
+                              <View className="h-6 w-6 rounded-full border-2 border-black/20 dark:border-white/20" />
                             )}
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
                       <TouchableOpacity
-                        className="items-center rounded-2xl bg-black py-4 active:opacity-80"
+                        className="items-center rounded-2xl bg-black py-4 active:opacity-80 dark:bg-white"
                         onPress={() => setShowDurationDropdown(false)}
                       >
-                        <Text className="text-[17px] font-bold text-white">Done</Text>
+                        <Text className="text-[17px] font-bold text-white dark:text-black">
+                          Done
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </GlassView>
@@ -1563,7 +1581,7 @@ export default function EventTypeDetail() {
                 {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
                   <GlassView glassEffectStyle="regular" className="p-0">
                     <View className="flex-col p-6">
-                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black dark:text-white">
                         Select Default Duration
                       </Text>
                       <ScrollView style={{ maxHeight: 400 }}>
@@ -1571,7 +1589,9 @@ export default function EventTypeDetail() {
                           <TouchableOpacity
                             key={duration}
                             className={`flex-row items-center justify-between py-3.5 ${
-                              index < selectedDurations.length - 1 ? "border-b border-black/10" : ""
+                              index < selectedDurations.length - 1
+                                ? "border-b border-black/10 dark:border-white/10"
+                                : ""
                             }`}
                             onPress={() => {
                               setDefaultDuration(duration);
@@ -1579,14 +1599,18 @@ export default function EventTypeDetail() {
                             }}
                           >
                             <Text
-                              className={`text-[17px] text-black ${
+                              className={`text-[17px] text-black dark:text-white ${
                                 defaultDuration === duration ? "font-bold" : "font-medium"
                               }`}
                             >
                               {duration}
                             </Text>
                             {defaultDuration === duration ? (
-                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                              <Ionicons
+                                name="checkmark-circle"
+                                size={24}
+                                color={isDarkMode ? "#FFFFFF" : "#000000"}
+                              />
                             ) : null}
                           </TouchableOpacity>
                         ))}
@@ -1647,7 +1671,7 @@ export default function EventTypeDetail() {
                 {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
                   <GlassView glassEffectStyle="regular" className="p-0">
                     <View className="flex-col p-6">
-                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black dark:text-white">
                         Select Schedule
                       </Text>
                       <ScrollView style={{ maxHeight: 400 }}>
@@ -1655,7 +1679,9 @@ export default function EventTypeDetail() {
                           <TouchableOpacity
                             key={schedule.id}
                             className={`flex-row items-center justify-between py-3.5 ${
-                              index < schedules.length - 1 ? "border-b border-black/10" : ""
+                              index < schedules.length - 1
+                                ? "border-b border-black/10 dark:border-white/10"
+                                : ""
                             }`}
                             onPress={() => {
                               setSelectedSchedule(schedule);
@@ -1665,18 +1691,24 @@ export default function EventTypeDetail() {
                           >
                             <View className="flex-1">
                               <Text
-                                className={`text-[17px] text-black ${
+                                className={`text-[17px] text-black dark:text-white ${
                                   selectedSchedule?.id === schedule.id ? "font-bold" : "font-medium"
                                 }`}
                               >
                                 {schedule.name}
                               </Text>
                               {schedule.isDefault && (
-                                <Text className="text-[13px] text-black/50">Default</Text>
+                                <Text className="text-[13px] text-black/50 dark:text-white/50">
+                                  Default
+                                </Text>
                               )}
                             </View>
                             {selectedSchedule?.id === schedule.id ? (
-                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                              <Ionicons
+                                name="checkmark-circle"
+                                size={24}
+                                color={isDarkMode ? "#FFFFFF" : "#000000"}
+                              />
                             ) : null}
                           </TouchableOpacity>
                         ))}
