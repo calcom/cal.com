@@ -577,7 +577,7 @@ export async function getBookings({
           jsonArrayFrom(
             eb
               .selectFrom("BookingReference")
-              .select(["BookingReference.type", "BookingReference.meetingId"])
+              .select(["BookingReference.type", "BookingReference.uid", "BookingReference.meetingId"])
               .whereRef("BookingReference.bookingId", "=", "Booking.id")
           ).as("references"),
           jsonArrayFrom(
