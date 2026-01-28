@@ -43,47 +43,122 @@ type RoundRobinReassignmentPayload = {
   reassignedById: number;
 };
 
-export const roundRobinReassignUser = async (payload: RoundRobinReassignmentPayload) => {
-  const { bookingId, emailsEnabled = true, platformClientParams, reassignedById } = payload;
-  const reassignmentLogger = logger.getSubLogger({
-    prefix: ["roundRobinReassign", `${bookingId}`],
-  });
+class BookingReassignmentManager {
+  private logContext: ReturnType<typeof logger.getSubLogger>;
+  private shouldSendEmails: boolean;
+  private platformParams?: PlatformClientParams;
+  private initiatorUserId: number;
+  private targetBookingId: number;
 
-  reassignmentLogger.info(`User ${reassignedById} initiating round robin reassignment`);
-
-  const existingBooking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    select: bookingSelect,
-  });
-
-  const validateBookingExists = (booking: typeof existingBooking) => {
-    if (!booking) {
-      logger.error(`Booking ${bookingId} not found`);
-      throw new Error("Booking not found");
-    }
-    if (!booking.user) {
-      logger.error(`No user associated with booking ${bookingId}`);
-      throw new Error("Booking not found");
-    }
-    if (!booking.eventTypeId) {
-      logger.error(`Booking ${bookingId} does not have an event type id`);
-      throw new Error("Event type not found");
-    }
-    return booking.eventTypeId;
-  };
-
-  const eventTypeId = validateBookingExists(existingBooking);
-  const eventType = await getEventTypesFromDB(eventTypeId);
-
-  if (!eventType) {
-    logger.error(`Event type ${eventTypeId} not found`);
-    throw new Error("Event type not found");
+  constructor(params: RoundRobinReassignmentPayload) {
+    this.targetBookingId = params.bookingId;
+    this.shouldSendEmails = params.emailsEnabled ?? true;
+    this.platformParams = params.platformClientParams;
+    this.initiatorUserId = params.reassignedById;
+    this.logContext = logger.getSubLogger({
+      prefix: ["roundRobinReassign", `${params.bookingId}`],
+    });
   }
 
-  const normalizeEventTypeHosts = (evt: typeof eventType) => {
-    return evt.hosts.length
-      ? evt.hosts
-      : evt.users.map((u) => ({
+  async execute() {
+    this.logContext.info(`User ${this.initiatorUserId} initiating round robin reassignment`);
+
+    const bookingSnapshot = await this.fetchBookingData();
+    const eventTypeConfig = await this.loadEventTypeConfiguration(bookingSnapshot);
+    const enrichedHosts = await this.prepareHostsWithCredentials(eventTypeConfig);
+    
+    const reassignmentContext = await this.analyzeReassignmentContext(
+      bookingSnapshot,
+      eventTypeConfig,
+      enrichedHosts
+    );
+
+    const selectedReplacement = await this.selectReplacementHost(
+      eventTypeConfig,
+      enrichedHosts,
+      reassignmentContext,
+      bookingSnapshot
+    );
+
+    const operationMode = this.determineOperationMode(
+      reassignmentContext.outgoingHost,
+      bookingSnapshot.userId
+    );
+
+    const updatedState = await this.applyReassignment(
+      bookingSnapshot,
+      eventTypeConfig,
+      selectedReplacement,
+      reassignmentContext,
+      operationMode
+    );
+
+    await this.recordReassignmentReason();
+
+    const calendarIntegration = await this.orchestrateCalendarSync(
+      updatedState,
+      eventTypeConfig,
+      selectedReplacement,
+      operationMode,
+      bookingSnapshot
+    );
+
+    await this.dispatchNotifications(
+      calendarIntegration,
+      selectedReplacement,
+      reassignmentContext,
+      operationMode,
+      eventTypeConfig,
+      updatedState
+    );
+
+    this.logContext.info(`Successfully reassigned to user ${selectedReplacement.id}`);
+
+    return {
+      bookingId: this.targetBookingId,
+      reassignedTo: {
+        id: selectedReplacement.id,
+        name: selectedReplacement.name,
+        email: selectedReplacement.email,
+      },
+    };
+  }
+
+  private async fetchBookingData() {
+    const record = await prisma.booking.findUnique({
+      where: { id: this.targetBookingId },
+      select: bookingSelect,
+    });
+
+    if (!record) {
+      logger.error(`Booking ${this.targetBookingId} not found`);
+      throw new Error("Booking not found");
+    }
+
+    if (!record.user) {
+      logger.error(`No user associated with booking ${this.targetBookingId}`);
+      throw new Error("Booking not found");
+    }
+
+    if (!record.eventTypeId) {
+      logger.error(`Booking ${this.targetBookingId} does not have an event type id`);
+      throw new Error("Event type not found");
+    }
+
+    return record;
+  }
+
+  private async loadEventTypeConfiguration(booking: NonNullable<Awaited<ReturnType<typeof this.fetchBookingData>>>) {
+    const config = await getEventTypesFromDB(booking.eventTypeId!);
+
+    if (!config) {
+      logger.error(`Event type ${booking.eventTypeId} not found`);
+      throw new Error("Event type not found");
+    }
+
+    const hostRecords = config.hosts.length > 0
+      ? config.hosts
+      : config.users.map((u) => ({
           user: u,
           isFixed: false,
           priority: 2,
@@ -91,342 +166,444 @@ export const roundRobinReassignUser = async (payload: RoundRobinReassignmentPayl
           schedule: null,
           createdAt: new Date(0),
         }));
-  };
 
-  eventType.hosts = normalizeEventTypeHosts(eventType);
+    if (hostRecords.length === 0) {
+      throw new Error(ErrorCode.EventTypeNoHosts);
+    }
 
-  if (eventType.hosts.length === 0) {
-    throw new Error(ErrorCode.EventTypeNoHosts);
+    return { ...config, hosts: hostRecords };
   }
 
-  const attendeeEmailSet = new Set(existingBooking!.attendees.map((a) => a.email));
-  const flexibleHosts = eventType.hosts.filter((h) => !h.isFixed);
+  private async prepareHostsWithCredentials(eventTypeConfig: Awaited<ReturnType<typeof this.loadEventTypeConfiguration>>) {
+    return enrichHostsWithDelegationCredentials({
+      orgId: null,
+      hosts: eventTypeConfig.hosts,
+    });
+  }
 
-  const identifyPreviousRoundRobinHost = () => {
-    const userIdMatch = flexibleHosts.find((h) => h.user.id === existingBooking!.userId);
-    if (userIdMatch) return userIdMatch.user;
+  private async analyzeReassignmentContext(
+    booking: NonNullable<Awaited<ReturnType<typeof this.fetchBookingData>>>,
+    eventTypeConfig: Awaited<ReturnType<typeof this.loadEventTypeConfiguration>>,
+    enrichedHosts: Awaited<ReturnType<typeof this.prepareHostsWithCredentials>>
+  ) {
+    const participantEmails = booking.attendees.map((a) => a.email);
+    const flexibleHostPool = eventTypeConfig.hosts.filter((h) => !h.isFixed);
 
-    const emailMatch = flexibleHosts.find((h) => attendeeEmailSet.has(h.user.email));
-    return emailMatch?.user;
-  };
+    const outgoingHost = (() => {
+      for (const hostEntry of flexibleHostPool) {
+        if (hostEntry.user.id === booking.userId) {
+          return hostEntry.user;
+        }
+      }
+      for (const hostEntry of flexibleHostPool) {
+        if (participantEmails.includes(hostEntry.user.email)) {
+          return hostEntry.user;
+        }
+      }
+      return undefined;
+    })();
 
-  const previousHost = identifyPreviousRoundRobinHost();
-  const previousHostTranslation = await getTranslation(previousHost?.locale || "en", "common");
+    const outgoingTranslation = await getTranslation(outgoingHost?.locale || "en", "common");
 
-  const hostsWithCredentials = await enrichHostsWithDelegationCredentials({
-    orgId: null,
-    hosts: eventType.hosts,
-  });
-
-  const buildEligibleHostPool = () => {
-    const excluded = new Set([existingBooking!.user.email]);
-    attendeeEmailSet.forEach((email) => excluded.add(email));
-
-    return hostsWithCredentials
-      .filter((h) => !excluded.has(h.user.email))
+    const excludedEmails = new Set([booking.user.email, ...participantEmails]);
+    const candidatePool = enrichedHosts
+      .filter((h) => !excludedEmails.has(h.user.email))
       .map((h) => ({
         ...h.user,
         isFixed: h.isFixed,
         priority: h?.priority ?? 2,
       }));
-  };
 
-  const eligibleHosts = buildEligibleHostPool();
+    return {
+      outgoingHost,
+      outgoingTranslation,
+      candidatePool,
+      participantEmails,
+    };
+  }
 
-  const availableHosts = await ensureAvailableUsers(
-    { ...eventType, users: eligibleHosts },
-    {
-      dateFrom: dayjs(existingBooking!.startTime).format(),
-      dateTo: dayjs(existingBooking!.endTime).format(),
-      timeZone: eventType.timeZone || existingBooking!.user.timeZone,
-    },
-    reassignmentLogger
-  );
+  private async selectReplacementHost(
+    eventTypeConfig: Awaited<ReturnType<typeof this.loadEventTypeConfiguration>>,
+    enrichedHosts: Awaited<ReturnType<typeof this.prepareHostsWithCredentials>>,
+    context: Awaited<ReturnType<typeof this.analyzeReassignmentContext>>,
+    booking: NonNullable<Awaited<ReturnType<typeof this.fetchBookingData>>>
+  ) {
+    const verifiedCandidates = await ensureAvailableUsers(
+      { ...eventTypeConfig, users: context.candidatePool },
+      {
+        dateFrom: dayjs(booking.startTime).format(),
+        dateTo: dayjs(booking.endTime).format(),
+        timeZone: eventTypeConfig.timeZone || booking.user.timeZone,
+      },
+      this.logContext
+    );
 
-  const newHost = await getLuckyUser({
-    availableUsers: availableHosts,
-    eventType: eventType,
-    allRRHosts: hostsWithCredentials.filter((h) => !h.isFixed),
-    routingFormResponse: null,
-  });
+    return getLuckyUser({
+      availableUsers: verifiedCandidates,
+      eventType: eventTypeConfig,
+      allRRHosts: enrichedHosts.filter((h) => !h.isFixed),
+      routingFormResponse: null,
+    });
+  }
 
-  const isOwnershipTransfer = !previousHost || existingBooking!.userId === previousHost.id;
-  const primaryOrganizer = isOwnershipTransfer ? newHost : existingBooking!.user;
-  const primaryOrganizerTranslation = await getTranslation(primaryOrganizer.locale || "en", "common");
+  private determineOperationMode(outgoingHost: any, currentUserId: number) {
+    return !outgoingHost || currentUserId === outgoingHost.id;
+  }
 
-  const originalTitle = existingBooking!.title;
-  let finalTitle = originalTitle;
-  let updatedLocation = existingBooking!.location;
-  let currentBooking = existingBooking!;
+  private async applyReassignment(
+    booking: NonNullable<Awaited<ReturnType<typeof this.fetchBookingData>>>,
+    eventTypeConfig: Awaited<ReturnType<typeof this.loadEventTypeConfiguration>>,
+    replacement: Awaited<ReturnType<typeof this.selectReplacementHost>>,
+    context: Awaited<ReturnType<typeof this.analyzeReassignmentContext>>,
+    isOwnershipChange: boolean
+  ) {
+    const leadOrganizer = isOwnershipChange ? replacement : booking.user;
+    const leadTranslation = await getTranslation(leadOrganizer.locale || "en", "common");
+    const replacementTranslation = await getTranslation(replacement.locale || "en", "common");
 
-  const newHostTranslation = await getTranslation(newHost.locale || "en", "common");
+    let revisedTitle = booking.title;
+    let revisedLocation = booking.location;
+    let persistedBooking = booking;
 
-  const teamMembersList = await getMembersInTeam({
-    eventTypeHosts: eventType.hosts,
-    attendees: existingBooking!.attendees,
-    organizer: primaryOrganizer,
-    previousHost: previousHost || null,
-    reassignedHost: newHost,
-  });
+    const teamComposition = await getMembersInTeam({
+      eventTypeHosts: eventTypeConfig.hosts,
+      attendees: booking.attendees,
+      organizer: leadOrganizer,
+      previousHost: context.outgoingHost || null,
+      reassignedHost: replacement,
+    });
 
-  const buildAttendeeList = async () => {
-    const teamEmails = new Set(teamMembersList.map((m) => m.email));
-    const hostEmails = new Set([newHost.email, previousHost?.email].filter(Boolean));
+    const externalAttendees = await this.compileExternalAttendees(
+      booking,
+      replacement,
+      context.outgoingHost,
+      teamComposition
+    );
 
-    const relevantAttendees = existingBooking!.attendees.filter(
-      (a) => !hostEmails.has(a.email) && !teamEmails.has(a.email)
+    if (isOwnershipChange) {
+      const titleUpdateResult = await this.recalculateBookingTitle(
+        booking,
+        eventTypeConfig,
+        replacement,
+        leadOrganizer,
+        leadTranslation,
+        teamComposition
+      );
+
+      revisedTitle = titleUpdateResult.title;
+      revisedLocation = titleUpdateResult.location;
+
+      persistedBooking = await prisma.booking.update({
+        where: { id: this.targetBookingId },
+        data: {
+          userId: replacement.id,
+          userPrimaryEmail: replacement.email,
+          title: revisedTitle,
+          idempotencyKey: KeyService.generate({
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            userId: replacement.id,
+            reassignedById: this.initiatorUserId,
+          }),
+        },
+        select: bookingSelect,
+      });
+    } else {
+      await this.swapAttendeeIdentity(booking, context.outgoingHost!, replacement);
+    }
+
+    return {
+      booking: persistedBooking,
+      title: revisedTitle,
+      location: revisedLocation,
+      organizer: leadOrganizer,
+      organizerTranslation: leadTranslation,
+      replacementTranslation,
+      teamComposition,
+      externalAttendees,
+      originalTitle: booking.title,
+    };
+  }
+
+  private async compileExternalAttendees(
+    booking: NonNullable<Awaited<ReturnType<typeof this.fetchBookingData>>>,
+    newHost: any,
+    oldHost: any,
+    teamMembers: any[]
+  ) {
+    const teamEmailIndex = new Set(teamMembers.map((m) => m.email));
+    const hostEmailIndex = new Set([newHost.email, oldHost?.email].filter(Boolean));
+
+    const externalParticipants = booking.attendees.filter(
+      (a) => !hostEmailIndex.has(a.email) && !teamEmailIndex.has(a.email)
     );
 
     return Promise.all(
-      relevantAttendees.map(async (a) => ({
-        email: a.email,
-        name: a.name,
-        timeZone: a.timeZone,
-        language: {
-          translate: await getTranslation(a.locale ?? "en", "common"),
-          locale: a.locale ?? "en",
-        },
-        phoneNumber: a.phoneNumber || undefined,
-      }))
+      externalParticipants.map(async (participant) => {
+        const localeTranslation = await getTranslation(participant.locale ?? "en", "common");
+        return {
+          email: participant.email,
+          name: participant.name,
+          timeZone: participant.timeZone,
+          language: { translate: localeTranslation, locale: participant.locale ?? "en" },
+          phoneNumber: participant.phoneNumber || undefined,
+        };
+      })
     );
-  };
+  }
 
-  const attendeeList = await buildAttendeeList();
-
-  if (isOwnershipTransfer) {
-    const responsesSchema = getBookingResponsesSchema({
-      bookingFields: eventType.bookingFields,
+  private async recalculateBookingTitle(
+    booking: any,
+    eventTypeConfig: any,
+    newHost: any,
+    organizer: any,
+    organizerTranslation: any,
+    teamMembers: any[]
+  ) {
+    const responseSchema = getBookingResponsesSchema({
+      bookingFields: eventTypeConfig.bookingFields,
       view: "reschedule",
     });
 
-    const parsedResponses = await responsesSchema
-      .safeParseAsync(existingBooking!.responses)
-      .then((r) => (r.success ? r.data : undefined));
+    const validationResult = await responseSchema.safeParseAsync(booking.responses);
+    const bookingData = validationResult.success ? validationResult.data : undefined;
 
-    const requiresOrganizerLocation = eventType.locations.some(
-      (l) => l.type === OrganizerDefaultConferencingAppType
+    const usesOrganizerDefaultLocation = eventTypeConfig.locations.some(
+      (loc) => loc.type === OrganizerDefaultConferencingAppType
     );
 
-    if (requiresOrganizerLocation) {
-      const newHostMeta = userMetadata.safeParse(newHost.metadata);
-      const conferenceLink = newHostMeta.success
-        ? newHostMeta.data?.defaultConferencingApp?.appLink
+    let computedLocation = booking.location;
+
+    if (usesOrganizerDefaultLocation) {
+      const metadataValidation = userMetadata.safeParse(newHost.metadata);
+      const appLink = metadataValidation.success
+        ? metadataValidation.data?.defaultConferencingApp?.appLink
         : undefined;
 
-      updatedLocation =
-        conferenceLink ||
-        getLocationValueForDB(
-          existingBooking!.location || "integrations:daily",
-          eventType.locations
-        ).bookingLocation;
+      computedLocation =
+        appLink ||
+        getLocationValueForDB(booking.location || "integrations:daily", eventTypeConfig.locations)
+          .bookingLocation;
     }
 
-    const durationMinutes = dayjs(existingBooking!.endTime).diff(existingBooking!.startTime, "minutes");
+    const eventDuration = dayjs(booking.endTime).diff(booking.startTime, "minutes");
 
-    finalTitle = getEventName({
-      attendeeName: parsedResponses?.name || "Nameless",
-      eventType: eventType.title,
-      eventName: eventType.eventName,
-      teamName: teamMembersList.length > 1 ? eventType.team?.name : null,
-      host: primaryOrganizer.name || "Nameless",
-      location: updatedLocation || "integrations:daily",
-      bookingFields: { ...parsedResponses },
-      eventDuration: durationMinutes,
-      t: primaryOrganizerTranslation,
+    const computedTitle = getEventName({
+      attendeeName: bookingData?.name || "Nameless",
+      eventType: eventTypeConfig.title,
+      eventName: eventTypeConfig.eventName,
+      teamName: teamMembers.length > 1 ? eventTypeConfig.team?.name : null,
+      host: organizer.name || "Nameless",
+      location: computedLocation || "integrations:daily",
+      bookingFields: { ...bookingData },
+      eventDuration,
+      t: organizerTranslation,
     });
 
-    currentBooking = await prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        userId: newHost.id,
-        userPrimaryEmail: newHost.email,
-        title: finalTitle,
-        idempotencyKey: KeyService.generate({
-          startTime: existingBooking!.startTime,
-          endTime: existingBooking!.endTime,
-          userId: newHost.id,
-          reassignedById,
-        }),
-      },
-      select: bookingSelect,
-    });
-  } else {
-    const previousHostAttendee = existingBooking!.attendees.find((a) => a.email === previousHost!.email);
+    return { title: computedTitle, location: computedLocation };
+  }
+
+  private async swapAttendeeIdentity(booking: any, outgoingHost: any, incomingHost: any) {
+    const targetAttendee = booking.attendees.find((a) => a.email === outgoingHost.email);
+    
     await prisma.attendee.update({
-      where: { id: previousHostAttendee!.id },
+      where: { id: targetAttendee!.id },
       data: {
-        name: newHost.name || "",
-        email: newHost.email,
-        timeZone: newHost.timeZone,
-        locale: newHost.locale,
+        name: incomingHost.name || "",
+        email: incomingHost.email,
+        timeZone: incomingHost.timeZone,
+        locale: incomingHost.locale,
       },
     });
   }
 
-  reassignmentLogger.info(`Successfully reassigned to user ${newHost.id}`);
-
-  await AssignmentReasonHandler.roundRobinReassignment({
-    bookingId,
-    reassignById: reassignedById,
-    reassignmentType: RRReassignmentType.ROUND_ROBIN,
-  });
-
-  const destinationCalendar = await getTargetCalendar({
-    eventType: eventType,
-    booking: currentBooking,
-    newUserId: newHost.id,
-    hasOrganizerChanged: isOwnershipTransfer,
-  });
-
-  const formerOrganizerCalendar = isOwnershipTransfer
-    ? await prisma.destinationCalendar.findFirst({
-        where: { userId: existingBooking!.user.id },
-      })
-    : null;
-
-  const buildCalendarEvent = (): CalendarEvent => ({
-    organizer: {
-      name: primaryOrganizer.name || "",
-      email: primaryOrganizer.email,
-      language: {
-        locale: primaryOrganizer.locale || "en",
-        translate: primaryOrganizerTranslation,
-      },
-      timeZone: primaryOrganizer.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(primaryOrganizer.timeFormat),
-    },
-    startTime: dayjs(currentBooking.startTime).utc().format(),
-    endTime: dayjs(currentBooking.endTime).utc().format(),
-    type: eventType.slug,
-    title: finalTitle,
-    description: eventType.description,
-    attendees: attendeeList,
-    uid: currentBooking.uid,
-    destinationCalendar,
-    team: {
-      members: teamMembersList,
-      name: eventType.team?.name || "",
-      id: eventType.team?.id || 0,
-    },
-    customInputs: isPrismaObjOrUndefined(currentBooking.customInputs),
-    ...getCalEventResponses({
-      bookingFields: eventType?.bookingFields ?? null,
-      booking: currentBooking,
-    }),
-    hideOrganizerEmail: eventType.hideOrganizerEmail,
-    customReplyToEmail: eventType?.customReplyToEmail,
-    location: updatedLocation,
-    ...(platformClientParams || {}),
-  });
-
-  const calEvent = buildCalendarEvent();
-
-  const credentials = await prisma.credential.findMany({
-    where: { userId: primaryOrganizer.id },
-    include: { user: { select: { email: true } } },
-  });
-
-  const enrichedPrimaryOrganizer = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
-    user: { ...primaryOrganizer, credentials },
-  });
-
-  const { evtWithAdditionalInfo } = await roundRobinReschedulingManager({
-    evt: calEvent,
-    rescheduleUid: currentBooking.uid,
-    newBookingId: undefined,
-    changedOrganizer: isOwnershipTransfer,
-    previousHostDestinationCalendar: formerOrganizerCalendar ? [formerOrganizerCalendar] : [],
-    initParams: {
-      user: enrichedPrimaryOrganizer,
-      eventType: eventType,
-    },
-    bookingId,
-    bookingLocation: updatedLocation,
-    bookingICalUID: currentBooking.iCalUID,
-    bookingMetadata: currentBooking.metadata,
-  });
-
-  const { cancellationReason: _, ...eventWithoutCancellation } = evtWithAdditionalInfo;
-
-  if (emailsEnabled) {
-    await RRScheduledEmailAndSMS({
-      calEvent: eventWithoutCancellation,
-      members: [
-        {
-          ...newHost,
-          name: newHost.name || "",
-          username: newHost.username || "",
-          timeFormat: getTimeFormatStringFromUserTimeFormat(newHost.timeFormat),
-          language: { translate: newHostTranslation, locale: newHost.locale || "en" },
-        },
-      ],
+  private async recordReassignmentReason() {
+    await AssignmentReasonHandler.roundRobinReassignment({
+      bookingId: this.targetBookingId,
+      reassignById: this.initiatorUserId,
+      reassignmentType: RRReassignmentType.ROUND_ROBIN,
     });
   }
 
-  if (previousHost) {
-    const cancellationEvent = cloneDeep(evtWithAdditionalInfo);
-    cancellationEvent.title = originalTitle;
+  private async orchestrateCalendarSync(
+    state: Awaited<ReturnType<typeof this.applyReassignment>>,
+    eventTypeConfig: any,
+    newHost: any,
+    isOwnershipChange: boolean,
+    originalBooking: any
+  ) {
+    const targetCalendar = await getTargetCalendar({
+      eventType: eventTypeConfig,
+      booking: state.booking,
+      newUserId: newHost.id,
+      hasOrganizerChanged: isOwnershipChange,
+    });
 
-    if (isOwnershipTransfer) {
-      cancellationEvent.organizer = {
-        name: previousHost.name || "",
-        email: previousHost.email,
+    const previousCalendar = isOwnershipChange
+      ? await prisma.destinationCalendar.findFirst({
+          where: { userId: originalBooking.user.id },
+        })
+      : null;
+
+    const calEventStructure: CalendarEvent = {
+      organizer: {
+        name: state.organizer.name || "",
+        email: state.organizer.email,
         language: {
-          locale: previousHost.locale || "en",
-          translate: previousHostTranslation,
+          locale: state.organizer.locale || "en",
+          translate: state.organizerTranslation,
         },
-        timeZone: previousHost.timeZone,
-        timeFormat: getTimeFormatStringFromUserTimeFormat(previousHost.timeFormat),
-      };
-    } else if (cancellationEvent.team) {
-      cancellationEvent.team.members = [
-        {
-          id: previousHost.id,
-          email: previousHost.email,
-          name: previousHost.name || "",
-          timeZone: previousHost.timeZone,
-          language: { translate: previousHostTranslation, locale: previousHost.locale || "en" },
-        },
-        ...(cancellationEvent.team.members || []).filter((m) => m.email !== newHost.email),
-      ];
-    }
+        timeZone: state.organizer.timeZone,
+        timeFormat: getTimeFormatStringFromUserTimeFormat(state.organizer.timeFormat),
+      },
+      startTime: dayjs(state.booking.startTime).utc().format(),
+      endTime: dayjs(state.booking.endTime).utc().format(),
+      type: eventTypeConfig.slug,
+      title: state.title,
+      description: eventTypeConfig.description,
+      attendees: state.externalAttendees,
+      uid: state.booking.uid,
+      destinationCalendar: targetCalendar,
+      team: {
+        members: state.teamComposition,
+        name: eventTypeConfig.team?.name || "",
+        id: eventTypeConfig.team?.id || 0,
+      },
+      customInputs: isPrismaObjOrUndefined(state.booking.customInputs),
+      ...getCalEventResponses({
+        bookingFields: eventTypeConfig?.bookingFields ?? null,
+        booking: state.booking,
+      }),
+      hideOrganizerEmail: eventTypeConfig.hideOrganizerEmail,
+      customReplyToEmail: eventTypeConfig?.customReplyToEmail,
+      location: state.location,
+      ...(this.platformParams || {}),
+    };
 
-    if (emailsEnabled) {
-      await RRCancelledEmailAndSMS(
-        cancellationEvent,
-        [
+    const organizerCredentials = await prisma.credential.findMany({
+      where: { userId: state.organizer.id },
+      include: { user: { select: { email: true } } },
+    });
+
+    const enrichedOrganizer = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+      user: { ...state.organizer, credentials: organizerCredentials },
+    });
+
+    const { evtWithAdditionalInfo } = await roundRobinReschedulingManager({
+      evt: calEventStructure,
+      rescheduleUid: state.booking.uid,
+      newBookingId: undefined,
+      changedOrganizer: isOwnershipChange,
+      previousHostDestinationCalendar: previousCalendar ? [previousCalendar] : [],
+      initParams: {
+        user: enrichedOrganizer,
+        eventType: eventTypeConfig,
+      },
+      bookingId: this.targetBookingId,
+      bookingLocation: state.location,
+      bookingICalUID: state.booking.iCalUID,
+      bookingMetadata: state.booking.metadata,
+    });
+
+    return {
+      enrichedEvent: evtWithAdditionalInfo,
+      plainEvent: (({ cancellationReason: _, ...rest }) => rest)(evtWithAdditionalInfo),
+    };
+  }
+
+  private async dispatchNotifications(
+    calendarData: Awaited<ReturnType<typeof this.orchestrateCalendarSync>>,
+    newHost: any,
+    context: Awaited<ReturnType<typeof this.analyzeReassignmentContext>>,
+    isOwnershipChange: boolean,
+    eventTypeConfig: any,
+    state: Awaited<ReturnType<typeof this.applyReassignment>>
+  ) {
+    if (this.shouldSendEmails) {
+      await RRScheduledEmailAndSMS({
+        calEvent: calendarData.plainEvent,
+        members: [
           {
-            ...previousHost,
-            name: previousHost.name || "",
-            username: previousHost.username || "",
-            timeFormat: getTimeFormatStringFromUserTimeFormat(previousHost.timeFormat),
-            language: { translate: previousHostTranslation, locale: previousHost.locale || "en" },
+            ...newHost,
+            name: newHost.name || "",
+            username: newHost.username || "",
+            timeFormat: getTimeFormatStringFromUserTimeFormat(newHost.timeFormat),
+            language: { translate: state.replacementTranslation, locale: newHost.locale || "en" },
           },
         ],
-        eventType?.metadata as EventTypeMetadata,
-        { name: newHost.name, email: newHost.email }
-      );
-    }
-  }
-
-  if (isOwnershipTransfer) {
-    const isFutureEvent = dayjs(calEvent.startTime).isAfter(dayjs());
-
-    if (emailsEnabled && isFutureEvent) {
-      await RRUpdatedEmailAndSMS({ calEvent: eventWithoutCancellation });
+      });
     }
 
-    await handleWorkflows(currentBooking, newHost, evtWithAdditionalInfo, eventType);
-  }
+    if (context.outgoingHost) {
+      const cancellationPayload = cloneDeep(calendarData.enrichedEvent);
+      cancellationPayload.title = state.originalTitle;
 
-  return {
-    bookingId,
-    reassignedTo: {
-      id: newHost.id,
-      name: newHost.name,
-      email: newHost.email,
-    },
-  };
+      if (isOwnershipChange) {
+        cancellationPayload.organizer = {
+          name: context.outgoingHost.name || "",
+          email: context.outgoingHost.email,
+          language: {
+            locale: context.outgoingHost.locale || "en",
+            translate: context.outgoingTranslation,
+          },
+          timeZone: context.outgoingHost.timeZone,
+          timeFormat: getTimeFormatStringFromUserTimeFormat(context.outgoingHost.timeFormat),
+        };
+      } else if (cancellationPayload.team) {
+        const updatedMembers = (cancellationPayload.team.members || []).filter(
+          (m) => m.email !== newHost.email
+        );
+        cancellationPayload.team.members = [
+          {
+            id: context.outgoingHost.id,
+            email: context.outgoingHost.email,
+            name: context.outgoingHost.name || "",
+            timeZone: context.outgoingHost.timeZone,
+            language: {
+              translate: context.outgoingTranslation,
+              locale: context.outgoingHost.locale || "en",
+            },
+          },
+          ...updatedMembers,
+        ];
+      }
+
+      if (this.shouldSendEmails) {
+        await RRCancelledEmailAndSMS(
+          cancellationPayload,
+          [
+            {
+              ...context.outgoingHost,
+              name: context.outgoingHost.name || "",
+              username: context.outgoingHost.username || "",
+              timeFormat: getTimeFormatStringFromUserTimeFormat(context.outgoingHost.timeFormat),
+              language: {
+                translate: context.outgoingTranslation,
+                locale: context.outgoingHost.locale || "en",
+              },
+            },
+          ],
+          eventTypeConfig?.metadata as EventTypeMetadata,
+          { name: newHost.name, email: newHost.email }
+        );
+      }
+    }
+
+    if (isOwnershipChange) {
+      const scheduledInFuture = dayjs(calendarData.plainEvent.startTime).isAfter(dayjs());
+
+      if (this.shouldSendEmails && scheduledInFuture) {
+        await RRUpdatedEmailAndSMS({ calEvent: calendarData.plainEvent });
+      }
+
+      await handleWorkflows(state.booking, newHost, calendarData.enrichedEvent, eventTypeConfig);
+    }
+  }
+}
+
+export const roundRobinReassignUser = async (payload: RoundRobinReassignmentPayload) => {
+  const manager = new BookingReassignmentManager(payload);
+  return manager.execute();
 };
 
 export default roundRobinReassignUser;
