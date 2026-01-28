@@ -842,7 +842,7 @@ model Attendee {
 
   @@index([email])
   @@index([bookingId])
-  @@index([bookingId, email]) // Composite index for JOIN queries filtering by attendee email
+  @@index([bookingId, email])
 }
 
 enum BookingStatus {
@@ -931,11 +931,10 @@ model Booking {
   @@index([status])
   @@index([startTime, endTime, status])
   @@index([fromReschedule])
-  // Composite indexes for common query patterns (added for scale optimization)
-  @@index([userId, endTime]) // For /bookings/upcoming queries filtering by user and endTime >= now
-  @@index([userId, status, startTime]) // For busy times and filtered booking queries
-  @@index([eventTypeId, status]) // For round-robin and team booking queries
-  @@index([userId, createdAt]) // For API queries with createdAt sorting
+  @@index([userId, endTime])
+  @@index([userId, status, startTime])
+  @@index([eventTypeId, status])
+  @@index([userId, createdAt])
 }
 
 model Tracking {
