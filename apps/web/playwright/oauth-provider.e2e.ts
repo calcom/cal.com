@@ -133,6 +133,7 @@ test.describe("OAuth Provider", () => {
     await page.goto(
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
     );
+    await expect(page).toHaveURL(/auth\/oauth2\/authorize/);
 
     await page.waitForSelector('[data-testid="allow-button"]');
 
