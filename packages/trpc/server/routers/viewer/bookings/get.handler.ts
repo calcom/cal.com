@@ -452,9 +452,7 @@ export async function getBookings({
         .select((eb) => [
           "Booking.id",
           "Booking.title",
-          "Booking.userPrimaryEmail",
           "Booking.description",
-          "Booking.customInputs",
           "Booking.startTime",
           "Booking.createdAt",
           "Booking.updatedAt",
@@ -510,18 +508,15 @@ export async function getBookings({
                 "EventType.slug",
                 "EventType.id",
                 "EventType.title",
-                "EventType.eventName",
                 "EventType.price",
                 "EventType.recurringEvent",
                 "EventType.currency",
                 "EventType.metadata",
-                "EventType.disableGuests",
                 "EventType.bookingFields",
                 "EventType.seatsPerTimeSlot",
                 "EventType.seatsShowAttendees",
                 "EventType.seatsShowAvailabilityCount",
                 "EventType.eventTypeColor",
-                "EventType.customReplyToEmail",
                 "EventType.allowReschedulingPastBookings",
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
@@ -576,34 +571,14 @@ export async function getBookings({
           ).as("eventType"),
           jsonArrayFrom(
             eb
-              .selectFrom("BookingReference")
-              .selectAll()
-              .whereRef("BookingReference.bookingId", "=", "Booking.id")
-          ).as("references"),
-          jsonArrayFrom(
-            eb
               .selectFrom("Payment")
-              .select([
-                "Payment.paymentOption",
-                "Payment.amount",
-                "Payment.currency",
-                "Payment.success",
-                "Payment.appId",
-                "Payment.refunded",
-              ])
+              .select(["Payment.paymentOption", "Payment.amount", "Payment.currency", "Payment.success"])
               .whereRef("Payment.bookingId", "=", "Booking.id")
           ).as("payment"),
           jsonObjectFrom(
             eb
               .selectFrom("users")
-              .select([
-                "users.id",
-                "users.name",
-                "users.email",
-                "users.avatarUrl",
-                "users.username",
-                "users.timeZone",
-              ])
+              .select(["users.id", "users.name", "users.email", "users.avatarUrl", "users.timeZone"])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(
