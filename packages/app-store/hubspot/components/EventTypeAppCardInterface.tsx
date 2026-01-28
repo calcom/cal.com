@@ -136,7 +136,27 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           />
         </Section.SubSection>
 
-<<<<<<< HEAD
+        <Section.SubSection>
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("on_booking_write_to_contact_record")}
+            optionEnabled={onBookingWriteToContactRecord}
+            writeToObjectData={onBookingWriteToContactRecordFields}
+            optionSwitchOnChange={(checked: boolean): void => {
+              setAppData("onBookingWriteToContactRecord", checked);
+            }}
+            updateWriteToObjectData={(data): void => setAppData("onBookingWriteToContactRecordFields", data)}
+            supportedFieldTypes={[
+              CrmFieldType.TEXT,
+              CrmFieldType.DATE,
+              CrmFieldType.PHONE,
+              CrmFieldType.CHECKBOX,
+              CrmFieldType.CUSTOM,
+            ]}
+            supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING]}
+          />
+        </Section.SubSection>
+
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
           <>
             <Section.SubSection>
@@ -177,28 +197,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             )}
           </>
         ) : null}
-=======
-        <Section.SubSection>
-          <WriteToObjectSettings
-            bookingAction={BookingActionEnum.ON_BOOKING}
-            optionLabel={t("on_booking_write_to_contact_record")}
-            optionEnabled={onBookingWriteToContactRecord}
-            writeToObjectData={onBookingWriteToContactRecordFields}
-            optionSwitchOnChange={(checked: boolean): void => {
-              setAppData("onBookingWriteToContactRecord", checked);
-            }}
-            updateWriteToObjectData={(data): void => setAppData("onBookingWriteToContactRecordFields", data)}
-            supportedFieldTypes={[
-              CrmFieldType.TEXT,
-              CrmFieldType.DATE,
-              CrmFieldType.PHONE,
-              CrmFieldType.CHECKBOX,
-              CrmFieldType.CUSTOM,
-            ]}
-            supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING]}
-          />
-        </Section.SubSection>
->>>>>>> 4aecc3862e (feat: hubspot write to contact record)
       </Section.Content>
     </AppCard>
   );
