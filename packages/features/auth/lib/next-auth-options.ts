@@ -2,6 +2,7 @@ import ImpersonationProvider from "@calid/features/modules/impersonation/Imperso
 import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { serialize } from "cookie";
 import { OAuth2Client } from "googleapis-common";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
@@ -17,6 +18,7 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { UsersRepository } from "@calcom/features/users/users.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -445,6 +447,7 @@ export const getOptions = ({
   cookies: Partial<{
     dub_id?: string;
     utm_params?: string;
+    last_active_throttle?: string;
   }>;
   res?: any;
 }): AuthOptions => ({
@@ -498,6 +501,26 @@ export const getOptions = ({
       account,
     }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
+      if (token.id && !cookies.last_active_throttle && res) {
+        waitUntil(new UsersRepository().updateLastActiveAt(token.id as number));
+        const useSecureCookies = WEBAPP_URL?.startsWith("https://");
+        const cookieValue = serialize("last_active_throttle", "1", {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: useSecureCookies,
+          path: "/",
+          maxAge: 12 * 60 * 60,
+        });
+        const existing = res.getHeader("Set-Cookie");
+        if (existing) {
+          res.setHeader(
+            "Set-Cookie",
+            Array.isArray(existing) ? [...existing, cookieValue] : [existing, cookieValue]
+          );
+        } else {
+          res.setHeader("Set-Cookie", [cookieValue]);
+        }
+      }
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
         return {
