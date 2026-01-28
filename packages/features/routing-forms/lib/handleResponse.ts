@@ -1,11 +1,10 @@
-import { z } from "zod";
-
 import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
 import {
   onSubmissionOfFormResponse,
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
@@ -15,7 +14,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-
+import { z } from "zod";
 import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
@@ -31,6 +30,7 @@ const _handleResponse = async ({
   queueFormResponse,
   fetchCrm,
   traceService,
+  routingFormTraceService,
 }: {
   response: Record<
     string,
@@ -48,6 +48,7 @@ const _handleResponse = async ({
   queueFormResponse?: boolean;
   fetchCrm?: boolean;
   traceService?: RoutingTraceService;
+  routingFormTraceService?: RoutingFormTraceService;
 }) => {
   try {
     if (!form.fields) {
@@ -151,7 +152,7 @@ const _handleResponse = async ({
                     },
                     {
                       enablePerf: true,
-                      routingTraceService: traceService,
+                      routingFormTraceService,
                     }
                   )
                 : null;
