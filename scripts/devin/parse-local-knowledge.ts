@@ -84,6 +84,53 @@ function parseRuleFile(filePath: string, fileName: string): DevinKnowledgeEntry 
   };
 }
 
+function parseKnowledgeBaseSections(filePath: string): DevinKnowledgeEntry[] {
+  const content = fs.readFileSync(filePath, "utf-8");
+  const entries: DevinKnowledgeEntry[] = [];
+
+  const sectionRegex = /^## (.+)$/gm;
+  const sections: { title: string; startIndex: number }[] = [];
+
+  let match;
+  while ((match = sectionRegex.exec(content)) !== null) {
+    sections.push({
+      title: match[1],
+      startIndex: match.index,
+    });
+  }
+
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i];
+    const nextSection = sections[i + 1];
+    const endIndex = nextSection ? nextSection.startIndex : content.length;
+    const sectionContent = content.substring(section.startIndex, endIndex).trim();
+
+    const title = section.title;
+    let triggerDescription = "";
+
+    if (title.toLowerCase().startsWith("when ")) {
+      triggerDescription = title;
+    } else if (title.toLowerCase().includes("error")) {
+      triggerDescription = `When handling errors in Cal.com: ${title}`;
+    } else if (title.toLowerCase().includes("file naming")) {
+      triggerDescription = `When creating or naming files in Cal.com`;
+    } else if (title.toLowerCase().includes("pull request") || title.toLowerCase().includes("pr")) {
+      triggerDescription = `When creating pull requests for Cal.com`;
+    } else {
+      triggerDescription = `When working on Cal.com and need guidance on: ${title}`;
+    }
+
+    entries.push({
+      name: title,
+      body: sectionContent,
+      trigger_description: triggerDescription,
+      folder: "Domain Knowledge",
+    });
+  }
+
+  return entries;
+}
+
 function parseCommandsFile(filePath: string): DevinKnowledgeEntry {
   const content = fs.readFileSync(filePath, "utf-8");
 
@@ -93,6 +140,18 @@ function parseCommandsFile(filePath: string): DevinKnowledgeEntry {
     trigger_description:
       "When you need to run commands in the Cal.com repository such as build, test, lint, type-check, database operations, or development server",
     folder: "Commands",
+  };
+}
+
+function parseCodingStandardsFile(filePath: string): DevinKnowledgeEntry {
+  const content = fs.readFileSync(filePath, "utf-8");
+
+  return {
+    name: "Cal.com Coding Standards & Best Practices",
+    body: content,
+    trigger_description:
+      "When writing code in the Cal.com repository, follow these coding standards for imports, code structure, ORM usage, and security rules",
+    folder: "Coding Standards",
   };
 }
 
@@ -107,8 +166,16 @@ function main() {
         description: "Engineering rules and standards for Cal.com development",
       },
       {
+        name: "Domain Knowledge",
+        description: "Product and domain-specific knowledge for Cal.com",
+      },
+      {
         name: "Commands",
         description: "Build, test, and development commands for Cal.com",
+      },
+      {
+        name: "Coding Standards",
+        description: "Coding standards and best practices for Cal.com",
       },
     ],
     knowledge: [],
@@ -125,10 +192,24 @@ function main() {
     }
   }
 
+  // Parse knowledge-base.md
+  const knowledgeBasePath = path.join(agentsDir, "knowledge-base.md");
+  if (fs.existsSync(knowledgeBasePath)) {
+    const sections = parseKnowledgeBaseSections(knowledgeBasePath);
+    output.knowledge.push(...sections);
+  }
+
   // Parse commands.md
   const commandsPath = path.join(agentsDir, "commands.md");
   if (fs.existsSync(commandsPath)) {
     const entry = parseCommandsFile(commandsPath);
+    output.knowledge.push(entry);
+  }
+
+  // Parse coding-standards.md
+  const codingStandardsPath = path.join(agentsDir, "coding-standards.md");
+  if (fs.existsSync(codingStandardsPath)) {
+    const entry = parseCodingStandardsFile(codingStandardsPath);
     output.knowledge.push(entry);
   }
 

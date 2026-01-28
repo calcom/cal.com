@@ -197,7 +197,7 @@ throw new Error(`Unable to create booking: User ${userId} has no available time 
 throw new Error("Booking failed");
 ```
 
-For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [quality-error-handling](agents/rules/quality-error-handling.md).
+For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [Error Types in knowledge-base.md](agents/knowledge-base.md#error-types).
 
 ### Good Prisma query
 
@@ -288,6 +288,8 @@ If someone says "platform OAuth client" then they mean the one in the "PlatformO
 
 For detailed information, see the `agents/` directory:
 
-- **[agents/README.md](agents/README.md)** - Rules index and architecture overview
-- **[agents/rules/](agents/rules/)** - Modular engineering rules (41 files)
+- **[agents/README.md](agents/README.md)** - Architecture overview and patterns
+- **[agents/rules/](agents/rules/)** - Modular engineering rules (performance, architecture, data layer, etc.)
 - **[agents/commands.md](agents/commands.md)** - Complete command reference
+- **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and best practices
+- **[agents/coding-standards.md](agents/coding-standards.md)** - Coding standards with examples
