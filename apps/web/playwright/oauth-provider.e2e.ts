@@ -137,7 +137,7 @@ test.describe("OAuth Provider", () => {
     await page.waitForSelector('[data-testid="allow-button"]');
 
     // Should show "Signed in as" with the user's name
-    await expect(page.getByText("Signed in as test user")).toBeVisible();
+    await expect(page.getByTestId("signed-in-user")).toBeVisible();
 
     // Account selector should not be present
     await expect(page.locator("#account-select")).not.toBeVisible();

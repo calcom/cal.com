@@ -186,7 +186,7 @@ export function Authorize() {
         </h1>
         {!show_account_selector && (
           <div className="flex flex-col justify-center items-center mb-6 text-sm text-gray-600">
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center" data-testid="signed-in-user">
               <Avatar
                 size="sm"
                 alt={user?.username ? t("avatar_of_username", { username: user.username }) : t("avatar")}
