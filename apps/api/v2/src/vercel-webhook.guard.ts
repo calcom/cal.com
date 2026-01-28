@@ -20,7 +20,7 @@ export class VercelWebhookGuard implements CanActivate {
       throw new UnauthorizedException("Missing x-vercel-signature header");
     }
 
-    // Get raw body from RawBodyMiddleware (Buffer) or string
+    // Get raw body from RawBodyMiddleware (Buffer) or parsed body (object in test env)
     const rawBody = request.body;
 
     if (!rawBody) {
@@ -28,8 +28,20 @@ export class VercelWebhookGuard implements CanActivate {
       throw new UnauthorizedException("Invalid request format");
     }
 
-    // RawBodyMiddleware provides a Buffer, compute signature from raw bytes
-    const expectedSignature = crypto.createHmac("sha1", webhookSecret).update(rawBody).digest("hex");
+    // Determine the body bytes for signature verification
+    // In production: RawBodyMiddleware provides a Buffer
+    // In tests: body may be a parsed object, convert back to JSON string
+    let bodyForSignature: Buffer | string;
+    if (Buffer.isBuffer(rawBody)) {
+      bodyForSignature = rawBody;
+    } else if (typeof rawBody === "string") {
+      bodyForSignature = rawBody;
+    } else {
+      // Object from parsed JSON - convert back to string (test environment)
+      bodyForSignature = JSON.stringify(rawBody);
+    }
+
+    const expectedSignature = crypto.createHmac("sha1", webhookSecret).update(bodyForSignature).digest("hex");
 
     // Check signature length first (timingSafeEqual throws if lengths differ)
     if (signature.length !== expectedSignature.length) {
