@@ -121,7 +121,7 @@ export class OrganizationsTeamsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/:teamId")
-  @Throttle({ limit: 1, ttl: 30000, blockDuration: 30000, name: "org_teams_delete" })
+  @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "org_teams_delete" })
   @ApiOperation({ summary: "Delete a team" })
   async deleteTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
